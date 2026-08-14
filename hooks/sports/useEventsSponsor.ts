@@ -1,53 +1,64 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs';
+import { tableSearchVariables } from '@/lib/data-table.config';
 import { getEventsSponsorMapping, saveEventsSponsorMapping, deactivateEventsSponsorMapping } from '@/server/sports/transactions/events-sponsor';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-export const useEventsSponsor = () => {
+export const useEventsSponsor = (searchParams?: any) => {
     const queryClient = useQueryClient();
 
-    const details = useQuery({
-        queryKey: ['events-sponsor-mapping-details'],
-        queryFn: () => getEventsSponsorMapping(),
+    const [page] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
+    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
+    const [sortBy] = useQueryState(tableSearchVariables.sort_column, parseAsString.withOptions({ shallow: false }).withDefault(''));
+    const [order] = useQueryState(tableSearchVariables.sort_direction, parseAsStringLiteral(['asc', 'desc'] as const).withOptions({ shallow: false }).withDefault('asc'));
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
+
+    const params = {
+        page: page,
+        page_size: pageSize,
+        sort_column: sortBy,
+        sort_direction: order,
+        search_query: searchQuery,
+    };
+
+    const loadData = useQuery({
+        queryKey: ['events-sponsor-details', page, pageSize, sortBy, order, searchQuery],
+        queryFn: () => getEventsSponsorMapping(params),
+        staleTime: 0
     });
 
-    const saveMutation = useMutation({
-        mutationFn: saveEventsSponsorMapping,
-        onSuccess: (data) => {
-            if (data.success) {
-                toast.success(data.message || 'Saved successfully');
-                queryClient.invalidateQueries({ queryKey: ['events-sponsor-mapping-details'] });
+    const save = useMutation({
+        mutationFn: (data: any) => saveEventsSponsorMapping(data),
+        onSuccess: (response: any) => {
+            if (response.success ?? true) {
+                toast.success(response.message || 'Saved successfully');
             } else {
-                toast.error(data.message || 'Failed to save');
+                toast.error(response.message || 'Failed to save');
             }
+            queryClient.invalidateQueries({ queryKey: ['events-sponsor-details'] });
         },
-        onError: (error: any) => {
-            toast.error(error.message || 'An error occurred');
-        }
     });
 
     const deactivateMutation = useMutation({
-        mutationFn: deactivateEventsSponsorMapping,
-        onSuccess: (data) => {
-            if (data.success) {
-                toast.success(data.message || 'Status updated successfully');
-                queryClient.invalidateQueries({ queryKey: ['events-sponsor-mapping-details'] });
+        mutationFn: (data: { spccesP_Id: number, spccesP_ActiveFlag: boolean }) => deactivateEventsSponsorMapping(data),
+        onSuccess: (response: any) => {
+            if (response.success ?? true) {
+                toast.success(response.message || 'Status updated successfully');
             } else {
-                toast.error(data.message || 'Failed to update status');
+                toast.error(response.message || 'Failed to update status');
             }
+            queryClient.invalidateQueries({ queryKey: ['events-sponsor-details'] });
         },
-        onError: (error: any) => {
-            toast.error(error.message || 'An error occurred');
-        }
     });
 
     return {
-        details,
-        saveMutation,
+        loadData,
+        save,
         deactivateMutation,
-        // For backward compatibility if needed, but we should refactor usages
-        data: details.data,
-        isLoading: details.isLoading,
-        error: details.error,
-        refetch: details.refetch
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: ['events-sponsor-details']
+            });
+        }
     };
 };

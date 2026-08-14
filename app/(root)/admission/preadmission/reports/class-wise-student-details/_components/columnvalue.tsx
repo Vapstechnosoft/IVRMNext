@@ -36,6 +36,14 @@ export const ColumnValue = [
         columnID: 'AMST_MotherTongue',
         columnName: 'Mother Tongue'
     },
+    // {
+    //     columnID: 'joinedyearname',
+    //     columnName: 'JoinedYear'
+    // },
+    // {
+    //     columnID: 'joinedclassname',
+    //     columnName: 'JoinedClass'
+    // },
     {
         columnID: 'AMST_MobileNo',
         columnName: 'Phone No.'

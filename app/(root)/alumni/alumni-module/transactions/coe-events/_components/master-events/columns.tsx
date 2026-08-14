@@ -12,27 +12,39 @@ import { useCallback } from 'react';
 export const MasterEventsColumns: ColumnDef<IMasterEvent>[] = [
     {
         accessorKey: 'sno',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
-        cell: (info) => info.row.index + 1,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='justify-center text-center font-bold text-black' />,
+        cell: (info) => <div className='text-center'>{info.row.index + 1}</div>,
         enableSorting: false
     },
     {
         accessorKey: 'coemE_EventName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Event Name' />,
-        cell: (info) => info.getValue() as string,
+        header: ({ column }) => (
+            <DataTableColumnHeader
+                column={column}
+                title='Event Name'
+                className='justify-center text-center font-bold text-black'
+            />
+        ),
+        cell: (info) => <div className='text-center'>{info.getValue() as string}</div>,
         enableSorting: true
     },
     {
         accessorKey: 'coemE_EventDesc',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Description' />,
+        header: ({ column }) => (
+            <DataTableColumnHeader
+                column={column}
+                title='Description'
+                className='justify-center text-center font-bold text-black'
+            />
+        ),
         cell: (info) => {
             const desc = info.getValue() as string | null;
-            return <div className='max-w-md truncate'>{desc || '-'}</div>;
+            return <div className='mx-auto max-w-md truncate text-center'>{desc || '-'}</div>;
         }
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center font-bold text-black' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
@@ -71,16 +83,14 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterEvent }) {
     );
 
     return (
-        <div className='flex items-center justify-center gap-2'>
-            <Button variant='ghost' size='icon' onClick={() => handleView(rowData)} title='View Mappings'>
-                <Eye className='h-4 w-4 text-primary' />
-            </Button>
+        <div className='flex justify-center'>
             <ActionButtons
                 rowData={rowData}
-                buttons={{ edit: true, toggle: true, delete: true }}
+                buttons={{ edit: true, toggle: true, delete: true, view: true }}
                 onEdit={handleEdit}
                 onToggle={handleToggle}
-                //onDelete={handleDelete}
+                onDelete={handleDelete}
+                onView={handleView}
                 toggleConditionKey='coemE_ActiveFlag'
             />
         </div>

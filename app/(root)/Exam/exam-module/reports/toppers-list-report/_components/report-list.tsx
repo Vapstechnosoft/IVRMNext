@@ -145,7 +145,9 @@ export const ReportList: React.FC<ReportListProps> = ({ data, institution, subje
 
     // Filter Logic
     const filteredData = data.filter(
-        (item) => item.studentname.toLowerCase().includes(searchTerm.toLowerCase()) || String(item.admno).toLowerCase().includes(searchTerm.toLowerCase())
+        (item) =>
+            item.studentname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            String(item.admno).toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     if (!data || data.length === 0) return null;

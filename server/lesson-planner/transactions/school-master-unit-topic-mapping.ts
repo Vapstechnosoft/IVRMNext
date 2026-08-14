@@ -23,5 +23,5 @@ export async function saveMapping(data: any) {
 // Deactivate/Activate mapping
 export async function deactivateMapping(data: any) {
     const { LPMU_Id, LPMT_Id, LPMTU_Id } = data;
-    return await api.post<any>(baseUrl, `/SchoolMasterUnit/deactivatemapping`, { LPMU_Id, LPMT_Id, LPMTU_Id });
+    return await api.post<any>(baseUrl, `/SchoolMasterUnit/deactivatemapping?LPMU_Id=${LPMU_Id}&LPMT_Id=${LPMT_Id}&LPMTU_Id=${LPMTU_Id}`);
 }

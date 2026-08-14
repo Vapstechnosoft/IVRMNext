@@ -1,1042 +1,1440 @@
-'use client';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { FormError } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { zodResolver } from '@hookform/resolvers/zod';
+"use client";
+import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { FormError, Label } from "@/components/ui/extension/field";
+import { InputText } from "@/components/ui/extension/input-text";
 import {
-    ArrowLeft,
-    ArrowRight,
-    Briefcase,
-    FileImage,
-    GraduationCap,
-    MessageSquare,
-    Plus,
-    Save,
-    Trash2,
-    Upload,
-    User,
-    Users,
-    X
-} from 'lucide-react';
-import { useState } from 'react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
-import { toast } from 'sonner';
-import { z } from 'zod';
-import type { Candidate, DocumentDetail, ExperienceDetail, FamilyDetail, LanguageDetail, QualificationDetail } from './columns';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Briefcase,
+  FileImage,
+  GraduationCap,
+  MessageSquare,
+  Plus,
+  Save,
+  Trash2,
+  Upload,
+  User,
+  Users,
+  X,
+} from "lucide-react";
+import { DatePicker } from "@/components/ui/date-picker";
+import { useEffect, useState } from "react";
+import { Controller, type SubmitHandler, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+import type {
+  Candidate,
+  DocumentDetail,
+  ExperienceDetail,
+  FamilyDetail,
+  LanguageDetail,
+  QualificationDetail,
+} from "./columns";
+import {
+  useGetCandidateDetails,
+  useSaveOrUpdateCandidate,
+} from "@/hooks/hrms/recruitment/transactions/useTransactions";
+import { validatePANNumber } from "@/schemas/hrms/employee-register-schemas";
+
 const candidateSchema = z.object({
-    firstName: z.string().min(1, 'First Name is required'),
-    middleName: z.string().optional(),
-    lastName: z.string().min(1, 'Last Name is required'),
-    skill: z.string().min(1, 'Skill is required'),
-    mobileNo: z.string().min(1, 'Mobile No is required'),
-    emailId: z.string().email('Invalid email').min(1, 'Email Id is required'),
-    qualification: z.string().min(1, 'Qualification is required'),
-    jobTitle: z.string().min(1, 'Job Title is required'),
-    currentCompany: z.string().optional(),
-    totalExp: z.string().min(1, 'Total Experience is required'),
-    lastCTC: z.string().min(1, 'Last CTC is required'),
-    expectedCTC: z.string().min(1, 'Expected CTC is required'),
-    applicationDate: z.string().min(1, 'Application Date is required'),
-    interviewDate: z.string().min(1, 'Interview Date is required'),
-    dateOfBirth: z.string().min(1, 'Date of Birth is required'),
-    nationality: z.string().min(1, 'Nationality is required'),
-    religion: z.string().min(1, 'Religion is required'),
-    caste: z.string().min(1, 'Caste is required'),
-    gender: z.string().min(1, 'Gender is required'),
-    maritalStatus: z.string().min(1, 'Marital Status is required'),
-    bloodGroup: z.string().min(1, 'Blood Group is required'),
-    positionType: z.string().min(1, 'Position Type is required'),
-    position: z.string().min(1, 'Position is required'),
-    aadharNo: z.string().optional(),
-    panCardNo: z.string().optional(),
-    refHR: z.string().min(1, 'Ref. Employee is required'),
-    source: z.string().optional(),
-    remark: z.string().optional(),
-    consultency: z.string().optional(),
-    resumeCV: z.string().optional(),
-    localAddressLine1: z.string().min(1, 'Local Address Line 1 is required'),
-    localAddressLine2: z.string().optional(),
-    localPlace: z.string().min(1, 'Local Place is required'),
-    localPincode: z.string().min(1, 'Local Pincode is required'),
-    permanentAddressLine1: z.string().min(1, 'Permanent Address Line 1 is required'),
-    permanentAddressLine2: z.string().optional(),
-    permanentPlace: z.string().min(1, 'Permanent Place is required'),
-    permanentPincode: z.string().min(1, 'Permanent Pincode is required'),
-    sameAsLocalAddress: z.boolean().optional()
+  firstName: z.string().min(1, "First Name is required"),
+  middleName: z.string().optional(),
+  lastName: z.string().min(1, "Last Name is required"),
+  skill: z.string().min(1, "Skill is required"),
+  mobileNo: z
+    .string()
+    .min(10, "Mobile No must be 10 digits")
+    .max(10, "Mobile No must be 10 digits")
+    .regex(/^[0-9]+$/, "Only numbers are allowed"),
+  emailId: z
+    .string()
+    .min(1, "Email Id is required")
+    .regex(
+      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+      "Please enter a valid email address (e.g. name@example.com)",
+    ),
+  qualification: z.string().min(1, "Qualification is required"),
+  jobPortalName: z.string().optional(),
+  currentCompany: z.string().min(1, "Current Company is required"),
+  totalExp: z
+    .string()
+    .min(1, "Total Experience is required")
+    .regex(/^[0-9.]+$/, "Only numbers and decimals are allowed"),
+  lastCTC: z
+    .string()
+    .min(1, "Last CTC is required")
+    .regex(/^[0-9]+$/, "Only numbers are allowed"),
+  expectedCTC: z
+    .string()
+    .min(1, "Expected CTC is required")
+    .regex(/^[0-9]+$/, "Only numbers are allowed"),
+  applicationDate: z.string().min(1, "Application Date is required"),
+  interviewDate: z.string().min(1, "Interview Date is required"),
+  dateOfBirth: z.string().min(1, "Date of Birth is required"),
+  nationality: z.string().min(1, "Nationality is required"),
+  religion: z.string().min(1, "Religion is required"),
+  caste: z.string().min(1, "Caste is required"),
+  gender: z.string().min(1, "Gender is required"),
+  maritalStatus: z.string().min(1, "Marital Status is required"),
+  bloodGroup: z.string().min(1, "Blood Group is required"),
+  jobTitle: z.string().min(1, "Job Title is required"),
+  positionType: z.string().min(1, "Position Type is required"),
+  aadharNo: z
+    .string()
+    .min(12, "Aadhar No must be 12 digits")
+    .max(12, "Aadhar No must be 12 digits")
+    .regex(/^[0-9]+$/, "Only numbers are allowed"),
+  panCardNo: z
+    .string()
+    .min(1, 'PAN Card No. Required')
+    .max(10, 'PAN Card No. must not exceed 10 characters')
+    .refine((val) => validatePANNumber(val), 'PAN Card No. must be in valid format (e.g., ABCDE1234F)'),
+  refCode: z.string().optional(),
+  source: z.string().optional(),
+  remark: z.string().optional(),
+  resumeCV: z.string().optional(),
+  photo: z.string().optional(),
+  localAddressLine1: z.string().min(1, "Local Address Line 1 is required"),
+  localAddressLine2: z.string().optional(),
+  localPlace: z.string().min(1, "Local Place is required"),
+  localPincode: z
+    .string()
+    .min(6, "Pincode must be 6 digits")
+    .max(6, "Pincode must be 6 digits")
+    .regex(/^[0-9]+$/, "Only numbers are allowed"),
+  permanentAddressLine1: z
+    .string()
+    .min(1, "Permanent Address Line 1 is required"),
+  permanentAddressLine2: z.string().optional(),
+  permanentPlace: z.string().min(1, "Permanent Place is required"),
+  permanentPincode: z
+    .string()
+    .min(6, "Pincode must be 6 digits")
+    .max(6, "Pincode must be 6 digits")
+    .regex(/^[0-9]+$/, "Only numbers are allowed"),
+  sameAsLocalAddress: z.boolean().optional(),
 });
 type FormFields = z.infer<typeof candidateSchema>;
+import {
+  useGenderDropdown,
+  useMaritalStatusDropdown,
+  useReligionDropdown,
+  useCasteCategoryDropdown,
+  useBloodGroupDropdown,
+  useCountryDropdown,
+  useEmployeeTypeDropdown,
+} from "@/hooks/hrms/useEmployeeRegister";
+import {
+  useGetMasterJobGrid,
+  useGetMasterPositionGrid,
+  useGetMasterPositionTypeGrid,
+} from "@/hooks/hrms/recruitment/masters/useMasters";
+import { useMasterCourse } from "@/hooks/hrms/useMasters";
+import { RefreshCw } from "lucide-react";
+import { usePositionTypeDropdown } from "@/hooks/hrms/recruitment/masterDropDown/useMasterDropDown";
+import { Spinner } from "@/components/ui/spinner";
+
 interface AddCandidateFormProps {
-    rowData?: Candidate | null;
-    onSuccess?: () => void;
-    onCancel?: () => void;
-    className?: string;
+  rowData?: Candidate | null;
+  onSuccess?: () => void;
+  onCancel?: () => void;
+  className?: string;
 }
-const tabs = [
-    { id: 'candidate', name: 'Candidate', icon: User },
-    { id: 'qualification', name: 'Qualification', icon: GraduationCap },
-    { id: 'experience', name: 'Experience', icon: Briefcase },
-    { id: 'family', name: 'Family', icon: Users },
-    { id: 'language', name: 'Language', icon: MessageSquare },
-    { id: 'documents', name: 'Documents', icon: FileImage }
-];
-export default function AddCandidateForm({ rowData, onSuccess, onCancel, className = '' }: AddCandidateFormProps) {
-    const [currentTab, setCurrentTab] = useState('candidate');
-    const [qualifications, setQualifications] = useState<QualificationDetail[]>([]);
-    const [experiences, setExperiences] = useState<ExperienceDetail[]>([]);
-    const [familyMembers, setFamilyMembers] = useState<FamilyDetail[]>([]);
-    const [languages, setLanguages] = useState<LanguageDetail[]>([]);
-    const [documents, setDocuments] = useState<DocumentDetail[]>([]);
-    const [hasExperience, setHasExperience] = useState(false);
-    const {
-        control,
-        register,
-        handleSubmit,
-        reset,
-        setValue,
-        watch,
-        formState: { errors, isSubmitting }
-    } = useForm<FormFields>({
-        resolver: zodResolver(candidateSchema),
-        mode: 'onChange',
-        defaultValues: {
-            sameAsLocalAddress: false,
-            applicationDate: new Date().toISOString().split('T')[0],
-            interviewDate: new Date().toISOString().split('T')[0]
-        }
-    });
-    const sameAsLocalAddress = watch('sameAsLocalAddress');
-    const onSubmit: SubmitHandler<FormFields> = async (data) => {
-        try {
-            // TODO: Replace with actual API call
-            const _candidateData = {
-                ...data,
-                qualifications,
-                experiences,
-                familyMembers,
-                languages,
-                documents,
-                status: 'New'
-            };
-            toast.success(rowData ? 'Candidate updated successfully' : 'Candidate added successfully');
+
+export default function AddCandidateForm({
+  rowData,
+  onSuccess,
+  onCancel,
+  className = "",
+}: AddCandidateFormProps) {
+  const [currentTab, setCurrentTab] = useState("candidate");
+  const [qualifications, setQualifications] = useState<QualificationDetail[]>(
+    [],
+  );
+  const [experiences, setExperiences] = useState<ExperienceDetail[]>([]);
+  const [familyMembers, setFamilyMembers] = useState<FamilyDetail[]>([]);
+  const [languages, setLanguages] = useState<LanguageDetail[]>([]);
+  const [documents, setDocuments] = useState<DocumentDetail[]>([]);
+  const [hasExperience, setHasExperience] = useState(false);
+
+  const {
+    control,
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<FormFields>({
+    resolver: zodResolver(candidateSchema),
+    mode: "onChange",
+    defaultValues: {
+      sameAsLocalAddress: false,
+    },
+  });
+
+  const { mutate: saveCandidate, isPending: isMutationPending } =
+    useSaveOrUpdateCandidate();
+  const { data: detailsResponse, isLoading: isLoadingDetails } =
+    useGetCandidateDetails(rowData?.hrcD_Id || 0);
+  const candidateDetails = detailsResponse?.data;
+
+  useEffect(() => {
+    setHasResetForm(false);
+  }, [rowData?.hrcD_Id]);
+
+
+
+  // --- Dropdown Hooks ---
+  const { data: nationalities, isLoading: isLoadingNationalities } =
+    useCountryDropdown();
+  const { data: religions, isLoading: isLoadingReligions } =
+    useReligionDropdown();
+  const selectedReligion = watch("religion");
+  console.log("selectedReligion", selectedReligion)
+  const { data: castes, isLoading: isLoadingCastes } =
+    useCasteCategoryDropdown(selectedReligion);
+
+    console.log("castes", castes)
+  const { data: genders, isLoading: isLoadingGenders } = useGenderDropdown();
+  const { data: maritalStatuses, isLoading: isLoadingMaritalStatuses } =
+    useMaritalStatusDropdown();
+  const { data: bloodGroups, isLoading: isLoadingBloodGroups } =
+    useBloodGroupDropdown();
+
+  const { data: jobGrid, isLoading: isLoadingJobs } = useGetMasterJobGrid();
+  const { data: positionTypes, isLoading: isLoadingPositionTypes } =
+    usePositionTypeDropdown();
+  const { data: courses, isLoading: isLoadingCourses } = useMasterCourse();
+
+  const [hasResetForm, setHasResetForm] = useState(false);
+
+  const religionValueInDetails = (candidateDetails?.hrcD_Religion ?? candidateDetails?.hrcD_ReligionId ?? candidateDetails?.HRCD_Religion ?? candidateDetails?.hrcd_religion);
+
+  const isInitialDataLoading = rowData ? (
+    isLoadingDetails ||
+    !hasResetForm ||
+    isLoadingNationalities ||
+    isLoadingReligions ||
+    (!!religionValueInDetails && (isLoadingCastes || !selectedReligion)) ||
+    isLoadingGenders ||
+    isLoadingMaritalStatuses ||
+    isLoadingBloodGroups ||
+    isLoadingJobs ||
+    isLoadingPositionTypes ||
+    isLoadingCourses
+  ) : false;
+
+  // Format data for Select components - using key/value pattern from API with robust data extraction
+  const extractData = (res: any) => {
+    if (!res) return [];
+    const data = res.data || res;
+    if (Array.isArray(data)) return data;
+    if (data?.$values && Array.isArray(data.$values)) return data.$values;
+    return [];
+  };
+
+  const nationalityOptions = extractData(nationalities).map(
+    (n: any, index: number) => ({
+      label: n.value || n.ivrmmC_CountryName,
+      value: (n.key || n.ivrmmC_Id).toString(),
+    }),
+  );
+
+  const religionOptions = extractData(religions).map(
+    (r: any, index: number) => ({
+      label: r.value || r.ivrmmR_Name,
+      value: (r.key || r.ivrmmR_Id).toString(),
+    }),
+  );
+
+
+
+  const casteOptions = extractData(castes).map((c: any, index: number) => ({
+    label: c.value || c.imcC_CategoryName,
+    value: (c.key || c.imcC_Id).toString(),
+  }));
+
+  console.log("casteID", casteOptions)
+
+  const genderOptions = extractData(genders).map((g: any, index: number) => ({
+    label: g.value || g.ivrmmG_GenderName,
+    value: (g.key || g.ivrmmG_Id).toString(),
+  }));
+
+  const maritalStatusOptions = extractData(maritalStatuses).map(
+    (m: any, index: number) => ({
+      label: m.value || m.ivrmmS_MaritalStatus,
+      value: (m.key || m.ivrmmS_Id).toString(),
+    }),
+  );
+
+  const bloodGroupOptions = extractData(bloodGroups).map(
+    (b: any, index: number) => ({
+      label: b.value || b.ivrmmB_BloodGroupName,
+      value: (b.value || b.ivrmmB_BloodGroupName).toString(),
+    }),
+  );
+
+  const jobOptions = extractData(jobGrid).map((j: any, index: number) => ({
+    label: j.value || j.hrmJ_JobTiTle,
+    value: (j.key || j.hrmJ_Id).toString(),
+  }));
+
+  console.log("positionTypes", positionTypes);
+
+  const positionTypeOptions = extractData(positionTypes).map(
+    (pt: any, index: number) => ({
+      label: pt.value || pt.hrmpT_Name,
+      value: (pt.key || pt.hrmpT_Id).toString(),
+    }),
+  );
+
+  const qualificationOptions = extractData(courses).map(
+    (c: any, index: number) => ({
+      label: c.value || c.hrmC_QulaificationName,
+      value: (c.key || c.hrmC_Id).toString(),
+    }),
+  );
+
+  const sameAsLocalAddress = watch("sameAsLocalAddress");
+  const localAddressLine1 = watch("localAddressLine1");
+  const localAddressLine2 = watch("localAddressLine2");
+  const localPlace = watch("localPlace");
+  const localPincode = watch("localPincode");
+
+  useEffect(() => {
+    if (sameAsLocalAddress) {
+      setValue("permanentAddressLine1", localAddressLine1 || "");
+      setValue("permanentAddressLine2", localAddressLine2 || "");
+      setValue("permanentPlace", localPlace || "");
+      setValue("permanentPincode", localPincode || "");
+    }
+  }, [
+    sameAsLocalAddress,
+    localAddressLine1,
+    localAddressLine2,
+    localPlace,
+    localPincode,
+    setValue,
+  ]);
+
+  const tabs = [{ id: "candidate", name: "Candidate", icon: User }];
+
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [resumeName, setResumeName] = useState<string | null>(null);
+
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    fieldName: keyof FormFields,
+  ) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Check file size (optional but recommended)
+      const maxSize = fieldName === "photo" ? 2 * 1024 * 1024 : 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        toast.error(`File size exceeds ${maxSize / (1024 * 1024)}MB limit`);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result as string;
+        // For base64, we often need to strip the prefix for some APIs,
+        // but usually the full data URL is fine.
+        // Let's keep the full data URL for now as it's common in this project.
+        setValue(fieldName, base64 as any);
+        if (fieldName === "photo") setPhotoPreview(base64);
+        if (fieldName === "resumeCV") setResumeName(file.name);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  useEffect(() => {
+    console.log("candidateDetails", candidateDetails);
+    if (candidateDetails) {
+      reset({
+        firstName: candidateDetails.hrcD_FirstName || "",
+        middleName: candidateDetails.hrcD_MiddleName || "",
+        lastName: candidateDetails.hrcD_LastName || "",
+        skill: candidateDetails.hrcD_Skills || "",
+        mobileNo: candidateDetails.hrcD_MobileNo?.toString() || "",
+        emailId: candidateDetails.hrcD_EmailId || "",
+        qualification: candidateDetails.hrmC_Id?.toString() || "",
+        jobPortalName: candidateDetails.hrcD_JobPortalName || "",
+        currentCompany: candidateDetails.hrcD_CurrentCompany || "",
+        totalExp: candidateDetails.hrcD_ExpFrom?.toString() || "",
+        lastCTC: candidateDetails.hrcD_LastCTC?.toString() || "",
+        expectedCTC: candidateDetails.hrcD_ExpectedCTC?.toString() || "",
+        applicationDate: candidateDetails.hrcD_AppDate
+          ? candidateDetails.hrcD_AppDate.split("T")[0]
+          : "",
+        interviewDate: candidateDetails.hrcD_InterviewDate
+          ? candidateDetails.hrcD_InterviewDate.split("T")[0]
+          : "",
+        dateOfBirth: candidateDetails.hrcD_DOB
+          ? candidateDetails.hrcD_DOB.split("T")[0]
+          : "",
+        nationality: (candidateDetails.hrcD_NationalityId ?? candidateDetails.HRCD_NationalityId ?? candidateDetails.hrcd_nationalityid)?.toString() || "",
+        religion: (candidateDetails.hrcD_Religion ?? candidateDetails.hrcD_ReligionId ?? candidateDetails.HRCD_Religion ?? candidateDetails.hrcd_religion)?.toString() || "",
+        caste: (candidateDetails.hrcD_CasteId ?? candidateDetails.HRCD_CasteId ?? candidateDetails.hrcd_casteid)?.toString() || "",
+        gender: (candidateDetails.ivrmmG_Id ?? candidateDetails.IVRMMG_Id ?? candidateDetails.ivrmmg_id)?.toString() || "",
+        maritalStatus: (candidateDetails.hrcD_MaritalStatus ?? candidateDetails.hrcD_MaritalStatusId ?? candidateDetails.HRCD_MaritalStatus ?? candidateDetails.hrcd_maritalstatus)?.toString() || "",
+        bloodGroup: candidateDetails.hrcD_BloodGroup || "",
+        jobTitle: candidateDetails.hrmJ_Id?.toString() || "",
+        positionType: candidateDetails.hrmpT_Id?.toString() || "",
+        aadharNo: candidateDetails.hrcD_AadharNo?.toString() || "",
+        panCardNo: candidateDetails.hrcD_PAN || "",
+        refCode: candidateDetails.hrcD_RefCode || "",
+        source: candidateDetails.hrcD_ResumeSource || "",
+        remark: candidateDetails.hrcD_Remarks || "",
+        localAddressLine1: candidateDetails.hrcD_AddressLocal || "",
+        localAddressLine2: candidateDetails.hrcD_AddressLocal2 || "",
+        localPlace: candidateDetails.hrcD_AddLocalPlace || "",
+        localPincode: candidateDetails.hrcD_AddLocalPIN?.toString() || "",
+        permanentAddressLine1: candidateDetails.hrcD_AddressPermanent || "",
+        permanentAddressLine2: candidateDetails.hrcD_AddressPermanent2 || "",
+        permanentPlace: candidateDetails.hrcD_AddPermanentPlace || "",
+        permanentPincode:
+          candidateDetails.hrcD_AddPermanentPIN?.toString() || "",
+        sameAsLocalAddress:
+          candidateDetails.hrcD_AddressLocal ===
+          candidateDetails.hrcD_AddressPermanent &&
+          !!candidateDetails.hrcD_AddressLocal,
+      });
+      if (candidateDetails.hrcD_Photo)
+        setPhotoPreview(candidateDetails.hrcD_Photo);
+      setHasResetForm(true);
+    } else if (!rowData) {
+      reset({
+        sameAsLocalAddress: false,
+      });
+      setPhotoPreview(null);
+      setResumeName(null);
+      setHasResetForm(true); // Treat as "reset" even for new forms once we've initialized
+    }
+  }, [candidateDetails, rowData, nationalities, religions, castes, genders, maritalStatuses, bloodGroups, reset]);
+
+  const onSubmit: SubmitHandler<FormFields> = async (data) => {
+    console.log("Form Data", data);
+    try {
+      const payload = {
+        HRCD_Id: rowData?.hrcD_Id || 0,
+        HRMPT_Id: parseInt(data.positionType),
+        HRMC_Id: parseInt(data.qualification),
+        HRCD_MRFNO: (candidateDetails as any)?.hrcD_MRFNO || 0,
+
+        HRCD_FirstName: data.firstName,
+        HRCD_MiddleName: data.middleName || "",
+        HRCD_LastName: data.lastName,
+
+        HRMJ_Id: parseInt(data.jobTitle),
+        HRCD_Skills: data.skill,
+
+        HRCD_DOB: data.dateOfBirth
+          ? new Date(data.dateOfBirth).toISOString()
+          : null,
+
+        IVRMMG_Id: parseInt(data.gender),
+
+        HRCD_MobileNo: data.mobileNo ? Number(data.mobileNo) : 0,
+        HRCD_EmailId: data.emailId,
+
+        HRCD_ExpFrom: data.totalExp ? Number(data.totalExp) : 0,
+        HRCD_ExpTo: (candidateDetails as any)?.hrcD_ExpTo || 0,
+
+        HRCD_CurrentCompany: data.currentCompany,
+
+        HRCD_ResumeSource: data.source || "",
+        HRCD_JobPortalName: data.jobPortalName || "",
+        HRCD_RefCode: data.refCode || "",
+
+        HRCD_LastCTC: data.lastCTC ? Number(data.lastCTC) : 0,
+        HRCD_ExpectedCTC: data.expectedCTC ? Number(data.expectedCTC) : 0,
+
+        HRCD_AppDate: data.applicationDate
+          ? new Date(data.applicationDate).toISOString()
+          : null,
+
+        HRCD_InterviewDate: data.interviewDate
+          ? new Date(data.interviewDate).toISOString()
+          : null,
+
+        HRCD_NoticePeriod: (candidateDetails as any)?.hrcD_NoticePeriod || 0,
+        HRCD_Remarks: data.remark || "",
+
+        HRCD_Resume: data.resumeCV || "",
+        HRCD_RecruitmentStatus: "InProgress",
+        HRCD_ActiveFlg: true,
+
+        HRCD_Photo: data.photo || "",
+
+        // ⚠️ safer to send as string (avoids bigint issues)
+        HRCD_AadharNo: data.aadharNo,
+
+        HRCD_PAN: data.panCardNo || "",
+
+        HRCD_AddressLocal: data.localAddressLine1,
+        HRCD_AddressLocal2: data.localAddressLine2 || "",
+        HRCD_AddLocalPlace: data.localPlace,
+        HRCD_AddLocalPIN: data.localPincode ? Number(data.localPincode) : 0,
+
+        HRCD_AddressPermanent: data.permanentAddressLine1,
+        HRCD_AddressPermanent2: data.permanentAddressLine2 || "",
+        HRCD_AddPermanentPlace: data.permanentPlace,
+        HRCD_AddPermanentPIN: data.permanentPincode
+          ? Number(data.permanentPincode)
+          : 0,
+
+        HRCD_NatureOfWork: (candidateDetails as any)?.hrcD_NatureOfWork || "",
+        HRCD_ScopeOfService:
+          (candidateDetails as any)?.hrcD_ScopeOfService || "",
+        HRCD_NationalityId: Number(data.nationality),
+        HRCD_CasteId: Number(data.caste),
+        HRCD_Religion: Number(data.religion),
+        HRCD_MaritalStatus: Number(data.maritalStatus),
+        HRCD_BloodGroup: data.bloodGroup,
+      };
+      console.log("payload", payload);
+
+      saveCandidate(payload, {
+        onSuccess: (res) => {
+          if (res.success) {
             reset();
             onSuccess?.();
-        } catch (error: any) {
-            toast.error(error.message || 'Failed to save candidate');
-        }
-    };
-    const handleClear = () => {
-        reset();
-        setQualifications([]);
-        setExperiences([]);
-        setFamilyMembers([]);
-        setLanguages([]);
-        setDocuments([]);
-        setHasExperience(false);
-        toast.info('Form cleared');
-    };
-    const addQualification = () => {
-        setQualifications([
-            ...qualifications,
-            {
-                id: qualifications.length + 1,
-                qualification: '',
-                board: '',
-                year: '',
-                percentage: ''
-            }
-        ]);
-    };
-    const removeQualification = (index: number) => {
-        setQualifications(qualifications.filter((_, i) => i !== index));
-    };
-    const addExperience = () => {
-        setExperiences([
-            ...experiences,
-            {
-                id: experiences.length + 1,
-                company: '',
-                designation: '',
-                from: '',
-                to: '',
-                experience: ''
-            }
-        ]);
-    };
-    const removeExperience = (index: number) => {
-        setExperiences(experiences.filter((_, i) => i !== index));
-    };
-    const addFamilyMember = () => {
-        setFamilyMembers([
-            ...familyMembers,
-            {
-                id: familyMembers.length + 1,
-                name: '',
-                relation: '',
-                occupation: '',
-                contactNo: ''
-            }
-        ]);
-    };
-    const removeFamilyMember = (index: number) => {
-        setFamilyMembers(familyMembers.filter((_, i) => i !== index));
-    };
-    const addLanguage = () => {
-        setLanguages([
-            ...languages,
-            {
-                id: languages.length + 1,
-                language: '',
-                read: false,
-                write: false,
-                speak: false
-            }
-        ]);
-    };
-    const removeLanguage = (index: number) => {
-        setLanguages(languages.filter((_, i) => i !== index));
-    };
-    const addDocument = () => {
-        setDocuments([
-            ...documents,
-            {
-                id: documents.length + 1,
-                documentType: '',
-                fileName: '',
-                filePath: ''
-            }
-        ]);
-    };
-    const removeDocument = (index: number) => {
-        setDocuments(documents.filter((_, i) => i !== index));
-    };
-    const handlePrevious = () => {
-        const currentIndex = tabs.findIndex((tab) => tab.id === currentTab);
-        if (currentIndex > 0) {
-            setCurrentTab(tabs[currentIndex - 1].id);
-        }
-    };
-    const handleNext = () => {
-        const currentIndex = tabs.findIndex((tab) => tab.id === currentTab);
-        if (currentIndex < tabs.length - 1) {
-            setCurrentTab(tabs[currentIndex + 1].id);
-        }
-    };
-    return (
-        <form onSubmit={handleSubmit(onSubmit)} className={`flex flex-col gap-4 ${className}`}>
-            <Tabs value={currentTab} onValueChange={setCurrentTab} className='w-full'>
-                <TabsList className='grid w-full grid-cols-6'>
-                    {tabs.map((tab) => {
-                        const Icon = tab.icon;
-                        return (
-                            <TabsTrigger key={tab.id} value={tab.id} className='flex items-center gap-2'>
-                                <Icon className='h-4 w-4' />
-                                {tab.name}
-                            </TabsTrigger>
-                        );
-                    })}
-                </TabsList>
-                {/* Candidate Tab */}
-                <TabsContent value='candidate' className='space-y-4'>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
-                        <InputText
-                            label='First Name'
-                            required
-                            placeholder='Enter first name'
-                            {...register('firstName')}
-                            error={errors.firstName?.message}
-                        />
-                        <InputText label='Middle Name' placeholder='Enter middle name' {...register('middleName')} />
-                        <InputText
-                            label='Last Name'
-                            required
-                            placeholder='Enter last name'
-                            {...register('lastName')}
-                            error={errors.lastName?.message}
-                        />
-                        <InputText label='Skill' required placeholder='Enter skills' {...register('skill')} error={errors.skill?.message} />
-                        <InputText
-                            label='Mobile No'
-                            required
-                            placeholder='Enter mobile number'
-                            {...register('mobileNo')}
-                            error={errors.mobileNo?.message}
-                        />
-                        <InputText
-                            label='Email Id'
-                            required
-                            type='email'
-                            placeholder='Enter email'
-                            {...register('emailId')}
-                            error={errors.emailId?.message}
-                        />
-                        <div className='space-y-2'>
-                            <label className='block font-medium text-sm'>
-                                Qualification <span className='text-red-500'>*</span>
-                            </label>
-                            <Controller
-                                name='qualification'
-                                control={control}
-                                render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder='--Select--' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value='UG'>UG</SelectItem>
-                                            <SelectItem value='PG'>PG</SelectItem>
-                                            <SelectItem value='PhD'>PhD</SelectItem>
-                                            <SelectItem value='Diploma'>Diploma</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                            {errors.qualification && <FormError>{errors.qualification.message}</FormError>}
-                        </div>
-                        <InputText label='Job Portal Name' placeholder='Enter job portal name' {...register('currentCompany')} />
-                        <InputText label='Current Company' placeholder='Enter current company' {...register('currentCompany')} />
-                        <InputText
-                            label='Total Exp.'
-                            required
-                            placeholder='Enter total experience'
-                            {...register('totalExp')}
-                            error={errors.totalExp?.message}
-                        />
-                        <InputText
-                            label='Last CTC'
-                            required
-                            placeholder='Enter last CTC'
-                            {...register('lastCTC')}
-                            error={errors.lastCTC?.message}
-                        />
-                        <InputText
-                            label='Expected CTC'
-                            required
-                            placeholder='Enter expected CTC'
-                            {...register('expectedCTC')}
-                            error={errors.expectedCTC?.message}
-                        />
-                        <div className='space-y-2'>
-                            <label className='block font-medium text-sm'>
-                                Application Date <span className='text-red-500'>*</span>
-                            </label>
-                            <InputText type='date' {...register('applicationDate')} error={errors.applicationDate?.message} />
-                        </div>
-                        <div className='space-y-2'>
-                            <label className='block font-medium text-sm'>
-                                Interview Date <span className='text-red-500'>*</span>
-                            </label>
-                            <InputText type='date' {...register('interviewDate')} error={errors.interviewDate?.message} />
-                        </div>
-                        <div className='space-y-2'>
-                            <label className='block font-medium text-sm'>
-                                Date of Birth <span className='text-red-500'>*</span>
-                            </label>
-                            <InputText type='date' {...register('dateOfBirth')} error={errors.dateOfBirth?.message} />
-                        </div>
-                        <div className='space-y-2'>
-                            <label className='block font-medium text-sm'>
-                                Nationality <span className='text-red-500'>*</span>
-                            </label>
-                            <Controller
-                                name='nationality'
-                                control={control}
-                                render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder='--Select--' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value='India'>India</SelectItem>
-                                            <SelectItem value='Other'>Other</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                            {errors.nationality && <FormError>{errors.nationality.message}</FormError>}
-                        </div>
-                        <div className='space-y-2'>
-                            <label className='block font-medium text-sm'>
-                                Religion <span className='text-red-500'>*</span>
-                            </label>
-                            <Controller
-                                name='religion'
-                                control={control}
-                                render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder='--Select--' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value='HINDU'>HINDU</SelectItem>
-                                            <SelectItem value='MUSLIM'>MUSLIM</SelectItem>
-                                            <SelectItem value='CHRISTIAN'>CHRISTIAN</SelectItem>
-                                            <SelectItem value='SIKH'>SIKH</SelectItem>
-                                            <SelectItem value='OTHER'>OTHER</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                            {errors.religion && <FormError>{errors.religion.message}</FormError>}
-                        </div>
-                        <div className='space-y-2'>
-                            <label className='block font-medium text-sm'>
-                                Caste <span className='text-red-500'>*</span>
-                            </label>
-                            <Controller
-                                name='caste'
-                                control={control}
-                                render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder='--Select--' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value='General'>General</SelectItem>
-                                            <SelectItem value='OBC'>OBC</SelectItem>
-                                            <SelectItem value='SC'>SC</SelectItem>
-                                            <SelectItem value='ST'>ST</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                            {errors.caste && <FormError>{errors.caste.message}</FormError>}
-                        </div>
-                        <div className='space-y-2'>
-                            <label className='block font-medium text-sm'>
-                                Gender <span className='text-red-500'>*</span>
-                            </label>
-                            <Controller
-                                name='gender'
-                                control={control}
-                                render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder='--Select--' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value='MALE'>MALE</SelectItem>
-                                            <SelectItem value='FEMALE'>FEMALE</SelectItem>
-                                            <SelectItem value='OTHER'>OTHER</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                            {errors.gender && <FormError>{errors.gender.message}</FormError>}
-                        </div>
-                        <div className='space-y-2'>
-                            <label className='block font-medium text-sm'>
-                                Marital Status <span className='text-red-500'>*</span>
-                            </label>
-                            <Controller
-                                name='maritalStatus'
-                                control={control}
-                                render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder='--Select--' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value='MARRIED'>MARRIED</SelectItem>
-                                            <SelectItem value='SINGLE'>SINGLE</SelectItem>
-                                            <SelectItem value='DIVORCED'>DIVORCED</SelectItem>
-                                            <SelectItem value='WIDOWED'>WIDOWED</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                            {errors.maritalStatus && <FormError>{errors.maritalStatus.message}</FormError>}
-                        </div>
-                        <div className='space-y-2'>
-                            <label className='block font-medium text-sm'>
-                                Blood Group <span className='text-red-500'>*</span>
-                            </label>
-                            <Controller
-                                name='bloodGroup'
-                                control={control}
-                                render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder='--Select--' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value='A+'>A+</SelectItem>
-                                            <SelectItem value='A-'>A-</SelectItem>
-                                            <SelectItem value='B+'>B+</SelectItem>
-                                            <SelectItem value='B-'>B-</SelectItem>
-                                            <SelectItem value='AB+'>AB+</SelectItem>
-                                            <SelectItem value='AB-'>AB-</SelectItem>
-                                            <SelectItem value='O+'>O+</SelectItem>
-                                            <SelectItem value='O-'>O-</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                            {errors.bloodGroup && <FormError>{errors.bloodGroup.message}</FormError>}
-                        </div>
-                        <div className='space-y-2'>
-                            <label className='block font-medium text-sm'>
-                                Job Title <span className='text-red-500'>*</span>
-                            </label>
-                            <Controller
-                                name='jobTitle'
-                                control={control}
-                                render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder='--Select--' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value='Software Engineer'>Software Engineer</SelectItem>
-                                            <SelectItem value='Hardware Engineer'>Hardware Engineer</SelectItem>
-                                            <SelectItem value='IT Executive'>IT Executive</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                            {errors.jobTitle && <FormError>{errors.jobTitle.message}</FormError>}
-                        </div>
-                        <div className='space-y-2'>
-                            <label className='block font-medium text-sm'>
-                                Position Type <span className='text-red-500'>*</span>
-                            </label>
-                            <Controller
-                                name='positionType'
-                                control={control}
-                                render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder='--Select--' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value='Permanent'>Permanent</SelectItem>
-                                            <SelectItem value='Contract'>Contract</SelectItem>
-                                            <SelectItem value='Part-time'>Part-time</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                            {errors.positionType && <FormError>{errors.positionType.message}</FormError>}
-                        </div>
-                        <div className='space-y-2'>
-                            <label className='block font-medium text-sm'>
-                                Position <span className='text-red-500'>*</span>
-                            </label>
-                            <Controller
-                                name='position'
-                                control={control}
-                                render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder='--Select--' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value='Junior'>Junior</SelectItem>
-                                            <SelectItem value='Senior'>Senior</SelectItem>
-                                            <SelectItem value='Lead'>Lead</SelectItem>
-                                            <SelectItem value='Manager'>Manager</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                            {errors.position && <FormError>{errors.position.message}</FormError>}
-                        </div>
-                        <InputText label='Aadhar No' placeholder='Enter Aadhar number' {...register('aadharNo')} />
-                        <InputText label='PAN Card No' placeholder='Enter PAN number' {...register('panCardNo')} />
-                        <div className='space-y-2'>
-                            <label className='block font-medium text-sm'>
-                                Ref. Employee <span className='text-red-500'>*</span>
-                            </label>
-                            <Controller
-                                name='refHR'
-                                control={control}
-                                render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder='--Select--' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value='HR1'>HR Manager 1</SelectItem>
-                                            <SelectItem value='HR2'>HR Manager 2</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                            {errors.refHR && <FormError>{errors.refHR.message}</FormError>}
-                        </div>
-                        <InputText label='Source' placeholder='Enter source' {...register('source')} />
-                        <InputText label='Remark' placeholder='Enter remark' {...register('remark')} />
-                        <div className='space-y-2'>
-                            <label className='block font-medium text-sm'>Consultency</label>
-                            <Controller
-                                name='consultency'
-                                control={control}
-                                render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder='--Select--' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value='Internal'>Internal</SelectItem>
-                                            <SelectItem value='External'>External</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                        </div>
-                        <div className='space-y-2'>
-                            <label className='block font-medium text-sm'>
-                                Resume/CV <span className='text-red-500'>*</span>
-                            </label>
-                            <div className='flex items-center gap-3'>
-                                <Button type='button' variant='outline' size='sm'>
-                                    <Upload className='mr-2 h-4 w-4' />
-                                    Choose File
-                                </Button>
-                                <span className='text-muted-foreground text-sm'>No file chosen</span>
-                            </div>
-                        </div>
-                    </div>
-                    {/* Photo Upload */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className='text-sm'>Upload Photo</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className='flex items-center gap-4'>
-                                <div className='flex h-32 w-32 items-center justify-center rounded-lg border-2 border-gray-300 border-dashed'>
-                                    <div className='text-center'>
-                                        <Upload className='mx-auto h-8 w-8 text-gray-400' />
-                                        <p className='mt-2 text-gray-500 text-xs'>Upload Photo</p>
-                                    </div>
-                                </div>
-                                <Button type='button' variant='outline'>
-                                    Choose File
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-                    {/* Address Section */}
-                    <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className='text-sm'>LOCAL ADDRESS</CardTitle>
-                            </CardHeader>
-                            <CardContent className='space-y-4'>
-                                <InputText
-                                    label='Address Line 1'
-                                    required
-                                    placeholder='Enter address line 1'
-                                    {...register('localAddressLine1')}
-                                    error={errors.localAddressLine1?.message}
-                                />
-                                <InputText label='Address Line 2' placeholder='Enter address line 2' {...register('localAddressLine2')} />
-                                <InputText
-                                    label='Place'
-                                    required
-                                    placeholder='Enter place'
-                                    {...register('localPlace')}
-                                    error={errors.localPlace?.message}
-                                />
-                                <InputText
-                                    label='Pincode'
-                                    required
-                                    placeholder='Enter pincode'
-                                    {...register('localPincode')}
-                                    error={errors.localPincode?.message}
-                                />
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className='flex items-center gap-2 text-sm'>
-                                    PERMANENT ADDRESS
-                                    <div className='flex items-center gap-2'>
-                                        <Checkbox
-                                            checked={sameAsLocalAddress}
-                                            onCheckedChange={(checked) => setValue('sameAsLocalAddress', !!checked)}
-                                        />
-                                        <span className='text-xs'>Same as Local Address ?</span>
-                                    </div>
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className='space-y-4'>
-                                <InputText
-                                    label='Address Line 1'
-                                    required
-                                    placeholder='Enter address line 1'
-                                    {...register('permanentAddressLine1')}
-                                    error={errors.permanentAddressLine1?.message}
-                                    disabled={sameAsLocalAddress}
-                                />
-                                <InputText
-                                    label='Address Line 2'
-                                    placeholder='Enter address line 2'
-                                    {...register('permanentAddressLine2')}
-                                    disabled={sameAsLocalAddress}
-                                />
-                                <InputText
-                                    label='Place'
-                                    required
-                                    placeholder='Enter place'
-                                    {...register('permanentPlace')}
-                                    error={errors.permanentPlace?.message}
-                                    disabled={sameAsLocalAddress}
-                                />
-                                <InputText
-                                    label='Pincode'
-                                    required
-                                    placeholder='Enter pincode'
-                                    {...register('permanentPincode')}
-                                    error={errors.permanentPincode?.message}
-                                    disabled={sameAsLocalAddress}
-                                />
-                            </CardContent>
-                        </Card>
-                    </div>
-                </TabsContent>
-                {/* Qualification Tab */}
-                <TabsContent value='qualification' className='space-y-4'>
-                    <Card>
-                        <CardHeader className='flex flex-row items-center justify-between'>
-                            <CardTitle className='text-sm'>CANDIDATE QUALIFICATION DETAILS</CardTitle>
-                            <Button type='button' onClick={addQualification} size='sm'>
-                                <Plus className='h-4 w-4' />
-                            </Button>
-                        </CardHeader>
-                        <CardContent>
-                            <div className='space-y-4'>
-                                {qualifications.map((qual, index) => (
-                                    <div key={index} className='grid grid-cols-1 gap-4 rounded-lg border p-4 md:grid-cols-5'>
-                                        <div className='font-medium'>Serial No. {qual.id}</div>
-                                        <InputText
-                                            placeholder='Course*'
-                                            value={qual.qualification}
-                                            onChange={(e) => {
-                                                const newQuals = [...qualifications];
-                                                newQuals[index].qualification = e.target.value;
-                                                setQualifications(newQuals);
-                                            }}
-                                        />
-                                        <InputText
-                                            placeholder='Board Name*'
-                                            value={qual.board}
-                                            onChange={(e) => {
-                                                const newQuals = [...qualifications];
-                                                newQuals[index].board = e.target.value;
-                                                setQualifications(newQuals);
-                                            }}
-                                        />
-                                        <InputText
-                                            placeholder='Year Of Passing*'
-                                            value={qual.year}
-                                            onChange={(e) => {
-                                                const newQuals = [...qualifications];
-                                                newQuals[index].year = e.target.value;
-                                                setQualifications(newQuals);
-                                            }}
-                                        />
-                                        <Button
-                                            type='button'
-                                            variant='ghost'
-                                            size='sm'
-                                            onClick={() => removeQualification(index)}
-                                            className='text-red-600 hover:text-red-800'>
-                                            <Trash2 className='h-4 w-4' />
-                                        </Button>
-                                    </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-                {/* Experience Tab */}
-                <TabsContent value='experience' className='space-y-4'>
-                    <div className='flex items-center gap-2'>
-                        <Checkbox checked={hasExperience} onCheckedChange={(checked) => setHasExperience(!!checked)} />
-                        <label className='font-medium text-sm'>Candidate Having Experience?</label>
-                    </div>
-                    {hasExperience && (
-                        <Card>
-                            <CardHeader className='flex flex-row items-center justify-between'>
-                                <CardTitle className='text-sm'>CANDIDATE EXPERIENCE DETAILS</CardTitle>
-                                <Button type='button' onClick={addExperience} size='sm'>
-                                    <Plus className='h-4 w-4' />
-                                </Button>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='space-y-4'>
-                                    {experiences.map((exp, index) => (
-                                        <div key={index} className='grid grid-cols-1 gap-4 rounded-lg border p-4 md:grid-cols-6'>
-                                            <div className='font-medium'>Serial No. {exp.id}</div>
-                                            <InputText
-                                                placeholder='Company Name'
-                                                value={exp.company}
-                                                onChange={(e) => {
-                                                    const newExps = [...experiences];
-                                                    newExps[index].company = e.target.value;
-                                                    setExperiences(newExps);
-                                                }}
-                                            />
-                                            <InputText
-                                                placeholder='Designation'
-                                                value={exp.designation}
-                                                onChange={(e) => {
-                                                    const newExps = [...experiences];
-                                                    newExps[index].designation = e.target.value;
-                                                    setExperiences(newExps);
-                                                }}
-                                            />
-                                            <InputText
-                                                type='date'
-                                                placeholder='Date of Join'
-                                                value={exp.from}
-                                                onChange={(e) => {
-                                                    const newExps = [...experiences];
-                                                    newExps[index].from = e.target.value;
-                                                    setExperiences(newExps);
-                                                }}
-                                            />
-                                            <InputText
-                                                type='date'
-                                                placeholder='Date of Leave'
-                                                value={exp.to}
-                                                onChange={(e) => {
-                                                    const newExps = [...experiences];
-                                                    newExps[index].to = e.target.value;
-                                                    setExperiences(newExps);
-                                                }}
-                                            />
-                                            <Button
-                                                type='button'
-                                                variant='ghost'
-                                                size='sm'
-                                                onClick={() => removeExperience(index)}
-                                                className='text-red-600 hover:text-red-800'>
-                                                <Trash2 className='h-4 w-4' />
-                                            </Button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
-                </TabsContent>
-                {/* Family Tab */}
-                <TabsContent value='family' className='space-y-4'>
-                    <Card>
-                        <CardHeader className='flex flex-row items-center justify-between'>
-                            <CardTitle className='text-sm'>CANDIDATE FAMILY DETAILS</CardTitle>
-                            <Button type='button' onClick={addFamilyMember} size='sm'>
-                                <Plus className='h-4 w-4' />
-                            </Button>
-                        </CardHeader>
-                        <CardContent>
-                            <div className='space-y-4'>
-                                {familyMembers.map((member, index) => (
-                                    <div key={index} className='grid grid-cols-1 gap-4 rounded-lg border p-4 md:grid-cols-6'>
-                                        <div className='font-medium'>Serial No. {member.id}</div>
-                                        <InputText
-                                            placeholder='Family Member Name*'
-                                            value={member.name}
-                                            onChange={(e) => {
-                                                const newMembers = [...familyMembers];
-                                                newMembers[index].name = e.target.value;
-                                                setFamilyMembers(newMembers);
-                                            }}
-                                        />
-                                        <InputText
-                                            placeholder='Relationship*'
-                                            value={member.relation}
-                                            onChange={(e) => {
-                                                const newMembers = [...familyMembers];
-                                                newMembers[index].relation = e.target.value;
-                                                setFamilyMembers(newMembers);
-                                            }}
-                                        />
-                                        <InputText
-                                            placeholder='Occupation*'
-                                            value={member.occupation}
-                                            onChange={(e) => {
-                                                const newMembers = [...familyMembers];
-                                                newMembers[index].occupation = e.target.value;
-                                                setFamilyMembers(newMembers);
-                                            }}
-                                        />
-                                        <InputText
-                                            placeholder='Work Place'
-                                            value={member.contactNo}
-                                            onChange={(e) => {
-                                                const newMembers = [...familyMembers];
-                                                newMembers[index].contactNo = e.target.value;
-                                                setFamilyMembers(newMembers);
-                                            }}
-                                        />
-                                        <Button
-                                            type='button'
-                                            variant='ghost'
-                                            size='sm'
-                                            onClick={() => removeFamilyMember(index)}
-                                            className='text-red-600 hover:text-red-800'>
-                                            <Trash2 className='h-4 w-4' />
-                                        </Button>
-                                    </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-                {/* Language Tab */}
-                <TabsContent value='language' className='space-y-4'>
-                    <Card>
-                        <CardHeader className='flex flex-row items-center justify-between'>
-                            <CardTitle className='text-sm'>CANDIDATE LANGUAGE DETAILS</CardTitle>
-                            <Button type='button' onClick={addLanguage} size='sm'>
-                                <Plus className='h-4 w-4' />
-                            </Button>
-                        </CardHeader>
-                        <CardContent>
-                            <div className='space-y-4'>
-                                {languages.map((lang, index) => (
-                                    <div key={index} className='grid grid-cols-1 gap-4 rounded-lg border p-4 md:grid-cols-5'>
-                                        <div className='font-medium'>Serial No. {lang.id}</div>
-                                        <InputText
-                                            placeholder='To Read'
-                                            value={lang.language}
-                                            onChange={(e) => {
-                                                const newLangs = [...languages];
-                                                newLangs[index].language = e.target.value;
-                                                setLanguages(newLangs);
-                                            }}
-                                        />
-                                        <InputText
-                                            placeholder='To Write'
-                                            value={lang.language}
-                                            onChange={(e) => {
-                                                const newLangs = [...languages];
-                                                newLangs[index].language = e.target.value;
-                                                setLanguages(newLangs);
-                                            }}
-                                        />
-                                        <InputText
-                                            placeholder='To Speak'
-                                            value={lang.language}
-                                            onChange={(e) => {
-                                                const newLangs = [...languages];
-                                                newLangs[index].language = e.target.value;
-                                                setLanguages(newLangs);
-                                            }}
-                                        />
-                                        <Button
-                                            type='button'
-                                            variant='ghost'
-                                            size='sm'
-                                            onClick={() => removeLanguage(index)}
-                                            className='text-red-600 hover:text-red-800'>
-                                            <Trash2 className='h-4 w-4' />
-                                        </Button>
-                                    </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-                {/* Documents Tab */}
-                <TabsContent value='documents' className='space-y-4'>
-                    <div className='text-red-500 text-xs'>
-                        <p>* File Must Be Upload jpeg, Png, pdf, Document</p>
-                        <p>* File size should be less than 5 MB</p>
-                    </div>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className='text-sm'>Final Submission</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className='space-y-4'>
-                                {documents.map((doc, index) => (
-                                    <div key={index} className='grid grid-cols-1 gap-4 rounded-lg border p-4 md:grid-cols-5'>
-                                        <div className='font-medium'>Sl.No. {doc.id}</div>
-                                        <Button type='button' variant='outline' className='bg-yellow-400 text-black'>
-                                            Choose File
-                                        </Button>
-                                        <div>View</div>
-                                        <InputText
-                                            placeholder='Remark'
-                                            value={doc.documentType}
-                                            onChange={(e) => {
-                                                const newDocs = [...documents];
-                                                newDocs[index].documentType = e.target.value;
-                                                setDocuments(newDocs);
-                                            }}
-                                        />
-                                        <Button
-                                            type='button'
-                                            variant='ghost'
-                                            size='sm'
-                                            onClick={() => removeDocument(index)}
-                                            className='text-red-600 hover:text-red-800'>
-                                            <Trash2 className='h-4 w-4' />
-                                        </Button>
-                                    </div>
-                                ))}
-                                <Button type='button' onClick={addDocument} size='sm'>
-                                    <Plus className='h-4 w-4' />
-                                    Add Document
-                                </Button>
-                            </div>
-                            <div className='mt-6 rounded-lg bg-gray-50 p-4'>
-                                <div className='space-y-2 text-sm'>
-                                    <p>
-                                        I consent to the collection and use of my personal data in accordance with the company's privacy
-                                        policy.
-                                    </p>
-                                    <p>I acknowledge that I have received and understood the company's code of conduct.</p>
-                                    <p>I agree to comply with all company policies and procedures.</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-            </Tabs>
-            {/* Form Actions */}
-            <div className='flex flex-row items-center justify-center gap-2 border-t pt-6'>
-                <Button type='button' variant='outline' onClick={onCancel} disabled={isSubmitting}>
-                    <X className='mr-2 h-4 w-4' />
-                    Cancel
-                </Button>
-                {currentTab !== 'candidate' && (
-                    <Button type='button' variant='outline' onClick={handlePrevious} disabled={isSubmitting}>
-                        <ArrowLeft className='mr-2 h-4 w-4' />
-                        Previous
-                    </Button>
-                )}
-                {currentTab !== 'documents' ? (
-                    <Button
-                        type='button'
-                        onClick={handleNext}
-                        disabled={isSubmitting}
-                        className='bg-orange-500 text-white hover:bg-orange-600'>
-                        Save & Proceed
-                        <ArrowRight className='ml-2 h-4 w-4' />
-                    </Button>
-                ) : (
-                    <Button
-                        type='submit'
-                        disabled={isSubmitting}
-                        isLoading={isSubmitting}
-                        className='bg-orange-500 text-white hover:bg-orange-600'>
-                        <Save className='mr-2 h-4 w-4' />
-                        Save & Proceed
-                    </Button>
-                )}
-                <Button type='button' variant='destructive' onClick={handleClear} disabled={isSubmitting}>
-                    <X className='mr-2 h-4 w-4' />
-                    Clear
-                </Button>
+          }
+        },
+      });
+    } catch (error: any) {
+      toast.error(error.message || "Failed to prepare candidate data");
+    }
+  };
+
+  const handleClear = () => {
+    reset();
+    setQualifications([]);
+    setExperiences([]);
+    setFamilyMembers([]);
+    setLanguages([]);
+    setDocuments([]);
+    setHasExperience(false);
+    setPhotoPreview(null);
+    setResumeName(null);
+    toast.info("Form cleared");
+  };
+
+  const addQualification = () => {
+    setQualifications([
+      ...qualifications,
+      {
+        id: qualifications.length + 1,
+        qualification: "",
+        board: "",
+        year: "",
+        percentage: "",
+      },
+    ]);
+  };
+  const removeQualification = (index: number) =>
+    setQualifications(qualifications.filter((_, i) => i !== index));
+
+  const addExperience = () => {
+    setExperiences([
+      ...experiences,
+      {
+        id: experiences.length + 1,
+        company: "",
+        designation: "",
+        from: "",
+        to: "",
+        experience: "",
+      },
+    ]);
+  };
+  const removeExperience = (index: number) =>
+    setExperiences(experiences.filter((_, i) => i !== index));
+
+  const addFamilyMember = () => {
+    setFamilyMembers([
+      ...familyMembers,
+      {
+        id: familyMembers.length + 1,
+        name: "",
+        relation: "",
+        occupation: "",
+        contactNo: "",
+      },
+    ]);
+  };
+  const removeFamilyMember = (index: number) =>
+    setFamilyMembers(familyMembers.filter((_, i) => i !== index));
+
+  const addLanguage = () => {
+    setLanguages([
+      ...languages,
+      {
+        id: languages.length + 1,
+        language: "",
+        read: false,
+        write: false,
+        speak: false,
+      },
+    ]);
+  };
+  const removeLanguage = (index: number) =>
+    setLanguages(languages.filter((_, i) => i !== index));
+
+  const addDocument = () => {
+    setDocuments([
+      ...documents,
+      {
+        id: documents.length + 1,
+        documentType: "",
+        fileName: "",
+        filePath: "",
+      },
+    ]);
+  };
+  const removeDocument = (index: number) =>
+    setDocuments(documents.filter((_, i) => i !== index));
+
+  return (
+    <div className={`relative ${className}`}>
+      {isInitialDataLoading ? (
+        <div className="flex flex-col items-center justify-center min-h-[400px] w-full bg-slate-50/50 backdrop-blur-sm rounded-xl border-2 border-dashed border-violet-100 animate-in fade-in duration-500">
+          <div className="bg-white p-10 rounded-2xl shadow-xl flex flex-col items-center border border-violet-50">
+            <div className="relative mb-6">
+              <div className="absolute inset-0 rounded-full bg-violet-100 animate-ping opacity-20"></div>
+              <RefreshCw className="animate-spin h-12 w-12 text-violet-600 relative z-10" />
             </div>
-        </form>
-    );
+            <h3 className="text-xl font-bold text-violet-900">Preparing Form</h3>
+            <p className="text-sm text-muted-foreground mt-2 text-center max-w-[250px]">
+              Fetching master data and binding candidate details. Please wait...
+            </p>
+            <div className="mt-6 flex gap-2">
+               <div className="h-1.5 w-1.5 rounded-full bg-violet-400 animate-bounce [animation-delay:-0.3s]"></div>
+               <div className="h-1.5 w-1.5 rounded-full bg-violet-400 animate-bounce [animation-delay:-0.15s]"></div>
+               <div className="h-1.5 w-1.5 rounded-full bg-violet-400 animate-bounce"></div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500"
+        >
+          <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
+        <TabsContent value="candidate" className="space-y-6">
+          <Card className=" shadow-sm">
+            <CardHeader className="bg-violet-500 overflow-hidden ">
+              <CardTitle className="flex items-center  font-semibold text-white">
+                Candidate Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-1 gap-x-8 gap-y-5 lg:grid-cols-2">
+                <InputText
+                  label="First Name"
+                  required
+                  placeholder="Enter First Name"
+                  {...register("firstName")}
+                  error={errors.firstName?.message}
+                />
+                <div className="flex flex-col gap-1.5">
+                  <Label>
+                    Nationality{" "}
+                    <span className="text-red-500 font-bold">*</span>
+                  </Label>
+                  <Controller
+                    name="nationality"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="relative">
+                        <Select
+                          onValueChange={field.onChange}
+                          value={nationalityOptions.some((o: any) => o.value === field.value) ? field.value : undefined}
+                          disabled={isLoadingNationalities}
+                        >
+                          <SelectTrigger
+                            className={
+                              errors.nationality ? "border-red-500" : ""
+                            }
+                          >
+                            <SelectValue
+                              placeholder={
+                                isLoadingNationalities
+                                  ? "Loading..."
+                                  : "Select Nationality"
+                              }
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {nationalityOptions.map((opt: any) => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {isLoadingNationalities && (
+                          <RefreshCw className="absolute right-8 top-2.5 h-4 w-4 animate-spin text-muted-foreground" />
+                        )}
+                      </div>
+                    )}
+                  />
+                  {errors.nationality && (
+                    <FormError>{errors.nationality.message}</FormError>
+                  )}
+                </div>
+
+                <InputText
+                  label="Middle Name"
+                  placeholder="Enter Middle Name"
+                  {...register("middleName")}
+                />
+                <div className="flex flex-col gap-1.5">
+                  <Label>
+                    Religion <span className="text-red-500 font-bold">*</span>
+                  </Label>
+                  <Controller
+                    name="religion"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="relative">
+                        <Select
+                          onValueChange={(val) => {
+                            field.onChange(val);
+                            setValue("caste", ""); // Reset caste when religion changes
+                          }}
+                          value={religionOptions.some((o: any) => o.value?.toString() === field.value?.toString()) ? field.value : undefined}
+                          disabled={isLoadingReligions}
+                        >
+                          <SelectTrigger
+                            className={errors.religion ? "border-red-500" : ""}
+                          >
+                            <SelectValue
+                              placeholder={
+                                isLoadingReligions
+                                  ? "Loading..."
+                                  : "Select Religion"
+                              }
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {religionOptions.map((opt: any) => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {isLoadingReligions && (
+                          <RefreshCw className="absolute right-8 top-2.5 h-4 w-4 animate-spin text-muted-foreground" />
+                        )}
+                      </div>
+                    )}
+                  />
+                  {errors.religion && (
+                    <FormError>{errors.religion.message}</FormError>
+                  )}
+                </div>
+
+                <InputText
+                  label="Last Name"
+                  required
+                  placeholder="Enter Last Name"
+                  {...register("lastName")}
+                  error={errors.lastName?.message}
+                />
+                <div className="flex flex-col gap-1.5">
+                  <Label>
+                    Caste <span className="text-red-500 font-bold">*</span>
+                  </Label>
+                  <Controller
+                    name="caste"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="relative">
+                        <Select
+                          onValueChange={field.onChange}
+                          value={casteOptions.some((o: any) => o.value?.toString() === field.value?.toString()) ? field.value : undefined}
+                          disabled={isLoadingCastes || !selectedReligion}
+                        >
+                          <SelectTrigger
+                            className={errors.caste ? "border-red-500" : ""}
+                          >
+                            <SelectValue
+                              placeholder={
+                                !selectedReligion
+                                  ? "Select religion first"
+                                  : isLoadingCastes
+                                    ? "Loading..."
+                                    : "Select Caste"
+                              }
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {casteOptions.map((opt: any) => (
+                              <SelectItem key={opt.value} value={(opt.value).toString()}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {isLoadingCastes && (
+                          <RefreshCw className="absolute right-8 top-2.5 h-4 w-4 animate-spin text-muted-foreground" />
+                        )}
+                      </div>
+                    )}
+                  />
+                  {errors.caste && (
+                    <FormError>{errors.caste.message}</FormError>
+                  )}
+                </div>
+
+                <InputText
+                  label="Skill"
+                  required
+                  placeholder="Enter Skills (e.g. React, Node.js)"
+                  {...register("skill")}
+                  error={errors.skill?.message}
+                />
+                <div className="flex flex-col gap-1.5">
+                  <Label>
+                    Gender <span className="text-red-500 font-bold">*</span>
+                  </Label>
+                  <Controller
+                    name="gender"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="relative">
+                        <Select
+                          onValueChange={field.onChange}
+                          value={genderOptions.some((o: any) => o.value === field.value) ? field.value : undefined}
+                          disabled={isLoadingGenders}
+                        >
+                          <SelectTrigger
+                            className={errors.gender ? "border-red-500" : ""}
+                          >
+                            <SelectValue
+                              placeholder={
+                                isLoadingGenders
+                                  ? "Loading..."
+                                  : "Select Gender"
+                              }
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {genderOptions.map((opt: any) => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {isLoadingGenders && (
+                          <RefreshCw className="absolute right-8 top-2.5 h-4 w-4 animate-spin text-muted-foreground" />
+                        )}
+                      </div>
+                    )}
+                  />
+                  {errors.gender && (
+                    <FormError>{errors.gender.message}</FormError>
+                  )}
+                </div>
+
+                <InputText
+                  label="Mobile No"
+                  required
+                  placeholder="Enter 10-digit Mobile Number"
+                  {...register("mobileNo")}
+                  error={errors.mobileNo?.message}
+                  maxLength={10}
+                />
+                <div className="flex flex-col gap-1.5">
+                  <Label>
+                    Marital Status{" "}
+                    <span className="text-red-500 font-bold">*</span>
+                  </Label>
+                  <Controller
+                    name="maritalStatus"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="relative">
+                        <Select
+                          onValueChange={field.onChange}
+                          value={maritalStatusOptions.some((o: any) => o.value === field.value) ? field.value : undefined}
+                          disabled={isLoadingMaritalStatuses}
+                        >
+                          <SelectTrigger
+                            className={
+                              errors.maritalStatus ? "border-red-500" : ""
+                            }
+                          >
+                            <SelectValue
+                              placeholder={
+                                isLoadingMaritalStatuses
+                                  ? "Loading..."
+                                  : "Select Status"
+                              }
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {maritalStatusOptions.map((opt: any) => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {isLoadingMaritalStatuses && (
+                          <RefreshCw className="absolute right-8 top-2.5 h-4 w-4 animate-spin text-muted-foreground" />
+                        )}
+                      </div>
+                    )}
+                  />
+                  {errors.maritalStatus && (
+                    <FormError>{errors.maritalStatus.message}</FormError>
+                  )}
+                </div>
+
+                <InputText
+                  label="Email Id"
+                  required
+                  type="email"
+                  placeholder="Enter Email Address"
+                  {...register("emailId")}
+                  error={errors.emailId?.message}
+                />
+                <div className="flex flex-col gap-1.5">
+                  <Label>
+                    Blood Group{" "}
+                    <span className="text-red-500 font-bold">*</span>
+                  </Label>
+                  <Controller
+                    name="bloodGroup"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="relative">
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                          disabled={isLoadingBloodGroups}
+                        >
+                          <SelectTrigger
+                            className={
+                              errors.bloodGroup ? "border-red-500" : ""
+                            }
+                          >
+                            <SelectValue
+                              placeholder={
+                                isLoadingBloodGroups
+                                  ? "Loading..."
+                                  : "Select Blood Group"
+                              }
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {bloodGroupOptions.map((opt: any) => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {isLoadingBloodGroups && (
+                          <RefreshCw className="absolute right-8 top-2.5 h-4 w-4 animate-spin text-muted-foreground" />
+                        )}
+                      </div>
+                    )}
+                  />
+                  {errors.bloodGroup && (
+                    <FormError>{errors.bloodGroup.message}</FormError>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <Label>
+                    Qualification{" "}
+                    <span className="text-red-500 font-bold">*</span>
+                  </Label>
+                  <Controller
+                    name="qualification"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="relative">
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                          disabled={isLoadingCourses}
+                        >
+                          <SelectTrigger
+                            className={
+                              errors.qualification ? "border-red-500" : ""
+                            }
+                          >
+                            <SelectValue
+                              placeholder={
+                                isLoadingCourses
+                                  ? "Loading..."
+                                  : "Select Qualification"
+                              }
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {qualificationOptions.map((opt: any) => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {isLoadingCourses && (
+                          <RefreshCw className="absolute right-8 top-2.5 h-4 w-4 animate-spin text-muted-foreground" />
+                        )}
+                      </div>
+                    )}
+                  />
+                  {errors.qualification && (
+                    <FormError>{errors.qualification.message}</FormError>
+                  )}
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label>
+                    Job Title <span className="text-red-500 font-bold">*</span>
+                  </Label>
+                  <Controller
+                    name="jobTitle"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="relative">
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                          disabled={isLoadingJobs}
+                        >
+                          <SelectTrigger
+                            className={errors.jobTitle ? "border-red-500" : ""}
+                          >
+                            <SelectValue
+                              placeholder={
+                                isLoadingJobs
+                                  ? "Loading..."
+                                  : "Select Job Title"
+                              }
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {jobOptions.map((opt: any) => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {isLoadingJobs && (
+                          <RefreshCw className="absolute right-8 top-2.5 h-4 w-4 animate-spin text-muted-foreground" />
+                        )}
+                      </div>
+                    )}
+                  />
+                  {errors.jobTitle && (
+                    <FormError>{errors.jobTitle.message}</FormError>
+                  )}
+                </div>
+
+                {/* Row 8 */}
+                <InputText
+                  label="Job Portal Name"
+                  placeholder="Enter Job Portal (e.g. LinkedIn)"
+                  {...register("jobPortalName")}
+                />
+                <div className="flex flex-col gap-1.5">
+                  <Label>
+                    Position Type{" "}
+                    <span className="text-red-500 font-bold">*</span>
+                  </Label>
+                  <Controller
+                    name="positionType"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="relative">
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                          disabled={isLoadingPositionTypes}
+                        >
+                          <SelectTrigger
+                            className={
+                              errors.positionType ? "border-red-500" : ""
+                            }
+                          >
+                            <SelectValue
+                              placeholder={
+                                isLoadingPositionTypes
+                                  ? "Loading..."
+                                  : "Select Position Type"
+                              }
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {positionTypeOptions.map((opt: any) => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {isLoadingPositionTypes && (
+                          <RefreshCw className="absolute right-8 top-2.5 h-4 w-4 animate-spin text-muted-foreground" />
+                        )}
+                      </div>
+                    )}
+                  />
+                  {errors.positionType && (
+                    <FormError>{errors.positionType.message}</FormError>
+                  )}
+                </div>
+
+                {/* Row 9 */}
+                <InputText
+                  label="Current Company"
+                  required
+                  placeholder="Enter Current Company Name"
+                  {...register("currentCompany")}
+                  error={errors.currentCompany?.message}
+                />
+                <InputText
+                  label="Aadhar No"
+                  required
+                  placeholder="Enter 12-digit Aadhar Number"
+                  {...register("aadharNo")}
+                  error={errors.aadharNo?.message}
+                  maxLength={12}
+                />
+
+                {/* Row 10 */}
+                <InputText
+                  label="Total Exp."
+                  required
+                  type="number"
+                  placeholder="Enter Total Experience"
+                  {...register("totalExp")}
+                  error={errors.totalExp?.message}
+                />
+                <InputText
+                  label="PAN Card No"
+                  placeholder="Enter PAN Card Number"
+                  {...register("panCardNo")}
+                  error={errors.panCardNo?.message}
+                  maxLength={10}
+                />
+
+                {/* Row 11 */}
+                <InputText
+                  label="Last CTC"
+                  required
+                  type="number"
+                  placeholder="Enter Last CTC"
+                  {...register("lastCTC")}
+                  error={errors.lastCTC?.message}
+                />
+                <InputText
+                  label="Ref. Code"
+                  placeholder="Enter Reference Code"
+                  {...register("refCode")}
+                />
+
+                {/* Row 12 */}
+                <InputText
+                  label="Expected CTC"
+                  required
+                  type="number"
+                  placeholder="Enter Expected CTC"
+                  {...register("expectedCTC")}
+                  error={errors.expectedCTC?.message}
+                />
+                <InputText
+                  label="Source"
+                  placeholder="Enter Source (e.g. Referral)"
+                  {...register("source")}
+                />
+
+                {/* Row 13 */}
+                <div className="flex flex-col gap-1.5">
+                  <Label>
+                    Application Date{" "}
+                    <span className="text-red-500 font-bold">*</span>
+                  </Label>
+                  <Controller
+                    name="applicationDate"
+                    control={control}
+                    render={({ field }) => (
+                      <DatePicker
+                        date={field.value ? new Date(field.value) : undefined}
+                        setDate={(date) =>
+                          field.onChange(date ? format(date, "yyyy-MM-dd") : "")
+                        }
+                        disabled={{ after: new Date() }}
+                        placeholder="Select Application Date"
+                      />
+                    )}
+                  />
+                  {errors.applicationDate && (
+                    <FormError>{errors.applicationDate.message}</FormError>
+                  )}
+                </div>
+                <InputText
+                  label="Remark"
+                  placeholder="Enter any remarks"
+                  {...register("remark")}
+                />
+
+                {/* Row 14 */}
+                <div className="flex flex-col gap-1.5">
+                  <Label>
+                    Interview Date{" "}
+                    <span className="text-red-500 font-bold">*</span>
+                  </Label>
+                  <Controller
+                    name="interviewDate"
+                    control={control}
+                    render={({ field }) => (
+                      <DatePicker
+                        date={field.value ? new Date(field.value) : undefined}
+                        setDate={(date) =>
+                          field.onChange(date ? format(date, "yyyy-MM-dd") : "")
+                        }
+                        placeholder="Select Interview Date"
+                      />
+                    )}
+                  />
+                  {errors.interviewDate && (
+                    <FormError>{errors.interviewDate.message}</FormError>
+                  )}
+                </div>
+                <div className="hidden lg:block"></div>
+
+                {/* Row 15 */}
+                <div className="flex flex-col gap-1.5">
+                  <Label>
+                    Date of Birth{" "}
+                    <span className="text-red-500 font-bold">*</span>
+                  </Label>
+                  <Controller
+                    name="dateOfBirth"
+                    control={control}
+                    render={({ field }) => (
+                      <DatePicker
+                        date={field.value ? new Date(field.value) : undefined}
+                        setDate={(date) =>
+                          field.onChange(date ? format(date, "yyyy-MM-dd") : "")
+                        }
+                        disabled={{ after: new Date() }}
+                        placeholder="Select Date of Birth"
+                      />
+                    )}
+                  />
+                  {errors.dateOfBirth && (
+                    <FormError>{errors.dateOfBirth.message}</FormError>
+                  )}
+                </div>
+                <div className="hidden lg:block"></div>
+                <div className="hidden lg:block"></div>
+              </div>
+
+              {/* Resume and Photo Side by Side */}
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 mt-8">
+                <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                  <label className="block font-medium text-sm mb-3">
+                    Upload Photo
+                  </label>
+                  <div className="flex items-center gap-6">
+                    <div className="h-24 w-20 flex items-center justify-center border-2 border-dashed border-gray-300 bg-white shadow-inner overflow-hidden">
+                      {photoPreview ? (
+                        <img
+                          src={photoPreview}
+                          alt="Preview"
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <User className="h-10 w-10 text-gray-400" />
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <label className="cursor-pointer inline-flex items-center rounded-md bg-white px-3 py-2 text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                        <Upload className="mr-2 h-4 w-4 text-gray-400" />
+                        {photoPreview ? "Change Photo" : "Choose Photo"}
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={(e) => handleFileChange(e, "photo")}
+                        />
+                      </label>
+                      <p className="text-[10px] text-gray-500">
+                        Allowed formats: JPG, PNG. Max size: 2MB.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                  <label className="block font-medium text-sm mb-3">
+                    Resume/CV
+                  </label>
+                  <div className="flex flex-col justify-center space-y-3 h-[100px]">
+                    <div className="flex items-center gap-3">
+                      <label className="cursor-pointer inline-flex items-center rounded-md bg-white px-3 py-2 text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                        <Upload className="mr-2 h-4 w-4 text-gray-400" />
+                        {resumeName ? "Change File" : "Choose File"}
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept=".pdf,.doc,.docx"
+                          onChange={(e) => handleFileChange(e, "resumeCV")}
+                        />
+                      </label>
+                      <span className="text-muted-foreground text-xs italic">
+                        {resumeName || "No file chosen"}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-gray-500">
+                      Allowed formats: PDF, DOC, DOCX. Max size: 5MB.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Address Section */}
+              <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                  <h4 className="mb-4 text-sm font-semibold text-gray-700 underline">
+                    LOCAL ADDRESS
+                  </h4>
+                  <div className="space-y-3">
+                    <InputText
+                      label="Address Line 1"
+                      required
+                      placeholder="Enter address line 1"
+                      {...register("localAddressLine1")}
+                      error={errors.localAddressLine1?.message}
+                    />
+                    <InputText
+                      label="Address Line 2"
+                      placeholder="Enter address line 2"
+                      {...register("localAddressLine2")}
+                    />
+                    <InputText
+                      label="Place"
+                      required
+                      placeholder="Enter place"
+                      {...register("localPlace")}
+                      error={errors.localPlace?.message}
+                    />
+                    <InputText
+                      label="Pincode"
+                      required
+                      placeholder="Enter 6-digit pincode"
+                      {...register("localPincode")}
+                      error={errors.localPincode?.message}
+                      maxLength={6}
+                    />
+                  </div>
+                </div>
+                <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                  <div className="mb-4 flex items-center justify-between">
+                    <h4 className="text-sm font-semibold text-gray-700 underline">
+                      PERMANENT ADDRESS
+                    </h4>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        checked={sameAsLocalAddress}
+                        onCheckedChange={(checked) =>
+                          setValue("sameAsLocalAddress", !!checked)
+                        }
+                      />
+                      <span className="text-xs text-gray-600">
+                        Same as Local Address?
+                      </span>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <InputText
+                      label="Address Line 1"
+                      required
+                      placeholder="Enter address line 1"
+                      {...register("permanentAddressLine1")}
+                      error={errors.permanentAddressLine1?.message}
+                      disabled={sameAsLocalAddress}
+                    />
+                    <InputText
+                      label="Address Line 2"
+                      placeholder="Enter address line 2"
+                      {...register("permanentAddressLine2")}
+                      disabled={sameAsLocalAddress}
+                    />
+                    <InputText
+                      label="Place"
+                      required
+                      placeholder="Enter place"
+                      {...register("permanentPlace")}
+                      error={errors.permanentPlace?.message}
+                      disabled={sameAsLocalAddress}
+                    />
+                    <InputText
+                      label="Pincode"
+                      required
+                      placeholder="Enter 6-digit pincode"
+                      {...register("permanentPincode")}
+                      error={errors.permanentPincode?.message}
+                      disabled={sameAsLocalAddress}
+                      maxLength={6}
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Other tabs are commented out */}
+        {/* <TabsContent value='qualification' ...> ... </TabsContent> */}
+      </Tabs>
+      {/* Form Actions */}
+      <div className="flex flex-row  items-center justify-center gap-3 border-t border-gray-200 bg-gray-50 p-4">
+        <Button
+          type="submit"
+          disabled={isSubmitting || Object.keys(errors).length > 0}
+          className="rounded-md bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700"
+        >
+          Save & Proceed
+        </Button>
+        <Button
+          type="button"
+          variant="destructive"
+          onClick={handleClear}
+          disabled={isSubmitting}
+          className="rounded-md"
+        >
+          <X className="mr-2 h-4 w-4" />
+          Clear
+        </Button>
+      </div>
+    </form>
+      )}
+    </div>
+  );
 }

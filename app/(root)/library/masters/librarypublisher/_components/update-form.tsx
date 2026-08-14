@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
+import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { useMasterPublisherList } from '@/hooks/library/useMasters';
 import { masterPublisherSchema } from '@/schemas/library/masters';
 import { addOrUpdateMasterPublisher } from '@/server/library/masters/master_publisher';
@@ -39,36 +40,27 @@ export default function UpdateMasterPublisherForm({ onSuccess, className = '', s
         if (row) {
             reset({
                 lmP_Id: row.lmP_Id,
-                lmP_PublisherName: row.lmP_PublisherName,
-                lmP_EMailId: row.lmP_EMailId,
-                lmP_MobileNo: row.lmP_MobileNo,
-                lmP_Address: row.lmP_Address,
-                lmP_PhoneNo: row.lmP_PhoneNo
+                lmP_PublisherName: row.lmP_PublisherName || '',
+                lmP_EMailId: row.lmP_EMailId || '',
+                lmP_MobileNo: row.lmP_MobileNo || '',
+                lmP_Address: row.lmP_Address || ''
             });
         }
     }, [row, reset]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const { lmP_PublisherName } = data;
-
-            const payload = {
-                lmP_Id: row.lmP_Id,
-                lmP_PublisherName: lmP_PublisherName,
-                lmP_EMailId: data.lmP_EMailId,
-                lmP_MobileNo: data.lmP_MobileNo,
-                lmP_Address: data.lmP_Address,
-                lmP_PhoneNo: data.lmP_PhoneNo
-            };
-
-            const response = await addOrUpdateMasterPublisher(payload);
+            const response = await addOrUpdateMasterPublisher({
+                ...data,
+                lmP_Id: row.lmP_Id
+            });
 
             if (response.success) {
-                toast.success(response.message || 'Master Library updated successfully');
+                toast.success(response.message || 'Master Publisher updated successfully');
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(response.message || 'Failed to update Master Library');
+                toast.error(response.message || 'Failed to update Master Publisher');
             }
         } catch (error: any) {
             toast.error(error?.message || 'Something went wrong');
@@ -84,51 +76,54 @@ export default function UpdateMasterPublisherForm({ onSuccess, className = '', s
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
                             label='Publisher Name'
-                            {...register('lmP_PublisherName', {})}
+                            required
+                            placeholder='e.g. Oxford University Press'
+                            {...register('lmP_PublisherName')}
                             error={errors.lmP_PublisherName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                         <InputText
                             label='Email Id'
-                            {...register('lmP_EMailId', {})}
+                            placeholder='e.g. contact@publisher.com'
+                            {...register('lmP_EMailId')}
                             error={errors.lmP_EMailId?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>
-                    {/* Root Error */}
-                    {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
                             label='Mobile No'
-                            {...register('lmP_MobileNo', {})}
+                            id='lmP_MobileNo'
+                            placeholder='10-digit mobile number'
+                            maxLength={10}
+                            onKeyDown={(e) => {
+                                if (e.key.length === 1 && !/^[0-9]$/.test(e.key) && !e.ctrlKey && !e.metaKey) {
+                                    e.preventDefault();
+                                }
+                            }}
+                            onInput={(e: React.FormEvent<HTMLInputElement>) => {
+                                e.currentTarget.value = e.currentTarget.value.replace(/\D/g, '').slice(0, 10);
+                            }}
+                            {...register('lmP_MobileNo')}
                             error={errors.lmP_MobileNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-                        <InputText
-                            label='Address'
-                            {...register('lmP_Address', {})}
-                            error={errors.lmP_Address?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
                     </div>
-                    {/* Root Error */}
-                    {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
                 <div className='space-y-4'>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <InputText
-                            label='Phone No'
-                            {...register('lmP_PhoneNo', {})}
-                            error={errors.lmP_PhoneNo?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                    </div>
+                    <InputTextarea
+                        label='Address'
+                        placeholder='Enter the complete office address'
+                        {...register('lmP_Address')}
+                        error={errors.lmP_Address?.message}
+                        className='transition-colors focus:ring-2 focus:ring-primary/20'
+                    />
                     {/* Root Error */}
-                    {errors.root && <FormError>{errors.root.message}</FormError>}
+                    {errors.root?.message && <FormError>{errors.root.message}</FormError>}
                 </div>
 
                 {/* Action Buttons */}

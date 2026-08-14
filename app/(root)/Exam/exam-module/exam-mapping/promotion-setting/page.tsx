@@ -21,13 +21,14 @@ import AddPromotionalSetting from './_components/add-form';
 import { PromotionSettingColumns } from './_components/columns';
 import PromotionalSettingDetailsPage from './_components/promotional-setting-details-view';
 import TogglePromotionalSettingForm from './_components/toggle-form';
+import { Console } from 'console';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function PromotionalSettingPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error, refetchAll } = usePromotionalSetting(searchParams);
-    useEffect(() => { console.log(response); }, [response]);
+    useEffect(() => { }, [response]);
 
     return (
         <FormProvider<IPromotionSetting>>
@@ -55,7 +56,9 @@ function PromotionalSettingPageContent({
     const [orderData, setOrderData] = useState<(IPromotionalSubjectDetails & { id: number })[]>([]);
     const [isOrderSaving, setIsOrderSaving] = useState(false);
     const [isOrderLoading, setIsOrderLoading] = useState(true);
-
+    useEffect(() => {
+        console.log("prom setting grid resposne", response)
+    }, [response])
     // Fetch order details list when Set Order modal opens
     useEffect(() => {
         (async () => {
@@ -68,7 +71,7 @@ function PromotionalSettingPageContent({
 
                         const mapped = items.map((x) => ({
                             ...x,
-                            id: x.emP_Id // the row id for ordering
+                            id: x.empS_Id // the row id for ordering
                         }));
 
                         setOrderData(mapped);
@@ -92,11 +95,10 @@ function PromotionalSettingPageContent({
 
             const temp_Order = updated.map((item, index) => ({
                 promO_Id: item.id,
-                proM_Id: item.id,
                 promO_Order: index + 1
             }));
 
-            const res = await UpdateOrderedPromotionalSettingDetails({ temp_Order });
+            const res = await UpdateOrderedPromotionalSettingDetails(temp_Order);
 
             if (res?.success) {
                 toast.success(res.message || 'Order updated successfully');

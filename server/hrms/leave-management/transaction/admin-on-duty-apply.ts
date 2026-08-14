@@ -31,110 +31,19 @@ export async function getEmployeeOnDutyLeaveApply(
             keys: res && typeof res === 'object' ? Object.keys(res) : []
         });
 
-        const getVal = (obj: any, key: string) => {
-            if (!obj || typeof obj !== 'object') return undefined;
-            if (key in obj) return obj[key];
-            const lowKey = key.toLowerCase();
-            for (const k in obj) {
-                if (k.toLowerCase() === lowKey) return obj[k];
-            }
-            return undefined;
-        };
+        const extractedData: AdminOnDutyApplyApiData[] = res?.data || [];
+        const isSuccess = res?.success === true || String(res?.success) === 'true' || extractedData.length > 0;
+        const total = res?.total || extractedData.length;
 
-        let extractedData: AdminOnDutyApplyApiData[] = [];
-
-        if (Array.isArray(res)) {
-            extractedData = res;
-        } else if (res && typeof res === 'object') {
-            const dataProps = ['data', 'list', 'results', 'value', 'items'];
-            for (const prop of dataProps) {
-                const val = getVal(res, prop);
-                if (Array.isArray(val)) {
-                    extractedData = val;
-                    console.log(`📍 [SERVER] Found data in property: ${prop}`);
-                    break;
-                } else if (val && val.$values && Array.isArray(val.$values)) {
-                    extractedData = val.$values;
-                    console.log(`📍 [SERVER] Found data in property: ${prop}.$values`);
-                    break;
-                }
-            }
-
-            // Priority 2: Check for $values at root
-            if (extractedData.length === 0 && res.$values && Array.isArray(res.$values)) {
-                extractedData = res.$values;
-                console.log('📍 [SERVER] Found data in root $values');
-            }
-        }
-
-        // 💡 FALLBACK: Use User Provided Sample Data if API returns empty
-        if (extractedData.length === 0) {
-            console.log('⚠️ [SERVER] API returned no records. Injecting sample data fallback...');
-            extractedData = [
-                {
-                    "hrmE_EmployeeFirstName": "ANUSHA  T",
-                    "hrelaP_Id": 70,
-                    "hrmL_LeaveName": "On Duty",
-                    "hrmL_LeaveCode": "OD",
-                    "hrelaP_FromDate": "2026-02-07T00:00:00",
-                    "hrelaP_ToDate": "2026-02-07T00:00:00",
-                    "hrelaP_ApplicationStatus": "Applied",
-                    "hrmL_Id": 19,
-                    "hreltD_TotDays": 1,
-                    "hrmE_Id": 1208,
-                    "hrelaP_LeaveReason": "On duty for official work",
-                    "hrelapD_InTime": "10:00 AM",
-                    "hrelapD_OutTime": "06:00 PM",
-                    "hrelaP_ActiveFlg": true
-                },
-                {
-                    "hrmE_EmployeeFirstName": "ANURADHA   SE",
-                    "hrelaP_Id": 69,
-                    "hrmL_LeaveName": "On Duty",
-                    "hrmL_LeaveCode": "OD",
-                    "hrelaP_FromDate": "2026-02-10T00:00:00",
-                    "hrelaP_ToDate": "2026-02-10T00:00:00",
-                    "hrelaP_ApplicationStatus": "Applied",
-                    "hrmL_Id": 19,
-                    "hreltD_TotDays": 1,
-                    "hrmE_Id": 1207,
-                    "hrelaP_LeaveReason": "On duty for official work",
-                    "hrelapD_InTime": "10:00 AM",
-                    "hrelapD_OutTime": "06:00 PM",
-                    "hrelaP_ActiveFlg": true
-                },
-                {
-                    "hrmE_EmployeeFirstName": "ANURADHA   SE",
-                    "hrelaP_Id": 68,
-                    "hrmL_LeaveName": "On Duty",
-                    "hrmL_LeaveCode": "OD",
-                    "hrelaP_FromDate": "2026-02-07T00:00:00",
-                    "hrelaP_ToDate": "2026-02-07T00:00:00",
-                    "hrelaP_ApplicationStatus": "Applied",
-                    "hrmL_Id": 19,
-                    "hreltD_TotDays": 1,
-                    "hrmE_Id": 1207,
-                    "hrelaP_LeaveReason": "On duty for official work",
-                    "hrelapD_InTime": "10:00 AM",
-                    "hrelapD_OutTime": "06:00 PM",
-                    "hrelaP_ActiveFlg": false
-                }
-            ] as any;
-        }
-
-        let totalVal = getVal(res, 'total') || getVal(res, 'totalItems') || getVal(res, 'count');
-        const finalTotal = totalVal !== undefined && totalVal !== null ? Number(totalVal) : extractedData.length;
-        const isSuccess = getVal(res, 'success') === true || String(getVal(res, 'success')) === 'true' || extractedData.length > 0;
-
-        console.log(`✅ [SERVER] AdminOnDutyApply - Final Result: ${extractedData.length} records, Total: ${finalTotal}, Success: ${isSuccess}`);
+        console.log(`✅ [SERVER] AdminOnDutyApply - Final Result: ${extractedData.length} records, Total: ${total}, Success: ${isSuccess}`);
 
         return {
             success: isSuccess,
-            message: getVal(res, 'message') || 'Success',
+            message: res?.message || 'Success',
             data: extractedData,
-            total: finalTotal || extractedData.length,
-            page: Number(getVal(res, 'page') || 1),
-            page_size: Number(getVal(res, 'page_size') || 10)
+            total: total,
+            page: res?.page || 1,
+            page_size: res?.page_size || 10
         };
     } catch (error: any) {
         console.error('🔴 [SERVER] AdminOnDutyApply - ERROR:', error.message);
@@ -275,5 +184,55 @@ export async function toggleActiveStatusOnDuty(hrelapId: number): Promise<ApiRes
     } catch (error: any) {
         console.error('🔴 [SERVER] AdminOnDutyApply Toggle Error:', error.message);
         throw new Error(error?.message || 'Failed to toggle status');
+    }
+}
+/**
+ * Get employee dropdown for Admin On Duty Apply
+ * GET /api/AdminOnDutyApply/get_employee_on_duty_leave_apply
+ * Note: Many VAPS controllers return dropdowns in the initial GET call
+ */
+export async function getAdminOnDutyEmployeeDropdown(): Promise<ApiResponse<any[]>> {
+    const url = '/api/AdminOnDutyApply/get_employee_on_duty_leave_apply';
+    console.log('🔵 [SERVER] AdminOnDutyApply - Requesting Dropdown:', url);
+    try {
+        const response = await api.get<any>('hmslms', url);
+        const res = response as any;
+
+        const getVal = (obj: any, key: string) => {
+            if (!obj || typeof obj !== 'object') return undefined;
+            if (key in obj) return obj[key];
+            const lowKey = key.toLowerCase();
+            for (const k in obj) {
+                if (k.toLowerCase() === lowKey) return obj[k];
+            }
+            return undefined;
+        };
+
+        // VAPS usually returns this in 'employeedropdown' or 'employeeDropdown'
+        let dropdownData = getVal(res, 'employeedropdown') || getVal(res, 'employeeDropdown');
+
+        if (!dropdownData) {
+            // Fallback: If not found, check if we can get it from hrms microservice generic dropdown
+            const genericUrl = '/api/TransHREmpSalaryAdvance/get_salary_advance_employee_dropdown';
+            console.log('⚠️ [SERVER] AdminOnDutyApply - employeedropdown not found in hmslms. Trying generic hrms dropdown:', genericUrl);
+            const genericRes = await api.get<any>('hrms', genericUrl);
+            dropdownData = getVal(genericRes, 'data') || genericRes;
+        }
+
+        const isSuccess = Array.isArray(dropdownData) || !!dropdownData;
+
+        return {
+            success: isSuccess,
+            message: getVal(res, 'message') || 'Success',
+            data: dropdownData || []
+        };
+    } catch (error: any) {
+        console.error('🔴 [SERVER] AdminOnDutyApply - Dropdown ERROR:', error.message);
+        // Return empty array instead of throwing to avoid breaking the form
+        return {
+            success: false,
+            message: error?.message || 'Failed to fetch employee list',
+            data: []
+        };
     }
 }

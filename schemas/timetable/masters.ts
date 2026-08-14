@@ -4,8 +4,8 @@ import { createOptionalNumberOnlyStringSchema, createStringOnlySchema, deleteIdS
 export const masterDaySchema = {
     addOrUpdate: z.object({
         ttmD_Id: z.number().optional(),
-        ttmD_DayName: createStringOnlySchema('Day Name', 1, 100),
-        ttmD_DayCode: createStringOnlySchema('Day Code', 1, 100)
+        ttmD_DayName: createStringOnlySchema('Day Name', 1, 50),
+        ttmD_DayCode: createStringOnlySchema('Day Code', 1, 10)
     }),
     delete: z.object({
         ttmD_Id: deleteIdSchema('ttmD_Id')
@@ -26,8 +26,8 @@ export const masterDayClasswiseSchema = {
 
 export const masterBuildingSchema = {
     addOrUpdate: z.object({
-        ttmB_Id: z.number().optional(),
-        ttmB_BuildingName: createStringOnlySchema('Building Name', 1, 100)
+        ttmB_Id: number().optional(),
+        ttmB_BuildingName: createStringOnlySchema('Building Name', 1, 30)
     }),
     delete: z.object({
         ttmB_Id: deleteIdSchema('ttmB_Id')
@@ -86,24 +86,34 @@ export const breakTimeSettingsSchema = {
     addOrUpdate: z.object({
         asmay_id: number().min(1, 'Please select Academic Year'),
         ttmC_Id: number().min(1, 'Please select Category'),
-        calssids: z.array(z.string()).nonempty('Please select at least one Class'),
-        dayids: z.array(z.string()).nonempty('Please select at least one Day'),
+        calssids: z.array(z.any()).nonempty('Please select at least one Class'),
+        dayids: z.array(z.any()).nonempty('Please select at least one Day'),
         ttmB_BreakName: z.string().min(3, 'Break Name must be at least 3 characters'),
         ttmB_BreakStartTime: z.date({ required_error: 'Start Time is required' }),
         ttmB_BreakEndTime: z.date({ required_error: 'End Time is required' }),
         ttmB_AfterPeriod: z.number().min(1, 'After Period is required'),
         arraybeforeperiodsList: z.array(z.number()).optional(),
         arrayafterperiodsList: z.array(z.number()).optional()
+    }).refine((data) => {
+        if (!data.ttmB_BreakStartTime || !data.ttmB_BreakEndTime) return true;
+        const startMin = data.ttmB_BreakStartTime.getHours() * 60 + data.ttmB_BreakStartTime.getMinutes();
+        const endMin = data.ttmB_BreakEndTime.getHours() * 60 + data.ttmB_BreakEndTime.getMinutes();
+        return endMin > startMin;
+    }, {
+        message: 'End Time must be greater than Start Time',
+        path: ['ttmB_BreakEndTime']
     })
 };
 
 export const masterPeriodSchema = {
     save: z.object({
-        periodname: number().min(1, 'Please select Academic Year'),
+        imP_Id: z.number().optional(),
+        impcM_Id: z.number().optional(),
+        periodname: number().min(1, 'Please select Period Name'),
         periodorder: number().min(1, 'Please enter Period Order'),
         categoryids: z.array(z.string()).nonempty('Please select at least one Category'),
         noOfPeriods: z.number().min(1, 'Enter at least 1 period').max(20, 'Max 20 periods allowed'),
-        half: z.string().optional()
+        half: z.string().min(1, 'Please select Half Day')
     })
 };
 
@@ -153,6 +163,9 @@ export const periodDistributionSchema = {
         asmS_Id: z.number().min(1, 'Section is required').optional().or(z.literal(0)),
         ismS_Id: z.number().min(1, 'Subject is required').optional().or(z.literal(0)),
         nop2: z.coerce.number().optional().or(z.literal(0))
+    }),
+    delete: z.object({
+        ttfpD_Id: deleteIdSchema('ttfpD_Id')
     })
 };
 
@@ -162,15 +175,30 @@ export const periodTimeSettingSchema = {
         asmaY_Id: z.number().min(1, 'Academic Year is required'),
         ttmC_Id: z.number().min(1, 'Category is required'),
         ttmP_Id: z.number().min(1, 'Period is required'),
-        dayIds: z
-            .array(
-                z.object({
-                    ttmD_Id: z.number(),
-                    ttmD_DayName: z.string().optional()
-                })
-            )
-            .min(1, 'Select at least one day'),
+        dayids: z.array(z.string()).nonempty('Please select at least one Day'),
         startTime: z.date({ required_error: 'Start Time is required' }),
         endTime: z.date({ required_error: 'End Time is required' })
+    }).refine((data) => {
+        if (!data.startTime || !data.endTime) return true;
+        const startMin = data.startTime.getHours() * 60 + data.startTime.getMinutes();
+        const endMin = data.endTime.getHours() * 60 + data.endTime.getMinutes();
+        return endMin > startMin;
+    }, {
+        message: 'To Time must be greater than From Time',
+        path: ['endTime']
+    }),
+    delete: z.object({
+        ttmdpT_Id: deleteIdSchema('ttmdpT_Id')
+    })
+};
+export const masterBuildingClassSectionSchema = {
+    addOrUpdate: z.object({
+        ttmB_Id: number().min(1, 'Please select Category'),
+        // ttmB_BuildingName: createStringOnlySchema('Building Name', 1, 100),
+        calssids: z.array(z.string()).nonempty('Please select at least one Class'),
+        sectionids: z.array(z.string()).nonempty('Please select at least one Section')
+    }),
+    delete: z.object({
+        ttmbcS_Id: deleteIdSchema('ttmbcS_Id')
     })
 };

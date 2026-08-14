@@ -17,11 +17,16 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterUOMPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error, refetchAll } = useMasterUOMs(searchParams);
+    const { loadData, refetchAll } = useMasterUOMs(searchParams);
 
     return (
         <FormProvider<IMasterUOM>>
-            <MasterUOMPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
+            <MasterUOMPageContent 
+                response={loadData.data} 
+                isLoading={loadData.isPending || loadData.isFetching} 
+                error={loadData.error} 
+                refetchAll={refetchAll} 
+            />
         </FormProvider>
     );
 }
@@ -86,6 +91,7 @@ function MasterUOMPageContent({
                         columns={MasterUOMColumns}
                         isLoading={isLoading}
                         error={error}
+                        showSearchColumns={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading UOMs...'
                         noDataTitle='No UOMs Found'

@@ -1,53 +1,69 @@
+import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs';
+import { tableSearchVariables } from '@/lib/data-table.config';
+import { getBMILoadGrid, saveBMIRecord, editBMIRecord, deactivateBMIRecord } from '@/server/sports/transactions/bmi-calculation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getBMILoadGrid, getBMIClasses, getBMISections, getBMIStudents, saveBMIRecord, deactivateBMIRecord, editBMIRecord } from '@/server/sports/transactions/bmi-calculation';
-import { IBMIClassResponse, IBMISectionResponse, IBMIStudentResponse } from '@/types/sports/transactions/bmi-calculation';
+import { toast } from 'sonner';
 
 export const useBMICalculation = (searchParams?: any) => {
     const queryClient = useQueryClient();
 
-    const loadGrid = useQuery({
-        queryKey: ['bmi-calculation-list', searchParams],
-        queryFn: () => getBMILoadGrid(searchParams),
-    });
+    const [page] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
+    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
+    const [sortBy] = useQueryState(tableSearchVariables.sort_column, parseAsString.withOptions({ shallow: false }).withDefault(''));
+    const [order] = useQueryState(tableSearchVariables.sort_direction, parseAsStringLiteral(['asc', 'desc'] as const).withOptions({ shallow: false }).withDefault('asc'));
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
 
-    const classes = useMutation<IBMIClassResponse, Error, any>({
-        mutationFn: (data: any) => getBMIClasses(data),
-    });
+    const params = {
+        page: page,
+        page_size: pageSize,
+        sort_column: sortBy,
+        sort_direction: order,
+        search_query: searchQuery,
+    };
 
-    const sections = useMutation<IBMISectionResponse, Error, any>({
-        mutationFn: (data: any) => getBMISections(data),
-    });
-
-    const students = useMutation<IBMIStudentResponse, Error, any>({
-        mutationFn: (data: any) => getBMIStudents(data),
+    const loadData = useQuery({
+        queryKey: ['bmi-calculation', page, pageSize, sortBy, order, searchQuery],
+        queryFn: () => getBMILoadGrid(params),
+        staleTime: 0
     });
 
     const save = useMutation({
         mutationFn: (data: any) => saveBMIRecord(data),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['bmi-calculation-list'] });
+        onSuccess: (response: any) => {
+            if (response.success ?? true) {
+                toast.success(response.message || 'Saved successfully');
+            } else {
+                toast.error(response.message || 'Failed to save');
+            }
+            queryClient.invalidateQueries({ queryKey: ['bmi-calculation'] });
         },
     });
 
     const edit = useMutation({
-        mutationFn: (data: any) => editBMIRecord(data),
+        mutationFn: (data: any) => editBMIRecord(data)
     });
 
     const deactivate = useMutation({
-        mutationFn: (data: any) => deactivateBMIRecord(data),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['bmi-calculation-list'] });
+        mutationFn: (id: number) => deactivateBMIRecord(id),
+        onSuccess: (response: any) => {
+            if (response.success ?? true) {
+                toast.success(response.message || 'Status updated successfully');
+            } else {
+                toast.error(response.message || 'Failed to update status');
+            }
+            queryClient.invalidateQueries({ queryKey: ['bmi-calculation'] });
         },
     });
 
     return {
-        ...loadGrid,
-        classes,
-        sections,
-        students,
+        loadData,
         save,
         edit,
         deactivate,
-        refetchAll: () => queryClient.invalidateQueries({ queryKey: ['bmi-calculation-list'] })
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: ['bmi-calculation']
+            });
+        }
     };
 };

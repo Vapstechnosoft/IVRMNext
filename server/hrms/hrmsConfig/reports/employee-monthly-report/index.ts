@@ -1,5 +1,5 @@
 'use server';
-import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 /**
  * Employee Monthly Report Onload Request/Response Types
@@ -155,11 +155,10 @@ export async function getEmployeeMonthlyReportList(
     };
 }
 /**
- * Get employee monthly report data
- * POST /api/EmployeeMonthlyReportFacade/search
+ * Get employee monthly report data using the new specific endpoint
+ * POST /api/EmployeeMonthlyReport/get_employee_yearly_monthly_absent_report
  */
-export async function getEmployeeMonthlyReport(data: any, searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'searchableColumns');
-    const url = `/api/EmployeeMonthlyReportFacade/search?${urlParams}`;
+export async function getEmployeeMonthlyReport(data: any, _searchParams?: ApiSearchparams) {
+    const url = '/api/EmployeeMonthlyReport/get_employee_yearly_monthly_absent_report';
     return await api.post<any>('hrmsfrontoffice', url, data);
 }

@@ -11,7 +11,7 @@ import { useCallback } from 'react';
 export const masterClassColumns: ColumnDef<IMasterClassList>[] = [
     {
         accessorKey: 'asmcL_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6 font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -23,84 +23,84 @@ export const masterClassColumns: ColumnDef<IMasterClassList>[] = [
     },
     {
         accessorKey: 'asmcL_ClassCode',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Code' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Code' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmcL_ClassCode')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'asmcL_ClassName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmcL_ClassName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'asmcL_Order',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Order' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Order' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmcL_Order')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'asmcL_MinAgeYear',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Min Age (Years)' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Min Age (Years)' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmcL_MinAgeYear')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'asmcL_MinAgeMonth',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Min Age (Months)' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Min Age (Months)' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmcL_MinAgeMonth')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'asmcL_MinAgeDays',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Min Age (Days)' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Min Age (Days)' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmcL_MinAgeDays')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'asmcL_MaxAgeYear',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Max Age (Years)' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Max Age (Years)' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmcL_MaxAgeYear')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'asmcL_MaxAgeMonth',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Max Age (Months)' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Max Age (Months)' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmcL_MaxAgeMonth')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'asmcL_MaxAgeDays',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Max Age (Days)' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Max Age (Days)' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmcL_MaxAgeDays')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'asmcL_MaxCapacity',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Max Capacity' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Max Capacity' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmcL_MaxCapacity')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'asmcL_PreadmFlag',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Pre-Admission Flag' className='text-nowrap' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Pre-Admission Flag' className='text-nowrap font-bold text-black' />,
         cell: ({ row }) => <div>{getStatusBadge((row.getValue('asmcL_PreadmFlag') as number) === 1 ? 'yes' : 'no')}</div>,
         enableSorting: false,
         enableHiding: true
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center font-bold text-black' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
@@ -113,6 +113,7 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterClassList }) {
     const handleEdit = useCallback(
         (data: IMasterClassList) => {
             openEditForm(data);
+            window.history.pushState(null, '', `?asmcl_id=${data.asmcL_Id}`);
         },
         [openEditForm]
     );

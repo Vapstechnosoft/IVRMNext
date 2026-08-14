@@ -2,17 +2,22 @@
 
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
+import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    useDeputationAcademicYear,
+    useDeputationReportDetails
+} from '@/hooks/timetable/reports';
 import { cn } from '@/lib/utils';
 import { deputationReportSchema } from '@/schemas/timetable/reports';
-import { getDeputationReportDetails, getDeputationReportLoadData } from '@/server/timetable/reports/deputationreport';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon, FileDown, Printer, Search, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { CalendarIcon, Download, Printer, Search, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -24,14 +29,22 @@ import DetailsReportTable from './details-report-table';
 type FormValues = z.infer<typeof deputationReportSchema.search>;
 
 export default function DeputationReportForm() {
-    const [academicList, setAcademicList] = useState<any[]>([]);
+    const { data: academicYearData, isLoading: academicYearLoading } = useDeputationAcademicYear();
+    const { mutateAsync: getReport, isPending: loadingReport } = useDeputationReportDetails();
+    const academicList = Array.isArray(academicYearData)
+        ? academicYearData
+        : (academicYearData as any)?.data?.$values || (academicYearData as any)?.data || [];
+
     const [reportData, setReportData] = useState<any[]>([]);
     const [reportType, setReportType] = useState<'D' | 'C' | null>(null);
+    const componentRef = useRef<HTMLDivElement>(null);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(deputationReportSchema.search),
         defaultValues: {
-            flag: 'D'
+            flag: 'D',
+            fromdate: undefined as any,
+            todate: undefined as any
         }
     });
 
@@ -40,79 +53,109 @@ export default function DeputationReportForm() {
         handleSubmit,
         formState: { errors, isSubmitting },
         setValue,
-        reset
+        reset,
+        getValues
     } = form;
 
-    useEffect(() => {
-        const fetchInitialData = async () => {
-            try {
-                const res = await getDeputationReportLoadData();
-                if (res.acdlist && Array.isArray(res.acdlist)) {
-                    setAcademicList(res.acdlist);
-                    if (res.acdlist.length > 0) {
-                        setValue('asmaY_Id', res.acdlist[0].asmaY_Id);
-                    }
-                } else {
-                    setAcademicList([]);
-                }
-            } catch (error) {
-                //console.error("Error fetching initial data", error);
-                //toast.error("Failed to load initial data");
-            }
-        };
-        fetchInitialData();
-    }, [setValue]);
-
-    const onSubmit = async (data: FormValues) => {
+    const handleFormSubmit = async (data: FormValues) => {
         try {
             const payload = {
-                ASMAY_ID: data.asmaY_Id,
+                ASMAY_Id: data.asmaY_Id,
                 fromdate: format(data.fromdate, 'yyyy-MM-dd'),
                 todate: format(data.todate, 'yyyy-MM-dd'),
                 flag: data.flag
             };
-            const res = await getDeputationReportDetails(payload);
-            if (res.reportdatelist && Array.isArray(res.reportdatelist) && res.reportdatelist.length > 0) {
-                setReportData(res.reportdatelist);
+
+            const response = await getReport(payload);
+            
+            let dataList: any[] = [];
+            if (Array.isArray(response)) {
+                dataList = response;
+            } else if (response?.data && Array.isArray(response.data)) {
+                dataList = response.data;
+            } else if (response?.data?.data && Array.isArray(response.data.data)) {
+                dataList = response.data.data;
+            } else if (response?.data?.$values && Array.isArray(response.data.$values)) {
+                dataList = response.data.$values;
+            } else if (response?.$values && Array.isArray(response.$values)) {
+                dataList = response.$values;
+            }
+
+
+            if (dataList && dataList.length > 0) {
+                setReportData(dataList);
                 setReportType(data.flag as 'D' | 'C');
+                toast.success('Report generated successfully');
             } else {
                 setReportData([]);
-                setReportType(null);
-                toast.warning('No records found');
+                toast.info('No records found for the selected criteria');
             }
-        } catch (error) {
-            //console.error("Error fetching report", error);
-            //toast.error("Failed to fetch report");
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to generate report');
         }
     };
 
-    const clearData = () => {
+    const handleCancel = () => {
         reset({
             flag: 'D',
-            asmaY_Id: academicList.length > 0 ? academicList[0].asmaY_Id : undefined
+            asmaY_Id: undefined as any,
+            fromdate: undefined as any,
+            todate: undefined as any
         });
         setReportData([]);
         setReportType(null);
     };
 
-    const exportToExcel = () => {
+    const handleExport = () => {
         if (reportData.length === 0) return;
-
         const worksheet = XLSX.utils.json_to_sheet(reportData);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Deputation Report');
         XLSX.writeFile(workbook, `Deputation_Report_${reportType === 'D' ? 'Details' : 'Count'}.xlsx`);
     };
 
-    const printReport = () => {
-        if (reportData.length === 0) return;
-        window.print();
+    const handlePrint = () => {
+        if (!componentRef.current) return;
+        const printWindow = window.open('', '', 'width=1200,height=800');
+        if (!printWindow) return;
+
+        const content = componentRef.current.innerHTML;
+
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Deputation Report</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; }
+                        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 2px solid #7e22ce; }
+                        th, td { border: 1px solid #9ca3af; padding: 8px; text-align: center; font-size: 12px; }
+                        th { background-color: #7e22ce; color: white; font-weight: bold; }
+                        h3 { text-align: center; color: #15803d; margin-bottom: 20px; font-size: 20px; }
+                        .no-print { display: none; }
+                        button { display: none !important; }
+                        input { display: none !important; }
+                    </style>
+                </head>
+                <body>
+                    <h3>Deputation ${reportType === 'D' ? 'Details' : 'Count'} Report</h3>
+                    ${content}
+                </body>
+            </html>
+        `);
+
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => {
+            printWindow.print();
+            printWindow.close();
+        }, 500);
     };
 
     return (
-        <div className='container space-y-4 p-1'>
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-                <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+        <div className='space-y-6'>
+            <form onSubmit={handleSubmit(handleFormSubmit)} className='space-y-6 rounded-lg border bg-white p-6 shadow-sm'>
+                <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
+                    {/* Academic Year */}
                     <div className='space-y-2'>
                         <Label>
                             Academic Year <span className='text-red-500'>*</span>
@@ -121,157 +164,156 @@ export default function DeputationReportForm() {
                             control={control}
                             name='asmaY_Id'
                             render={({ field }) => (
-                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                <Select
+                                    onValueChange={(val) => field.onChange(Number(val))}
+                                    value={field.value ? field.value.toString() : ''}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='Select Year' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {academicList.map((item) => (
-                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                {item.asmaY_Year}
-                                            </SelectItem>
-                                        ))}
+                                        {academicList?.map((item: any) => {
+                                            // skip invalid ids
+                                            const id = item.ttfG_Id ?? item.asmaY_Id;
+
+                                            if (!id) return null; // prevent crash
+
+                                            return (
+                                                <SelectItem key={id} value={id?.toString() || ''}>
+                                                    {item.asmaY_Year}
+                                                </SelectItem>
+                                            );
+                                        })}
                                     </SelectContent>
                                 </Select>
                             )}
                         />
-                        {errors.asmaY_Id && <span className='text-red-500 text-sm'>{errors.asmaY_Id.message}</span>}
                     </div>
 
-                    <div className='grid grid-cols-2 gap-4'>
-                        <div className='flex flex-col space-y-2'>
-                            <Label>
-                                From Date <span className='text-red-500'>*</span>
-                            </Label>
-                            <Controller
-                                control={control}
-                                name='fromdate'
-                                render={({ field }) => (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                                variant={'outline'}
-                                                className={cn('pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
-                                                {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
-                                                <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className='w-auto p-0' align='start'>
-                                            <Calendar
-                                                mode='single'
-                                                selected={field.value}
-                                                onSelect={field.onChange}
-                                                disabled={(date) => date > new Date() || date < new Date('1900-01-01')}
-                                                initialFocus
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
-                                )}
-                            />
-                            {errors.fromdate && <span className='text-red-500 text-sm'>{errors.fromdate.message}</span>}
-                        </div>
-
-                        <div className='flex flex-col space-y-2'>
-                            <Label>
-                                To Date <span className='text-red-500'>*</span>
-                            </Label>
-                            <Controller
-                                control={control}
-                                name='todate'
-                                render={({ field }) => (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                                variant={'outline'}
-                                                className={cn('pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
-                                                {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
-                                                <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className='w-auto p-0' align='start'>
-                                            <Calendar
-                                                mode='single'
-                                                selected={field.value}
-                                                onSelect={field.onChange}
-                                                disabled={(date) => date > new Date() || date < new Date('1900-01-01')}
-                                                initialFocus
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
-                                )}
-                            />
-                            {errors.todate && <span className='text-red-500 text-sm'>{errors.todate.message}</span>}
-                        </div>
-                    </div>
-                </div>
-
-                <div className='flex justify-center'>
-                    <div className='space-y-3'>
+                    {/* From Date */}
+                    <div className='space-y-2'>
+                        <Label>
+                            From Date <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             control={control}
-                            name='flag'
+                            name='fromdate'
                             render={({ field }) => (
-                                <RadioGroup
-                                    onValueChange={field.onChange}
-                                    defaultValue={field.value}
-                                    className='flex flex-row space-x-6 rounded-md border bg-muted/20 p-4'>
-                                    <div className='flex items-center space-x-3 space-y-0'>
-                                        <RadioGroupItem value='D' id='r1' />
-                                        <Label htmlFor='r1' className='cursor-pointer font-normal'>
-                                            DETAILS
-                                        </Label>
-                                    </div>
-                                    <div className='flex items-center space-x-3 space-y-0'>
-                                        <RadioGroupItem value='C' id='r2' />
-                                        <Label htmlFor='r2' className='cursor-pointer font-normal'>
-                                            COUNT
-                                        </Label>
-                                    </div>
-                                </RadioGroup>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant='outline'
+                                            className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
+                                            {field.value ? format(field.value, 'PPP') : 'Pick a date'}
+                                            <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className='w-auto p-0'>
+                                        <Calendar
+                                            mode='single'
+                                            selected={field.value}
+                                            onSelect={field.onChange}
+                                            disabled={(date) => date > new Date()}
+                                            initialFocus
+                                        />
+                                    </PopoverContent>
+                                </Popover>
                             )}
                         />
-                        {errors.flag && <span className='text-red-500 text-sm'>{errors.flag.message}</span>}
+                        {errors.fromdate && <p className='text-sm text-red-500'>{errors.fromdate.message}</p>}
                     </div>
+
+                    {/* To Date */}
+                    <div className='space-y-2'>
+                        <Label>
+                            To Date <span className='text-red-500'>*</span>
+                        </Label>
+                        <Controller
+                            control={control}
+                            name='todate'
+                            render={({ field }) => (
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant='outline'
+                                            className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
+                                            {field.value ? format(field.value, 'PPP') : 'Pick a date'}
+                                            <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className='w-auto p-0'>
+                                        <Calendar
+                                            mode='single'
+                                            selected={field.value}
+                                            onSelect={field.onChange}
+                                            disabled={(date) => date > new Date()}
+                                            initialFocus
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                            )}
+                        />
+                        {errors.todate && <p className='text-sm text-red-500'>{errors.todate.message}</p>}
+                    </div>
+                </div>
+                <div className='mt-4 flex justify-center'>
+                    <Controller
+                        control={control}
+                        name='flag'
+                        render={({ field }) => (
+                            <RadioGroup
+                                onValueChange={field.onChange}
+                                value={field.value}
+                                className='flex flex-row space-x-6 rounded-md border bg-muted/20 p-4'>
+                                <div className='flex items-center space-x-3 space-y-0'>
+                                    <RadioGroupItem value='D' id='r1' />
+                                    <Label htmlFor='r1' className='cursor-pointer font-normal'>
+                                        DETAILS
+                                    </Label>
+                                </div>
+                                <div className='flex items-center space-x-3 space-y-0'>
+                                    <RadioGroupItem value='C' id='r2' />
+                                    <Label htmlFor='r2' className='cursor-pointer font-normal'>
+                                        COUNT
+                                    </Label>
+                                </div>
+                            </RadioGroup>
+                        )}
+                    />
                 </div>
 
                 <div className='flex justify-center gap-4'>
-                    <Button type='submit' disabled={isSubmitting}>
-                        <Search className='mr-2 h-4 w-4' />
-                        Report
+                    <Button type='submit' disabled={isSubmitting} className='bg-orange-600 hover:bg-orange-600'>
+                        <Search className='mr-2 h-4 w-4' /> Report
                     </Button>
-                    <Button type='button' variant='destructive' onClick={clearData}>
-                        <X className='mr-2 h-4 w-4' />
-                        Clear
+                    <Button type='button' variant='outline' onClick={handleCancel}>
+                        <X className='mr-2 h-4 w-4' /> Cancel
                     </Button>
-                    {reportData.length > 0 && (
-                        <>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                className='bg-green-600 text-white hover:bg-green-700 hover:text-white'
-                                onClick={exportToExcel}>
-                                <FileDown className='mr-2 h-4 w-4' />
-                                Export to Excel
-                            </Button>
-                            <Button type='button' variant='secondary' onClick={printReport}>
-                                <Printer className='mr-2 h-4 w-4' />
-                                Print
-                            </Button>
-                        </>
-                    )}
                 </div>
             </form>
 
             {reportData.length > 0 && (
-                <div className='mt-8 rounded-md border bg-background p-4'>
-                    {/* Print Header - Hidden by default, shown in print media */}
-                    <div className='mb-4 hidden text-center print:block'>
-                        <h3 className='font-bold text-xl'>Deputation {reportType === 'D' ? 'Details' : 'Count'} Report</h3>
+                <CollapsibleSection title='Report Grid' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
+                    <div className='no-print flex items-center justify-between bg-gray-50 px-4 py-2 text-sm'>
+                        <span className='font-medium text-gray-700'>Total Records: {reportData.length}</span>
+                        <div className='flex items-center gap-3'>
+                            <Button onClick={handlePrint} size='sm' className='bg-purple-600 hover:bg-purple-700'>
+                                <Printer className='mr-2 h-4 w-4' /> Print
+                            </Button>
+                            <Button
+                                onClick={handleExport}
+                                size='sm'
+                                variant='outline'
+                                className='gap-2 border-green-600 text-green-700 hover:bg-green-50'>
+                                <Download className='h-4 w-4' /> Export Excel
+                            </Button>
+                        </div>
                     </div>
 
-                    {reportType === 'D' && <DetailsReportTable data={reportData} />}
-                    {reportType === 'C' && <CountReportTable data={reportData} />}
-                </div>
+                    <div className='mt-6 rounded-md border bg-white p-4' ref={componentRef}>
+                        {reportType === 'D' && <DetailsReportTable data={reportData} />}
+                        {reportType === 'C' && <CountReportTable data={reportData} />}
+                    </div>
+                </CollapsibleSection>
             )}
         </div>
     );

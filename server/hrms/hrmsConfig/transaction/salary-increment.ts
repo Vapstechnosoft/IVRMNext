@@ -1,12 +1,15 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { api, getSearchParamsUrl, type ApiResponse } from '@/lib/apiService';
+import type { ApiSearchparams } from '@/types';
 import type {
     SalaryIncrementDeleteRequest,
     SalaryIncrementDeleteResponse,
     SalaryIncrementOnloadRequest,
     SalaryIncrementOnloadResponse,
     SalaryIncrementSaveRequest,
-    SalaryIncrementSaveResponse
+    SalaryIncrementSaveResponse,
+    NewSalaryIncrementSaveRequest,
+    NewSalaryIncrementSaveResponse
 } from '@/types/hrms/salary-increment';
 /**
  * Get salary increment onload details
@@ -30,7 +33,7 @@ export async function getSalaryIncrementOnload(payload: SalaryIncrementOnloadReq
     };
     console.log('📤 [SALARY INCREMENT - BACKEND] Request body prepared:', JSON.stringify(requestBody, null, 2));
     try {
-        const response = await api.post<{ success: boolean; message?: string; data?: SalaryIncrementOnloadResponse; total?: number | null; page?: number | null; page_size?: number | null }>('hrms', url, requestBody        );
+        const response = await api.post<{ success: boolean; message?: string; data?: SalaryIncrementOnloadResponse; total?: number | null; page?: number | null; page_size?: number | null }>('hrms', url, requestBody);
         // The backend returns data wrapped in ApiResponse format
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped
@@ -127,6 +130,54 @@ export async function deleteSalaryIncrement(id: number): Promise<ApiResponse<Sal
         return response;
     } catch (error) {
         console.error('💥 [SALARY INCREMENT - BACKEND] Error message:', error instanceof Error ? error.message : String(error));
+        throw error;
+    }
+}
+/**
+ * Get employee increment grid details
+ * GET /api/TransEmployeeSalaryIncreementProcess/get_employee_increment_grid
+ */
+export async function getEmployeeIncrementGrid(searchParams?: ApiSearchparams): Promise<ApiResponse<any[]>> {
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'hrmE_EmployeeFirstName,hrmE_EmployeeCode,hrmeD_Name'
+    );
+    const url = `/api/TransEmployeeSalaryIncreementProcess/get_employee_increment_grid?${urlParams}`;
+    try {
+        const response = await api.get<any[]>('hrms', url);
+        return response;
+    } catch (error) {
+        console.error('Error fetching increment grid:', error);
+        throw error;
+    }
+}
+
+/**
+ * Delete employee increment record
+ * POST /api/TransEmployeeSalaryIncreementProcess/delete_master_holiday/{id}
+ */
+export async function deleteEmployeeIncrementMaster(id: number): Promise<ApiResponse<any>> {
+    const url = `/api/TransEmployeeSalaryIncreementProcess/delete_master_holiday/${id}`;
+    try {
+        const response = await api.delete<any>('hrms', url);
+        return response;
+    } catch (error) {
+        console.error('Error deleting increment:', error);
+        throw error;
+    }
+}
+
+/**
+ * Add or update employee salary increment (Bulk)
+ * POST /api/TransEmployeeSalaryIncreementProcess/add_or_update_employee_salary_increment
+ */
+export async function addOrUpdateEmployeeSalaryIncrement(payload: NewSalaryIncrementSaveRequest): Promise<ApiResponse<NewSalaryIncrementSaveResponse>> {
+    const url = '/api/TransEmployeeSalaryIncreementProcess/add_or_update_employee_salary_increment';
+    try {
+        const response = await api.post<NewSalaryIncrementSaveResponse>('hrms', url, payload);
+        return response as any;
+    } catch (error) {
+        console.error('Error in addOrUpdateEmployeeSalaryIncrement:', error);
         throw error;
     }
 }

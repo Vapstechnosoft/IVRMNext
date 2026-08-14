@@ -84,13 +84,16 @@ export interface EmployeeDetails {
  * API Request for saving On Duty Leave
  */
 export interface OnDutyLeaveSaveRequest {
+    MI_Id?: number;
+    UserId?: number;
+    HRELAP_Id?: number;
     HRME_Id: number;
-    HRML_LeaveType: string; // Leave Code (e.g., "OD") or Leave Id depending on backend expectations. Given example uses "OD".
-    HRELAP_FromDate: string; // YYYY-MM-DD
-    HRELAP_ToDate: string; // YYYY-MM-DD
+    HRML_LeaveType: string;
+    HRELAP_FromDate: string;
+    HRELAP_ToDate: string;
     HRELAP_TotalDays: number;
     HRELAP_LeaveReason: string;
-    HRELAPD_InTime: string; // HH:mm
-    HRELAPD_OutTime: string; // HH:mm
+    HRELAPD_InTime: string;
+    HRELAPD_OutTime: string;
     HRELT_SupportingDocument?: string;
 }

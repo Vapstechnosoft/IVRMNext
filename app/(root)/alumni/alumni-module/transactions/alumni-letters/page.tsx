@@ -37,20 +37,24 @@ export default function AlumniLettersPage() {
             const yearData = (yearRes as any).success
                 ? yearRes.data || []
                 : Array.isArray(yearRes)
-                  ? yearRes
-                  : (yearRes as any).newuser1 || [];
+                    ? yearRes
+                    : (yearRes as any).newuser1 || [];
             const classData = (classRes as any).success
                 ? classRes.data || []
                 : Array.isArray(classRes)
-                  ? classRes
-                  : (classRes as any).newuser2 || [];
+                    ? classRes
+                    : (classRes as any).newuser2 || [];
 
             if (yearData && Array.isArray(yearData)) {
-                setYears(yearData);
+                // Deduplicate years
+                const uniqueYears = Array.from(new Map(yearData.map((y) => [y.asmaY_Id, y])).values());
+                setYears(uniqueYears);
             }
 
             if (classData && Array.isArray(classData)) {
-                setClasses(classData);
+                // Deduplicate classes
+                const uniqueClasses = Array.from(new Map(classData.map((c) => [c.asmcL_Id, c])).values());
+                setClasses(uniqueClasses);
             }
 
             if (!yearData?.length && !classData?.length) {
@@ -78,10 +82,11 @@ export default function AlumniLettersPage() {
                 logoname: values.reporttype
             });
             if (res.success && res.data) {
-                const studentList = res.data;
-                setStudents(studentList);
+                // Deduplicate students
+                const uniqueStudents = Array.from(new Map(res.data.map((s: IAlumniLetterStudent) => [s.amsT_Id, s])).values());
+                setStudents(uniqueStudents);
                 setSelectedIds([]);
-                if (studentList.length === 0) {
+                if (uniqueStudents.length === 0) {
                     toast.info('No records found for the selected criteria.');
                 }
             }
@@ -152,7 +157,7 @@ export default function AlumniLettersPage() {
                     handlePrint();
                 }, 500);
             } else {
-                toast.error('Failed to generate report for selected students.');
+                toast.error('Failed to print report for selected students.');
             }
             // biome-ignore lint/correctness/noUnusedVariables: <explanation>
         } catch (error) {
@@ -210,7 +215,7 @@ export default function AlumniLettersPage() {
             </div>
 
             {/* Letter Templates - Only visible during printing or as requested */}
-            <div className='print-only'>
+            <div className='printable-content hidden'>
                 <LetterTemplates
                     ref={printRef}
                     students={reportStudents}

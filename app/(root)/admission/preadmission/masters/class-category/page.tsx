@@ -10,7 +10,9 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterClassCategoryForm from './_components/add-form';
 import { masterClassCategoryColumns } from './_components/columns';
+import ViewDetailModal from './_components/section-columns';
 import ToggleMasterClassCategoryForm from './_components/toggle-form';
+import UpdateMasterClassCategoryForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -79,8 +81,19 @@ function MasterClassCategoryPageContent({
 }
 
 function FormSections() {
-    const { isAddFormOpen, isToggleFormOpen, selectedRow, closeAddForm, closeToggleForm, addFormRef } =
-        useFormContext<IMasterClassCategoryList>();
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isToggleFormOpen,
+        isDetailsViewOpen,
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        closeToggleForm,
+        closeDetailsView,
+        addFormRef,
+        editFormRef
+    } = useFormContext<IMasterClassCategoryList>();
 
     return (
         <>
@@ -109,8 +122,38 @@ function FormSections() {
                 </div>
             )}
 
+            {/* Edit Form */}
+            {isEditFormOpen && selectedRow && (
+                <div ref={editFormRef}>
+                    <CollapsibleSection
+                        title='Update Master Class Category'
+                        description='Update the details of the selected master class category mapping'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeEditForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <UpdateMasterClassCategoryForm rowData={selectedRow} onSuccess={closeEditForm} />
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
+
             {/* Toggle Form */}
             {isToggleFormOpen && selectedRow && <ToggleMasterClassCategoryForm rowData={selectedRow} onClose={closeToggleForm} />}
+
+            {/* View Detail Modal */}
+            {isDetailsViewOpen && selectedRow && (
+                <ViewDetailModal rowData={selectedRow} isOpen={isDetailsViewOpen} onClose={closeDetailsView} />
+            )}
         </>
     );
 }

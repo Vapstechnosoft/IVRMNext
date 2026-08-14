@@ -20,11 +20,12 @@ import React, { useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useStudentYearlyAttendance } from '@/hooks/admission/preadmission/useReports';
-import { GetStudentYearlyAttendance } from '@/server/admission/preadmission/reports/student_yearly_attendance';
 import { getExcelStudentYearlyReport } from '@/server/admission/preadmission/reports/month_end_report';
-import { createStudentsYearlyAttendenceReportColumns } from './_components/columns';
+import { GetStudentYearlyAttendance } from '@/server/admission/preadmission/reports/student_yearly_attendance';
 import { useReactToPrint } from 'react-to-print';
+import { createStudentsYearlyAttendenceReportColumns } from './_components/columns';
 import { StudentYearlyReportPrint } from './_components/student-yearly-report-print';
+import * as XLSX from 'xlsx';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -78,6 +79,7 @@ export default function StudentsYearlyAttendenceReport(props: {
         // Reset report and selections when filter changes
         setShowReport(false);
         setSelectedStudents([]);
+        setIsAllRecordsSelected(false);
         handleResetSelection();
 
         if (filterType === 'class') {
@@ -106,6 +108,8 @@ export default function StudentsYearlyAttendenceReport(props: {
 
     const [selectedStudents, setSelectedStudents] = useState<IStudentYearlyAttendenceReportList[]>([]);
     const [printData, setPrintData] = useState<any[]>([]);
+    const [printMonthList, setPrintMonthList] = useState<any[]>([]);
+    const [isAllRecordsSelected, setIsAllRecordsSelected] = useState(false);
 
     const {
         data: admissionSection,
@@ -118,7 +122,13 @@ export default function StudentsYearlyAttendenceReport(props: {
         isLoading,
         error,
         refetch: refetchAdmissionStudents
-    } = useStudentYearlyAttendance((academicYearId || activePreadmission?.data?.asmaY_Id) ?? 0, classId, sectionId, searchParams, showReport);
+    } = useStudentYearlyAttendance(
+        (academicYearId || activePreadmission?.data?.asmaY_Id) ?? 0,
+        classId,
+        sectionId,
+        { ...searchParams, page_size: 100000, page: 1 },
+        showReport
+    );
 
     const transformedData = useMemo(() => {
         if (!response?.data || !showReport) {
@@ -129,8 +139,9 @@ export default function StudentsYearlyAttendenceReport(props: {
         console.log('API Response:', response);
         console.log('Attendance Data:', attendanceData);
 
-        const studentList = attendanceData.studentAttendanceList || attendanceData.StudentAttendanceList;
-        const monthListVal = attendanceData.monthList || attendanceData.MonthList;
+        const realData = attendanceData.data || attendanceData;
+        const studentList = realData.studentAttendanceList || realData.StudentAttendanceList;
+        const monthListVal = realData.monthList || realData.MonthList;
 
         if (!studentList || !monthListVal) {
             return [];
@@ -139,41 +150,55 @@ export default function StudentsYearlyAttendenceReport(props: {
         const studentAttendanceList = studentList;
         const monthList = monthListVal;
 
-        const studentMap = new Map<number, IStudentYearlyAttendenceReportList>();
+        const totalWorkingDays = monthList.reduce((sum: any, month: any) => sum + month.total, 0);
+
+        const studentMap = new Map<string, IStudentYearlyAttendenceReportList>();
 
         studentAttendanceList.forEach((record: any) => {
-            if (!studentMap.has(record.RowNo)) {
-                studentMap.set(record.RowNo, {
-                    RowNo: record.RowNo,
+            const studentKey = record.AMST_Id;
+            if (!studentMap.has(studentKey)) {
+                studentMap.set(studentKey, {
+                    RowNo: studentMap.size + 1,
                     name: record.name,
                     AMST_AdmNo: record.AMST_AdmNo,
                     AMST_RegistrationNo: record.AMST_RegistrationNo,
                     AMAY_RollNo: record.AMAY_RollNo,
                     monthlyAttendance: {},
                     totalPresent: 0,
+                    totalWorkingDays: totalWorkingDays,
+                    totalAbsent: totalWorkingDays,
                     percentage: '0.00',
-                    AMST_Id: 0
+                    AMST_Id: record.AMST_Id ?? 0
                 });
             }
 
-            const student = studentMap.get(record.RowNo)!;
+            const student = studentMap.get(studentKey)!;
             const monthKey = `${record.yearidname}-${record.monthidname}`;
 
             student.monthlyAttendance[monthKey] = record.TOTAL_PRESENT;
             student.totalPresent += record.TOTAL_PRESENT;
+            student.totalAbsent = student.totalWorkingDays - student.totalPresent;
         });
-
-        const totalWorkingDays = monthList.reduce((sum: any, month: any) => sum + month.total, 0);
 
         return Array.from(studentMap.values()).map((student) => ({
             ...student,
-            percentage: totalWorkingDays > 0 ? ((student.totalPresent / totalWorkingDays) * 100).toFixed(2) : '0.00'
+            percentage: student.totalWorkingDays > 0 ? ((student.totalPresent / student.totalWorkingDays) * 100).toFixed(2) : '0.00'
         }));
     }, [response?.data, showReport]);
 
+    const page = Number((searchParams as any)?.page) || 1;
+    const pageSize = Number((searchParams as any)?.page_size) || 10;
+
+    const paginatedData = useMemo(() => {
+        const start = (page - 1) * pageSize;
+        const end = start + pageSize;
+        return transformedData.slice(start, end);
+    }, [transformedData, page, pageSize]);
+
     const tableProps = useDataTableProps({
         ...response,
-        data: transformedData
+        data: paginatedData,
+        total: transformedData.length
     });
 
     const columns = useMemo(() => {
@@ -182,13 +207,95 @@ export default function StudentsYearlyAttendenceReport(props: {
         }
 
         const attendanceData = response.data as any;
-        const monthList = attendanceData.monthList || attendanceData.MonthList || [];
+        const realData = attendanceData.data || attendanceData;
+        const monthList = realData.monthList || realData.MonthList || [];
 
         return createStudentsYearlyAttendenceReportColumns(monthList);
     }, [response?.data]);
 
     const handleSelectStudent = (selectedRows: IStudentYearlyAttendenceReportList[]) => {
         setSelectedStudents(selectedRows);
+        // If manually selecting rows, disable "all records selected" mode
+        if (isAllRecordsSelected && selectedRows.length !== transformedData.length) {
+            setIsAllRecordsSelected(false);
+        }
+    };
+
+    const handleSelectAllRecords = async () => {
+        try {
+            toast.loading('Fetching all records...', { id: 'select-all-fetch' });
+
+            // Fetch all data with a large page size
+            const allDataResponse = await GetStudentYearlyAttendance(
+                (academicYearId || activePreadmission?.data?.asmaY_Id) ?? 0,
+                classId,
+                sectionId ?? 0,
+                { ...searchParams, page_size: 100000 }
+            );
+
+            const attendanceData = allDataResponse?.data as any;
+            if (!attendanceData) {
+                toast.dismiss('select-all-fetch');
+                toast.error('Failed to fetch all records');
+                return;
+            }
+
+            const realData = attendanceData.data || attendanceData;
+            // Transform data (same logic as in transformedData)
+            const studentList = realData.studentAttendanceList || realData.StudentAttendanceList || [];
+            const monthList = realData.monthList || realData.MonthList || [];
+
+            const totalWorkingDays = monthList.reduce((sum: any, month: any) => sum + month.total, 0);
+            const studentMap = new Map<string, IStudentYearlyAttendenceReportList>();
+
+            studentList.forEach((record: any) => {
+                const studentKey = record.AMST_Id;
+                if (!studentMap.has(studentKey)) {
+                    studentMap.set(studentKey, {
+                        RowNo: studentMap.size + 1,
+                        name: record.name,
+                        AMST_AdmNo: record.AMST_AdmNo,
+                        AMST_RegistrationNo: record.AMST_RegistrationNo,
+                        AMAY_RollNo: record.AMAY_RollNo,
+                        monthlyAttendance: {},
+                        totalPresent: 0,
+                        totalWorkingDays: totalWorkingDays,
+                        totalAbsent: totalWorkingDays,
+                        percentage: '0.00',
+                        AMST_Id: record.AMST_Id ?? 0
+                    });
+                }
+
+                const student = studentMap.get(studentKey)!;
+                const monthKey = `${record.yearidname}-${record.monthidname}`;
+
+                student.monthlyAttendance[monthKey] = record.TOTAL_PRESENT;
+                student.totalPresent += record.TOTAL_PRESENT;
+                student.totalAbsent = student.totalWorkingDays - student.totalPresent;
+            });
+
+            const allRecords = Array.from(studentMap.values()).map((student) => ({
+                ...student,
+                percentage: student.totalWorkingDays > 0 ? ((student.totalPresent / student.totalWorkingDays) * 100).toFixed(2) : '0.00'
+            }));
+
+            setSelectedStudents(allRecords);
+            setIsAllRecordsSelected(true);
+
+            toast.dismiss('select-all-fetch');
+            toast.success(`Selected all ${allRecords.length} records`);
+        } catch (error) {
+            console.error('Select all error:', error);
+            toast.dismiss('select-all-fetch');
+            toast.error('Error fetching all records');
+        }
+    };
+
+    const handleDeselectAll = () => {
+        setSelectedStudents([]);
+        setIsAllRecordsSelected(false);
+        handleResetSelection();
+        toast.info('All selections cleared');
     };
 
     const handleReset = () => {
@@ -197,6 +304,7 @@ export default function StudentsYearlyAttendenceReport(props: {
         setSectionId(undefined);
         setSelectedStudents([]);
         setShowReport(false);
+        setIsAllRecordsSelected(false);
         handleResetSelection();
 
         router.replace(pathname);
@@ -205,43 +313,48 @@ export default function StudentsYearlyAttendenceReport(props: {
     };
 
     const handleCancel = () => {
-        setShowReport(false);
-        setSelectedStudents([]);
-        handleResetSelection();
-        toast.info('Report cancelled');
+        window.location.reload();
     };
 
     const downloadExcel = async () => {
         try {
-            if (!academicYearId || !classId || !sectionId || !searchParams) {
-                toast.error('Please fill all required fields!');
+            if (!transformedData || transformedData.length === 0) {
+                toast.error('No data available to export');
                 return;
             }
 
-            const response = await getExcelStudentYearlyReport(academicYearId, classId, sectionId, searchParams);
+            const attendanceData = response?.data as any;
+            const monthList = attendanceData.monthList || attendanceData.MonthList || [];
+            const totalWorkingDays = monthList.reduce((sum: any, month: any) => sum + month.total, 0);
 
-            // Ensure we have a Blob
-            const blob =
-                response instanceof Blob
-                    ? response
-                    : new Blob([new Uint8Array(response)], {
-                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                    });
+            const excelData = transformedData.map((student) => {
+                const row: any = {
+                    'Sl. No.': student.RowNo,
+                    'Reg No.': student.AMST_RegistrationNo || 'N.A',
+                    'Adm No.': student.AMST_AdmNo || 'N.A',
+                    'Student Name': student.name,
+                    'Roll No.': student.AMAY_RollNo || 'N.A'
+                };
 
-            // Create download link
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'StudentYearlyAttendanceReport.xlsx';
-            document.body.appendChild(link);
-            link.click();
+                monthList.forEach((month: any) => {
+                    const monthKey = `${month.yearidname}-${month.monthidname}`;
+                    const monthName = month.monthnamee.trim();
+                    const header = `${monthName} ${month.yearidname}(${month.total})`;
+                    row[header] = student.monthlyAttendance[monthKey] ?? 0;
+                });
 
-            // Cleanup
-            setTimeout(() => {
-                link.remove();
-                window.URL.revokeObjectURL(url);
-            }, 100);
+                row[`Total (${totalWorkingDays})`] = Number(student.totalPresent).toFixed(2);
+                row['Percentage'] = student.percentage;
 
+                return row;
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(excelData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Attendance Report');
+
+            // Apply some basic styling to headers if possible with xlsx (minimal)
+            XLSX.writeFile(workbook, 'StudentYearlyAttendanceReport.xlsx');
 
             toast.success('Excel downloaded successfully');
         } catch (error) {
@@ -261,67 +374,84 @@ export default function StudentsYearlyAttendenceReport(props: {
             return;
         }
 
-        if (selectedStudents.length > 0) {
-            setPrintData(selectedStudents);
-            toast.info(`Preparing print for ${selectedStudents.length} selected record(s)...`);
-        } else {
-            try {
-                toast.loading('Fetching all records for print...', { id: 'print-fetch' });
-                // @ts-ignore
-                const allDataResponse = await GetStudentYearlyAttendance((academicYearId || activePreadmission?.data?.asmaY_Id) ?? 0, classId, sectionId ?? 0, { ...searchParams, page_size: 100000 });
-                const attendanceData = (allDataResponse?.data as any);
-                if (!attendanceData) {
-                    toast.dismiss('print-fetch');
-                    toast.error('Failed to fetch print data');
-                    return;
-                }
+        try {
+            toast.loading('Fetching all records for print...', { id: 'print-fetch' });
 
-                // Transform data for print
-                const studentList = attendanceData.studentAttendanceList || attendanceData.StudentAttendanceList || [];
-                const monthList = attendanceData.monthList || attendanceData.MonthList || [];
+            // Fetch all data with text search params intact, but force page: 1
+            const allDataResponse = await GetStudentYearlyAttendance(
+                (academicYearId || activePreadmission?.data?.asmaY_Id) ?? 0,
+                classId,
+                sectionId ?? 0,
+                { ...searchParams, page_size: 100000, page: 1 }
+            );
 
-                const studentMap = new Map<number, any>();
-
-                studentList.forEach((record: any) => {
-                    if (!studentMap.has(record.RowNo)) {
-                        studentMap.set(record.RowNo, {
-                            ...record,
-                            monthlyAttendance: {},
-                            totalPresent: 0,
-                            percentage: '0.00'
-                        });
-                    }
-
-                    const student = studentMap.get(record.RowNo)!;
-                    const monthKey = `${record.yearidname}-${record.monthidname}`;
-
-                    student.monthlyAttendance[monthKey] = record.TOTAL_PRESENT;
-                    student.totalPresent += record.TOTAL_PRESENT;
-                });
-
-                const totalWorkingDays = monthList.reduce((sum: any, month: any) => sum + month.total, 0);
-                const finalData = Array.from(studentMap.values()).map((student) => ({
-                    ...student,
-                    percentage: totalWorkingDays > 0 ? ((student.totalPresent / totalWorkingDays) * 100).toFixed(2) : '0.00'
-                }));
-
-                setPrintData(finalData);
+            const attendanceData = allDataResponse?.data as any;
+            if (!attendanceData) {
                 toast.dismiss('print-fetch');
-                toast.success(`Ready to print ${finalData.length} records`);
-            } catch (error) {
-                console.error('Print fetch error:', error);
-                toast.dismiss('print-fetch');
-                toast.error('Error fetching print data');
+                toast.error('Failed to fetch print data');
                 return;
             }
-        }
 
-        setTimeout(() => {
-            handlePrintContent();
-        }, 500);
+            const realData = attendanceData.data || attendanceData;
+            // Transform data for print
+            const studentList = realData.studentAttendanceList || realData.StudentAttendanceList || [];
+            const monthList = realData.monthList || realData.MonthList || [];
+
+            setPrintMonthList(monthList); // Save month list for print headers
+            const totalWorkingDays = monthList.reduce((sum: any, month: any) => sum + month.total, 0);
+
+            const studentMap = new Map<string, any>();
+
+            studentList.forEach((record: any) => {
+                const studentKey = record.AMST_Id;
+                if (!studentMap.has(studentKey)) {
+                    studentMap.set(studentKey, {
+                        ...record,
+                        RowNo: studentMap.size + 1,
+                        monthlyAttendance: {},
+                        totalPresent: 0,
+                        totalWorkingDays: totalWorkingDays,
+                        totalAbsent: totalWorkingDays,
+                        percentage: '0.00'
+                    });
+                }
+
+                const student = studentMap.get(studentKey)!;
+                const monthKey = `${record.yearidname}-${record.monthidname}`;
+
+                student.monthlyAttendance[monthKey] = record.TOTAL_PRESENT;
+                student.totalPresent += record.TOTAL_PRESENT;
+                student.totalAbsent = student.totalWorkingDays - student.totalPresent;
+            });
+
+            let finalData = Array.from(studentMap.values()).map((student: any) => ({
+                ...student,
+                percentage: totalWorkingDays > 0 ? ((student.totalPresent / totalWorkingDays) * 100).toFixed(2) : '0.00'
+            }));
+
+            // If students were selected in the table, only print those
+            if (selectedStudents.length > 0) {
+                const selectedIds = new Set(selectedStudents.map((s) => s.RowNo));
+                finalData = finalData.filter((student) => selectedIds.has(student.RowNo));
+                toast.success(`Ready to print ${finalData.length} selected records`);
+            } else {
+                toast.success(`Ready to print ${finalData.length} records`);
+            }
+
+            setPrintData(finalData);
+            toast.dismiss('print-fetch');
+
+            setTimeout(() => {
+                handlePrintContent();
+            }, 500);
+        } catch (error) {
+            console.error('Print fetch error:', error);
+            toast.dismiss('print-fetch');
+            toast.error('Error fetching print data');
+        }
     };
 
-    const handleReport = () => {
+    const handleReport = async () => {
         // Validate all dropdowns are selected
         if (!academicYearId || academicYearId === 0) {
             toast.error('Please select Academic Year');
@@ -339,13 +469,28 @@ export default function StudentsYearlyAttendenceReport(props: {
         }
 
         setShowReport(true);
-        toast.success('Generating report...');
+        toast.loading('Generating report...', { id: 'report-loading' });
+        try {
+            const result = await refetchAdmissionStudents();
+            const attendanceData = result.data?.data as any;
+            const realData = attendanceData?.data || attendanceData;
+            const students = realData?.studentAttendanceList || realData?.StudentAttendanceList || [];
+
+            toast.dismiss('report-loading');
+            if (students.length > 0) {
+                toast.success(`Report generated (${students.length} records)`);
+            } else {
+                toast.error('No records found');
+            }
+        } catch (err) {
+            toast.dismiss('report-loading');
+            toast.error('Failed to generate report');
+            console.error('Report generation error:', err);
+        }
     };
 
     return (
         <div className='min-h-screen p-8'>
-
-
             <div className='container space-y-4 p-1'>
                 <CollapsibleSection
                     title='Student Yearly Attendance Report'
@@ -467,7 +612,7 @@ export default function StudentsYearlyAttendenceReport(props: {
                                 <X className='mr-2 h-4 w-4' />
                                 Cancel
                             </Button>
-                            {showReport && transformedData && transformedData.length > 0 && (
+                            {showReport && response && (
                                 <>
                                     <Button onClick={downloadExcel} className='w-fit'>
                                         Export to Excel
@@ -475,8 +620,7 @@ export default function StudentsYearlyAttendenceReport(props: {
                                     <Button
                                         variant='outline'
                                         className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'
-                                        onClick={handlePrint}
-                                    >
+                                        onClick={handlePrint}>
                                         <Printer className='mr-2 h-4 w-4' />
                                         Print
                                     </Button>
@@ -494,6 +638,8 @@ export default function StudentsYearlyAttendenceReport(props: {
                         variant='outline'
                         size='md'
                         className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        {/* Select All Banner Removed */}
+
                         <GenericDataTable<IStudentYearlyAttendenceReportList>
                             {...tableProps}
                             ref={tableRef}
@@ -505,18 +651,13 @@ export default function StudentsYearlyAttendenceReport(props: {
                             noDataTitle='No Data Found'
                             noDataDescription='No attendance records found. Please select filters to view data.'
                             errorTitle='Error Loading Attendance Report'
-                            onRowSelectionChange={handleSelectStudent}
                         />
                     </CollapsibleSection>
                 )}
 
                 {/* Hidden Print Component */}
                 <div style={{ position: 'absolute', opacity: 0, zIndex: -1, overflow: 'visible', width: 0, height: 0 }}>
-                    <StudentYearlyReportPrint
-                        ref={printRef}
-                        data={printData}
-                        monthList={((response?.data as any)?.monthList || (response?.data as any)?.MonthList || [])}
-                    />
+                    <StudentYearlyReportPrint ref={printRef} data={printData} monthList={printMonthList} />
                 </div>
             </div>
         </div>

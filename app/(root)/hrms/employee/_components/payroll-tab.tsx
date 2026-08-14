@@ -6,20 +6,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import {
     useEmployeeById,
-    useGetEmployeeSalaryDetailsByHead,
-    useUpdateEmployeeSalaryDetailsByHead,
     useEmployeeEarningsDeductions,
-    useSaveEmployeeSalaryDetails
+    useGetEmployeeSalaryDetailsByHead,
+    useSaveEmployeeSalaryDetails,
+    useUpdateEmployeeSalaryDetailsByHead
 } from '@/hooks/hrms/useEmployeeRegister';
-import type {
-    EmployeeSalaryDetailItem,
-    SaveArrearDetailsRequest,
-    SaveDeductionDetailsRequest,
-    SaveEarningDetailsRequest
-} from '@/types/hrms/employee-register';
+import type { EmployeeSalaryDetailItem } from '@/types/hrms/employee-register';
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { useQueryClient } from '@tanstack/react-query';
 interface PayrollTabProps {
     employeeId: number | null;
     employeeCode: string;
@@ -35,23 +30,17 @@ type EditablePayrollItem = EmployeeSalaryDetailItem & {
 };
 const DEFAULT_EMPTY_ARRAY: any[] = [];
 
-export function PayrollTab({
-    employeeId,
-    employeeCode,
-    MI_Id: propMI_Id,
-    onSuccess
-}: PayrollTabProps) {
+export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSuccess }: PayrollTabProps) {
     const { data: response, isLoading: isLoadingEmployee, refetch } = useEmployeeById(employeeId);
     const { data: salaryDetailsData, isLoading: isLoadingED } = useEmployeeEarningsDeductions(employeeId);
-    const employeeData = response?.data;
+    const employeemiId = response?.data?.employee?.[0]?.mI_Id;
 
     // Prioritize the specific API response as requested by user
-    // Prioritize the specific API response as requested by user
-    const salaryDetails = salaryDetailsData || DEFAULT_EMPTY_ARRAY;
+    const salaryDetails = Array.isArray(salaryDetailsData) ? salaryDetailsData : (salaryDetailsData as any)?.data || DEFAULT_EMPTY_ARRAY;
     console.log('🔍 [PayrollTab] Loaded salaryDetails from API:', salaryDetails);
 
     const queryClient = useQueryClient();
-    const MI_Id = propMI_Id || employeeData?.mI_Id || employeeData?.MI_Id || HRMS_MI_ID;
+    const MI_Id = propMI_Id || employeemiId || employeemiId || HRMS_MI_ID;
     const isLoading = isLoadingEmployee || isLoadingED;
 
     const updateSalaryByHeadMutation = useUpdateEmployeeSalaryDetailsByHead();
@@ -86,12 +75,14 @@ export function PayrollTab({
                         HREED_ActiveFlag: active,
                         HREED_Amount: amount,
                         HREED_Percentage: percentage,
-                        HREED_ApplicablePercentage: existingItem.HREED_ApplicablePercentage ?? existingItem.hreeD_ApplicablePercentage ?? percentage,
+                        HREED_ApplicablePercentage:
+                            existingItem.HREED_ApplicablePercentage ?? existingItem.hreeD_ApplicablePercentage ?? percentage,
                         HREED_ApplicableMaxValue: maxVal,
                         // Local state for editing
                         localAmount: amount,
                         localPercentage: percentage,
-                        localApplicablePercentage: existingItem.HREED_ApplicablePercentage ?? existingItem.hreeD_ApplicablePercentage ?? percentage,
+                        localApplicablePercentage:
+                            existingItem.HREED_ApplicablePercentage ?? existingItem.hreeD_ApplicablePercentage ?? percentage,
                         localMaxAmount: maxVal,
                         HREED_MaxApplicableFlg: Boolean(existingItem.HREED_MaxApplicableFlg ?? existingItem.hreeD_MaxApplicableFlg ?? true)
                     } as EditablePayrollItem;
@@ -107,9 +98,7 @@ export function PayrollTab({
         setArrears(arrearsList);
 
         // Handle Gross separately
-        const existingGross = (salaryDetails || []).find(
-            (sd: any) => (sd.HRMED_EarnDedFlag || sd.hrmeD_EarnDedFlag) === 'Gross'
-        );
+        const existingGross = (salaryDetails || []).find((sd: any) => (sd.HRMED_EarnDedFlag || sd.hrmeD_EarnDedFlag) === 'Gross');
         if (existingGross) {
             const hrmedId = existingGross.HRMED_Id || existingGross.hrmeD_Id;
             setGrossDetails({
@@ -209,24 +198,26 @@ export function PayrollTab({
         return Math.max(0, numValue); // Ensure no negative values
     };
     // State for calculation trigger
-    const handleCalculateServerSide = async (currentEarnings = earnings, currentDeductions = deductions, currentArrears = arrears, currentGross = grossDetails) => {
-        if (!employeeData) return;
+    const handleCalculateServerSide = async (
+        currentEarnings = earnings,
+        currentDeductions = deductions,
+        currentArrears = arrears,
+        currentGross = grossDetails
+    ) => {
+        if (!employeemiId) return;
 
         // Construct standard payload for calculation
-        const allItems = [
-            ...currentEarnings,
-            ...currentDeductions,
-            ...currentArrears,
-            ...(currentGross ? [currentGross] : [])
-        ].map(item => ({
-            ...item,
-            HREED_Amount: item.localAmount ?? item.HREED_Amount ?? 0,
-            HREED_Percentage: item.localPercentage || item.HREED_Percentage || '0',
-            HREED_ActiveFlag: Boolean(item.HREED_ActiveFlag)
-        }));
+        const allItems = [...currentEarnings, ...currentDeductions, ...currentArrears, ...(currentGross ? [currentGross] : [])].map(
+            (item) => ({
+                ...item,
+                HREED_Amount: item.localAmount ?? item.HREED_Amount ?? 0,
+                HREED_Percentage: item.localPercentage || item.HREED_Percentage || '0',
+                HREED_ActiveFlag: Boolean(item.HREED_ActiveFlag)
+            })
+        );
 
         const payload = {
-            ...employeeData,
+            ...employeemiId,
             employeeEarningsDeductionsDetails: allItems
         };
 
@@ -245,13 +236,13 @@ export function PayrollTab({
                 const newArrears: EditablePayrollItem[] = [];
                 let newGross: EditablePayrollItem | null = null;
 
-                newDetails.forEach(item => {
+                newDetails.forEach((item) => {
                     // Get name from salary details only (API driven)
                     const name = item.HRMED_Name || item.hrmeD_Name || '';
                     const rawFlag = item.HRMED_AmountPercentFlag;
                     const amountPercentFlag = rawFlag?.toString().trim()
                         ? rawFlag.toString().trim()
-                        : (item.hrmeD_AmountPercentFlag || 'Amount');
+                        : item.hrmeD_AmountPercentFlag || 'Amount';
 
                     const editableItem: EditablePayrollItem = {
                         ...item,
@@ -284,17 +275,24 @@ export function PayrollTab({
                 calculateTotalsWithArrays(newEarnings, newDeductions, newArrears);
             }
         } catch (error) {
-            console.error("Calculation error", error);
+            console.error('Calculation error', error);
         }
     };
 
     const handleAutoSave = async (item: EditablePayrollItem) => {
         if (!employeeId) return;
 
+        // Skip auto-save if this row hasn't been saved to the DB yet (no valid ID)
+        const hreedId = Number(item.HREED_Id || 0);
+        if (!hreedId || hreedId <= 0) {
+            console.log('[PAYROLL AUTO-SAVE] Skipping: HREED_Id is 0 or missing (unsaved row)');
+            return;
+        }
+
         // Construct payload matching the user's requested structure
         const payload = {
             hreeD_Id: Number(item.HREED_Id || 0),
-            mI_Id: Number(employeeData?.mI_Id || employeeData?.MI_Id || MI_Id || 0),
+            mI_Id: Number(employeemiId),
             hrmE_Id: Number(employeeId),
             hrmeD_Id: Number(item.HRMED_Id || 0),
             hrmeD_Name: item.HRMED_Name || '',
@@ -471,11 +469,11 @@ export function PayrollTab({
         <div className='space-y-6'>
             {/* Gross Salary Details */}
             {grossDetails && (
-                <div className='rounded-md border p-4 bg-white'>
+                <div className='rounded-md border bg-white p-4'>
                     <div className='flex items-center gap-4'>
-                        <h3 className='font-semibold text-base text-gray-900 uppercase min-w-[150px]'>GROSS SALARY:</h3>
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium">Amount:</span>
+                        <h3 className='min-w-[150px] font-semibold text-base text-gray-900 uppercase'>GROSS SALARY:</h3>
+                        <div className='flex items-center gap-2'>
+                            <span className='font-medium text-sm'>Amount:</span>
                             <Input
                                 type='number'
                                 className='h-9 w-40 text-right'
@@ -892,16 +890,16 @@ export function PayrollTab({
                 </div>
             </div>
             {/* Action Buttons */}
-            <div className='flex justify-end gap-3 pt-4'>
-                <Button variant='outline' type='button'>
+            <div className='flex w-full items-center justify-center gap-3 pt-4'>
+                {/* <Button variant='outline' type='button'>
                     PREVIOUS
+                </Button> */}
+                <Button type='button' variant='default' onClick={handleSave} disabled={isSaving} className='w-fit'>
+                    {isSaving ? 'SAVING...' : 'SUBMIT SALARY INFO'}
                 </Button>
-                <Button type='button' variant='default' onClick={handleSave} disabled={isSaving}>
-                    {isSaving ? 'SAVING...' : 'SUBMIT'}
-                </Button>
-                <Button variant='outline' type='button'>
+                {/* <Button variant='outline' type='button'>
                     CLEAR
-                </Button>
+                </Button> */}
             </div>
         </div>
     );

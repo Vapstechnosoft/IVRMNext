@@ -4,89 +4,87 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useClassDetails, useSectionDropDown, useTimeTableCategoryDropDownClassWise } from '@/hooks/timetable/reports';
+import { useTimeTableAcademicYear, useTimeTableCategoryDropDownData } from '@/hooks/timetable/useMasters';
 import { classWiseReportSchema } from '@/schemas/timetable/reports';
-import { getClassByCategory } from '@/server/timetable/reports/classwisett';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Search, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import type { z } from 'zod';
+
+import { getClassWiseReport } from '@/server/timetable/reports/classwisett';
 
 type FormFields = z.infer<typeof classWiseReportSchema.search>;
 
 interface ClassWiseFormProps {
-    initialData: any;
-    onSubmit: (data: any) => void;
+    onReportGenerated: (response: any, payload: any) => void;
     onCancel: () => void;
 }
 
-export default function ClassWiseForm({ initialData, onSubmit, onCancel }: ClassWiseFormProps) {
-    const [classList, setClassList] = useState<any[]>([]);
+export default function ClassWiseForm({ onReportGenerated }: ClassWiseFormProps) {
+    const {
+        data: academicyeardata,
+    } = useTimeTableAcademicYear();
 
-    const academicList = initialData?.acayear || [];
-    const categoryList = initialData?.categorylist || [];
-    const sectionList = initialData?.sectionlist || [];
+    const {
+        data: categorydropdowndata,
+    } = useTimeTableCategoryDropDownClassWise();
+
+    // Using new hook for classes
+    const {
+        data: classdata,
+    } = useClassDetails();
+
+    // Using new hook for sections
+    const {
+        data: sectiondata,
+    } = useSectionDropDown();
+
+    const academicList = (academicyeardata as any)?.data || [];
+    const categoryList = (categorydropdowndata as any)?.data || [];
+    const classList = (classdata as any)?.data || (Array.isArray(classdata) ? classdata : []);
+    const sectionList = (sectiondata as any)?.data || (Array.isArray(sectiondata) ? sectiondata : []);
 
     const {
         control,
         handleSubmit,
-        watch,
-        setValue,
-        formState: { errors, isSubmitting }
+        formState: { errors, isSubmitting },
+        reset
     } = useForm<FormFields>({
         resolver: zodResolver(classWiseReportSchema.search),
         defaultValues: {
             classId: [],
-            sectionId: []
+            sectionId: [],
+            asmaY_Id: 0,
+            ttmC_Id: 0
         }
     });
 
-    const watchedAcademicYear = watch('asmaY_Id');
-    const watchedCategory = watch('ttmC_Id');
-
-    // Fetch classes when Academic Year or Category changes
-    useEffect(() => {
-        const fetchClasses = async () => {
-            setValue('classId', []);
-            if (watchedAcademicYear && watchedCategory) {
-                try {
-                    const res = await getClassByCategory({
-                        ASMAY_Id: watchedAcademicYear,
-                        TTMC_Id: watchedCategory
-                    });
-                    if (res && Array.isArray(res.classlist)) {
-                        setClassList(res.classlist);
-                    } else {
-                        setClassList([]);
-                    }
-                } catch (err) {
-                    console.error('Error fetching classes', err);
-                    setClassList([]);
-                }
-            } else {
-                setClassList([]);
-            }
-        };
-        fetchClasses();
-    }, [watchedAcademicYear, watchedCategory, setValue]);
-
-    const onFormSubmit = (data: FormFields) => {
-        // Construct payload matching AngularJS requirement
-        // "ASMAY_Id": $scope.asmaY_Id,
-        // "TTMC_Id": $scope.ttmC_Id,
-        // classarray: $scope.albumNameArray1, (selected classes)
-        // sectionarray: $scope.albumNameArray2, (selected sections)
-
+    const onFormSubmit = async (data: FormFields) => {
+        // Construct payload
         const selectedClasses = classList.filter((c: any) => data.classId?.includes(c.asmcL_Id));
         const selectedSections = sectionList.filter((s: any) => data.sectionId?.includes(s.asmS_Id));
 
         const payload = {
-            ASMAY_Id: data.asmaY_Id,
-            TTMC_Id: data.ttmC_Id,
+            asmaY_Id: data.asmaY_Id,
+            ttmC_Id: data.ttmC_Id,
             classarray: selectedClasses,
             sectionarray: selectedSections
         };
-        onSubmit(payload);
+
+        try {
+            console.log("class wise tt payload", JSON.stringify(payload));
+            const response = await getClassWiseReport(payload);
+            console.log("class wise tt response", response);
+            onReportGenerated(response, payload);
+        } catch (error: any) {
+            console.error('Error generating class wise report:', error);
+            throw error;
+        }
+    };
+    const handleCancelClick = () => {
+        reset();
+        // onCancel();
     };
 
     return (
@@ -101,7 +99,13 @@ export default function ClassWiseForm({ initialData, onSubmit, onCancel }: Class
                         control={control}
                         name='asmaY_Id'
                         render={({ field }) => (
-                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                            <Select
+                                key={field.value ?? 'empty'}
+                                value={field.value && field.value !== 0
+                                    ? field.value.toString()
+                                    : undefined}
+                                onValueChange={(val) => field.onChange(Number(val))}
+                            >
                                 <SelectTrigger>
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
@@ -127,7 +131,13 @@ export default function ClassWiseForm({ initialData, onSubmit, onCancel }: Class
                         control={control}
                         name='ttmC_Id'
                         render={({ field }) => (
-                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                            <Select
+                                key={field.value ?? 'empty'}
+                                value={field.value && field.value !== 0
+                                    ? field.value.toString()
+                                    : undefined}
+                                onValueChange={(val) => field.onChange(Number(val))}
+                            >
                                 <SelectTrigger>
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
@@ -191,7 +201,7 @@ export default function ClassWiseForm({ initialData, onSubmit, onCancel }: Class
                     <Search className='mr-2 h-4 w-4' />
                     Report
                 </Button>
-                <Button type='button' variant='destructive' onClick={onCancel}>
+                <Button type='button' variant='outline' onClick={handleCancelClick}>
                     <X className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>

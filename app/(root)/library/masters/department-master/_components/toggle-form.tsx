@@ -31,7 +31,10 @@ export default function ToggleDepartmentForm({ rowData, onClose }: ToggleDepartm
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterDepartmentSchema.delete),
-        mode: 'onChange'
+        mode: 'onChange',
+        defaultValues: {
+            lmD_Id: Number(rowData.lmD_Id)
+        }
     });
 
     function closeDialog() {
@@ -46,8 +49,7 @@ export default function ToggleDepartmentForm({ rowData, onClose }: ToggleDepartm
             // So we should pass the whole object or at least what's needed.
             // My server action passes the payload directly.
 
-            const payload = { ...rowData, lmD_Id: rowData.lmD_Id };
-            const response = await deactivateMasterDepartment(payload);
+            const response = await deactivateMasterDepartment(rowData.lmD_Id);
 
             if (response.success) {
                 toast.success(response.message || 'Record Status Updated Successfully!!!');

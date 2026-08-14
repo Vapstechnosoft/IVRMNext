@@ -1,9 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
+// Use node:stream for better compatibility with modern Node environments in Next.js 15
+import { Readable } from 'node:stream';
 import Groq from 'groq-sdk';
-// biome-ignore lint/style/useNodejsImportProtocol: <explanation>
-import { Readable } from 'stream';
+import { type NextRequest, NextResponse } from 'next/server';
 
+// Next.js 15 Route Handler Configuration
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const maxDuration = 300;
 
 // Initialize Groq client
 const groq = new Groq({
@@ -97,9 +100,13 @@ export async function POST(req: NextRequest) {
     try {
         log('Start processing request');
 
-        // Lazy load modules
-        const busboy = require('busboy');
-        const pdf = require('pdf-parse/lib/pdf-parse.js');
+        // Dynamic imports for Node.js modules
+        const busboyModule = await import('busboy');
+        const busboy = busboyModule.default || busboyModule;
+        // @ts-expect-error pdf-parse lacks proper TypeScript declarations for this subpath
+        const pdfModule = await import('pdf-parse/lib/pdf-parse.js');
+
+        const pdf = pdfModule.default || pdfModule;
 
         if (!req.body) {
             return NextResponse.json({ error: 'No request body' }, { status: 400 });
@@ -178,6 +185,9 @@ export async function POST(req: NextRequest) {
 
                 TASK:
                 Create a high-level Academic Executive Summary ${chapter ? 'for chapter ' + chapter : 'for the provided document'}.
+                
+                **STRICT REQUIREMENT**: The summary MUST be presented in clear, concise bullet points for maximum readability.
+                
                 Identify the core message, primary concepts, and the significance of the topics discussed.
                 Focus on what remains most important from an exam perspective.
             `;
@@ -209,7 +219,8 @@ export async function POST(req: NextRequest) {
                 You are a Senior Academic Architect. You are given educational content.
 
                 TASK:
-                1. Provide an **Exam-Focused Executive Summary** (~300 words).
+                1. Provide an **Exam-Focused Executive Summary** (~300 words). 
+                   **REQUIREMENT**: Use clear bullet points for the summary.
                 2. Provide **Exhaustive Study Material (COMPULSORY 1500+ WORDS)**.
 
                 **STRICT REQUIREMENT FOR NOTES**:

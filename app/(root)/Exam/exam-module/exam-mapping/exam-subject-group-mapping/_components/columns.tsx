@@ -1,7 +1,6 @@
 'use client';
 
 import { getStatusBadge } from '@/components/extras/helpers/helper';
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
@@ -12,22 +11,22 @@ import { useCallback } from 'react';
 
 export const ExamSubjectGroupMappingColumns: ColumnDef<IExamSubjectGroupMapping>[] = [
     // Row Selection
-    {
-        id: 'select',
-        header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all'
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-        size: 24
-    },
+    // {
+    //     id: 'select',
+    //     header: ({ table }) => (
+    //         <Checkbox
+    //             checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
+    //             onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+    //             aria-label='Select all'
+    //         />
+    //     ),
+    //     cell: ({ row }) => (
+    //         <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
+    //     ),
+    //     enableSorting: false,
+    //     enableHiding: false,
+    //     size: 24
+    // },
 
     // Serial Number
     {

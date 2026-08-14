@@ -1,8 +1,9 @@
+import { type SportVenuewiseReportData } from '@/types/sports/reports/venue-wise-participation-report';
 import { z } from 'zod';
 
 export const sportVenuewiseParticipationReportSchema = z.object({
     type: z.enum(['House', 'CS']),
-    asmaY_Id: z.coerce.number().min(1, 'Select Academic Year'),
+    asmaY_Id: z.coerce.number({ invalid_type_error: 'Select academic year', required_error: 'Select academic year' }).min(1, 'Select academic year'),
 
     // For Type 'CS'
     asmcL_Id: z.coerce.number().optional(),
@@ -33,15 +34,3 @@ export const sportVenuewiseParticipationReportSchema = z.object({
 
 export type SportVenuewiseParticipationReportFormData = z.infer<typeof sportVenuewiseParticipationReportSchema>;
 
-export interface SportVenuewiseReportData {
-    id: number;
-    spccmH_HouseName: string;
-    spccmeV_EventVenue: string;
-    amsT_Name: string;
-    amsT_AdmNo: string;
-    asmcL_ClassName: string;
-    asmC_SectionName: string;
-    spccmE_EventName: string;
-    spccmscc_SportsCCName: string;
-    spccE_StartDate: string; // ISO date string
-}

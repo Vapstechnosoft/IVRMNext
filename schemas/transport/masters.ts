@@ -1,7 +1,5 @@
-import { z } from "zod";
-import { createCustomStringSchema, deleteIdSchema } from "../validationSchemas";
-
-
+import { z } from 'zod';
+import { deleteIdSchema } from '../validationSchemas';
 
 export const masterAreaSchema = {
     addOrUpdate: z.object({
@@ -14,9 +12,7 @@ export const masterAreaSchema = {
                 message: 'Only letters, numbers, and spaces are allowed'
             }),
 
-        trmA_AliasName: z
-            .string()
-            .min(1, { message: 'Please Enter Alias Name' })
+        trmA_AliasName: z.string().min(1, { message: 'Please Enter Alias Name' })
     }),
 
     delete: z.object({
@@ -27,16 +23,28 @@ export const masterAreaSchema = {
 export const masterDriverSchema = {
     addOrUpdate: z.object({
         trmD_Id: z.number().optional(),
-        trmD_DriverName: z.string().min(1, 'Driver Name is required').max(100),
+        trmD_DriverName: z
+            .string()
+            .min(1, 'Driver Name is required')
+            .max(100)
+            .regex(/^[a-zA-Z\s]+$/, 'Only alphabets and spaces are allowed'),
         trmD_DriverCode: z.string().min(1, 'Driver Code is required'),
         trmD_DLNo: z
             .string()
-            .min(16, 'Enter Minimum 16 Digits Alpha Numeric')
+            .min(1, 'DL No. is required')
+            .max(16, 'DL No. cannot exceed 16 characters')
             .regex(/^[a-zA-Z0-9\s]+$/, 'Only Alpha Numeric Allowed'),
         trmD_DriverBadgeNo: z.string().min(1, 'Driver Badge No is required'),
-        trmD_MobileNo: z.string().length(10, 'Mobile No must be 10 digits').regex(/^[0-9]+$/, 'Only Numbers Allowed'),
+        trmD_MobileNo: z
+            .string()
+            .length(10, 'Mobile No must be 10 digits')
+            .regex(/^[0-9]+$/, 'Only Numbers Allowed'),
         trmD_EmailId: z.string().email('Invalid Email').optional().or(z.literal('')),
-        trmD_LicenseType: z.string().min(1, 'License Type is required'),
+        trmD_LicenseType: z
+            .string()
+            .min(1, 'License Type is required')
+            .max(15)
+            .regex(/^[a-zA-Z0-9\s]+$/, 'Special characters are not allowed'),
         trmD_DLExpiryDate: z.union([z.date(), z.string({ required_error: 'DL Expiring Date is required' })]),
         trmD_RTOName: z.string().min(1, 'RTO Name is required'),
         trmD_MTExpiryDate: z.union([z.date(), z.string()]).optional().nullable(),
@@ -63,7 +71,6 @@ export const masterFuelTypeSchema = {
     })
 };
 
-
 export const masterLocationSchema = {
     addOrUpdate: z.object({
         trmL_Id: z.number().optional(),
@@ -71,12 +78,8 @@ export const masterLocationSchema = {
             .string()
             .min(1, 'Location Name is required')
             .regex(/^[a-zA-Z0-9\s]+$/, 'Only Alpha Numeric Allowed'),
-        trmL_Latitude: z
-            .string()
-            .min(1, 'Latitude is required'),
-        trmL_Longitude: z
-            .string()
-            .min(1, 'Longitude is required'),
+        trmL_Latitude: z.string().min(1, 'Latitude is required'),
+        trmL_Longitude: z.string().min(1, 'Longitude is required')
     }),
 
     delete: z.object({
@@ -87,9 +90,16 @@ export const masterLocationSchema = {
 export const masterRouteSchema = {
     addOrUpdate: z.object({
         trmR_Id: z.number().optional(),
-        trmR_RouteName: z.string().min(1, 'Route Name is required').regex(/^[a-zA-Z\s.]+$/, 'Only Alphabets and Dots Allowed'),
+        trmR_RouteName: z
+            .string()
+            .min(1, 'Route Name is required')
+            .regex(/^[a-zA-Z\s.]+$/, 'Only Alphabets and Dots Allowed'),
         trmR_RouteDesc: z.string().min(1, 'Description is required').max(20),
-        trmR_RouteNo: z.string().min(1, 'Route No is required').max(20).regex(/^[a-zA-Z0-9\s]+$/, 'Only Alpha Numeric Allowed'),
+        trmR_RouteNo: z
+            .string()
+            .min(1, 'Route No is required')
+            .max(20)
+            .regex(/^[a-zA-Z0-9\s]+$/, 'Only Alpha Numeric Allowed'),
         trmR_order: z.coerce.number().min(1, 'Order is required')
     }),
 
@@ -109,7 +119,10 @@ export const masterServiceStationSchema = {
     addOrUpdate: z.object({
         TRMSST_Id: z.number().optional(),
         TRMSST_ServiceStationName: z.string().min(1, 'Service Station Name is required').max(100),
-        TRMSST_ContactNo: z.string().length(10, 'Mobile No must be 10 digits').regex(/^[0-9]+$/, 'Only Numbers Allowed'),
+        TRMSST_ContactNo: z
+            .string()
+            .length(10, 'Mobile No must be 10 digits')
+            .regex(/^[0-9]+$/, 'Only Numbers Allowed'),
         TRMSST_EmailId: z.string().email('Invalid Email Id').max(100),
         TRMSST_Address: z.string().min(1, 'Address is required').max(250)
     }),
@@ -122,7 +135,10 @@ export const masterServiceStationSchema = {
 export const masterSessionSchema = {
     addOrUpdate: z.object({
         TRMS_Id: z.number().optional(),
-        TRMS_SessionName: z.string().min(1, 'Session Name is required').regex(/^[a-zA-Z\s]+$/, 'Only Alphabets and Spaces Allowed'),
+        TRMS_SessionName: z
+            .string()
+            .min(1, 'Session Name is required')
+            .regex(/^[a-zA-Z\s]+$/, 'Only Alphabets and Spaces Allowed'),
         TRMS_SessionDesc: z.string().min(1, 'Session Description is required'),
         TRMS_Flag: z.enum(['Pick Up', 'Drop'], { required_error: 'Please select Pick Up or Drop' })
     }),
@@ -135,7 +151,10 @@ export const masterSessionSchema = {
 export const masterVehicleTypeSchema = {
     addOrUpdate: z.object({
         TRMVT_Id: z.number().optional(),
-        TRMVT_VehicleType: z.string().min(1, 'Vehicle Type is required').regex(/^[a-zA-Z\s]+$/, 'Only Alphabets and Spaces Allowed'),
+        TRMVT_VehicleType: z
+            .string()
+            .min(1, 'Vehicle Type is required')
+            .regex(/^[a-zA-Z\s]+$/, 'Only Alphabets and Spaces Allowed'),
         TRMVT_VehicleDesc: z.string().min(1, 'Vehicle Description is required')
     }),
 
@@ -147,12 +166,13 @@ export const masterVehicleTypeSchema = {
 export const masterRouteScheduleSchema = {
     addOrUpdate: z.object({
         TRRSC_Id: z.number().optional(),
-        TRRSC_ScheduleName: z.string().min(1, 'Schedule Name is required').regex(/^[a-zA-Z\s]+$/, 'Only Alphabets and Spaces Allowed')
+        TRRSC_ScheduleName: z
+            .string()
+            .min(1, 'Schedule Name is required')
+            .regex(/^[a-zA-Z\s]+$/, 'Only Alphabets and Spaces Allowed')
     }),
 
     delete: z.object({
         TRRSC_Id: deleteIdSchema('TRRSC_Id')
     })
 };
-
-

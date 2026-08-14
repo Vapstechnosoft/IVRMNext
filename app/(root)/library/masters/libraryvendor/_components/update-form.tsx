@@ -3,9 +3,9 @@
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
-import { useMasterLibrary } from '@/hooks/library/useMasters';
+import { useMasterVendor } from '@/hooks/library/useMasters';
 import { masterVendorSchema } from '@/schemas/library/masters';
-import { addOrUpdateMasterLibrary } from '@/server/library/masters/master_library';
+import { addOrUpdateMasterVendor } from '@/server/library/masters/library_vendor';
 import type { IMasterVendorList } from '@/types/library/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
@@ -23,7 +23,7 @@ interface UpdateMasterVendorFormProps {
 }
 
 export default function UpdateMasterVendorForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterVendorFormProps) {
-    const { refetchAll } = useMasterLibrary();
+    const { refetchAll } = useMasterVendor();
 
     const {
         register,
@@ -32,21 +32,18 @@ export default function UpdateMasterVendorForm({ onSuccess, className = '', sele
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterVendorSchema.addOrUpdate),
-        mode: 'onChange'
+        mode: 'onChange',
+        values: row
+            ? {
+                  lmV_Id: row.lmV_Id,
+                  lmV_VendorName: row.lmV_VendorName,
+                  lmV_EMailId: row.lmV_EMailId,
+                  lmV_MobileNo: row.lmV_MobileNo,
+                  lmV_Address: row.lmV_Address,
+                  lmV_PhoneNo: row.lmV_PhoneNo || ''
+              }
+            : undefined
     });
-
-    useEffect(() => {
-        if (row) {
-            reset({
-                lmV_Id: row.lmV_Id,
-                lmV_VendorName: row.lmV_VendorName,
-                lmV_EMailId: row.lmV_EMailId,
-                lmV_MobileNo: row.lmV_MobileNo,
-                lmV_Address: row.lmV_Address,
-                lmV_PhoneNo: row.lmV_PhoneNo
-            });
-        }
-    }, [row, reset]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
@@ -54,16 +51,18 @@ export default function UpdateMasterVendorForm({ onSuccess, className = '', sele
 
             const payload = {
                 lmV_Id: row.lmV_Id,
-                lmV_VendorName: lmV_VendorName,
-                lmV_EMailId: lmV_EMailId,
-                lmV_MobileNo: lmV_MobileNo,
-                lmV_Address: lmV_Address,
-                lmV_PhoneNo: lmV_PhoneNo
+                mI_Id: 0,
+                lmV_VendorName,
+                lmV_EMailId,
+                lmV_MobileNo,
+                lmV_Address,
+                lmV_PhoneNo: "",
+                lmV_ActiveFlg: true
             };
 
-            const response = await addOrUpdateMasterLibrary(payload);
+            const response = await addOrUpdateMasterVendor(payload);
 
-            if (response.success) {
+            if (response?.success) {
                 toast.success(response.message || 'Master Vendor updated successfully');
                 refetchAll();
                 onSuccess?.();
@@ -75,7 +74,16 @@ export default function UpdateMasterVendorForm({ onSuccess, className = '', sele
         }
     };
 
-    const handleReset = () => reset();
+    const handleReset = () => {
+        reset({
+            lmV_Id: row.lmV_Id,
+            lmV_VendorName: '',
+            lmV_EMailId: '',
+            lmV_MobileNo: '',
+            lmV_Address: '',
+            lmV_PhoneNo: ''
+        });
+    };
 
     return (
         <div className={className}>
@@ -86,10 +94,16 @@ export default function UpdateMasterVendorForm({ onSuccess, className = '', sele
                             label='Vendor Name'
                             required
                             id='lmV_VendorName'
+                            onKeyDown={(e) => {
+                                if (e.key.length === 1 && !/^[a-zA-Z\s]$/.test(e.key)) {
+                                    e.preventDefault();
+                                }
+                            }}
                             {...register('lmV_VendorName')}
                             error={errors.lmV_VendorName?.message}
+                            placeholder='e.g. Acme Books Dist'
                         />
-                        <InputText label='Email Id' id='lmV_EMailId' {...register('lmV_EMailId')} error={errors.lmV_EMailId?.message} />
+                        <InputText label='Email Id' id='lmV_EMailId' {...register('lmV_EMailId')} error={errors.lmV_EMailId?.message} placeholder='e.g. contact@vendor.com' />
                     </div>
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
@@ -101,58 +115,33 @@ export default function UpdateMasterVendorForm({ onSuccess, className = '', sele
                             required
                             id='lmV_MobileNo'
                             onKeyDown={(e) => {
-                                const allowed = /^[0-9]$/;
-                                if (e.key.length === 1 && !allowed.test(e.key)) {
+                                if (e.key.length === 1 && !/^[0-9]$/.test(e.key)) {
                                     e.preventDefault();
                                 }
                             }}
-                            {...register('lmV_MobileNo', {
-                                required: 'Mobile No is required',
-                                pattern: {
-                                    value: /^[0-9]+$/,
-                                    message: 'Only numbers allowed'
-                                }
-                            })}
+                            maxLength={10}
+                            {...register('lmV_MobileNo')}
                             error={errors.lmV_MobileNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
+                            placeholder='10-digit mobile number'
                         />
 
                         <InputText
                             label='Vendor Address'
                             id='lmV_Address'
-                            {...register('lmV_Address')}
-                            error={errors.lmV_Address?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                    </div>
-                    {errors.root && <FormError>{errors.root.message}</FormError>}
-                </div>
-
-                <div className='space-y-4'>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <InputText
-                            label='Phone No'
-                            id='phone_no'
                             onKeyDown={(e) => {
-                                const allowed = /^[0-9]$/;
-
-                                if (e.key.length === 1 && !allowed.test(e.key)) {
+                                if (e.key.length === 1 && !/^[a-zA-Z0-9\s]$/.test(e.key)) {
                                     e.preventDefault();
                                 }
                             }}
-                            {...register('lmV_PhoneNo', {
-                                required: 'Phone No is required',
-                                pattern: {
-                                    value: /^[0-9]+$/,
-                                    message: 'Only numbers allowed'
-                                }
-                            })}
-                            error={errors.lmV_PhoneNo?.message}
+                            {...register('lmV_Address')}
+                            error={errors.lmV_Address?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
+                            placeholder='Enter full office address'
                         />
                     </div>
                     {errors.root && <FormError>{errors.root.message}</FormError>}
-                </div>
+                </div>                {/* Phone No section removed */}
 
                 {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>

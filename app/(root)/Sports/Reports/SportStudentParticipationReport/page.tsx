@@ -9,15 +9,40 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useStudentParticipationReport } from '@/hooks/sports/useStudentParticipationReport';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
-import { useState } from 'react';
+import { Loader2, Printer, FileSpreadsheet } from 'lucide-react';
+import { useState, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { useReactToPrint } from 'react-to-print';
+import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
 import { type SportStudentParticipationReportFormData, sportStudentParticipationReportSchema } from './schema';
 
 export default function SportStudentParticipationReportPage() {
     const { initialData, reportData } = useStudentParticipationReport();
     const [reportGenerated, setReportGenerated] = useState(false);
+    const componentRef = useRef<HTMLDivElement>(null);
+
+    const handlePrint = useReactToPrint({
+        contentRef: componentRef,
+        documentTitle: 'Student_Participation_Report',
+        pageStyle: `
+          @page { size: portrait; margin: 20mm; }
+          @media print {
+            body { -webkit-print-color-adjust: exact; }
+            table { border-collapse: collapse !important; width: 100% !important; }
+            th, td { border: 1px solid #000 !important; padding: 8px !important; text-align: center !important; }
+          }
+        `
+    });
+
+    const exportToExcel = () => {
+        if (reportData.data?.data) {
+            const worksheet = XLSX.utils.json_to_sheet(reportData.data.data);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
+            XLSX.writeFile(workbook, "StudentParticipationReport.xlsx");
+        }
+    };
 
     const {
         control,
@@ -39,8 +64,20 @@ export default function SportStudentParticipationReportPage() {
     const reportType = watch('type');
 
     const onSubmit = (data: SportStudentParticipationReportFormData) => {
-        reportData.mutate(data);
-        setReportGenerated(true);
+        reportData.mutate(data, {
+            onSuccess: (responseData) => {
+                setReportGenerated(true);
+                if (responseData?.data && responseData.data.length > 0) {
+                    toast.success('Report generated successfully');
+                } else {
+                    toast.info('No records found');
+                }
+            },
+            onError: (error) => {
+                console.error(error);
+                toast.error('Failed to generate report');
+            }
+        });
     };
 
     const formatDate = (dateString: string) => {
@@ -278,16 +315,19 @@ export default function SportStudentParticipationReportPage() {
                         <CardTitle>Report Details</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <DataTable
-                            columns={columns}
-                            data={reportData.data.data}
-                            totalItems={reportData.data.data.length}
-                            //manualPagination={false}
-                        />
+                        <div ref={componentRef} className="print:p-0">
+                            <DataTable
+                                columns={columns}
+                                data={reportData.data.data}
+                                totalItems={reportData.data.data.length}
+                            />
+                        </div>
                         <div className='mt-4 flex justify-end space-x-2'>
-                            <Button onClick={() => window.print()}>Print</Button>
-                            <Button variant='outline' onClick={() => toast.info('Excel export implementation pending')}>
-                                Excel
+                            <Button variant="outline" size="sm" onClick={() => handlePrint()} className="border-2">
+                                <Printer className="h-4 w-4 mr-2 text-primary" /> Print
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={exportToExcel} className="border-2">
+                                <FileSpreadsheet className="h-4 w-4 mr-2 text-green-600" /> Excel
                             </Button>
                         </div>
                     </CardContent>

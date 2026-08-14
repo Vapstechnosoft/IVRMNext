@@ -105,7 +105,6 @@ function StudentTransactionContent() {
     const [loadingExamData, setLoadingExamData] = useState(false);
     const [loadingNames, setLoadingNames] = useState(false);
     const [loadingAreas, setLoadingAreas] = useState(false);
-    const [submitted, setSubmitted] = useState(false);
 
     // Initialize academic years
     useEffect(() => {
@@ -164,7 +163,6 @@ function StudentTransactionContent() {
             try {
                 const { data } = await getClassDropDownByAcademicYearlist(watchAcademicYear);
                 setClasses(Array.isArray(data) ? data : []);
-                console.log('classes', data);
                 clearDependentFields();
             } catch (err) {
                 console.error('Error loading classes:', err);
@@ -194,7 +192,6 @@ function StudentTransactionContent() {
                 if (response.data) {
                     const sectionList = Array.isArray(response.data) ? response.data : [];
                     setSections(sectionList);
-                    console.log('sections', sectionList);
                 } else {
                     setSections([]);
                 }
@@ -250,12 +247,10 @@ function StudentTransactionContent() {
                 if (response.data) {
                     if (watchExamType === 'TermWise') {
                         const termData = Array.isArray(response.data) ? response.data : [];
-                        console.log('termData', termData);
                         setExamTerms(termData);
                         setExams([]);
                     } else {
                         const examData = Array.isArray(response.data) ? response.data : [];
-                        console.log('examData', examData);
                         setExams(examData);
                         setExamTerms([]);
                     }
@@ -293,7 +288,6 @@ function StudentTransactionContent() {
                     const response = await getMasterLifeSkillDrpdownList();
                     const skillsList = Array.isArray(response.data) ? response.data : [];
                     setSkillNames(skillsList);
-                    console.log('skillsList', skillsList);
                     setActivityNames([]);
                     setSkillAreas([]);
                     setActivityAreas([]);
@@ -301,7 +295,6 @@ function StudentTransactionContent() {
                     const CcActivities_response = await getCoScholasticActivityDropdownList();
                     const activitiesList = Array.isArray(CcActivities_response.data) ? CcActivities_response.data : [];
                     setActivityNames(activitiesList);
-                    console.log('activitiesList', activitiesList);
                     setSkillNames([]);
                     setSkillAreas([]);
                     setActivityAreas([]);
@@ -360,7 +353,6 @@ function StudentTransactionContent() {
                 }
 
                 const areasList = Array.isArray(response?.data) ? response.data : [];
-                console.log('areasList', areasList);
 
                 if (watchSkillActivity === 'Skills') {
                     setSkillAreas(areasList);
@@ -394,9 +386,8 @@ function StudentTransactionContent() {
         setSelectedStudentIds((prev) => {
             if (isChecked) {
                 return [...prev, studentId];
-            } else {
-                return prev.filter((id) => id !== studentId);
             }
+            return prev.filter((id) => id !== studentId);
         });
     }, []);
 
@@ -418,8 +409,6 @@ function StudentTransactionContent() {
 
     // Handle search
     const handleSearch = async (data: FormFields) => {
-        setSubmitted(true);
-
         if (!isValid) {
             await trigger();
             toast.error('Please fix validation errors');
@@ -459,7 +448,6 @@ function StudentTransactionContent() {
                 params.ecT_Id = data.examTermId;
                 params.emE_Id = 0;
             }
-            console.log('params', params);
             const response = await getStudentList(params);
 
             if (response.data) {
@@ -531,7 +519,6 @@ function StudentTransactionContent() {
         setSelectedStudentIds([]);
         setHideSaveButton(false);
         setIsSelectAll(false);
-        setSubmitted(false);
 
         // Reload academic years (in case they were affected, though unlikely in this component)
         if (academicYearsData?.data) {
@@ -619,11 +606,9 @@ function StudentTransactionContent() {
                 ecactA_Id: watchSkillActivity === 'Activities' ? watchArea : 0,
                 admno: verifyFlag ? 'V' : 'S'
             };
-
-            console.log('Save payload:', payload);
+            console.log('student transaction payload', payload);
 
             const result = await saveCCEStudentMarks(payload);
-            console.log('Save result:', result);
 
             if (result.success || result.returnVal === 'saved') {
                 toast.success(verifyFlag ? 'Record verified successfully' : 'Record saved successfully');
@@ -667,7 +652,7 @@ function StudentTransactionContent() {
     );
 
     // Check if all required fields are filled for search
-    const allFieldsFilled =
+    const _allFieldsFilled =
         watchAcademicYear &&
         watchAcademicYear !== 0 &&
         watchClass &&
@@ -698,11 +683,10 @@ function StudentTransactionContent() {
                                         <>
                                             <button
                                                 type='button'
-                                                className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${
-                                                    field.value === 'TermWise'
-                                                        ? 'bg-purple-600 text-white'
-                                                        : 'bg-transparent text-gray-600 hover:bg-gray-100'
-                                                }`}
+                                                className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${field.value === 'TermWise'
+                                                    ? 'bg-purple-600 text-white'
+                                                    : 'bg-transparent text-gray-600 hover:bg-gray-100'
+                                                    }`}
                                                 onClick={() => {
                                                     field.onChange('TermWise');
                                                     setValue('emE_Id', 0);
@@ -713,11 +697,10 @@ function StudentTransactionContent() {
                                             </button>
                                             <button
                                                 type='button'
-                                                className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${
-                                                    field.value === 'ExamWise'
-                                                        ? 'bg-purple-600 text-white'
-                                                        : 'bg-transparent text-gray-600 hover:bg-gray-100'
-                                                }`}
+                                                className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${field.value === 'ExamWise'
+                                                    ? 'bg-purple-600 text-white'
+                                                    : 'bg-transparent text-gray-600 hover:bg-gray-100'
+                                                    }`}
                                                 onClick={() => {
                                                     field.onChange('ExamWise');
                                                     setValue('examTermId', 0);
@@ -776,7 +759,7 @@ function StudentTransactionContent() {
                                                     )}
                                                 </SelectContent>
                                             </Select>
-                                            {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </>
                                     )}
                                 />
@@ -830,7 +813,7 @@ function StudentTransactionContent() {
                                                     )}
                                                 </SelectContent>
                                             </Select>
-                                            {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </>
                                     )}
                                 />
@@ -881,7 +864,7 @@ function StudentTransactionContent() {
                                                     )}
                                                 </SelectContent>
                                             </Select>
-                                            {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </>
                                     )}
                                 />
@@ -931,7 +914,7 @@ function StudentTransactionContent() {
                                                         )}
                                                     </SelectContent>
                                                 </Select>
-                                                {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </>
                                         )}
                                     />
@@ -996,7 +979,7 @@ function StudentTransactionContent() {
                                                         ) : null}
                                                     </SelectContent>
                                                 </Select>
-                                                {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </>
                                         )}
                                     />
@@ -1039,7 +1022,7 @@ function StudentTransactionContent() {
                                                     <SelectItem value='Activities'>Activities</SelectItem>
                                                 </SelectContent>
                                             </Select>
-                                            {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </>
                                     )}
                                 />
@@ -1087,7 +1070,7 @@ function StudentTransactionContent() {
                                                         )}
                                                     </SelectContent>
                                                 </Select>
-                                                {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </>
                                         )}
                                     />
@@ -1138,7 +1121,7 @@ function StudentTransactionContent() {
                                                         )}
                                                     </SelectContent>
                                                 </Select>
-                                                {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </>
                                         )}
                                     />
@@ -1186,7 +1169,7 @@ function StudentTransactionContent() {
                                                         )}
                                                     </SelectContent>
                                                 </Select>
-                                                {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </>
                                         )}
                                     />
@@ -1236,7 +1219,7 @@ function StudentTransactionContent() {
                                                         )}
                                                     </SelectContent>
                                                 </Select>
-                                                {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </>
                                         )}
                                     />

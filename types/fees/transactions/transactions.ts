@@ -87,6 +87,7 @@ export interface IMasterAmountEntryDetails {
     addFine: boolean;
     fmA_PartialRebateApplicableDate: string;
     fyghM_FineApplicableFlag?: string;
+    fmH_Order: any;
 }
 
 export interface TAmountEntryStThomasInstallment {
@@ -1104,4 +1105,239 @@ export interface IThirdPartyReceiptFlag {
     imN_SuffixCalYearCode: boolean;
     createdDate: string; // ISO Date string
     updatedDate: string; // ISO Date string
+}
+
+export interface GM_IFeeThirdPartyTransaction {
+    fyptP_Id: number;
+    fyptP_Name: string;
+    fmH_FeeName: string;
+    fmH_Id: number;
+    fyP_Receipt_No: string;
+    fyP_Bank_Name: string;
+    fyP_Bank_Or_Cash: string;
+    fyP_Tot_Amount: number;
+    fyP_DD_Cheque_No: string;
+    fyP_Id: number;
+    fyP_Date: string;
+    asmaY_Year: string;
+    fyptP_Towards: string;
+    mI_Id: number;
+    asmaY_Id: number;
+}
+
+export interface GM_IFeeThirdPartyTransactionGroupDropDown {
+    fmG_Id: number;
+    fmG_GroupName: string;
+}
+
+export interface GM_IThirdPartyReceiptFlag {
+    imN_Id: number;
+    mI_Id: number;
+    imN_AutoManualFlag: string;
+    imN_DuplicatesFlag: string;
+    imN_StartingNo: string;
+    imN_WidthNumeric: string;
+    imN_ZeroPrefixFlag: 'Y' | 'N';
+    imN_PrefixAcadYearCode: boolean;
+    imN_PrefixParticular: string;
+    imN_SuffixAcadYearCode: boolean;
+    imN_SuffixParticular: string;
+    imN_RestartNumFlag: 'Y' | 'N';
+    imN_Flag: string;
+    imN_PrefixFinYearCode: boolean;
+    imN_PrefixCalYearCode: boolean;
+    imN_SuffixFinYearCode: boolean;
+    imN_SuffixCalYearCode: boolean;
+    createdDate: string; // ISO Date string
+    updatedDate: string; // ISO Date string
+}
+
+export interface GM_IFeeThirdPartyTransactionHeadDropDown {
+    fmH_Id: number;
+    fmH_FeeName: string;
+}
+
+export interface GM_IFeeBankDetails {
+    fmbanK_Id: number;
+    mI_Id: number;
+    fmbanK_BankName: string;
+    fmbanK_BankDescription: string;
+    fmbanK_ActiveFlg: boolean;
+    fmbanK_CreatedDate: string;
+    fmbanK_UpdatedDate: string;
+    fmbanK_CreatedBy: number;
+    fmbanK_UpdatedBy: number;
+}
+
+export interface GM_IFeeThirdPartyTransactionStudentDetails {
+    mI_Id: number;
+    amsT_Id?: number;
+    asmaY_Id: number;
+    amsT_FirstName?: string;
+    amsT_MiddleName?: string;
+    amsT_LastName?: string;
+    returnval: boolean;
+    fmH_Id: number;
+    fyptP_Towards: string;
+    fmH_FeeName: string | null;
+    fmG_Id: number;
+    fmG_GroupName: string | null;
+    fmH_Order: number;
+    studntlist: any | null;
+    fyP_Id: number;
+    fyP_Receipt_No: string | null;
+    fyptP_Id: number;
+    fyP_Bank_Name: string | null;
+    fyP_DD_Cheque_No: string | null;
+    user_id: number;
+    fyP_Bank_Or_Cash: string;
+    fyP_DD_Cheque_Date: string; // API returns "0001-01-01T00:00:00"
+    fyP_Date: string;
+    fyP_Tot_Amount: number;
+    fyP_Remarks: string;
+    fyptP_Name: string | null;
+    stdetails: any | null;
+    alldata: any | null;
+    ftP_TotalPaidAmount: number;
+    dulicate: boolean;
+    ftI_Id: number;
+    ftI_Name: string | null;
+    fmA_Id: number;
+    fsS_ToBePaid: number;
+}
+
+export interface GM_IThirdPartyTransactionEditdata {
+    mI_Id: number;
+    amsT_Id: number;
+    asmaY_Id: number;
+    amsT_FirstName: string | null;
+    amsT_MiddleName: string | null;
+    amsT_LastName: string | null;
+    returnval: boolean;
+    fmH_Id: number;
+    fyptP_Towards: string;
+    fmH_FeeName: string | null;
+    fmG_Id: number;
+    fmG_GroupName: string | null;
+    fmH_Order: number;
+    studntlist: any | null; // you can type it properly if you know the structure
+    fyP_Id: number;
+    fyP_Receipt_No: string;
+    fyptP_Id: number;
+    fyP_Bank_Name: string;
+    fyP_DD_Cheque_No: string;
+    user_id: number;
+    fyP_Bank_Or_Cash: string;
+    fyP_DD_Cheque_Date: string; // or Date
+    fyP_Date: string; // or Date
+    fyP_Tot_Amount: number;
+    fyP_Remarks: string;
+    fyptP_Name: string;
+    stdetails: any | null;
+    alldata: any | null;
+    ftP_TotalPaidAmount: number;
+    dulicate: boolean;
+    ftI_Id: number;
+    ftI_Name: string | null;
+    fmA_Id: number;
+    fsS_ToBePaid: number;
+}
+
+export interface StudentPortalPrintDetails {
+    amst_firstname: string;
+    amst_middlename: string;
+    amst_lastname: string;
+    fmh_feename: string;
+    fyp_receipt_no: string;
+    ftp_paid_amt: number;
+    ftp_concession_amt: number;
+    ftp_fine_amt: number;
+    fyp_date: string;
+    classname: string;
+    sectionname: string;
+    fyp_bank_or_cash: string;
+    fmcc_concessionname: string;
+    amst_id: number;
+    admno: string;
+    amst_registrationno: string;
+    fmh_id: number;
+    fathername: string;
+    mothername: string;
+    fyp_dd_cheque_no: string;
+    fyp_dd_cheque_date: string;
+    fyp_remarks: string;
+    rollno: number;
+    fyp_bank_name: string;
+    fma_amount: number;
+}
+
+export interface IStudentFeeEnablePartialPaymentYear {
+    asmaY_Id: number;
+    asmaY_Year: string;
+    Selected?: boolean;
+}
+
+export interface IStudentFeeEnablePartialPaymentClass {
+    asmcL_Id?: number;
+    asmcL_ID?: number;
+    asmcL_ClassName?: string;
+    className?: string;
+    Selected?: boolean;
+}
+
+export interface IStudentFeeEnablePartialPaymentSection {
+    amsC_Id: number;
+    asmc_sectionname: string;
+    Selected?: boolean;
+}
+
+export interface IStudentFeeEnablePartialPaymentStudent {
+    amsT_Id: number;
+    amsT_AdmNo: string;
+    amsT_FirstName: string;
+    amsT_MiddleName?: string | null;
+    amsT_LastName?: string | null;
+    amaY_RollNo?: number | null;
+    amsT_RegistrationNo?: string | null;
+    Selected?: boolean;
+}
+
+export interface IStudentFeeEnablePartialPaymentList {
+    fsepP_Id: number;
+    asmaY_Year: string;
+    fsepP_RemarksDate: string;
+    fsepP_ActiveFlag: boolean;
+    amsT_Id: number;
+    amsT_FirstName: string;
+    fsepP_Remarks: string;
+    asmaY_Id?: number;
+}
+
+export interface IStudentFeeEnablePartialPaymentInitialData {
+    yearlist?: IStudentFeeEnablePartialPaymentYear[];
+    fillclass?: IStudentFeeEnablePartialPaymentClass[];
+    alldata?: IStudentFeeEnablePartialPaymentList[];
+    retrunMsg?: string;
+}
+
+export interface IStudentFeeEnablePartialPaymentSavePayload {
+    FSEPP_Id?: number;
+    ASMAY_Id: number;
+    AMST_Id: number;
+    FSEPP_RemarksDate: string;
+    FSEPP_Remarks: string;
+    ASMAY_Year?: string;
+    AMST_FirstName?: string;
+    AMST_MiddleName?: string;
+    AMST_LastName?: string;
+    AMST_AdmNo?: string;
+    AMST_RegistrationNo?: string;
+    retrunMsg?: string;
+    alldata?: any[];
+    yearlist?: any[];
+    fillclass?: any[];
+    fillsection?: any[];
+    sectionlist?: any[];
+    studentlist?: any[];
+    [key: string]: any;
 }

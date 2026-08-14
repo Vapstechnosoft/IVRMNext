@@ -243,30 +243,32 @@ export const examLoginPrivilegesReportSchema = z
         employeeChecked: z.boolean().default(false),
         selectAllEmployees: z.boolean().default(false)
     })
-    .refine(
-        (data) => {
-            if (data.type === 'individual') {
-                return !!data.ASMCL_Id && !!data.ASMS_Id;
+    .superRefine((data, ctx) => {
+        if (data.type === 'individual') {
+            if (!data.ASMCL_Id) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Class is required for Individual report',
+                    path: ['ASMCL_Id']
+                });
             }
-            return true;
-        },
-        {
-            message: 'Class and Section are required for Individual report',
-            path: ['ASMCL_Id']
-        }
-    )
-    .refine(
-        (data) => {
-            if (data.employeeChecked && !data.HRME_Id) {
-                return false;
+            if (!data.ASMS_Id) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Section is required for Individual report',
+                    path: ['ASMS_Id']
+                });
             }
-            return true;
-        },
-        {
-            message: 'Employee is required when checked',
-            path: ['HRME_Id']
         }
-    );
+
+        if (data.employeeChecked && !data.HRME_Id) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Employee is required when checked',
+                path: ['HRME_Id']
+            });
+        }
+    });
 
 export type ExamLoginPrivilegesSchema = z.infer<typeof examLoginPrivilegesReportSchema>;
 
@@ -286,11 +288,13 @@ export const juniorsProgressCardReportSchemaForPrint = z.object({
     ASMAY_Id: z.string().min(1, 'Academic Year is required'),
     ASMCL_Id: z.string().min(1, 'Class is required'),
     ASMS_Id: z.string().min(1, 'Section is required'),
-    EME_Id: z.string().min(1, 'Exam Name is required'),
+    exmname: z.string().min(1, 'Exam Name is required'),
     superAverage: z.boolean().default(false),
     printLogo: z.boolean().default(false),
     selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
 });
+
+export type JuniorsProgressCardReportSchemaForPrint = z.infer<typeof juniorsProgressCardReportSchemaForPrint>;
 
 export const marksEntryReportSchema = z.object({
     ASMAY_Id: z.string().min(1, 'Academic Year is required'),
@@ -351,7 +355,8 @@ export const promotionDetailsReportSchema = z
         ASMS_Id: z.string().min(1, 'Section is required'),
         EMPG_GroupName: z.string().optional(), // Term
         superAverage: z.boolean().default(false),
-        selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+        selectedStudents: z.array(z.string()).min(1, 'Select at least one student'),
+        selectedStudentNames: z.array(z.string()).optional()
     })
     .refine(
         (data) => {
@@ -380,7 +385,7 @@ export const toppersListReportSchema = z
             .min(1, 'Top count is required')
             .regex(/^\d+$/, 'Must be a number')
             .refine((val) => Number.parseInt(val) > 0, 'Top count must be greater than 0'),
-        EME_Id: z.string().min(1, 'Exam is required'),
+        EME_Id: z.string().optional(),
         subjectwise: z.boolean().default(false),
         ISMS_Id: z.string().optional(), // Subject (Required only when subjectwise is checked)
         // Hidden fields for API payload
@@ -477,6 +482,16 @@ export const reportCardXiSchema = z.object({
 
 export type ReportCardXiSchema = z.infer<typeof reportCardXiSchema>;
 
+export const burnpurProgressCardSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    date: z.string().min(1, 'Date is required'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export type BurnpurProgressCardSchema = z.infer<typeof burnpurProgressCardSchema>;
+
 export const reportCardViViiiSchema = z.object({
     ASMAY_Id: z.string().min(1, 'Academic Year is required'),
     ASMCL_Id: z.string().min(1, 'Class is required'),
@@ -502,3 +517,507 @@ export const reportCardXXiiSchema = z.object({
 });
 
 export type ReportCardXXiiSchema = z.infer<typeof reportCardXXiiSchema>;
+
+export const stellaProgressReportSchema = z
+    .object({
+        mI_Id: z.number().optional(),
+        asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+        asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, { message: 'Please select Class' }),
+        asmS_Id: z.number({ required_error: 'Section is required' }).min(1, { message: 'Please select Section' }),
+        reopenDate: z.date({ required_error: 'Reopen Date is required' }),
+        studentList: z
+            .array(
+                z.object({
+                    amsT_Id: z.number({ required_error: 'Student is required' }).min(1, { message: 'Please select a Students' })
+                })
+            )
+            .min(1, { message: 'At least one Student must be selected' }),
+        applicableFlag: z.boolean().default(true).optional(),
+        nonApplicableFlag: z.boolean().default(true).optional(),
+        page_size: z.number().optional()
+    })
+    .superRefine((data, ctx) => {
+        const studentIds = data.studentList?.map((s) => s.amsT_Id) || [];
+        if (new Set(studentIds).size !== studentIds.length) {
+            ctx.addIssue({
+                path: ['studentList'],
+                code: z.ZodIssueCode.custom,
+                message: 'Duplicate Students are not allowed'
+            });
+        }
+    });
+
+export type StellaProgressReportSchema = z.infer<typeof stellaProgressReportSchema>;
+
+export const vidyaniketanProgressReportSchema = z.object({
+    mI_Id: z.number().optional(),
+    asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+    asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, { message: 'Please select Class' }),
+    asmS_Id: z.number({ required_error: 'Section is required' }).min(1, { message: 'Please select Section' }),
+    reopenDate: z.date({ required_error: 'Reopen Date is required' }),
+    color: z.enum(['Green', 'Brown'], { required_error: 'Color is required' }),
+    emE_Id: z
+        .array(
+            z.object({
+                emE_Id: z.number({ required_error: 'Exam is required' }).min(1, { message: 'Please select Exam' })
+            })
+        )
+        .min(1, { message: 'At least one Exam must be selected' })
+});
+
+export type VidyaniketanProgressReportSchema = z.infer<typeof vidyaniketanProgressReportSchema>;
+
+export const vidyaniketanProgressReportItoVIIISchema = z
+    .object({
+        mI_Id: z.number().optional(),
+        asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+        asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, { message: 'Please select Class' }),
+        asmS_Id: z.number({ required_error: 'Section is required' }).min(1, { message: 'Please select Section' }),
+        studentList: z
+            .array(
+                z.object({
+                    amsT_Id: z.number({ required_error: 'Student is required' }).min(1, { message: 'Please select a Students' })
+                })
+            )
+            .min(1, { message: 'At least one Student must be selected' })
+    })
+    .superRefine((data, ctx) => {
+        const studentIds = data.studentList?.map((s) => s.amsT_Id) || [];
+        if (new Set(studentIds).size !== studentIds.length) {
+            ctx.addIssue({
+                path: ['studentList'],
+                code: z.ZodIssueCode.custom,
+                message: 'Duplicate Students are not allowed'
+            });
+        }
+    });
+
+export type VidyaniketanProgressReportItoVIIISchema = z.infer<typeof vidyaniketanProgressReportItoVIIISchema>;
+
+export const sophiaProgressReportIXtoXSchema = z
+    .object({
+        mI_Id: z.number().optional(),
+        asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+        asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, { message: 'Please select Class' }),
+        asmS_Id: z.number({ required_error: 'Section is required' }).min(1, { message: 'Please select Section' }),
+        emE_Id: z.number({ required_error: 'Exam Name is required' }).min(1, { message: 'Please select a Exam Name' }),
+        studentList: z
+            .array(
+                z.object({
+                    amsT_Id: z.number({ required_error: 'Student is required' }).min(1, { message: 'Please select a Students' })
+                })
+            )
+            .min(1, { message: 'At least one Student must be selected' })
+    })
+    .superRefine((data, ctx) => {
+        const studentIds = data.studentList?.map((s) => s.amsT_Id) || [];
+        if (new Set(studentIds).size !== studentIds.length) {
+            ctx.addIssue({
+                path: ['studentList'],
+                code: z.ZodIssueCode.custom,
+                message: 'Duplicate Students are not allowed'
+            });
+        }
+    });
+
+export type SophiaProgressReportIXtoXSchema = z.infer<typeof sophiaProgressReportIXtoXSchema>;
+
+export const sophiaProgressReportPreIISchema = z
+    .object({
+        mI_Id: z.number().optional(),
+        asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+        asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, { message: 'Please select Class' }),
+        asmS_Id: z.number({ required_error: 'Section is required' }).min(1, { message: 'Please select Section' }),
+        emE_Id: z.number({ required_error: 'Exam Name is required' }).min(1, { message: 'Please select a Exam Name' }),
+        studentList: z
+            .array(
+                z.object({
+                    amsT_Id: z.number({ required_error: 'Student is required' }).min(1, { message: 'Please select a Students' })
+                })
+            )
+            .min(1, { message: 'At least one Student must be selected' })
+    })
+    .superRefine((data, ctx) => {
+        const studentIds = data.studentList?.map((s) => s.amsT_Id) || [];
+        if (new Set(studentIds).size !== studentIds.length) {
+            ctx.addIssue({
+                path: ['studentList'],
+                code: z.ZodIssueCode.custom,
+                message: 'Duplicate Students are not allowed'
+            });
+        }
+    });
+
+export type SophiaProgressReportPreIISchema = z.infer<typeof sophiaProgressReportPreIISchema>;
+
+export const sophiaTopperListReportSchema = z.object({
+    asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+    emcA_Id: z.number({ required_error: 'Category is required' }).min(1, { message: 'Please select Category' }),
+    asmcL_Id: z.number({ required_error: 'Class Name is required' }).min(1, { message: 'Please select Class Name' }),
+    emE_Id: z.number({ required_error: 'Exam Name is required' }).min(1, { message: 'Please select Exam Name' }),
+    asmS_Id: z.number({ required_error: 'Section Name is required' }).min(1, { message: 'Please select Section Name' })
+});
+
+export type SophiaTopperListReportSchema = z.infer<typeof sophiaTopperListReportSchema>;
+
+export const stJamesConsolidateReportSchema = z.object({
+    asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+    asmcL_Id: z.number({ required_error: 'Class Name is required' }).min(1, { message: 'Please select Class Name' }),
+    asmS_Id: z.number({ required_error: 'Section Name is required' }).min(1, { message: 'Please select Section Name' })
+});
+
+export type StJamesConsolidateReportSchema = z.infer<typeof stJamesConsolidateReportSchema>;
+
+export const stJamesIX_XReportSchema = z.object({
+    asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+    asmcL_Id: z.number({ required_error: 'Class Name is required' }).min(1, { message: 'Please select Class Name' }),
+    asmS_Id: z.number({ required_error: 'Section Name is required' }).min(1, { message: 'Please select Section Name' }),
+    reporttype: z.enum(['indi', 'groupwise'], { required_error: 'Type is required' }),
+    displayAttendance: z.boolean().default(true),
+    emE_Id: z
+        .array(
+            z.object({
+                emE_Id: z.number({ required_error: 'Exam is required' }).min(1, { message: 'Please select Exam' })
+            })
+        )
+        .min(1, { message: 'At least one Exam must be selected' })
+});
+export type StJamesIX_XReportSchema = z.infer<typeof stJamesIX_XReportSchema>;
+
+export const ndsCoScholasticReportSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export type NDSCoScholasticReportSchema = z.infer<typeof ndsCoScholasticReportSchema>;
+
+export const gmvpsProgressCardIXSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    date: z.string().min(1, 'Date is required'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export type GmvpsProgressCardIXSchema = z.infer<typeof gmvpsProgressCardIXSchema>;
+
+export const burnpurProgressCardXIISchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    date: z.string().min(1, 'Date is required'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export type BurnpurProgressCardXIISchema = z.infer<typeof burnpurProgressCardXIISchema>;
+
+export const burnpurProgressCardXISchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    date: z.string().min(1, 'Date is required'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export type BurnpurProgressCardXISchema = z.infer<typeof burnpurProgressCardXISchema>;
+
+export const finalNdasReportCardSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    date: z.string().min(1, 'Date is required'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export type FinalNdasReportCardSchema = z.infer<typeof finalNdasReportCardSchema>;
+
+export const promotionReportCardSophiaSchema = z.object({
+    mI_Id: z.number().optional(),
+    asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+    asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, { message: 'Please select Class' }),
+    asmS_Id: z.number({ required_error: 'Section is required' }).min(1, { message: 'Please select Section' }),
+    from_date: z.date({ required_error: 'From Date is required' }),
+    to_date: z.date({ required_error: 'To Date is required' }),
+    studentList: z
+        .array(
+            z.object({
+                amsT_Id: z.number({ required_error: 'Student is required' }).min(1, { message: 'Please select a Student' })
+            })
+        )
+        .min(1, { message: 'At least one Student must be selected' })
+});
+
+export type PromotionReportCardSophiaSchema = z.infer<typeof promotionReportCardSophiaSchema>;
+
+export const stJamesNurseryReportSchema = z.object({
+    asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+    asmcL_Id: z.number({ required_error: 'Class Name is required' }).min(1, { message: 'Please select Class Name' }),
+    asmS_Id: z.number({ required_error: 'Section Name is required' }).min(1, { message: 'Please select Section Name' }),
+    emE_Id: z.number({ required_error: 'Exam is required' }).min(1, { message: 'Please select Exam' }),
+    readmit: z.boolean().default(false),
+    displayattendance: z.boolean().default(false)
+});
+
+export type StJamesNurseryReportSchema = z.infer<typeof stJamesNurseryReportSchema>;
+
+export const stJamesTransitionReportSchema = z.object({
+    asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+    asmcL_Id: z.number({ required_error: 'Class Name is required' }).min(1, { message: 'Please select Class Name' }),
+    asmS_Id: z.number({ required_error: 'Section Name is required' }).min(1, { message: 'Please select Section Name' }),
+    emE_Id: z.number({ required_error: 'Exam is required' }).min(1, { message: 'Please select Exam' }),
+    readmit: z.boolean().default(false),
+    displayattendance: z.boolean().default(false)
+});
+
+export type StJamesTransitionReportSchema = z.infer<typeof stJamesTransitionReportSchema>;
+
+export const stJamesI_IIIReportSchema = z.object({
+    asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+    asmcL_Id: z.number({ required_error: 'Class Name is required' }).min(1, { message: 'Please select Class Name' }),
+    asmS_Id: z.number({ required_error: 'Section Name is required' }).min(1, { message: 'Please select Section Name' }),
+    emE_Id: z.number({ required_error: 'Exam is required' }).min(1, { message: 'Please select Exam' }),
+    readmit: z.boolean().default(false),
+    displayattendance: z.boolean().default(false),
+    displayMarks: z.boolean().default(false)
+});
+
+export type StJamesI_IIIReportSchema = z.infer<typeof stJamesI_IIIReportSchema>;
+
+export const stJamesConsolidatedPointsReportSchema = z.object({
+    asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+    asmcL_Id: z.number({ required_error: 'Class Name is required' }).min(1, { message: 'Please select Class Name' }),
+    asmS_Id: z.number({ required_error: 'Section Name is required' }).min(1, { message: 'Please select Section Name' }),
+    StjamesPoints: z.boolean().default(true)
+});
+
+export type StJamesConsolidatedPointsReportSchema = z.infer<typeof stJamesConsolidatedPointsReportSchema>;
+
+export const calcuttaPromotionReportItoIVSchema = z
+    .object({
+        mI_Id: z.number().optional(),
+        asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+        asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, { message: 'Please select Class' }),
+        asmS_Id: z.number({ required_error: 'Section is required' }).min(1, { message: 'Please select Section' }),
+        empG_GroupName: z.string().optional(), // Term
+        studentList: z
+            .array(
+                z.object({
+                    amsT_Id: z.number({ required_error: 'Student is required' }).min(1, { message: 'Please select a Students' })
+                })
+            )
+            .min(1, { message: 'At least one Student must be selected' })
+    })
+    .superRefine((data, ctx) => {
+        const studentIds = data.studentList?.map((s) => s.amsT_Id) || [];
+        if (new Set(studentIds).size !== studentIds.length) {
+            ctx.addIssue({
+                path: ['studentList'],
+                code: z.ZodIssueCode.custom,
+                message: 'Duplicate Students are not allowed'
+            });
+        }
+    });
+
+export type CalcuttaPromotionReportItoIVSchema = z.infer<typeof calcuttaPromotionReportItoIVSchema>;
+
+export const rainbowProgressCardReportSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    empsG_PercentValue: z.string()
+        .min(1, 'Percentage is required')
+        .regex(/^(100|[1-9]?[0-9])$/, 'Please enter a value between 0 and 100'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export type RainbowProgressCardReportSchema = z.infer<typeof rainbowProgressCardReportSchema>;
+
+export const hhsReportPreparatorySchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    AMST_Id: z.string().min(1, 'Student is required'),
+    EMGR_Id: z.string().min(1, 'Grade Group is required'),
+    re_opendate: z.coerce.date().optional()
+});
+
+export type HHSReportPreparatorySchema = z.infer<typeof hhsReportPreparatorySchema>;
+
+export const hhsIIVReportSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    AMST_Id: z.string().min(1, 'Student is required'),
+    EMGR_Id: z.string().min(1, 'Grade Group is required'),
+    re_opendate: z.coerce.date().optional()
+});
+
+export type HHSIIVReportSchema = z.infer<typeof hhsIIVReportSchema>;
+
+export const gmvpsPromotionReportCardSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    performanceanalysis: z.boolean().default(true),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student'),
+    date: z.coerce.date().optional()
+});
+
+export type GmvpsPromotionReportCardSchema = z.infer<typeof gmvpsPromotionReportCardSchema>;
+
+
+export const calcuttaPromotionReportItoIXSchema = z
+    .object({
+        mI_Id: z.number().optional(),
+        asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+        asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, { message: 'Please select Class' }),
+        asmS_Id: z.number({ required_error: 'Section is required' }).min(1, { message: 'Please select Section' }),
+        allTerm: z.boolean().default(false),
+        empG_GroupName: z.string().optional(),
+        studentList: z
+            .array(
+                z.object({
+                    amsT_Id: z.number({ required_error: 'Student is required' }).min(1, { message: 'Please select a Students' })
+                })
+            )
+            .min(1, { message: 'At least one Student must be selected' })
+    })
+    .superRefine((data, ctx) => {
+        if (!data.allTerm && !data.empG_GroupName) {
+            ctx.addIssue({
+                path: ['empG_GroupName'],
+                code: z.ZodIssueCode.custom,
+                message: 'Term is required when All Term is not selected'
+            });
+        }
+        const studentIds = data.studentList?.map((s) => s.amsT_Id) || [];
+        if (new Set(studentIds).size !== studentIds.length) {
+            ctx.addIssue({
+                path: ['studentList'],
+                code: z.ZodIssueCode.custom,
+                message: 'Duplicate Students are not allowed'
+            });
+        }
+    });
+
+export type CalcuttaPromotionReportItoIXSchema = z.infer<typeof calcuttaPromotionReportItoIXSchema>;
+
+export const calcuttaPromotionReportItoVSchema = z
+    .object({
+        mI_Id: z.number().optional(),
+        asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+        asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, { message: 'Please select Class' }),
+        asmS_Id: z.number({ required_error: 'Section is required' }).min(1, { message: 'Please select Section' }),
+        academicDate: z.date({ required_error: 'New Academic Date is required' }),
+        reportPrintedDate: z.date().optional(),
+        issueDate: z.date({ required_error: 'Issue Date is required' }),
+        studentList: z
+            .array(
+                z.object({
+                    amsT_Id: z.number({ required_error: 'Student is required' }).min(1, { message: 'Please select a Students' })
+                })
+            )
+            .min(1, { message: 'At least one Student must be selected' })
+    })
+    .superRefine((data, ctx) => {
+        const studentIds = data.studentList?.map((s) => s.amsT_Id) || [];
+        if (new Set(studentIds).size !== studentIds.length) {
+            ctx.addIssue({
+                path: ['studentList'],
+                code: z.ZodIssueCode.custom,
+                message: 'Duplicate Students are not allowed'
+            });
+        }
+    });
+
+export type CalcuttaPromotionReportItoVSchema = z.infer<typeof calcuttaPromotionReportItoVSchema>;
+
+export const multipleExamCumulativeReportCalcuttaSchema = z.object({
+    asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+    asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, { message: 'Please select Class' }),
+    asmS_Id: z.number({ required_error: 'Section is required' }).min(1, { message: 'Please select Section' }),
+    emgR_Id: z.number({ required_error: 'Grade is required' }).min(1, { message: 'Please select Grade' }),
+    examlist: z.array(z.object({
+        emE_Id: z.number()
+    })).min(1, { message: 'Please select at least one Exam' }),
+    empsG_PercentValue: z.number().optional().default(0),
+    flag: z.string().optional().default("4"),
+    emE_Id: z.number().optional().default(0),
+    reporttype: z.string().optional().default(""),
+    empG_GroupName: z.string().optional().default("")
+});
+
+
+
+export type MultipleExamCumulativeReportCalcuttaValues = z.infer<typeof multipleExamCumulativeReportCalcuttaSchema>;
+
+export const finalPromReportSTMarySchema = z.object({
+    ASMAY_Id: z.string({ required_error: 'Academic Year is required' }).min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string({ required_error: 'Class is required' }).min(1, 'Class is required'),
+    ASMS_Id: z.string({ required_error: 'Section is required' }).min(1, 'Section is required'),
+    date: z.string({ required_error: 'Reopen Date is required' }).min(1, 'Reopen Date is required'),
+    remarks: z.string({ required_error: 'Promoted to std is required' }).min(1, 'Promoted to std is required'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export type FinalPromReportSTMarySchema = z.infer<typeof finalPromReportSTMarySchema>;
+
+export const baldwinReportSchema = z.object({
+    ASMAY_Id: z.string({ required_error: 'Academic Year is required' }).min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string({ required_error: 'Class is required' }).min(1, 'Class is required'),
+    ASMS_Id: z.string({ required_error: 'Section is required' }).min(1, 'Section is required'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student'),
+    workingDays: z.string().optional().default(''),
+    presentDays: z.string().optional().default(''),
+    includeLeftStudents: z.boolean().default(false),
+    dontShowRank: z.boolean().default(true),
+    printLogo: z.boolean().default(true),
+    left_logo: z.boolean().default(true),
+    right_logo: z.boolean().default(true)
+});
+
+export type BaldwinReportSchema = z.infer<typeof baldwinReportSchema>;
+
+export const finalPromReportChinmayI_IXSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    OverAlltotal: z.boolean().default(false),
+    OverAlClass: z.boolean().default(false),
+    ECTEX_NotApplToTotalFlg: z.boolean().default(false),
+    reopen_date: z.string().min(1, 'Reopen Date is required'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export const tbs_reportIXtoXSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Select Academic Year'),
+    ASMCL_Id: z.string().min(1, 'Select Class'),
+    ASMS_Id: z.string().min(1, 'Select Section'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student'),
+});
+
+export type TBSReportIXtoXSchema = z.infer<typeof tbs_reportIXtoXSchema>;
+
+export const multipleProgressCardReportSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Select Academic Year'),
+    ASMCL_Id: z.string().min(1, 'Select Class'),
+    ASMS_Id: z.string().min(1, 'Select Section'),
+    selectedExams: z.array(z.string()).min(1, 'Select at least one exam'),
+    showAttendance: z.boolean().default(true),
+});
+
+export type MultipleProgressCardReportSchema = z.infer<typeof multipleProgressCardReportSchema>;
+
+
+export const hhsReport5to7Schema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    AMST_Id: z.string().min(1, 'Student Name is required'),
+    EMGR_Id: z.string().min(1, 'Grade is required'),
+    re_opendate: z.coerce.date().optional()
+});
+
+export type HHSReport5to7Schema = z.infer<typeof hhsReport5to7Schema>;

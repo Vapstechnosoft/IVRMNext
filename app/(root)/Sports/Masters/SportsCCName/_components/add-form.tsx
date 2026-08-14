@@ -4,6 +4,7 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
+import { GenericInputField, GenericTextAreaField, GenericSelectField } from '@/components/ui/form/input-fields';
 import {
     Form,
     FormControl,
@@ -40,6 +41,7 @@ export const AddForm = ({ onSuccess, onCancel, groupNameList }: AddFormProps) =>
 
     const form = useForm<z.infer<typeof sportsCCNameSchema.addOrUpdate>>({
         resolver: zodResolver(sportsCCNameSchema.addOrUpdate),
+        mode: 'onChange',
         defaultValues: {
             spccmscC_Id: 0,
             spccmsccG_Id: 0,
@@ -83,12 +85,24 @@ export const AddForm = ({ onSuccess, onCancel, groupNameList }: AddFormProps) =>
                 })),
             };
             const result = await saveSportsCCName(payload);
-            if (result.success) {
-                toast.success(result.message);
+            const msg = (result?.message || result?.Message || '') as string;
+            const isSuccess = result.success || 
+                             result?.returnval == true || 
+                             result?.returnVal == true ||
+                             result?.returnVal === 'updated' || 
+                             msg.toLowerCase() === 'saved' ||
+                             msg.toLowerCase() === 'updated' ||
+                             msg.toLowerCase().includes('success');
+
+            if (isSuccess) {
+                toast.success('Record saved successfully');
                 form.reset();
                 onSuccess();
+            } else if (result?.returnVal === 'duplicate' || msg.toLowerCase() === 'duplicate') {
+                toast.error('Record already exists');
             } else {
-                toast.error(result.message);
+                const errorMsg = (result?.message || result?.Message || 'Failed to save record') as string;
+                toast.error(errorMsg);
             }
         } catch (error) {
             console.error(error);
@@ -96,72 +110,39 @@ export const AddForm = ({ onSuccess, onCancel, groupNameList }: AddFormProps) =>
         }
     };
 
+    // Filter unique group list for the dropdown
+    const uniqueGroupList = Array.from(new Map(groupNameList.map(item => [item.spccmsccG_Id, item])).values());
+
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Left Column */}
                     <div className="space-y-4">
-                        <FormField
-                            control={form.control}
+                        <GenericSelectField
                             name="spccmsccG_Id"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Group/Main Event <span className="text-red-500">*</span></FormLabel>
-                                    <Select
-                                        onValueChange={(val) => field.onChange(Number(val))}
-                                        value={field.value ? field.value.toString() : ''}
-                                    >
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="--Select--" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {groupNameList.map((item) => (
-                                                <SelectItem key={item.spccmsccG_Id} value={item.spccmsccG_Id.toString()}>
-                                                    {item.spccmsccG_SportsCCGroupName}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
+                            label="Group/Main Event"
+                            required
+                            options={uniqueGroupList.map(item => ({
+                                value: item.spccmsccG_Id,
+                                label: (item as any).spccmsccG_SportsCCGroupName || (item as any).groupName
+                            }))}
                         />
 
-                        <FormField
-                            control={form.control}
+                        <GenericTextAreaField
                             name="spccmscC_SportsCCDesc"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Description <span className="text-red-500">*</span></FormLabel>
-                                    <FormControl>
-                                        <Textarea placeholder="Enter Description..." maxLength={250} {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
+                            label="Description"
+                            placeholder="Enter Description..."
+                            required
                         />
 
-                        <FormField
-                            control={form.control}
+                        <GenericInputField
                             name="spccmscC_NoOfMembers"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>No.Of Members <span className="text-red-500">*</span></FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            placeholder="Enter No.Of Members..."
-                                            type="number"
-                                            {...field}
-                                            onChange={e => field.onChange(Number(e.target.value))}
-                                            readOnly={watchSGFlag === 'Single'}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
+                            label="No.Of Members"
+                            placeholder="Enter No.Of Members..."
+                            type="number"
+                            required
+                            disabled={watchSGFlag === 'Single'}
                         />
 
                         <FormField
@@ -254,18 +235,11 @@ export const AddForm = ({ onSuccess, onCancel, groupNameList }: AddFormProps) =>
                             )}
                         />
 
-                        <FormField
-                            control={form.control}
+                        <GenericInputField
                             name="spccmscC_SportsCCName"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Sports Name / Sub Event <span className="text-red-500">*</span></FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Enter Sports Name..." {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
+                            label="Sports Name / Sub Event"
+                            placeholder="Enter Sports Name..."
+                            required
                         />
 
                         <div className="flex flex-col space-y-4 p-3 border rounded-md">

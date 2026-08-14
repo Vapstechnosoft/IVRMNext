@@ -18,7 +18,7 @@ export default function StaffRequestPage() {
 
     async function loadData() {
         const data = await getStaffRequestLoadData();
-        if (data && data.all_requestdata) {
+        if (data?.all_requestdata) {
             setListData(data.all_requestdata as any[]);
         }
     }
@@ -37,19 +37,15 @@ export default function StaffRequestPage() {
     };
 
     return (
-        <div className="flex-col">
-            <div className="flex-1 space-y-4 p-8 pt-6">
-                <Heading
-                    title="Hostel Staff Request"
-                    description="Staff members can apply for hostel rooms here."
-                />
-                <Separator />
+        <div className="flex-col min-h-screen bg-slate-50/50">
+            <div className="flex items-center justify-end px-8 py-2 text-[10px] text-gray-500 font-medium bg-gray-100/50 border-b">
+                <span>Transaction &gt; StaffRequest</span>
+            </div>
+            <div className="flex-1 space-y-6 p-8">
                 <StaffRequestForm
                     onSaveSuccess={() => { loadData(); setEditData(null); }}
                     editData={editData}
                 />
-                <Separator />
-                {/* <Heading  description="" /> */}
                 <StaffRequestList
                     data={listData}
                     onEdit={handleEdit}

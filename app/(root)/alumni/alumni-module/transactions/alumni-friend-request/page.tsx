@@ -3,7 +3,7 @@
 import RequestList from '@/app/(root)/alumni/alumni-module/transactions/alumni-friend-request/_components/request-list';
 import SearchForm from '@/app/(root)/alumni/alumni-module/transactions/alumni-friend-request/_components/search-form';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { getAlumniFriendRequestData, searchAlumniFriendRequest } from '@/server/alumni/alumni-friend-request';
+import { getAlumniFriendRequestData, getAlumniSearchData } from '@/server/alumni/alumni-friend-request';
 import type { IAlumniFriendRequest } from '@/types/alumni/alumni-friend-request';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -12,15 +12,20 @@ export default function AlumniFriendRequestPage() {
     const [searchResult, setSearchResult] = useState<IAlumniFriendRequest[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isSearching, setIsSearching] = useState(false);
+    const [totalItems, setTotalItems] = useState(0);
+    const [apiParams, setApiParams] = useState<any>({ page: 1, page_size: 10 });
+    const [currentAlumniId, setCurrentAlumniId] = useState<number>(0);
 
-    const loadInitialData = useCallback(async () => {
+    const loadInitialData = useCallback(async (params = apiParams) => {
         setIsLoading(true);
         try {
-            const res = await getAlumniFriendRequestData({});
+            const res = await getAlumniFriendRequestData(params);
             if (res.success && res.data) {
-                // Backend returns data array directly (not data.searchResult)
+                setTotalItems(res.total || 0);
+                if (res.data.almsT_Id) {
+                    setCurrentAlumniId(res.data.almsT_Id);
+                }
                 const dataArray = Array.isArray(res.data) ? res.data : res.data.searchResult || [];
-                // Map backend fields (lowercase) to frontend fields (PascalCase)
                 const list = dataArray.map((item: any) => {
                     const requestDate = item.alsfrnD_RequestDate || item.ALSFRND_RequestDate || item.alsfrnd_requestdate;
                     return {
@@ -36,7 +41,6 @@ export default function AlumniFriendRequestPage() {
                 });
                 setSearchResult(list);
             }
-            // biome-ignore lint/correctness/noUnusedVariables: <explanation>
         } catch (error) {
             toast.error('Failed to load alumni data');
         } finally {
@@ -48,6 +52,11 @@ export default function AlumniFriendRequestPage() {
         loadInitialData();
     }, [loadInitialData]);
 
+    const handleSearchParamsChange = (newParams: any) => {
+        setApiParams(newParams);
+        loadInitialData(newParams);
+    };
+
     const handleSearch = async (values: any) => {
         setIsSearching(true);
         try {
@@ -58,8 +67,11 @@ export default function AlumniFriendRequestPage() {
                 value: [values.value],
                 condition: ['AND'] // Providing default condition
             };
-            const res = await searchAlumniFriendRequest(payload);
+            const res = await getAlumniSearchData(payload);
             if (res.success && res.data) {
+                if (res.data.almsT_Id) {
+                    setCurrentAlumniId(res.data.almsT_Id);
+                }
                 // Backend returns data array directly (not data.searchResult)
                 const dataArray = Array.isArray(res.data) ? res.data : res.data.searchResult || [];
                 // Map backend fields (lowercase) to frontend fields (PascalCase)
@@ -97,7 +109,15 @@ export default function AlumniFriendRequestPage() {
             </CollapsibleSection>
 
             <CollapsibleSection title='Alumni Search Results' defaultOpen={true} variant='outline'>
-                <RequestList data={searchResult} isLoading={isLoading || isSearching} onRefresh={loadInitialData} />
+                <RequestList
+                    data={searchResult}
+                    isLoading={isLoading || isSearching}
+                    onRefresh={loadInitialData}
+                    totalItems={totalItems}
+                    currentApiParams={apiParams}
+                    onSearchParamsChange={handleSearchParamsChange}
+                    currentAlumniId={currentAlumniId}
+                />
             </CollapsibleSection>
         </div>
     );

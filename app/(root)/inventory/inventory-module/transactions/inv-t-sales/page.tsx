@@ -38,12 +38,22 @@ export default function InvTSalesPage(props: { searchParams: SearchParams }) {
         tableSearchVariables.search,
         parseAsString.withOptions({ shallow: false }).withDefault('')
     );
+    const [sortColumn] = useQueryState(
+        tableSearchVariables.sort_column,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+    const [sortDirection] = useQueryState(
+        tableSearchVariables.sort_direction,
+        parseAsString.withOptions({ shallow: false }).withDefault('asc')
+    );
 
     const queryParams = {
         ...searchParams,
         page: currentPage,
         page_size: pageSize,
-        search_query: searchQuery
+        search_query: searchQuery,
+        sort_column: sortColumn,
+        sort_direction: sortDirection
     };
 
     const { data: response, isLoading, error } = useInvTSales(queryParams);
@@ -95,12 +105,19 @@ function InvTSalesPageContent({
 
     // const { deleteMutation, toggleActiveMutation } = useInvTSales(); // Moved to columns component
 
-    const tableProps = useDataTableProps(response?.data, {
-        dataKey: 'get_Sale',
+    const tableProps = useDataTableProps(response, {
+        dataKey: 'data',
         totalKey: 'total'
     });
 
     const columns = useMemo(() => getInvTSalesColumns(handleViewItem), []);
+
+    const processedData = useMemo(() => {
+        return (response?.data || []).map((row: any, index: number) => ({
+            ...row,
+            _uniqueRowId: row.invmsL_Id ? `sale-${row.invmsL_Id}-${index}` : `sale-idx-${index}`
+        }));
+    }, [response?.data]);
 
     return (
         <div className='min-h-screen'>
@@ -119,8 +136,6 @@ function InvTSalesPageContent({
                     </Button>
                 </div>
 
-                <FormSections />
-
                 <CollapsibleSection
                     title='Sales List'
                     defaultOpen={true}
@@ -130,18 +145,21 @@ function InvTSalesPageContent({
                     icon={<ShoppingCart className='h-5 w-5' />}>
                     <GenericDataTable<IInvTSales>
                         {...tableProps}
-                        data={response?.data?.get_Sale || []}
+                        data={processedData}
                         columns={columns}
                         isLoading={isLoading}
                         error={error}
                         isSearchRequired={true}
                         columnPinning={{ right: ['actions'] }}
+                        getRowId={(row: any) => row._uniqueRowId}
                         loadingMessage='Loading Sales records...'
                         noDataTitle='No Sales Found'
                         noDataDescription='Create a new Sales record to start'
                         errorTitle='Error Loading Sales Data'
                     />
                 </CollapsibleSection>
+
+                <FormSections />
 
                 {isToggleFormOpen && selectedRow && (
                     <ToggleSalesModal rowData={selectedRow} onClose={closeToggleForm} />
@@ -194,7 +212,7 @@ function FormSections() {
                                 onClick={closeAddForm}
                                 variant='ghost'
                                 size='sm'
-                                className='absolute top-[-3.5rem] right-0 hover:bg-destructive/10 text-destructive'>
+                                className='absolute top-[-3.5rem] right-12 w-fit border p-2 shadow-md hover:bg-destructive/10 text-destructive'>
                                 <X className='h-4 w-4 mr-1' /> Close
                             </Button>
                             <AddSalesForm onSuccess={closeAddForm} />
@@ -218,7 +236,7 @@ function FormSections() {
                                 onClick={closeEditForm}
                                 variant='ghost'
                                 size='sm'
-                                className='absolute top-[-3.5rem] right-0 hover:bg-destructive/10 text-destructive'>
+                                className='absolute top-[-3.5rem] right-12 w-fit border p-2 shadow-md hover:bg-destructive/10 text-destructive'>
                                 <X className='h-4 w-4 mr-1' /> Close
                             </Button>
                             <UpdateSalesForm selectedRow={selectedRow} onSuccess={closeEditForm} />

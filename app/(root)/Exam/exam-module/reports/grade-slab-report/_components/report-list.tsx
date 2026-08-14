@@ -23,9 +23,9 @@ export const ReportList: React.FC<ReportListProps> = ({ data, institution }) => 
 
     const handlePrint = () => {
         const logoSrc = institution?.mI_Logo ? institution.mI_Logo : DEFAULT_LOGO_BASE64;
-        const schoolName = institution?.mI_Name || "School Name";
-        const address = (institution as Institution)?.mI_Address1 || "";
-        const email = (institution as Institution)?.mI_SMSAlertToemailids || "";
+        const _schoolName = institution?.mI_Name || 'School Name';
+        const _address = (institution as Institution)?.mI_Address1 || '';
+        const _email = (institution as Institution)?.mI_SMSAlertToemailids || '';
 
         const printWindow = window.open('', '', 'height=800,width=1000');
         if (printWindow) {
@@ -189,16 +189,10 @@ export const ReportList: React.FC<ReportListProps> = ({ data, institution }) => 
             <CardHeader className='flex flex-row items-center justify-between border-b bg-white pb-4'>
                 <CardTitle className='font-bold text-blue-900 text-lg uppercase'>Grade Slab Report</CardTitle>
                 <div className='flex space-x-2'>
-                    <Button
-                        onClick={handleExport}
-                        variant='outline'
-                        className='flex h-8 items-center gap-2 border-green-600 bg-white text-green-700 hover:bg-gray-50'>
+                    <Button onClick={handleExport} className='flex h-8 items-center gap-2 hover:bg-orange-700'>
                         <FileSpreadsheet className='h-4 w-4' /> Excel
                     </Button>
-                    <Button
-                        onClick={handlePrint}
-                        variant='outline'
-                        className='flex h-8 items-center gap-2 border-blue-600 bg-white text-blue-700 hover:bg-gray-50'>
+                    <Button onClick={handlePrint} className='flex h-8 items-center gap-2 hover:bg-orange-700'>
                         <Printer className='h-4 w-4' /> Print
                     </Button>
                 </div>

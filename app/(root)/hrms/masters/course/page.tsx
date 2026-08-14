@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+// import { GenericDataTable, useDataTableProps } from './_components/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useMasterCourse } from '@/hooks/hrms/useMasters';
@@ -13,6 +13,7 @@ import { columns } from './_components/columns';
 import ReorderCourseForm from './_components/reorder-form';
 import ToggleMasterCourseForm from './_components/toggle-form';
 import UpdateCourseForm from './_components/update-form';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -22,7 +23,8 @@ export default function MasterCoursePage(props: { searchParams: SearchParams }) 
     useEffect(() => {
         const fetchParams = async () => {
             const params = await props.searchParams;
-            setSearchParams(params);
+            // Override page and page_size to fetch all records for client-side filtering
+            setSearchParams({ ...params, page: 1, page_size: 10000 });
         };
         fetchParams();
     }, [props.searchParams]);
@@ -67,7 +69,7 @@ function MasterCoursePageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <div className='flex justify-end'>
+                    <div className='mb-4 flex justify-end'>
                         <ReorderCourseForm />
                     </div>
                     <GenericDataTable<IMasterCourseList>
@@ -77,10 +79,10 @@ function MasterCoursePageContent({
                         error={error}
                         showViewOptions={false}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading courses...'
-                        noDataTitle='No Courses Found'
-                        noDataDescription='Get started by creating your first course'
-                        errorTitle='Error Loading Courses'
+                        loadingMessage='Loading departments...'
+                        noDataTitle='No Departments Found'
+                        noDataDescription='Get started by creating your first department'
+                        errorTitle='Error Loading Departments'
                     />
                 </CollapsibleSection>
 

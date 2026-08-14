@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
@@ -88,7 +87,8 @@ export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingF
 
     const { data: feeHeadResponse, isLoading: isLoadingHeads } = useFeeMasterHead();
     const { data: installmentResponse, isLoading: isLoadingInstallments } = useFeeMasterInstallment();
-
+    console.log('feeinstaellments', installmentResponse);
+    console.log('feeHeads', feeHeadResponse);
     const academicYears = Array.isArray(academicYearOptions?.data) ? academicYearOptions.data : [];
     //const feeGroups = Array.isArray(feeGroupResponse?.data) ? feeGroupResponse.data : [];
 
@@ -388,17 +388,17 @@ export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingF
     //     reset();
     // };
 
-    const clearRows = () => {
-        if (headInstallments.length > 1) {
-            const newList = headInstallments.slice(0, -1); // remove last row
-            setHeadInstallments(newList);
-            setValue('headInstallments', newList);
+    // const clearRows = () => {
+    //     if (headInstallments.length > 1) {
+    //         const newList = headInstallments.slice(0, -1); // remove last row
+    //         setHeadInstallments(newList);
+    //         setValue('headInstallments', newList);
 
-            if (newList.length === 1) {
-                setShowClearButton(false); // hide Clear button again
-            }
-        }
-    };
+    //         if (newList.length === 1) {
+    //             setShowClearButton(false); // hide Clear button again
+    //         }
+    //     }
+    // };
 
     const saveRows: SubmitHandler<FormFields> = async (data) => {
         const payload = {
@@ -438,7 +438,41 @@ export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingF
             toast.error((err as any)?.message || 'Error saving data');
         }
     };
+    // Add these state variables
+    const [selectAll, setSelectAll] = useState(false);
+    const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
 
+    // Add these handler functions
+    const handleSelectAll = (checked: boolean) => {
+        setSelectAll(checked);
+        if (checked) {
+            const allIndices = new Set(headInstallments.map((_, index) => index));
+            setSelectedRows(allIndices);
+        } else {
+            setSelectedRows(new Set());
+        }
+    };
+
+    const toggleRowSelection = (index: number) => {
+        const newSelected = new Set(selectedRows);
+        if (newSelected.has(index)) {
+            newSelected.delete(index);
+        } else {
+            newSelected.add(index);
+        }
+        setSelectedRows(newSelected);
+        setSelectAll(newSelected.size === headInstallments.length);
+    };
+
+    // Update your clearRows function to use selected rows
+    const clearRows = () => {
+        if (selectedRows.size === 0) return;
+
+        const remainingRows = headInstallments.filter((_, index) => !selectedRows.has(index));
+        setHeadInstallments(remainingRows);
+        setSelectedRows(new Set());
+        setSelectAll(false);
+    };
     return (
         <div className='mt-5 space-y-6'>
             <Card>
@@ -510,7 +544,7 @@ export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingF
                 </CardContent>
             </Card>
 
-            {academicYear && feeGroup && (
+            {/* {academicYear && feeGroup && (
                 <Card>
                     <CardHeader>
                         <CardTitle className='text-blue-700'>HEAD INSTALLMENT LIST</CardTitle>
@@ -529,17 +563,194 @@ export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingF
                                 Add another row
                             </Button>
                             <Button
-                                className='w-24'
-                                variant='success'
+                                className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                                // variant='success'
                                 size='sm'
                                 onClick={handleSubmit(saveRows)}
-                                type='button'
+                                type='submit'
                                 disabled={isSubmitting}>
                                 {isSubmitting ? 'Saving...' : 'Save'}
                             </Button>
-                            {/* <Button className='w-24' variant='danger' size='sm' onClick={clearRows} type='button'>
-                                Clear
-                            </Button> */}
+                            
+
+                            {showClearButton && (
+                                <Button className='w-24' variant='danger' size='sm' onClick={clearRows} type='button'>
+                                    Remove
+                                </Button>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+            )} */}
+            {academicYear && feeGroup && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className='text-blue-700'>HEAD INSTALLMENT LIST</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <Card className='p-4'>
+                            <div className='overflow-x-auto'>
+                                <table className='w-full border text-center text-sm'>
+                                    <thead className='bg-gray-100'>
+                                        <tr>
+                                            <th className='border p-2'>Sl.No</th>
+                                            <th className='border p-2'>
+                                                <Checkbox checked={selectAll} onCheckedChange={(val) => handleSelectAll(val === true)} />
+                                            </th>
+                                            <th className='border p-2'>Fee Head</th>
+                                            <th className='border p-2'>Installment</th>
+                                            <th className='border p-2'>Fine</th>
+                                            <th className='border p-2'>Active</th>
+                                            <th className='border p-2'>Common Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {headInstallments.map((item, index) => (
+                                            <tr key={index} className='hover:bg-gray-50'>
+                                                <td className='border p-2'>{index + 1}</td>
+                                                <td className='border p-2'>
+                                                    <Checkbox
+                                                        checked={selectedRows.has(index)}
+                                                        onCheckedChange={() => toggleRowSelection(index)}
+                                                    />
+                                                </td>
+                                                <td className='border p-2'>
+                                                    <Controller
+                                                        name={`headInstallments.${index}.fmH_Id`}
+                                                        control={control}
+                                                        render={({ field, fieldState }) => (
+                                                            <div>
+                                                                <Select
+                                                                    value={field.value}
+                                                                    onValueChange={(value) => {
+                                                                        field.onChange(value);
+                                                                        const updated = [...headInstallments];
+                                                                        updated[index].fmH_Id = value;
+                                                                        setHeadInstallments(updated);
+                                                                    }}>
+                                                                    <SelectTrigger className={fieldState.error ? 'border-red-500' : ''}>
+                                                                        <SelectValue placeholder='Select Head' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {isLoadingHeads ? (
+                                                                            <div className='px-2 py-1 text-gray-500 text-sm'>
+                                                                                Loading...
+                                                                            </div>
+                                                                        ) : feeHeads.length > 0 ? (
+                                                                            feeHeads.map((h: any) => (
+                                                                                <SelectItem key={h.fmH_Id} value={String(h.fmH_Id)}>
+                                                                                    {h.fmH_FeeName}
+                                                                                </SelectItem>
+                                                                            ))
+                                                                        ) : (
+                                                                            <div className='px-2 py-1 text-gray-500 text-sm'>
+                                                                                No fee heads available
+                                                                            </div>
+                                                                        )}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                                {fieldState.error && (
+                                                                    <p className='mt-1 text-red-500 text-xs'>{fieldState.error.message}</p>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    />
+                                                </td>
+                                                <td className='border p-2'>
+                                                    <Controller
+                                                        name={`headInstallments.${index}.fmI_Id`}
+                                                        control={control}
+                                                        render={({ field, fieldState }) => (
+                                                            <div>
+                                                                <Select
+                                                                    value={field.value}
+                                                                    onValueChange={(value) => {
+                                                                        field.onChange(value);
+                                                                        const updated = [...headInstallments];
+                                                                        updated[index].fmI_Id = value;
+                                                                        setHeadInstallments(updated);
+                                                                    }}>
+                                                                    <SelectTrigger className={fieldState.error ? 'border-red-500' : ''}>
+                                                                        <SelectValue placeholder='Select Installment' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {isLoadingInstallments ? (
+                                                                            <div className='px-2 py-1 text-gray-500 text-sm'>
+                                                                                Loading...
+                                                                            </div>
+                                                                        ) : installments.length > 0 ? (
+                                                                            installments.map((i: any) => (
+                                                                                <SelectItem key={i.fmI_Id} value={String(i.fmI_Id)}>
+                                                                                    {i.fmI_Name}
+                                                                                </SelectItem>
+                                                                            ))
+                                                                        ) : (
+                                                                            <div className='px-2 py-1 text-gray-500 text-sm'>
+                                                                                No installments available
+                                                                            </div>
+                                                                        )}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                                {fieldState.error && (
+                                                                    <p className='mt-1 text-red-500 text-xs'>{fieldState.error.message}</p>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    />
+                                                </td>
+                                                <td className='border p-2'>
+                                                    <Checkbox
+                                                        checked={item.fineApplicable}
+                                                        onCheckedChange={(v) => {
+                                                            const updated = [...headInstallments];
+                                                            updated[index].fineApplicable = !!v;
+                                                            setHeadInstallments(updated);
+                                                            setValue('headInstallments', updated);
+                                                        }}
+                                                    />
+                                                </td>
+                                                <td className='border p-2'>
+                                                    <Checkbox
+                                                        checked={item.active}
+                                                        onCheckedChange={(v) => {
+                                                            const updated = [...headInstallments];
+                                                            updated[index].active = !!v;
+                                                            setHeadInstallments(updated);
+                                                            setValue('headInstallments', updated);
+                                                        }}
+                                                    />
+                                                </td>
+                                                <td className='border p-2'>
+                                                    <Checkbox
+                                                        checked={item.commonAmount}
+                                                        onCheckedChange={(v) => {
+                                                            const updated = [...headInstallments];
+                                                            updated[index].commonAmount = !!v;
+                                                            setHeadInstallments(updated);
+                                                            setValue('headInstallments', updated);
+                                                        }}
+                                                    />
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {errors.headInstallments && <p className='mt-2 text-red-500 text-sm'>{errors.headInstallments.message}</p>}
+                        </Card>
+
+                        <div className='mt-4 flex items-center justify-end gap-2'>
+                            <Button className='w-36' variant='accent' size='sm' onClick={addRow} type='button'>
+                                Add another row
+                            </Button>
+                            <Button
+                                className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                                size='sm'
+                                onClick={handleSubmit(saveRows)}
+                                type='submit'
+                                disabled={isSubmitting}>
+                                {isSubmitting ? 'Saving...' : 'Save'}
+                            </Button>
 
                             {showClearButton && (
                                 <Button className='w-24' variant='danger' size='sm' onClick={clearRows} type='button'>

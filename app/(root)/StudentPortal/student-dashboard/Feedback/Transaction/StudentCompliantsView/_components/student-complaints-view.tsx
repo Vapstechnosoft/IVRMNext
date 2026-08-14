@@ -3,29 +3,58 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useState } from 'react';
-import { getStudentComplaintsReport } from '../actions';
-import type { AcademicYear, StudentComplaint } from '../types';
+import { useState, useEffect } from 'react';
+import { getStudentComplaintsReport, getStudentComplaintsLoadData } from './actions';
 import { columns } from './columns';
-
+import { AcademicYear, StudentComplaint } from '@/constants/types';
+import { useAcademicStudentCompliants } from '@/hooks/student-portal/useCumulative';
 interface StudentComplaintsViewClientProps {
     initialYears: AcademicYear[];
     initialData: StudentComplaint[];
     initialYearId: number;
 }
 
-export default function StudentComplaintsViewClient({ initialYears, initialData, initialYearId }: StudentComplaintsViewClientProps) {
-    const [years] = useState<AcademicYear[]>(initialYears);
-    const [selectedYear, setSelectedYear] = useState<string>(String(initialYearId));
-    const [data, setData] = useState<StudentComplaint[]>(initialData);
+export default function StudentComplaintsViewClient() {
+    const [selectedYear, setSelectedYear] = useState<string | undefined>(undefined);
+    const [data, setData] = useState<StudentComplaint[]>([]); // Initialize with empty array
     const [isLoading, setIsLoading] = useState(false);
+    const { data: academicYears, isLoading: isAcademicYearsLoading } = useAcademicStudentCompliants();
+
+    // Fetch initial complaint data on component mount
+    useEffect(() => {
+        const fetchInitialData = async () => {
+            try {
+                setIsLoading(true);
+                const loadData = await getStudentComplaintsLoadData();
+                console.log("DEBUG: Client received initial load data:", loadData);
+
+                if (loadData && loadData.studentdivlist && loadData.studentdivlist.length > 0) {
+                    setData(loadData.studentdivlist);
+                }
+            } catch (error) {
+                console.error('Failed to fetch initial data', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchInitialData();
+    }, []);
 
     const handleYearChange = async (yearId: string) => {
+        console.log(`DEBUG: Year changed to ${yearId}. Fetching report...`);
         setSelectedYear(yearId);
         setIsLoading(true);
         try {
-            const response = await getStudentComplaintsReport({ ASMAY_Id: Number(yearId) });
-            if (response?.studentdivlist) {
+            // Passing 0 for optional params as we don't have them in this context yet, 
+            // relying on backend or default 0 logic as per user payload "studentview": [0]
+            const response = await getStudentComplaintsReport({
+                ASMAY_Id: Number(yearId),
+                ASMCL_Id: 0,
+                ASMS_Id: 0
+            });
+            console.log("DEBUG: Client received report response:", response);
+            if (response && response.studentdivlist) {
                 setData(response.studentdivlist);
             } else {
                 setData([]);
@@ -53,25 +82,33 @@ export default function StudentComplaintsViewClient({ initialYears, initialData,
                                 <span className='whitespace-nowrap font-semibold'>
                                     Year:<span className='text-red-500'>*</span>
                                 </span>
-                                <Select value={selectedYear} onValueChange={handleYearChange}>
-                                    <SelectTrigger className='w-full'>
-                                        <SelectValue placeholder='--Select--' />
+                                <Select
+                                    value={selectedYear}
+                                    onValueChange={(value) => handleYearChange(value)}
+                                >
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="--Select--" />
                                     </SelectTrigger>
+
                                     <SelectContent>
-                                        {years.map((year) => (
-                                            <SelectItem key={year.asmaY_Id} value={String(year.asmaY_Id)}>
+                                        {academicYears?.data?.map((year: any) => (
+                                            <SelectItem
+                                                key={year.asmaY_Id}
+                                                value={year.asmaY_Id.toString()}
+                                            >
                                                 {year.asmaY_Year}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
+
                             </div>
                         </div>
                     </div>
                 </CardContent>
             </Card>
 
-            {data.length > 0 && (
+            {(data.length > 0 || isLoading) && (
                 <Card>
                     <CardHeader>
                         <CardTitle>Details</CardTitle>
@@ -84,13 +121,14 @@ export default function StudentComplaintsViewClient({ initialYears, initialData,
                             isPaginationRequired={true}
                             isLoading={isLoading}
                             totalItems={data.length}
-                            manualPagination={false}
                         />
                     </CardContent>
                 </Card>
             )}
 
-            {data.length === 0 && !isLoading && <div className='p-4 text-center text-muted-foreground'>No Records Found</div>}
+            {data.length === 0 && !isLoading && selectedYear && (
+                <div className="text-center p-4 text-muted-foreground">No Records Found</div>
+            )}
         </div>
     );
 }

@@ -63,12 +63,12 @@ export async function getEmployeeInOutReportOnload(
 
 /**
  * Get employee in-out report data
- * POST /api/EmployeeInOutReportFacade/search
  */
-export async function getEmployeeInOutReport(data: any, searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'searchableColumns');
-    const url = `/api/EmployeeInOutReportFacade/search?${urlParams}`;
-    return await api.post<any>('hrmsfrontoffice', url, data);
+export async function getEmployeeInOutReport(
+    payload: { from_date: string; to_date: string; hrme_ids: number[]; }
+) {
+    const url = '/api/EmployeeInOutReport/get_employee_in_out_report';
+    return await api.post<any>('hrmsfrontoffice', url, payload);
 }
 
 /**

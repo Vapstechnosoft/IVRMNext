@@ -119,11 +119,37 @@ export const classWorkSchema = {
         icW_ToDate: z.date({
             required_error: 'End Date is required',
             invalid_type_error: 'End Date is required'
-        })
+        }),
+
+        // Additional Fields
+        icW_TeachingAid: z.number().optional().default(0),
+        icW_Assignment: z.string().optional().default(''),
+        icW_Evaluation: z.string().optional().default(''),
+        icW_Attachment: z.string().optional().default(''),
+
+        // Attachments (Files)
+        icW_FilePath_Array: z
+            .array(
+                z.object({
+                    icW_FilePath: z.string().optional(),
+                    fileName: z.string().optional()
+                })
+            )
+            .optional(),
+
+        // Attachments (URLs)
+        icW_Attachment_Array: z
+            .array(
+                z.object({
+                    icW_FilePath: z.string().optional(),
+                    fileName: z.string().optional()
+                })
+            )
+            .optional()
     }),
     delete: z.object({
-            icW_Id: deleteIdSchema('icW_Id')
-        })
+        icW_Id: deleteIdSchema('icW_Id')
+    })
 };
 
 export const studentMarksSchema = z.object({
@@ -162,9 +188,9 @@ export const verifyClassWorkSearchSchema = z.object({
     asmaY_Id: z.number().min(1, 'Academic Year is required'),
     asmcL_Id: z.number().min(1, 'Class is required'),
     asmS_Id: z.number().min(1, 'Section is required'),
-    ismS_Id: z.number().min(1, 'Subject is required'),
-    from_date: z.date({ required_error: 'Start Date is required' }),
-    to_date: z.date({ required_error: 'End Date is required' })
+    ismS_Id: z.number().optional(),
+    from_date: z.date().optional(),
+    to_date: z.date().optional()
 });
 
 export type IVerifyClassWorkSearch = z.infer<typeof verifyClassWorkSearchSchema>;

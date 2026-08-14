@@ -326,7 +326,7 @@ export default function FeeConcessionReport() {
                     left: filters.status.left === true ? 1 : 0
                 };
             }
-
+            console.log('consession report payload', JSON.stringify(payload));
             const response = await saveFeesconcessionReport(payload);
             const apiList = (response as any).data.list || [];
             const mapApiToReportRows = (apiData: any[]): IFeeConcessionReport[] => {

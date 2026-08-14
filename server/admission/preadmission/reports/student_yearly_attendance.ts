@@ -32,8 +32,8 @@ export async function getPreadmissionClassDropdown1() {
     return await api.get<IPreadmissionClassDropdown[]>('admission', url);
 }
 
-export async function getadmissionStudentsDropdown(ASMAY_Id: number, ASMCL_Id: number, ASMS_Id: number) {
-    const url = `/AdmissionRegister/GetStudentNamesByClassSection?ASMAY_Id=${ASMAY_Id}&ASMCL_Id=${ASMCL_Id}&ASMS_Id=${ASMS_Id}`;
+export async function getadmissionStudentsDropdown(ASMAY_Id: number, ASMCL_Id: number, ASMS_Id: number, AMST_SOL: string) {
+    const url = `/AdmissionRegister/GetStudentNamesByClassSection?ASMAY_Id=${ASMAY_Id}&ASMCL_Id=${ASMCL_Id}&ASMS_Id=${ASMS_Id}&AMST_SOL=${AMST_SOL}`;
     return await api.get('admission', url);
 }
 
@@ -42,9 +42,9 @@ export async function getadmissionSectionDropdown(asmcl_id: number) {
     return await api.get('admission', url);
 }
 
-export async function GetClassTeacherReport(ASMAY_Id: number, flag: number, searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'name,AMST_AdmNo,AMST_RegistrationNo,AMAY_RollNo,yearidname');
-    const url = `/ClassTeacherReportAttendance/GetReport?ASMAY_Id=${ASMAY_Id}&flag=${flag}&${urlParams}`;
+export async function GetClassTeacherReport(ASMAY_Id: number, flag: number, amcId?: number, searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'IVRMSTAUL_UserName,ASMCL_ClassName,ASMC_SectionName,PAMS_SubjectName');
+    const url = `/ClassTeacherReportAttendance/GetReport?ASMAY_Id=${ASMAY_Id}&Flag=${flag}&AMC_Id=${amcId || 0}&${urlParams}`;
 
     return await api.post<IPreadmissionClassDropdown[]>('admission', url);
 }
@@ -75,7 +75,7 @@ export async function getStudentSearch(
     searchParams?: ApiSearchparams
 ) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'amsT_RegistrationNo,amsT_FirstName,asmcL_ClassName');
-    const url = `/StudentSearch/GetStudentSearchData?stuStatus=${stuStatus}&field=${field}&Operator=${Operator}&value=${value}&condition=${condition}&${urlParams}`;
+    const url = `/StudentSearch/GetStudentSearchData?stuStatus=${stuStatus}&field=${field}&Operator=${Operator}&value=${value}&condition=${condition || 'AND'}&${urlParams}`;
 
     return await api.post<any[]>('admission', url);
 }
@@ -87,9 +87,9 @@ export async function getAdmissionRegister(ASMAY_Id: number, AttendanceType: num
     return await api.post<any[]>('admission', url, payload);
 }
 
-export async function GetDateOfBirth(ASMAY_Id: number, ASMCL_Id: number, ASMS_Id: number, AMST_Id: number, searchParams?: ApiSearchparams) {
+export async function GetDateOfBirth(ASMAY_Id: number, ASMCL_Id: number, ASMS_Id: number, AMST_Id: number, AMC_Id: number, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'name,AMST_AdmNo,AMST_RegistrationNo,AMAY_RollNo,yearidname');
-    const url = `/DOBcertificate/GetAdmDobCertificate?ASMAY_Id=${ASMAY_Id}&ASMCL_Id=${ASMCL_Id}&ASMS_Id=${ASMS_Id}&AMST_Id=${AMST_Id}&${urlParams}`;
+    const url = `/DOBcertificate/GetAdmDobCertificate?ASMAY_Id=${ASMAY_Id}&ASMCL_Id=${ASMCL_Id}&ASMS_Id=${ASMS_Id}&AMST_Id=${AMST_Id}&AMC_Id=${AMC_Id}&${urlParams}`;
 
-    return await api.post<IPreadmissionClassDropdown[]>('admission', url);
+    return await api.post<any>('admission', url);
 }

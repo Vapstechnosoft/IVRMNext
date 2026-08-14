@@ -1,39 +1,39 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
-    getClasses,
-    getSections,
-    getYearEndReportLoadData
-} from '@/server/sports/reports/sports-year-end-report';
-import { toast } from 'sonner';
+    getSportsYearEndReportLoadData,
+    getSportsYearEndReportClasses,
+    getSportsYearEndReportSections,
+    getSportsYearEndReport
+} from '@/server/sports/reports/year-end-report';
+import { ISportsYearEndReportRequest } from '@/app/(root)/Sports/Reports/SportsYearEndReport/types';
 
 export const useSportsYearEndReport = () => {
-
-    // Initial Data
+    // Initial Data Load (Years)
     const initialData = useQuery({
-        queryKey: ['sportsYearEndReportInitial'],
-        queryFn: () => getYearEndReportLoadData(),
+        queryKey: ['sportsYearEndReport', 'loadData'],
+        queryFn: () => getSportsYearEndReportLoadData(),
         staleTime: Infinity,
     });
 
-    // Fetch Classes
+    // Fetch Classes on Year Change
     const classMutation = useMutation({
-        mutationFn: ({ asmaY_Id }: { asmaY_Id: number }) => getClasses(asmaY_Id),
-        onError: (error) => {
-            toast.error(error.message || 'Failed to fetch classes');
-        },
+        mutationFn: ({ asmaY_Id }: { asmaY_Id: number }) => getSportsYearEndReportClasses(asmaY_Id),
     });
 
-    // Fetch Sections
+    // Fetch Sections on Class Change
     const sectionMutation = useMutation({
-        mutationFn: ({ asmaY_Id, asmcL_Id }: { asmaY_Id: number; asmcL_Id: number }) => getSections(asmaY_Id, asmcL_Id),
-        onError: (error) => {
-            toast.error(error.message || 'Failed to fetch sections');
-        },
+        mutationFn: ({ asmaY_Id, asmcL_Id }: { asmaY_Id: number, asmcL_Id: number }) => getSportsYearEndReportSections(asmaY_Id, asmcL_Id),
+    });
+
+    // Generate Report
+    const reportMutation = useMutation({
+        mutationFn: (data: ISportsYearEndReportRequest) => getSportsYearEndReport(data),
     });
 
     return {
         initialData,
         classMutation,
         sectionMutation,
+        reportMutation
     };
 };

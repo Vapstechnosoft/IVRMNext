@@ -11,7 +11,7 @@ import type { IPreadmissionStudentApplicationList } from '@/types/admission/prea
 import { useQueryClient } from '@tanstack/react-query';
 import { Plus, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-import { use, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import AddStudentApplicationForm from './_components/add-form';
 import { studentApplicationColumns } from './_components/columns';
 import PreadmissionStatusCountReport from './_components/preadmission-status-count-report';
@@ -22,7 +22,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function StudentApplicationPage(props: {
     searchParams: SearchParams;
 }) {
-    const searchParams = use(props.searchParams);
+    const searchParams = (React as any).use(props.searchParams);
     const { data: activePreadmission } = useActivePreadmissionDetails();
     const { data: response, isLoading, error, refetch } = useStudentApplicationList(activePreadmission?.data?.asmaY_Id ?? 0, searchParams);
     const { data: masterConfig } = useAcademicYearMasterConfiguration(activePreadmission?.data?.asmaY_Id ?? 0);
@@ -60,10 +60,10 @@ function StudentApplicationPageContent({
     const session = useSession();
 
     useEffect(() => {
-        if (session?.data?.role === undefined) {
+        if (session?.status === 'authenticated' && session?.data?.role === undefined) {
             window.location.reload();
         }
-    }, [session?.data?.role]);
+    }, [session?.data?.role, session?.status]);
 
     const onCloseSuccessDialog = () => {
         setSuccessOpen(false);
@@ -110,18 +110,20 @@ function StudentApplicationPageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IPreadmissionStudentApplicationList>
-                        {...tableProps}
-                        columns={studentApplicationColumns}
-                        isLoading={isLoading}
-                        error={error}
-                        showViewOptions={false}
-                        columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading applications...'
-                        noDataTitle='No Applications Found'
-                        noDataDescription='Get started by creating your first applications'
-                        errorTitle='Error Loading Applications'
-                    />
+                    <div className='[&_table_tbody_tr:nth-child(even)]:!bg-primary/5 [&_table_tbody_tr[data-state=selected]]:!bg-purple-100 [&_table_tbody_tr:hover]:!bg-purple-200 [&_table_tbody_tr:hover_td]:!bg-purple-200 [&_table_tbody_tr]:cursor-pointer [&_table_tbody_tr]:transition-colors'>
+                        <GenericDataTable<IPreadmissionStudentApplicationList>
+                            {...tableProps}
+                            columns={studentApplicationColumns}
+                            isLoading={isLoading}
+                            error={error}
+                            showViewOptions={false}
+                            columnPinning={{ right: ['actions'] }}
+                            loadingMessage='Loading applications...'
+                            noDataTitle='No Applications Found'
+                            noDataDescription='Get started by creating your first applications'
+                            errorTitle='Error Loading Applications'
+                        />
+                    </div>
                 </CollapsibleSection>
             </div>
         </div>

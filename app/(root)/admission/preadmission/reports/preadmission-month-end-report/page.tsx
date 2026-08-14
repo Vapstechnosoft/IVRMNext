@@ -1,6 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { format } from 'date-fns';
+import { FileSpreadsheet, Printer, RotateCcw, Save } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -20,6 +23,15 @@ export default function MonthendreportPage() {
     const [showReport, setShowReport] = useState(false);
     const [reportData, setReportData] = useState<ReportItem[]>([]);
     const [formKey, setFormKey] = useState(0);
+    const [logo, setLogo] = useState<string>('/school-logo.png');
+    const [institutionDetails, setInstitutionDetails] = useState<any[]>([]);
+
+    const printRef = useRef<HTMLDivElement>(null);
+
+    const handlePrint = useReactToPrint({
+        contentRef: printRef,
+        documentTitle: 'PreAdmissionMonthEndReport'
+    });
 
     const requestData = {
         ASMAY_Id: Number(academicYearId),
@@ -71,6 +83,7 @@ export default function MonthendreportPage() {
         setIfName('');
         setShowReport(false);
         setReportData([]);
+        setInstitutionDetails([]);
         setFormKey((prev) => prev + 1);
         toast.success('Form reset successfully');
     };
@@ -78,11 +91,20 @@ export default function MonthendreportPage() {
     // Handle Report Generate
 
     const handleGenerateReport = async () => {
-        if (!academicYearId || !selectedMonth || !selectedYear) {
-            toast.error('Please fill all required fields!');
+        if (!academicYearId) {
+            toast.error('Please select Academic Year!');
             return;
         }
 
+        if (!selectedMonth) {
+            toast.error('Please select Month!');
+            return;
+        }
+
+        if (!selectedYear) {
+            toast.error('Please select Year!');
+            return;
+        }
         // Show loading toast and store ID
         const toastId = toast.loading('Loading report...');
 
@@ -90,8 +112,15 @@ export default function MonthendreportPage() {
             const res = await refetch();
             toast.dismiss(toastId);
 
-            if (res?.data?.data?.reportdatelist?.length) {
-                const r = res.data.data.reportdatelist[0];
+            const data = res?.data?.data;
+            const reportList = data?.paginatedResult || data?.reportdatelist || (Array.isArray(data) ? data : []);
+            const instDetails = data?.institutionDetails || [];
+
+            if (reportList?.length) {
+                const r = reportList[0];
+                const fetchedLogo = r.MI_Logo || r.mI_Logo || r.mi_logo || (instDetails[0]?.mI_Logo) || '/school-logo.png';
+                setLogo(fetchedLogo);
+                setInstitutionDetails(instDetails);
 
                 setReportData([
                     {
@@ -131,7 +160,7 @@ export default function MonthendreportPage() {
                     },
                     {
                         name: 'Total Entries',
-                        count: r.total_Reg + r.total_filled
+                        count: (r.total_Reg || 0) + (r.total_filled || 0)
                     }
                 ]);
 
@@ -160,8 +189,8 @@ export default function MonthendreportPage() {
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                      });
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);
@@ -176,9 +205,6 @@ export default function MonthendreportPage() {
                 link.remove();
                 window.URL.revokeObjectURL(url);
             }, 100);
-
-            setShowReport(false);
-            setReportData([]);
 
             toast.success('Excel downloaded successfully');
         } catch (error) {
@@ -277,32 +303,54 @@ export default function MonthendreportPage() {
                     </div>
                 </div>
 
-                {/* BUTTON SECTION */}
+                {/* FILTER BUTTON SECTION */}
                 <div className='flex gap-4 pt-4'>
                     <Button onClick={handleReset} variant='outline' className='w-fit'>
+                        <RotateCcw className='mr-2 h-4 w-4' />
                         Reset
                     </Button>
                     <Button onClick={handleGenerateReport} className='w-fit'>
+                        <Save className='mr-2 h-4 w-4' />
                         Generate Report
-                    </Button>
-                    <Button onClick={downloadExcel} className='w-fit'>
-                        Export to Excel
                     </Button>
                 </div>
             </div>
+
+            {showReport && (
+                <div className='mb-4 flex justify-end gap-4'>
+                    <Button
+                        onClick={() => handlePrint()}
+                        variant='outline'
+                        className='bg-primary/10 text-primary hover:bg-primary/20 shadow-sm transition-all duration-300'>
+                        <Printer className='mr-2 h-4 w-4' />
+                        Print Report
+                    </Button>
+                    <Button
+                        onClick={downloadExcel}
+                        variant='outline'
+                        className='bg-green-50 text-green-600 hover:bg-green-100 border-green-200 shadow-sm transition-all duration-300'>
+                        <FileSpreadsheet className='mr-2 h-4 w-4' />
+                        Download Excel
+                    </Button>
+                </div>
+            )}
             {showReport && (
                 <CollapsibleSection
                     defaultOpen={true}
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <AdmissionMonthEndReport
-                        reportData={reportData}
-                        month={selectedMonth}
-                        year={Number(selectedYear)}
-                        academicYear={Number(academicYearId)}
-                        implementationName={ifName}
-                    />
+                    <div ref={printRef} className='printable-content'>
+                        <AdmissionMonthEndReport
+                            reportData={reportData}
+                            month={selectedMonth}
+                            year={Number(selectedYear)}
+                            academicYear={Number(academicYearId)}
+                            implementationName={ifName}
+                            logoBase64={logo}
+                            institutionDetails={institutionDetails}
+                        />
+                    </div>
                 </CollapsibleSection>
             )}
         </div>

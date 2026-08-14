@@ -9,7 +9,7 @@ import { useCallback } from 'react';
 export const masterReligionColumns: ColumnDef<IMasterReligionList>[] = [
     {
         accessorKey: 'ivrmmR_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6 font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -21,14 +21,14 @@ export const masterReligionColumns: ColumnDef<IMasterReligionList>[] = [
     },
     {
         accessorKey: 'ivrmmR_Name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Religion Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Religion Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('ivrmmR_Name')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-left font-bold text-black' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />

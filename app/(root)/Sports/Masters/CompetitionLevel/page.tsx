@@ -17,11 +17,16 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterCompetitionLevelPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error, refetchAll } = useMasterCompetitionLevels(searchParams);
+    const { loadData, refetchAll } = useMasterCompetitionLevels(searchParams);
 
     return (
         <FormProvider<IMasterCompetitionLevel>>
-            <MasterCompetitionLevelPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
+            <MasterCompetitionLevelPageContent 
+                response={loadData.data} 
+                isLoading={loadData.isPending || loadData.isFetching} 
+                error={loadData.error} 
+                refetchAll={refetchAll} 
+            />
         </FormProvider>
     );
 }
@@ -77,6 +82,7 @@ function MasterCompetitionLevelPageContent({
                         columns={MasterCompetitionLevelColumns}
                         isLoading={isLoading}
                         error={error}
+                        showSearchColumns={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading competition levels...'
                         noDataTitle='No Competition Levels Found'
@@ -106,7 +112,12 @@ function MasterCompetitionLevelPageContent({
                                         className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                         <X className='h-4 w-4 text-destructive' /> Close
                                     </Button>
-                                    <AddMasterCompetitionLevelForm onSuccess={closeAddForm} />
+                                    <AddMasterCompetitionLevelForm
+                                        onSuccess={() => {
+                                            refetchAll();
+                                            closeAddForm();
+                                        }}
+                                    />
                                 </div>
                             </CollapsibleSection>
                         </div>
@@ -130,7 +141,13 @@ function MasterCompetitionLevelPageContent({
                                         className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                         <X className='h-4 w-4 text-destructive' /> Close
                                     </Button>
-                                    <UpdateMasterCompetitionLevelForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                                    <UpdateMasterCompetitionLevelForm
+                                        selectedRow={selectedRow}
+                                        onSuccess={() => {
+                                            refetchAll();
+                                            closeEditForm();
+                                        }}
+                                    />
                                 </div>
                             </CollapsibleSection>
                         </div>

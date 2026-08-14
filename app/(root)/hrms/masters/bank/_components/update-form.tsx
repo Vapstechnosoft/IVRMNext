@@ -55,7 +55,7 @@ export default function UpdateBankForm({ onSuccess, className = '', selectedRow:
                 hrmbD_BankAccountNo: data.hrmbD_BankAccountNo,
                 hrmbD_IFSCCode: data.hrmbD_IFSCCode,
                 hrmbD_BankAddress: data.hrmbD_BankAddress?.trim() || '',
-                hrmbD_ActiveFlag: true,
+                hrmbD_ActiveFlag: row.hrmbD_ActiveFlag,
                 retrunMsg: ''
             };
             const response = await addOrUpdateMasterBank(payload);
@@ -159,10 +159,10 @@ export default function UpdateBankForm({ onSuccess, className = '', selectedRow:
                         disabled={isSubmitting || !isDirty}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting}
-                        loadingText='Saving...'>
+                        loadingText='Updating...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Bank
+                            Update Bank
                         </div>
                     </Button>
                     {!isDirty && <span className='flex items-center text-muted-foreground text-sm'>No changes made</span>}

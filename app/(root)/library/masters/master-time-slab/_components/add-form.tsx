@@ -5,7 +5,7 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { useMasterTimeSlab } from '@/hooks/library/useMasters';
+import { useMasterTimeSlabList } from '@/hooks/library/useMasters';
 import { masterTimeSlabSchema } from '@/schemas/library/masters';
 import { addOrUpdateMasterTimeSlab } from '@/server/library/masters/time-slab';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -17,12 +17,13 @@ import type { z } from 'zod';
 type FormFields = z.infer<typeof masterTimeSlabSchema.addOrUpdate>;
 
 interface AddMasterTimeSlabFormProps {
+    onloaddata?: any;
     onSuccess?: () => void;
     className?: string;
 }
 
-export default function AddMasterTimeSlabForm({ onSuccess, className = '' }: AddMasterTimeSlabFormProps) {
-    const { refetchAll } = useMasterTimeSlab();
+export default function AddMasterTimeSlabForm({ onloaddata, onSuccess, className = '' }: AddMasterTimeSlabFormProps) {
+    const { refetchAll } = useMasterTimeSlabList();
 
     const {
         register,
@@ -33,7 +34,7 @@ export default function AddMasterTimeSlabForm({ onSuccess, className = '' }: Add
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterTimeSlabSchema.addOrUpdate),
-        mode: 'onChange',
+        mode: 'onSubmit',
         defaultValues: {
             lfsE_Id: 0,
             lfsE_UserType: '',
@@ -50,12 +51,18 @@ export default function AddMasterTimeSlabForm({ onSuccess, className = '' }: Add
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload = {
-                ...data,
-                lfsE_ActiveFlg: true,
-                lfsE_Id: 0
+                lfsE_Id: 0,
+                lfsE_UserType: data.lfsE_UserType,
+                lfsE_SlabTypeFlg: data.lfsE_SlabTypeFlg,
+                lfsE_PerDayFlg: data.lfsE_PerDayFlg === 1 ?true : false,
+                lfsE_FromDay: Number(data.lfsE_FromDay),
+                lfsE_ToDay: data.lfsE_SlabTypeFlg === 'BETWEEN' ? Number(data.lfsE_ToDay) : 0,
+                lfsE_Amount: Number(data.lfsE_Amount),
+                lfsE_ActiveFlg: true
             };
 
             const response = await addOrUpdateMasterTimeSlab(payload);
+
 
             if (response.success) {
                 toast.success(response.message || 'Record Saved Successfully!!!');
@@ -70,7 +77,17 @@ export default function AddMasterTimeSlabForm({ onSuccess, className = '' }: Add
         }
     };
 
-    const handleReset = () => reset();
+    const handleReset = () => {
+        reset({
+            lfsE_Id: 0,
+            lfsE_UserType: '',
+            lfsE_SlabTypeFlg: '',
+            lfsE_PerDayFlg: 0,
+            lfsE_FromDay: 0,
+            lfsE_ToDay: 0,
+            lfsE_Amount: 0
+        });
+    };
 
     return (
         <div className={className}>
@@ -87,10 +104,20 @@ export default function AddMasterTimeSlabForm({ onSuccess, className = '' }: Add
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value='STUDENT'>STUDENT</SelectItem>
-                                        <SelectItem value='STAFF'>STAFF</SelectItem>
-                                        <SelectItem value='DEPARTMENT'>DEPARTMENT</SelectItem>
-                                        <SelectItem value='GUEST'>GUEST</SelectItem>
+                                        {onloaddata?.usertype && onloaddata.usertype.length > 0 ? (
+                                            onloaddata.usertype.map((item: any, index: number) => (
+                                                <SelectItem key={index} value={item.ivrmrT_Role}>
+                                                    {item.ivrmrT_Role}
+                                                </SelectItem>
+                                            ))
+                                        ) : (
+                                            <>
+                                                <SelectItem value='STUDENT'>STUDENT</SelectItem>
+                                                <SelectItem value='STAFF'>STAFF</SelectItem>
+                                                <SelectItem value='DEPARTMENT'>DEPARTMENT</SelectItem>
+                                                <SelectItem value='GUEST'>GUEST</SelectItem>
+                                            </>
+                                        )}
                                     </SelectContent>
                                 </Select>
                             )}
@@ -109,8 +136,18 @@ export default function AddMasterTimeSlabForm({ onSuccess, className = '' }: Add
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value='BETWEEN'>BETWEEN</SelectItem>
-                                        <SelectItem value='GREATER'>GREATER</SelectItem>
+                                        {onloaddata?.slabtype && onloaddata.slabtype.length > 0 ? (
+                                            onloaddata.slabtype.map((item: any, index: number) => (
+                                                <SelectItem key={index} value={item.slabtype}>
+                                                    {item.slabtype}
+                                                </SelectItem>
+                                            ))
+                                        ) : (
+                                            <>
+                                                <SelectItem value='BETWEEN'>BETWEEN</SelectItem>
+                                                <SelectItem value='GREATER'>GREATER</SelectItem>
+                                            </>
+                                        )}
                                     </SelectContent>
                                 </Select>
                             )}
@@ -118,25 +155,37 @@ export default function AddMasterTimeSlabForm({ onSuccess, className = '' }: Add
                         {errors.lfsE_SlabTypeFlg && <p className='text-destructive text-sm'>{errors.lfsE_SlabTypeFlg.message}</p>}
                     </div>
 
-                    <div className='flex items-center space-x-2 pt-8'>
-                        <Controller
-                            control={control}
-                            name='lfsE_PerDayFlg'
-                            render={({ field }) => (
-                                <Checkbox
-                                    id='perDay'
-                                    checked={field.value === 1}
-                                    onCheckedChange={(checked) => field.onChange(checked ? 1 : 0)}
-                                />
-                            )}
-                        />
-                        <Label htmlFor='perDay' className='font-normal'>Per Day</Label>
-                    </div>
+                   <div className='flex items-center space-x-4 pt-8'>
+    <Label className='font-normal whitespace-nowrap'>
+        Fine Type :
+    </Label>
+
+    <div className='flex items-center space-x-2'>
+        <Controller
+            control={control}
+            name='lfsE_PerDayFlg'
+            render={({ field }) => (
+                <Checkbox
+                    id='perDay'
+                    checked={field.value === 1}
+                    onCheckedChange={(checked) =>
+                        field.onChange(checked ? 1 : 0)
+                    }
+                />
+            )}
+        />
+
+        <Label htmlFor='perDay' className='font-normal'>
+            Per Day
+        </Label>
+    </div>
+</div>
 
                     <InputText
                         label='From Day'
                         type='number'
                         required
+                        placeholder='Enter From Day'
                         {...register('lfsE_FromDay')}
                         error={errors.lfsE_FromDay?.message}
                     />
@@ -146,6 +195,7 @@ export default function AddMasterTimeSlabForm({ onSuccess, className = '' }: Add
                             label='To Day'
                             type='number'
                             required
+                            placeholder='Enter To Day'
                             {...register('lfsE_ToDay')}
                             error={errors.lfsE_ToDay?.message}
                         />
@@ -156,6 +206,7 @@ export default function AddMasterTimeSlabForm({ onSuccess, className = '' }: Add
                         type='number'
                         step='0.01'
                         required
+                        placeholder='Enter Amount'
                         {...register('lfsE_Amount')}
                         error={errors.lfsE_Amount?.message}
                     />
@@ -163,23 +214,22 @@ export default function AddMasterTimeSlabForm({ onSuccess, className = '' }: Add
 
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
-                        type='button'
-                        variant='outline'
-                        onClick={handleReset}
-                        disabled={isSubmitting}
-                        className='order-3 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                        Reset
-                    </Button>
-                    <Button
                         type='submit'
                         disabled={isSubmitting}
-                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                        className='order-1 w-fit bg-[#4251b1] hover:bg-[#35418e] text-white transition-all duration-200 hover:scale-105'
                         isLoading={isSubmitting}
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
                             Save
                         </div>
+                    </Button>
+                    <Button
+                        type='button'
+                        onClick={handleReset}
+                        disabled={isSubmitting}
+                        className='order-2 w-fit bg-[#ff5a30] hover:bg-[#e64d26] text-white transition-all duration-200 hover:scale-105'>
+                        Reset
                     </Button>
                 </div>
             </form>

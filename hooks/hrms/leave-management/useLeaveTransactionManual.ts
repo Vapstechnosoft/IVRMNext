@@ -35,7 +35,15 @@ function mapApiDataToLeaveTransactionManual(apiData: LeaveTransactionManualApiDa
         transactionId: apiData.hrelT_Id || 0,
         isActive: apiData.hrelT_ActiveFlag ?? true,
         employeeId: apiData.hrmE_Id || 0,
-        createdAt: new Date()
+        createdAt: new Date(),
+        hrmL_LeaveType: apiData.hrmL_LeaveType,
+        hrmlY_Id: apiData.hrmlY_Id,
+        // Raw names for sorting
+        hrmE_EmployeeFirstName: apiData.hrmE_EmployeeFirstName,
+        hrmL_LeaveName: apiData.hrmL_LeaveName,
+        hreltD_FromDate: apiData.hreltD_FromDate,
+        hreltD_ToDate: apiData.hreltD_ToDate,
+        hreltD_TotDays: apiData.hreltD_TotDays
     };
 }
 
@@ -43,19 +51,36 @@ function mapApiDataToLeaveTransactionManual(apiData: LeaveTransactionManualApiDa
  * Map frontend model to API request
  */
 function mapLeaveTransactionManualToApiData(
-    data: Partial<LeaveTransactionManual> & { hrmL_LeaveType?: string; hrmlY_Id?: number }
+    data: Partial<LeaveTransactionManual>
 ): LeaveTransactionManualSaveRequest {
-    const fromDate = data.fromDate ? (typeof data.fromDate === 'string' ? new Date(data.fromDate) : data.fromDate) : new Date();
-    const toDate = data.toDate ? (typeof data.toDate === 'string' ? new Date(data.toDate) : data.toDate) : new Date();
+    // Ensure dates are correctly formatted without time zone issues
+    const formatDate = (date: Date | string) => {
+        const d = typeof date === 'string' ? new Date(date) : new Date(date);
+        // Set to noon to avoid timezone shifting the day
+        d.setHours(12, 0, 0, 0);
+        return d.toISOString();
+    };
 
+    const fromDate = formatDate(data.fromDate || new Date());
+    const toDate = formatDate(data.toDate || new Date());
+    console.log("final payload", {
+        hrelT_Id: data.transactionId || 0,
+        hreltD_Id: data.id || 0,
+        hrmE_Id: data.employeeId || 0,
+        hrmL_LeaveType: data.hrmL_LeaveType || 'LWP',
+        hrmlY_Id: data.hrmlY_Id || 0,
+        hrelT_FromDate: fromDate,
+        hrelT_ToDate: toDate,
+        hrelT_TotDays: data.totalDays || 0
+    });
     return {
         hrelT_Id: data.transactionId || 0,
         hreltD_Id: data.id || 0,
         hrmE_Id: data.employeeId || 0,
-        hrmL_LeaveType: data.hrmL_LeaveType || 'OD',
+        hrmL_LeaveType: data.hrmL_LeaveType || 'LWP',
         hrmlY_Id: data.hrmlY_Id || 0,
-        hrelT_FromDate: fromDate.toISOString(),
-        hrelT_ToDate: toDate.toISOString(),
+        hrelT_FromDate: fromDate,
+        hrelT_ToDate: toDate,
         hrelT_TotDays: data.totalDays || 0
     };
 }

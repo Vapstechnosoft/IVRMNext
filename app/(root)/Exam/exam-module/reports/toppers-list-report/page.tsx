@@ -1,5 +1,6 @@
 'use client';
 
+import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 import { useEffect, useRef, useState } from 'react';
 import { ReportForm } from './_components/report-form';
 import { ReportList } from './_components/report-list';
@@ -23,6 +24,14 @@ export default function ToppersListReportPage() {
             setReportParams(null);
         }
     };
+
+    useEffect(() => {
+        const fetchInstitution = async () => {
+            const inst = await getMasterInstitution();
+            setInstitution(inst);
+        };
+        fetchInstitution();
+    }, []);
 
     // Auto-scroll effect
     useEffect(() => {

@@ -2,19 +2,33 @@
 
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
-import { format } from 'date-fns';
+import { format, isValid, parse } from 'date-fns';
 
-const formatDate = (date: unknown): string => {
-    if (typeof date !== 'string') return 'N/A';
-    if (!date) return 'N/A';
-    try {
-        return format(new Date(date), 'dd-MM-yyyy');
-    } catch {
-        return 'N/A';
+export const formatDate = (date: unknown): string => {
+    if (typeof date !== 'string' || !date) return 'N/A';
+
+    // Try parsing as dd/MM/yyyy first since that's what the API returns
+    const parsedDate = parse(date, 'dd/MM/yyyy', new Date());
+    if (isValid(parsedDate)) {
+        return format(parsedDate, 'dd-MM-yyyy');
     }
+
+    // Try parsing as dd-MM-yyyy as fallback
+    const parsedDateHyphen = parse(date, 'dd-MM-yyyy', new Date());
+    if (isValid(parsedDateHyphen)) {
+        return format(parsedDateHyphen, 'dd-MM-yyyy');
+    }
+
+    // Fallback to standard Date constructor
+    const fallbackDate = new Date(date);
+    if (isValid(fallbackDate)) {
+        return format(fallbackDate, 'dd-MM-yyyy');
+    }
+
+    return 'N/A';
 };
 
-const FIELD_CONFIG: Record<string, { label: string; isDate?: boolean }> = {
+export const FIELD_CONFIG: Record<string, { label: string; isDate?: boolean }> = {
     AMST_AdmNo: { label: 'Adm No' },
     AMST_FirstName: { label: 'First Name' },
     AMST_MiddleName: { label: 'Middle Name' },
@@ -42,7 +56,7 @@ const FIELD_CONFIG: Record<string, { label: string; isDate?: boolean }> = {
 
 const serialNumberColumn: ColumnDef<any> = {
     accessorKey: 'AMST_Id',
-    header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+    header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6 font-bold text-black' />,
     cell: ({ row, table }) => {
         const pageIndex = table.getState().pagination.pageIndex;
         const pageSize = table.getState().pagination.pageSize;
@@ -59,7 +73,7 @@ const createDynamicColumn = (fieldId: string): ColumnDef<any> => {
     if (!config) {
         return {
             accessorKey: fieldId,
-            header: ({ column }) => <DataTableColumnHeader column={column} title={fieldId} />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title={fieldId} className='font-bold text-black' />,
             cell: ({ row }) => <div>{row.getValue(fieldId) || 'N/A'}</div>,
             enableSorting: true,
             enableHiding: true
@@ -68,7 +82,7 @@ const createDynamicColumn = (fieldId: string): ColumnDef<any> => {
 
     return {
         accessorKey: fieldId,
-        header: ({ column }) => <DataTableColumnHeader column={column} title={config.label} />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title={config.label} className='font-bold text-black' />,
         cell: ({ row }) => {
             const value = row.getValue(fieldId);
 

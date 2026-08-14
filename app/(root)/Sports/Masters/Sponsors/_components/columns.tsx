@@ -2,13 +2,10 @@
 
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { IMasterSponsor } from '@/types/sports/masters/sponsors';
 import type { ColumnDef, Row } from '@tanstack/react-table';
-import { deactivateMasterSponsor } from '@/server/sports/masters/sponsors';
-import { useMasterSponsors } from '@/hooks/sports/useMasterSponsors';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { toast } from 'sonner';
 
 /* ============================================
    Actions Cell Component
@@ -34,57 +31,38 @@ function ActionsCell({ row }: { row: Row<IMasterSponsor> }) {
 
 export const MasterSponsorColumns: ColumnDef<IMasterSponsor>[] = [
     {
-        id: 'select',
-        header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all'
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox
-                checked={row.getIsSelected()}
-                onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label='Select row'
-            />
-        ),
-        enableSorting: false,
+        accessorKey: 'spccmsP_Id',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='pl-6'>{continuousIndex}</div>;
+        },
+        enableSorting: true,
         enableHiding: false
     },
     {
         accessorKey: 'spccmsP_SponsorName',
-        header: 'Sponsor Name',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sponsor Name' />,
         cell: ({ row }) => <div className='font-medium'>{row.getValue('spccmsP_SponsorName')}</div>
     },
     {
         accessorKey: 'spccmsP_ContactPerson',
-        header: 'Contact Person'
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Contact Person' />
     },
     {
         accessorKey: 'spccmsP_ContactNo',
-        header: 'Contact No.'
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Contact No.' />
     },
     {
         accessorKey: 'spccmsP_SponsorDetails',
-        header: 'Sponsor Details',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sponsor Details' />,
         cell: ({ row }) => (
             <div className='max-w-[300px] truncate' title={row.getValue('spccmsP_SponsorDetails')}>
                 {row.getValue('spccmsP_SponsorDetails')}
             </div>
         )
-    },
-    {
-        accessorKey: 'spccmsP_ActiveFlag',
-        header: 'Status',
-        cell: ({ row }) => {
-            const isActive = row.getValue('spccmsP_ActiveFlag');
-            return (
-                <Badge variant={isActive ? 'success' : 'destructive'} className='font-semibold'>
-                    {isActive ? 'Active' : 'Deactivated'}
-                </Badge>
-            );
-        }
     },
     {
         id: 'actions',

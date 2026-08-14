@@ -1,25 +1,23 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
-import {
-    invMasterCustomerSchema,
-    type InvMasterCustomerSchema
-} from '@/schemas/inventory/masters/inv-master-customer';
 import { useInvMasterCustomer } from '@/hooks/inventory/masters/use-inv-master-customer';
-import { Save } from 'lucide-react';
+import { type InvMasterCustomerSchema, invMasterCustomerSchema } from '@/schemas/inventory/masters/inv-master-customer';
 import type { IInvMasterCustomer } from '@/types/inventory/masters/inv-master-customer';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Save } from 'lucide-react';
 import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 
 interface UpdateCustomerFormProps {
     selectedRow: IInvMasterCustomer;
     onSuccess: () => void;
+    onCancel?: () => void;
 }
 
-export default function UpdateCustomerForm({ selectedRow, onSuccess }: UpdateCustomerFormProps) {
+export default function UpdateCustomerForm({ selectedRow, onSuccess, onCancel }: UpdateCustomerFormProps) {
     const { saveMutation } = useInvMasterCustomer();
 
     const form = useForm<InvMasterCustomerSchema>({
@@ -34,7 +32,12 @@ export default function UpdateCustomerForm({ selectedRow, onSuccess }: UpdateCus
         }
     });
 
-    const { register, handleSubmit, reset, formState: { errors } } = form;
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors }
+    } = form;
 
     // Reset form when selectedRow changes (just in case, though modal usually unmounts)
     useEffect(() => {
@@ -58,9 +61,18 @@ export default function UpdateCustomerForm({ selectedRow, onSuccess }: UpdateCus
         });
     };
 
+    const handleCancel = () => {
+        reset();
+        if (onCancel) {
+            onCancel();
+        } else {
+            onSuccess();
+        }
+    };
+
     return (
         <form onSubmit={handleSubmit(onSubmit)} className='space-y-4 p-4'>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                 <InputText
                     label='Customer Name'
                     placeholder='Enter Customer Name'
@@ -83,7 +95,10 @@ export default function UpdateCustomerForm({ selectedRow, onSuccess }: UpdateCus
                     {...register('invmC_CustomerContactNo')}
                     error={errors.invmC_CustomerContactNo?.message}
                     required
-                    maxLength={15}
+                    maxLength={10}
+                    onInput={(e) => {
+                        e.currentTarget.value = e.currentTarget.value.replace(/[^0-9]/g, '');
+                    }}
                 />
             </div>
 
@@ -98,9 +113,12 @@ export default function UpdateCustomerForm({ selectedRow, onSuccess }: UpdateCus
                 />
             </div>
 
-            <div className='flex justify-end gap-2 mt-4'>
+            <div className='mt-4 flex justify-end gap-2'>
+                <Button type='button' variant='outline' onClick={handleCancel}>
+                    Cancel
+                </Button>
                 <Button type='submit' isLoading={saveMutation.isPending}>
-                    <Save className='h-4 w-4 mr-2' />
+                    <Save className='mr-2 h-4 w-4' />
                     Update
                 </Button>
             </div>

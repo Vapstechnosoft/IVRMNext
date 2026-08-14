@@ -69,11 +69,14 @@ export const invOpeningBalanceColumns: ColumnDef<IInvOpeningBalance>[] = [
     {
         accessorKey: 'invoB_TAmount',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Total' className='justify-end' />,
-        cell: ({ row }) => (
-            <div className='text-right font-medium'>
-                {Number(row.getValue('invoB_TAmount')).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-            </div>
-        )
+        cell: ({ row }) => {
+            const amount = row.original.invoB_TAmount ?? (row.original.invoB_PurchaseRate * row.original.invoB_Qty);
+            return (
+                <div className='text-right font-medium'>
+                    {Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </div>
+            );
+        }
     },
     {
         accessorKey: 'invoB_ActiveFlg',
@@ -87,7 +90,8 @@ export const invOpeningBalanceColumns: ColumnDef<IInvOpeningBalance>[] = [
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='justify-center' />,
         accessorFn: (row) => row,
-        cell: ({ row }) => <InvOpeningBalanceActionButtons rowData={row.original} />
+        cell: ({ row }) => <InvOpeningBalanceActionButtons rowData={row.original} />,
+        enableSorting: false
     }
 ];
 

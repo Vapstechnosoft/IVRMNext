@@ -21,19 +21,19 @@ export async function getEmployeeLateInEarlyOutReport(filters?: EmployeeLateInEa
         const okDateFrom = filters.fromDate && r.date ? new Date(r.date) >= new Date(filters.fromDate) : true;
         const okDateTo = filters.toDate && r.date ? new Date(r.date) <= new Date(filters.toDate) : true;
         const okQuery =
-            filters.allOrIndividual === 'Individual' && filters.query
+            filters.allOrIndividual === 'Individual' && filters.query && filters.query.length > 0
                 ? filters.codeOrName === 'Code'
-                    ? (r.employeeCode || r.employee_code || '').includes(filters.query)
-                    : (r.employeeName || r.employee_name || '').toLowerCase().includes(filters.query.toLowerCase())
+                    ? (r.employeeCode || r.employee_code || '').toLowerCase().includes(filters.query.toLowerCase())
+                    : (r.employeeName || r.user_name || '').toLowerCase().includes(filters.query.toLowerCase())
                 : true;
         const okMode = filters.mode
             ? filters.mode === 'Late By'
                 ? !!(r.lateBy || r.late_by)
                 : filters.mode === 'Early Out'
-                  ? !!(r.earlyOut || r.early_out)
-                  : filters.mode === 'Late In Early Out'
-                    ? !!(r.lateBy || r.late_by) && !!(r.earlyOut || r.early_out)
-                    : true
+                    ? !!(r.earlyOut || r.early_out)
+                    : filters.mode === 'Late In Early Out'
+                        ? !!(r.lateBy || r.late_by) && !!(r.earlyOut || r.early_out)
+                        : true
             : true;
         return okType && okDept && okDesg && okDateFrom && okDateTo && okQuery && okMode;
     });

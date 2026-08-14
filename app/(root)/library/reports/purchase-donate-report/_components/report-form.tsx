@@ -1,14 +1,13 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { IPurchaseDonateReportRequest } from '@/types/library/reports/purchase-donate-report';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Search, X } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { Loader2, Search, X, Printer, FileSpreadsheet, LayoutGrid } from 'lucide-react';
+import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 const reportFormSchema = z.object({
@@ -21,12 +20,16 @@ type ReportFormValues = z.infer<typeof reportFormSchema>;
 interface ReportFormProps {
     onSearch: (data: IPurchaseDonateReportRequest) => void;
     isLoading: boolean;
+    onPrint: () => void;
+    onExport: () => void;
+    onCancel: () => void;
+    hasData: boolean;
 }
 
-export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
+export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, onCancel, hasData }: ReportFormProps) => {
     const {
+        control,
         handleSubmit,
-        setValue,
         reset,
         formState: { errors }
     } = useForm<ReportFormValues>({
@@ -39,66 +42,117 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
 
     const onSubmit = (data: ReportFormValues) => {
         onSearch({
-            LBCPA_Flg: data.LMB_BookType,
-            Circ_Flag: data.book_Flag
+            mI_Id: 30,
+            circ_Flag: data.LMB_BookType,   // "Book" or "Non-Book"
+            lbcpA_Flg: data.book_Flag       // "Purchased" or "Donated"
         });
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-            <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-                <Card>
-                    <CardHeader>
-                        <CardTitle className='text-lg'>Filters</CardTitle>
-                    </CardHeader>
-                    <CardContent className='space-y-6'>
-                        {/* Report Type */}
-                        <div>
-                            <Label className='mb-2 block'>Report Type</Label>
-                            <RadioGroup
-                                defaultValue='Purchased'
-                                onValueChange={(v) => setValue('book_Flag', v as any)}
-                                className='flex gap-4 rounded-md border p-4'>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='Purchased' id='r-purchased' />
-                                    <Label htmlFor='r-purchased'>Purchase</Label>
-                                </div>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='Donated' id='r-donated' />
-                                    <Label htmlFor='r-donated'>Donate</Label>
-                                </div>
-                            </RadioGroup>
-                        </div>
+        <form
+            onSubmit={handleSubmit(onSubmit)}
+            className='mx-auto max-w-2xl space-y-8 p-10 bg-white rounded-[20px] shadow-lg border border-slate-100'
+        >
+            {/* Purchase / Donate Type - Matches Screenshot */}
+            <div className='flex items-center justify-center gap-12'>
+                <Controller
+                    control={control}
+                    name='book_Flag'
+                    render={({ field }) => (
+                        <RadioGroup
+                            onValueChange={field.onChange}
+                            value={field.value}
+                            className='flex items-center gap-12'
+                        >
+                            <div className='flex items-center space-x-3'>
+                                <RadioGroupItem value='Purchased' id='r-purchased' className="w-5 h-5 border-[#3f51b5] text-[#3f51b5]" />
+                                <Label htmlFor='r-purchased' className='font-bold cursor-pointer text-xs text-[#3f51b5] uppercase tracking-wide'>
+                                    Purchase
+                                </Label>
+                            </div>
+                            <div className='flex items-center space-x-3'>
+                                <RadioGroupItem value='Donated' id='r-donated' className="w-5 h-5 border-[#3f51b5] text-[#3f51b5]" />
+                                <Label htmlFor='r-donated' className='font-bold cursor-pointer text-xs text-[#3f51b5] uppercase tracking-wide'>
+                                    Donate
+                                </Label>
+                            </div>
+                        </RadioGroup>
+                    )}
+                />
+            </div>
 
-                        {/* Book Category */}
-                        <div>
-                            <Label>
-                                Book Category <span className='text-red-500'>*</span>
-                            </Label>
-                            <Select onValueChange={(v) => setValue('LMB_BookType', v)}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='Select Book Category' />
+            {/* Book Category - Row */}
+            <div className='flex justify-center items-center gap-4'>
+                <Label className='min-w-[120px] text-right font-bold text-[13px] text-[#3f51b5]'>
+                    Book Category: <span className='text-red-500'>*</span>
+                </Label>
+                <div className='w-full max-w-sm'>
+                    <Controller
+                        control={control}
+                        name='LMB_BookType'
+                        render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value}>
+                                <SelectTrigger className='w-full border-slate-300 h-10 rounded-full px-4 text-sm'>
+                                    <SelectValue placeholder='Select' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value='Book'>Book</SelectItem>
                                     <SelectItem value='Non-Book'>Non-Book</SelectItem>
                                 </SelectContent>
                             </Select>
-                            {errors.LMB_BookType && <p className='text-red-500 text-sm'>{errors.LMB_BookType.message}</p>}
-                        </div>
-                    </CardContent>
-                </Card>
+                        )}
+                    />
+                    {errors.LMB_BookType && (
+                        <p className='text-xs text-red-500 mt-1 ml-4'>{errors.LMB_BookType.message}</p>
+                    )}
+                </div>
             </div>
 
-            <div className='flex justify-center gap-4'>
-                <Button type='submit' disabled={isLoading}>
-                    {isLoading ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
-                    Report
+            {/* Action Buttons - Matches Screenshot style */}
+            <div className='flex flex-row flex-wrap items-center justify-center gap-4 pt-4'>
+                <Button
+                    type='submit'
+                    className='w-fit min-w-[140px] h-10 px-6 text-xs font-bold uppercase tracking-wider bg-[#3f51b5] hover:bg-[#303f9f] text-white shadow-md rounded-lg'
+                    disabled={isLoading}
+                >
+                    {isLoading ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <LayoutGrid className='mr-2 h-4 w-4' />}
+                    REPORT
                 </Button>
-                <Button type='button' variant='destructive' onClick={() => reset()}>
+                
+                <Button
+                    type='button'
+                    className='w-fit min-w-[140px] h-10 px-6 text-xs font-bold uppercase tracking-wider bg-[#ff5722] hover:bg-[#e64a19] text-white shadow-md rounded-lg'
+                    onClick={() => {
+                        reset();
+                        onCancel();
+                    }}
+                    disabled={isLoading}
+                >
                     <X className='mr-2 h-4 w-4' />
-                    Cancel
+                    CANCEL
                 </Button>
+
+                {hasData && (
+                    <>
+                        <Button 
+                            type='button' 
+                            onClick={onPrint}
+                            className='w-fit min-w-[140px] h-10 px-6 text-xs font-bold uppercase tracking-wider bg-[#3f51b5] hover:bg-[#303f9f] text-white shadow-md rounded-lg'
+                        >
+                            <Printer className='mr-2 h-4 w-4' />
+                            PRINT
+                        </Button>
+
+                        <Button 
+                            type='button' 
+                            onClick={onExport}
+                            className='w-fit min-w-[140px] h-10 px-6 text-xs font-bold uppercase tracking-wider bg-[#3f51b5] hover:bg-[#303f9f] text-white shadow-md rounded-lg'
+                        >
+                            <FileSpreadsheet className='mr-2 h-4 w-4' />
+                            EXPORT TO EXCEL
+                        </Button>
+                    </>
+                )}
             </div>
         </form>
     );

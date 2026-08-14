@@ -17,10 +17,10 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterSportsCCNameUOMPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error, refetchAll } = useMasterSportsCCNameUOM(searchParams);
+    const { loadData, refetchAll } = useMasterSportsCCNameUOM(searchParams);
 
     // Access nested data safely
-    const apiData = response as any;
+    const apiData = loadData.data as any;
     const sportsCCNameUOMList = apiData?.data?.sportsccUom || [];
     const sportsCCNameList = apiData?.data?.sportsccName || [];
     const uomList = apiData?.data?.uom || [];
@@ -31,9 +31,10 @@ export default function MasterSportsCCNameUOMPage(props: { searchParams: SearchP
                 sportsCCNameUOMList={sportsCCNameUOMList}
                 sportsCCNameList={sportsCCNameList}
                 uomList={uomList}
-                isLoading={isLoading}
-                error={error}
+                isLoading={loadData.isPending || loadData.isFetching}
+                error={loadData.error}
                 refetchAll={refetchAll}
+                response={loadData.data}
             />
         </FormProvider>
     );
@@ -45,7 +46,8 @@ function MasterSportsCCNameUOMPageContent({
     uomList,
     isLoading,
     error,
-    refetchAll
+    refetchAll,
+    response // Passing response to get count if needed
 }: {
     sportsCCNameUOMList: IMasterSportsCCNameUOM[];
     sportsCCNameList: any[];
@@ -53,6 +55,7 @@ function MasterSportsCCNameUOMPageContent({
     isLoading: boolean;
     error: any;
     refetchAll: any;
+    response: any;
 }) {
     const {
         isAddFormOpen,
@@ -67,7 +70,13 @@ function MasterSportsCCNameUOMPageContent({
         editFormRef
     } = useFormContext<IMasterSportsCCNameUOM>();
 
-    // const tableProps = useDataTableProps(sportsCCNameUOMList); // Incorrect usage as sportsCCNameUOMList is an array
+    // Handle nested response structure robustly
+    const tableProps = {
+        data: sportsCCNameUOMList || [],
+        totalItems: response?.data?.count || response?.data?.Count || response?.total || sportsCCNameUOMList.length || 0,
+        success: response?.success,
+        errorMessage: response?.message
+    };
 
     return (
         <div className='min-h-screen'>
@@ -84,15 +93,17 @@ function MasterSportsCCNameUOMPageContent({
 
                 <CollapsibleSection
                     title="Sports CC Name UOM List"
+                    description="List of sports and their associated units of measurement"
                     defaultOpen={true}
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<IMasterSportsCCNameUOM>
-                        data={sportsCCNameUOMList}
+                        {...tableProps}
                         columns={MasterSportsCCNameUOMColumns}
                         isLoading={isLoading}
                         error={error}
+                        showSearchColumns={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading records...'
                         noDataTitle='No Records Found'
@@ -122,7 +133,10 @@ function MasterSportsCCNameUOMPageContent({
                                         <X className='h-4 w-4 text-destructive' /> Close
                                     </Button>
                                     <AddMasterSportsCCNameUOMForm
-                                        onSuccess={closeAddForm}
+                                        onSuccess={async () => {
+                                            await refetchAll();
+                                            closeAddForm();
+                                        }}
                                         sportsCCNameList={sportsCCNameList}
                                         uomList={uomList}
                                     />
@@ -151,7 +165,10 @@ function MasterSportsCCNameUOMPageContent({
                                     </Button>
                                     <UpdateMasterSportsCCNameUOMForm
                                         selectedRow={selectedRow}
-                                        onSuccess={closeEditForm}
+                                        onSuccess={async () => {
+                                            await refetchAll();
+                                            closeEditForm();
+                                        }}
                                         sportsCCNameList={sportsCCNameList}
                                         uomList={uomList}
                                     />

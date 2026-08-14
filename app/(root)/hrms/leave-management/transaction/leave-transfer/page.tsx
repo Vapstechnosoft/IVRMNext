@@ -4,18 +4,40 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useDeleteLeaveCredit, useLeaveCredit, useSaveLeaveCredit } from '@/hooks/hrms/leave-management/useTransactions';
+import { useDeleteLeaveStatusById, useLeaveCreditAndBalanceGrid } from '@/hooks/hrms/leave-management/useTransactions';
+import { useReportDepartments, useReportDesignations, useReportGroupTypes, usePeriodLeaveReportEmployees } from '@/hooks/hrms/useReports';
+import { useLeaveDropdown, useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
 import { Plus, X } from 'lucide-react';
-import { use, useState } from 'react';
+import { use, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { type LeaveCredit, getLeaveCreditColumns } from './_components/columns';
+import { type LeaveCreditBalanceGridItem, getLeaveTransferColumns } from './_components/columns';
 import { LeaveTransferForm, type LeaveTransferFormData } from './_components/leave-transfer-form';
+import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function LeaveTransferPage(props: { searchParams: SearchParams }) {
     const _searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useLeaveCredit();
+
+    // Use nuqs hooks for reactive table parameters
+    const [params] = useQueryStates({
+        page: parseAsInteger.withDefault(1),
+        page_size: parseAsInteger.withDefault(10),
+        search_query: parseAsString.withDefault(''),
+        sort_column: parseAsString.withDefault(''),
+        sort_direction: parseAsString.withDefault('asc')
+    });
+
+    // Normalize params for useLeaveCreditAndBalanceGrid
+    const normalizedParams = useMemo(() => ({
+        page: params.page,
+        page_size: params.page_size,
+        search_query: params.search_query || '',
+        sort_column: params.sort_column || '',
+        sort_direction: (params.sort_direction as 'asc' | 'desc') || 'asc'
+    }), [params]);
+
+    const { data: response, isLoading, error } = useLeaveCreditAndBalanceGrid(normalizedParams);
     return (
-        <FormProvider<LeaveCredit>>
+        <FormProvider<LeaveCreditBalanceGridItem>>
             <LeaveTransferPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
@@ -29,13 +51,14 @@ function LeaveTransferPageContent({
     isLoading: boolean;
     error: any;
 }) {
-    const { openAddForm } = useFormContext<LeaveCredit>();
-    const { openEditForm, openDeleteForm } = useFormContext<LeaveCredit>();
+
+    const { openAddForm } = useFormContext<LeaveCreditBalanceGridItem>();
+    const { openEditForm, openDeleteForm } = useFormContext<LeaveCreditBalanceGridItem>();
     const tableProps = useDataTableProps(response);
-    const columns = getLeaveCreditColumns({
+    const columns = getLeaveTransferColumns({
         onEdit: openEditForm,
         onDelete: (id: number) => {
-            const row = response?.data?.find((r: LeaveCredit) => r.id === id);
+            const row = response?.data?.find((r: LeaveCreditBalanceGridItem) => r.hrelS_Id === id);
             if (row) {
                 openDeleteForm(row);
             }
@@ -60,7 +83,7 @@ function LeaveTransferPageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<LeaveCredit>
+                    <GenericDataTable<LeaveCreditBalanceGridItem>
                         {...tableProps}
                         columns={columns}
                         isLoading={isLoading}
@@ -90,36 +113,93 @@ function FormSections() {
         closeDeleteForm,
         addFormRef,
         editFormRef
-    } = useFormContext<LeaveCredit>();
-    const { refetchAll } = useLeaveCredit();
-    const { mutate: saveCredit } = useSaveLeaveCredit();
-    const { mutate: deleteCredit } = useDeleteLeaveCredit();
+    } = useFormContext<LeaveCreditBalanceGridItem>();
+    const { refetchAll } = useLeaveCreditAndBalanceGrid();
+    const deleteLeaveStatus = useDeleteLeaveStatusById();
     const [activeTab, setActiveTab] = useState('Leave Updation');
-    const handleFormSubmit = (formData: LeaveTransferFormData) => {
-        const submitData: LeaveCredit = {
-            id: selectedRow?.id || 0,
-            createdAt: selectedRow?.createdAt || new Date(),
-            leaveYear: formData.leaveYear,
-            leaveName: formData.leaveName,
-            employeeName: selectedRow?.employeeName || '',
-            leaveCredit: selectedRow?.leaveCredit || 0,
-            leaveBalance: selectedRow?.leaveBalance || 0,
-            type: formData.type,
-            department: formData.department,
-            designation: formData.designation
-        };
-        saveCredit(submitData, {
-            onSuccess: () => {
-                toast.success(selectedRow ? 'Leave transfer updated successfully' : 'Leave transfer saved successfully');
-                refetchAll();
-                closeEditForm();
-                closeAddForm();
-            }
-        });
+
+    // --- State for Filters in Form ---
+    const [selectedTypeIds, setSelectedTypeIds] = useState<number[]>([]);
+    const [selectedDeptIds, setSelectedDeptIds] = useState<number[]>([]);
+    const [selectedDesignationIds, setSelectedDesignationIds] = useState<number[]>([]);
+
+    // --- Master Data Hooks ---
+    const { data: groupTypesData, isLoading: isLoadingTypes } = useReportGroupTypes();
+
+    const groupTypeIdsStr = selectedTypeIds.join(',');
+    const { data: departmentsData, isLoading: isLoadingDepartments } = useReportDepartments(groupTypeIdsStr);
+
+    const deptIdsStr = selectedDeptIds.join(',');
+    const { data: designationsData, isLoading: isLoadingDesignations } = useReportDesignations(groupTypeIdsStr, deptIdsStr);
+
+    const { data: employeesData } = usePeriodLeaveReportEmployees(selectedDeptIds, selectedDesignationIds);
+
+    const filteredEmployeeIds = useMemo(() => {
+        if (!employeesData || !Array.isArray(employeesData)) return null;
+        return employeesData.map((e: any) => Number(e.HRME_Id || e.hrmE_Id)).filter(id => id);
+    }, [employeesData]);
+
+    // --- Leave Data Hooks ---
+    const { data: yearsData } = useLeaveYearDropdown();
+    const { data: leavesData } = useLeaveDropdown();
+    console.log("leavesData", leavesData)
+
+    const leaveYears = useMemo(() => {
+        return (yearsData?.data || []).map((y: any) => ({
+            id: Number(y.hrmlY_Id),
+            name: y.hrmlY_LeaveYear
+        }));
+    }, [yearsData]);
+
+    const leaveNames = useMemo(() => {
+        return (leavesData?.data || []).map((l: any) => ({
+            id: Number(l.key),
+            name: l.value
+        }));
+    }, [leavesData]);
+
+    // --- Mapped Data ---
+    const types = useMemo(() => {
+        return (groupTypesData?.data || []).map((item: any) => ({
+            id: Number(item.key || item.hrmgT_Id || item.id),
+            name: item.value || item.hrmgT_EmployeeGroupType || item.name || ''
+        })).filter((i: any) => i.id);
+    }, [groupTypesData]);
+
+    const departments = useMemo(() => {
+        return (departmentsData?.data || []).map((item: any) => ({
+            id: Number(item.hrmD_Id || item.hrmd_id || item.key || item.id),
+            name: item.hrmD_DepartmentName || item.hrmd_departmentName || item.value || item.name || ''
+        })).filter((i: any) => i.id);
+    }, [departmentsData]);
+
+    const designations = useMemo(() => {
+        return (designationsData?.data || []).map((item: any) => ({
+            id: Number(item.hrmdeS_Id || item.hrmdes_id || item.key || item.id),
+            name: item.hrmdeS_DesignationName || item.hrmdes_designationName || item.value || item.name || ''
+        })).filter((i: any) => i.id);
+    }, [designationsData]);
+
+    const handleFilterChange = (type: 'types' | 'departments' | 'designations', values: number[]) => {
+        if (type === 'types') {
+            setSelectedTypeIds(values);
+            setSelectedDeptIds([]);
+            setSelectedDesignationIds([]);
+        } else if (type === 'departments') {
+            setSelectedDeptIds(values);
+            setSelectedDesignationIds([]);
+        } else if (type === 'designations') {
+            setSelectedDesignationIds(values);
+        }
     };
+
+    // handleFormSubmit is no longer used by child, passed as dummy
+    const handleFormSubmit = (_formData: LeaveTransferFormData) => {
+    };
+
     const handleDelete = () => {
         if (selectedRow) {
-            deleteCredit(selectedRow.id, {
+            deleteLeaveStatus.mutate({ hrels_id: selectedRow.hrelS_Id }, {
                 onSuccess: () => {
                     toast.success('Leave transfer deleted successfully');
                     refetchAll();
@@ -156,13 +236,58 @@ function FormSections() {
                                     <TabsTrigger value='Leave CarryForward'>Leave CarryForward</TabsTrigger>
                                 </TabsList>
                                 <TabsContent value='Leave Updation' className='mt-4'>
-                                    <LeaveTransferForm activeTab='Leave Updation' onSubmit={handleFormSubmit} onCancel={closeAddForm} />
+                                    <LeaveTransferForm
+                                        activeTab='Leave Updation'
+                                        onSubmit={handleFormSubmit}
+                                        onCancel={closeAddForm}
+                                        types={types}
+                                        departments={departments}
+                                        designations={designations}
+                                        isLoadingTypes={isLoadingTypes}
+                                        isLoadingDepartments={isLoadingDepartments}
+                                        isLoadingDesignations={isLoadingDesignations}
+                                        onFilterChange={handleFilterChange}
+                                        filteredEmployeeIds={filteredEmployeeIds}
+                                        employees={employeesData}
+                                        leaveYears={leaveYears}
+                                        leaveNames={leaveNames}
+                                    />
                                 </TabsContent>
                                 <TabsContent value='Leave Addition' className='mt-4'>
-                                    <LeaveTransferForm activeTab='Leave Addition' onSubmit={handleFormSubmit} onCancel={closeAddForm} />
+                                    <LeaveTransferForm
+                                        activeTab='Leave Addition'
+                                        onSubmit={handleFormSubmit}
+                                        onCancel={closeAddForm}
+                                        types={types}
+                                        departments={departments}
+                                        designations={designations}
+                                        isLoadingTypes={isLoadingTypes}
+                                        isLoadingDepartments={isLoadingDepartments}
+                                        isLoadingDesignations={isLoadingDesignations}
+                                        onFilterChange={handleFilterChange}
+                                        filteredEmployeeIds={filteredEmployeeIds}
+                                        employees={employeesData}
+                                        leaveYears={leaveYears}
+                                        leaveNames={leaveNames}
+                                    />
                                 </TabsContent>
                                 <TabsContent value='Leave CarryForward' className='mt-4'>
-                                    <LeaveTransferForm activeTab='Leave CarryForward' onSubmit={handleFormSubmit} onCancel={closeAddForm} />
+                                    <LeaveTransferForm
+                                        activeTab='Leave CarryForward'
+                                        onSubmit={handleFormSubmit}
+                                        onCancel={closeAddForm}
+                                        types={types}
+                                        departments={departments}
+                                        designations={designations}
+                                        isLoadingTypes={isLoadingTypes}
+                                        isLoadingDepartments={isLoadingDepartments}
+                                        isLoadingDesignations={isLoadingDesignations}
+                                        onFilterChange={handleFilterChange}
+                                        filteredEmployeeIds={filteredEmployeeIds}
+                                        employees={employeesData}
+                                        leaveYears={leaveYears}
+                                        leaveNames={leaveNames}
+                                    />
                                 </TabsContent>
                             </Tabs>
                         </div>
@@ -200,12 +325,20 @@ function FormSections() {
                                         onSubmit={handleFormSubmit}
                                         onCancel={closeEditForm}
                                         defaultValues={{
-                                            type: selectedRow.type,
-                                            department: selectedRow.department,
-                                            designation: selectedRow.designation,
-                                            leaveYear: selectedRow.leaveYear,
-                                            leaveName: selectedRow.leaveName
+                                            leaveYear: String(selectedRow.hrmlY_Id),
+                                            leaveName: String(selectedRow.hrmL_Id)
                                         }}
+                                        types={types}
+                                        departments={departments}
+                                        designations={designations}
+                                        isLoadingTypes={isLoadingTypes}
+                                        isLoadingDepartments={isLoadingDepartments}
+                                        isLoadingDesignations={isLoadingDesignations}
+                                        onFilterChange={handleFilterChange}
+                                        filteredEmployeeIds={filteredEmployeeIds}
+                                        employees={employeesData}
+                                        leaveYears={leaveYears}
+                                        leaveNames={leaveNames}
                                     />
                                 </TabsContent>
                                 <TabsContent value='Leave Addition' className='mt-4'>
@@ -214,12 +347,20 @@ function FormSections() {
                                         onSubmit={handleFormSubmit}
                                         onCancel={closeEditForm}
                                         defaultValues={{
-                                            type: selectedRow.type,
-                                            department: selectedRow.department,
-                                            designation: selectedRow.designation,
-                                            leaveYear: selectedRow.leaveYear,
-                                            leaveName: selectedRow.leaveName
+                                            leaveYear: String(selectedRow.hrmlY_Id),
+                                            leaveName: String(selectedRow.hrmL_Id)
                                         }}
+                                        types={types}
+                                        departments={departments}
+                                        designations={designations}
+                                        isLoadingTypes={isLoadingTypes}
+                                        isLoadingDepartments={isLoadingDepartments}
+                                        isLoadingDesignations={isLoadingDesignations}
+                                        onFilterChange={handleFilterChange}
+                                        filteredEmployeeIds={filteredEmployeeIds}
+                                        employees={employeesData}
+                                        leaveYears={leaveYears}
+                                        leaveNames={leaveNames}
                                     />
                                 </TabsContent>
                                 <TabsContent value='Leave CarryForward' className='mt-4'>
@@ -228,12 +369,20 @@ function FormSections() {
                                         onSubmit={handleFormSubmit}
                                         onCancel={closeEditForm}
                                         defaultValues={{
-                                            type: selectedRow.type,
-                                            department: selectedRow.department,
-                                            designation: selectedRow.designation,
-                                            leaveYear: selectedRow.leaveYear,
-                                            leaveName: selectedRow.leaveName
+                                            leaveYear: String(selectedRow.hrmlY_Id),
+                                            leaveName: String(selectedRow.hrmL_Id)
                                         }}
+                                        types={types}
+                                        departments={departments}
+                                        designations={designations}
+                                        isLoadingTypes={isLoadingTypes}
+                                        isLoadingDepartments={isLoadingDepartments}
+                                        isLoadingDesignations={isLoadingDesignations}
+                                        onFilterChange={handleFilterChange}
+                                        filteredEmployeeIds={filteredEmployeeIds}
+                                        employees={employeesData}
+                                        leaveYears={leaveYears}
+                                        leaveNames={leaveNames}
                                     />
                                 </TabsContent>
                             </Tabs>

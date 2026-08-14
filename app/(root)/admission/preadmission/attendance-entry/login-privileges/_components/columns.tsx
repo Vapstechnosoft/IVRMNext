@@ -8,7 +8,7 @@ import { useCallback } from 'react';
 export const loginPrivilegeColumns: ColumnDef<ILoginPrivilege>[] = [
     {
         accessorKey: 'id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6 font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -20,35 +20,42 @@ export const loginPrivilegeColumns: ColumnDef<ILoginPrivilege>[] = [
     },
     {
         accessorKey: 'asmaY_Year',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Year' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Year' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmaY_Year')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'userName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Staff Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Staff Name' className='font-bold text-black' />,
         cell: ({ row }) => <div className='font-medium'>{row.getValue('userName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'asmcL_ClassName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmcL_ClassName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'asmC_SectionName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Section' />,
-        cell: ({ row }) => <div>{row.getValue('asmC_SectionName')}</div>,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Section' className='font-bold text-black' />,
+        cell: ({ row }) => <div className='text-center'>{row.getValue('asmC_SectionName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
+    // {
+    //     accessorKey: 'pamS_SubjectName',
+    //     header: ({ column }) => <DataTableColumnHeader column={column} title='Subject' className='font-bold text-black' />,
+    //     cell: ({ row }) => <div className='text-center'>{row.getValue('pamS_SubjectName') || '-'}</div>,
+    //     enableSorting: true,
+    //     enableHiding: true
+    // },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Action' className='text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Action' className='text-center font-bold text-black' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
@@ -83,7 +90,7 @@ function ActionButtonsCell({ rowData }: { rowData: ILoginPrivilege }) {
         <ActionButtons
             rowData={rowData}
             buttons={{ edit: true, toggle: false, delete: true }}
-            disabled={{ edit: true }}
+            disabled={{ edit: false }}
             onEdit={handleEdit}
             onToggle={handleToggle}
             onDelete={handleDelete}

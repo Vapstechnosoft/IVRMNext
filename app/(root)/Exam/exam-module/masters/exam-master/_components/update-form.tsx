@@ -9,7 +9,7 @@ import { masterExamSchema } from '@/schemas/exam/exam-module/masters';
 import { addOrUpdateMasterExam } from '@/server/exam/exam-module/masters/exam';
 import type { IMasterExam } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save, RefreshCw } from 'lucide-react';
+import { RefreshCw, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -104,9 +104,9 @@ export default function UpdateMasterExamForm({ onSuccess, className = '', select
         setIsLoading(true);
         const timer = setTimeout(() => {
             setIsLoading(false);
-        }, 500)
+        }, 500);
         return () => clearTimeout(timer);
-    }, [row])
+    }, [row]);
 
     if (isLoading) {
         return (
@@ -117,21 +117,21 @@ export default function UpdateMasterExamForm({ onSuccess, className = '', select
         );
     }
 
-
     return (
         <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 {/* Exam Basic Info */}
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                    <InputText label='Exam Name' required {...register('emE_ExamName')} error={errors.emE_ExamName?.message} />
-                    <InputText label='IVRS Exam Name' required {...register('emE_IVRSExamName')} error={errors.emE_IVRSExamName?.message} />
+                    <InputText label='Exam Name' required placeholder='Enter Exam Name' {...register('emE_ExamName')} error={errors.emE_ExamName?.message} />
+                    <InputText label='IVRS Exam Name' required placeholder='Enter IVRS Exam Name' {...register('emE_IVRSExamName')} error={errors.emE_IVRSExamName?.message} />
                     <InputText
                         label='Exam Description'
+                        placeholder='Enter Exam Description'
                         required
                         {...register('emE_ExamDescription')}
                         error={errors.emE_ExamDescription?.message}
                     />
-                    <InputText label='Exam Code' required {...register('emE_ExamCode')} error={errors.emE_ExamCode?.message} />
+                    <InputText label='Exam Code' required placeholder='Enter Exam Code' {...register('emE_ExamCode')} error={errors.emE_ExamCode?.message} />
                 </div>
 
                 {/* Boolean Flags */}

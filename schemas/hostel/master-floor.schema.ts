@@ -5,6 +5,7 @@ export const masterFloorSchema = z.object({
     hrmF_FloorName: z.string().min(1, 'Floor Name is required'),
     hrmF_FloorDesc: z.string().optional(),
     hlmH_Id: z.string().min(1, 'Hostel is required'),
+    hrmF_TotalRooms: z.coerce.number().min(1, 'Number of Rooms must be at least 1'),
     // Facility selection: array of objects with facility ID and active flag
     selected_facilities: z.array(z.object({
         hlmftY_Id: z.number(),
@@ -12,7 +13,7 @@ export const masterFloorSchema = z.object({
     })).optional(),
     
     // For UI handling of multi-select (array of string IDs)
-    selectedFacilityIds: z.array(z.string()).optional()
+    selectedFacilityIds: z.array(z.string()).min(1, 'At least one facility must be selected')
 });
 
 export type IMasterFloorForm = z.infer<typeof masterFloorSchema>;

@@ -8,26 +8,22 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLeaveCreditTransaction, useSaveLeaveCreditTransaction } from '@/hooks/hrms/leave-management/useTransactions';
+import { useMasterDepartments, useLeaveReportDesignations, usePeriodLeaveReportEmployees } from '@/hooks/hrms/useReports';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Save, X } from 'lucide-react';
 import { CalendarIcon } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { LeaveCreditTransaction } from './columns';
 
-interface LeaveCreditTransactionFormValues extends Omit<LeaveCreditTransaction, 'fromDate' | 'toDate' | 'id' | 'createdAt' | 'transactionId' | 'isActive'> {
-    id?: number;
-    transactionId?: number;
-    isActive?: boolean;
+interface LeaveCreditTransactionFormData extends Partial<LeaveCreditTransaction> {
     type: string[];
-    department: string[];
-    designation: string[];
+    department: number[];
+    designation: number[];
     leaveYear: string;
-    fromDate: string;
-    toDate: string;
-    employee: string;
+    employee: number | string; // Allow both for transition but prefer number (ID)
     lossOfPayType: string;
     lossOfPayAmount: number;
     availed: number;
@@ -37,6 +33,7 @@ interface AddLeaveCreditTransactionFormProps {
     onSuccess?: () => void;
     className?: string;
 }
+
 const typeOptions = [
     { label: 'VKS', value: 'VKS' },
     { label: 'Permanent', value: 'Permanent' },
@@ -45,40 +42,51 @@ const typeOptions = [
     { label: 'Internship', value: 'Internship' },
     { label: 'Management Admin', value: 'Management Admin' }
 ];
-const departmentOptions = [
-    { label: 'Hardware and Network', value: 'Hardware and Network' },
-    { label: 'Sales', value: 'Sales' },
-    { label: 'Human Resource', value: 'Human Resource' },
-    { label: 'Admin', value: 'Admin' },
-    { label: 'LEGAL', value: 'LEGAL' },
-    { label: 'IT Team', value: 'IT Team' }
-];
-const designationOptions = [
-    { label: 'Computer Faculty', value: 'Computer Faculty' },
-    { label: 'E-learning coordinator', value: 'E-learning coordinator' },
-    { label: 'Accounts and Finance Executive', value: 'Accounts and Finance Executive' },
-    { label: 'Client acquisition manager', value: 'Client acquisition manager' },
-    { label: 'Sr HR Executive', value: 'Sr HR Executive' },
-    { label: 'Manager HR', value: 'Manager HR' }
-];
-const employeeOptions = ['Steffi Halian', 'Shruthi NA', 'Bindhushree N', 'Chaithra NS', 'Balu Prabhakar'];
-const _leaveNames = ['CL', 'SL', 'PL', 'LWP', 'OD'];
-interface LeaveCreditTransactionFormData extends Partial<LeaveCreditTransaction> {
-    type: string[];
-    department: string[];
-    designation: string[];
-    leaveYear: string;
-    employee: string;
-    lossOfPayType: string;
-    lossOfPayAmount: number;
-    availed: number;
-}
 
 export default function AddLeaveCreditTransactionForm({ onSuccess, className = '' }: AddLeaveCreditTransactionFormProps) {
     const { refetchAll } = useLeaveCreditTransaction();
     const { mutate: saveTransaction, isPending } = useSaveLeaveCreditTransaction();
     const [fromDateOpen, setFromDateOpen] = useState(false);
     const [toDateOpen, setToDateOpen] = useState(false);
+
+    // State for cascading filters
+    const [selectedDepartmentIds, setSelectedDepartmentIds] = useState<number[]>([]);
+    const [selectedDesignationIds, setSelectedDesignationIds] = useState<number[]>([]);
+
+    // Report Hooks
+    const { data: departmentsData, isLoading: isLoadingDepartments } = useMasterDepartments();
+    const { data: designationsData, isLoading: isLoadingDesignations } = useLeaveReportDesignations(selectedDepartmentIds);
+    const { data: employeesData, isLoading: isLoadingEmployees } = usePeriodLeaveReportEmployees(selectedDepartmentIds, selectedDesignationIds);
+
+    const departmentOptions = useMemo(() => {
+        const raw = departmentsData?.data || departmentsData || [];
+        return (Array.isArray(raw) ? raw : []).map((item: any) => ({
+            label: item.hrmD_DepartmentName || item.hrmd_departmentName || item.value || '',
+            value: String(item.hrmD_Id || item.hrmd_id || item.key)
+        })).filter((i: any) => i.value);
+    }, [departmentsData]);
+
+    const designationOptions = useMemo(() => {
+        const raw = designationsData || [];
+        return (Array.isArray(raw) ? raw : []).map((item: any) => ({
+            label: item.hrmdeS_DesignationName || item.hrmdes_designationName || item.value || '',
+            value: String(item.hrmdeS_Id || item.hrmdes_id || item.key)
+        })).filter((i: any) => i.value);
+    }, [designationsData]);
+
+    const employeeOptions = useMemo(() => {
+        if (!employeesData || !Array.isArray(employeesData)) return [];
+        return employeesData.map((item: any) => {
+            const id = item.HRME_Id || item.hrmE_Id || item.id || item.key;
+            const name = item.HRME_EmployeeFirstName || item.hrmE_EmployeeFirstName || item.value || item.employeeName || '';
+            const code = item.HRME_EmployeeCode || item.hrmE_EmployeeCode || item.employeeCode || '';
+            return {
+                label: code ? `${name} (${code})` : name,
+                value: Number(id)
+            };
+        }).filter((i: any) => i.value);
+    }, [employeesData]);
+
     const {
         register,
         handleSubmit,
@@ -196,8 +204,12 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
                                 <MultiSelect
                                     id='department-multiselect'
                                     options={departmentOptions}
-                                    onValueChange={field.onChange}
-                                    defaultValue={field.value || []}
+                                    onValueChange={(vals) => {
+                                        const numVals = vals.map(Number);
+                                        field.onChange(numVals);
+                                        setSelectedDepartmentIds(numVals);
+                                    }}
+                                    defaultValue={field.value?.map(String) || []}
                                     placeholder='Select Department'
                                 />
                             )}
@@ -214,8 +226,12 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
                                 <MultiSelect
                                     id='designation-multiselect'
                                     options={designationOptions}
-                                    onValueChange={field.onChange}
-                                    defaultValue={field.value || []}
+                                    onValueChange={(vals) => {
+                                        const numVals = vals.map(Number);
+                                        field.onChange(numVals);
+                                        setSelectedDesignationIds(numVals);
+                                    }}
+                                    defaultValue={field.value?.map(String) || []}
                                     placeholder='Select Designation'
                                 />
                             )}
@@ -258,14 +274,14 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
                                 <Label htmlFor='employee-select'>
                                     Employee :<span className='text-red-500'>*</span>
                                 </Label>
-                                <Select value={field.value} onValueChange={field.onChange}>
+                                <Select value={String(field.value || '')} onValueChange={(val) => field.onChange(Number(val))}>
                                     <SelectTrigger id='employee-select' className={(errors as any).employee ? 'border-red-500' : ''}>
-                                        <SelectValue placeholder='Select or search employee in the list...' />
+                                        <SelectValue placeholder='Select employee...' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {employeeOptions.map((e) => (
-                                            <SelectItem key={e} value={e}>
-                                                {e}
+                                        {employeeOptions.map((e: any) => (
+                                            <SelectItem key={e.value} value={String(e.value)}>
+                                                {e.label}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -367,11 +383,11 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
                         <Label htmlFor='total-days-input'>
                             Total Days :<span className='text-red-500'>*</span>
                         </Label>
-                        <Input id='total-days-input' type='number' readOnly value={totalDays || 0} className='bg-muted' />
+                        <Input id='total-days-input' type='number' disabled = {true} readOnly value={totalDays || 0} className='bg-muted' />
                     </div>
                 </div>
                 {/* Loss of Pay Options and Calculated Field */}
-                <div className='space-y-3'>
+                {/* <div className='space-y-3 '>
                     <Label>Loss Of Pay :</Label>
                     <Controller
                         name='lossOfPayType'
@@ -415,14 +431,14 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
                             placeholder='Auto-calculated'
                         />
                     </div>
-                </div>
+                </div> */}
                 {/* Action Buttons */}
                 <div className='flex justify-center gap-4 pt-4'>
                     <Button type='submit' disabled={isPending || isSubmitting} variant='default'>
                         <Save className='mr-2 h-4 w-4' />
                         {isPending || isSubmitting ? 'Saving...' : 'SAVE'}
                     </Button>
-                    <Button type='button' variant='destructive' onClick={handleReset} disabled={isPending || isSubmitting} className='bg-red-600 hover:bg-red-700'>
+                    <Button type='button' variant='outline' onClick={handleReset} disabled={isPending || isSubmitting}>
                         <X className='mr-2 h-4 w-4' />
                         CANCEL
                     </Button>

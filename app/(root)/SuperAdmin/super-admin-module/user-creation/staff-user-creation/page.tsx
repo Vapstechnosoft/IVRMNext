@@ -1,52 +1,54 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-    changeInstitution,
-    getStaffData,
-    getStaffUserCreationOnload,
-    saveStaffUser,
-    getRoleTypeDropdown,
-    getTrustDropdown,
-    getInstitutionDropdown,
-    getStaffDropdownByInstitution,
-    getMultipleStaffUsers,
-    getModuleDropdownByInstitution,
-    getCategoryDropdownByInstitution,
     getAdminUserList,
-    getUsernameOnStaffSelection,
+    getCategoryDropdownByInstitution,
+    getInstitutionDropdown,
     getMasterPageListGridOnChangeOfStaff,
     getMobileAppMasterPageListOnChangeOfStaff,
-    getSavedMobileAppPageListOnChangeOfStaff,
+    getModuleDropdownByInstitution,
+    getMultipleStaffUsers,
+    getRoleTypeDropdown,
     getSavedListGridOnChangeOfStaff,
+    getSavedMobileAppPageListOnChangeOfStaff,
+    getStaffData,
+    getStaffDropdownByInstitution,
+    getStaffUserCreationOnload,
+    getTrustDropdown,
+    getUsernameOnStaffSelection,
+    saveStaffUser,
     sendOTPSms,
+    updateUsername,
     verifyOTP,
-    updateUsername
+    getMasterPageListGridOnChangeOfModule
 } from '@/server/super-admin/user-creation/staff-user-creation';
 import type { ApiSearchparams } from '@/types';
 import type {
-    RoleTypeDTO,
-    TrustDTO,
+    CategoryDTO,
     EmployeeListDTO,
     InstitutionDTO,
-    StaffDTO,
-    CategoryDTO,
+    MobilePageDTO,
     ModuleDTO,
     PageDTO,
+    RoleTypeDTO,
+    SavedMobilePageDTO,
     SavedPageDTO,
-    MobilePageDTO,
-    SavedMobilePageDTO
+    StaffDTO,
+    TrustDTO
 } from '@/types/super-admin/user-creation/staff-user-creation';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { RotateCcw, Save, X, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { z } from 'zod';
+import ChangeUsernameModal from './_components/change-username-modal';
+import PageMappingGrids from './_components/page-mapping-grids';
 import SelectionForm from './_components/selection-form';
 import UserDetails from './_components/user-details';
-import PageMappingGrids from './_components/page-mapping-grids';
 import ViewUsernamesModal from './_components/view-usernames-modal';
-import ChangeUsernameModal from './_components/change-username-modal';
-import { toast } from 'sonner';
 
 const formSchema = z.object({
     roleType: z.string().min(1, 'Select Role Type'),
@@ -95,6 +97,13 @@ export default function StaffUserCreationPage() {
     const [machineIp] = useState<string>('127.0.0.1');
     const [isChangeModalOpen, setIsChangeModalOpen] = useState(false);
     const [staffMobileNo, setStaffMobileNo] = useState<string>('');
+    const [lastSelectedStaffId, setLastSelectedStaffId] = useState<number | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isOnloadLoading, setIsOnloadLoading] = useState(false);
+    const [isCategoriesLoading, setIsCategoriesLoading] = useState(false);
+    const [isModulesLoading, setIsModulesLoading] = useState(false);
+    const [isStaffListLoading, setIsStaffListLoading] = useState(false);
+    const [isStaffDataLoading, setIsStaffDataLoading] = useState(false);
 
     // Pagination states for Master Page List
     const [webPageTotal, setWebPageTotal] = useState(0);
@@ -141,6 +150,12 @@ export default function StaffUserCreationPage() {
     const watchInstitution = methods.watch('institution');
     const watchStaffId = methods.watch('staffId');
     const watchFilterData = methods.watch('filterData');
+    const watchUserName = methods.watch('userName');
+
+    const isRoleSelected = !!watchRoleType && watchRoleType !== '';
+    const selectedRole = roleTypes.find(r => String(r.ivrmrT_Id) === watchRoleType);
+    const roleName = selectedRole?.ivrmrT_Role || '';
+    const isAdmin = roleName.toUpperCase() === 'ADMIN' || roleName.toUpperCase() === 'SUPER ADMIN';
 
     const clearGrids = () => {
         setWebPages([]);
@@ -157,18 +172,13 @@ export default function StaffUserCreationPage() {
     };
 
     const handleReload = () => {
-        methods.reset();
-        clearGrids();
-        setStaffList([]);
-        setCategories([]);
-        setModules([]);
-        setExistingUsers([]);
-        toast.info('Form settings reloaded');
+        window.location.reload();
     };
 
     useEffect(() => {
         const fetchOnload = async () => {
             try {
+                setIsOnloadLoading(true);
                 console.info('🚀 [CLIENT] Initiating fetchOnload...');
                 const roleTypeResult = await getRoleTypeDropdown();
                 console.info('📦 [CLIENT] Role Type Result:', roleTypeResult);
@@ -199,6 +209,8 @@ export default function StaffUserCreationPage() {
                 }
             } catch (error) {
                 console.error('❌ [CLIENT] fetchOnload error:', error);
+            } finally {
+                setIsOnloadLoading(false);
             }
         };
         fetchOnload();
@@ -211,7 +223,7 @@ export default function StaffUserCreationPage() {
                 methods.setValue('staffId', '');
                 methods.setValue('userName', '');
 
-                const selectedRole = roleTypes.find(r => String(r.ivrmrT_Id) === watchRoleType);
+                const selectedRole = roleTypes.find((r) => String(r.ivrmrT_Id) === watchRoleType);
                 const roleName = selectedRole?.ivrmrT_Role || '';
                 const isStaff = !(roleName.toUpperCase() === 'ADMIN' || roleName.toUpperCase() === 'SUPER ADMIN');
 
@@ -225,34 +237,43 @@ export default function StaffUserCreationPage() {
 
                 // Specifically for Category Dropdown API as requested
                 console.info(`📡 [CLIENT] Fetching categories for MI_Id: ${watchInstitution}`);
+                setIsCategoriesLoading(true);
                 const categoryResult = await getCategoryDropdownByInstitution(Number(watchInstitution));
                 if (categoryResult.success && categoryResult.data) {
                     setCategories(categoryResult.data);
                 }
+                setIsCategoriesLoading(false);
 
                 // Specifically for Module Dropdown API as requested
                 console.info(`📡 [CLIENT] Fetching modules for MI_Id: ${watchInstitution}`);
+                setIsModulesLoading(true);
                 const moduleResult = await getModuleDropdownByInstitution(Number(watchInstitution));
+                console.log("moduleResult", moduleResult)
                 if (moduleResult.success && moduleResult.data) {
                     setModules(moduleResult.data);
                 }
+                setIsModulesLoading(false);
 
                 // Specifically for Individual mode, use the dedicated Staff Dropdown API as requested
                 if (watchFilterData === 'Single') {
                     console.info(`📡 [CLIENT] Fetching individual staff for MI_Id: ${watchInstitution}`);
+                    setIsStaffListLoading(true);
                     const staffResult = await getStaffDropdownByInstitution(Number(watchInstitution));
                     if (staffResult.success && staffResult.data) {
                         setStaffList(staffResult.data);
                     }
+                    setIsStaffListLoading(false);
                 }
 
                 // Specifically for Multiple mode, use the dedicated Multiple Staff Users API as requested
                 else if (watchFilterData === 'Multiple') {
                     console.info(`📡 [CLIENT] Fetching multiple staff users for MI_Id: ${watchInstitution}`);
+                    setIsStaffListLoading(true);
                     const staffResult = await getMultipleStaffUsers(Number(watchInstitution));
                     if (staffResult.success && staffResult.data) {
                         setStaffList(staffResult.data);
                     }
+                    setIsStaffListLoading(false);
                 }
             } else {
                 setStaffList([]);
@@ -267,7 +288,7 @@ export default function StaffUserCreationPage() {
     const handleViewAdminUsernames = async () => {
         if (!watchInstitution || !watchRoleType) return;
 
-        const selectedRole = roleTypes.find(r => String(r.ivrmrT_Id) === watchRoleType);
+        const selectedRole = roleTypes.find((r) => String(r.ivrmrT_Id) === watchRoleType);
         const roleName = selectedRole?.ivrmrT_Role || '';
         const roleFlag = selectedRole?.flag || '';
 
@@ -295,85 +316,138 @@ export default function StaffUserCreationPage() {
     useEffect(() => {
         const handleStaffChange = async () => {
             if (watchStaffId && watchFilterData === 'Single') {
-                const payload = {
-                    IVRMSTAUL_Id: Number(watchStaffId),
-                    MI_Id: Number(watchInstitution),
-                    rolenamess: watchRoleType,
-                    IVRMRT_Id: Number(watchRoleType)
-                };
-                const result = await getStaffData(payload);
-                if (result.success && result.data) {
-                    // if (result.data.singleemployee && result.data.singleemployee.length > 0) {
-                    //     methods.setValue('userName', result.data.singleemployee[0].user_Name);
-                    // }
-                }
-
-                // Call the new API to fetch username and handle field state
-                console.info(`📡 [CLIENT] Fetching staff username for StaffId: ${watchStaffId}, MI_Id: ${watchInstitution}`);
-                const usernameResult = await getUsernameOnStaffSelection(Number(watchStaffId), Number(watchInstitution));
-
-                if (usernameResult.success && usernameResult.data && usernameResult.data.length > 0) {
-                    const userData = usernameResult.data[0];
-                    const staffUsername = userData.user_Name || userData.userName;
-                    if (staffUsername) {
-                        methods.setValue('userName', staffUsername);
-                        setUserId(userData.userId || userData.ivrmu_Id || null);
-                        setStaffMobileNo(userData.hrmE_MobileNo || '');
-                        setIsUserNameDisabled(true);
-
-                        // Fetch mapping data for the grids (except Master Page List which is now handled by dedicated API)
-                        console.info(`📡 [CLIENT] Fetching mapping data for StaffId: ${watchStaffId}`);
-                        const mappingResult = await getStaffData({
-                            HRME_Id: Number(watchStaffId),
-                            MI_Id: Number(watchInstitution),
-                            IVRMRT_Id: Number(watchRoleType)
-                        });
-
-                        if (mappingResult.success && mappingResult.data) {
-                            // setMobilePages(mappingResult.data.gridview1 || []); // Now handled by fetchMobileMasterPages
-                            // setSavedGrid(mappingResult.data.savedgridd || []); // Now handled by fetchSavedListPages
-                            // setSavedMobilePages(mappingResult.data.previousgrid || []); // Now handled by fetchSavedMobilePages
+                try {
+                    setIsStaffDataLoading(true);
+                    const payload = {
+                        IVRMSTAUL_Id: Number(watchStaffId),
+                        MI_Id: Number(watchInstitution),
+                        rolenamess: watchRoleType,
+                        IVRMRT_Id: Number(watchRoleType)
+                    };
+                    const result = await getStaffData(payload);
+                    if (result.success && result.data) {
+                        if (result.data.singleemployee && result.data.singleemployee.length > 0) {
+                            methods.setValue('userName', result.data.singleemployee[0].user_Name);
                         }
+                    }
 
-                        // Fetch various grids with their respective parameters
-                        fetchMasterPages(webPageParams);
-                        fetchMobileMasterPages(mobilePageParams);
-                        fetchSavedMobilePages(savedMobilePageParams);
-                        fetchSavedListPages(savedGridParams);
+                    // Call the new API to fetch username and handle field state
+                    console.info(`📡 [CLIENT] Fetching staff username for StaffId: ${watchStaffId}, MI_Id: ${watchInstitution}. role_id: ${watchRoleType}`);
+                    const usernameResult = await getUsernameOnStaffSelection(Number(watchStaffId), Number(watchInstitution), Number(watchRoleType));
+                    console.log(' Username Result:', usernameResult);
+                    if (usernameResult.success && usernameResult.data && usernameResult.data.length > 0) {
+                        const userData = usernameResult.data[0];
+                        const staffUsername = userData.user_Name || userData.userName;
+                        if (staffUsername) {
+                            methods.setValue('userName', staffUsername);
+                            setUserId(userData.userId || userData.ivrmu_Id || null);
+                            setStaffMobileNo(userData.hrmE_MobileNo || '');
+                            setIsUserNameDisabled(true);
+
+                            // Fetch mapping data for the grids (except Master Page List which is now handled by dedicated API)
+                            console.info(`📡 [CLIENT] Fetching mapping data for StaffId: ${watchStaffId}`);
+                            const mappingResult = await getStaffData({
+                                HRME_Id: Number(watchStaffId),
+                                MI_Id: Number(watchInstitution),
+                                IVRMRT_Id: Number(watchRoleType)
+                            });
+
+                            if (mappingResult.success && mappingResult.data) {
+                                // setMobilePages(mappingResult.data.gridview1 || []); // Now handled by fetchMobileMasterPages
+                                // setSavedGrid(mappingResult.data.savedgridd || []); // Now handled by fetchSavedListPages
+                                // setSavedMobilePages(mappingResult.data.previousgrid || []); // Now handled by fetchSavedMobilePages
+                            }
+
+                            // Grid fetch calls removed from here to separate useEffect hooks
+                        } else {
+                            methods.setValue('userName', '');
+                            setIsUserNameDisabled(false);
+                            clearGrids();
+                        }
                     } else {
                         methods.setValue('userName', '');
                         setIsUserNameDisabled(false);
                         clearGrids();
                     }
-                } else {
-                    methods.setValue('userName', '');
-                    setIsUserNameDisabled(false);
-                    clearGrids();
+                } catch (error) {
+                    console.error('handleStaffChange error:', error);
+                } finally {
+                    setIsStaffDataLoading(false);
                 }
             } else {
                 setIsUserNameDisabled(false);
             }
         };
         handleStaffChange();
-    }, [watchStaffId, watchFilterData, watchInstitution, watchRoleType, methods, webPageParams, mobilePageParams, savedMobilePageParams, savedGridParams]);
+    }, [
+        watchStaffId,
+        watchFilterData,
+        watchInstitution,
+        watchRoleType,
+        methods
+    ]);
+
+    const effectiveStaffId = watchFilterData === 'Single' 
+        ? (watchStaffId ? Number(watchStaffId) : null)
+        : lastSelectedStaffId;
+
+    useEffect(() => {
+        if (effectiveStaffId && watchInstitution && watchRoleType) {
+            fetchMasterPages(webPageParams);
+        }
+    }, [webPageParams, effectiveStaffId, watchInstitution, watchRoleType]);
+
+    useEffect(() => {
+        if (effectiveStaffId && watchInstitution && watchRoleType) {
+            fetchMobileMasterPages(mobilePageParams);
+        }
+    }, [mobilePageParams, effectiveStaffId, watchInstitution, watchRoleType]);
+
+    useEffect(() => {
+        if (effectiveStaffId && watchInstitution && watchRoleType) {
+            fetchSavedMobilePages(savedMobilePageParams);
+        }
+    }, [savedMobilePageParams, effectiveStaffId, watchInstitution, watchRoleType]);
+
+    useEffect(() => {
+        if (effectiveStaffId && watchInstitution && watchRoleType) {
+            fetchSavedListPages(savedGridParams);
+        }
+    }, [savedGridParams, effectiveStaffId, watchInstitution, watchRoleType]);
 
     const fetchMasterPages = async (params: ApiSearchparams) => {
-        if (!watchStaffId || !watchInstitution || !watchRoleType) return;
+        if (!effectiveStaffId || !watchInstitution || !watchRoleType) return;
         try {
             setIsWebPageLoading(true);
-            console.info(`📡 [CLIENT] Fetching Master Page List for StaffId: ${watchStaffId}, MI_Id: ${watchInstitution}, RoleId: ${watchRoleType}`);
+            console.info(
+                `📡 [CLIENT] Fetching Master Page List for StaffId: ${effectiveStaffId}, MI_Id: ${watchInstitution}, RoleId: ${watchRoleType}`
+            );
             const result = await getMasterPageListGridOnChangeOfStaff(
-                Number(watchStaffId),
+                effectiveStaffId,
                 Number(watchInstitution),
                 Number(watchRoleType),
                 params
             );
 
+            console.log("master web pages list",result)
+
             if (result.success && result.data) {
-                setWebPages(result.data.map((p: PageDTO) => ({
-                    ...p,
-                    checked: stagedWebPages.some(s => s.pageMappingId === p.pageMappingId)
-                })));
+                const mappedPages = Array.isArray(result.data)
+                    ? result.data.map((item: any) => ({
+                        pageMappingId: item.pageMappingId || item.ivrmimP_Id || item.ivrmmP_Id || item.ivrmP_Id,
+                        pageName: item.pageName || item.pageName,
+                        moduleName: item.moduleName || item.ivrmM_ModuleName || item.moduleName || '',
+                        institutionName: item.institutionName || item.instituteName || item.institutionName || '',
+                        addFlag: Boolean(item.ivrmrP_AddFlag ?? item.addFlag),
+                        deleteFlag: Boolean(item.ivrmrP_DeleteFlag ?? item.deleteFlag),
+                        updateFlag: Boolean(item.ivrmrP_UpdateFlag ?? item.updateFlag),
+                        processFlag: Boolean(item.ivrmrP_ProcessFlag ?? item.processFlag),
+                        reportFlag: Boolean(item.ivrmrP_ReportFlag ?? item.reportFlag),
+                        checked: stagedWebPages.some((s) => s.pageMappingId === (item.ivrmmP_Id || item.pageMappingId))
+                    }))
+                    : [];
+
+                setWebPages(mappedPages);
                 setWebPageTotal(result.total);
             }
         } catch (error) {
@@ -384,14 +458,15 @@ export default function StaffUserCreationPage() {
         }
     };
 
-
     const fetchMobileMasterPages = async (params: ApiSearchparams) => {
-        if (!watchStaffId || !watchInstitution || !watchRoleType) return;
+        if (!effectiveStaffId || !watchInstitution || !watchRoleType) return;
         try {
             setIsMobilePageLoading(true);
-            console.info(`📡 [CLIENT] Fetching Mobile App Master Page List for StaffId: ${watchStaffId}, MI_Id: ${watchInstitution}, RoleId: ${watchRoleType}`);
+            console.info(
+                `📡 [CLIENT] Fetching Mobile App Master Page List for StaffId: ${effectiveStaffId}, MI_Id: ${watchInstitution}, RoleId: ${watchRoleType}`
+            );
             const result = await getMobileAppMasterPageListOnChangeOfStaff(
-                Number(watchStaffId),
+                effectiveStaffId,
                 Number(watchInstitution),
                 Number(watchRoleType),
                 params
@@ -401,6 +476,7 @@ export default function StaffUserCreationPage() {
                 setMobilePages(result.data.map((p: any) => ({ ...p, checked: false })));
                 setMobilePageTotal(result.total);
             }
+            console.log(' Mobile Master Pages Result:', result);
         } catch (error) {
             console.error('fetchMobileMasterPages error:', error);
             toast.error('Failed to fetch mobile master pages.');
@@ -409,14 +485,15 @@ export default function StaffUserCreationPage() {
         }
     };
 
-
     const fetchSavedMobilePages = async (params: ApiSearchparams) => {
-        if (!watchStaffId || !watchInstitution || !watchRoleType) return;
+        if (!effectiveStaffId || !watchInstitution || !watchRoleType) return;
         try {
             setIsSavedMobilePageLoading(true);
-            console.info(`📡 [CLIENT] Fetching Saved Mobile App Page List for StaffId: ${watchStaffId}, MI_Id: ${watchInstitution}, RoleId: ${watchRoleType}`);
+            console.info(
+                `📡 [CLIENT] Fetching Saved Mobile App Page List for StaffId: ${effectiveStaffId}, MI_Id: ${watchInstitution}, RoleId: ${watchRoleType}`
+            );
             const result = await getSavedMobileAppPageListOnChangeOfStaff(
-                Number(watchStaffId),
+                effectiveStaffId,
                 Number(watchInstitution),
                 Number(watchRoleType),
                 params
@@ -434,14 +511,15 @@ export default function StaffUserCreationPage() {
         }
     };
 
-
     const fetchSavedListPages = async (params: ApiSearchparams) => {
-        if (!watchStaffId || !watchInstitution || !watchRoleType) return;
+        if (!effectiveStaffId || !watchInstitution || !watchRoleType) return;
         try {
             setIsSavedGridLoading(true);
-            console.info(`📡 [CLIENT] Fetching Saved List for StaffId: ${watchStaffId}, MI_Id: ${watchInstitution}, RoleId: ${watchRoleType}`);
+            console.info(
+                `📡 [CLIENT] Fetching Saved List for StaffId: ${effectiveStaffId}, MI_Id: ${watchInstitution}, RoleId: ${watchRoleType}`
+            );
             const result = await getSavedListGridOnChangeOfStaff(
-                Number(watchStaffId),
+                effectiveStaffId,
                 Number(watchInstitution),
                 Number(watchRoleType),
                 params
@@ -458,7 +536,6 @@ export default function StaffUserCreationPage() {
             setIsSavedGridLoading(false);
         }
     };
-
 
     const handleSelectAllCategories = () => {
         const allChecked = categories.every((cat) => cat.catid);
@@ -481,6 +558,12 @@ export default function StaffUserCreationPage() {
     const handleStaffCheckboxChange = (id: number, checked: boolean) => {
         const updated = staffList.map((s) => (s.hrmE_Id === id ? { ...s, Selected: checked } : s));
         setStaffList(updated);
+        if (checked) {
+            setLastSelectedStaffId(id);
+        } else if (lastSelectedStaffId === id) {
+            const firstSelected = updated.find(s => s.Selected);
+            setLastSelectedStaffId(firstSelected ? firstSelected.hrmE_Id : null);
+        }
     };
 
     const handleSelectAllInstitutions = () => {
@@ -536,12 +619,12 @@ export default function StaffUserCreationPage() {
         const selectedCategories = categories.filter((c) => c.catid).map((c) => ({ amC_Id: c.amC_Id }));
         const selectedModules = modules.filter((m) => m.model).map((m) => ({ ivrmM_Id: m.ivrmM_Id }));
 
-        const selectedRole = roleTypes.find(r => String(r.ivrmrT_Id) === data.roleType);
+        const selectedRole = roleTypes.find((r) => String(r.ivrmrT_Id) === data.roleType);
         const isAdmin = selectedRole?.ivrmrT_Role.toUpperCase() === 'ADMIN' || selectedRole?.ivrmrT_Role.toUpperCase() === 'SUPER ADMIN';
 
         let selectedInstitutes = [];
         if (isAdmin && data.filterData === 'Multiple') {
-            selectedInstitutes = institutions.filter(i => i.Selected).map(i => ({ mi_id: i.mI_Id }));
+            selectedInstitutes = institutions.filter((i) => i.Selected).map((i) => ({ mi_id: i.mI_Id }));
         } else {
             selectedInstitutes = [{ mi_id: Number(data.institution) }];
         }
@@ -551,62 +634,185 @@ export default function StaffUserCreationPage() {
             return;
         }
 
+        console.log("stagedWebPages:", stagedWebPages);
+        console.log("savedGrid:", savedGrid);
+        console.log("mobilePages:", mobilePages);
+        console.log("savedMobilePages:", savedMobilePages);
+
+        console.log("stagedWebPages in submit:", stagedWebPages);
+
         const payload = {
             mI_Id: Number(data.institution) || selectedInstitutes[0].mi_id,
             staffId: data.filterData === 'Single' ? Number(data.staffId) : 0,
             userName: data.userName || '',
             mode: data.filterData,
+            multipleStaff: data.filterData === 'Multiple' ? staffList.filter(s => s.Selected).map(s => ({ ivrmstauL_Id: s.hrmE_Id })) : [],
             machineIp: machineIp || '127.0.0.1',
             roleTypeId: Number(data.roleType),
             userId: userId || 0,
             multipleInstitutes: selectedInstitutes,
             tempararyArrayList: selectedModules,
-            datasaved: savedGrid.filter(p => !p.checked).map(p => ({
-                ivrmrP_AddFlag: p.ivrmrP_AddFlag,
-                ivrmrP_DeleteFlag: p.ivrmrP_DeleteFlag,
-                ivrmrP_UpdateFlag: p.ivrmrP_UpdateFlag,
-                ivrmrP_ProcessFlag: p.ivrmrP_ProcessFlag,
-                ivrmrP_ReportFlag: p.ivrmrP_ReportFlag,
-                ivrmstauP_Id: p.ivrmstauP_Id
-            })),
-            savetmpdata: stagedWebPages.map(p => ({
-                ivrmrP_AddFlag: p.addFlag,
-                ivrmrP_DeleteFlag: p.deleteFlag,
-                ivrmrP_UpdateFlag: p.updateFlag,
-                ivrmrP_ProcessFlag: p.processFlag,
-                ivrmrP_ReportFlag: p.reportFlag,
-                ivrmimP_Id: p.pageMappingId,
+            datasaved: savedGrid
+                .filter((p) => !p.checked)
+                .map((p) => ({
+                    ivrmrP_AddFlag: p.ivrmrP_AddFlag,
+                    ivrmrP_DeleteFlag: p.ivrmrP_DeleteFlag,
+                    ivrmrP_UpdateFlag: p.ivrmrP_UpdateFlag,
+                    ivrmrP_ProcessFlag: p.ivrmrP_ProcessFlag,
+                    ivrmrP_ReportFlag: p.ivrmrP_ReportFlag,
+                    ivrmstauP_Id: p.ivrmstauP_Id
+                })),
+            savetmpdata: stagedWebPages.map((p) => ({
+                IVRMRP_AddFlag: p.addFlag,
+                IVRMRP_DeleteFlag: p.deleteFlag,
+                IVRMRP_UpdateFlag: p.updateFlag,
+                IVRMRP_ProcessFlag: p.processFlag,
+                IVRMRP_ReportFlag: p.reportFlag,
+                IVRMIMP_Id: p.pageMappingId,
                 ivrmP_Id: 0 // Default or if available
             })),
-            deletesaved: savedGrid.filter(p => p.checked).map(p => ({
-                ivrmstauP_Id: p.ivrmstauP_Id
-            })),
-            savetmpdatamobile: mobilePages.filter(p => p.checked).map(p => ({
-                ivrmmaP_Id: p.ivrmmaP_Id,
-                ivrmmaP_AddFlg: p.ivrmmaP_AddFlg,
-                ivrmmaP_UpdateFlg: p.ivrmmaP_UpdateFlg,
-                ivrmmaP_DeleteFlg: p.ivrmmaP_DeleteFlg
-            })),
-            updatemobilepagespre: savedMobilePages.filter(p => !p.checked).map(p => ({
-                ivrmumalP_Id: p.ivrmumalP_Id,
-                ivrmumalP_AddFlg: p.ivrmumalP_AddFlg,
-                ivrmumalP_UpdateFlg: p.ivrmumalP_UpdateFlg,
-                ivrmumalP_DeleteFlg: p.ivrmumalP_DeleteFlg
-            })),
-            deletmobile: savedMobilePages.filter(p => p.checked).map(p => ({
-                ivrmumalP_Id: p.ivrmumalP_Id,
-                ivrmumalP_AddFlg: p.ivrmumalP_AddFlg,
-                ivrmumalP_UpdateFlg: p.ivrmumalP_UpdateFlg,
-                ivrmumalP_DeleteFlg: p.ivrmumalP_DeleteFlg
-            }))
+            deletesaved: savedGrid
+                .filter((p) => p.checked)
+                .map((p) => ({
+                    ivrmstauP_Id: p.ivrmstauP_Id
+                })),
+            savetmpdatamobile: mobilePages
+                .filter((p) => p.checked)
+                .map((p) => ({
+                    ivrmmaP_Id: p.ivrmmaP_Id,
+                    ivrmmaP_AddFlg: p.ivrmmaP_AddFlg,
+                    ivrmmaP_UpdateFlg: p.ivrmmaP_UpdateFlg,
+                    ivrmmaP_DeleteFlg: p.ivrmmaP_DeleteFlg
+                })),
+            updatemobilepagespre: savedMobilePages
+                .filter((p) => !p.checked)
+                .map((p) => ({
+                    ivrmumalP_Id: p.ivrmumalP_Id,
+                    ivrmumalP_AddFlg: p.ivrmumalP_AddFlg,
+                    ivrmumalP_UpdateFlg: p.ivrmumalP_UpdateFlg,
+                    ivrmumalP_DeleteFlg: p.ivrmumalP_DeleteFlg
+                })),
+            deletmobile: savedMobilePages
+                .filter((p) => p.checked)
+                .map((p) => ({
+                    ivrmumalP_Id: p.ivrmumalP_Id,
+                    ivrmumalP_AddFlg: p.ivrmumalP_AddFlg,
+                    ivrmumalP_UpdateFlg: p.ivrmumalP_UpdateFlg,
+                    ivrmumalP_DeleteFlg: p.ivrmumalP_DeleteFlg
+                }))
         };
 
-        const result = await saveStaffUser(payload);
-        if (result.success) {
-            toast.success(result.message || 'Saved successfully');
-            // Optionally refresh or reset
-        } else {
-            toast.error(result.message || 'Failed to save staff user privileges');
+        console.log("payload",payload)
+
+        setIsSaving(true);
+        try {
+            const result = await saveStaffUser(payload);
+
+            console.log("reponse final ", result);
+            if (result.success) {
+                toast.success(result.message || 'Saved successfully');
+                // Clear form fields
+                methods.setValue('userName', '');
+                methods.setValue('staffId', '');
+                methods.setValue('roleType', '');
+                methods.setValue('trust', '');
+                methods.setValue('institution', '');
+                
+                // Uncheck all staff in Multiple mode
+                setStaffList(staffList.map(s => ({ ...s, Selected: false })));
+                setLastSelectedStaffId(null);
+                
+                // Clear grids
+                clearGrids();
+            } else {
+                toast.error(result.message || 'Failed to save staff user privileges');
+            }
+        } catch (error) {
+            console.error('Submit error:', error);
+            toast.error('An unexpected error occurred while saving');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+
+    const handleModulesChange = (updatedModules: ModuleDTO[]) => {
+        setModules(updatedModules);
+
+        const checkedModuleIds = updatedModules
+            .filter((mod) => mod.model)
+            .map((mod) => mod.ivrmM_Id);
+
+        const uncheckedModuleIds = updatedModules
+            .filter((mod) => !mod.model)
+            .map((mod) => mod.ivrmM_Id);
+
+        console.log('Checked module IDs:', checkedModuleIds);
+        console.log('Unchecked module IDs:', uncheckedModuleIds);
+
+        getPagesBasedOnModules(checkedModuleIds);
+    };
+
+    const getPagesBasedOnModules = async (moduleIds: number[]) => {
+        if (!watchInstitution || !watchRoleType) return;
+
+        if (moduleIds.length === 0) {
+            fetchMasterPages(webPageParams);
+            return;
+        }
+
+        const selectedInstitutions =
+            watchFilterData === 'Multiple'
+                ? institutions.filter((i) => i.Selected).map((i) => i.mI_Id)
+                : [Number(watchInstitution)];
+
+        const payloadUserName = watchUserName || methods.getValues('userName') || '';
+        console.info(`📡 [CLIENT] Fetching pages based on modules: ${moduleIds}`);
+        try {
+            setIsWebPageLoading(true);
+            const result = await getMasterPageListGridOnChangeOfModule(
+                payloadUserName,
+                Number(watchInstitution),
+                Number(watchRoleType),
+                moduleIds,
+                selectedInstitutions.length > 0 ? selectedInstitutions : [Number(watchInstitution)]
+            );
+
+            console.log("onchange result",result)
+
+            if (result.success) {
+                const mappedPages = Array.isArray(result.data)
+                    ? result.data.map((item: any) => ({
+                        pageMappingId: item.ivrmimP_Id || item.ivrmmP_Id || item.ivrmP_Id,
+                        pageName: item.ivrmmP_PageName,
+                        moduleName: item.ivrmm_ModuleName || item.ivrmM_ModuleName || '',
+                        institutionName: item.intname || item.instituteName || '',
+                        addFlag: Boolean(item.ivrmrP_AddFlag),
+                        deleteFlag: Boolean(item.ivrmrP_DeleteFlag),
+                        updateFlag: Boolean(item.ivrmrP_UpdateFlag),
+                        processFlag: Boolean(item.ivrmrP_ProcessFlag),
+                        reportFlag: Boolean(item.ivrmrP_ReportFlag),
+                        checked: false
+                    }))
+                    : [];
+
+                setWebPages(mappedPages);
+                setWebPageTotal(typeof result.total === 'number' ? result.total : mappedPages.length);
+
+                if (result.savedGrid) {
+                    setSavedGrid(result.savedGrid.map((p: any) => ({ ...p, checked: false })));
+                    setSavedGridTotal(result.savedGrid.length);
+                }
+            } else {
+                setWebPages([]);
+                setWebPageTotal(0);
+            }
+        } catch (error) {
+            console.error('getPagesBasedOnModules error:', error);
+            setWebPages([]);
+            setWebPageTotal(0);
+        } finally {
+            setIsWebPageLoading(false);
         }
     };
 
@@ -614,19 +820,19 @@ export default function StaffUserCreationPage() {
         <div className='container mx-auto p-6'>
             <Card className='w-full'>
                 <CardHeader>
-                    <div className='flex items-center justify-between'>
-                        <div className='flex-1' />
+                    <div className='relative flex min-h-[40px] items-center justify-center'>
                         <CardTitle className='text-center font-bold text-2xl text-primary'>Institution Staff User Creation</CardTitle>
-                        <div className='flex-1 flex justify-end'>
-                            <button
-                                type="button"
+                        <div className='absolute right-0'>
+                            <Button
+                                type='button'
+                                variant='outline'
+                                size='sm'
                                 onClick={handleReload}
-                                className="flex items-center gap-2 rounded-full bg-[#2669bc] px-4 py-1.5 text-sm font-semibold text-white shadow-md transition-all hover:bg-blue-700"
-                                title="Reload Settings"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" /><path d="M3 21v-5h5" /></svg>
+                                className='rounded-full border-[#2669bc] text-[#2669bc] hover:bg-blue-50'
+                                title='Reload Settings'>
+                                <RotateCcw className='mr-2 h-3.5 w-3.5' />
                                 Reload
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </CardHeader>
@@ -634,10 +840,13 @@ export default function StaffUserCreationPage() {
                     <FormProvider {...methods}>
                         <form onSubmit={methods.handleSubmit(onSubmit)} className='space-y-8'>
                             <SelectionForm
-                                roleTypes={roleTypes}
-                                trusts={trusts}
-                                institutions={institutions}
-                                staffList={staffList}
+                                roleTypes={roleTypes.filter((v, i, a) => a.findIndex(t => (t.ivrmrT_Id === v.ivrmrT_Id)) === i)}
+                                trusts={trusts.filter((v, i, a) => a.findIndex(t => (t.mO_Id === v.mO_Id)) === i)}
+                                institutions={institutions.filter((v, i, a) => a.findIndex(t => (t.mI_Id === v.mI_Id)) === i)}
+                                staffList={staffList.filter((v, i, a) => a.findIndex(t => (t.hrmE_Id === v.hrmE_Id)) === i)}
+                                isOnloadLoading={isOnloadLoading}
+                                isStaffListLoading={isStaffListLoading}
+                                isStaffDataLoading={isStaffDataLoading}
                                 onStaffCheckboxChange={handleStaffCheckboxChange}
                                 onSelectAllStaff={handleSelectAllStaff}
                                 onInstitutionCheckboxChange={handleInstitutionCheckboxChange}
@@ -646,68 +855,70 @@ export default function StaffUserCreationPage() {
                                 showViewUsernames={true} // Visibility now handled inside SelectionForm based on isAdmin
                             />
 
-                            <UserDetails
-                                categories={categories}
-                                onCategoryChange={setCategories}
-                                modules={modules}
-                                onModuleChange={setModules}
-                                onSelectAllCategories={handleSelectAllCategories}
-                                onSelectAllModules={handleSelectAllModules}
-                                isUserNameDisabled={isUserNameDisabled}
-                                onChangeUsernameToggle={() => setIsChangeModalOpen(true)}
-                            />
+                            {/* UserDetails & Modules (Only visible when role and institution/staff selections are made) */}
+                            {isRoleSelected && (isAdmin ? (watchFilterData === 'Multiple' ? institutions.some(i => i.Selected) : !!watchInstitution) : (!!watchInstitution && (watchFilterData === 'Multiple' || !!watchStaffId))) && (
+                                <>
+                                    <UserDetails
+                                        categories={categories}
+                                        onCategoryChange={setCategories}
+                                        modules={modules}
+                                        onModuleChange={handleModulesChange}
+                                        onSelectAllCategories={handleSelectAllCategories}
+                                        onSelectAllModules={handleSelectAllModules}
+                                        isUserNameDisabled={isUserNameDisabled}
+                                        onChangeUsernameToggle={() => setIsChangeModalOpen(true)}
+                                        isStaffDataLoading={isStaffDataLoading}
+                                    />
 
-                            {/* Conditional Rendering of Mapping Grids */}
-                            {isUserNameDisabled && watchFilterData === 'Single' && (
-                                <PageMappingGrids
-                                    webPages={webPages}
-                                    onWebPageUpdate={setWebPages}
-                                    stagedWebPages={stagedWebPages}
-                                    onStagedWebPageUpdate={setStagedWebPages}
-                                    webPageTotal={webPageTotal}
-                                    onWebPageParamsChange={setWebPageParams}
-                                    currentWebPageParams={webPageParams}
-                                    isWebPageLoading={isWebPageLoading}
+                                    {/* Conditional Rendering of Mapping Grids */}
+                                    {(watchFilterData === 'Single' ? isUserNameDisabled : staffList.some(s => s.Selected)) && (
+                                        <PageMappingGrids
+                                            webPages={webPages}
+                                            onWebPageUpdate={setWebPages}
+                                            stagedWebPages={stagedWebPages}
+                                            onStagedWebPageUpdate={setStagedWebPages}
+                                            webPageTotal={webPageTotal}
+                                            onWebPageParamsChange={setWebPageParams}
+                                            currentWebPageParams={webPageParams}
+                                            isWebPageLoading={isWebPageLoading}
+                                            savedGridTotal={savedGridTotal}
+                                            onSavedGridParamsChange={setSavedGridParams}
+                                            currentSavedGridParams={savedGridParams}
+                                            isSavedGridLoading={isSavedGridLoading}
+                                            mobilePageTotal={mobilePageTotal}
+                                            onMobilePageParamsChange={setMobilePageParams}
+                                            currentMobilePageParams={mobilePageParams}
+                                            isMobilePageLoading={isMobilePageLoading}
+                                            savedMobilePageTotal={savedMobilePageTotal}
+                                            onSavedMobilePageParamsChange={setSavedMobilePageParams}
+                                            currentSavedMobilePageParams={savedMobilePageParams}
+                                            isSavedMobilePageLoading={isSavedMobilePageLoading}
+                                            mobilePages={mobilePages}
+                                            onMobilePageUpdate={setMobilePages}
+                                            savedGrid={savedGrid}
+                                            onSavedGridUpdate={setSavedGrid}
+                                            savedMobilePages={savedMobilePages}
+                                            onSavedMobileUpdate={setSavedMobilePages}
+                                            showInstitution={!!watchTrust}
+                                        />
+                                    )}
 
-                                    savedGridTotal={savedGridTotal}
-                                    onSavedGridParamsChange={setSavedGridParams}
-                                    currentSavedGridParams={savedGridParams}
-                                    isSavedGridLoading={isSavedGridLoading}
-
-                                    mobilePageTotal={mobilePageTotal}
-                                    onMobilePageParamsChange={setMobilePageParams}
-                                    currentMobilePageParams={mobilePageParams}
-                                    isMobilePageLoading={isMobilePageLoading}
-
-                                    savedMobilePageTotal={savedMobilePageTotal}
-                                    onSavedMobilePageParamsChange={setSavedMobilePageParams}
-                                    currentSavedMobilePageParams={savedMobilePageParams}
-                                    isSavedMobilePageLoading={isSavedMobilePageLoading}
-
-                                    mobilePages={mobilePages}
-                                    onMobilePageUpdate={setMobilePages}
-                                    savedGrid={savedGrid}
-                                    onSavedGridUpdate={setSavedGrid}
-                                    savedMobilePages={savedMobilePages}
-                                    onSavedMobileUpdate={setSavedMobilePages}
-                                    showInstitution={!!watchTrust}
-                                />
+                                    <div className='flex justify-center gap-4'>
+                                        <Button type='submit' className='px-8 shadow-md' size='lg' disabled={isSaving}>
+                                            {isSaving ? (
+                                                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                                            ) : (
+                                                <Save className='mr-2 h-4 w-4' />
+                                            )}
+                                            {isSaving ? "Saving..." : "Save"}
+                                        </Button>
+                                        <Button type='button' variant='outline' onClick={() => methods.reset()} className='px-8' size='lg'>
+                                            <X className='mr-2 h-4 w-4' />
+                                            Cancel
+                                        </Button>
+                                    </div>
+                                </>
                             )}
-
-
-                            <div className='flex justify-center gap-4'>
-                                <button
-                                    type='submit'
-                                    className='btn btn-primary rounded-md px-8 py-2 shadow-md transition-all hover:bg-primary-dark'>
-                                    Save
-                                </button>
-                                <button
-                                    type='button'
-                                    onClick={() => methods.reset()}
-                                    className='btn btn-outline rounded-md border border-gray-300 px-8 py-2 transition-all hover:bg-gray-100'>
-                                    Cancel
-                                </button>
-                            </div>
                         </form>
                     </FormProvider>
                 </CardContent>
@@ -717,7 +928,7 @@ export default function StaffUserCreationPage() {
                 isOpen={isViewModalOpen}
                 onClose={() => setIsViewModalOpen(false)}
                 users={existingUsers}
-                roleName={roleTypes.find(r => String(r.ivrmrT_Id) === watchRoleType)?.ivrmrT_Role}
+                roleName={roleTypes.find((r) => String(r.ivrmrT_Id) === watchRoleType)?.ivrmrT_Role}
             />
 
             <ChangeUsernameModal

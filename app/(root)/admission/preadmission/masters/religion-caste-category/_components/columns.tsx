@@ -9,7 +9,7 @@ import { useCallback } from 'react';
 export const masterReligionCasteCategoryColumns: ColumnDef<IMasterReligionCasteCategoryList>[] = [
     {
         accessorKey: 'ircC_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6 font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -21,21 +21,21 @@ export const masterReligionCasteCategoryColumns: ColumnDef<IMasterReligionCasteC
     },
     {
         accessorKey: 'ivrmmR_Name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Religion' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Religion' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('ivrmmR_Name')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'imcC_CategoryName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Caste Category' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Caste Category' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('imcC_CategoryName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start font-bold text-black' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
@@ -43,7 +43,7 @@ export const masterReligionCasteCategoryColumns: ColumnDef<IMasterReligionCasteC
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterReligionCasteCategoryList }) {
-    const { openToggleForm } = useFormContext<IMasterReligionCasteCategoryList>();
+    const { openToggleForm, openEditForm } = useFormContext<IMasterReligionCasteCategoryList>();
 
     const handleToggle = useCallback(
         (data: IMasterReligionCasteCategoryList) => {
@@ -52,11 +52,19 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterReligionCasteCategoryL
         [openToggleForm]
     );
 
+    const handleEdit = useCallback(
+        (data: IMasterReligionCasteCategoryList) => {
+            openEditForm(data);
+        },
+        [openEditForm]
+    );
+
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: false, toggle: true, delete: false }}
+            buttons={{ edit: true, toggle: true, delete: false }}
             onToggle={handleToggle}
+            onEdit={handleEdit}
             toggleConditionKey='ircC_ActiveFlg'
         />
     );

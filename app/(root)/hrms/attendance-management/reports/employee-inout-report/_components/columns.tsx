@@ -7,7 +7,11 @@ import { format } from 'date-fns';
 const formatDate = (date: unknown): string => {
     if (typeof date !== 'string') return 'N/A';
     if (!date) return 'N/A';
-    return format(new Date(date), 'dd-MM-yyyy');
+    try {
+        return format(new Date(date), 'dd-MM-yyyy');
+    } catch (e) {
+        return 'N/A';
+    }
 };
 
 import type { BaseEntity } from '@/lib/localdb';
@@ -23,92 +27,119 @@ export interface InOutRow extends BaseEntity {
     department?: string;
     designation?: string;
     type?: string;
-    employeeCode?: string;
+    inOutFlg?: string;
     employeeName?: string;
     timeIn?: string;
     timeOut?: string;
     [key: string]: any;
 }
 
-export const employeeInOutReportColumns: ColumnDef<InOutRow>[] = [
-    {
-        id: 'select',
-        header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all'
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-        size: 24
-    },
-    {
-        accessorKey: 'user_id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
-        cell: ({ row, table }) => {
-            const pageIndex = table.getState().pagination.pageIndex;
-            const pageSize = table.getState().pagination.pageSize;
-            const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div className='w-full pl-6'>{continuousIndex}</div>;
+export const getEmployeeInOutReportColumns = (dateColumns: string[]): ColumnDef<InOutRow>[] => {
+    const staticColumns: ColumnDef<InOutRow>[] = [
+        {
+            accessorKey: 'user_id',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
+            cell: ({ row, table }) => {
+                const pageIndex = table.getState().pagination.pageIndex;
+                const pageSize = table.getState().pagination.pageSize;
+                const continuousIndex = pageIndex * pageSize + row.index + 1;
+                return <div className='w-full pl-6'>{continuousIndex}</div>;
+            },
+            enableSorting: true,
+            enableHiding: false
         },
-        enableSorting: true,
-        enableHiding: false
-    },
-    {
-        accessorKey: 'user_name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
-        cell: ({ row }) => <div>{row.getValue('user_name')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'employee_code',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Code' />,
-        cell: ({ row }) => <div>{row.getValue('employee_code')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'date',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Date' />,
-        cell: ({ row }) => {
-            const date = row.getValue('date');
-            return <div>{formatDate(date)}</div>;
+        {
+            accessorKey: 'ename',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
+            cell: ({ row }) => <div>{row.getValue('ename')}</div>,
+            enableSorting: true,
+            enableHiding: true
         },
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'time_in',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Time In' />,
-        cell: ({ row }) => <div>{row.getValue('time_in')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'time_out',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Time Out' />,
-        cell: ({ row }) => <div>{row.getValue('time_out')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'department',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Department' />,
-        cell: ({ row }) => <div>{row.getValue('department')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'designation',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Designation' />,
-        cell: ({ row }) => <div>{row.getValue('designation')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    }
-];
+        {
+            accessorKey: 'ecode',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Code' />,
+            cell: ({ row }) => <div>{row.getValue('ecode')}</div>,
+            enableSorting: true,
+            enableHiding: true
+        },
+        {
+            accessorKey: 'designation',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Designation' />,
+            cell: ({ row }) => <div>{row.getValue('designation')}</div>,
+            enableSorting: true,
+            enableHiding: true
+        },
+        {
+            accessorKey: 'type',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Type' />,
+            cell: ({ row }) => <div>{row.getValue('type')}</div>,
+            enableSorting: true,
+            enableHiding: true
+        },
+        {
+            accessorKey: 'inOutFlg',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='In/Out' />,
+            cell: ({ row }) => {
+                const val = row.getValue('inOutFlg');
+                if (typeof val === 'object' && val !== null) {
+                    return (
+                        <div className='flex flex-col items-center justify-center gap-1 py-1'>
+                            <div className='flex h-8 w-12 items-center justify-center border bg-gray-50 text-xs shadow-sm'>In</div>
+                            <div className='flex h-8 w-12 items-center justify-center border bg-gray-50 text-xs shadow-sm'>Out</div>
+                        </div>
+                    );
+                }
+                return <div className='flex h-8 items-center justify-center'>{String(val)}</div>;
+            },
+            enableSorting: false,
+            enableHiding: true
+        }
+    ];
+
+    const dynamicDateColumns: ColumnDef<InOutRow>[] = dateColumns.map((dateStr) => {
+        const dateObj = new Date(dateStr);
+        let title = dateStr;
+        try {
+            if (!isNaN(dateObj.getTime())) {
+                title = `${format(dateObj, 'dd-MMM')} ${format(dateObj, 'EEEE').substring(0, 3)}`;
+            }
+        } catch (e) { }
+
+        return {
+            accessorKey: dateStr,
+            header: ({ column }) => (
+                <DataTableColumnHeader 
+                    column={column} 
+                    title={title} 
+                    className="flex flex-col items-center justify-center text-center text-xs"
+                />
+            ),
+            cell: ({ row }) => {
+                const val = row.getValue(dateStr) as any;
+                
+                if (typeof val === 'object' && val !== null) {
+                    return (
+                        <div className='flex flex-col items-center justify-center gap-1 py-1'>
+                            <div className='flex h-8 min-w-[60px] items-center justify-center border bg-white px-2 text-sm shadow-sm'>
+                                {val.in || '--'}
+                            </div>
+                            <div className='flex h-8 min-w-[60px] items-center justify-center border bg-white px-2 text-sm shadow-sm'>
+                                {val.out || '--'}
+                            </div>
+                        </div>
+                    );
+                }
+                
+                return (
+                    <div className="flex h-8 items-center justify-center font-medium">
+                        {val || '--'}
+                    </div>
+                );
+            },
+            enableSorting: false,
+            enableHiding: false
+        };
+    });
+
+    return [...staticColumns, ...dynamicDateColumns];
+};

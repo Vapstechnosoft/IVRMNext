@@ -14,98 +14,124 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
+import { useGetInstitutionByLogin, useGetMasterLocationGrid, useSaveOrUpdateLocation, useToggleLocationStatus } from '@/hooks/hrms/recruitment/masters/useMasters';
+
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, MoreHorizontal, Plus, RefreshCw, Save, Trash2, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { type SubmitHandler, useForm } from 'react-hook-form';
+import { useRef, useState } from 'react';
+import { type SubmitHandler, useForm, Controller } from 'react-hook-form';
 import { toast } from 'sonner';
-interface MasterLocation extends BaseEntity {
-    institution: string;
-    locationName: string;
-    locationDesc: string;
-    isActive: boolean;
-}
-type MasterLocationForm = {
-    institution: string;
-    locationName: string;
-    locationDesc: string;
-    isActive: boolean;
-};
-const institutions = ['VAPS School', 'VAPS College', 'VAPS University', 'VAPS Institute', 'VAPS Academy'];
+import { getMasterLocationColumns, type MasterLocation } from './_components/columns';
+import ToggleMasterLocationModal from './_components/toggle-modal';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { recruitmentMasterLocationSchema } from '@/schemas/hrms/recruitment/masters';
+import { z } from 'zod';
+
+type MasterLocationForm = z.infer<typeof recruitmentMasterLocationSchema>;
+
 export default function MasterLocationPage() {
-    const [isFormOpen, setIsFormOpen] = useState(false);
+
     const [editingId, setEditingId] = useState<number | null>(null);
-    const [locations, setLocations] = useState<MasterLocation[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isToggleOpen, setIsToggleOpen] = useState(false);
+    const [selectedLocation, setSelectedLocation] = useState<MasterLocation | null>(null);
+    const [resetkey, setResetkey] = useState(0);
     const formRef = useRef<HTMLDivElement>(null);
-    const locationDB = createLocalCrud<MasterLocation>('master:location');
+
+    const { data: institutionData, isLoading: institutionLoading } = useGetInstitutionByLogin();
+    const { mutateAsync: saveMutation, isPending: isSubmittingMutation } = useSaveOrUpdateLocation();
+    console.log("institutionData", institutionData)
+
+
     const {
         register,
+        control,
         handleSubmit,
         reset,
         setValue,
         watch,
-        formState: { errors, isSubmitting }
+        formState: { errors }
     } = useForm<MasterLocationForm>({
+        resolver: zodResolver(recruitmentMasterLocationSchema),
         mode: 'onChange',
         defaultValues: {
-            isActive: true
+            hrmlO_Id: 0,
+            hrmlO_ActiveFlg: true,
+            hrmlO_Institution: '',
+            hrmlO_LocationName: '',
+            hrmlO_LocationDesc: ''
         }
     });
-    const institution = watch('institution');
-    // Load data on component mount
-    useEffect(() => {
-        loadLocations();
-    }, []);
-    const loadLocations = () => {
-        try {
-            setLocations(locationDB.list());
-        } catch (_error) {
-            toast.error('Failed to load locations');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-    const handleAddClick = () => {
-        setIsFormOpen(true);
+
+    const selectedInstitutionId = watch('hrmlO_Institution');
+    console.log("selectedInstitutionId", selectedInstitutionId)
+
+    const { data: masterLocationGridData, isLoading: masterLocationDataLoading, refetchAll: refetchMasterLocationGrid } = useGetMasterLocationGrid(
+        selectedInstitutionId ? Number(selectedInstitutionId) : 0
+    );
+
+    console.log("masterLocationGridData", masterLocationGridData)
+
+    const gridData = masterLocationGridData?.data ?? [];
+
+
+    // Clears only name/desc fields — keeps institution so the grid query stays active
+    const handleClear = () => {
         setEditingId(null);
-        reset({ isActive: true });
-        // Scroll to form after state update
-        setTimeout(() => {
-            formRef.current?.scrollIntoView({
-                behavior: 'smooth',
-                block: 'end'
-            });
-        }, 100);
+        const currentInstitution = watch('hrmlO_Institution');
+        reset({
+            hrmlO_Id: 0,
+            hrmlO_ActiveFlg: true,
+            hrmlO_Institution: currentInstitution,   // preserve so grid stays visible
+            hrmlO_LocationName: '',
+            hrmlO_LocationDesc: '',
+            mi_Id: currentInstitution ? Number(currentInstitution) : 0
+        });
+        setResetkey(prev => prev + 1);
     };
-    const handleFormClose = () => {
-        setIsFormOpen(false);
+
+    const handleFullClear = () => {
         setEditingId(null);
-        reset({ isActive: true });
+        reset({ hrmlO_Id: 0, hrmlO_ActiveFlg: true, hrmlO_Institution: '', hrmlO_LocationName: '', hrmlO_LocationDesc: '', mi_Id: 0 });
+        setResetkey(prev => prev + 1);
     };
+
     const onSubmit: SubmitHandler<MasterLocationForm> = async (data: MasterLocationForm) => {
         try {
-            if (editingId) {
-                locationDB.update(editingId, data);
-                toast.success('Location updated successfully');
+            const payload = {
+                hrmlO_Id: editingId || 0,
+                mi_Id: Number(data.hrmlO_Institution),
+                hrmlO_LocationName: data.hrmlO_LocationName,
+                hrmlO_LocationDesc: data.hrmlO_LocationDesc,
+                hrmlO_ActiveFlg: data.hrmlO_ActiveFlg ?? true
+            };
+            const result = await saveMutation(payload);
+            if (result.success) {
+                toast.success(editingId ? 'Location updated successfully' : 'Location created successfully');
+                // Refetch FIRST (institution still set), THEN clear name/desc
+                await refetchMasterLocationGrid();
+                handleFullClear();
             } else {
-                locationDB.create(data as Omit<MasterLocation, 'id' | 'createdAt'>);
-                toast.success('Location created successfully');
+                toast.error(result.message || 'Operation failed');
             }
-            loadLocations();
-            handleFormClose();
         } catch (error: any) {
             toast.error(error.message || 'Operation failed');
         }
     };
     const handleEdit = (location: MasterLocation) => {
-        setEditingId(location.id);
-        setValue('institution', location.institution);
-        setValue('locationName', location.locationName);
-        setValue('locationDesc', location.locationDesc);
-        setValue('isActive', location.isActive);
-        setIsFormOpen(true);
+        console.log("edit location", location);
+        setEditingId(location.hrmlO_Id);
+        // mi_Id is the institution id from the API; fall back to currently selected institution
+        const institutionId = location.mi_Id?.toString()
+            ?? location.hrmlO_Institution
+            ?? selectedInstitutionId;
+        reset({
+            hrmlO_Id: location.hrmlO_Id,
+            hrmlO_Institution: institutionId,
+            hrmlO_LocationName: location.hrmlO_LocationName,
+            hrmlO_LocationDesc: location.hrmlO_LocationDesc,
+            hrmlO_ActiveFlg: location.hrmlO_ActiveFlg
+        });
+
         // Scroll to form after state update
         setTimeout(() => {
             formRef.current?.scrollIntoView({
@@ -114,237 +140,147 @@ export default function MasterLocationPage() {
             });
         }, 100);
     };
-    const handleDelete = (id: number) => {
-        try {
-            locationDB.remove(id);
-            toast.success('Location deleted successfully');
-            loadLocations();
-        } catch (_error: any) {
-            toast.error('Failed to delete location');
-        }
+    const handleToggle = (location: MasterLocation) => {
+        setSelectedLocation(location);
+        setIsToggleOpen(true);
     };
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                {/* Header */}
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    {/* <div className='space-y-1'>
-                        <Heading title='Master Location Management' description='Manage location details for different institutions' />
-                    </div> */}
-                    <Button
-                        type='button'
-                        onClick={handleAddClick}
-                        size='lg'
-                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='h-4 w-4' />
-                        Add Master Location
-                    </Button>
+                <div ref={formRef} className='slide-in-from-top-4 animate-in duration-300'>
+                    <CollapsibleSection
+                        title={editingId ? 'Update Master Location' : 'Add New Master Location'}
+                        description='Fill in the details below to create a new location'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='shadow-lg'
+                        headerClassName=''>
+                        <div className='relative'>
+                            <form onSubmit={handleSubmit(onSubmit)} className='max-w-full space-y-6'>
+                                {/* Primary Information Section */}
+                                <div className='space-y-4'>
+                                    <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
+                                        <div className='flex flex-col gap-1.5'>
+                                            <span className='font-medium text-sm'>
+                                                Institution <span className='text-red-500'>*</span>
+                                            </span>
+                                            <Controller
+                                                key={resetkey}
+                                                name='hrmlO_Institution'
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <Select value={field.value || ''} onValueChange={field.onChange}
+                                                        disabled={institutionLoading}
+                                                    >
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder={institutionLoading ? 'Loading Institution...' : 'Select Institution'} />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {institutionData?.data?.map((inst: any) => (
+                                                                <SelectItem key={inst.mI_Id} value={inst.mI_Id.toString()}>
+                                                                    {inst.mI_Name}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                )}
+                                            />
+                                            {errors.hrmlO_Institution && <FormError>{errors.hrmlO_Institution.message}</FormError>}
+                                        </div>
+                                        <InputText
+                                            key={resetkey}
+                                            label='Location Name'
+                                            required
+                                            id='hrmlO_LocationName'
+                                            {...register('hrmlO_LocationName', { required: 'Location Name is required' })}
+                                            error={errors.hrmlO_LocationName?.message}
+                                            className='mt-0 transition-colors focus:ring-2 focus:ring-primary/20'
+                                            placeholder='Enter Location'
+                                        />
+                                    </div>
+                                    <div className='grid grid-cols-1 items-start gap-4 lg:grid-cols-2'>
+                                        <InputText
+                                            key={resetkey}
+                                            label='Location Desc.'
+                                            required
+                                            id='hrmlO_LocationDesc'
+                                            {...register('hrmlO_LocationDesc', { required: 'Location Description is required' })}
+                                            error={errors.hrmlO_LocationDesc?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                            placeholder='Enter Location Description'
+                                        />
+
+                                    </div>
+                                </div>
+                                {/* Action Buttons */}
+                                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
+                                    <Button
+                                        type='button'
+                                        variant='outline'
+                                        onClick={handleFullClear}
+                                        disabled={isSubmittingMutation}
+                                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        type='submit'
+                                        disabled={isSubmittingMutation}
+                                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
+                                        {isSubmittingMutation ? (
+                                            <div className='flex items-center'>
+                                                <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
+                                                Saving...
+                                            </div>
+                                        ) : (
+                                            <div className='flex items-center'>
+                                                <Save className='mr-2 h-4 w-4' />
+                                                {editingId ? 'Update Master Location' : 'Save Master Location'}
+                                            </div>
+                                        )}
+                                    </Button>
+                                </div>
+                            </form>
+                        </div>
+                    </CollapsibleSection>
                 </div>
+                {/* Header */}
+
                 {/* Data Table Section - Collapsible but default open */}
                 <CollapsibleSection
-                    // title='Master Locations Data'
-                    // description='View, search, and manage all location details in the system'
+                    title="Master Location Details"
+                    description="Manage location details for different institutions"
                     defaultOpen={true}
-                    variant='default'
                     size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
-                    headerClassName=''>
-                    <LocationTable locations={locations} isLoading={isLoading} onEdit={handleEdit} onDelete={handleDelete} />
-                </CollapsibleSection>
-                {/* Add Form Section - Conditionally Rendered */}
-                {isFormOpen && (
-                    <div ref={formRef} className='slide-in-from-top-4 animate-in duration-300'>
-                        <CollapsibleSection
-                            title={editingId ? 'Update Master Location' : 'Add New Master Location'}
-                            description='Fill in the details below to create a new location'
-                            defaultOpen={true}
-                            variant='outline'
-                            size='md'
-                            className='shadow-lg'
-                            headerClassName=''>
-                            <div className='relative'>
-                                <Button
-                                    onClick={handleFormClose}
-                                    variant='ghost'
-                                    size='sm'
-                                    className='-top-[4rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                    <X className='h-4 w-4 text-destructive' /> Close
-                                </Button>
-                                <form onSubmit={handleSubmit(onSubmit)} className='max-w-full space-y-6'>
-                                    {/* Primary Information Section */}
-                                    <div className='space-y-4'>
-                                        <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-                                            <div className='flex flex-col gap-1.5'>
-                                                <span className='font-medium text-sm'>
-                                                    Institution <span className='text-red-500'>*</span>
-                                                </span>
-                                                <Select value={institution || ''} onValueChange={(value) => setValue('institution', value)}>
-                                                    <SelectTrigger className={errors.institution ? 'border-red-500' : ''}>
-                                                        <SelectValue placeholder='Select Institution' />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {institutions.map((inst) => (
-                                                            <SelectItem key={inst} value={inst}>
-                                                                {inst}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                                {!institution && (
-                                                    <input
-                                                        type='hidden'
-                                                        {...register('institution', {
-                                                            required: 'Institution is required'
-                                                        })}
-                                                    />
-                                                )}
-                                                {errors.institution && <FormError>{errors.institution.message}</FormError>}
-                                            </div>
-                                            <InputText
-                                                label='Location Name'
-                                                required
-                                                id='locationName'
-                                                {...register('locationName', { required: 'Location Name is required' })}
-                                                error={errors.locationName?.message}
-                                                className='mt-0 transition-colors focus:ring-2 focus:ring-primary/20'
-                                            />
-                                        </div>
-                                        <div className='grid grid-cols-1 items-start gap-4 lg:grid-cols-2'>
-                                            <InputText
-                                                label='Location Desc.'
-                                                required
-                                                id='locationDesc'
-                                                {...register('locationDesc', { required: 'Location Description is required' })}
-                                                error={errors.locationDesc?.message}
-                                                className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                            />
-                                            <div className='group flex flex-col gap-1.5'>
-                                                <Label htmlFor='isActive' className='invisible'>
-                                                    Location Desc. <span className='ml-1 text-red-500'>*</span>
-                                                </Label>
-                                                <div className='flex h-9 items-center'>
-                                                    <input
-                                                        type='checkbox'
-                                                        id='isActive'
-                                                        {...register('isActive')}
-                                                        className='mr-2 h-4 w-4 border-border text-primary focus:ring-primary'
-                                                    />
-                                                    <label htmlFor='isActive' className='cursor-pointer font-medium text-sm'>
-                                                        Active
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {/* Root Error */}
-                                        {errors.root && <FormError>{errors.root.message}</FormError>}
-                                    </div>
-                                    {/* Action Buttons */}
-                                    <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
-                                        <Button
-                                            type='button'
-                                            variant='outline'
-                                            onClick={handleFormClose}
-                                            disabled={isSubmitting}
-                                            className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                                            Cancel
-                                        </Button>
-                                        <Button
-                                            type='submit'
-                                            disabled={isSubmitting}
-                                            className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
-                                            {isSubmitting ? (
-                                                <div className='flex items-center'>
-                                                    <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
-                                                    Saving...
-                                                </div>
-                                            ) : (
-                                                <div className='flex items-center'>
-                                                    <Save className='mr-2 h-4 w-4' />
-                                                    {editingId ? 'Update Master Location' : 'Save Master Location'}
-                                                </div>
-                                            )}
-                                        </Button>
-                                    </div>
-                                </form>
+                    className='shadow-lg'
+
+                >
+                    {
+                        (masterLocationDataLoading || gridData?.length > 0 || selectedInstitutionId) ? (
+                            <GenericDataTable
+                                data={gridData || []}
+                                columns={getMasterLocationColumns({ onEdit: handleEdit, onToggle: handleToggle })}
+                                isLoading={masterLocationDataLoading}
+                                totalItems={gridData?.length || 0}
+                                showViewOptions={false}
+                            />
+                        ) : (
+                            <div className='flex items-center justify-center py-10'>
+                                <p className='text-muted-foreground text-md'>Please Select Institution to View Data</p>
                             </div>
-                        </CollapsibleSection>
-                    </div>
+                        )
+                    }
+                </CollapsibleSection>
+                {selectedLocation && (
+                    <ToggleMasterLocationModal
+                        isOpen={isToggleOpen}
+                        rowData={selectedLocation}
+                        onClose={() => setIsToggleOpen(false)}
+                        onSuccess={() => refetchMasterLocationGrid()}
+                    />
                 )}
+
             </div>
         </div>
-    );
-}
-interface LocationTableProps {
-    locations: MasterLocation[];
-    isLoading: boolean;
-    onEdit: (location: MasterLocation) => void;
-    onDelete: (id: number) => void;
-}
-function LocationTable({ locations, isLoading, onEdit, onDelete }: LocationTableProps) {
-    const locationColumns: ColumnDef<MasterLocation>[] = [
-        {
-            id: 'serialNumber',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Sl No' />,
-            cell: ({ row }) => <div className='font-medium'>{row.index + 1}</div>,
-            enableSorting: false
-        },
-        {
-            accessorKey: 'locationName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Location Name' />,
-            cell: ({ row }) => <div className='font-medium'>{row.getValue('locationName')}</div>
-        },
-        {
-            accessorKey: 'locationDesc',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Location Description' />,
-            cell: ({ row }) => <div>{row.getValue('locationDesc')}</div>
-        },
-        {
-            accessorKey: 'isActive',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-            cell: ({ row }) => {
-                const isActive = row.getValue('isActive') as boolean;
-                return <Badge variant={isActive ? 'default' : 'secondary'}>{isActive ? 'Active' : 'Inactive'}</Badge>;
-            }
-        },
-        {
-            id: 'actions',
-            header: 'Actions',
-            cell: ({ row }) => {
-                const location = row.original;
-                return (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant='ghost' className='h-8 w-8 p-0'>
-                                <MoreHorizontal className='h-4 w-4' />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align='end'>
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <Button variant='ghost' size='sm' onClick={() => onEdit(location)} className='w-full justify-start'>
-                                <Edit className='mr-2 h-4 w-4' />
-                                Edit
-                            </Button>
-                            <Button
-                                variant='ghost'
-                                size='sm'
-                                onClick={() => onDelete(location.id)}
-                                className='w-full justify-start text-red-600 hover:text-red-900'>
-                                <Trash2 className='mr-2 h-4 w-4' />
-                                Delete
-                            </Button>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                );
-            }
-        }
-    ];
-    return (
-        <GenericDataTable
-            isLoading={isLoading}
-            columns={locationColumns}
-            data={locations}
-            totalItems={locations.length}
-            showViewOptions={true}
-        />
     );
 }

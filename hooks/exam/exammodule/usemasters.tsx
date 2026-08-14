@@ -14,7 +14,7 @@ import { getCategoryMappedSections } from '@/server/exam/exam-module/masters/cat
 import { getMasterExam, getMasterExamOrderData } from '@/server/exam/exam-module/masters/exam';
 import { getMasterExamPaper } from '@/server/exam/exam-module/masters/exam-paper';
 import { getGradeDetailsById, getMasterGrade, getMasterGradeDropdownList } from '@/server/exam/exam-module/masters/grade';
-import { getMasterLifeSkillAreas, getMasterLifeSkillMappings, getMasterLifeSkills } from '@/server/exam/exam-module/masters/life-skills';
+import { getMasterLifeSkillAreas, getMasterLifeSkillAreasDropdown, getMasterLifeSkillDrpdownList, getMasterLifeSkillMappings, getMasterLifeSkills } from '@/server/exam/exam-module/masters/life-skills';
 import { getMasterSubExam, getMasterSubExamDropdownList } from '@/server/exam/exam-module/masters/sub-exam';
 import { getMasterSubject, getMasterSubjectDropdownList } from '@/server/exam/exam-module/masters/subject';
 import {
@@ -458,6 +458,24 @@ export const useMasterLifeSkills = (searchParams?: ApiSearchparams) => {
     };
 };
 
+export const useMasterLifeSkillsDropdown = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+    searchParams?.sort_direction;
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.LIFE_SkILLS_DROPDOWN, searchParams ?? {}],
+            queryFn: async () => getMasterLifeSkillDrpdownList(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.LIFE_SkILLS_DROPDOWN]
+            });
+        }
+    };
+};
+
 export const useMasterLifeSkillArea = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
     searchParams?.sort_direction;
@@ -476,6 +494,22 @@ export const useMasterLifeSkillArea = (searchParams?: ApiSearchparams) => {
     };
 };
 
+export const useMasterLifeSkillAreaDropdown = () => {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.LIFE_SKILLS_AREA],
+            queryFn: async () => getMasterLifeSkillAreasDropdown(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.LIFE_SKILLS_AREA]
+            });
+        }
+    };
+};
 export const useMasterLifeSkillAreaMapping = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
     searchParams?.sort_direction;

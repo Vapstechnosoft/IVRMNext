@@ -9,17 +9,22 @@ import {
     FormControl,
     FormDescription,
     FormField,
-    FormItem,
-    FormLabel,
-    FormMessage
+    FormItem
 } from '@/components/ui/form';
+import { FormError } from '@/components/ui/extension/field';
+import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Separator } from '@/components/ui/separator';
-import { useEmployeeOnDutyDetails, useSaveOnDutyLeaveRequest } from '@/hooks/hrms/leave-management/useAdminOnDutyApply';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
+} from '@/components/ui/select';
+import { useAdminOnDutyEmployeeDropdown, useEmployeeOnDutyDetails, useSaveOnDutyLeaveRequest } from '@/hooks/hrms/leave-management/useAdminOnDutyApply';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { format, differenceInDays, parse } from 'date-fns';
+import { format, differenceInDays } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     CalendarIcon,
@@ -39,42 +44,86 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { toast } from 'sonner';
+import { Separator } from '@/components/ui/separator';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { AdminOnDutyApply } from '@/types/hrms/leave-management/admin-on-duty-apply';
 
 const formSchema = z.object({
     hrmE_Id: z.coerce.number().min(1, 'Employee ID is required'),
     leaveType: z.string().min(1, 'Leave type is required'),
-    fromDate: z.date({ required_error: 'From date is required' }),
-    toDate: z.date({ required_error: 'To date is required' }),
+    fromDate: z.date({ 
+        required_error: 'From date is required',
+        invalid_type_error: 'Please select a valid From Date'
+    }),
+    toDate: z.date({ 
+        required_error: 'To date is required',
+        invalid_type_error: 'Please select a valid To Date'
+    }),
     totalDays: z.coerce.number().min(0.5, 'Total days must be at least 0.5'),
-    leaveReason: z.string().min(1, 'Reason is required'),
-    inTime: z.string().min(1, 'In time is required'),
-    outTime: z.string().min(1, 'Out time is required')
-}).refine((data) => data.toDate >= data.fromDate, {
+    leaveReason: z.string()
+        .min(5, 'Reason must be at least 5 characters long')
+        .max(500, 'Reason cannot exceed 500 characters'),
+    inTime: z.string()
+        .min(1, 'In time is required')
+        .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Please enter a valid time (HH:MM)'),
+    outTime: z.string()
+        .min(1, 'Out time is required')
+        .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Please enter a valid time (HH:MM)')
+})
+.refine((data) => data.toDate >= data.fromDate, {
     message: "To Date cannot be before From Date",
     path: ["toDate"]
+})
+.refine((data) => {
+    // Ensure outTime is after inTime if it's a single day leave
+    if (data.fromDate.getTime() === data.toDate.getTime()) {
+        const inMinutes = parseInt(data.inTime.split(':')[0]) * 60 + parseInt(data.inTime.split(':')[1]);
+        const outMinutes = parseInt(data.outTime.split(':')[0]) * 60 + parseInt(data.outTime.split(':')[1]);
+        return outMinutes > inMinutes;
+    }
+    return true;
+}, {
+    message: "Out time must be after In time for single day applications",
+    path: ["outTime"]
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 interface ApplyLeaveFormProps {
     onSuccess?: () => void;
+    onCancel?: () => void;
+    editingRow?: AdminOnDutyApply | null;
 }
 
-export default function ApplyLeaveForm({ onSuccess }: ApplyLeaveFormProps) {
+export default function ApplyLeaveForm({ onSuccess, onCancel, editingRow }: ApplyLeaveFormProps) {
     const { mutate: saveLeave, isPending } = useSaveOnDutyLeaveRequest();
-    const [empIdInput, setEmpIdInput] = useState('');
+    const { data: employeeList, isLoading: isLoadingList } = useAdminOnDutyEmployeeDropdown();
+
+    const formatTime = (time?: string) => {
+        if (!time) return '';
+        const parts = time.split(':');
+        if (parts.length >= 2) {
+            return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
+        }
+        return time;
+    };
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
+        mode: 'onChange',
         defaultValues: {
-            hrmE_Id: 0,
+            hrmE_Id: editingRow?.employeeId || 0,
             leaveType: 'OD',
-            totalDays: 1,
-            leaveReason: '',
-            inTime: '10:00',
-            outTime: '18:00'
+            fromDate: editingRow?.fromDate ? new Date(editingRow.fromDate) : undefined,
+            toDate: editingRow?.toDate ? new Date(editingRow.toDate) : undefined,
+            totalDays: editingRow?.totalDays || 1,
+            leaveReason: editingRow?.leaveReason || '',
+            inTime: formatTime(editingRow?.inTime) || '10:00',
+            outTime: formatTime(editingRow?.outTime) || '18:00'
         }
     });
+
+    console.log('Form default values:', editingRow);
 
     const hrmE_Id = form.watch('hrmE_Id');
     const fromDate = form.watch('fromDate');
@@ -82,17 +131,19 @@ export default function ApplyLeaveForm({ onSuccess }: ApplyLeaveFormProps) {
 
     // Auto-calculate total days
     useEffect(() => {
-        if (fromDate && toDate) {
+        if (fromDate && toDate && !editingRow) {
             const days = differenceInDays(toDate, fromDate) + 1;
             if (days > 0) {
                 form.setValue('totalDays', days);
             }
         }
-    }, [fromDate, toDate, form]);
+    }, [fromDate, toDate, form, editingRow]);
 
     const { data: employeeData, isLoading: isLoadingEmp } = useEmployeeOnDutyDetails(hrmE_Id > 0 ? hrmE_Id : null);
 
     function onSubmit(values: FormValues) {
+
+        console.log('Submitting form with values:', values);
         saveLeave(
             {
                 HRME_Id: values.hrmE_Id,
@@ -102,17 +153,19 @@ export default function ApplyLeaveForm({ onSuccess }: ApplyLeaveFormProps) {
                 HRELAP_TotalDays: values.totalDays,
                 HRELAP_LeaveReason: values.leaveReason,
                 HRELAPD_InTime: values.inTime,
-                HRELAPD_OutTime: values.outTime
+                HRELAPD_OutTime: values.outTime,
+                HRELT_SupportingDocument: ''
             },
             {
                 onSuccess: () => {
                     form.reset();
-                    setEmpIdInput('');
                     onSuccess?.();
                 }
             }
         );
     }
+
+    const { isValid } = form.formState;
 
     return (
         <div className='space-y-6'>
@@ -140,38 +193,40 @@ export default function ApplyLeaveForm({ onSuccess }: ApplyLeaveFormProps) {
                                         name='hrmE_Id'
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className='font-semibold'>Employee ID Lookup</FormLabel>
-                                                <FormControl>
-                                                    <div className='relative group'>
-                                                        <UserIcon className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors' />
-                                                        <Input
-                                                            type='number'
-                                                            placeholder='Enter HRMS Employee ID (e.g. 1207)'
-                                                            className='pl-10 h-11 border-muted-foreground/20 focus-visible:ring-primary/30 transition-all'
-                                                            value={empIdInput}
-                                                            onChange={(e) => {
-                                                                setEmpIdInput(e.target.value);
-                                                                const val = Number(e.target.value);
-                                                                if (val > 0) field.onChange(val);
-                                                                else field.onChange(0);
-                                                            }}
-                                                        />
-                                                        {isLoadingEmp && (
-                                                            <div className='absolute right-3 top-1/2 -translate-y-1/2'>
-                                                                <motion.div
-                                                                    animate={{ rotate: 360 }}
-                                                                    transition={{ repeat: Number.POSITIVE_INFINITY, duration: 1, ease: 'linear' }}
-                                                                >
-                                                                    <Clock className='h-4 w-4 text-primary opacity-50' />
-                                                                </motion.div>
+                                                <Label className='font-semibold'>Select Employee <span className="text-destructive">*</span></Label>
+                                                <Select
+                                                    onValueChange={(value) => {
+                                                        const id = Number(value);
+                                                        field.onChange(id);
+                                                    }}
+                                                    value={field.value > 0 ? field.value.toString() : ''}
+                                                >
+                                                    <FormControl>
+                                                        <SelectTrigger className='h-11 border-muted-foreground/20 focus:ring-primary/30 transition-all'>
+                                                            <div className='flex items-center gap-2'>
+                                                                <UserIcon className='h-4 w-4 text-muted-foreground' />
+                                                                <SelectValue placeholder='Search/Select Employee' />
                                                             </div>
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        {isLoadingList ? (
+                                                            <div className='p-2 text-center text-sm text-muted-foreground'>
+                                                                Loading employees...
+                                                            </div>
+                                                        ) : (
+                                                            employeeList?.map((emp) => (
+                                                                <SelectItem key={emp.hrmE_Id} value={emp.hrmE_Id.toString()}>
+                                                                    {emp.employeeName} (ID: {emp.hrmE_Id})
+                                                                </SelectItem>
+                                                            ))
                                                         )}
-                                                    </div>
-                                                </FormControl>
+                                                    </SelectContent>
+                                                </Select>
                                                 <FormDescription className='text-[11px]'>
-                                                    Enter the employee ID to auto-fetch details.
+                                                    Select an employee to auto-fetch details.
                                                 </FormDescription>
-                                                <FormMessage />
+                                                {form.formState.errors.hrmE_Id?.message && <FormError>{form.formState.errors.hrmE_Id.message}</FormError>}
                                             </FormItem>
                                         )}
                                     />
@@ -180,13 +235,13 @@ export default function ApplyLeaveForm({ onSuccess }: ApplyLeaveFormProps) {
                                         name='leaveType'
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className='font-semibold'>Leave Type</FormLabel>
+                                                <Label className='font-semibold'>Leave Type <span className="text-destructive">*</span></Label>
                                                 <FormControl>
                                                     <div className='h-11 flex items-center px-4 rounded-md border border-muted-foreground/10 bg-muted/30 font-bold text-primary'>
                                                         On Duty (OD)
                                                     </div>
                                                 </FormControl>
-                                                <FormMessage />
+                                                {form.formState.errors.leaveType?.message && <FormError>{form.formState.errors.leaveType.message}</FormError>}
                                             </FormItem>
                                         )}
                                     />
@@ -251,7 +306,7 @@ export default function ApplyLeaveForm({ onSuccess }: ApplyLeaveFormProps) {
                                                 </div>
 
                                                 {/* Recent Applications Sidebar/Inline */}
-                                                {employeeData.leaveDetails.length > 0 && (
+                                                {/* {employeeData.leaveDetails.length > 0 && (
                                                     <div className='mt-5 pt-4 border-t border-primary/10'>
                                                         <h5 className='text-[10px] font-bold text-muted-foreground uppercase mb-2 flex items-center gap-1'>
                                                             <History className='h-3 w-3' /> Recent OD History
@@ -268,7 +323,7 @@ export default function ApplyLeaveForm({ onSuccess }: ApplyLeaveFormProps) {
                                                             ))}
                                                         </div>
                                                     </div>
-                                                )}
+                                                )} */}
                                             </div>
                                         </motion.div>
                                     )}
@@ -285,7 +340,7 @@ export default function ApplyLeaveForm({ onSuccess }: ApplyLeaveFormProps) {
                                         name='fromDate'
                                         render={({ field }) => (
                                             <FormItem className='flex flex-col'>
-                                                <FormLabel className='font-semibold'>From Date</FormLabel>
+                                                <Label className='font-semibold'>From Date <span className="text-destructive">*</span></Label>
                                                 <Popover>
                                                     <PopoverTrigger asChild>
                                                         <FormControl>
@@ -315,7 +370,7 @@ export default function ApplyLeaveForm({ onSuccess }: ApplyLeaveFormProps) {
                                                         />
                                                     </PopoverContent>
                                                 </Popover>
-                                                <FormMessage />
+                                                {form.formState.errors.fromDate?.message && <FormError>{form.formState.errors.fromDate.message}</FormError>}
                                             </FormItem>
                                         )}
                                     />
@@ -324,7 +379,7 @@ export default function ApplyLeaveForm({ onSuccess }: ApplyLeaveFormProps) {
                                         name='toDate'
                                         render={({ field }) => (
                                             <FormItem className='flex flex-col'>
-                                                <FormLabel className='font-semibold'>To Date</FormLabel>
+                                                <Label className='font-semibold'>To Date <span className="text-destructive">*</span></Label>
                                                 <Popover>
                                                     <PopoverTrigger asChild>
                                                         <FormControl>
@@ -358,7 +413,7 @@ export default function ApplyLeaveForm({ onSuccess }: ApplyLeaveFormProps) {
                                                         />
                                                     </PopoverContent>
                                                 </Popover>
-                                                <FormMessage />
+                                                {form.formState.errors.toDate?.message && <FormError>{form.formState.errors.toDate.message}</FormError>}
                                             </FormItem>
                                         )}
                                     />
@@ -370,7 +425,7 @@ export default function ApplyLeaveForm({ onSuccess }: ApplyLeaveFormProps) {
                                         name='totalDays'
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className='font-semibold'>Total Days</FormLabel>
+                                                <Label className='font-semibold'>Total Days <span className="text-destructive">*</span></Label>
                                                 <FormControl>
                                                     <div className='relative'>
                                                         <Input
@@ -384,7 +439,7 @@ export default function ApplyLeaveForm({ onSuccess }: ApplyLeaveFormProps) {
                                                         </div>
                                                     </div>
                                                 </FormControl>
-                                                <FormMessage />
+                                                {form.formState.errors.totalDays?.message && <FormError>{form.formState.errors.totalDays.message}</FormError>}
                                             </FormItem>
                                         )}
                                     />
@@ -393,11 +448,11 @@ export default function ApplyLeaveForm({ onSuccess }: ApplyLeaveFormProps) {
                                         name='inTime'
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className='font-semibold'>In Time</FormLabel>
+                                                <Label className='font-semibold'>In Time <span className="text-destructive">*</span></Label>
                                                 <FormControl>
                                                     <Input type='time' className='h-11 border-muted-foreground/20' {...field} />
                                                 </FormControl>
-                                                <FormMessage />
+                                                {form.formState.errors.inTime?.message && <FormError>{form.formState.errors.inTime.message}</FormError>}
                                             </FormItem>
                                         )}
                                     />
@@ -406,11 +461,11 @@ export default function ApplyLeaveForm({ onSuccess }: ApplyLeaveFormProps) {
                                         name='outTime'
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className='font-semibold'>Out Time</FormLabel>
+                                                <Label className='font-semibold'>Out Time <span className="text-destructive">*</span></Label>
                                                 <FormControl>
                                                     <Input type='time' className='h-11 border-muted-foreground/20' {...field} />
                                                 </FormControl>
-                                                <FormMessage />
+                                                {form.formState.errors.outTime?.message && <FormError>{form.formState.errors.outTime.message}</FormError>}
                                             </FormItem>
                                         )}
                                     />
@@ -422,7 +477,7 @@ export default function ApplyLeaveForm({ onSuccess }: ApplyLeaveFormProps) {
                                 name='leaveReason'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className='font-semibold'>Application Reason</FormLabel>
+                                        <Label className='font-semibold'>Application Reason <span className="text-destructive">*</span></Label>
                                         <FormControl>
                                             <div className='relative'>
                                                 <Input
@@ -433,7 +488,7 @@ export default function ApplyLeaveForm({ onSuccess }: ApplyLeaveFormProps) {
                                                 <FileText className='absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground opacity-50' />
                                             </div>
                                         </FormControl>
-                                        <FormMessage />
+                                        {form.formState.errors.leaveReason?.message && <FormError>{form.formState.errors.leaveReason.message}</FormError>}
                                     </FormItem>
                                 )}
                             />
@@ -448,27 +503,30 @@ export default function ApplyLeaveForm({ onSuccess }: ApplyLeaveFormProps) {
                                         type='button'
                                         variant='outline'
                                         onClick={() => {
-                                            form.reset();
-                                            setEmpIdInput('');
+                                            if (editingRow) {
+                                                onCancel?.();
+                                            } else {
+                                                form.reset();
+                                            }
                                         }}
                                         disabled={isPending}
                                         className='px-6 border-muted-foreground/20'
                                     >
-                                        Reset
+                                        {editingRow ? 'Cancel' : 'Reset'}
                                     </Button>
                                     <Button
                                         type='submit'
-                                        disabled={isPending || !employeeData}
+                                        
                                         className='px-8 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all active:scale-95'
                                     >
                                         {isPending ? (
                                             <>
                                                 <Clock className='mr-2 h-4 w-4 animate-spin' />
-                                                Submitting...
+                                                {editingRow ? 'Updating...' : 'Submitting...'}
                                             </>
                                         ) : (
                                             <>
-                                                Submit Request
+                                                {editingRow ? 'Update Request' : 'Submit Request'}
                                                 <ArrowRight className='ml-2 h-4 w-4' />
                                             </>
                                         )}

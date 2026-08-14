@@ -1,31 +1,34 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { usePreAdmissionAcademicYear } from '@/hooks/admission/preadmission/useConfigurations';
-import type { IMasterAcademicYearMasterList } from '@/types/admission/preadmission/configaration';
+import type { IInstitutionItem, IMasterAcademicYearMasterList } from '@/types/admission/preadmission/configaration';
 import { Plus, X } from 'lucide-react';
-import { use } from 'react';
+import { Suspense } from 'react';
 import AddAcademicYearMasterForm from './_components/add-form';
 import { masterAcademicYearColumns } from './_components/columns';
 import ReorderAcademicYearForm from './_components/reorder-form';
 import TogglePreAdmissionAcademicYearForm from './_components/toggle-form';
 import UpdateMasterAcademicYearForm from './_components/update-form';
+import ViewDetailsForm from './_components/view-details-form';
 
-type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+export default function MasterAcademicYearPage() {
+    return (
+        <Suspense fallback={<div className='flex min-h-screen items-center justify-center'>Loading page...</div>}>
+            <MasterAcademicYearPageContentWrapper />
+        </Suspense>
+    );
+}
 
-export default function MasterAcademicYearPage(props: {
-    searchParams: SearchParams;
-}) {
-    const searchParams = use(props.searchParams);
-
+function MasterAcademicYearPageContentWrapper() {
     const {
         data: academicYearResponse,
         isLoading: isLoadingAcademicYear,
         error: academicYearError
-    } = usePreAdmissionAcademicYear(searchParams);
+    } = usePreAdmissionAcademicYear();
 
     return (
         <FormProvider<IMasterAcademicYearMasterList>>
@@ -44,7 +47,15 @@ function MasterAcademicYearPageContent({
     error: any;
 }) {
     const { openAddForm } = useFormContext<IMasterAcademicYearMasterList>();
-    const tableProps = useDataTableProps(response);
+
+    // The API returns: { success, data: list, total: totalRecords, page, page_size }
+    const nestedData = response?.data;
+    const tableData: IMasterAcademicYearMasterList[] =
+        Array.isArray(nestedData)
+            ? nestedData
+            : (nestedData?.paginatedList ?? nestedData?.academicList ?? []);
+    const totalItems: number = response?.total ?? nestedData?.totalRecords ?? nestedData?.total ?? tableData.length;
+    const institutionList: IInstitutionItem[] = nestedData?.institutionList ?? response?.institutionList ?? [];
 
     return (
         <div className='min-h-screen'>
@@ -66,13 +77,19 @@ function MasterAcademicYearPageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <div className='mb-2 flex items-end justify-between'>
+                    <div className='mb-2 flex flex-col items-start justify-between gap-2 md:flex-row md:items-end md:gap-0'>
                         <p className='font-semibold text-destructive text-sm'>Note: Only one preadmission flag should be activated.</p>
-                        <ReorderAcademicYearForm />
+                        <div className='flex items-center gap-2'>
+                            <ViewDetailsForm data={tableData} institution={institutionList[0]} />
+                            <ReorderAcademicYearForm />
+                        </div>
                     </div>
 
                     <GenericDataTable<IMasterAcademicYearMasterList>
-                        {...tableProps}
+                        data={tableData}
+                        totalItems={totalItems}
+                        success={response?.success}
+                        errorMessage={response?.message}
                         columns={masterAcademicYearColumns}
                         isLoading={isLoading}
                         error={error}
@@ -86,13 +103,13 @@ function MasterAcademicYearPageContent({
                 </CollapsibleSection>
 
                 {/* Forms */}
-                <FormSections />
+                <FormSections institutionList={institutionList} />
             </div>
         </div>
     );
 }
 
-function FormSections() {
+function FormSections({ institutionList }: { institutionList: IInstitutionItem[] }) {
     const {
         isAddFormOpen,
         isToggleFormOpen,
@@ -126,7 +143,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddAcademicYearMasterForm onSuccess={closeAddForm} />
+                            <AddAcademicYearMasterForm onSuccess={closeAddForm} institutionList={institutionList} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -150,7 +167,11 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateMasterAcademicYearForm selectedRow={selectedRow as any} onSuccess={closeEditForm} />
+                            <UpdateMasterAcademicYearForm
+                                selectedRow={selectedRow as any}
+                                onSuccess={closeEditForm}
+                                institutionList={institutionList}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>

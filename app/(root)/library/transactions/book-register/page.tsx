@@ -10,8 +10,9 @@ import { Plus, X } from 'lucide-react';
 import { use, useEffect } from 'react';
 import BookRegisterForm from './_components/BookRegisterForm';
 import { BookRegisterColumns } from './_components/columns';
-//import ToggleBookRegisterForm from './_components/toggle-form';
-//import UpdateBookRegisterForm from './_components/update-form';
+import AddBookCopyForm from './_components/AddBookCopyForm';
+import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
+import { toast } from 'sonner';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -92,13 +93,17 @@ function FormSections({ refetch }: { refetch: () => void }) {
         isAddFormOpen,
         isEditFormOpen,
         isToggleFormOpen,
+        isCopyFormOpen,
         selectedRow,
         closeAddForm,
         closeToggleForm,
         closeEditForm,
+        closeCopyForm,
         addFormRef,
         editFormRef
     } = useFormContext<BookRegisterPayload>();
+
+    const { deactivateMutation } = useBookRegister();
 
     useEffect(() => {
         if (isEditFormOpen && !selectedRow) {
@@ -109,6 +114,46 @@ function FormSections({ refetch }: { refetch: () => void }) {
     // Success handler that refetches data
     const handleSuccess = () => {
         refetch();
+    };
+
+    const handleToggleConfirm = async () => {
+        if (!selectedRow) return;
+        console.log('Book Register Toggle Selected Row:', selectedRow);
+        
+        const accessionId = 
+            selectedRow.lmbanO_Id || 
+            (selectedRow as any).LMBANO_Id || 
+            (selectedRow as any).lmbanO_ID ||
+            (selectedRow as any).lmbanO_id ||
+            selectedRow.lmB_Id || 
+            (selectedRow as any).LMB_Id;
+
+        if (!accessionId) {
+            console.error('Missing ID in row details. Keys present:', Object.keys(selectedRow));
+            toast.error('Accession Number ID is missing');
+            return;
+        }
+
+        try {
+            const payload = { 
+                LMBANO_Id: Number(accessionId)
+            };
+            console.log('Dispatching toggle payload:', payload);
+            
+            const response: any = await deactivateMutation.mutateAsync(payload);
+            console.log('Toggle API Response:', response);
+
+            if (response.success || response.message?.toLowerCase().includes('success')) {
+                toast.success(response.message || 'Status updated successfully');
+                handleSuccess();
+                closeToggleForm();
+            } else {
+                toast.error(response.message || 'Failed to update status');
+            }
+        } catch (error) {
+            console.error('Error during toggle update:', error);
+            toast.error('An error occurred during update');
+        }
     };
 
     return (
@@ -144,13 +189,38 @@ function FormSections({ refetch }: { refetch: () => void }) {
             )}
 
             {/* Toggle Form */}
-            {/* {isToggleFormOpen && selectedRow && (
-                  <ToggleBookRegisterForm 
-                      rowData={selectedRow} 
-                      onClose={closeToggleForm} 
-                      onSuccess={handleSuccess}
-                  />
-              )} */}
+            {isToggleFormOpen && selectedRow && (
+                <AdaptiveDialog
+                    isOpen={isToggleFormOpen}
+                    onClose={closeToggleForm}
+                    title="Toggle Book Status"
+                >
+                    <AdaptiveBody className="flex flex-col gap-4">
+                        <p className="text-sm text-slate-600">
+                            Are you sure you want to {selectedRow.mB_ActiveFlag ? 'deactivate' : 'activate'} book: <strong>{selectedRow.lmB_BookTitle}</strong> (Accession No: <strong>{selectedRow.lmbanO_AccessionNo || '-'}</strong>)?
+                        </p>
+                    </AdaptiveBody>
+                    <AdaptiveFooter>
+                        <Button
+                            variant="secondary"
+                            onClick={closeToggleForm}
+                            disabled={deactivateMutation.isPending}
+                            className="h-9 px-6 text-xs"
+                        >
+                            CANCEL
+                        </Button>
+                        <Button
+                            variant={selectedRow.mB_ActiveFlag ? 'destructive' : 'default'}
+                            onClick={handleToggleConfirm}
+                            isLoading={deactivateMutation.isPending}
+                            disabled={deactivateMutation.isPending}
+                            className="h-9 px-6 text-xs"
+                        >
+                            {selectedRow.mB_ActiveFlag ? 'DEACTIVATE' : 'ACTIVATE'}
+                        </Button>
+                    </AdaptiveFooter>
+                </AdaptiveDialog>
+            )}
 
             {/* Edit Form */}
             {isEditFormOpen && selectedRow && (
@@ -171,17 +241,25 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            {/* <UpdateBookRegisterForm 
-                                selectedRow={selectedRow} 
+                            <BookRegisterForm 
+                                initialData={selectedRow} 
                                 onSuccess={() => {
                                     handleSuccess();
                                     closeEditForm();
                                 }} 
-                            /> */}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
+
+            {/* Copy/Add Copies Form (Popup) */}
+            <AddBookCopyForm 
+                isOpen={isCopyFormOpen}
+                onClose={closeCopyForm}
+                bookData={selectedRow}
+                onSuccess={handleSuccess}
+            />
         </>
     );
 }

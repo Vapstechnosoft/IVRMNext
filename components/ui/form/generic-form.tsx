@@ -42,14 +42,14 @@ export function GenericForm<TData extends FieldValues, TSchema extends z.ZodType
         setIsSubmitting(true);
         try {
             await onSubmit(values);
-            toast.success(successMessage);
+            if (successMessage) toast.success(successMessage);
             onSuccess?.();
             if (mode === 'create') {
                 methods.reset();
             }
         } catch (error) {
             console.error(error);
-            toast.error(errorMessage);
+            if (errorMessage) toast.error(errorMessage);
         } finally {
             setIsSubmitting(false);
         }

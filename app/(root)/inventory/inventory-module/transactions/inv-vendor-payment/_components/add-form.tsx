@@ -47,6 +47,7 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
     const [detailsData, setDetailsData] = useState<any[]>([]);
     const [selectedGRNNo, setSelectedGRNNo] = useState('');
+    const [resetKey, setResetKey] = useState(0);
 
     const form = useForm<InvVendorPaymentSchema>({
         resolver: zodResolver(invVendorPaymentSchema),
@@ -55,7 +56,11 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
             invspT_PaymentDate: new Date(),
             invspT_ModeOfPayment: '',
             invspT_Amount: 0,
-            invspT_Remarks: ''
+            invspT_Remarks: '',
+            invspT_BankName: '',
+            invspT_ChequeDDNo: '',
+            invspT_PaymentReference: '',
+            paymentArray: []
         }
     });
 
@@ -84,45 +89,60 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
 
     useEffect(() => {
         if (initialData) {
-            // Edit Mode
-            getModelDetailsMutation.mutate(initialData.invspT_Id, {
-                onSuccess: (res) => {
-                    const details = res.data;
-                    const mappedDetails = details.map((d: any) => ({
-                        invsptgrN_Id: d.invsptgrN_Id,
-                        invmgrN_Id: d.invmgrN_Id,
-                        invmgrN_GRNNo: d.invmgrN_GRNNo,
-                        invmgrN_PurchaseValue: d.invmgrN_PurchaseValue,
-                        invmgrN_TotalPaid: d.invmgrN_TotalPaid, // This comes from DB as Total Paid so far? Or amount paid in this transaction? Angular logic suggests `invmgrN_TotalPaid` in edit response is TotalPaid
-                        invmgrN_TotalBalance: d.invmgrN_TotalBalance,
-                        invsptgrN_Amount: d.invsptgrN_Amount,  // This is the amount paid in this transaction record
-                        invsptgrN_Remarks: d.invsptgrN_Remarks,
-                        checkedvalue: true,
-                        // Original values for calculation logic
-                        INVSPTGRN_Amount_New: d.invmgrN_TotalPaid - d.invsptgrN_Amount, // Previous paid before this trans?
-                        INVMGRN_TotalBalance_New: d.invmgrN_TotalBalance + d.invsptgrN_Amount // Balance before this trans?
-                    }));
-                    // Angular edit logic re-calculates or just shows?
-                    // "edit_vendorpayment = promise.get_modeldetails; ... get_SuplierGRNno.push..."
-                    // It seems it just loads them.
+            // Find the correct ID from initialData depending on backend casing
+            const paymentId = initialData.invspT_Id || initialData.invspt_id || initialData.INVSPT_Id || 0;
+            const supplierId = initialData.invmS_Id || initialData.invms_id || initialData.INVMs_Id || 0;
 
+            console.log("Extracted Payment ID for Edit:", paymentId);
+
+            // Edit Mode
+            getModelDetailsMutation.mutate(paymentId, {
+                onSuccess: (res) => {
+                    const details = res.data || [];
+                    const mappedDetails = details.map((d: any) => {
+                        const amount = d.invsptgrN_Amount ?? d.invsptgrn_amount ?? 0;
+                        const totalPaid = d.invmgrN_TotalPaid ?? d.invmgrn_totalpaid ?? 0;
+                        const purchaseValue = d.invmgrN_PurchaseValue ?? d.invmgrn_purchasevalue ?? 0;
+                        const totalBalance = d.invmgrN_TotalBalance ?? d.invmgrn_totalbalance ?? 0;
+
+                        return {
+                            invsptgrN_Id: d.invsptgrN_Id ?? d.invsptgrn_id,
+                            invmgrN_Id: d.invmgrN_Id ?? d.invmgrn_id,
+                            invmgrN_GRNNo: d.invmgrN_GRNNo || d.invmgrn_grnno,
+                            invmgrN_PurchaseValue: purchaseValue,
+                            invmgrN_TotalPaid: totalPaid, // Total Paid 
+                            invmgrN_TotalBalance: totalBalance,
+                            invsptgrN_Amount: amount,  // Amount paid in this transaction record
+                            invsptgrN_Remarks: d.invsptgrN_Remarks || d.invsptgrn_remarks || '',
+                            checkedvalue: true,
+                            // Original values for calculation logic
+                            INVSPTGRN_Amount_New: totalPaid > 0 && totalPaid >= amount ? totalPaid - amount : 0, // Previous paid before this trans
+                            INVMGRN_TotalBalance_New: totalBalance + amount // Balance before this trans
+                        };
+                    });
+
+                    const paymentDateStr = initialData.invspT_PaymentDate || initialData.invspt_paymentdate;
+                    const chequeDDDateStr = initialData.invspT_ChequeDDDate || initialData.invspt_chequedddate;
+
+                    // React Hook Form
                     reset({
-                        invspT_Id: initialData.invspT_Id,
-                        invmS_Id: initialData.invmS_Id,
-                        invspT_PaymentDate: new Date(initialData.invspT_PaymentDate),
-                        invspT_ModeOfPayment: initialData.invspT_ModeOfPayment,
-                        invspT_BankName: initialData.invspT_BankName,
-                        invspT_ChequeDDNo: initialData.invspT_ChequeDDNo,
-                        invspT_ChequeDDDate: initialData.invspT_ChequeDDDate ? new Date(initialData.invspT_ChequeDDDate) : undefined,
-                        invspT_PaymentReference: initialData.invspT_PaymentReference,
-                        invspT_Amount: initialData.invspT_Amount,
-                        invspT_Remarks: initialData.invspT_Remarks,
+                        invspT_Id: paymentId,
+                        invmS_Id: supplierId,
+                        invspT_PaymentDate: paymentDateStr ? new Date(paymentDateStr) : new Date(),
+                        invspT_ModeOfPayment: initialData.invspT_ModeOfPayment || initialData.invspt_modeofpayment || '',
+                        invspT_BankName: initialData.invspT_BankName || initialData.invspt_bankname || '',
+                        invspT_ChequeDDNo: initialData.invspT_ChequeDDNo || initialData.invspt_chequeddno || '',
+                        invspT_ChequeDDDate: chequeDDDateStr ? new Date(chequeDDDateStr) : undefined,
+                        invspT_PaymentReference: initialData.invspT_PaymentReference || initialData.invspt_paymentreference || '',
+                        invspT_Amount: initialData.invspT_Amount || initialData.invspt_amount || 0,
+                        invspT_Remarks: initialData.invspT_Remarks || initialData.invspt_remarks || '',
                         paymentArray: mappedDetails
                     });
                 }
             });
         }
-    }, [initialData, reset, getModelDetailsMutation]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [initialData, reset]);
 
     const handleSupplierChange = (supplierId: string) => {
         const id = parseInt(supplierId);
@@ -233,6 +253,11 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
         }
     };
 
+    const handleReset = () => {
+        reset();
+        setResetKey(prev => prev + 1);
+    };
+
     return (
         <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -244,11 +269,12 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
                             name="invmS_Id"
                             render={({ field }) => (
                                 <Select
+                                    key={`supplier-${resetKey}`}
                                     onValueChange={(val) => handleSupplierChange(val)}
-                                    value={field.value?.toString()}
+                                    value={field.value ? field.value.toString() : undefined}
                                     disabled={!!initialData}
                                 >
-                                    <SelectTrigger>
+                                    <SelectTrigger className={cn("w-full", !field.value && "text-muted-foreground")}>
                                         <SelectValue placeholder="Select Supplier" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -270,8 +296,8 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
                             control={control}
                             name="invspT_ModeOfPayment"
                             render={({ field }) => (
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger>
+                                <Select key={`mode-${resetKey}`} onValueChange={field.onChange} value={field.value || undefined}>
+                                    <SelectTrigger className={cn("w-full", !field.value && "text-muted-foreground")}>
                                         <SelectValue placeholder="Select Mode" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -357,7 +383,7 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
             </div>
 
             {/* GRN Grid */}
-            {watchedSupplier && fields.length > 0 && (
+            {!!watchedSupplier && fields.length > 0 && (
                 <div className="border rounded-md overflow-hidden">
                     <Table>
                         <TableHeader>
@@ -460,7 +486,7 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
             )}
 
             <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => reset()}><RotateCcw className="w-4 h-4 mr-2" /> Reset</Button>
+                <Button type="button" variant="outline" onClick={handleReset}><RotateCcw className="w-4 h-4 mr-2" /> Reset</Button>
                 <Button type="submit" disabled={saveMutation.isPending}><Save className="w-4 h-4 mr-2" /> {saveMutation.isPending ? 'Saving...' : (initialData ? 'Update Payment' : 'Save Payment')}</Button>
             </div>
 

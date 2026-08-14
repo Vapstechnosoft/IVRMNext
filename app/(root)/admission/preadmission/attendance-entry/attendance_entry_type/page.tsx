@@ -14,7 +14,7 @@ import { saveAttendanceEntryType, updateAttendanceEntryType } from '@/server/adm
 import type { IAttendanceEntryTypeList } from '@/types/admission/preadmission/attendance_entry';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Loader2, Save, X } from 'lucide-react';
-import { use, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { entryTypeColumns } from './_components/columns';
 import { EditContext } from './entry-type-context';
@@ -22,7 +22,7 @@ import { EditContext } from './entry-type-context';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function EntryTypePage(props: { searchParams: SearchParams }) {
-    const searchParams = use(props.searchParams);
+    const searchParams = (React as any).use(props.searchParams);
     const { data: response, isLoading, error, refetchAll } = useAttendanceEntryType(searchParams);
 
     return (
@@ -139,9 +139,9 @@ function EntryForm({
     const classListRaw = classDropdownResponse?.data || classDropdownResponse;
     const classOptions = Array.isArray(classListRaw)
         ? classListRaw.map((item: any) => ({
-              label: item.asmcL_ClassName,
-              value: String(item.asmcL_Id)
-          }))
+            label: item.asmcL_ClassName,
+            value: String(item.asmcL_Id)
+        }))
         : [];
 
     // Save mutation (Create)
@@ -268,7 +268,7 @@ function EntryForm({
                                             setSelectedAcademicYearId(Number(value));
                                             setSelectedClasses([]); // Reset classes when year changes
                                         }}
-                                        disabled={true}>
+                                        disabled={!!editingRecord}>
                                         <SelectTrigger className='w-full md:w-[280px]'>
                                             <SelectValue placeholder='Select Academic Year' />
                                         </SelectTrigger>
@@ -355,8 +355,8 @@ function EntryForm({
                                 ? 'UPDATING...'
                                 : 'SAVING...'
                             : editingRecord
-                              ? 'UPDATE'
-                              : 'SAVE'}
+                                ? 'UPDATE'
+                                : 'SAVE'}
                     </Button>
                     <Button
                         variant='destructive'

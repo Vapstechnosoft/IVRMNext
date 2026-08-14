@@ -1,104 +1,53 @@
+import { deleteIdSchema } from '@/schemas/validationSchemas';
 import { z } from 'zod';
 
-export const homeWorkSchema = z.object({
-    ihW_Id: z.number().optional().nullable(),
-    asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, 'Academic Year is required'),
-    asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, 'Class is required'),
-    hm_section_list: z
-        .array(
-            z.object({
-                asmS_Id: z.number()
-            })
-        )
-        .min(1, 'At least one section is required'),
-    ismS_Id: z.number({ required_error: 'Subject is required' }).min(1, 'Subject is required'),
-    ihW_Topic: z.string().min(1, 'Topic is required'),
-    ihW_Date: z.date({ required_error: 'Date is required' }),
-    ihW_Assignment: z.string().optional().nullable(),
-    ihW_AssignmentNo: z.string().optional().nullable(),
-    ihW_ActiveFlag: z.boolean().default(true),
+export const homeWorkSchema = {
+    addOrUpdate: z.object({
+        ihW_Id: z.number().optional().nullable(),
+        asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, 'Academic Year is required'),
+        asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, 'Class is required'),
+        hm_section_list: z
+            .array(
+                z.object({
+                    asmS_Id: z.number()
+                })
+            )
+            .min(1, 'At least one section is required'),
+        ismS_Id: z.number({ required_error: 'Subject is required' }).min(1, 'Subject is required'),
+        ihW_Topic: z.string().min(1, 'Topic is required').max(250, 'Topic name cannot exceed 250 characters'),
+        ihW_Date: z.date({ required_error: 'Date is required' }),
+        ihW_Assignment: z.string().optional().nullable(),
+        ihW_AssignmentNo: z.string().optional().nullable(),
+        ihW_ActiveFlag: z.boolean().default(true),
 
-    // Attachments (Files & URLs mixed in IHW_FilePath_Array)
-    ihW_FilePath_Array: z
-        .array(
-            z.object({
-                ihW_FilePath: z.string(),
-                fileName: z.string()
-            })
-        )
-        .optional()
-        .default([]),
+        // Attachments (Files & URLs mixed in IHW_FilePath_Array)
+        ihW_FilePath_Array: z
+            .array(
+                z.object({
+                    ihW_FilePath: z.string(),
+                    fileName: z.string()
+                })
+            )
+            .optional()
+            .default([]),
 
-    // Display fields
-    asmcL_ClassName: z.string().optional(),
-    asmC_SectionName: z.string().optional(),
-    ismS_SubjectName: z.string().optional(),
-    createdDate: z.string().optional(),
-    createdTime: z.string().optional(),
-    filesCount: z.number().optional()
-});
+        // Display fields
+        asmcL_ClassName: z.string().optional(),
+        asmC_SectionName: z.string().optional(),
+        ismS_SubjectName: z.string().optional(),
+        createdDate: z.string().optional(),
+        createdTime: z.string().optional(),
+        filesCount: z.number().optional(),
 
-// export const homeWorkSchema = {
-//   addOrUpdate: z
-//     .object({
-//       // Academic Year
-//       asmaY_Id: z
-//         .number({
-//           required_error: 'Academic year is required',
-//           invalid_type_error: 'Academic year is required',
-//         })
-//         .min(1, 'Academic year is required'),
+        // Form specific fields for separate handling
+        ihW_Attachment_Array: z.array(z.object({ ihW_FilePath: z.string(), fileName: z.string() })).optional()
+    }),
+    delete: z.object({
+        ihW_Id: deleteIdSchema('ihW_Id')
+    })
+};
 
-//       // Class
-//       asmcL_Id: z
-//         .number({
-//           required_error: 'Class is required',
-//           invalid_type_error: 'Class is required',
-//         })
-//         .min(1, 'Class is required'),
-
-//       // Sections (MULTI SELECT)
-//       hm_section_list: z
-//         .array(
-//           z.object({
-//             asmS_Id: z
-//               .number({
-//                 required_error: 'Section is required',
-//               })
-//               .min(1),
-//           })
-//         )
-//         .min(1, 'At least one section is required'),
-
-//       // Subject
-//       ismS_Id: z
-//         .number({
-//           required_error: 'Subject is required',
-//           invalid_type_error: 'Subject is required',
-//         })
-//         .min(1, 'Subject is required'),
-
-//       // Content
-//       ihW_Topic: z
-//         .string({
-//           required_error: 'Topic is required',
-//         })
-//         .trim()
-//         .min(1, 'Topic is required'),
-
-//       // Start Date
-//       ihW_Date: z.date({
-//         required_error: ' Date is required',
-//         invalid_type_error: ' Date is required',
-//       }),
-//  ihW_Assignment: z.string().optional().nullable(),
-//   ihW_AssignmentNo: z.string().optional().nullable(),
-
-//     }),
-
-// };
-
-export type IHomeWork = z.infer<typeof homeWorkSchema>;
+export type IHomeWork = z.infer<typeof homeWorkSchema.addOrUpdate>;
 
 // Marks Entry Schema
 export const homeWorkMarksSchema = z.object({

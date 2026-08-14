@@ -34,7 +34,7 @@ export default function AlumnusMembershipPage() {
 
     const fetchInitial = useCallback(async () => {
         setInitialLoading(true);
-        const res = await getAlumniMembershipInitialData(30, true);
+        const res = await getAlumniMembershipInitialData(true);
         if (res.success) {
             const data = Array.isArray((res as any).data) ? (res as any).data[0] : (res as any).data;
             setYears(data.fillyear || []);
@@ -276,6 +276,7 @@ function PageContent({
                             className='border-primary/20'>
                             <div className='grid grid-cols-1 gap-6 p-2 md:grid-cols-3'>
                                 <div className='space-y-2'>
+                                    {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
                                     <label className='font-bold font-medium text-[10px] text-muted-foreground text-sm uppercase'>
                                         Select Batch (Year)
                                     </label>
@@ -365,6 +366,7 @@ function PageContent({
                         {/* Filter Section - Simplified and inside the section */}
                         <div className='mb-6 grid grid-cols-2 items-end gap-3 border-b pb-4 md:grid-cols-4 lg:grid-cols-7'>
                             <div className='space-y-1'>
+                                {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
                                 <label className='font-bold text-[10px] text-muted-foreground uppercase'>Name</label>
                                 <Input
                                     placeholder='Name...'
@@ -374,6 +376,7 @@ function PageContent({
                                 />
                             </div>
                             <div className='space-y-1'>
+                                {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
                                 <label className='font-bold text-[10px] text-muted-foreground uppercase'>Father</label>
                                 <Input
                                     placeholder='Father...'
@@ -383,6 +386,7 @@ function PageContent({
                                 />
                             </div>
                             <div className='space-y-1'>
+                                {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
                                 <label className='font-bold text-[10px] text-muted-foreground uppercase'>Mobile</label>
                                 <Input
                                     placeholder='Mobile...'
@@ -392,6 +396,7 @@ function PageContent({
                                 />
                             </div>
                             <div className='space-y-1'>
+                                {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
                                 <label className='font-bold text-[10px] text-muted-foreground uppercase'>Email</label>
                                 <Input
                                     placeholder='Email...'
@@ -401,6 +406,7 @@ function PageContent({
                                 />
                             </div>
                             <div className='space-y-1'>
+                                {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
                                 <label className='font-bold text-[10px] text-muted-foreground uppercase'>Year</label>
                                 <Input
                                     placeholder='Year...'
@@ -410,6 +416,7 @@ function PageContent({
                                 />
                             </div>
                             <div className='space-y-1'>
+                                {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
                                 <label className='font-bold text-[10px] text-muted-foreground uppercase'>Class</label>
                                 <Input
                                     placeholder='Class...'

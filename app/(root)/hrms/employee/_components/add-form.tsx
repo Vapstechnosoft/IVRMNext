@@ -41,6 +41,7 @@ import {
     useSpecializationDropdown,
     useTeachingTypeDropdown
 } from '@/hooks/hrms/useEmployeeRegister';
+import { useMasterPayrollStandard } from '@/hooks/hrms/useMasters';
 import { getIconByName } from '@/lib/lucide-icon-registry';
 import { cn } from '@/lib/utils';
 import { employeeRegisterSchemas } from '@/schemas/hrms/employee-register-schemas';
@@ -73,7 +74,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { Check, ChevronLeft, ChevronRight, Plus, Save, Trash2, Upload, X } from 'lucide-react';
 import type React from 'react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -86,6 +87,7 @@ import {
     tabFieldMap
 } from './employee-register-helper';
 import { PayrollTab } from './payroll-tab';
+import { uploadStaffPhoto } from '@/server/hrms/hrmsConfig/employee/register';
 
 // Helper component for Qualification State Dropdown
 function QualificationStateDropdown({
@@ -140,7 +142,7 @@ function QualificationStateDropdown({
             control={control}
             render={({ field, fieldState }) => (
                 <div className='flex flex-col gap-1.5'>
-                    <Label>State*</Label>
+                    <Label>State <span className='text-red-500'>*</span></Label>
                     <Select onValueChange={field.onChange} value={field.value || ''}>
                         <SelectTrigger className='h-9'>
                             <SelectValue placeholder='Select State' />
@@ -246,6 +248,16 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     });
 
     const { errors, isSubmitting } = formState;
+
+    // Fetch payroll standard for retirement years
+    const { data: payrollStandardResponse } = useMasterPayrollStandard();
+    const retirementYrs = useMemo(() => {
+        // Find hrC_RetirementYrs in the response data
+        // The API returns IMasterPayrollStandardList directly as the data property of ApiResponse
+        const yrs = payrollStandardResponse?.data?.hrC_RetirementYrs;
+        console.log('🔍 [DEBUG] Fetched Retirement Years:', yrs);
+        return yrs || 60; // Default to 60 if not found
+    }, [payrollStandardResponse]);
 
     // Watch for dependent dropdown values
     const selectedReligion = useWatch({ control, name: 'religion' });
@@ -513,7 +525,24 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             religions: religionDropdown || [],
             casteCategories: casteCategoryDropdown || [],
             castes: casteDropdown || [],
-            modeOfPayment: paymentModeDropdown || [],
+            modeOfPayment: (() => {
+                const modes = [...(paymentModeDropdown || [])];
+                const required = ['Cash', 'Cheque', 'Bank'];
+                required.forEach((req) => {
+                    const index = modes.findIndex(
+                        (m) =>
+                            String(m.value || m.ivrmmod_ModeOfPayment || '').toLowerCase() === req.toLowerCase()
+                    );
+                    if (index === -1) {
+                        modes.push({ key: req, value: req });
+                    } else {
+                        // If found, ensure key is also the name to satisfy watch('modeOfPayment') === 'Bank'
+                        // but only if it's one of the required ones to avoid breaking other IDs
+                        modes[index] = { ...modes[index], key: req };
+                    }
+                });
+                return modes;
+            })(),
             banks: bankDropdown || [],
             departments: departmentDropdown || [],
             countries: countryDropdown || [],
@@ -629,7 +658,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     const { mutate: saveDocumentDetails, isPending: isSavingDocument } = useSaveEmployeeDocument();
     const { mutate: saveMedicalDetails, isPending: isSavingMedical } = useSaveEmployeeMedical();
     const { mutate: saveOtherDetails, isPending: isSavingOther } = useSaveEmployeeOtherDetails();
-    const { mutate: saveSalaryDetails, isPending: isSavingSalaryDetails } = useSaveEmployeeSalaryDetails();
+    const { mutate: saveSalaryDetails, isPending: isSavingSalaryDetails } = useSaveEmployeeSalaryDetails({ suppressSuccessToast: true });
     const savePersonalDetails = saveEmployeeMutation;
     const _saveBankDetails = saveEmployeeMutation;
     const isSavingBank = isPending;
@@ -646,6 +675,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
 
     // Add form - no edit mode (removed isEditMode variable - not needed)
     const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+    const [uploadedPhotoName, setUploadedPhotoName] = useState<string | null>(null);
+    const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
     // Local helper for PascalCase mapping used by Step 6/7
     const mapFormDataToPascalCaseLocal = (data: any) => {
@@ -668,7 +699,12 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     };
 
     // Helper to get current tab key from step
-    const getCurrentTabKey = () => steps.find((s) => s.id === currentStep)?.tabKey || 'employee';
+    // const getCurrentTabKey = () => steps.find((s) => s.id === currentStep)?.tabKey || 'employee';
+
+    const getCurrentTabKey = useCallback(
+        () => steps.find((s) => s.id === currentStep)?.tabKey || "employee",
+        [currentStep]
+    );
 
     // Function to go to previous step
     const prevStep = () => {
@@ -760,6 +796,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             // Save employee details without address (address fields will be null)
             const rawPayload = mapFormDataToApiFormatWithoutAddressLocal(data);
             // Force string conversion for required fields to match IEmployeeSaveRequest
+            console.log("rawPayload", rawPayload);
             const payload: any = fixPaymentMode({
                 ...rawPayload,
                 employee: {
@@ -918,10 +955,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         console.log('✅ [DEBUG] Tab 1 - All key fields match between request and response!');
                     }
 
-                    // Show API response message
                     if (response?.success) {
-                        if (response.message) toast.success(response.message);
-
                         // API returns hrmE_Id (lowercase) in response
                         const employeeId =
                             response?.data?.hrmE_Id || response?.data?.HRME_Id || response?.hrmE_Id || response?.HRME_Id || 0;
@@ -937,15 +971,11 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         }
                     } else {
                         console.warn('⚠️ [DEBUG] Tab 1 - API returned success: false');
-                        toast.error(response?.message || 'Failed to save employee details');
                     }
                 },
                 onError: (error: any) => {
                     console.error('❌ [DEBUG] Tab 1 (Employee Information) - Save Error:', error);
                     console.error('❌ [DEBUG] Tab 1 - Error Details:', JSON.stringify(error, null, 2));
-                    // Show API error message
-                    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save employee details';
-                    toast.error(errorMessage);
                 }
             });
         } else if (currentStepId === 2) {
@@ -1083,27 +1113,18 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         console.warn('⚠️ [DEBUG] Tab 2 - Other field mismatches:', otherFieldMismatches);
                     }
 
-                    // Show API response message
                     if (response?.success) {
-                        if (response.message) {
-                            if (addressMismatches.length > 0) {
-                                toast.warning(`${response.message} - But address fields may not have been saved.`);
-                            } else {
-                                toast.success(response.message);
-                            }
+                        if (addressMismatches.length > 0) {
+                            toast.warning(`Address fields may not have been saved completely. Please verify.`);
                         }
                         setCurrentStep(3);
                     } else {
                         console.warn('⚠️ [DEBUG] Tab 2 - API returned success: false');
-                        toast.error(response?.message || 'Failed to save address details');
                     }
                 },
                 onError: (error: any) => {
                     console.error('❌ [DEBUG] Tab 2 (Address Information) - Save Error:', error);
                     console.error('❌ [DEBUG] Tab 2 - Error Details:', JSON.stringify(error, null, 2));
-                    // Show API error message
-                    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save address details';
-                    toast.error(errorMessage);
                 }
             });
         } else if (currentStepId === 3) {
@@ -1230,12 +1251,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         console.warn('⚠️ [DEBUG] Tab 3 - Response data is not an array or is missing');
                     }
 
-                    // Show API response message
-                    if (response?.success && response?.message) {
-                        toast.success(response.message);
-                    } else if (response?.message) {
-                        toast.info(response.message);
-                    } else if (response?.success === false) {
+                    if (response?.success === false && !response?.message) {
                         console.warn('⚠️ [DEBUG] Tab 3 - API returned success: false');
                         toast.warning('Qualification saved but API returned success: false. Please verify the data was saved.');
                     }
@@ -1245,11 +1261,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 onError: (error: any) => {
                     console.error('❌ [DEBUG] Tab 3 (Qualification) - Save Error:', error);
                     console.error('❌ [DEBUG] Tab 3 - Error Details:', JSON.stringify(error, null, 2));
-                    console.error('❌ [DEBUG] Tab 3 - Error Response:', error?.response);
-                    console.error('❌ [DEBUG] Tab 3 - Error Message:', error?.message);
-                    // Show API error message
-                    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save qualification details';
-                    toast.error(errorMessage);
                 }
             });
         } else if (currentStepId === 4) {
@@ -1378,12 +1389,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                             console.warn('⚠️ [DEBUG] Tab 4 - Response data is not an array or is missing');
                         }
 
-                        // Show API response message
-                        if (response?.success && response?.message) {
-                            toast.success(response.message);
-                        } else if (response?.message) {
-                            toast.info(response.message);
-                        } else if (response?.success === false) {
+                        if (response?.success === false && !response?.message) {
                             console.warn('⚠️ [DEBUG] Tab 4 - API returned success: false');
                             toast.warning('Experience saved but API returned success: false. Please verify the data was saved.');
                         }
@@ -1393,11 +1399,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     onError: (error: any) => {
                         console.error('❌ [DEBUG] Tab 4 (Experience) - Save Error:', error);
                         console.error('❌ [DEBUG] Tab 4 - Error Details:', JSON.stringify(error, null, 2));
-                        console.error('❌ [DEBUG] Tab 4 - Error Response:', error?.response);
-                        console.error('❌ [DEBUG] Tab 4 - Error Message:', error?.message);
-                        // Show API error message
-                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save experience details';
-                        toast.error(errorMessage);
                     }
                 });
             } catch (error) {
@@ -1467,17 +1468,13 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     onSuccess: (response: any) => {
                         console.log('✅ [API DEBUG] Tab 5 (Document) - Save Success Response:', response);
                         if (response?.success) {
-                            if (response.message) toast.success(response.message);
                             setCurrentStep(6);
                         } else {
                             console.error('❌ [API DEBUG] Tab 5 (Document) - API returned success: false', response);
-                            toast.error(response?.message || 'Failed to save document details');
                         }
                     },
                     onError: (error: any) => {
                         console.error('❌ [API DEBUG] Tab 5 (Document) - API Error:', error);
-                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save document details';
-                        toast.error(errorMessage);
                     }
                 });
             } catch (err) {
@@ -1498,17 +1495,13 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 onSuccess: (response: any) => {
                     console.log('✅ [API DEBUG] Tab 6 (Medical) - Save Success Response:', response);
                     if (response?.success) {
-                        toast.success(response.message || 'Medical details saved successfully');
                         setCurrentStep(7);
                     } else {
                         console.error('❌ [API DEBUG] Tab 6 (Medical) - API returned success: false', response);
-                        toast.error(response?.message || 'Failed to save medical details');
                     }
                 },
                 onError: (error: any) => {
                     console.error('❌ [API DEBUG] Tab 6 (Medical) - API Error:', error);
-                    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save medical details';
-                    toast.error(errorMessage);
                 }
             });
         } else if (currentStepId === 7) {
@@ -1524,7 +1517,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 onSuccess: (response: any) => {
                     console.log('✅ [API DEBUG] Tab 7 (Other) - Save Success Response:', response);
                     if (response?.success) {
-                        toast.success(response.message || 'Other details saved successfully');
                         // Call salary details save API as requested by user
                         if (savedEmployeeId) {
                             saveSalaryDetails(
@@ -1548,13 +1540,10 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         }
                     } else {
                         console.error('❌ [API DEBUG] Tab 7 (Other) - API returned success: false', response);
-                        toast.error(response?.message || 'Failed to save other details');
                     }
                 },
                 onError: (error: any) => {
                     console.error('❌ [API DEBUG] Tab 7 (Other) - API Error:', error);
-                    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save other details';
-                    toast.error(errorMessage);
                 }
             });
         } else {
@@ -1704,15 +1693,31 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 const dob = new Date(dateOfBirth);
                 if (!Number.isNaN(dob.getTime())) {
                     const retirementDate = new Date(dob);
-                    retirementDate.setFullYear(retirementDate.getFullYear() + 60);
+                    if (retirementYrs && retirementYrs > 0) {
+                        retirementDate.setFullYear(retirementDate.getFullYear() + retirementYrs);
+                    } else {
+                        retirementDate.setFullYear(retirementDate.getFullYear() + 60);
+                    }
                     const formattedDate = format(retirementDate, 'yyyy-MM-dd');
-                    setValue('dateOfRetirement', formattedDate, { shouldValidate: true, shouldDirty: true });
+                    console.log('🔄 [ADD-FORM] Auto-calculating retirement date:', {
+                        dob: dateOfBirth,
+                        retirementYrs,
+                        calculatedRetirementDate: formattedDate
+                    });
+
+                    // Only update if it's different to avoid redundant re-renders
+                    if (getValues('dateOfRetirement') !== formattedDate) {
+                        setValue('dateOfRetirement', formattedDate, {
+                            shouldValidate: true,
+                            shouldDirty: true
+                        });
+                    }
                 }
-            } catch (_error) {
-                // Invalid date, ignore
+            } catch (error) {
+                console.error('❌ [ADD-FORM] Error auto-calculating retirement date:', error);
             }
         }
-    }, [dateOfBirth, setValue]);
+    }, [dateOfBirth, setValue, retirementYrs, getValues]);
 
     // Watch documentList for file handling
     const watchDocuments = watch('documentList');
@@ -1848,19 +1853,34 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         }
     };
 
-    const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            setPhotoFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const base64String = reader.result as string;
-                setSelectedPhoto(base64String);
-                setValue('employeePhoto', base64String, { shouldValidate: true, shouldDirty: true });
-                // Explicitly trigger validation to clear any "required" error
-                trigger('employeePhoto');
-            };
-            reader.readAsDataURL(file);
+            try {
+                setIsUploadingPhoto(true);
+                const formData = new FormData();
+                formData.append('employeePhoto', file);
+
+                const response = await uploadStaffPhoto(formData);
+                console.log("Upload API response:", response);
+
+                if (response?.success && response?.data) {
+                    setPhotoFile(file);
+                    setSelectedPhoto(response.data);
+                    setValue('employeePhoto', response.data);
+                    setUploadedPhotoName(file.name);
+                    toast.success('Photo uploaded successfully');
+                    trigger('employeePhoto');
+                } else {
+                    console.error("Upload failed internally:", response);
+                    toast.error(response?.message || 'Failed to upload photo');
+                }
+            } catch (error: any) {
+                console.error("Upload process crashed:", error);
+                toast.error(error?.message || 'Error processing photo');
+            } finally {
+                setIsUploadingPhoto(false);
+            }
         }
     };
 
@@ -1934,7 +1954,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                             <div className='flex flex-col items-center'>
                                                 <button
                                                     type='button'
-                                                    onClick={() => setCurrentStep(step.id)}
                                                     disabled={isSubmittingAny || isDisabled}
                                                     className={cn(
                                                         'flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold transition-all duration-300 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50',
@@ -1998,6 +2017,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                 <div className='space-y-4'>
                                                     <InputText
                                                         label='First Name'
+                                                        placeholder='Enter First Name'
                                                         required
                                                         id='firstName'
                                                         maxLength={50}
@@ -2036,6 +2056,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     />
                                                     <InputText
                                                         label='Middle Name'
+                                                        placeholder='Enter Middle Name'
                                                         id='middleName'
                                                         maxLength={50}
                                                         onKeyDown={(e) => {
@@ -2071,6 +2092,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     />
                                                     <InputText
                                                         label='Last Name'
+                                                        placeholder='Enter Last Name'
+                                                        required
                                                         id='lastName'
                                                         maxLength={50}
                                                         onKeyDown={(e) => {
@@ -2106,6 +2129,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     />
                                                     <InputText
                                                         label='Employee Code'
+                                                        placeholder='Enter Employee Code'
                                                         required
                                                         id='employeeCode'
                                                         maxLength={20}
@@ -2115,7 +2139,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         error={errors.employeeCode?.message as string | undefined}
                                                     />
                                                     <InputText
-                                                        label="Father's Name *"
+                                                        label="Father's Name"
+                                                        placeholder='Enter Father Name'
+                                                        required
                                                         id='fatherName'
                                                         maxLength={50}
                                                         onKeyDown={(e) => {
@@ -2150,7 +2176,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         error={errors.fatherName?.message as string | undefined}
                                                     />
                                                     <InputText
-                                                        label="Mother's Name *"
+                                                        label="Mother's Name "
+                                                        placeholder='Enter Mother Name'
+                                                        required
                                                         id='motherName'
                                                         maxLength={50}
                                                         onKeyDown={(e) => {
@@ -2183,6 +2211,97 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         }}
                                                         {...register('motherName')}
                                                         error={errors.motherName?.message as string | undefined}
+                                                    />
+                                                    <InputText
+                                                        label='Spouse Name'
+                                                        placeholder='Enter Spouse Name'
+                                                        id='spouseName'
+                                                        maxLength={50}
+                                                        onKeyDown={(e) => {
+                                                            const allowedKeys = /^[a-zA-Z\s\-']$/;
+                                                            const controlKeys = [
+                                                                'Backspace',
+                                                                'Delete',
+                                                                'Tab',
+                                                                'Escape',
+                                                                'Enter',
+                                                                'ArrowLeft',
+                                                                'ArrowRight',
+                                                                'ArrowUp',
+                                                                'ArrowDown'
+                                                            ];
+                                                            if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                                                                return;
+                                                            }
+                                                            if (e.key === ' ' && (e.target as HTMLInputElement).value.endsWith(' ')) {
+                                                                e.preventDefault();
+                                                                return;
+                                                            }
+                                                            if (e.key === ' ' && (e.target as HTMLInputElement).selectionStart === 0) {
+                                                                e.preventDefault();
+                                                                return;
+                                                            }
+                                                            if (!allowedKeys.test(e.key)) {
+                                                                e.preventDefault();
+                                                            }
+                                                        }}
+                                                        {...register('spouseName')}
+                                                        error={errors.spouseName?.message as string | undefined}
+                                                    />
+                                                    <InputText
+                                                        label='Spouse Occupation'
+                                                        placeholder='Enter Spouse Occupation'
+                                                        id='spouseOccupation'
+                                                        maxLength={50}
+                                                        {...register('spouseOccupation')}
+                                                        error={errors.spouseOccupation?.message as string | undefined}
+                                                    />
+                                                    <InputText
+                                                        label='Spouse Mobile No.'
+                                                        placeholder='Enter Spouse Mobile No.'
+                                                        id='spouseMobileNo'
+                                                        maxLength={10}
+                                                        onKeyDown={(e) => {
+                                                            const controlKeys = [
+                                                                'Backspace',
+                                                                'Delete',
+                                                                'Tab',
+                                                                'Escape',
+                                                                'Enter',
+                                                                'ArrowLeft',
+                                                                'ArrowRight',
+                                                                'ArrowUp',
+                                                                'ArrowDown'
+                                                            ];
+                                                            if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                                                                return;
+                                                            }
+                                                            if (e.key === ' ') {
+                                                                e.preventDefault();
+                                                                return;
+                                                            }
+                                                            if (!/^[0-9]$/.test(e.key)) {
+                                                                e.preventDefault();
+                                                            }
+                                                        }}
+                                                        {...register('spouseMobileNo')}
+                                                        error={errors.spouseMobileNo?.message as string | undefined}
+                                                    />
+                                                    <InputText
+                                                        label='Spouse Email Id'
+                                                        placeholder='Enter Spouse Email Id'
+                                                        id='spouseEmailId'
+                                                        maxLength={100}
+                                                        {...register('spouseEmailId')}
+                                                        error={errors.spouseEmailId?.message as string | undefined}
+                                                    />
+                                                    <InputText
+                                                        label='Spouse Address'
+                                                        placeholder='Enter Spouse Address'
+                                                        id='spouseAddress'
+                                                        maxLength={255}
+                                                        {...register('spouseAddress')}
+                                                        error={errors.spouseAddress?.message as string | undefined}
                                                     />
                                                     <Controller
                                                         name='typeOfEmployment'
@@ -2456,6 +2575,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 field={field}
                                                                 fieldState={fieldState}
                                                                 label='Date Of Joining'
+                                                                // required
                                                                 placeholder='Pick date of joining'
                                                             />
                                                         )}
@@ -2753,6 +2873,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     ) : null}
                                                     <InputText
                                                         label='National SSN'
+                                                        placeholder='Enter National SSN'
                                                         id='nationalSSN'
                                                         maxLength={9}
                                                         onKeyDown={(e) => {
@@ -2919,12 +3040,16 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     <Controller
                                                         name='dateOfBirth'
                                                         control={control}
+                                                        rules={{ required: false }}
                                                         render={({ field, fieldState }) => (
                                                             <DateField
                                                                 field={field}
                                                                 fieldState={fieldState}
                                                                 label='Date Of Birth'
+                                                                // required
                                                                 placeholder='Pick date of birth'
+                                                                toDate={new Date()}
+                                                                restricted_tofieldName="Today's Date"
                                                             />
                                                         )}
                                                     />
@@ -3092,6 +3217,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     />
                                                                     <InputText
                                                                         placeholder='Enter mobile number'
+                                                                        required
                                                                         maxLength={10}
                                                                         {...register(`mobileDetails.${index}.mobileNo`)}
                                                                         className='min-w-[200px] flex-1'
@@ -3122,7 +3248,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     </div>
                                                     {/* Multiple Email IDs */}
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label>Email -Id</Label>
+                                                        <Label>Email -Id <span className='text-red-500'>*</span></Label>
                                                         <div className='space-y-2'>
                                                             {emailFields.map((field, index) => (
                                                                 <div key={field.id} className='flex items-center gap-2'>
@@ -3184,10 +3310,12 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     />
                                                                     <InputText
                                                                         type='email'
+                                                                        required
                                                                         placeholder='Enter email address'
                                                                         maxLength={100}
                                                                         {...register(`emailDetails.${index}.emailId`)}
                                                                         className='min-w-[200px] flex-1'
+                                                                        error={(errors.emailDetails as any)?.[index]?.emailId?.message}
                                                                     />
                                                                     <Button
                                                                         type='button'
@@ -3265,6 +3393,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                             if (e.key === ' ') {
                                                                 e.preventDefault();
                                                                 return;
+                                                            }
+                                                            if (!/^[a-zA-Z0-9]$/.test(e.key)) {
+                                                                e.preventDefault();
                                                             }
                                                         }}
                                                         {...register('panCardNo')}
@@ -3435,8 +3566,17 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     type='button'
                                                                     variant='outline'
                                                                     className='w-full bg-gray-100'
+                                                                    disabled={isUploadingPhoto}
                                                                     onClick={() => document.getElementById('employeePhoto')?.click()}>
-                                                                    {selectedPhoto ? (
+                                                                    {isUploadingPhoto ? (
+                                                                        <span className='flex items-center gap-2'>
+                                                                            <svg className='h-4 w-4 animate-spin' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'>
+                                                                                <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />
+                                                                                <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z' />
+                                                                            </svg>
+                                                                            Uploading...
+                                                                        </span>
+                                                                    ) : selectedPhoto ? (
                                                                         'Change Photo'
                                                                     ) : (
                                                                         <span>
@@ -3452,6 +3592,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         onClick={() => {
                                                                             setSelectedPhoto(null);
                                                                             setPhotoFile(null);
+                                                                            setUploadedPhotoName(null);
                                                                             setValue('employeePhoto', '', { shouldValidate: true });
                                                                             const fileInput = document.getElementById(
                                                                                 'employeePhoto'
@@ -3460,6 +3601,14 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         }}>
                                                                         Remove Photo
                                                                     </Button>
+                                                                )}
+                                                                {uploadedPhotoName && !isUploadingPhoto && (
+                                                                    <p className='flex items-center gap-1 truncate text-gray-600 text-xs'>
+                                                                        <svg xmlns='http://www.w3.org/2000/svg' className='h-3.5 w-3.5 flex-shrink-0 text-green-500' viewBox='0 0 20 20' fill='currentColor'>
+                                                                            <path fillRule='evenodd' d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z' clipRule='evenodd' />
+                                                                        </svg>
+                                                                        <span className='truncate font-medium' title={uploadedPhotoName}>{uploadedPhotoName}</span>
+                                                                    </p>
                                                                 )}
                                                             </div>
                                                         </div>
@@ -4120,7 +4269,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 {/* Row 1: Qualification, Course */}
                                                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                                                     <InputText
-                                                                        label='Qualification *'
+                                                                        label='Qualification'
+                                                                        required
                                                                         id={`qualificationDetails.${index}.qualification`}
                                                                         maxLength={50}
                                                                         {...register(`qualificationDetails.${index}.qualification`)}
@@ -4133,7 +4283,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                             const courses = options?.courses || [];
                                                                             return (
                                                                                 <div className='flex flex-col gap-1.5'>
-                                                                                    <Label>Course *</Label>
+                                                                                    <Label>
+                                                                                        Course <span className='text-red-500'>*</span>
+                                                                                    </Label>
                                                                                     <Select
                                                                                         onValueChange={field.onChange}
                                                                                         value={field.value || ''}>
@@ -4197,14 +4349,16 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 {/* Row 2: College, University */}
                                                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                                                     <InputText
-                                                                        label='College *'
+                                                                        label='College'
+                                                                        required
                                                                         id={`qualificationDetails.${index}.college`}
                                                                         maxLength={100}
                                                                         {...register(`qualificationDetails.${index}.college`)}
                                                                         error={(errors.qualificationDetails as any)?.[index]?.college?.message}
                                                                     />
                                                                     <InputText
-                                                                        label='University *'
+                                                                        label='University'
+                                                                        required
                                                                         id={`qualificationDetails.${index}.university`}
                                                                         maxLength={100}
                                                                         {...register(`qualificationDetails.${index}.university`)}
@@ -4214,7 +4368,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 {/* Row 3: Year Of Passing, Country, State */}
                                                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                                                                     <InputText
-                                                                        label='Year Of Passing *'
+                                                                        label='Year Of Passing'
+                                                                        required
                                                                         id={`qualificationDetails.${index}.yearOfPassing`}
                                                                         maxLength={4}
                                                                         onKeyDown={(e) => {
@@ -4248,7 +4403,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         control={control}
                                                                         render={({ field, fieldState }) => (
                                                                             <div className='flex flex-col gap-1.5'>
-                                                                                <Label>Country*</Label>
+                                                                                <Label>
+                                                                                    Country <span className='text-red-500'>*</span>
+                                                                                </Label>
                                                                                 <Select
                                                                                     onValueChange={(value) => {
                                                                                         field.onChange(value);
@@ -4314,14 +4471,16 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 {/* Row 4: Registration No., Result */}
                                                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                                                     <InputText
-                                                                        label='Registration No. *'
+                                                                        label='Registration No.'
+                                                                        required
                                                                         id={`qualificationDetails.${index}.registrationNo`}
                                                                         maxLength={50}
                                                                         {...register(`qualificationDetails.${index}.registrationNo`)}
                                                                         error={(errors.qualificationDetails as any)?.[index]?.registrationNo?.message}
                                                                     />
                                                                     <InputText
-                                                                        label='Result *'
+                                                                        label='Result'
+                                                                        required
                                                                         id={`qualificationDetails.${index}.result`}
                                                                         maxLength={20}
                                                                         {...register(`qualificationDetails.${index}.result`)}
@@ -4335,7 +4494,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         control={control}
                                                                         render={({ field, fieldState }) => (
                                                                             <div className='flex flex-col gap-1.5'>
-                                                                                <Label>CGPA Or Percentage *</Label>
+                                                                                <Label>
+                                                                                    CGPA Or Percentage <span className='text-red-500'>*</span>
+                                                                                </Label>
                                                                                 <Select
                                                                                     onValueChange={(val) => {
                                                                                         field.onChange(val);
@@ -4438,7 +4599,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                             const specialisations = options?.specialisations || [];
                                                                             return (
                                                                                 <div className='flex flex-col gap-1.5'>
-                                                                                    <Label>Area Of Specialization*</Label>
+                                                                                    <Label>
+                                                                                        Area Of Specialization <span className='text-red-500'>*</span>
+                                                                                    </Label>
                                                                                     <Select
                                                                                         onValueChange={field.onChange}
                                                                                         value={field.value || ''}>
@@ -4860,7 +5023,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                             </div>
                                                             <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
                                                                 <InputText
-                                                                    label='Document Name *'
+                                                                    label='Document Name'
+                                                                    required
                                                                     id={`documentList.${index}.documentName`}
                                                                     maxLength={255}
                                                                     {...register(`documentList.${index}.documentName`)}
@@ -4868,7 +5032,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     error={(errors.documentList as any)?.[index]?.documentName?.message}
                                                                 />
                                                                 <InputText
-                                                                    label='Description *'
+                                                                    label='Description'
+                                                                    required
                                                                     id={`documentList.${index}.documentDescription`}
                                                                     maxLength={400}
                                                                     {...register(`documentList.${index}.documentDescription`)}
@@ -4876,7 +5041,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     error={(errors.documentList as any)?.[index]?.documentDescription?.message}
                                                                 />
                                                                 <div className='space-y-2 md:col-span-2'>
-                                                                    <Label>Upload Document</Label>
+                                                                    <Label>
+                                                                        Upload Document <span className='text-red-500'>*</span>
+                                                                    </Label>
                                                                     <div className='flex items-center gap-2'>
                                                                         <input
                                                                             type='file'
@@ -5212,7 +5379,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 const leavingReasons = options?.leavingReasons || [];
                                                                 return (
                                                                     <div className='space-y-2 md:col-span-2 '>
-                                                                        <Label>Reason for Leaving *</Label>
+                                                                        <Label>
+                                                                            Reason for Leaving <span className='text-red-500'>*</span>
+                                                                        </Label>
                                                                         <Select onValueChange={field.onChange} value={field.value || ''}>
                                                                             <SelectTrigger
                                                                                 className={cn(

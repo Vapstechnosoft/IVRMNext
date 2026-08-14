@@ -1,116 +1,191 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { getSubjectWiseDetails, getSubjectWiseReport } from '@/server/timetable/reports/subjectwisett';
-import { Download, Printer } from 'lucide-react';
+import { getSubjectWiseDetails } from '@/server/timetable/reports/subjectwisett';
 import { useEffect, useRef, useState } from 'react';
-import * as XLSX from 'xlsx';
+import { toast } from 'sonner';
 import SubjectWiseForm from './_components/subjectwise-form';
+import SubjectWiseReportGrid from './_components/subjectwise-report-grid';
+import SubjectWiseReportPrintable from './_components/subjectwise-report-printable';
 
 export default function SubjectWiseReportPage() {
     const [initialData, setInitialData] = useState<any>({});
     const [reportData, setReportData] = useState<any[]>([]);
-    const [periodList, setPeriodList] = useState<any[]>([]);
-    const [error, setError] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
-    const componentRef = useRef<HTMLDivElement>(null);
+    const [isReportVisible, setIsReportVisible] = useState(false);
+    const printRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const fetchDetails = async () => {
             try {
                 const data = await getSubjectWiseDetails({});
                 if (data) {
-                    // Map API response to expected form props
                     setInitialData({
                         acaYear: data.year,
                         classDrp: data.clsdrp,
                         subjectDrp: data.subdrp
                     });
                 } else {
-                    setError('No data received from server.');
+                    toast.error('No details received from server.');
                 }
             } catch (error: any) {
-                //console.error('Error fetching initial details', error);
-                setError(error.message || 'Failed to fetch report details.');
+                toast.error(error.message || 'Failed to fetch initial details.');
             }
         };
         fetchDetails();
     }, []);
 
-    const handleFormSubmit = async (payload: any) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const response = await getSubjectWiseReport(payload);
-            processReportData(response, payload.subarray);
-        } catch (error: any) {
-            //console.error('Error generating report', error);
-            setError(error.message || 'Failed to generate report.');
+    const handleReportGenerated = (response: any, payload: any) => {
+        const data = response.data || response;
+        if (data?.tt?.length > 0) {
+            processReportData(data, payload.subarray);
+            setIsReportVisible(true);
+            toast.success('Report generated successfully');
+        } else if (data?.gridweeks?.length > 0 || data?.allperiods?.length > 0) {
+            processReportData(data, payload.subarray);
+            setIsReportVisible(true);
+            toast.success('Report generated successfully (No Timetable Entries)');
+        } else {
+            const msg =
+                response.success === false && response.message ? response.message : 'TimeTable is Not Generated For Selected Details !!!!';
+            toast.error(msg);
             setReportData([]);
-        } finally {
-            setLoading(false);
+            setIsReportVisible(false);
         }
     };
 
     const handleCancel = () => {
         setReportData([]);
-        setError(null);
+        setIsReportVisible(false);
     };
 
-    const processReportData = (data: any, selectedSubjects: any[]) => {
-        if (!data.tt || data.tt.length === 0) {
-            setError('No TimeTable generated for the selected details.');
-            setReportData([]);
-            return;
-        }
-
+    const processReportData = (response: any, selectedSubjects: any[]) => {
         const processedList: any[] = [];
-        const periodList = data.periodslst || [];
-        setPeriodList(periodList);
-        const gridWeeks = data.gridweeks || [];
-        const timetable = data.tt || [];
 
-        // Iterate through each selected subject
-        selectedSubjects.forEach((sub: any) => {
+        // Helper to find the object containing TimeTable data (following classwise-report logic)
+        const findRoot = (obj: any): any => {
+            if (!obj) return null;
+            const hasData = (o: any) =>
+                o &&
+                ((o.tt && Array.isArray(o.tt)) ||
+                    (o.TT && Array.isArray(o.TT)) ||
+                    (o.timetable && Array.isArray(o.timetable)) ||
+                    (o.Table4 && Array.isArray(o.Table4)));
+            if (hasData(obj)) return obj;
+            if (obj.data) return findRoot(obj.data);
+            return obj;
+        };
+
+        const root = findRoot(response);
+
+        // Map alternate keys (gridweeks, allperiods, etc.)
+        const getList = (obj: any, ...keys: string[]): any[] => {
+            if (!obj) return [];
+            for (const k of keys) {
+                if (obj[k] && Array.isArray(obj[k])) return obj[k];
+                const lowerK = k.toLowerCase();
+                const foundKey = Object.keys(obj).find((key) => key.toLowerCase() === lowerK);
+                if (foundKey && Array.isArray(obj[foundKey])) return obj[foundKey];
+            }
+            return [];
+        };
+
+        const timetable = getList(root, 'tt', 'TT', 'timetable', 'Table4', 'Table');
+        const periodList = getList(root, 'allperiods', 'periodslst', 'periodList', 'periodsLst', 'Table1');
+        const gridWeeks = getList(root, 'gridweeks', 'gridWeeks', 'day_list', 'day_List', 'Table');
+        const breakList = getList(root, 'tT_Break_list', 'breakList', 'Table2', 'tt_break_list');
+
+        console.log('SubjectWise Report Analysis:', {
+            periods: periodList.length,
+            days: gridWeeks.length,
+            tt: timetable.length
+        });
+
+        const subjectsToProcess = Array.isArray(selectedSubjects) ? selectedSubjects : [];
+
+        subjectsToProcess.forEach((sub: any) => {
+            const subId = sub.ismS_Id || sub.ISM_Id || sub.isms_Id;
+            const subName = sub.ismS_SubjectName || sub.subjectName || sub.subject || '';
+
             const tableRows: any[] = [];
+            const periodSequence: any[] = [];
+
+            // Reconstruct timeline (Periods + Breaks)
+            periodList.forEach((period: any) => {
+                const pedId = period.ttmP_Id || period.TTMP_Id || period.ped_id;
+                const pedName = period.ttmP_PeriodName || period.periodName || period.ped_name;
+
+                periodSequence.push({
+                    ped_id: pedId,
+                    ped_name: String(pedName),
+                    is_break: false
+                });
+
+                // Check for breaks
+                const breakItem = breakList.find((b: any) => {
+                    const bAfter = b.ttmB_AfterPeriod || b.afterPeriod || b.ttmb_afterperiod;
+                    return Number.parseFloat(String(pedName)) === Number.parseFloat(String(bAfter));
+                });
+
+                if (breakItem) {
+                    periodSequence.push({
+                        ped_id: 0,
+                        ped_name: 'Break',
+                        is_break: true,
+                        brk_name: breakItem.ttmB_BreakName || 'Break'
+                    });
+                }
+            });
 
             gridWeeks.forEach((day: any) => {
                 const rowCells: any[] = [];
-                periodList.forEach((period: any) => {
-                    // Find timetable entry
+                const dayId = day.ttmD_Id || day.TTMD_Id || day.day_id || day.ttmd_id;
+                const dayName = day.ttmD_DayName || day.dayName || day.day_name || '';
+
+                periodSequence.forEach((periodCol: any) => {
                     let cellContent = '';
-                    const cellColor = 'black';
+                    let cellColor = 'black';
 
-                    // Filter logic from AngularJS:
-                    // t.ttmP_Id == period.ttmP_Id && t.ttmD_Id == day.ttmD_Id && t.ismS_Id == sub.ismS_Id
-                    const entries = timetable.filter(
-                        (t: any) => t.ttmP_Id === period.ttmP_Id && t.ttmD_Id === day.ttmD_Id && t.ismS_Id === sub.ismS_Id
-                    );
+                    if (!periodCol.is_break) {
+                        const entries = timetable.filter((t: any) => {
+                            const tPedId = t.ttmP_Id || t.TTMP_Id || t.ped_id;
+                            const tDayId = t.ttmD_Id || t.TTMD_Id || t.day_id;
+                            const tSubId = t.ismS_Id || t.ISM_Id || t.isms_Id;
 
-                    if (entries.length > 0) {
-                        // value2 logic: Class : Section : Staff : Subject
-                        cellContent = entries
-                            .map((t: any) => `${t.asmcL_ClassName} : ${t.asmC_SectionName} : ${t.staffName} : ${t.ismS_SubjectName}`)
-                            .join(' && ');
-                        // TODO: Use specific color logic if available? AngularJS just says black or red if dayBreak (but break logic wasn't in the snippet provided for SubjectWise, only ClassWise. SubjectWise snippet has "color: 'black'" hardcoded mostly, except potentially breaks which aren't explicitly handled in the snippet loop but usually TT has breaks).
-                        // The snippet uses 'color: black' and doesn't seem to have break logic inside the subject loop explicitly like classwise does.
-                        // But if there's a break, it might be in the period list?
-                        // For now, default to black.
+                            return (
+                                Number(tPedId) === Number(periodCol.ped_id) &&
+                                Number(tDayId) === Number(dayId) &&
+                                Number(tSubId) === Number(subId)
+                            );
+                        });
+
+                        if (entries.length > 0) {
+                            cellContent = entries
+                                .map((t: any) => {
+                                    const cls = t.asmcL_ClassName || t.className || t.asmcl_classname || '';
+                                    const sec = t.asmC_SectionName || t.sectionName || t.asmc_sectionname || '';
+                                    const stf = t.staffName || t.empName || t.hrmE_EmployeeName || '';
+                                    return `${cls} : ${sec} : ${stf}`;
+                                })
+                                .join(' && ');
+                        }
+                    } else {
+                        cellContent = periodCol.brk_name || 'Break';
+                        cellColor = 'red';
                     }
 
                     rowCells.push({
-                        ped_id: period.ttmP_Id,
-                        ped_name: period.ttmP_PeriodName,
+                        ...periodCol,
                         content: cellContent,
                         color: cellColor
                     });
                 });
-                tableRows.push({ dayName: day.ttmD_DayName, cells: rowCells });
+
+                tableRows.push({ dayName: String(dayName), cells: rowCells });
             });
 
             processedList.push({
-                header: sub.ismS_SubjectName,
+                header: `Subject : ${subName}`,
+                periodList: periodSequence,
                 rows: tableRows
             });
         });
@@ -119,137 +194,19 @@ export default function SubjectWiseReportPage() {
     };
 
     const handlePrint = () => {
-        if (!componentRef.current) return;
-
-        const printWindow = window.open('', '', 'width=1200,height=800');
-        if (!printWindow) return;
-
-        const content = componentRef.current.innerHTML;
-
-        printWindow.document.write(`
-            <html>
-                <head>
-                    <title>Subject Wise TimeTable Report</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; padding: 20px; }
-                        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-                        th, td { border: 1px solid #000; padding: 8px; text-align: center; font-size: 12px; }
-                        th { background-color: #f3f3f3; font-weight: bold; }
-                        h3 { text-align: center; color: green; margin-bottom: 10px; }
-                        .page-break-after-always { page-break-after: always; }
-                    </style>
-                </head>
-                <body>
-                    ${content}
-                </body>
-            </html>
-        `);
-
-        printWindow.document.close();
-        printWindow.focus();
-        setTimeout(() => {
-            printWindow.print();
-            printWindow.close();
-        }, 500);
-    };
-
-    const handleExport = () => {
-        if (componentRef.current) {
-            const wb = XLSX.utils.book_new();
-
-            // We can iterate reportData to make sheets
-            reportData.forEach((table, idx) => {
-                // Construct data for sheet
-                // Header row
-                const headerRow = ['Day / Period', ...periodList.map((p: any) => `Period ${p.ttmP_PeriodName}`)];
-
-                const sheetData = [headerRow];
-
-                table.rows.forEach((row: any) => {
-                    const rowData = [row.dayName, ...row.cells.map((c: any) => c.content)];
-                    sheetData.push(rowData);
-                });
-
-                const ws = XLSX.utils.aoa_to_sheet(sheetData);
-                // Sheet name limited to 31 chars
-                let sheetName = table.header.substring(0, 31).replace(/[:\/\\?*\[\]]/g, ''); // Remove invalid chars
-                if (sheetName.length === 0) sheetName = `Sheet ${idx + 1}`;
-
-                // Ensure unique sheet names
-                let suffix = 1;
-                const originalName = sheetName;
-                while (wb.SheetNames.includes(sheetName)) {
-                    sheetName = `${originalName.substring(0, 28)}_${suffix}`;
-                    suffix++;
-                }
-
-                XLSX.utils.book_append_sheet(wb, ws, sheetName);
-            });
-
-            XLSX.writeFile(wb, 'SubjectWiseTimeTable.xlsx');
-        }
+        window.print();
     };
 
     return (
-        <div className='container space-y-4 p-1'>
-            <CollapsibleSection title='Subject Wise TimeTable Report' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
-                <SubjectWiseForm initialData={initialData} onSubmit={handleFormSubmit} onCancel={handleCancel} />
-                {/* {error && (
-                    <div className='p-4 text-center text-red-500 text-sm'>
-                        <p>{error}</p>
-                    </div>
-                )} */}
+        <div className='container mx-auto space-y-6 p-4'>
+            <CollapsibleSection title='Subject Wise TimeTable Report' defaultOpen={true} className='shadow-lg'>
+                <SubjectWiseForm initialData={initialData} onReportGenerated={handleReportGenerated} onCancel={handleCancel} />
             </CollapsibleSection>
 
-            {reportData.length > 0 && (
-                <CollapsibleSection title='Report Grid' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
-                    <div className='mb-4 flex justify-end space-x-2'>
-                        <Button variant='outline' onClick={handleExport}>
-                            <Download className='mr-2 h-4 w-4' />
-                            Export to Excel
-                        </Button>
-                        <Button variant='outline' onClick={handlePrint}>
-                            <Printer className='mr-2 h-4 w-4' />
-                            Print
-                        </Button>
-                    </div>
-
-                    <div className='overflow-x-auto rounded-lg bg-white p-4' ref={componentRef}>
-                        {reportData.map((table, idx) => (
-                            <div key={idx} className='page-break-after-always mb-8'>
-                                <h3 className='mb-2 text-center font-bold text-green-700 text-lg'>{table.header}</h3>
-                                <table className='w-full min-w-[800px] border-collapse border border-gray-300'>
-                                    <thead>
-                                        <tr className='bg-gray-100'>
-                                            <th className='border border-gray-300 p-2 text-center font-bold'>Day / Period</th>
-                                            {periodList.map((p: any, pIdx: number) => (
-                                                <th key={pIdx} className='border border-gray-300 p-2 text-center font-bold'>
-                                                    Period {p.ttmP_PeriodName}
-                                                </th>
-                                            ))}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {table.rows.map((row: any, rIdx: number) => (
-                                            <tr key={rIdx} className={rIdx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                                                <td className='border border-gray-300 p-2 text-center font-medium text-blue-600'>
-                                                    {row.dayName}
-                                                </td>
-                                                {row.cells.map((cell: any, cIdx: number) => (
-                                                    <td
-                                                        key={cIdx}
-                                                        className='border border-gray-300 p-2 text-center text-sm'
-                                                        style={{ color: cell.color }}>
-                                                        {cell.content}
-                                                    </td>
-                                                ))}
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        ))}
-                    </div>
+            {isReportVisible && (
+                <CollapsibleSection title='Report Grid' defaultOpen={true} className='shadow-lg'>
+                    <SubjectWiseReportGrid reportData={reportData} onPrint={handlePrint} />
+                    <SubjectWiseReportPrintable ref={printRef} reportData={reportData} />
                 </CollapsibleSection>
             )}
         </div>

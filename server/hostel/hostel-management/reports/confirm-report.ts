@@ -2,10 +2,11 @@
 
 import { api } from '@/lib/apiService';
 import { format } from 'date-fns';
-
+ 
 export interface ConfirmReportDto {
     grid_list: Array<{
         studentname?: string;
+        
         empname?: string;
         ASMCL_ClassName?: string;
         HRMD_DepartmentName?: string;
@@ -22,13 +23,13 @@ export async function getConfirmReport(values: any): Promise<ConfirmReportDto | 
     try {
         const payload = {
             "type": values.type,
-            "frmdate": format(values.fromDate, 'yyyy-MM-dd'),
-            "todate": format(values.toDate, 'yyyy-MM-dd'),
+            "frmdate": format(new Date(values.fromDate), 'yyyy-MM-dd'),
+            "todate": format(new Date(values.toDate), 'yyyy-MM-dd'),
         };
         const res = await api.post<ConfirmReportDto>('hostel', '/Hostel_Confirm_Report/getreport', payload);
         if (res.data) return res.data;
     } catch (error) {
         console.error('Error fetching confirm report:', error);
     }
-    return null;
+    return { grid_list: [] };
 }

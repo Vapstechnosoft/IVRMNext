@@ -10,17 +10,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { useClassdropdowndatafee, useSectiondropdowndatafee, useacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
 import {
-    useBusRoutingForNoticeBoard,
-    useDepartmentsForNoticeBoard,
-    useDesignationForNoticeBoard,
-    useEmployeesForNoticeBoard,
-    useGroupForNoticeBoard,
-    useTermForNoticeBoard
+    useBusRoutingForNoticeBoardQuery,
+    useNoticeBoardDepartments,
+    useNoticeBoardDesignations,
+    useNoticeBoardEmployees,
+    useFeeGroupsForNoticeBoardQuery,
+    useFeeTermsForNoticeBoardQuery
 } from '@/hooks/upload/transactions/use-notice-board';
 import { cn } from '@/lib/utils';
-import { noticeBoardSchemaNew } from '@/schemas/upload/transactions/notice-board.schema';
+import { noticeBoardSchema } from '@/schemas/upload/transactions/notice-board.schema';
 import { uploadDocument } from '@/server/fees/trasactions/waived_off';
-import { saveNoticeBoard } from '@/server/upload/transactions/notice-board/server-action';
+import { saveNoticeBoardDetail } from '@/server/upload/transactions/notice-board/server-action';
 import type { feeTransactionWaivedOffStudentDetails } from '@/types/fees/transactions/transactions';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
@@ -30,7 +30,7 @@ import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-type FormFields = z.infer<typeof noticeBoardSchemaNew.addOrUpdate>;
+type FormFields = z.infer<typeof noticeBoardSchema>;
 interface AddNoticeBoardFormProps {
     onSuccess: () => void;
 }
@@ -38,7 +38,7 @@ interface AddNoticeBoardFormProps {
 export default function AddUploadNoticeBoardForm({ onSuccess }: AddNoticeBoardFormProps) {
     const [isUrlMode, setIsUrlMode] = useState(false);
     const methods = useForm<FormFields>({
-        resolver: zodResolver(noticeBoardSchemaNew.addOrUpdate),
+        resolver: zodResolver(noticeBoardSchema),
         defaultValues: {
             intB_FilePath_Array: [{ intbfL_FilePath: '', fileName: '' }],
             intB_UrlPath_Array: [{ intbfL_FilePath: '', fileName: '' }],
@@ -121,14 +121,15 @@ export default function AddUploadNoticeBoardForm({ onSuccess }: AddNoticeBoardFo
 
     const { data: classdata, isLoading: classloading } = useClassdropdowndatafee();
     const { data: sectiondata, isLoading: secloading } = useSectiondropdowndatafee();
-    const { data: departmentdata, isLoading: departmentloading } = useDepartmentsForNoticeBoard();
-    const { data: designationdata, isLoading: designationloading } = useDesignationForNoticeBoard();
-    const { data: employeesdata, isLoading: employeesloading } = useEmployeesForNoticeBoard();
+    const { data: departmentdata, isLoading: departmentloading } = useNoticeBoardDepartments();
+    const { data: designationdata, isLoading: designationloading } = useNoticeBoardDesignations();
+    const { data: employeesdata, isPending: employeesloading } = useNoticeBoardEmployees();
 
-    const { data: routedata, isLoading: routeloading } = useBusRoutingForNoticeBoard();
-    const { data: gorupdata, isLoading: grouploading } = useGroupForNoticeBoard();
+    const { data: routedata, isLoading: routeloading } = useBusRoutingForNoticeBoardQuery();
+    const { data: gorupdata, isLoading: grouploading } = useFeeGroupsForNoticeBoardQuery();
 
-    const { data: termdata, isLoading: termloading } = useTermForNoticeBoard();
+    const { data: termdata, isLoading: termloading } = useFeeTermsForNoticeBoardQuery();
+
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
         const file = e.target.files?.[0];
@@ -220,7 +221,7 @@ export default function AddUploadNoticeBoardForm({ onSuccess }: AddNoticeBoardFo
 
     const onSubmit = async (data: FormFields) => {
         try {
-            const result = await saveNoticeBoard(data);
+            const result = await saveNoticeBoardDetail(data);
             if (result.success) {
                 toast.success(result.message);
                 onSuccess();
@@ -264,6 +265,7 @@ export default function AddUploadNoticeBoardForm({ onSuccess }: AddNoticeBoardFo
                             </div>
                         )}
                     />
+
                     <Controller
                         control={control}
                         name='check_staff'
@@ -520,14 +522,14 @@ export default function AddUploadNoticeBoardForm({ onSuccess }: AddNoticeBoardFo
                                         isRequired
                                         isLoading={classloading}
                                         options={
-                                            classdata?.data?.map((c) => ({
+                                            classdata?.data?.map((c: any) => ({
                                                 label: c.asmcL_ClassName,
                                                 value: c.asmcL_Id.toString()
                                             })) || []
                                         }
-                                        value={field.value?.map((v) => v.asmcL_Id.toString()) || []}
-                                        onChange={(vals) => {
-                                            field.onChange(vals.map((v) => ({ asmcL_Id: Number(v) })));
+                                        value={field.value?.map((v: any) => v.asmcL_Id.toString()) || []}
+                                        onChange={(vals: string[]) => {
+                                            field.onChange(vals.map((v: string) => ({ asmcL_Id: Number(v) })));
                                             setValue('asmS_Id', []);
                                             setValue('ismS_Id', []);
                                             setValue('amsT_Id', []);
@@ -546,14 +548,14 @@ export default function AddUploadNoticeBoardForm({ onSuccess }: AddNoticeBoardFo
                                         isRequired
                                         isLoading={secloading}
                                         options={
-                                            sectiondata?.data?.map((c) => ({
+                                            sectiondata?.data?.map((c: any) => ({
                                                 label: c.asmC_SectionName,
                                                 value: c.asmS_Id.toString()
                                             })) || []
                                         }
-                                        value={field.value?.map((v) => v.asmS_Id.toString()) || []}
-                                        onChange={(vals) => {
-                                            field.onChange(vals.map((v) => ({ asmS_Id: Number(v) })));
+                                        value={field.value?.map((v: any) => v.asmS_Id.toString()) || []}
+                                        onChange={(vals: string[]) => {
+                                            field.onChange(vals.map((v: string) => ({ asmS_Id: Number(v) })));
                                             setValue('ismS_Id', []);
                                             setValue('amsT_Id', []);
                                         }}
@@ -571,14 +573,14 @@ export default function AddUploadNoticeBoardForm({ onSuccess }: AddNoticeBoardFo
                                         isRequired
                                         isLoading={studentDetailsLoading}
                                         options={
-                                            studentDetails?.map((c) => ({
+                                            studentDetails?.map((c: any) => ({
                                                 label: c.studentName,
                                                 value: c.amsT_Id.toString()
                                             })) || []
                                         }
-                                        value={field.value?.map((v) => v.amsT_Id.toString()) || []}
-                                        onChange={(vals) => {
-                                            field.onChange(vals.map((v) => ({ asmS_Id: Number(v) })));
+                                        value={field.value?.map((v: any) => v.amsT_Id.toString()) || []}
+                                        onChange={(vals: string[]) => {
+                                            field.onChange(vals.map((v: string) => ({ asmS_Id: Number(v) })));
                                             setValue('ismS_Id', []);
                                             setValue('amsT_Id', []);
                                         }}
@@ -596,14 +598,14 @@ export default function AddUploadNoticeBoardForm({ onSuccess }: AddNoticeBoardFo
                                             isRequired
                                             isLoading={routeloading}
                                             options={
-                                                routedata?.data?.map((c) => ({
+                                                routedata?.data?.map((c: any) => ({
                                                     label: c.trmR_RouteName,
                                                     value: c.trmR_Id.toString()
                                                 })) || []
                                             }
-                                            value={field.value?.map((v) => v.trmR_Id.toString()) || []}
-                                            onChange={(vals) => {
-                                                field.onChange(vals.map((v) => ({ routeList: Number(v) })));
+                                            value={field.value?.map((v: any) => v.trmR_Id.toString()) || []}
+                                            onChange={(vals: string[]) => {
+                                                field.onChange(vals.map((v: string) => ({ routeList: Number(v) })));
                                                 setValue('ismS_Id', []);
                                                 setValue('amsT_Id', []);
                                             }}
@@ -623,14 +625,14 @@ export default function AddUploadNoticeBoardForm({ onSuccess }: AddNoticeBoardFo
                                             isRequired
                                             isLoading={grouploading}
                                             options={
-                                                gorupdata?.data?.map((c) => ({
+                                                gorupdata?.data?.map((c: any) => ({
                                                     label: c.fmG_GroupName,
                                                     value: c.fmG_Id.toString()
                                                 })) || []
                                             }
-                                            value={field.value?.map((v) => v.fmg_Id.toString()) || []}
-                                            onChange={(vals) => {
-                                                field.onChange(vals.map((v) => ({ feeGroupList: Number(v) })));
+                                            value={field.value?.map((v: any) => v.fmg_Id.toString()) || []}
+                                            onChange={(vals: string[]) => {
+                                                field.onChange(vals.map((v: string) => ({ feeGroupList: Number(v) })));
                                                 setValue('ismS_Id', []);
                                                 setValue('amsT_Id', []);
                                             }}
@@ -650,14 +652,14 @@ export default function AddUploadNoticeBoardForm({ onSuccess }: AddNoticeBoardFo
                                             isRequired
                                             isLoading={termloading}
                                             options={
-                                                termdata?.data?.map((c) => ({
+                                                termdata?.data?.map((c: any) => ({
                                                     label: c.fmT_Name,
                                                     value: c.fmT_Id.toString()
                                                 })) || []
                                             }
-                                            value={field.value?.map((v) => v.fmT_Id.toString()) || []}
-                                            onChange={(vals) => {
-                                                field.onChange(vals.map((v) => ({ feeTermList: Number(v) })));
+                                            value={field.value?.map((v: any) => v.fmT_Id.toString()) || []}
+                                            onChange={(vals: string[]) => {
+                                                field.onChange(vals.map((v: string) => ({ feeTermList: Number(v) })));
                                                 setValue('ismS_Id', []);
                                                 setValue('amsT_Id', []);
                                             }}
@@ -686,9 +688,9 @@ export default function AddUploadNoticeBoardForm({ onSuccess }: AddNoticeBoardFo
                                             value: c.key.toString()
                                         })) || []
                                     }
-                                    value={field.value?.map((v) => v.hrmd_Id.toString()) || []}
-                                    onChange={(vals) => {
-                                        field.onChange(vals.map((v) => ({ hrmd_Id: Number(v) })));
+                                    value={field.value?.map((v: any) => v.hrmd_Id.toString()) || []}
+                                    onChange={(vals: string[]) => {
+                                        field.onChange(vals.map((v: string) => ({ hrmd_Id: Number(v) })));
                                         setValue('hrmdeS_Id', []);
                                         setValue('hrmE_Id', []);
                                     }}
@@ -710,9 +712,9 @@ export default function AddUploadNoticeBoardForm({ onSuccess }: AddNoticeBoardFo
                                             value: d.key.toString()
                                         })) || []
                                     }
-                                    value={field.value?.map((v) => v.hrmdeS_Id.toString()) || []}
-                                    onChange={(vals) => {
-                                        field.onChange(vals.map((v) => ({ hrmdeS_Id: Number(v) })));
+                                    value={field.value?.map((v: any) => v.hrmdeS_Id.toString()) || []}
+                                    onChange={(vals: string[]) => {
+                                        field.onChange(vals.map((v: string) => ({ hrmdeS_Id: Number(v) })));
                                         setValue('hrmE_Id', []);
                                     }}
                                     isSearchRequired
@@ -733,8 +735,8 @@ export default function AddUploadNoticeBoardForm({ onSuccess }: AddNoticeBoardFo
                                             value: s.key.toString()
                                         })) || []
                                     }
-                                    value={field.value?.map((v) => v.hrmE_Id.toString()) || []}
-                                    onChange={(vals) => field.onChange(vals.map((v) => ({ hrmE_Id: Number(v) })))}
+                                    value={field.value?.map((v: any) => v.hrmE_Id.toString()) || []}
+                                    onChange={(vals: string[]) => field.onChange(vals.map((v: string) => ({ hrmE_Id: Number(v) })))}
                                     isSearchRequired
                                 />
                             )}

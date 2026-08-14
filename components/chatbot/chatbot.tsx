@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bot, Send, X, Minus, Maximize2, Minimize2, MessageSquare, User, Loader2, Sparkles } from 'lucide-react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -37,6 +37,7 @@ export const Chatbot = () => {
         if (pathname.toLowerCase().includes('admission')) return { name: 'Admission', color: 'from-sky-500 to-indigo-600' };
         if (pathname.toLowerCase().includes('fees')) return { name: 'Fees', color: 'from-emerald-500 to-teal-600' };
         if (pathname.toLowerCase().includes('exam')) return { name: 'Exams', color: 'from-violet-500 to-purple-600' };
+        if (pathname.toLowerCase().includes('staffportal')) return { name: 'Staff Support', color: 'from-orange-500 to-rose-600' };
         return { name: 'Help Desk', color: 'from-indigo-600 to-blue-700' };
     };
     const currentContext = context();
@@ -50,7 +51,7 @@ export const Chatbot = () => {
         }
     ]);
 
-    type MenuState = 'ROOT' | 'ACADEMIC' | 'ANALYSIS' | 'STUDENT' | 'OFFICE' | 'ENABLE_CHAT';
+    type MenuState = 'ROOT' | 'ACADEMIC' | 'ANALYSIS' | 'STUDENT' | 'FEES' | 'OFFICE' | 'ENABLE_CHAT' | 'ATTENDANCE' | 'EXAMS' | 'UPLOAD' | 'LEAVE' | 'INTERACTION';
     const [menuState, setMenuState] = useState<MenuState>('ROOT');
     const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -88,11 +89,15 @@ export const Chatbot = () => {
     }, [pathname, isOpen]);
 
     // Early guard AFTER all hooks are declared
-    // Strictly Admin Portal only (Exclude Student and Staff portals)
+    const params = useParams();
+    const sub_domain = params?.sub_domain;
+    const isAuthPage = pathname?.toLowerCase().includes('login') ||
+        pathname?.toLowerCase().includes('sign-in') ||
+        pathname === `/${sub_domain}`;
     const isStudentPortal = pathname?.toLowerCase().includes('studentportal');
     const isStaffPortal = pathname?.toLowerCase().includes('staffportal');
 
-    if (!mounted || isStudentPortal || isStaffPortal) return null;
+    if (!mounted || isStudentPortal || isAuthPage) return null;
 
     // Helper to resolve links from common.ts data (environment-aware)
     const resolveLink = (targetName: string, fallbackLink?: string) => {
@@ -115,6 +120,7 @@ export const Chatbot = () => {
         ROOT: [
             { label: 'Academic Operations', id: 'ACADEMIC' },
             { label: 'Performance Analysis', id: 'ANALYSIS' },
+            { label: 'Fees & Payments', id: 'FEES' },
             { label: 'Student Records', id: 'STUDENT' },
             { label: 'Staff ESS (Self Service)', id: 'OFFICE' },
             { label: 'Detailed Query', id: 'ENABLE_CHAT' }
@@ -131,6 +137,12 @@ export const Chatbot = () => {
             { label: 'Toppers List', response: 'View exam toppers in Exam > Reports > Toppers List Report.', pageName: 'Toppers List Report', link: '/Exam/exam-module/reports/toppers-list-report' },
             { label: 'Grade Slab Report', response: 'View grade distribution in Exam > Reports > Grade Slab Report.', pageName: 'Grade Slab Report', link: '/Exam/exam-module/reports/grade-slab-report' },
         ],
+        FEES: [
+            { label: 'Fee Collection', response: 'Record fee transactions in Fees > Transactions > Fee Transaction.', pageName: 'Fee Transaction', link: '/fees/transactions/feetransaction' },
+            { label: 'Fee Concession', response: 'Manage student concessions in Fees > Transactions > Fee Concession.', pageName: 'Fee Concession', link: '/fees/transactions/feeconcession' },
+            { label: 'Daily Collection', response: 'View daily collection summary in Fees > Reports > Daily Fee Collection.', pageName: 'Daily Fee Collection', link: '/fees/feereports/dailyfeecollectionreport' },
+            { label: 'Defaulters List', response: 'View fee defaulters in Fees > Reports > Fee Defaulter Report.', pageName: 'Fee Defaulter Report', link: '/fees/feereports/feedefaulterreport' },
+        ],
         STUDENT: [
             { label: 'Mark Attendance', response: 'Record daily attendance in Admission > Attendance Entry > Student Attendance.', pageName: 'Student Attendance', link: '/admission/preadmission/attendance-entry/student-attendance' },
             { label: 'Student Search', response: 'Find student details in Admission > Reports > Student Search.', pageName: 'Student Search', link: '/admission/preadmission/reports/student-search' },
@@ -145,6 +157,44 @@ export const Chatbot = () => {
             { label: 'Employee Profile', response: 'View your profile in HRMS > Employee > Employee Register.', pageName: 'Employee Register', link: '/hrms/employee' },
         ]
     };
+
+    const STAFF_MENU_STRUCTURE: Record<string, any> = {
+        ROOT: [
+            { label: 'Attendance & Entry', id: 'ATTENDANCE' },
+            { label: 'Exams & Evaluation', id: 'EXAMS' },
+            { label: 'Upload & Notice Board', id: 'UPLOAD' },
+            { label: 'Leave & Biometrics ESS', id: 'LEAVE' },
+            { label: 'Interactions', id: 'INTERACTION' },
+            { label: 'Detailed Query', id: 'ENABLE_CHAT' }
+        ],
+        ATTENDANCE: [
+            { label: 'Attendance Entry', response: 'Record daily attendance in Attendance > Transaction > Attendance Entry.', pageName: 'Attendance Entry', link: '/admission/preadmission/attendance-entry/student-attendance' },
+            { label: 'Attendance Report', response: 'View attendance history in Attendance > Report > Student Attendance Report.', pageName: 'Student Attendance Report', link: '/admission/preadmission/reports/student-attendance-report' },
+        ],
+        EXAMS: [
+            { label: 'AI MCQ Quiz', response: 'Manage online MCQ quizzes in Exam > Exam > AI MCQ Quiz.', pageName: 'AI MCQ Quiz', link: '/StaffPortal/ai-mcq-quiz' },
+            { label: 'OMR Sheet Evaluator', response: 'Evaluate scanned OMR sheets using AI in Exam > Exam > OMR Sheet Evaluator.', pageName: 'OMR Sheet Evaluator', link: '/StaffPortal/omr-sheet-evaluator' },
+            { label: 'Marks Entry', response: 'Direct marks entry in Exam > Marks Entry > Marks Entry.', pageName: 'Marks Entry', link: '/Exam/exam-module/marks-entry/exam-marks-entry' },
+            { label: 'Cumulative Report', response: 'View cumulative exam report in Exam > Report > Cumulative Report.', pageName: 'Cumulative Report', link: '/Exam/exam-module/reports/cumulative-report' },
+        ],
+        UPLOAD: [
+            { label: 'Homework Upload', response: 'Upload student homework in Upload > Transaction > Homework.', pageName: 'Homework', link: '/StaffPortal/Upload/ivrm-homework' },
+            { label: 'Homework Marks Entry', response: 'Enter homework grades in Upload > Transaction > Homework Marks Entry.', pageName: 'Homework Marks Entry', link: '/StaffPortal/Upload/HomeWork_Marks_Enter' },
+            { label: 'Notice Board', response: 'Post notices on notice board in Upload > Transaction > Notice Board.', pageName: 'Notice Board', link: '/StaffPortal/Upload/notice-board' },
+            { label: 'Classwork Upload', response: 'Upload classwork files in Upload > Transaction > Classwork.', pageName: 'Classwork', link: '/StaffPortal/Upload/ivrm-classwork' },
+        ],
+        LEAVE: [
+            { label: 'Leave Application', response: 'Apply for leaves in Leave > Leave Management > Leave Application.', pageName: 'Leave Application', link: '/StaffPortal/leave-management/online-leave-application' },
+            { label: 'Leave Approval', response: 'Approve or Reject leave requests in Leave > Leave Management > Leave Approval.', pageName: 'Leave Approval', link: '/StaffPortal/leave-management/leave-approval' },
+            { label: 'Biometric Punch Report', response: 'View employee punch report in Biometric Report > Report > Employee Punch Report.', pageName: 'Employee Punch Report', link: '/StaffPortal/BiometricReport/employeePunchAttendence' },
+        ],
+        INTERACTION: [
+            { label: 'IVRM Interaction', response: 'View interactions in Interaction > Transaction > IVRM Interaction.', pageName: 'IVRM Interaction', link: '/StaffPortal/Interactions/IVRM_Interactions' },
+            { label: 'SCS Interaction', response: 'View SCS interactions in Interaction > Transaction > SCS Interaction.', pageName: 'SCS Interaction', link: '/StaffPortal/Interactions/SCS_IVRM_Interactions' },
+        ]
+    };
+
+    const ACTIVE_MENU_STRUCTURE = isStaffPortal ? STAFF_MENU_STRUCTURE : MENU_STRUCTURE;
 
 
     const handleOptionClick = (option: any) => {
@@ -167,7 +217,7 @@ export const Chatbot = () => {
         }
 
         // Category transition
-        if (['ACADEMIC', 'ANALYSIS', 'STUDENT', 'OFFICE'].includes(option.id)) {
+        if (['ACADEMIC', 'ANALYSIS', 'STUDENT', 'FEES', 'OFFICE', 'ATTENDANCE', 'EXAMS', 'UPLOAD', 'LEAVE', 'INTERACTION'].includes(option.id)) {
             setMenuState(option.id as MenuState);
             const userMsg: Message = {
                 id: `${Date.now()}-user`,
@@ -269,7 +319,7 @@ export const Chatbot = () => {
     };
 
     return (
-        <div className="fixed bottom-3 right-3 z-[2147483647] flex flex-col items-end">
+        <div className="fixed bottom-1 right-1 z-[2147483647] flex flex-col items-end">
             <AnimatePresence>
                 {isOpen && !isMinimized && (
                     <motion.div
@@ -373,7 +423,7 @@ export const Chatbot = () => {
                                     {!isLoading && (
                                         <div className="flex flex-col gap-2 mt-2 px-1 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                             <div className="flex flex-wrap gap-2">
-                                                {MENU_STRUCTURE[menuState]?.map((opt: any, i: number) => (
+                                                {ACTIVE_MENU_STRUCTURE[menuState]?.map((opt: any, i: number) => (
                                                     <button
                                                         key={i}
                                                         onClick={() => handleOptionClick(opt)}
@@ -462,35 +512,35 @@ export const Chatbot = () => {
             </AnimatePresence>
 
             {/* Toggle Button */}
-            <div className="flex flex-col items-center gap-1.5">
+            <div className="flex flex-col items-center gap-1">
                 <motion.button
                     whileHover={{ scale: 1.1, rotate: 5, boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}
                     whileTap={{ scale: 0.9 }}
                     onClick={toggleChat}
                     className={cn(
-                        "w-[52px] h-[52px] rounded-full shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] flex items-center justify-center transition-all duration-500 ring-2 ring-white/90 dark:ring-zinc-800/90 overflow-hidden relative group",
+                        "w-[42px] h-[42px] rounded-full shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] flex items-center justify-center transition-all duration-500 ring-2 ring-white/90 dark:ring-zinc-800/90 overflow-hidden relative group",
                         isOpen && !isMinimized ? "bg-red-500 ring-red-100" : cn("bg-gradient-to-tr", currentContext.color)
                     )}
                 >
                     <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity" />
                     {isOpen && !isMinimized ? (
-                        <X className="w-5 h-5 text-white z-10" />
+                        <X className="w-4 h-4 text-white z-10" />
                     ) : (
                         <div className="relative flex flex-col items-center justify-center w-full h-full">
-                            <Bot className="w-6 h-6 text-white z-10 drop-shadow-lg" />
+                            <Bot className="w-5 h-5 text-white z-10 drop-shadow-lg" />
 
                             <motion.div
                                 animate={{ scale: [1, 1.2, 1] }}
                                 transition={{ repeat: Infinity, duration: 2 }}
-                                className="absolute top-1 right-1 w-2.5 h-2.5 bg-white rounded-full z-20 flex items-center justify-center"
+                                className="absolute top-[2px] right-[2px] w-2 h-2 bg-white rounded-full z-20 flex items-center justify-center"
                             >
-                                <Sparkles className="w-1.5 h-1.5 text-primary" />
+                                <Sparkles className="w-1 h-1 text-primary" />
                             </motion.div>
                         </div>
                     )}
                 </motion.button>
                 {!isOpen && (
-                    <span className="text-[10px] font-bold text-foreground/80 dark:text-white/80 tracking-wider bg-white/50 dark:bg-black/20 px-2 py-0.5 rounded-full backdrop-blur-sm whitespace-nowrap shadow-sm border border-black/5">
+                    <span className="text-[8px] font-bold text-foreground/80 dark:text-white/80 tracking-wider bg-white/50 dark:bg-black/20 px-1.5 py-[1px] rounded-full backdrop-blur-sm whitespace-nowrap shadow-sm border border-black/5">
                         AI VRM HELP
                     </span>
                 )}

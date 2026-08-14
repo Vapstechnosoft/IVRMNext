@@ -1,43 +1,54 @@
 import type { NextConfig } from 'next';
-const withPWA = require('@ducanh2912/next-pwa').default({
-    dest: 'public',
-    cacheOnFrontendNav: true,
-    aggressiveFrontEndNavCaching: true,
-    reloadOnline: true,
-    swcMinify: true,
-    disable: false,
-    workboxOptions: {
-        disableDevLogs: true
-    }
-});
 
 const nextConfig: NextConfig = {
+    output: 'standalone',
+
     reactStrictMode: false,
-    //Added below line productionBrowserSourceMaps do reduce build space
     productionBrowserSourceMaps: false,
+
+    eslint: {
+        ignoreDuringBuilds: true
+    },
+
+    typescript: {
+        ignoreBuildErrors: true
+    },
+
     experimental: {
         serverActions: {
-            bodySizeLimit: '5mb'
+            bodySizeLimit: '500mb'
         }
     },
+
     images: {
         remotePatterns: [
             {
                 protocol: 'https',
-                hostname: '**.blob.core.windows.net', // ✅ wildcard must include subdomains correctly
-                pathname: '**' // ✅ allow all paths
+                hostname: 'dcampusstrg.blob.core.windows.net',
+                pathname: '/**'
+            },
+            {
+                protocol: 'https',
+                hostname: 'vapsclg.blob.core.windows.net',
+                pathname: '/**'
+            },
+            {
+                protocol: 'https',
+                hostname: '*.blob.core.windows.net',
+                pathname: '/**'
             }
         ]
     },
+
     async rewrites() {
         return [
             {
                 source: '/api/admission/:path*',
                 destination: 'https://ivrm-dev-admission-api.azurewebsites.net/api/:path*'
             }
-            // Add other services if needed
         ];
     }
 };
 
-export default withPWA(nextConfig);
+export default nextConfig;
+

@@ -219,9 +219,9 @@ export const payrollItemSchema = z.object({
 // Base employee register object schema (without refinements)
 const baseEmployeeRegisterSchema = z.object({
     // Employee tab fields
-    firstName: createStringOnlySchema('Name of the Employee', 1, 50),
+    firstName: createStringOnlySchema('First Name', 1, 50),
     middleName: z.string().max(50, 'Middle Name must not exceed 50 characters').optional(),
-    lastName: z.string().max(50, 'Last Name must not exceed 50 characters').optional(),
+    lastName: createStringOnlySchema('Last Name', 1, 50),
     employeeCode: z.string().min(1, 'Employee Code Required').max(20, 'Employee Code must not exceed 20 characters'),
     typeOfEmployment: z.string().min(1, 'Type of Employment Required'),
     employeeGroup: z.string().min(1, 'Employee Group Required'),
@@ -230,8 +230,21 @@ const baseEmployeeRegisterSchema = z.object({
     grade: z.string().min(1, 'Grade Required'),
     fatherName: createStringOnlySchema("Father's Name", 1, 50),
     motherName: createStringOnlySchema("Mother's Name", 1, 50),
-    dateOfBirth: z.string().min(1, 'Date of Birth Required'),
-    dateOfJoining: z.string().min(1, 'Date of Joining Required'),
+    spouseName: z.string().max(50, 'Spouse Name must not exceed 50 characters').optional(),
+    spouseOccupation: z.string().max(50, 'Spouse Occupation must not exceed 50 characters').optional(),
+    spouseMobileNo: z
+        .string()
+        .max(10, 'Spouse Mobile No must not exceed 10 characters')
+        .optional()
+        .refine((val) => !val || validateMobileNumber(val), 'Spouse Mobile No must be a valid 10-digit number'),
+    spouseEmailId: z
+        .string()
+        .max(100, 'Spouse Email must not exceed 100 characters')
+        .optional()
+        .refine((val) => !val || validateEmail(val), 'Spouse Email must be in valid format'),
+    spouseAddress: z.string().max(255, 'Spouse Address must not exceed 255 characters').optional(),
+    dateOfBirth: z.string().optional(),
+    dateOfJoining: z.string().optional(),
     dateOfConfirmation: z.string().optional(),
     dateOfRetirement: z.string().optional(),
     gender: z.string().min(1, 'Gender Required'),
@@ -295,16 +308,13 @@ const baseEmployeeRegisterSchema = z.object({
             z.object({
                 emailId: z
                     .string()
+                    .min(1, 'Email ID is required')
                     .max(100, 'Email must not exceed 100 characters')
-                    .refine((val) => {
-                        if (!val) return true;
-                        return validateEmail(val);
-                    }, 'Email must be in valid format')
-                    .optional(),
-                type: z.string().optional()
+                    .refine((val) => validateEmail(val), 'Email must be in valid format'),
+                type: z.string().min(1, 'Type is required')
             })
         )
-        .optional(),
+        .min(1, 'At least one email address is required'),
     bankDetails: z
         .array(
             z.object({

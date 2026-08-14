@@ -22,4 +22,6 @@ export interface IBookRegisterReportInitialData {
         lmD_Id: number;
         lmD_DepartmentName: string;
     }>;
+    clsslist?: any[];
+    booktype?: any[];
 }

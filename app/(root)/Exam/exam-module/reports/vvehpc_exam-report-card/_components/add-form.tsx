@@ -18,7 +18,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof vvehpc_examreportcardSchema.addOrUpdate> & {
@@ -65,7 +64,7 @@ export default function ProgressCardReportForm({
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
     const [loadingExams, setLoadingExams] = useState(false);
-    const [loadingStudents, setLoadingStudents] = useState(false);
+    const [_loadingStudents, setLoadingStudents] = useState(false);
 
     const hasStudentsSelected = Array.isArray(studentList) && studentList.length > 0;
 
@@ -137,9 +136,7 @@ export default function ProgressCardReportForm({
                     selectedClass,
                     selectedSection
                 );
-                const valid = Array.isArray(data)
-                    ? (data as any[]).filter((s): s is { amsT_AdmNo: number; amsT_Id: number; studentName?: string; amsT_FirstName?: string; amsT_MiddleName?: string; amsT_LastName?: string } => !!s?.amsT_Id)
-                    : [];
+                const valid = Array.isArray(data) ? data.filter((s): s is any => !!s?.amsT_Id) : [];
                 if (valid.length === 0) {
                     toast.info('No students found');
                 }
@@ -200,7 +197,6 @@ export default function ProgressCardReportForm({
         if (onSuccess) {
             await onSuccess(payload);
         }
-
     };
     const handleAllStudents = (checked: boolean) => {
         if (checked && students.length) {
@@ -419,8 +415,11 @@ export default function ProgressCardReportForm({
                         <hr className='my-6 border-gray-300' />
 
                         <div className='flex justify-center gap-3'>
-                            <Button type='submit' disabled={isSubmitting || !hasStudentsSelected} className='min-w-[140px]'>
-                                {isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+                            <Button
+                                type='submit'
+                                isLoading={isSubmitting}
+                                disabled={isSubmitting || !hasStudentsSelected}
+                                className='min-w-[140px]'>
                                 {isSubmitting ? 'Generating...' : 'Report'}
                             </Button>
                             <Button
@@ -431,7 +430,7 @@ export default function ProgressCardReportForm({
                                     setStudents([]);
                                 }}
                                 className='min-w-[100px]'>
-                                Cancel
+                                Clear
                             </Button>
                         </div>
                     </form>

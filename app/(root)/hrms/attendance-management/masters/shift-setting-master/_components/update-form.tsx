@@ -43,17 +43,17 @@ export default function UpdateShiftSettingMasterForm({ onSuccess, className = ''
     useEffect(() => {
         if (row) {
             reset({
-                fomsT_Id: row.FOMST_Id,
-                foms_ShiftName: row.FOMS_ShiftName,
-                fomsT_IHalfLoginTime: row.FOMST_IHalfLoginTime, // Shift Start Time
-                fomsT_IIHalfLogoutTime: row.FOMST_IIHalfLogoutTime, // Shift End Time
-                fomsT_IHalfLogoutTime: row.FOMST_IHalfLogoutTime, // Lunch start time
-                fomsT_IIHalfLoginTime: row.FOMST_IIHalfLoginTime, // Lunch End time
-                fomsT_FDWHrMin: row.FOMST_FDWHrMin, // Total working hours per shift
-                fomsT_HDWHrMin: row.FOMST_HDWHrMin, // Half day working hours per shift
-                fomsT_LunchHoursDuration: row.FOMST_LunchHoursDuration, // Lunch Hours
-                fomsT_DelayPerShiftHrMin: row.FOMST_DelayPerShiftHrMin, // Delay per shift
-                fomsT_EarlyPerShiftHrMin: row.FOMST_EarlyPerShiftHrMin // Early per shift
+                fomsT_Id: row.fomsT_Id,
+                foms_ShiftName: row.fomS_ShiftName,
+                fomsT_IHalfLoginTime: row.fomsT_IHalfLoginTime, // Shift Start Time
+                fomsT_IIHalfLogoutTime: row.fomsT_IIHalfLogoutTime, // Shift End Time
+                fomsT_IHalfLogoutTime: row.fomsT_IHalfLogoutTime, // Lunch start time
+                fomsT_IIHalfLoginTime: row.fomsT_IIHalfLoginTime, // Lunch End time
+                fomsT_FDWHrMin: row.fomsT_FDWHrMin, // Total working hours per shift
+                fomsT_HDWHrMin: row.fomsT_HDWHrMin, // Half day working hours per shift
+                fomsT_LunchHoursDuration: row.fomsT_LunchHoursDuration, // Lunch Hours
+                fomsT_DelayPerShiftHrMin: row.fomsT_DelayPerShiftHrMin, // Delay per shift
+                fomsT_EarlyPerShiftHrMin: row.fomsT_EarlyPerShiftHrMin // Early per shift
             });
         }
     }, [row, reset]);
@@ -64,19 +64,22 @@ export default function UpdateShiftSettingMasterForm({ onSuccess, className = ''
             // Note: mI_Id is handled by JWT, not included in request body
             // Map lowercase form field names to uppercase API field names
             const payload = {
-                FOMST_Id: row.FOMST_Id,
-                FOMS_ShiftName: data.foms_ShiftName?.trim(),
-                FOMST_IHalfLoginTime: data.fomsT_IHalfLoginTime, // Shift Start Time
-                FOMST_IIHalfLogoutTime: data.fomsT_IIHalfLogoutTime, // Shift End Time
-                FOMST_IHalfLogoutTime: data.fomsT_IHalfLogoutTime, // Lunch start time
-                FOMST_IIHalfLoginTime: data.fomsT_IIHalfLoginTime, // Lunch End time
-                FOMST_FDWHrMin: data.fomsT_FDWHrMin, // Total working hours per shift
-                FOMST_HDWHrMin: data.fomsT_HDWHrMin, // Half day working hours per shift
-                FOMST_LunchHoursDuration: data.fomsT_LunchHoursDuration, // Lunch Hours
-                FOMST_DelayPerShiftHrMin: data.fomsT_DelayPerShiftHrMin, // Delay per shift
-                FOMST_EarlyPerShiftHrMin: data.fomsT_EarlyPerShiftHrMin, // Early per shift
-                FOMST_BlockAttendance: '0',
-                FOMST_FixTimings: '0'
+                fomsT_Id: row.fomsT_Id,
+                fomS_Id: row.fomS_Id,
+                fohwdT_Id: row.fohwdT_Id || 0,
+                fomS_ShiftName: data.foms_ShiftName?.trim(),
+                fomsT_IHalfLoginTime: data.fomsT_IHalfLoginTime, // Shift Start Time
+                fomsT_IIHalfLogoutTime: data.fomsT_IIHalfLogoutTime, // Shift End Time
+                fomsT_IHalfLogoutTime: data.fomsT_IHalfLogoutTime, // Lunch start time
+                fomsT_IIHalfLoginTime: data.fomsT_IIHalfLoginTime, // Lunch End time
+                fomsT_FDWHrMin: data.fomsT_FDWHrMin, // Total working hours per shift
+                fomsT_HDWHrMin: data.fomsT_HDWHrMin, // Half day working hours per shift
+                fomsT_LunchHoursDuration: data.fomsT_LunchHoursDuration, // Lunch Hours
+                fomsT_DelayPerShiftHrMin: data.fomsT_DelayPerShiftHrMin, // Delay per shift
+                fomsT_EarlyPerShiftHrMin: data.fomsT_EarlyPerShiftHrMin, // Early per shift
+                fomsT_BlockAttendance: '1',
+                fomsT_FixTimings: '0',
+                fomS_ActiveFlg: row.fomS_ActiveFlg
             };
 
             const response = await addOrUpdateShiftSettingMaster(payload);

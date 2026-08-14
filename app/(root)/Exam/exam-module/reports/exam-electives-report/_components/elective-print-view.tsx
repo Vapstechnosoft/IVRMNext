@@ -1,9 +1,9 @@
 // app/exam/electives-report/_components/elective-print-view.tsx
 'use client';
 
-import Image from 'next/image';
-import type { ElectiveGroup, StudentRow } from '@/types/exam/exam-module/report';
 import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
+import type { ElectiveGroup, StudentRow } from '@/types/exam/exam-module/report';
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
 interface ElectiveReportPrintViewProps {
@@ -17,11 +17,11 @@ export default function ElectiveReportPrintView({
     students,
     groupList,
     showMobile = false,
-    showEmail = false,
+    showEmail = false
 }: ElectiveReportPrintViewProps) {
     const [institute, setInstitute] = useState<{ name: string; logo: string }>({
         name: 'Vidya Vikasa Vidya Samsthe (R)',
-        logo: '',
+        logo: ''
     });
     const [loading, setLoading] = useState(true);
 
@@ -33,7 +33,7 @@ export default function ElectiveReportPrintView({
                 if (res?.success && res.data) {
                     setInstitute({
                         name: res.data.mI_Name || 'Institution',
-                        logo: res.data.mI_Logo || '',
+                        logo: res.data.mI_Logo || ''
                     });
                     console.info('Institute details for print', res.data);
                     console.info('Institute logo for print', res.data.mI_Logo);
@@ -81,48 +81,46 @@ export default function ElectiveReportPrintView({
                 @media screen { #elective-printable { display: none !important; } }
             `}</style>
 
-            <div id="elective-printable">
-                <div className="p-6">
+            <div id='elective-printable'>
+                <div className='p-6'>
                     {/* WIDE LOGO + SCHOOL NAME */}
-                    <div className="text-center mb-8 border-b-2 border-gray-400 pb-6">
+                    <div className='mb-8 border-gray-400 border-b-2 pb-6 text-center'>
                         {institute.logo ? (
-                            <div className="flex justify-center mb-6">
+                            <div className='mb-6 flex justify-center'>
                                 <Image
                                     src={institute.logo}
-                                    alt="Institution Logo"
+                                    alt='Institution Logo'
                                     width={1000}
                                     height={250}
-                                    className="object-contain max-w-full h-auto"
+                                    className='h-auto max-w-full object-contain'
                                     unoptimized
                                     priority
                                 />
                             </div>
                         ) : (
-                            <div className="h-32" />
+                            <div className='h-32'>
+                                <h3 className='font-bold text-3xl leading-tight'>{institute.name}</h3>
+                            </div>
                         )}
 
-                        <h3 className="text-3xl font-bold leading-tight">
-                            {institute.name}
-                        </h3>
-                        <h4 className="text-xl font-semibold mt-3">
-                            ELECTIVE SUBJECTS REPORT
-                        </h4>
+                        <h4 className='mt-3 font-semibold text-xl'>ELECTIVE SUBJECTS REPORT</h4>
                     </div>
 
                     {/* TABLE */}
-                    <table className="table-bordered">
+                    <table className='table-bordered'>
                         <thead>
                             <tr>
                                 <th rowSpan={2}>Sl.No</th>
-                                <th rowSpan={2} style={{ minWidth: '180px' }}>Student Name</th>
+                                <th rowSpan={2} style={{ width: '180px' }}>
+                                    Student Name
+                                </th>
+                                <th rowSpan={2}>Admission No</th>
                                 {showMobile && <th rowSpan={2}>Mobile No</th>}
                                 {showEmail && <th rowSpan={2}>Email ID</th>}
                                 <th rowSpan={2}>Class</th>
                                 <th rowSpan={2}>Section</th>
                                 {groupList.map((group) => (
-                                    <th key={group.emG_Id} style={{ minWidth: '160px' }}>
-                                        {group.emG_GroupName}
-                                    </th>
+                                    <th key={group.emG_Id}>{group.emG_GroupName}</th>
                                 ))}
                             </tr>
                         </thead>
@@ -130,9 +128,8 @@ export default function ElectiveReportPrintView({
                             {students.length === 0 ? (
                                 <tr>
                                     <td
-                                        colSpan={6 + (showMobile ? 1 : 0) + (showEmail ? 1 : 0) + groupList.length}
-                                        className="py-16 text-center text-gray-500 text-lg"
-                                    >
+                                        colSpan={7 + (showMobile ? 1 : 0) + (showEmail ? 1 : 0) + groupList.length}
+                                        className='py-16 text-center text-gray-500 text-lg'>
                                         No students found
                                     </td>
                                 </tr>
@@ -140,20 +137,17 @@ export default function ElectiveReportPrintView({
                                 students.map((student, index) => (
                                     <tr key={student.amsT_Id}>
                                         <td>{index + 1}</td>
-                                        <td className="text-left font-medium" style={{ paddingLeft: '10px' }}>
+                                        <td className='text-left font-medium' style={{ paddingLeft: '10px' }}>
                                             {student.amsT_FirstName}
                                         </td>
+                                        <td>{student.amsT_AdmNo || '-'}</td>
                                         {showMobile && <td>{student.amsT_MobileNo || '-'}</td>}
                                         {showEmail && <td style={{ fontSize: '10px' }}>{student.amsT_emailId || '-'}</td>}
                                         <td>{student.asmcL_ClassName}</td>
                                         <td>{student.asmC_SectionName}</td>
                                         {groupList.map((group) => {
                                             const subjects = getSubjectsForGroup(student, group.emG_GroupName);
-                                            return (
-                                                <td key={group.emG_Id}>
-                                                    {subjects}
-                                                </td>
-                                            );
+                                            return <td key={group.emG_Id}>{subjects}</td>;
                                         })}
                                     </tr>
                                 ))

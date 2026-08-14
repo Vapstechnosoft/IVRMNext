@@ -44,31 +44,35 @@ export default function AddMasterRackForm({ onSuccess, className = '', subjectLi
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const payload = {
-                ...data,
-                lmrA_ActiveFlag: true,
-                lmrA_Id: data.lmrA_Id || 0,
-                lmraS_Id: 0 // Defaulting as it isn't in the form, legacy hidden input had it.
-            };
+            const response: any = await addOrUpdateMasterRack(data);
 
-            const response = await addOrUpdateMasterRack(payload);
-
-            if (response.returnval) {
-                toast.success('Record Saved Successfully!!!');
+            if (response.returnval || response.success) {
+                toast.success(response.message || 'Record Saved Successfully!!!');
                 reset();
                 refetchAll();
                 onSuccess?.();
             } else if (response.duplicate) {
-                toast.error('Record already exist');
+                toast.error(response.message || 'Record already exist');
             } else {
-                toast.error('Record Not Saved Successfully!!!');
+                toast.error(response.message || 'Record Not Saved Successfully!!!');
             }
+
         } catch (error: any) {
             toast.error(error.message || 'Something went wrong');
         }
     };
 
-    const handleReset = () => reset();
+    const handleReset = () => {
+        reset({
+            lmrA_BuildingName: '',
+            lmrA_RackName: '',
+            lmrA_DisplayColour: '',
+            lmrA_FloorName: '',
+            lmrA_Location: '',
+            lmS_Id: 0
+        });
+    };
+
 
     return (
         <div className={className}>
@@ -78,19 +82,31 @@ export default function AddMasterRackForm({ onSuccess, className = '', subjectLi
                         <InputText
                             label='Building Name'
                             required
+                            placeholder='Enter Building Name'
                             {...register('lmrA_BuildingName')}
                             error={errors.lmrA_BuildingName?.message}
                         />
-                        <InputText label='Rack Name' required {...register('lmrA_RackName')} error={errors.lmrA_RackName?.message} />
-                        <InputText label='Rack Color' {...register('lmrA_DisplayColour')} error={errors.lmrA_DisplayColour?.message} />
+                        <InputText
+                            label='Rack Name'
+                            required
+                            placeholder='Enter Rack Name'
+                            {...register('lmrA_RackName')}
+                            error={errors.lmrA_RackName?.message}
+                        />
+                        <InputText
+                            label='Rack Color'
+                            placeholder='Enter Rack Color'
+                            {...register('lmrA_DisplayColour')}
+                            error={errors.lmrA_DisplayColour?.message}
+                        />
                         <Controller
                             control={control}
                             name='lmS_Id'
                             render={({ field }) => (
                                 <div className='flex flex-col gap-1.5'>
-                                    {/* <label className='text-sm font-medium'>
+                                    <label className='text-sm font-medium'>
                                         Subject Name <span className='text-red-500'>*</span>
-                                    </label> */}
+                                    </label>
                                     <Select
                                         onValueChange={(value) => field.onChange(Number(value))}
                                         value={field.value ? String(field.value) : undefined}>
@@ -109,16 +125,22 @@ export default function AddMasterRackForm({ onSuccess, className = '', subjectLi
                                 </div>
                             )}
                         />
-                        <InputText label='Floor Name' required {...register('lmrA_FloorName')} error={errors.lmrA_FloorName?.message} />
+                        <InputText
+                            label='Floor Name'
+                            required
+                            placeholder='Enter Floor Name'
+                            {...register('lmrA_FloorName')}
+                            error={errors.lmrA_FloorName?.message}
+                        />
                     </div>
                     <div className='grid grid-cols-1'>
                         <div className='flex flex-col gap-1.5'>
-                            {/* <label className='text-sm font-medium'>
-                                Location 
-                            </label> */}
+                            <label className='text-sm font-medium'>
+                                Location <span className='text-red-500'>*</span>
+                            </label>
                             <textarea
                                 className={`flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.lmrA_Location ? 'border-red-500' : ''}`}
-                                placeholder='Address'
+                                placeholder='Enter Location'
                                 {...register('lmrA_Location')}
                             />
                             {errors.lmrA_Location && <span className='text-red-500 text-sm'>{errors.lmrA_Location.message}</span>}

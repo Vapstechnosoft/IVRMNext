@@ -1,4 +1,19 @@
 // /types/exam/master-subject.ts
+export interface IMasterClassYearlyList {
+    mI_Name: string;
+    fmG_GroupName: string;
+    fmG_Id: any;
+    asmcl_ActiveFlag: boolean;
+    asmcL_Id: number;
+    asmaY_Id: number;
+    asmaY_Year: string;
+    fmcC_Id: string;
+    fmcC_ClassCategoryName: string;
+    fycC_ActiveFlag: boolean;
+    asmcL_ClassName: string;
+    fyccC_Id: number;
+    fycC_Id: number;
+}
 
 export interface IMasterSubject {
     ismS_Id: number; // Unique Subject ID
@@ -192,6 +207,12 @@ export interface ISection {
     asmC_SectionCode?: string;
     ecaC_Id: number;
     ecaC_ActiveFlag: boolean;
+}
+
+export interface IPromotionalGroup {
+    empG_Order: number;
+    empG_DisplayName: string;
+    empG_GroupName: string;
 }
 
 export interface ICategoryClassMappingDetails {

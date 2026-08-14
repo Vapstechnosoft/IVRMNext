@@ -1,297 +1,347 @@
 'use client';
 
-import { useDataTableProps } from '@/components/ui/data-table/generic-data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Label } from '@/components/ui/label';
-import { viewAttachmentData } from '@/server/upload/reports/classwork-upload-report';
-import type { IClassWorkReport, IUploadClassDropdownList } from '@/types/upload/reports/classwork-upload-report';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { format } from 'date-fns';
+import { CalendarIcon, Loader2, RefreshCcw, Send } from 'lucide-react';
 import { toast } from 'sonner';
-// import ClassWorkReportForm from './_components/add-form';
-// import { getColumns } from './_components/columns';
-// import { ViewAttachmentModal } from './_components/view-attachment-modal';
-import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from '@/components/ui/form';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
-import { DateField } from '@/components/ui/dateField';
-import { FormError } from '@/components/ui/extension/field';
-import { useClassDropdownDropdown } from '@/hooks/fees/useReports';
-import { getHomeWorkReport } from '@/server/upload/reports/homework-upload-report';
-import type { IHomeWorkUploadReport } from '@/types/upload/reports/homework-upload-report';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { Spinner } from '@/components/ui/spinner';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
+
+import { getHomeWorkInitialData, getHomeWorkReport, viewHomeWorkAttachmentData } from '@/server/upload/reports/homework-upload-report';
+import type { IHomeWorkAttachment, IHomeWorkReport } from '@/types/upload/reports/homework-upload-report';
+import { HomeWorkReportTable } from './_components/homework-report-table';
+import { AttachmentViewModal } from './_components/attachment-view-modal';
+
 const formSchema = z.object({
-    fromdate: z.string().nonempty('From date is required'),
-    todate: z.string().nonempty('To date is required'),
-    classarray: z.array(z.string()).min(1, 'Please select at least one class')
+    fromdate: z.date({
+        required_error: "Select from date",
+    }),
+    todate: z.date({
+        required_error: "Select to date",
+    }),
+    classarray: z.array(z.string()).optional(),
 });
 
-type FormFields = z.infer<typeof formSchema>;
-export default function HomeWorkUploadReportPage() {
-    const [reportData, setReportData] = useState<IClassWorkReport[]>([]);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [modalAttachments, setModalAttachments] = useState<any[]>([]);
-    //const [searchParams, setSearchParams] = useState<ApiSearchparams>({ page: 1, page_size: 10 });
-    const [currentPayload, setCurrentPayload] = useState<any>(null);
-    const [isLoading, setIsLoading] = useState(false);
+type FormValues = z.infer<typeof formSchema>;
 
-    const tableProps = useDataTableProps(reportData);
-    const {
-        control,
-        reset,
-        setValue,
-        handleSubmit,
-        watch,
-        formState: { errors, isSubmitting }
-    } = useForm<FormFields>({
+export default function HomeWorkUploadReportPage() {
+    const [isLoading, setIsLoading] = useState(true);
+    const [isReporting, setIsReporting] = useState(false);
+    const [classes, setClasses] = useState<{ value: string; label: string }[]>([]);
+    const [reportData, setReportData] = useState<IHomeWorkReport[]>([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [attachments, setAttachments] = useState<IHomeWorkAttachment[]>([]);
+
+    const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            fromdate: '',
-            todate: '',
-            classarray: []
-        }
+            classarray: [],
+        },
     });
-    // const handleReportSuccess = async (payload: any, sParams: ApiSearchparams) => {
-    //     if (!payload) {
-    //         setReportData([]);
-    //         setCurrentPayload(null);
-    //         return;
-    //     }
 
-    //     setCurrentPayload(payload);
-    //     setIsLoading(true);
-    //     try {
-    //         const res = await getHomeWorkReport({ ...payload, ...sParams });
-    //         // if (res.data && res.data.classreportlist) {
-    //         //     setReportData(res.data.classreportlist);
-    //         // } else {
-    //         //     setReportData([]);
-    //         //     toast.info('No records found');
-    //         // }
-    //     } catch (error) {
-    //         console.error('Error fetching report:', error);
-    //         toast.error('Failed to fetch report');
-    //     } finally {
-    //         setIsLoading(false);
-    //     }
-    // };
-
-    // useEffect(() => {
-    //     if (currentPayload) {
-    //         handleReportSuccess(currentPayload, searchParams);
-    //     }
-    // }, [searchParams]);
-
-    const { data: classData, isLoading: loadingClasses, error } = useClassDropdownDropdown();
-    const handleViewAttachment = async (item: IClassWorkReport) => {
-        try {
-            const payload = {
-                ICW_Id: item.icW_Id,
-                ASMAY_Id: 0,
-                Temp: 0
-            };
-
-            const res = await viewAttachmentData(payload);
-            // if (res.data && res.data.attachementlist && res.data.attachementlist.length > 0) {
-            //     setModalAttachments(res.data.attachementlist);
-            //     setIsModalOpen(true);
-            // } else {
-            //     toast.info('No attachments details found.');
-            // }
-        } catch (error) {
-            console.error('Error fetching attachments:', error);
-            toast.error('Failed to fetch attachments');
-        }
-    };
-    const [classList, setClassList] = useState<{ label: string; value: string }[]>([]);
-
-    /* -------------------- Map API → Dropdown -------------------- */
     useEffect(() => {
-        if (error) {
-            toast.error(error?.message || 'Failed to load classes');
-            setClassList([]);
-            return;
-        }
-
-        if (Array.isArray(classData?.data)) {
-            setClassList(
-                classData.data.map((cls: IUploadClassDropdownList) => ({
-                    label: cls.asmcL_ClassName,
-                    value: String(cls.asmcL_Id)
-                }))
-            );
-        }
-    }, [classData, error]);
-
-    // const columns = getColumns({ onViewAttachment: handleViewAttachment });
-
-    // const handleApiSearchParms = (sParams: ApiSearchparams) => {
-    //     setSearchParams(sParams);
-    // };
-    const [showReport, setShowReport] = useState(false);
-    const [homeWorkReport, setHomeWorkReport] = useState<IHomeWorkUploadReport[]>([]);
-
-    const onSubmit = async (values: FormFields) => {
-        setShowReport(true);
-        const payload = {
-            fromdate: new Date(values.fromdate).toISOString().slice(0, 10), // "YYYY-MM-DD"
-            todate: new Date(values.todate).toISOString().slice(0, 10), // "YYYY-MM-DD"
-            classarray: values.classarray.map((id) => ({
-                ASMCL_Id: Number(id)
-            }))
+        const loadInitialData = async () => {
+            try {
+                const response = await getHomeWorkInitialData();
+                if (response.success && response.data) {
+                    setClasses(response.data.classes.map(c => ({
+                        value: String(c.ASMCL_Id),
+                        label: c.ASMCL_ClassName
+                    })));
+                } else {
+                    toast.error(response.message || "Failed to load initial data");
+                }
+            } catch (error) {
+                console.error("Error loading initial data:", error);
+                toast.error("An error occurred while fetching initial data");
+            } finally {
+                setIsLoading(false);
+            }
         };
 
-        const response = await getHomeWorkReport(payload);
-        setHomeWorkReport(response.data ?? []);
+        loadInitialData();
+    }, []);
+
+
+    const onSubmit = async (values: FormValues) => {
+        setIsReporting(true);
+        try {
+            const payload = {
+                fromdate: format(values.fromdate, "yyyy-MM-dd'T'00:00:00"),
+                todate: format(values.todate, "yyyy-MM-dd'T'23:59:59"),
+                classarray: values.classarray?.map(id => ({ asmcL_Id: Number(id) })),
+            };
+
+            const response = await getHomeWorkReport(payload);
+            if (response.success && response.data) {
+                if (response.data.report && response.data.report.length > 0) {
+                    setReportData(response.data.report);
+                    toast.success('Report generated successfully');
+                } else {
+                    setReportData([]);
+                    toast.info("No records found for the selected criteria.");
+                }
+            } else {
+                toast.error(response.message || "Failed to generate report");
+            }
+        } catch (error) {
+            console.error("Error generating report:", error);
+            toast.error("An error occurred while generating the report");
+        } finally {
+            setIsReporting(false);
+        }
+    };
+
+    const handleViewAttachment = async (item: IHomeWorkReport) => {
+        try {
+            const payload = {
+                Temp: 1,
+                ihW_Id: item.Id
+            };
+            const response = await viewHomeWorkAttachmentData(payload);
+            if (response.success && response.data) {
+                if (Array.isArray(response.data) && response.data.length > 0) {
+                    setAttachments(response.data);
+                    setIsModalOpen(true);
+                } else {
+                    toast.info("No attachments found for this homework.");
+                }
+            } else {
+                toast.error(response.message || "Failed to fetch attachments");
+            }
+        } catch (error) {
+            console.error("Error fetching attachments:", error);
+            toast.error("An error occurred while fetching attachments");
+        }
     };
 
     const handleCancel = () => {
-        reset();
-        window.location.reload();
+        form.reset({
+            fromdate: undefined,
+            todate: undefined,
+            classarray: [],
+        });
+        setReportData([]);
     };
-    // const handlePrint = () => {
 
-    // };
-    //     const handleExport = () => {
-
-    //     };
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+                <Spinner size="lg" className="text-primary" />
+                <p className="text-muted-foreground animate-pulse font-medium">Initializing HomeWork Report...</p>
+            </div>
+        );
+    }
 
     return (
-        <div className='container mx-auto space-y-6 p-4'>
-            {/* <CollapsibleSection title='ClassWork Upload Report' defaultOpen>
-                <ClassWorkReportForm onSuccess={handleReportSuccess} apiSearchParams={searchParams} />
-            </CollapsibleSection> */}
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-                <div className='mx-auto max-w-7xl'>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                        {/* From Date */}
-                        <Controller
-                            control={control}
-                            name='fromdate'
-                            render={({ field, fieldState }) => (
-                                <DateField field={field} fieldState={fieldState} label='From Date' placeholder='Select From Date' />
-                            )}
-                        />
+        <div className="container mx-auto py-6 space-y-6 max-w-7xl animate-in fade-in duration-500">
 
-                        {/* To Date */}
-                        <Controller
-                            control={control}
-                            name='todate'
-                            render={({ field, fieldState }) => (
-                                <DateField field={field} fieldState={fieldState} label='To Date' placeholder='Select To Date' />
-                            )}
-                        />
 
-                        {/* Class Dropdown */}
-                        <Controller
-                            control={control}
-                            name='classarray'
-                            render={({ field, fieldState }) => (
-                                <div className='mt-5 flex flex-col gap-2'>
-                                    <Label>
-                                        Class Name <span className='text-red-500'>*</span>
-                                    </Label>
+            <CollapsibleSection
+                title="Homework Upload Report"
+                defaultOpen={true}
+                className="bg-white rounded-2xl shadow-sm border-slate-100 overflow-hidden"
+            >
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 p-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
+                            <div className="space-y-6">
 
-                                    <CustomMultiSelectBox
-                                        options={classList}
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        placeholder={loadingClasses ? 'Loading classes...' : 'Select Classes'}
-                                        height='200px'
-                                        isSearchRequired
-                                    />
+                                {/* From Date */}
+                                <FormField
+                                    control={form.control}
+                                    name="fromdate"
+                                    render={({ field }) => (
+                                        <FormItem className="flex flex-col">
+                                            <FormLabel className="text-slate-600 font-bold uppercase text-[11px] tracking-wider flex items-center gap-2">
+                                                From Date <span className="text-red-500 font-black">*</span>
+                                            </FormLabel>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <FormControl>
+                                                        <Button
+                                                            variant={"outline"}
+                                                            className={cn(
+                                                                "w-full pl-3 text-left font-semibold h-12 rounded-xl border-slate-200 hover:border-primary/50 transition-all shadow-sm",
+                                                                !field.value && "text-muted-foreground"
+                                                            )}
+                                                        >
+                                                            {field.value ? (
+                                                                format(field.value, "PPP")
+                                                            ) : (
+                                                                <span className="uppercase text-[11px] tracking-widest opacity-60">Select from date</span>
+                                                            )}
+                                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-40" />
+                                                        </Button>
+                                                    </FormControl>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto p-0 rounded-2xl shadow-2xl border-slate-100" align="start">
+                                                    <Calendar
+                                                        mode="single"
+                                                        selected={field.value}
+                                                        onSelect={field.onChange}
+                                                        initialFocus
+                                                        className="rounded-2xl"
+                                                    />
+                                                </PopoverContent>
+                                            </Popover>
+                                            <FormMessage className="text-[10px] font-bold uppercase tracking-tighter" />
+                                        </FormItem>
+                                    )}
+                                />
 
-                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                </div>
-                            )}
-                        />
-                    </div>
+                                {/* To Date */}
+                                <FormField
+                                    control={form.control}
+                                    name="todate"
+                                    render={({ field }) => (
+                                        <FormItem className="flex flex-col">
+                                            <FormLabel className="text-slate-600 font-bold uppercase text-[11px] tracking-wider flex items-center gap-2">
+                                                To Date <span className="text-red-500 font-black">*</span>
+                                            </FormLabel>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <FormControl>
+                                                        <Button
+                                                            variant={"outline"}
+                                                            className={cn(
+                                                                "w-full pl-3 text-left font-semibold h-12 rounded-xl border-slate-200 hover:border-primary/50 transition-all shadow-sm",
+                                                                !field.value && "text-muted-foreground"
+                                                            )}
+                                                        >
+                                                            {field.value ? (
+                                                                format(field.value, "PPP")
+                                                            ) : (
+                                                                <span className="uppercase text-[11px] tracking-widest opacity-60">Select to date</span>
+                                                            )}
+                                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-40" />
+                                                        </Button>
+                                                    </FormControl>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto p-0 rounded-2xl shadow-2xl border-slate-100" align="start">
+                                                    <Calendar
+                                                        mode="single"
+                                                        selected={field.value}
+                                                        onSelect={field.onChange}
+                                                        disabled={(date) =>
+                                                            form.getValues('fromdate') && date < form.getValues('fromdate')
+                                                        }
+                                                        initialFocus
+                                                        className="rounded-2xl"
+                                                    />
+                                                </PopoverContent>
+                                            </Popover>
+                                            <FormMessage className="text-[10px] font-bold uppercase tracking-tighter" />
+                                        </FormItem>
+                                    )}
+                                />
 
-                    {/* Buttons */}
-                    <div className='flex justify-center space-x-2'>
-                        <Button type='submit' disabled={isSubmitting}>
-                            {isSubmitting ? 'Generating...' : 'Report'}
-                        </Button>
-
-                        <Button type='button' variant='destructive' onClick={handleCancel}>
-                            Cancel
-                        </Button>
-                    </div>
-
-                    {showReport && (
-                        <CollapsibleSection defaultOpen={true}>
-                            <div className='mt-10 rounded-lg border bg-white shadow-xl'>
-                                {/* Header */}
-                                <div className='flex items-center justify-between border-b bg-primary/5 px-8 py-6'>
-                                    <div className='mb-6 text-center'>
-                                        <h2 className='font-bold text-2xl text-primary'> HomeWork Upload Report </h2>
-                                    </div>
-                                    {/* <div className='flex gap-3'>
-                                                        <div className='mb-4 flex justify-end gap-2'>
-                                                            <Button size='sm' className='h-8 w-auto px-3 text-xs' onClick={handleExport}
-                                                            >
-                                                                Export Excel
-                                                            </Button>
-
-                                                            <Button
-                                                                size='sm'
-                                                                variant='outline'
-                                                                className='h-8 w-auto px-3 text-xs'
-                                                                onClick={handlePrint}>
-                                                                Print
-                                                            </Button>
-                                                        </div>
-                                                    </div> */}
-                                </div>
-
-                                {/* TABLE */}
-                                <div className='overflow-x-auto'>
-                                    <table className='w-full border-collapse text-sm'>
-                                        <thead className='bg-primary text-white'>
-                                            <tr>
-                                                <th className='border px-2 py-2'>Sl No</th>
-                                                <th className='border px-2 py-2'>Topic</th>
-                                                <th className='border px-2 py-2'>Class</th>
-                                                <th className='border px-2 py-2'>Section</th>
-                                                <th className='border px-2 py-2'>Subject</th>
-                                                <th className='border px-2 py-2'>File Name</th>
-                                                <th className='border px-2 py-2'>Upload Date</th>
-                                                <th className='border px-2 py-2'>Upload By</th>
-                                            </tr>
-                                        </thead>
-
-                                        <tbody>
-                                            {homeWorkReport.map((row, index) => (
-                                                <tr key={index + 1}>
-                                                    <td className='border px-2 py-2 text-center'>{index + 1}</td>
-                                                    <td className='border px-2 py-2 font-semibold'>{row.topic}</td>
-                                                    <td className='border px-2 py-2 text-center'>{row.className}</td>
-                                                    <td className='border px-2 py-2 text-center'>{row.sectionName}</td>
-                                                    <td className='border px-2 py-2 text-center'>{row.subjectName}</td>
-                                                    <td className='border px-2 py-2 text-center'>{'NA'}</td>
-                                                    <td className='border px-2 py-2 text-center'>
-                                                        {new Date(row.uploadDate).toISOString().slice(0, 10)}
-                                                    </td>
-                                                    <td className='border px-2 py-2 text-center'>{row.employeeName}</td>
-                                                </tr>
-                                            ))}
-
-                                            {homeWorkReport.length === 0 && (
-                                                <tr>
-                                                    <td colSpan={7} className='py-4 text-center font-bold text-red-600'>
-                                                        No records found
-                                                    </td>
-                                                </tr>
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
                             </div>
-                        </CollapsibleSection>
-                    )}
+
+                            {/* Class Multi-Select Box */}
+                            <div className="lg:col-span-2">
+                                <FormField
+                                    control={form.control}
+                                    name="classarray"
+                                    render={({ field }) => (
+                                        <FormItem className="flex flex-col h-full">
+                                            <FormLabel className="text-slate-600 font-bold uppercase text-[11px] tracking-wider mb-2">Class Name Selection</FormLabel>
+                                            <FormControl>
+                                                <CustomMultiSelectBox
+                                                    options={classes}
+                                                    value={field.value ?? []}
+                                                    onChange={field.onChange}
+                                                    height="280px"
+                                                    isSearchRequired
+                                                />
+                                            </FormControl>
+                                            <FormMessage className="text-[10px] font-bold uppercase tracking-tighter" />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center justify-center gap-4 pt-6 border-t border-slate-50">
+                            <Button
+                                type="submit"
+                                disabled={isReporting}
+                                className="h-12 px-8 rounded-full shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 bg-primary hover:bg-primary/90 min-w-[160px]"
+                            >
+                                {isReporting ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                        Generating...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Send className="mr-2 h-4 w-4" /> Generate Report
+                                    </>
+                                )}
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={handleCancel}
+                                className="h-12 px-8 rounded-full border-slate-200 text-slate-600 hover:bg-slate-50 transition-all min-w-[140px]"
+                            >
+                                <RefreshCcw className="mr-2 h-4 w-4" /> Cancel
+                            </Button>
+                        </div>
+                    </form>
+                </Form>
+            </CollapsibleSection>
+
+            {/* Report Table Section */}
+            {reportData.length > 0 && (
+                <div className="animate-in slide-in-from-bottom duration-700">
+                    <Card className="rounded-2xl shadow-xl border-none overflow-hidden">
+                        <CardContent className="p-6 bg-slate-50/30">
+                            <HomeWorkReportTable
+                                data={reportData}
+                                onViewAttachment={handleViewAttachment}
+                            />
+                        </CardContent>
+                    </Card>
                 </div>
-            </form>
+            )}
+
+            {/* Attachment Modal */}
+            <AttachmentViewModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                attachments={attachments}
+            />
         </div>
     );
 }

@@ -20,9 +20,12 @@ import { CheckSquare, FileSpreadsheet, FileText, Printer, RotateCcw, Search, Squ
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-import { getMasterAdmissionReportColumns } from './_components/columns';
+import * as XLSX from 'xlsx';
+import { FIELD_CONFIG, formatDate, getMasterAdmissionReportColumns } from './_components/columns';
+import { AdmissionRegisterPrint } from './_components/admission-register-print';
 
 type FormFields = z.infer<typeof admissionReportSchema>;
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -104,6 +107,7 @@ export default function AdmissionReportPage(props: {
     const router = useRouter();
     const currentSearchParams = useSearchParams();
     const tableRef = useRef<DataTableRef>(null);
+    const componentRef = useRef<HTMLDivElement>(null);
 
     const { data: academicYear, isLoading: ayLoading } = useAcademicYearDropdown();
     const [classSearch, setClassSearch] = useState('');
@@ -153,13 +157,13 @@ export default function AdmissionReportPage(props: {
         isLoading,
         error,
         refetch: refetchReport
-    } = useAdmissionRegister(academicYearValue, statusValue, requestPayload, searchParams);
+    } = useAdmissionRegister(academicYearValue, statusValue, requestPayload);
 
     useEffect(() => {
         if (showReport && requestPayload && refetchReport) {
             refetchReport();
         }
-    }, [requestPayload, showReport, searchParams]);
+    }, [requestPayload, showReport]);
 
     const filteredClasses = useMemo(() => {
         return classOptions.filter((cls: any) => cls.asmcL_ClassName.toLowerCase().includes(classSearch.toLowerCase()));
@@ -190,39 +194,58 @@ export default function AdmissionReportPage(props: {
         };
     }, [response]);
 
+    console.log(transformedResponse, 'transformedResponse');
     const tableProps = useDataTableProps(transformedResponse);
 
     const downloadExcel = async () => {
         try {
-            const response = await getExcelAdmissionRegistrationReport(academicYearValue, statusValue, requestPayload);
+            toast.loading('Preparing Excel export...', { id: 'excel-download' });
 
-            // Ensure we have a Blob
-            const blob =
-                response instanceof Blob
-                    ? response
-                    : new Blob([new Uint8Array(response)], {
-                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                    });
+            const printSearchParams = {
+                page_size: 100000,
+                page: 1
+            };
 
-            // Create download link
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'Admission Register_Report.xlsx';
-            document.body.appendChild(link);
-            link.click();
+            const response: any = await getAdmissionRegister(academicYearValue, statusValue, requestPayload, printSearchParams);
 
-            // Cleanup
-            setTimeout(() => {
-                link.remove();
-                window.URL.revokeObjectURL(url);
-            }, 100);
 
-            setShowReport(false);
+            console.log(response);
+            const allData =
+                response?.data && 'searchstudentDetails' in response.data
+                    ? response.data.searchstudentDetails
+                    : Array.isArray(response?.data)
+                        ? response.data
+                        : [];
 
+            if (!allData || allData.length === 0) {
+                toast.dismiss('excel-download');
+                toast.error('No data available to export');
+                return;
+            }
+
+            const activeFields = FIELD_OPTIONS.filter((f) => selectedFields.includes(f.id));
+
+            const dataToExport = allData.map((row: any, index: number) => {
+                const mappedRow: any = { 'Sl.No': index + 1 };
+                for (const field of activeFields) {
+                    const value = row[field.accessor];
+                    const config = FIELD_CONFIG[field.id];
+                    mappedRow[field.label] = config?.isDate ? formatDate(value) : (value || 'N/A');
+                }
+                return mappedRow;
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Admission Register Report');
+
+            XLSX.writeFile(workbook, 'Admission_Register_Report.xlsx');
+
+            toast.dismiss('excel-download');
             toast.success('Excel downloaded successfully');
         } catch (error) {
             console.error('Download error:', error);
+            toast.dismiss('excel-download');
             toast.error('Failed to download Excel');
         }
     };
@@ -296,38 +319,23 @@ export default function AdmissionReportPage(props: {
     };
 
     const handleReset = () => {
-        reset({
-            academicYear: 0,
-            status: 0,
-            selectedClasses: [],
-            selectedFields: []
-        });
-        setClassSearch('');
-        setFieldSearch('');
-        setShowReport(false);
-        setRequestPayload(null);
-        setSelectedStudents([]);
-        tableRef.current?.resetSelection();
-
-        // Clear URL parameters
-        router.push(window.location.pathname, { scroll: false });
-
-        toast.success('Filters reset successfully');
+        window.location.reload();
     };
 
     const handleCancel = () => {
-        setShowReport(false);
-        setSelectedStudents([]);
-        tableRef.current?.resetSelection();
-        toast.info('Report cancelled');
+        window.location.reload();
     };
+
+    const handlePrintRequest = useReactToPrint({
+        contentRef: componentRef
+    });
 
     const handlePrint = async () => {
         try {
             setIsPrinting(true);
             toast.info('Preparing print view (fetching all records)...');
 
-            // Fetch all data for printing
+            // Fetch all data for printing (if not already fetched or if we want to ensure full set)
             const printSearchParams = {
                 page_size: 100000,
                 page: 1
@@ -350,21 +358,15 @@ export default function AdmissionReportPage(props: {
 
             setPrintData(allData);
 
-            // Wait for state update and render
+            // Short delay to ensure state update and re-render of the hidden print component
             setTimeout(() => {
-                window.print();
-                // Optional: Reset after print dialog closes (approximate)
-                // In many browsers, window.print() is blocking, so this runs after.
-                // But for safety/UX, we might keep it or reset it.
-                // Let's reset it to restore pagination.
+                handlePrintRequest();
                 setIsPrinting(false);
-                setPrintData([]); // Clear print data after printing
-            }, 1000);
+            }, 500);
         } catch (error) {
             console.error('Print preparation error:', error);
             toast.error('Failed to prepare print view');
             setIsPrinting(false);
-            setPrintData([]); // Clear print data on error
         }
     };
 
@@ -704,6 +706,15 @@ export default function AdmissionReportPage(props: {
                             )}
                         </div>
                     )}
+                </div>
+
+                {/* Hidden Print Component */}
+                <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '297mm' }}>
+                    <AdmissionRegisterPrint
+                        ref={componentRef}
+                        data={printData}
+                        selectedFields={selectedFields}
+                    />
                 </div>
             </div>
         </div>

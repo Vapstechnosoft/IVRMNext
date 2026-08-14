@@ -108,6 +108,7 @@ export const DateField: React.FC<DateFieldProps> = ({
                         onSelect={handleSelect}
                         onDayClick={() => setIsOpen(false)}
                         fromDate={fromDate}
+                        toDate={toDate}
                     />
                 </PopoverContent>
             </Popover>

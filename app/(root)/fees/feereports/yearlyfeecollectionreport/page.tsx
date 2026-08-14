@@ -414,6 +414,7 @@ export default function FeeYearlyCollectionReport() {
                 FMT_Ids:
                     filters.breakdown === 'FGW' ||
                     filters.breakdown === 'FHW' ||
+                    filters.breakdown === 'FCW' ||
                     filters.breakdown === 'FSW' ||
                     filters.breakdown === 'TRMW' ||
                     filters.breakdown === 'STRMW' ||
@@ -422,7 +423,9 @@ export default function FeeYearlyCollectionReport() {
                     filters.breakdown === 'CTC' ||
                     filters.breakdown === 'SWTPC' ||
                     filters.breakdown === 'CWTPC' ||
-                    filters.breakdown === 'FPW'
+                    filters.breakdown === 'FPW' ||
+                    filters.breakdown === 'FSHW' ||
+                    filters.breakdown === 'FSGW'
                         ? filters.termIds
                         : [],
                 // FMG_Ids: [385, 385, 377, 378],
@@ -1377,7 +1380,15 @@ export default function FeeYearlyCollectionReport() {
                                                     label: 'Class-Section Wise Total Paid Count',
                                                     value: 'CWTPC'
                                                 },
-                                                { label: 'Parent Wise', value: 'FPW' }
+                                                { label: 'Parent Wise', value: 'FPW' },
+                                                {
+                                                    label: 'Student Head Wise',
+                                                    value: 'FSHW'
+                                                },
+                                                {
+                                                    label: 'Student Group Wise',
+                                                    value: 'FSGW'
+                                                }
                                             ].map((option) => (
                                                 <label
                                                     key={option.value}

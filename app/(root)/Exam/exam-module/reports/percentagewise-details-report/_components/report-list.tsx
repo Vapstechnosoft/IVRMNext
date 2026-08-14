@@ -41,13 +41,13 @@ export const ReportList: React.FC<ReportListProps> = ({ data, institution, crite
 
     return (
         <Card>
-            <CardHeader className='flex flex-row items-center justify-between'>
+            <CardHeader className='text-center '>
                 <CardTitle>Percentagewise Student Details</CardTitle>
             </CardHeader>
             <CardContent>
-                <div id='report-print-section' className='bg-white p-4'>
+                <div id='report-print-section' className='bg-white '>
                     {/* Header for Print - Visible only in Print usually, but here shown for preview */}
-                    <div className='mb-4 text-center'>
+                    <div className='mb-4 text-center '>
                         {institution?.[0] && (
                             <>
                                 <h2 className='font-bold text-xl'>{institution[0].mI_Name}</h2>
@@ -55,7 +55,10 @@ export const ReportList: React.FC<ReportListProps> = ({ data, institution, crite
                             </>
                         )}
                         <h3 className='mt-2 font-semibold text-lg'>Percentage Wise Report</h3>
-                        <p>{criteria}</p>
+                        <div style={{ textAlign: 'center', marginTop: '10px' }}>
+                            <span style={{ marginRight: '20px', fontWeight: 'bold' }}>Year: {criteria.selected_Year}</span>
+                            <span style={{ fontWeight: 'bold' }}>Exam: {criteria.select_Exam}</span>
+                        </div>
                     </div>
 
                     <div className='overflow-x-auto'>

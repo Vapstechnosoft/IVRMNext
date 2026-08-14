@@ -1,9 +1,10 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CheckSquare, FileText, RotateCcw, Search, Square, X } from 'lucide-react';
+import { CheckSquare, FileText, Printer, RotateCcw, Search, Square, X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useReactToPrint } from 'react-to-print';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -32,10 +33,14 @@ import { classwiseStudentDetailsSchema } from '@/schemas/admission/preadmission/
 
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
-import { getExcelClassWiseStudentReport } from '@/server/admission/preadmission/reports/month_end_report';
+import * as XLSX from 'xlsx';
+import { getclasswiseStudentDetails } from '@/server/admission/preadmission/reports/report';
 /* ---------------- Columns ---------------- */
 import { getMasterAdmissionReportColumns } from './_components/columns';
 import { ColumnValue } from './_components/columnvalue';
+import { KendoFormat } from './_components/kendo-format';
+import { exportToPdf } from '@/lib/export-to-file';
+import { ClasswisePrint } from './_components/classwise-print';
 
 /* -------------------------------------------------------------------------- */
 /* Types */
@@ -55,6 +60,7 @@ export default function AdmissionReportPage(props: {
     const router = useRouter();
     const currentSearchParams = useSearchParams();
     const tableRef = useRef<DataTableRef>(null);
+    const printRef = useRef<HTMLDivElement>(null);
 
     /* ---------------- Form ---------------- */
 
@@ -105,6 +111,8 @@ export default function AdmissionReportPage(props: {
     const [resolvedSearchParams, setResolvedSearchParams] = useState<Record<string, string | string[] | undefined>>({});
     const [fieldSearch, setFieldSearch] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [printTimestamp, setPrintTimestamp] = useState('');
+    const [printData, setPrintData] = useState<any[]>([]);
 
     /* ---------------- Masters ---------------- */
 
@@ -243,6 +251,15 @@ export default function AdmissionReportPage(props: {
                 return;
             }
 
+            console.log(' Report Button Parameters Debug:', {
+                watchedYear,
+                studentScope,
+                scopeMapValue: scopeMap[studentScope],
+                watchedStudentCategory,
+                'Concession_Id should be': scopeMap[studentScope],
+                'flag should be': watchedStudentCategory
+            });
+
             setRequestPayload(payload);
             setShowReport(true);
 
@@ -260,67 +277,141 @@ export default function AdmissionReportPage(props: {
     };
 
     const handleReset = () => {
-        reset();
-        setShowReport(false);
-        setRequestPayload(null);
-        setSelectedClassItems([]);
-        setSelectedSectionItems([]);
-        tableRef.current?.resetSelection();
-        router.push(window.location.pathname, { scroll: false });
-        toast.success('Filters reset successfully');
+        window.location.reload();
     };
 
     const handleCancel = () => {
-        setShowReport(false);
-        tableRef.current?.resetSelection();
-        toast.info('Report cancelled');
+        window.location.reload();
     };
 
     const downloadExcel = async () => {
         try {
             const payload = getValidatedPayload();
-            if (!payload) {
+            if (!payload) return;
+
+            toast.loading('Preparing Excel export...', { id: 'excel-download' });
+
+            // Fetch all data for export
+            const allDataResponse: any = await getclasswiseStudentDetails(
+                watchedYear,
+                watchedStudentCategory ?? 0,
+                scopeMap[studentScope],
+                payload,
+                { page_size: 100000, page: 1 }
+            );
+
+            const allData = allDataResponse?.data?.printdatatable || [];
+
+            if (!allData || allData.length === 0) {
+                toast.dismiss('excel-download');
+                toast.error('No data available to export');
                 return;
             }
 
-            toast.loading('Downloading Excel...', { id: 'excel-download' });
+            const activeFields = ColumnValue.filter((f) => selectedFields.includes(f.columnID));
+            const yearObj = academicYear?.data?.find((y) => y.asmaY_Id === watchedYear);
 
-            const response = await getExcelClassWiseStudentReport(
-                watchedYear,
-                scopeMap[studentScope],
-                watchedStudentCategory ?? 0,
-                payload,
-                resolvedSearchParams
-            );
+            // Prepare report headers
+            const reportHeaders = [
+                ['CLASS WISE STUDENT DETAILS'],
+                [`Academic Year: ${yearObj?.asmaY_Year || 'N/A'}`],
+                [`Classes: ${selectedClassItems.map(c => c.asmcL_ClassName).join(', ')}`],
+                [`Sections: ${selectedSectionItems.map(s => s.asmcL_SectionName).join(', ')}`],
+                [] // Empty row
+            ];
 
-            // Ensure we have a Blob
-            const blob =
-                response instanceof Blob
-                    ? response
-                    : new Blob([new Uint8Array(response)], {
-                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                    });
+            // Prepare table data
+            const tableHeaders = ['Sl.No', ...activeFields.map(f => f.columnName)];
+            const tableData = allData.map((row: any, index: number) => {
+                const rowData = [index + 1];
+                activeFields.forEach(field => {
+                    rowData.push(row[field.columnID] || '-');
+                });
+                return rowData;
+            });
 
-            // Create download link
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'ClassWiseStudentReport.xlsx';
-            document.body.appendChild(link);
-            link.click();
+            // Create worksheet
+            const ws = XLSX.utils.aoa_to_sheet([...reportHeaders, tableHeaders, ...tableData]);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'ClassWiseStudentReport');
 
-            // Cleanup
-            setTimeout(() => {
-                link.remove();
-                window.URL.revokeObjectURL(url);
-            }, 100);
+            // Download file
+            XLSX.writeFile(wb, `ClassWiseStudentReport_${yearObj?.asmaY_Year || 'Report'}.xlsx`);
 
             toast.dismiss('excel-download');
             toast.success('Excel downloaded successfully');
         } catch (error) {
             console.error('Download error:', error);
             toast.dismiss('excel-download');
-            toast.error('Failed to download Excel');
+            toast.error('Failed to prepare Excel export');
+        }
+    };
+
+    const downloadPdf = async () => {
+        try {
+            const payload = getValidatedPayload();
+            if (!payload || !transformedResponse?.data) {
+                toast.error('No data available to export');
+                return;
+            }
+
+            toast.loading('Preparing PDF...', { id: 'pdf-download' });
+
+            const activeFields = ColumnValue.filter((f) => selectedFields.includes(f.columnID));
+            const pdfColumns = activeFields.map((f) => f.columnName);
+            const pdfData = (transformedResponse.data as any[]).map((row) =>
+                activeFields.map((f) => String(row[f.columnID] || ''))
+            );
+
+            exportToPdf('Class Wise Student Report', pdfColumns, pdfData);
+
+            toast.dismiss('pdf-download');
+            toast.success('PDF downloaded successfully');
+        } catch (error) {
+            console.error('PDF error:', error);
+            toast.dismiss('pdf-download');
+            toast.error('Failed to download PDF');
+        }
+    };
+
+    /* ---------------- Print ---------------- */
+
+    const triggerPrint = useReactToPrint({
+        contentRef: printRef,
+        documentTitle: 'ClassWiseStudentReport'
+    });
+
+    const handlePrint = async () => {
+        if (!showReport) {
+            toast.error('No report data to print');
+            return;
+        }
+        const payload = getValidatedPayload();
+        if (!payload) return;
+
+        try {
+            toast.loading('Preparing print...', { id: 'print-load' });
+            const allDataResponse: any = await getclasswiseStudentDetails(
+                watchedYear,
+                watchedStudentCategory ?? 0,
+                scopeMap[studentScope],
+                payload,
+                { page_size: 100000, page: 1 }
+            );
+            const allData = allDataResponse?.data?.printdatatable || [];
+            if (!allData.length) {
+                toast.dismiss('print-load');
+                toast.error('No data available to print');
+                return;
+            }
+            setPrintData(allData);
+            setPrintTimestamp(new Date().toLocaleString());
+            toast.dismiss('print-load');
+            // Small delay to let React re-render printData into the hidden component
+            setTimeout(() => triggerPrint(), 300);
+        } catch (err) {
+            toast.dismiss('print-load');
+            toast.error('Failed to prepare print');
         }
     };
 
@@ -330,11 +421,11 @@ export default function AdmissionReportPage(props: {
 
     return (
         <div className='container min-h-screen space-y-4 p-2'>
-            <CollapsibleSection title='Admission Register' defaultOpen>
+            <CollapsibleSection title='Class Wise Student Details' defaultOpen>
                 <div className='grid grid-cols-1 gap-4 p-4 md:grid-cols-2'>
                     {/* Academic Year */}
                     <div>
-                        <Label>Academic Year *</Label>
+                        <Label>Academic Year <span className='text-red-600'>*</span></Label>
                         <Controller
                             name='asmaY_Id'
                             control={control}
@@ -358,7 +449,7 @@ export default function AdmissionReportPage(props: {
 
                     {/* Class */}
                     <div>
-                        <Label>Class *</Label>
+                        <Label>Class <span className='text-red-600'>*</span></Label>
                         <Controller
                             name='classes'
                             control={control}
@@ -387,7 +478,7 @@ export default function AdmissionReportPage(props: {
 
                     {/* Section */}
                     <div>
-                        <Label>Section *</Label>
+                        <Label>Section <span className='text-red-600'>*</span></Label>
                         <Controller
                             name='class_section'
                             control={control}
@@ -526,6 +617,10 @@ export default function AdmissionReportPage(props: {
                     <Button onClick={downloadExcel} className='w-fit'>
                         Export to Excel
                     </Button>
+                    <Button variant='outline' onClick={handlePrint} disabled={!showReport}>
+                        <Printer className='mr-2 h-4 w-4' />
+                        Print
+                    </Button>
                     <Button variant='outline' onClick={handleCancel}>
                         <X className='mr-2 h-4 w-4' />
                         Cancel
@@ -536,19 +631,42 @@ export default function AdmissionReportPage(props: {
             {/* Report */}
             {showReport && (
                 <CollapsibleSection title='Class Wise Student Report' defaultOpen>
-                    <GenericDataTable
-                        {...tableProps}
-                        ref={tableRef}
-                        columns={columns}
-                        isLoading={isFetching}
-                        error={error}
-                        showViewOptions={false}
-                        isPaginationRequired
-                        loadingMessage='Loading Admission Report...'
-                        noDataTitle='No Records Found'
-                    />
+                    {studentStatus === 'Kformate' ? (
+                        <KendoFormat
+                            data={transformedResponse?.data || []}
+                            selectedFields={selectedFields}
+                            onExportExcel={downloadExcel}
+                            onExportPdf={downloadPdf}
+                            isLoading={isFetching}
+                        />
+                    ) : (
+                        <GenericDataTable
+                            {...tableProps}
+                            ref={tableRef}
+                            columns={columns}
+                            isLoading={isFetching}
+                            error={error}
+                            showViewOptions={false}
+                            isPaginationRequired
+                            loadingMessage='Loading Admission Report...'
+                            noDataTitle='No Records Found'
+                        />
+                    )}
                 </CollapsibleSection>
             )}
+
+            {/* Hidden Print Layout */}
+            <div style={{ display: 'none' }}>
+                <ClasswisePrint
+                    ref={printRef}
+                    data={printData}
+                    selectedFields={selectedFields}
+                    academicYear={academicYear?.data?.find((y) => y.asmaY_Id === watchedYear)?.asmaY_Year || ''}
+                    classes={selectedClassItems.map((c) => c.asmcL_ClassName).join(', ')}
+                    sections={selectedSectionItems.map((s) => s.asmcL_SectionName).join(', ')}
+                    printTimestamp={printTimestamp}
+                />
+            </div>
         </div>
     );
 }

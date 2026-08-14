@@ -63,8 +63,14 @@ export interface IAcademicYearDropDown {
 }
 export interface IMasterCategoryDropDown {
     amC_Id: number;
+    asmcC_Id?: number;
     amC_Name: string;
+    asmcC_Name?: string;
+    categoryName?: string;
+    asmcL_ClassName?: string;
 }
+
+
 export interface IMasterClassDropDown {
     asmcL_Id: number;
     asmcL_ClassCode: string;
@@ -130,6 +136,8 @@ export interface IMasterSourceList {
 }
 export interface IMasterReligionCasteCategoryList {
     ircC_Id: number;
+    ivrmmR_Id: number;
+    imcC_Id: number;
     ivrmmR_Name: string;
     imcC_CategoryName: string;
     ircC_ActiveFlg: boolean;
@@ -279,4 +287,10 @@ export interface StudentData {
 export interface IConcessionDropDown {
     fmcC_Id: number;
     fmcC_ConcessionName: string;
+}
+
+export interface IMasterActivityList {
+    amA_Id: number;
+    amA_Activity: string;
+    amA_Activity_Desc: string;
 }

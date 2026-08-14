@@ -8,7 +8,7 @@ import { masterSubExamSchema } from '@/schemas/exam/exam-module/masters';
 import { addOrUpdateMasterSubExam } from '@/server/exam/exam-module/masters/sub-exam';
 import type { IMasterSubExam } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save, RefreshCw } from 'lucide-react';
+import { RefreshCw, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -77,9 +77,9 @@ export default function UpdateMasterSubExamForm({ onSuccess, className = '', sel
         setIsLoading(true);
         const timer = setTimeout(() => {
             setIsLoading(false);
-        }, 500)
+        }, 500);
         return () => clearTimeout(timer);
-    }, [row])
+    }, [row]);
 
     if (isLoading) {
         return (
@@ -98,6 +98,7 @@ export default function UpdateMasterSubExamForm({ onSuccess, className = '', sel
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
                             label='Sub Exam Name'
+                            placeholder='Enter Sub Exam Name'
                             required
                             id='emsE_SubExamName'
                             {...register('emsE_SubExamName')}
@@ -106,6 +107,7 @@ export default function UpdateMasterSubExamForm({ onSuccess, className = '', sel
                         />
                         <InputText
                             label='Sub Exam Code'
+                            placeholder='Enter Sub Exam Code'
                             required
                             id='emsE_SubExamCode'
                             {...register('emsE_SubExamCode')}

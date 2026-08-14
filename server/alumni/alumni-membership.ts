@@ -8,8 +8,8 @@ export async function getInitialData(pageId = 2) {
     return await api.get<IAlumnusInitialData>('alumni', url);
 }
 
-export async function getAlumniMembershipInitialData(roleId: number, flag: boolean) {
-    const url = `/AlumniMembership/get_intial_data?roleId=${roleId}&flag=${flag}`;
+export async function getAlumniMembershipInitialData(flag: boolean) {
+    const url = `/AlumniMembership/get_intial_data?flag=${flag}`;
     return await api.get<{ success: boolean; data: IAlumnusInitialData; message: string }>('alumni', url);
 }
 

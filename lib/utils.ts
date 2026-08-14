@@ -7,6 +7,22 @@ export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
+/**
+ * Safely extracts an array from backend data that might be wrapped in $values
+ */
+export function ensureArray<T>(data: any): T[] {
+    if (!data) return [];
+    if (Array.isArray(data)) return data;
+    if (typeof data === 'object' && data.$values && Array.isArray(data.$values)) {
+        return data.$values;
+    }
+    // Handle cases where the array might be direct but wrapped by axios/apiService
+    if (typeof data === 'object' && data.data && Array.isArray(data.data)) {
+        return data.data;
+    }
+    return [];
+}
+
 export function delay(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -62,12 +78,13 @@ export function getMonthInfo(monthsBack: number) {
 }
 
 export function numberToWords(num: number) {
-    let number = num;
+    if (num === 0) return 'Zero Rupees Only';
+
+    const isNegative = num < 0;
+    let number = Math.abs(num);
     const units = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
     const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
     const tens = ['', 'Ten', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
-
-    if (number === 0) return 'Zero';
 
     const convertLessThanOneThousand = (n: number): string => {
         if (n === 0) return '';
@@ -94,7 +111,7 @@ export function numberToWords(num: number) {
         parts.push(convertLessThanOneThousand(number));
     }
 
-    return `${parts.join(' ')} Rupees Only`;
+    return `${isNegative ? 'Minus ' : ''}${parts.join(' ')} Rupees Only`;
 }
 
 // Plain number-to-words helper (no currency suffix). Used for year conversion.
@@ -349,3 +366,21 @@ export const formatAge = (age: any): string => {
     if (!years || years === 0) return '';
     return `${years} Year${years !== 1 ? 's' : ''}`;
 };
+
+export async function downloadFile(url: string, fileName: string) {
+    try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+        console.error('Download failed:', error);
+        window.open(url, '_blank');
+    }
+}

@@ -1,11 +1,13 @@
 'use server';
 
-import { type ApiResponse, api } from '@/lib/apiService';
+import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
+import type { ApiSearchparams } from '@/types';
 import type { IMasterSportsCCGroup } from '@/types/sports/masters/sports-cc-group';
 
-export const fetchMasterSportsCCGroup = async (): Promise<ApiResponse<IMasterSportsCCGroup[]>> => {
+export const fetchMasterSportsCCGroup = async (searchParams?: ApiSearchparams): Promise<ApiResponse<IMasterSportsCCGroup[]>> => {
     try {
-        const url = `/MasterSportsCCGroup/getDetails`;
+        const urlParams = getSearchParamsUrl(searchParams ?? {});
+        const url = `/MasterSportsCCGroup/getDetails?${urlParams}`;
         const response = await api.post<IMasterSportsCCGroup[]>('sports', url, {});
         return response;
     } catch (error) {
@@ -65,3 +67,5 @@ export const deactivateMasterSportsCCGroup = async (data: any): Promise<ApiRespo
         return { success: false, message: 'Failed to deactivate data', data: null };
     }
 };
+
+export const getMasterSportsCCGroups = fetchMasterSportsCCGroup;

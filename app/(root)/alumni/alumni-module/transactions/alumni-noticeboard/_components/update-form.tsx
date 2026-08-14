@@ -189,7 +189,7 @@ export default function UpdateAlumniNoticeBoardForm({ selectedRow, onSuccess, mI
     return (
         <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                <InputText label='Notice Title' required {...register('alntB_Title')} error={errors.alntB_Title?.message} />
+                <InputText label='Notice Title' required maxLength={25} {...register('alntB_Title')} error={errors.alntB_Title?.message} />
 
                 <div className='md:col-span-2'>
                     <InputTextarea label='Description' {...register('alntB_Description')} error={errors.alntB_Description?.message} />

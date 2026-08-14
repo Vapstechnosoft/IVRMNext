@@ -9,7 +9,7 @@ import { useEditContext } from '../entry-type-context';
 export const entryTypeColumns: ColumnDef<IAttendanceEntryTypeList>[] = [
     {
         accessorKey: 'asaeT_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO' className='w-full pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO' className='w-full pl-6 font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -21,35 +21,35 @@ export const entryTypeColumns: ColumnDef<IAttendanceEntryTypeList>[] = [
     },
     {
         accessorKey: 'mI_Name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Institute Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Institute Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('mI_Name') || '(-)'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'asmcL_ClassName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmcL_ClassName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'asmaY_Year',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmaY_Year')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'asaeT_Att_Type',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Attendance Entry Type' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Attendance Entry Type' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asaeT_Att_Type')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Action' className='text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Action' className='text-center font-bold text-black' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />

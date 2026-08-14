@@ -291,8 +291,10 @@ export default function DailyFeeCollectionReportForm() {
         // }
         if (rpttyp === 'Individual') {
             if (enableAllClasses === true) {
-                toast.error('Please select Class');
-                return;
+                if (asmcL_Id === 0 || asmcL_Id === null || asmcL_Id === undefined) {
+                    toast.error('Please select Class');
+                    return;
+                }
             }
         }
 
@@ -410,6 +412,7 @@ export default function DailyFeeCollectionReportForm() {
                 }));
                 payload = {
                     AsmayId: asmaY_Id,
+                    classid: asmcL_Id ?? 0,
                     FromDate: formatDate(fromDate),
                     ToDate: formatDate(toDate),
                     regornamedetails: report,
@@ -451,6 +454,28 @@ export default function DailyFeeCollectionReportForm() {
                     TempararyArrayListstring: 'all',
                     Cheque: data.chequeDate ? '1' : '0',
                     GroupFlag: selectedGroupIds.length > 0 ? '1' : '0'
+                };
+            } else {
+                const allList = selectedGroupIds.map((id) => ({
+                    FMG_Id: String(id)
+                }));
+                payload = {
+                    AMAY_Id: asmaY_Id,
+                    classid: 0,
+                    Fromdate: formatDate(fromDate),
+                    Todate: formatDate(toDate),
+                    TempararyArrayListstring: reportdate,
+                    allorindivflag: data.rpttyp,
+                    allorstdorothersflag: Fmc_allorsudentorother,
+                    allorcorchoronlineflag: Fmc_allorcorddorop,
+                    mid: 30,
+                    classflag: data.enableAllClasses ? '0' : '1',
+                    groupflag: selectedGroupIds.length > 0 ? '1' : '0',
+                    regornamedetails: report,
+                    All_List: allList,
+                    cheque: data.chequeDate ? '1' : '0',
+                    headwise: headwise,
+                    paymentwise: paymentwise
                 };
             }
 
@@ -864,10 +889,16 @@ export default function DailyFeeCollectionReportForm() {
 
                         {/* SPECIAL CHECKBOXES */}
                         <div className='space-y-3 text-sm'>
-                            <div className='flex items-center gap-2'>
+                            {reportdate !== 'SettledOnline' && reportdate !== 'settdate' && (
+                                <div className='flex items-center gap-2'>
+                                    <Checkbox id='acdmyr-1' checked={chequeDate} onCheckedChange={(v) => setValue('chequeDate', !!v)} />
+                                    <Label htmlFor='acdmyr-1'>Cheque Date</Label>
+                                </div>
+                            )}
+                            {/* <div className='flex items-center gap-2'>
                                 <Checkbox id='acdmyr-1' checked={chequeDate} onCheckedChange={(v) => setValue('chequeDate', !!v)} />
                                 <Label htmlFor='acdmyr-1'>Cheque Date</Label>
-                            </div>
+                            </div> */}
 
                             <div className='flex items-center gap-2'>
                                 <Checkbox id='acdmyr-2' checked={acdmyr} onCheckedChange={(v) => setValue('acdmyr', !!v)} />

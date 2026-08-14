@@ -70,6 +70,7 @@ export default function FeeHeadWiseReportForm() {
         isLoading: loadingAcademic,
         refetch: refetchAcademicYears
     } = useAcademicYearDropdown();
+    console.log('academicData', academicData?.data);
 
     useEffect(() => {
         if (academicError) toast.error('Failed to load academic years');
@@ -85,6 +86,7 @@ export default function FeeHeadWiseReportForm() {
     }, [academicData, academicError, refreshAY]);
 
     const onYearChange = async (yearId: number) => {
+        setValue('classcategoryid', 0);
         try {
             setClassCategoryLoading(true);
             const res = await feeHeadwiseReportClassCategoryGropDown(yearId);
@@ -209,6 +211,8 @@ export default function FeeHeadWiseReportForm() {
             setLoading(true);
 
             const { asmaY_Id, classcategoryid } = data;
+
+            console.log('headwisereportpayload', data);
 
             const response = await getHeadWiseReportData(Number(asmaY_Id), Number(classcategoryid));
             if ((response as any)?.data?.length > 0) {

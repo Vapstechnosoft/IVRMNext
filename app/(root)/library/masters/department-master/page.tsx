@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useMasterDepartment } from '@/hooks/hrms/useMasters';
+import { useMasterDepartment } from '@/hooks/library/useMasters';
 import type { IMasterDepartment } from '@/types/library/masters/department';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
@@ -78,6 +78,7 @@ function MasterDepartmentPageContent({
                         noDataTitle='No Departments Found'
                         noDataDescription='Get started by creating your first department'
                         errorTitle='Error Loading Departments'
+                      //  searchPlaceholder='Search by Department Name or Code...'
                     />
                 </CollapsibleSection>
 

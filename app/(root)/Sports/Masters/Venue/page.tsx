@@ -17,11 +17,16 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterVenuePage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error, refetchAll } = useMasterVenues(searchParams);
+    const { loadData, refetchAll } = useMasterVenues(searchParams);
 
     return (
         <FormProvider<IMasterEventVenue>>
-            <MasterVenuePageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
+            <MasterVenuePageContent 
+                response={loadData.data} 
+                isLoading={loadData.isPending || loadData.isFetching} 
+                error={loadData.error} 
+                refetchAll={refetchAll} 
+            />
         </FormProvider>
     );
 }
@@ -77,6 +82,7 @@ function MasterVenuePageContent({
                         columns={MasterVenueColumns}
                         isLoading={isLoading}
                         error={error}
+                        showSearchColumns={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading master venues...'
                         noDataTitle='No Master Venues Found'

@@ -2,6 +2,7 @@
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
+import { getPeriodAllocationmasterPeriodGridData } from '@/hooks/timetable/useMasters';
 import { cn } from '@/lib/utils';
 import { periodAllocationmasterPeriod } from '@/schemas/timetable/masters';
 import { savePeriod } from '@/server/timetable/masters/periodallocation';
@@ -19,6 +20,7 @@ interface MasterPeriodFormProps {
 }
 
 export default function MasterPeriodForm({ onSuccess }: MasterPeriodFormProps) {
+    const { refetchAll } = getPeriodAllocationmasterPeriodGridData();
     const {
         control,
         handleSubmit,
@@ -48,7 +50,7 @@ export default function MasterPeriodForm({ onSuccess }: MasterPeriodFormProps) {
         if (!Number.isNaN(count) && count > 0 && count <= 20) {
             const arr: PeriodItem[] = [];
             for (let i = 1; i <= count; i++) {
-                arr.push({ key: i, label: `Period ${i}` });
+                arr.push({ key: i, label: `${i}` });
             }
             setPeriods(arr);
             // Auto-select all periods
@@ -78,6 +80,7 @@ export default function MasterPeriodForm({ onSuccess }: MasterPeriodFormProps) {
             if (response.success) {
                 toast.success(response.message);
                 onSuccess?.();
+                refetchAll();
             } else {
                 toast.error(response.message);
             }

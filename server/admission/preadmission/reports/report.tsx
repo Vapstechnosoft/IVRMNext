@@ -11,7 +11,7 @@ export async function getStudentTcReport(data: any, searchParams?: ApiSearchpara
     return await api.post<any>('admission', url, data);
 }
 export async function getMonthEndReport(data: any) {
-    const url = `/monthendreport/GetMonthEndReport?AcayId=${data.ASMAY_Id}&Month=${data.month}&Year=${data.year}`;
+    const url = `/monthendreport/GetMonthEndReport?AcayId=${data.ASMAY_Id}&Month=${data.month}&Year=${data.year}&AMC_Id=${data.AMC_Id}`;
     return await api.post<any>('admission', url, data);
 }
 
@@ -20,8 +20,9 @@ export async function getExcelMonthEndReport(data: {
     ASMAY_Id: number;
     month: string;
     year: number;
+    AMC_Id: number;
 }) {
-    const url = `/monthendreport/ExportMonthEndReportToExcel?AcayId=${data.ASMAY_Id}&Month=${data.month}&Year=${data.year}`;
+    const url = `/monthendreport/ExportMonthEndReportToExcel?AcayId=${data.ASMAY_Id}&Month=${data.month}&Year=${data.year}&AMC_Id=${data.AMC_Id}`;
 
     return api.post('admission', url, null, {
         responseType: 'blob'
@@ -51,7 +52,7 @@ export async function getPreAdmissionRegistrationReport(data: any, searchParams?
         url += `&To_Date=${data.toDate}`;
     }
 
-    return await api.post<any>('admission', url);
+    return await api.post<any>('admission', url, {});
 }
 export async function getPreAdmissionExcelRegistrationReport(data: any, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'Name');
@@ -71,7 +72,7 @@ export async function getPreAdmissionExcelRegistrationReport(data: any, searchPa
         url += `&To_Date=${data.toDate}`;
     }
 
-    return await api.post<any>('admission', url);
+    return await api.post<any>('admission', url, {});
 }
 export async function getPreAdmissionEmailSmsReport(data: any, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'Name');
@@ -97,6 +98,14 @@ export async function getStudyCertficateReport(data: any) {
     const url = `/StudyCertificateReport/GetStudyCertificateReport?&ASMAY_Id=${data.ASMAY_Id}&AllOrInd=${data.AllOrInd}&ASMCL_Id=${data.ASMCL_Id}&ASMC_Id=${data.ASMC_Id}&AMST_Id=${data.AMST_Id}`;
     return await api.post<any>('admission', url, data);
 }
+export async function getCharacterCertficateReport(data: any) {
+    const url = `/StudyCertificateReport/GetStudyCertificatestuddetails?&ASMAY_Id=${data.ASMAY_Id}&AllOrInd=${data.AllOrInd}&ASMCL_Id=${data.ASMCL_Id}&ASMC_Id=${data.ASMC_Id}&AMST_Id=${data.AMST_Id}`;
+    return await api.post<any>('admission', url, data);
+}
+export async function generateQRCodeCertificate(data: any) {
+    const url = '/StudyCertificate/QRCODECertificates';
+    return await api.post<any>('admission', url, data);
+}
 export async function getConcessionDropdown() {
     const url = '/Classwisestudentdetails/GetConcessionDropdown';
     return await api.get<IConcessionDropDown[]>('admission', url);
@@ -108,15 +117,53 @@ export async function getclasswiseStudentDetails(
     payload?: any,
     searchParams?: ApiSearchparams
 ) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'AMST_FirstName');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'AMST_FirstName,AMST_RegistrationNo,AMST_Sex,AMST_AdmNo');
     const url = `/Classwisestudentdetails/Getreportdetails?ASMAY_Id=${ASMAY_Id}&Concession_Id=${studentScope}&flag=${fmcC_Id}&${urlParams}`;
 
     return await api.post<any[]>('admission', url, payload);
 }
-export async function getAttendanceAbsentSmsReport(ASMAY_Id: number, from_date: string, frequency: string, searchParams?: ApiSearchparams) {
+export async function getAttendanceAbsentSmsReport(
+    ASMAY_Id: number,
+    from_date: string,
+    frequency: string,
+    amc_id = 0,
+    att_type = 'D',
+    searchParams?: ApiSearchparams
+) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'AMST_FirstName');
-    const url = `/OveralldailyattendanceabsentsmsFacade/GetOverallDailyAbsentAttendance?${urlParams}&ASMAY_Id=${ASMAY_Id}&FromDate=${from_date}&Flag=${frequency}&AMC_Id=0&AttType=D`;
+    const url = `/OveralldailyattendanceabsentsmsFacade/GetOverallDailyAbsentAttendance?${urlParams}&ASMAY_Id=${ASMAY_Id}&FromDate=${from_date}&Flag=${frequency}&AMC_Id=${amc_id}&AttType=${att_type}`;
     return await api.post<any>('admission', url);
+}
+
+export async function sendAttendanceAbsentSms(data: any) {
+    const url = '/OveralldailyattendanceabsentsmsFacade/sendsms';
+    return await api.post<any>('admission', url, data);
+}
+
+export async function sendAttendanceAbsentEmail(data: any) {
+    const url = '/OveralldailyattendanceabsentsmsFacade/sendemail';
+    return await api.post<any>('admission', url, data);
+}
+
+export async function sendAttendanceAbsentNotice(data: any) {
+    const url = '/OveralldailyattendanceabsentsmsFacade/sendsms';
+    return await api.post<any>('admission', url, { ...data, flag: 'notice' });
+}
+
+export async function sendAttendanceAbsentOTP(data: any) {
+    const url = '/Login/ForgotOTPForEmailval';
+    return await api.post<any>('admission', url, data);
+}
+
+export async function verifyAttendanceAbsentOTP(data: any) {
+    const url = '/Login/VerifyEmailOtpgen';
+    const response = await api.post<any>('admission', url, data);
+    return response;
+}
+
+export async function getAttendanceAbsentInitialDetails() {
+    const url = '/OveralldailyattendanceabsentsmsFacade/getdetails/';
+    return await api.get<any>('admission', url);
 }
 export async function getAttendanceReport(ASMAY_Id: number, from_date: string, frequency: string, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'AMST_FirstName');
@@ -160,4 +207,9 @@ export async function getStudentAttendanceReport(
     const finalUrl = `${baseUrl}&${urlParams}`;
 
     return await api.post<any[]>('admission', finalUrl);
+}
+
+export async function sendStudentAttendanceNotice(data: any) {
+    const url = '/StudentAttendanceReport/OnChangeClassAbsent';
+    return await api.post<any>('admission', url, data);
 }

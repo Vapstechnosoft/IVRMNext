@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import type { IHomeWorkAttachment } from '@/types/upload/reports/homework-upload-report';
 import { Download, Eye } from 'lucide-react';
 import { useState } from 'react';
+import { downloadFile } from '@/lib/utils';
 
 interface ViewAttachmentModalProps {
     isOpen: boolean;
@@ -15,6 +16,13 @@ interface ViewAttachmentModalProps {
 
 export const ViewAttachmentModal = ({ isOpen, onClose, attachments }: ViewAttachmentModalProps) => {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+    const getFileType = (url: string) => {
+        const path = url.split('?')[0];
+        const extension = path.split('.').pop()?.toLowerCase();
+        if (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(extension || '')) return 'office';
+        return 'other';
+    };
 
     const handlePreview = (url: string) => {
         setPreviewUrl(url);
@@ -61,11 +69,13 @@ export const ViewAttachmentModal = ({ isOpen, onClose, attachments }: ViewAttach
                                             )}
                                         </TableCell>
                                         <TableCell className='text-center'>
-                                            <a href={att.ihwatT_Attachment} target='_blank' rel='noopener noreferrer'>
-                                                <Button variant='ghost' size='icon'>
-                                                    <Download className='h-4 w-4' />
-                                                </Button>
-                                            </a>
+                                            <Button 
+                                                variant='ghost' 
+                                                size='icon'
+                                                onClick={() => downloadFile(att.ihwatT_Attachment, att.ihwatT_FileName)}
+                                            >
+                                                <Download className='h-4 w-4' />
+                                            </Button>
                                         </TableCell>
                                     </TableRow>
                                 ))
@@ -82,8 +92,15 @@ export const ViewAttachmentModal = ({ isOpen, onClose, attachments }: ViewAttach
                                 Close Preview
                             </Button>
                         </div>
-                        <div className='aspect-video w-full border rounded'>
-                            <iframe src={previewUrl} className='h-full w-full' title='Attachment Preview' />
+                        <div className='aspect-video w-full border rounded overflow-hidden'>
+                            <iframe 
+                                src={getFileType(previewUrl) === 'office' 
+                                    ? `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(previewUrl)}` 
+                                    : previewUrl
+                                } 
+                                className='h-full w-full border-none' 
+                                title='Attachment Preview' 
+                            />
                         </div>
                     </div>
                 )}

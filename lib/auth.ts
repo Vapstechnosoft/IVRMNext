@@ -1,5 +1,7 @@
+export const runtime = 'nodejs';
+
 import { loginSchema } from '@/schemas/admission/preadmission/masters';
-import { getUserByEmail } from '@/server/user';
+import { getUserByEmail } from '@/server/user-service';
 import NextAuth, { AuthError, type NextAuthConfig } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 
@@ -12,6 +14,7 @@ export class CustomAuthError extends AuthError {
 }
 
 export const authConfig: NextAuthConfig = {
+    trustHost: true,
     session: {
         strategy: 'jwt'
     },
@@ -35,7 +38,10 @@ export const authConfig: NextAuthConfig = {
                         throw new CustomAuthError(response.message);
                     }
 
-                    return response.data;
+                    return {
+                        ...response.data,
+                        login_username: email
+                    };
                 } catch (error: any) {
                     throw new CustomAuthError(error.message);
                 }
@@ -46,12 +52,45 @@ export const authConfig: NextAuthConfig = {
         jwt({ token, user, trigger, session }) {
             if (user) {
                 token.mi_id = user.mi_id;
-                token.name = user.name;
-                token.email = user.email;
-                token.token = user.token;
-                token.role = user.role;
+                const loginUsername = (user as any).login_username || '';
+                const rawName = user.name || (user as any).username || (user as any).userName || (user as any).user_name || (user as any).user || (user as any).fullName || '';
+                const isDefaultPlaceholder = !rawName || rawName.trim().toUpperCase() === 'DEFAULT USER' || rawName.trim().toUpperCase() === 'DEFAULTUSER';
+                const cleanName = !isDefaultPlaceholder
+                    ? rawName
+                    : ((user as any).username || (user as any).userName || (user as any).user_name || loginUsername || user.email || '');
+
+                token.name = cleanName;
+                token.email = user.email || '';
+                token.token = user.token || '';
+                token.role = user.role || (user as any).roleName || '';
                 token.roleId = user.roleId;
-                token.designation = user.designation;
+
+                const rawDesig = user.designation || (user as any).role || (user as any).roleName || '';
+                const isDesigPlaceholder = !rawDesig || rawDesig.trim().toUpperCase() === 'ACTIVE USER' || rawDesig.trim().toUpperCase() === 'ACTIVEUSER';
+                token.designation = isDesigPlaceholder ? (user.role || (user as any).roleName || '') : rawDesig;
+
+                token.amst_id = user.amst_id;
+                token.mi_name = user.mi_name || (user as any).mI_Name || (user as any).mi_Name || (user as any).MI_Name || (user as any).institution_name || '';
+                token.username = (user as any).username || (user as any).userName || loginUsername || '';
+                token.mi_logo =
+                    user.mi_logo ||
+                    (user as any).mI_logo ||
+                    (user as any).mI_Logo ||
+                    (user as any).mi_Logo ||
+                    (user as any).MI_Logo ||
+                    (user as any).MI_logo ||
+                    (user as any).logoPath ||
+                    (user as any).mI_LogoPath ||
+                    (user as any).mI_Logo_Path ||
+                    (user as any).logo ||
+                    (user as any).institution_logo ||
+                    (user as any).mI_Logo_Url ||
+                    '';
+
+                // Add token expiration logically based on backend response
+                const u = user as any;
+                const expiresIn = u.expires_in ? Number(u.expires_in) : 3600; // Default to 1 hour if not provided
+                token.expires_at = Math.round(Date.now() / 1000) + expiresIn;
             }
             if (trigger === 'update' && session) {
                 token = { ...token, ...session };
@@ -69,7 +108,7 @@ export const authConfig: NextAuthConfig = {
     },
     cookies: {
         sessionToken: {
-            name: 'ivrm-session-1.0',
+            name: 'aivrm-session-1.0',
             options: {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',

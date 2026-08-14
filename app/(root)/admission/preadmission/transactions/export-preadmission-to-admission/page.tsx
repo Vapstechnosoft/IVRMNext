@@ -6,16 +6,16 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
 import {
-    useActivePreadmissionDetails,
     useExportPreadmissionStudentList,
     usePreadmissionClassDropdown
 } from '@/hooks/admission/preadmission/useTransactions';
 import { exportPreadmissionToAdmission } from '@/server/admission/preadmission/transactions/export_preadmission';
 import type { IPreadmissionApplicationList } from '@/types/admission/preadmission/transactions';
-import { CheckSquare } from 'lucide-react';
+import { CheckSquare, Search, X } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { use, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { exportPreadmissionToAdmissionColumns } from './_components/columns';
 import { ExportPreadmissionToAdmissionDialog } from './_components/export-preadmission-to-admission-form';
@@ -23,7 +23,7 @@ import { ExportPreadmissionToAdmissionDialog } from './_components/export-preadm
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function ExportPreadmissionToAdmissionPage(props: { searchParams: SearchParams }) {
-    const searchParams = use(props.searchParams);
+    const searchParams = (React as any).use(props.searchParams);
     const router = useRouter();
     const pathname = usePathname();
 
@@ -33,34 +33,66 @@ export default function ExportPreadmissionToAdmissionPage(props: { searchParams:
         tableRef.current?.resetSelection();
     };
 
-    const handleFilterChange = (value: number) => {
-        setClassId(value);
-
-        // Reset to page 1 when filter changes
-        const params = new URLSearchParams(searchParams as any);
-        params.set('page', '1');
-        router.replace(`${pathname}?${params.toString()}`);
-    };
-
-    const { data: activePreadmission, isLoading: activePreadmissionDeLoading } = useActivePreadmissionDetails();
+    // Dropdowns
+    const { data: academicYearData, isLoading: isAcademicYearLoading } = useAcademicYearDropdown();
     const {
         data: preadmissionClass,
         isLoading: preadmissionClassLoading,
         isError: preadmissionClassError
     } = usePreadmissionClassDropdown();
 
-    const [classId, setClassId] = useState<number>(0);
+    // Form State
+    const [academicYearId, setAcademicYearId] = useState<number | null>(null);
+    const [classId, setClassId] = useState<number | null>(null);
+
+    // Search State
+    const [searchAcademicYearId, setSearchAcademicYearId] = useState<number | null>(null);
+    const [searchClassId, setSearchClassId] = useState<number | null>(null);
+    const [isSearched, setIsSearched] = useState(false);
 
     const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
     const [selectedStudents, setSelectedStudents] = useState<IPreadmissionApplicationList[]>([]);
+
+    // Automatically select the first academic year if available
+    useEffect(() => {
+        if (academicYearData?.data && academicYearData.data.length > 0 && !academicYearId) {
+            setAcademicYearId(academicYearData.data[0].asmaY_Id);
+        }
+    }, [academicYearData, academicYearId]);
 
     const {
         data: response,
         isLoading,
         error,
         refetch: refetchAdmissionStudents
-    } = useExportPreadmissionStudentList(activePreadmission?.data?.asmaY_Id ?? 0, classId, searchParams);
+    } = useExportPreadmissionStudentList(searchAcademicYearId ?? 0, searchClassId, searchParams);
+
     const tableProps = useDataTableProps(response);
+
+    const handleSearch = () => {
+        if (!academicYearId) {
+            toast.error("Please select an Academic Year");
+            return;
+        }
+        if (classId === null) {
+            toast.error("Please select a Class");
+            return;
+        }
+
+        setSearchAcademicYearId(academicYearId);
+        setSearchClassId(classId);
+        setIsSearched(true);
+        setSelectedStudents([]);
+        handleResetSelection();
+
+        const params = new URLSearchParams(searchParams as any);
+        params.set('page', '1');
+        router.replace(`${pathname}?${params.toString()}`);
+    };
+
+    const handleCancel = () => {
+        window.location.reload();
+    };
 
     const onUpdateAdmissionStatusClose = () => {
         refetchAdmissionStudents();
@@ -70,10 +102,10 @@ export default function ExportPreadmissionToAdmissionPage(props: { searchParams:
     };
 
     const handleExportPreadmissionToAdmission = async (updates: Array<{ pasr_id: number }>) => {
-        if (activePreadmission?.data?.asmaY_Id === undefined || activePreadmission?.data?.asmaY_Id === 0) return;
+        if (!searchAcademicYearId) return;
 
         try {
-            const response = await exportPreadmissionToAdmission(activePreadmission?.data?.asmaY_Id, updates);
+            const response = await exportPreadmissionToAdmission(searchAcademicYearId, updates);
             if (response.success === true) {
                 toast.success(response.message);
                 onUpdateAdmissionStatusClose();
@@ -96,29 +128,55 @@ export default function ExportPreadmissionToAdmissionPage(props: { searchParams:
     return (
         <div className='min-h-screen'>
             {/* Header */}
-            <div className='mb-3 flex w-fit flex-col gap-4 rounded-xl border p-4 shadow-xl'>
-                {/* Header Section */}
-                <div className='mt-3 flex items-center justify-between gap-4'>
-                    <h1 className='font-bold text-2xl tracking-tight'>Academic Year</h1>
-                    {activePreadmission?.data?.asmaY_Year && (
-                        <p className='rounded-xl border bg-secondary px-2 py-1 font-bold'>{activePreadmission?.data?.asmaY_Year}</p>
-                    )}
-                </div>
+            <CollapsibleSection
+                defaultOpen={true}
+                title="Transfer Preadmission To Admission"
+                className='mb-4 shadow-xl'>
+                
+                <div className='flex flex-wrap justify-center gap-6 p-4'>
+                    {/* Academic Year Filter */}
+                    <div className='flex w-full flex-col gap-2 sm:w-56'>
+                        <Label htmlFor='academic-year' className='mb-1 font-semibold'>
+                            Academic Year <span className="text-red-500">*</span>
+                        </Label>
+                        <Select 
+                            onValueChange={(value) => setAcademicYearId(Number(value))} 
+                            value={academicYearId?.toString() || undefined}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder='Select Academic Year' />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {isAcademicYearLoading ? (
+                                    <SelectItem value='loading' disabled>
+                                        Loading...
+                                    </SelectItem>
+                                ) : (
+                                    academicYearData?.data?.map((item) => (
+                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                            {item.asmaY_Year}
+                                        </SelectItem>
+                                    ))
+                                )}
+                            </SelectContent>
+                        </Select>
+                    </div>
 
-                {/* Filter Options */}
-                <div className='flex flex-wrap justify-start gap-6'>
                     {/* Class Filter */}
                     <div className='flex w-full flex-col gap-2 sm:w-56'>
                         <Label htmlFor='class' className='mb-1 font-semibold'>
-                            Class
+                            Class <span className="text-red-500">*</span>
                         </Label>
-                        <Select onValueChange={(value) => handleFilterChange(Number(value))} value={classId?.toString() || undefined}>
+                        <Select 
+                            onValueChange={(value) => setClassId(Number(value))} 
+                            value={classId?.toString() || undefined}
+                        >
                             <SelectTrigger>
                                 <SelectValue placeholder='Select Class' />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem key={0} value={'0'}>
-                                    All
+                                    All Class
                                 </SelectItem>
                                 {preadmissionClassLoading ? (
                                     <SelectItem value='loading' disabled>
@@ -139,37 +197,51 @@ export default function ExportPreadmissionToAdmissionPage(props: { searchParams:
                         </Select>
                     </div>
                 </div>
-            </div>
 
-            <div className='container space-y-4 p-1'>
-                {/* Data Table Section */}
-                <CollapsibleSection
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    {selectedStudents.length > 0 && (
-                        <div className='flex w-full justify-end'>
-                            <Button onClick={() => setIsStatusDialogOpen(true)} variant='default' className='h-8 w-fit gap-2'>
-                                <CheckSquare className='h-4 w-4' />
-                                Export to Admission ({selectedStudents.length})
-                            </Button>
-                        </div>
-                    )}
-                    <GenericDataTable<IPreadmissionApplicationList>
-                        {...tableProps}
-                        ref={tableRef}
-                        columns={exportPreadmissionToAdmissionColumns}
-                        isLoading={activePreadmissionDeLoading || isLoading}
-                        error={error}
-                        loadingMessage='Loading confirmed preadmissions...'
-                        noDataTitle='No Data Found'
-                        noDataDescription='No confirmed preadmissions found.'
-                        errorTitle='Error Loading confirmed preadmissions'
-                        onRowSelectionChange={handleSelectStudent}
-                    />
-                </CollapsibleSection>
-            </div>
+                <div className="flex justify-center gap-4 p-4 pt-0">
+                    <Button onClick={handleSearch} className="gap-2" variant="default">
+                        <Search className="h-4 w-4" />
+                        Search
+                    </Button>
+                    <Button onClick={handleCancel} className="gap-2" variant="destructive">
+                        <X className="h-4 w-4" />
+                        Cancel
+                    </Button>
+                </div>
+            </CollapsibleSection>
+
+            {isSearched && (
+                <div className='container space-y-4 p-1'>
+                    {/* Data Table Section */}
+                    <CollapsibleSection
+                        title="List Of Students"
+                        defaultOpen={true}
+                        variant='default'
+                        size='lg'
+                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                        {selectedStudents.length > 0 && (
+                            <div className='flex w-full justify-end'>
+                                <Button onClick={() => setIsStatusDialogOpen(true)} variant='default' className='h-8 w-fit gap-2'>
+                                    <CheckSquare className='h-4 w-4' />
+                                    Export to Admission ({selectedStudents.length})
+                                </Button>
+                            </div>
+                        )}
+                        <GenericDataTable<IPreadmissionApplicationList>
+                            {...tableProps}
+                            ref={tableRef}
+                            columns={exportPreadmissionToAdmissionColumns}
+                            isLoading={isLoading}
+                            error={error}
+                            loadingMessage='Loading confirmed preadmissions...'
+                            noDataTitle='No Data Found'
+                            noDataDescription='No confirmed preadmissions found.'
+                            errorTitle='Error Loading confirmed preadmissions'
+                            onRowSelectionChange={handleSelectStudent}
+                        />
+                    </CollapsibleSection>
+                </div>
+            )}
             <ExportPreadmissionToAdmissionDialog
                 isOpen={isStatusDialogOpen}
                 onClose={onUpdateAdmissionStatusClose}

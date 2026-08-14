@@ -47,10 +47,7 @@ function InvMasterCustomerPageContent({
         closeToggleForm
     } = useFormContext<IInvMasterCustomer>();
 
-    const tableProps = useDataTableProps(response?.data, {
-        dataKey: 'get_customer',
-        totalKey: 'total'
-    });
+    const tableProps = useDataTableProps(response);
 
     return (
         <div className='min-h-screen'>
@@ -69,8 +66,6 @@ function InvMasterCustomerPageContent({
                     </Button>
                 </div>
 
-                <FormSections />
-
                 <CollapsibleSection
                     title='Customer List'
                     defaultOpen={true}
@@ -80,7 +75,7 @@ function InvMasterCustomerPageContent({
                     icon={<Users className='h-5 w-5' />}>
                     <GenericDataTable<IInvMasterCustomer>
                         {...tableProps}
-                        data={response?.data?.get_customer || []}
+                        data={response?.data || []}
                         columns={invMasterCustomerColumns}
                         isLoading={isLoading}
                         error={error}
@@ -91,6 +86,8 @@ function InvMasterCustomerPageContent({
                         errorTitle='Error Loading Customer Data'
                     />
                 </CollapsibleSection>
+
+                <FormSections />
 
                 {isToggleFormOpen && selectedRow && (
                     <ToggleCustomerModal rowData={selectedRow} onClose={closeToggleForm} />
@@ -122,18 +119,18 @@ function FormSections() {
                         variant='outline'
                         size='md'
                         className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6'
-                        icon={<PlusCircle className='h-5 w-5' />}>
-                        <div className='relative'>
+                        icon={<PlusCircle className='h-5 w-5' />}
+                        rightElement={
                             <Button
                                 type='button'
                                 onClick={closeAddForm}
                                 variant='ghost'
                                 size='sm'
-                                className='absolute top-[-3.5rem] right-0 hover:bg-destructive/10 text-destructive'>
-                                <X className='h-4 w-4 mr-1' /> Close
+                                className='w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive mr-1' /> Close
                             </Button>
-                            <AddCustomerForm onSuccess={closeAddForm} />
-                        </div>
+                        }>
+                        <AddCustomerForm onSuccess={closeAddForm} onCancel={closeAddForm} />
                     </CollapsibleSection>
                 </div>
             )}
@@ -146,18 +143,18 @@ function FormSections() {
                         variant='outline'
                         size='md'
                         className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6 border-primary/20'
-                        icon={<Pencil className='h-5 w-5' />}>
-                        <div className='relative'>
+                        icon={<Pencil className='h-5 w-5' />}
+                        rightElement={
                             <Button
                                 type='button'
                                 onClick={closeEditForm}
                                 variant='ghost'
                                 size='sm'
-                                className='absolute top-[-3.5rem] right-0 hover:bg-destructive/10 text-destructive'>
-                                <X className='h-4 w-4 mr-1' /> Close
+                                className='w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive mr-1' /> Close
                             </Button>
-                            <UpdateCustomerForm selectedRow={selectedRow} onSuccess={closeEditForm} />
-                        </div>
+                        }>
+                        <UpdateCustomerForm selectedRow={selectedRow} onSuccess={closeEditForm} onCancel={closeEditForm} />
                     </CollapsibleSection>
                 </div>
             )}

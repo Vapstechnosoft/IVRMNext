@@ -1,10 +1,13 @@
 export interface IMasterStudentCountReportList {
-    type: number;
-    asmay_id: string;
-    from_date: string;
-    to_date: string;
-    report_type: number;
-    asmcl_id: number;
+    user_id?: number;
+    FirstName?: string;
+    MiddleName?: string;
+    LastName?: string;
+    EmailID?: string;
+    Mobileno?: string;
+    RegDate?: string;
+    Class?: string;
+    RegNo?: string;
 }
 export interface IParentsDashboardStudentResponse {
     pasr_id: number;
@@ -39,6 +42,8 @@ export interface IStudentYearlyAttendenceReportList {
         [key: string]: number;
     };
     totalPresent: number;
+    totalWorkingDays: number;
+    totalAbsent: number;
     percentage: string;
 }
 export interface IRigistrationReportList {
@@ -65,14 +70,78 @@ export type Student = {
     AMST_Id: number;
     admno: string;
     fathername: string;
+    mothername: string;
     class: string;
+    section: string;
     acadamicyear: string;
     dob: string;
     caste_name: string;
     addressd1: string;
+    addressd13: string;
     city: string;
+    photopath: string;
+    MI_Logo: string;
+    IVRMMCT_Name: string;
+    pincode: string;
+    street: string;
+    area: string;
+    constreet: string;
+    conarea: string;
+    concity: string;
+    dobwords: string;
 };
 
 export type StudyCertificateResponse = {
     studentList: Student[];
+    masterCompany: any[];
+    academicList: any[];
+    principalSign: any[];
 };
+
+export type GenerateQRCodeResponse = {
+    ascisS_QRCode: string;
+};
+
+export interface IScheduleReportList {
+    name: string;
+    regno: string;
+    class: string;
+    gender: string;
+    ScheduleDate: string;
+    ScheduleTime: string;
+    ScheduleTimeTo: string;
+    PAOTS_Remarks: string;
+    scheduledate?: string; // Lowercase from backend
+    scheduletime?: string; // Lowercase from backend
+    scheduletimeto?: string; // Lowercase from backend
+    remarks?: string | null; // From backend
+    age: string;
+    place: string;
+    fathername: string;
+    PASR_DOB: string;
+    PASR_emailId: string;
+    PASR_MobileNo: string;
+    PASR_PerStreet: string;
+    PASR_PerArea: string;
+    PASR_PerCity: string;
+    PASR_PerPincode: string;
+    Category: string;
+    Medium: string;
+    Syllabus: string;
+    selected?: boolean;
+}
+
+export interface IScheduleReportInitialDetailsResponse {
+    year: { asmaY_Id: number; asmaY_Year: string }[];
+    classname: { asmcL_Id: number; asmcL_ClassName: string }[];
+}
+
+export type IScheduleListResponse = {
+    writentestlist: { disid: number; disname: string }[];
+} | { disid: number; disname: string }[];
+
+export type IScheduleReportDetailsResponse = {
+    searchstudentlist?: IScheduleReportList[];
+    student?: IScheduleReportList[];
+    StudentList?: IScheduleReportList[];
+} | IScheduleReportList[];

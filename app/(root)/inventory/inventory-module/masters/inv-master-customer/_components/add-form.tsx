@@ -1,22 +1,20 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
-import {
-    invMasterCustomerSchema,
-    type InvMasterCustomerSchema
-} from '@/schemas/inventory/masters/inv-master-customer';
 import { useInvMasterCustomer } from '@/hooks/inventory/masters/use-inv-master-customer';
-import { Save, X } from 'lucide-react';
+import { type InvMasterCustomerSchema, invMasterCustomerSchema } from '@/schemas/inventory/masters/inv-master-customer';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Save } from 'lucide-react';
+import { useForm } from 'react-hook-form';
 
 interface AddCustomerFormProps {
     onSuccess: () => void;
+    onCancel?: () => void;
 }
 
-export default function AddCustomerForm({ onSuccess }: AddCustomerFormProps) {
+export default function AddCustomerForm({ onSuccess, onCancel }: AddCustomerFormProps) {
     const { saveMutation } = useInvMasterCustomer();
 
     const form = useForm<InvMasterCustomerSchema>({
@@ -31,19 +29,32 @@ export default function AddCustomerForm({ onSuccess }: AddCustomerFormProps) {
         }
     });
 
-    const { register, handleSubmit, formState: { errors, isValid } } = form;
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors, isValid }
+    } = form;
 
     const onSubmit = (data: InvMasterCustomerSchema) => {
         saveMutation.mutate(data, {
             onSuccess: () => {
                 onSuccess();
+                reset();
             }
         });
     };
 
+    const handleCancel = () => {
+        reset();
+        if (onCancel) {
+            onCancel();
+        }
+    };
+
     return (
         <form onSubmit={handleSubmit(onSubmit)} className='space-y-4 p-4'>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                 <InputText
                     label='Customer Name'
                     placeholder='Enter Customer Name'
@@ -66,7 +77,10 @@ export default function AddCustomerForm({ onSuccess }: AddCustomerFormProps) {
                     {...register('invmC_CustomerContactNo')}
                     error={errors.invmC_CustomerContactNo?.message}
                     required
-                    maxLength={15}
+                    maxLength={10}
+                    onInput={(e) => {
+                        e.currentTarget.value = e.currentTarget.value.replace(/[^0-9]/g, '');
+                    }}
                 />
             </div>
 
@@ -81,9 +95,12 @@ export default function AddCustomerForm({ onSuccess }: AddCustomerFormProps) {
                 />
             </div>
 
-            <div className='flex justify-end gap-2 mt-4'>
+            <div className='mt-4 flex justify-end gap-2'>
+                <Button type='button' variant='outline' onClick={handleCancel}>
+                    Cancel
+                </Button>
                 <Button type='submit' isLoading={saveMutation.isPending}>
-                    <Save className='h-4 w-4 mr-2' />
+                    <Save className='mr-2 h-4 w-4' />
                     Save
                 </Button>
             </div>

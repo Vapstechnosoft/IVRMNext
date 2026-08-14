@@ -1,8 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { FormError, Label } from '@/components/ui/extension/field';
-import { MultiSelect } from '@/components/ui/multi-select';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     useAcademicYearDropdown,
@@ -14,314 +13,252 @@ import {
 import { masterClassCategorySchema } from '@/schemas/admission/preadmission/masters';
 import { addMasterClassCategory } from '@/server/admission/preadmission/masters/class_category';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
+import { CustomMultiSelect } from './custom-multi-select';
 
-type FormFields = z.infer<typeof masterClassCategorySchema.add>;
+type MasterClassCategoryFormValues = z.infer<typeof masterClassCategorySchema.add>;
 
 interface AddMasterClassCategoryFormProps {
-    onSuccess?: () => void;
-    className?: string;
+    onSuccess: () => void;
 }
 
-export default function AddMasterClassCategoryForm({ onSuccess, className = '' }: AddMasterClassCategoryFormProps) {
+export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClassCategoryFormProps) {
+    const [clearKey, setClearKey] = useState(0);
     const { refetchAll } = useMasterClassCategory();
-    const [selectedClassItems, setSelectedClassItems] = useState<{ asmcL_Id: string; asmcL_ClassName: string }[]>([]);
-    const [selectedSectionItems, setSelectedSectionItems] = useState<{ asmS_Id: string; asmcL_SectionName: string }[]>([]);
+    const { data: academicYears } = useAcademicYearDropdown();
+    const { data: categories } = useMasterCategoryDropdown();
+    const { data: sections } = useMasterSectionDropdown();
 
-    const {
-        data: academicYear,
-        isLoading: academicYearLoading,
-        error: academicYearError,
-        refetchAll: refetchAcademicYear
-    } = useAcademicYearDropdown();
-
-    const {
-        data: masterCategory,
-        isLoading: masterCategoryLoading,
-        error: masterCategoryError,
-        refetchAll: refetchMasterCategory
-    } = useMasterCategoryDropdown();
-
-    const { data: masterSection, isLoading: masterSectionLoading, refetchAll: refetchMasterSection } = useMasterSectionDropdown();
-
-    const {
-        control,
-        handleSubmit,
-        reset,
-        clearErrors,
-        setValue,
-        watch,
-        formState: { errors, isSubmitting }
-    } = useForm<FormFields>({
+    const form = useForm<MasterClassCategoryFormValues>({
         resolver: zodResolver(masterClassCategorySchema.add),
-        mode: 'onChange'
-    });
-    const watchedAsmaY_Id = watch('asmaY_Id');
-    const watchedAmC_Id = watch('amC_Id');
-    const {
-        data: masterUnmappedClass,
-        isLoading: masterUnmappedClassLoading,
-        refetchAll: refetchMasterUnmappedClass
-    } = useMasterUnMappedClassDropdown(watchedAsmaY_Id, watchedAmC_Id);
-
-    function OnReset() {
-        reset({
-            asmaY_Id: undefined,
-            amC_Id: undefined,
+        defaultValues: {
+            asmaY_Id: 0,
+            amC_Id: 0,
             category_classes: [],
             category_class_sections: []
-        });
-
-        setSelectedClassItems([]);
-        setSelectedSectionItems([]);
-
-        setValue('category_classes', []);
-
-        setTimeout(() => {
-            clearErrors();
-        }, 0);
-
-        refetchAll();
-        // also trigger immediate refetch of dropdowns when reset/add completed
-        refetchAcademicYear();
-        refetchMasterCategory();
-        refetchMasterUnmappedClass();
-        refetchMasterSection();
-    }
-
-    // When the Add/Edit form mounts, ensure dropdowns are freshly fetched
-    useEffect(() => {
-        // call the hooks' refetchAll functions to refresh dropdown data when form opens
-        refetchAcademicYear?.();
-        refetchMasterCategory?.();
-        refetchMasterUnmappedClass?.();
-        refetchMasterSection?.();
-    }, []);
-
-    const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
-        try {
-            const { asmaY_Id, amC_Id } = data;
-            const payload = {
-                asmcC_Id: 0,
-                asmaY_Id: asmaY_Id,
-                amC_Id: amC_Id,
-                category_classes: selectedClassItems.map((item) => {
-                    return { asmcL_Id: item.asmcL_Id };
-                }),
-                category_class_sections: selectedSectionItems.map((item) => {
-                    return { asmS_Id: item.asmS_Id };
-                })
-            };
-
-            const response = await addMasterClassCategory(payload);
-
-            if (response.success) {
-                toast.success(response.message);
-                OnReset();
-                onSuccess?.();
-            } else {
-                toast.error(response.message);
-            }
-        } catch (error: any) {
-            toast.error(error.message);
         }
+    });
+
+    const selectedYear = form.watch('asmaY_Id');
+    const selectedCategory = form.watch('amC_Id');
+
+    const { data: unmappedClasses, isLoading: loadingClasses } = useMasterUnMappedClassDropdown(selectedYear, selectedCategory);
+
+    const { mutate: addClassCategory, isPending } = useMutation({
+        mutationFn: addMasterClassCategory,
+        onSuccess: (data: any) => {
+            console.log('Add Master Class Category Response:', data);
+
+            if (
+                data?.returnval === true ||
+                data?.message === 'Saved Successfully' ||
+                (data && typeof data === 'object' && !data.returnduplicatestatus && !data.errors)
+            ) {
+                toast.success('Master Class Category saved successfully');
+                refetchAll();
+                onSuccess();
+            } else if (data?.returnduplicatestatus === 'Duplicate' || data?.returnduplicatestatus === 'Record Already Exists') {
+                toast.warning('Record already exists.');
+            } else {
+                const errorMsg =
+                    typeof data?.returnduplicatestatus === 'string' ? data.returnduplicatestatus : 'Failed to add Master Class Category';
+
+                console.error('Detailed server response:', data);
+                toast.error(errorMsg);
+            }
+        },
+        onError: (error) => {
+            toast.error('An error occurred while adding Master Class Category');
+            console.error('Add Master Class Category Error:', error);
+        }
+    });
+
+    const onSubmit = (values: MasterClassCategoryFormValues) => {
+        // Construct payload
+        const payload = {
+            asmcC_Id: 0,
+            mI_Id: 0, // Restored as per user request/JSON
+            asmaY_Id: Number(values.asmaY_Id),
+            amC_Id: Number(values.amC_Id),
+            category_classes: values.category_classes.map((id) => ({
+                asmcL_Id: Number(id)
+            })),
+            category_class_sections: values.category_class_sections.map((id) => ({
+                asmS_Id: Number(id)
+            })),
+            is_Active: true
+        };
+        console.log('Submitting payload:', payload);
+        addClassCategory(payload);
     };
 
-    const handleReset = () => {
-        OnReset();
-    };
+    // Reset classes and sections if year or category changes
+    useEffect(() => {
+        if (selectedYear === 0 || selectedCategory === 0) {
+            form.setValue('category_classes', []);
+        }
+    }, [selectedYear, selectedCategory, form]);
 
-    const handleClassSelection = (selectedValues: string[]) => {
-        const selectedClasses = selectedValues.map((value) => {
-            return { asmcL_Id: value.toString(), asmcL_ClassName: '' };
-        });
+    const classOptions =
+        unmappedClasses?.data
+            ?.filter((item) => item.asmcL_Id != null)
+            .map((item) => ({
+                label: item.asmcL_ClassName ?? '',
+                value: String(item.asmcL_Id)
+            })) || [];
 
-        setSelectedClassItems(selectedClasses);
-    };
-    const handleSectionSelection = (selectedValues: string[]) => {
-        const selectedSections = selectedValues.map((value) => {
-            return { asmS_Id: value.toString(), asmcL_SectionName: '' };
-        });
-
-        setSelectedSectionItems(selectedSections);
-    };
+    const sectionOptions =
+        sections?.data
+            ?.filter((item) => item.asmS_Id != null)
+            .map((item) => ({
+                label: item.asmC_SectionName ?? '',
+                value: String(item.asmS_Id)
+            })) || [];
 
     return (
-        <div className={`${className}`}>
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-                <div className='space-y-4'>
-                    <div className='grid grid-cols-1 gap-5 md:grid-cols-2'>
-                        <div className='group flex flex-col gap-1.5'>
-                            <Label aria-label='Academic Year' htmlFor='asmaY_Id'>
-                                Academic Year <span className='ml-1 text-red-500'>*</span>
-                            </Label>
-                            <Controller
-                                name='asmaY_Id'
-                                control={control}
-                                render={({ field }) => (
-                                    <Select
-                                        key={field.value || 'empty'}
-                                        onValueChange={(value) => {
-                                            field.onChange(Number(value));
-                                        }}
-                                        value={field.value?.toString() || ''}>
-                                        <SelectTrigger className='w-full'>
-                                            <SelectValue placeholder='Select a AcademicYear' />
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4 p-4'>
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                    {/* Academic Year */}
+                    <FormField
+                        control={form.control}
+                        name='asmaY_Id'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Academic Year <span className='ml-1 text-red-500'>*</span></FormLabel>
+                                <Select key={`year-${clearKey}`} onValueChange={(value) => field.onChange(Number(value))} value={field.value ? String(field.value) : undefined}>
+                                    <FormControl>
+                                        <SelectTrigger disabled={!academicYears}>
+                                            <SelectValue placeholder='Select Academic Year' />
                                         </SelectTrigger>
-                                        <SelectContent>
-                                            {academicYearLoading ? (
-                                                <SelectItem value='loading' disabled>
-                                                    Loading academicYear...
+                                    </FormControl>
+                                    <SelectContent>
+                                        {academicYears?.data
+                                            ?.filter((item) => item.asmaY_Id != null)
+                                            .map((item) => (
+                                                <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
+                                                    {item.asmaY_Year}
                                                 </SelectItem>
-                                            ) : academicYearError ? (
-                                                <SelectItem value='error' disabled>
-                                                    Error loading academicYear
-                                                </SelectItem>
-                                            ) : (
-                                                academicYear?.data?.map((item) => (
-                                                    <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                        {item.asmaY_Year}
-                                                    </SelectItem>
-                                                ))
-                                            )}
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                            {errors.asmaY_Id && <FormError>{errors.asmaY_Id.message}</FormError>}
-                        </div>
-                        <div className='group flex flex-col gap-1.5'>
-                            <Label aria-label='Category' htmlFor='amC_Id'>
-                                Category <span className='ml-1 text-red-500'>*</span>
-                            </Label>
-                            <Controller
-                                name='amC_Id'
-                                control={control}
-                                render={({ field }) => (
-                                    <Select
-                                        key={field.value || 'empty'}
-                                        onValueChange={(value) => {
-                                            field.onChange(Number(value));
-                                        }}
-                                        value={field.value?.toString() || ''}>
-                                        <SelectTrigger className='w-full'>
-                                            <SelectValue placeholder='Select a category' />
+                                            ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    {/* Category */}
+                    <FormField
+                        control={form.control}
+                        name='amC_Id'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Category <span className='ml-1 text-red-500'>*</span></FormLabel>
+                                <Select key={`category-${clearKey}`} onValueChange={(value) => field.onChange(Number(value))} value={field.value ? String(field.value) : undefined}>
+                                    <FormControl>
+                                        <SelectTrigger disabled={!categories}>
+                                            <SelectValue placeholder='Select Category' />
                                         </SelectTrigger>
-                                        <SelectContent>
-                                            {masterCategoryLoading ? (
-                                                <SelectItem value='loading' disabled>
-                                                    Loading category...
+                                    </FormControl>
+                                    <SelectContent>
+                                        {categories?.data
+                                            ?.filter((item) => item.amC_Id != null)
+                                            .map((item) => (
+                                                <SelectItem key={item.amC_Id} value={String(item.amC_Id)}>
+                                                    {item.amC_Name}
                                                 </SelectItem>
-                                            ) : masterCategoryError ? (
-                                                <SelectItem value='error' disabled>
-                                                    Error loading category
-                                                </SelectItem>
-                                            ) : (
-                                                masterCategory?.data?.map((item) => (
-                                                    <SelectItem key={item.amC_Id} value={item.amC_Id.toString()}>
-                                                        {item.amC_Name}
-                                                    </SelectItem>
-                                                ))
-                                            )}
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                            {errors.amC_Id && <FormError>{errors.amC_Id.message}</FormError>}
-                        </div>
-                        <div className='group flex flex-col gap-1.5'>
-                            <Label aria-label='Class' htmlFor='category_classes'>
-                                Class <span className='ml-1 text-red-500'>*</span>
-                            </Label>
-                            <Controller
-                                name='category_classes'
-                                control={control}
-                                render={({ field }) => (
-                                    <MultiSelect
-                                        options={
-                                            masterUnmappedClass?.data?.map((data) => ({
-                                                label: data.asmcL_ClassName,
-                                                value: data.asmcL_Id.toString()
-                                            })) || []
-                                        }
-                                        onValueChange={(selectedValues) => {
-                                            field.onChange(selectedValues);
-                                            handleClassSelection(selectedValues);
-                                        }}
-                                        defaultValue={selectedClassItems.map((data) => data.asmcL_Id)}
-                                        value={selectedClassItems.map((data) => data.asmcL_Id)}
-                                        placeholder='Select Classes'
-                                        variant='inverted'
-                                        disabled={!watchedAsmaY_Id || !watchedAmC_Id || masterUnmappedClassLoading}
-                                    />
-                                )}
-                            />
-
-                            {errors.category_classes && <FormError>{errors.category_classes.message}</FormError>}
-                        </div>
-                        <div className='group flex flex-col gap-1.5'>
-                            <Label aria-label='Section' htmlFor='category_class_sections'>
-                                Section <span className='ml-1 text-red-500'>*</span>
-                            </Label>
-                            <Controller
-                                name='category_class_sections'
-                                control={control}
-                                render={({ field }) => (
-                                    <MultiSelect
-                                        options={
-                                            masterSection?.data?.map((data) => ({
-                                                label: data.asmC_SectionName,
-                                                value: data.asmS_Id.toString()
-                                            })) || []
-                                        }
-                                        onValueChange={(selectedValues) => {
-                                            field.onChange(selectedValues);
-                                            handleSectionSelection(selectedValues);
-                                        }}
-                                        defaultValue={selectedSectionItems.map((data) => data.asmS_Id)}
-                                        value={selectedSectionItems.map((data) => data.asmS_Id)}
-                                        placeholder='Select Classes'
-                                        variant='inverted'
-                                        disabled={masterSectionLoading}
-                                    />
-                                )}
-                            />
-
-                            {errors.category_class_sections && <FormError>{errors.category_class_sections.message}</FormError>}
-                        </div>
-                    </div>
-
-                    {/* Root Error */}
-                    {errors.root && <FormError>{errors.root.message}</FormError>}
+                                            ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
                 </div>
 
-                {/* Action Buttons */}
-                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
-                    <Button
-                        type='button'
-                        variant='outline'
-                        onClick={handleReset}
-                        disabled={isSubmitting}
-                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                        Reset
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                    {/* Classes MultiSelect */}
+                    <FormField
+                        control={form.control}
+                        name='category_classes'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Select Classes <span className='ml-1 text-red-500'>*</span></FormLabel>
+                                <FormControl>
+                                    <CustomMultiSelect
+                                        options={classOptions}
+                                        onValueChange={field.onChange}
+                                        defaultValue={field.value}
+                                        placeholder={loadingClasses ? 'Loading classes...' : 'Select classes'}
+                                        variant='default'
+                                        maxCount={3}
+                                    />
+                                </FormControl>
+                                {unmappedClasses?.data?.length === 0 && !loadingClasses && (
+                                    <div className='mt-1 text-muted-foreground text-xs'>
+                                        No classes available for the selected criteria.
+                                    </div>
+                                )}
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    {/* Sections MultiSelect */}
+                    <FormField
+                        control={form.control}
+                        name='category_class_sections'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Select Sections <span className='ml-1 text-red-500'>*</span></FormLabel>
+                                <FormControl>
+                                    <CustomMultiSelect
+                                        options={sectionOptions}
+                                        onValueChange={field.onChange}
+                                        defaultValue={field.value}
+                                        placeholder={!sections ? 'Loading sections...' : 'Select sections'}
+                                        variant='default'
+                                        maxCount={3}
+                                    />
+                                </FormControl>
+                                {sections?.data?.length === 0 && (
+                                    <div className='mt-1 text-muted-foreground text-xs'>No sections available.</div>
+                                )}
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+                <div className='flex justify-center gap-2'>
+                    <Button type='submit' size='sm' className='w-full sm:w-auto' disabled={isPending}>
+                        {isPending ? (
+                            <>
+                                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                                Saving...
+                            </>
+                        ) : (
+                            'Save'
+                        )}
                     </Button>
                     <Button
-                        type='submit'
-                        disabled={isSubmitting}
-                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
-                        isLoading={isSubmitting}
-                        loadingText='Saving...'>
-                        <div className='flex items-center'>
-                            <Save className='mr-2 h-4 w-4' />
-                            Save
-                        </div>
+                        type='button'
+                        size='sm'
+                        variant='outline'
+                        className='w-full sm:w-auto'
+                        onClick={() => {
+                            form.reset();
+                            setClearKey(prev => prev + 1);
+                        }}>
+                        Clear
                     </Button>
                 </div>
             </form>
-        </div>
+        </Form>
     );
 }

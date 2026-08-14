@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
-import { useMasterLibrary } from '@/hooks/library/useMasters';
+import { useLibraryMasterAuthor } from '@/hooks/library/useMasters';
 import { masterAuthorSchema } from '@/schemas/library/masters';
 import { addOrUpdateMasterAuthor } from '@/server/library/masters/master_author';
 import type { IMasterAuthorList } from '@/types/library/masters/masters';
@@ -23,7 +23,7 @@ interface UpdateMasterAuthorFormProps {
 }
 
 export default function UpdateMasterAuthorForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterAuthorFormProps) {
-    const { refetchAll } = useMasterLibrary();
+    const { refetchAll } = useLibraryMasterAuthor();
 
     const {
         register,
@@ -37,44 +37,28 @@ export default function UpdateMasterAuthorForm({ onSuccess, className = '', sele
 
     useEffect(() => {
         if (row) {
+            const authorId = row.lmaU_Id ?? (row as any).LMAU_Id ?? (row as any).lmaU_ID ?? 0;
             reset({
-                lmaU_Id: row.lmaU_Id,
-                lmaU_AuthorFirstName: row.lmaU_AuthorFirstName,
-                lmaU_AuthorMiddleName: row.lmaU_AuthorMiddleName,
-                lmaU_AuthorLastName: row.lmaU_AuthorLastName,
-                lmaU_MobileNo: row.lmaU_MobileNo,
-                lmaU_Address: row.lmaU_Address,
-                lmaU_EmailId: row.lmaU_EmailId,
-                lmaU_PhoneNo: row.lmaU_PhoneNo,
-                lmaU_ActiveFlg: row.lmaU_ActiveFlg
+                lmaU_Id: Number(authorId),
+                lmaU_AuthorFirstName: row.lmaU_AuthorFirstName ?? (row as any).LMAU_AuthorFirstName ?? '',
+                lmaU_AuthorMiddleName: row.lmaU_AuthorMiddleName ?? (row as any).LMAU_AuthorMiddleName ?? '',
+                lmaU_AuthorLastName: row.lmaU_AuthorLastName ?? (row as any).LMAU_AuthorLastName ?? '',
+                lmaU_MobileNo: row.lmaU_MobileNo ?? (row as any).LMAU_MobileNo ?? '',
+                lmaU_Address: row.lmaU_Address ?? (row as any).LMAU_Address ?? '',
+                lmaU_EmailId: row.lmaU_EmailId ?? (row as any).LMAU_EmailId ?? (row as any).lmaU_EmailID ?? (row as any).LMAU_EmailID ?? '',
+                lmaU_PhoneNo: row.lmaU_PhoneNo ?? (row as any).LMAU_PhoneNo ?? '',
+                lmaU_ActiveFlg: row.lmaU_ActiveFlg ?? (row as any).LMAU_ActiveFlg ?? true
             });
         }
     }, [row, reset]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const {
-                lmaU_AuthorFirstName,
-                lmaU_AuthorMiddleName,
-                lmaU_AuthorLastName,
-                lmaU_MobileNo,
-                lmaU_Address,
-                lmaU_EmailId,
-                lmaU_PhoneNo,
-                lmaU_ActiveFlg
-            } = data;
-
+            const authorId = data.lmaU_Id ?? row.lmaU_Id ?? (row as any).LMAU_Id ?? (row as any).lmaU_ID ?? 0;
             const payload = {
-                mI_Id: 30,
-                lmaU_Id: row.lmaU_Id,
-                lmaU_AuthorFirstName,
-                lmaU_AuthorMiddleName,
-                lmaU_AuthorLastName,
-                lmaU_MobileNo,
-                lmaU_Address,
-                lmaU_EmailId,
-                lmaU_PhoneNo,
-                lmaU_ActiveFlg
+                ...data,
+                lmaU_Id: Number(authorId),
+                mI_Id: row.mI_Id || (row as any).MI_Id || 30
             };
 
             const response = await addOrUpdateMasterAuthor(payload);
@@ -91,7 +75,22 @@ export default function UpdateMasterAuthorForm({ onSuccess, className = '', sele
         }
     };
 
-    const handleReset = () => reset();
+    const handleReset = () => {
+        if (row) {
+            const authorId = row.lmaU_Id ?? (row as any).LMAU_Id ?? (row as any).lmaU_ID ?? 0;
+            reset({
+                lmaU_Id: Number(authorId),
+                lmaU_AuthorFirstName: row.lmaU_AuthorFirstName ?? (row as any).LMAU_AuthorFirstName ?? '',
+                lmaU_AuthorMiddleName: row.lmaU_AuthorMiddleName ?? (row as any).LMAU_AuthorMiddleName ?? '',
+                lmaU_AuthorLastName: row.lmaU_AuthorLastName ?? (row as any).LMAU_AuthorLastName ?? '',
+                lmaU_MobileNo: row.lmaU_MobileNo ?? (row as any).LMAU_MobileNo ?? '',
+                lmaU_Address: row.lmaU_Address ?? (row as any).LMAU_Address ?? '',
+                lmaU_EmailId: row.lmaU_EmailId ?? (row as any).LMAU_EmailId ?? (row as any).lmaU_EmailID ?? (row as any).LMAU_EmailID ?? '',
+                lmaU_PhoneNo: row.lmaU_PhoneNo ?? (row as any).LMAU_PhoneNo ?? '',
+                lmaU_ActiveFlg: row.lmaU_ActiveFlg ?? (row as any).LMAU_ActiveFlg ?? true
+            });
+        }
+    };
 
     return (
         <div className={className}>
@@ -99,37 +98,82 @@ export default function UpdateMasterAuthorForm({ onSuccess, className = '', sele
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
-                            label='FirstName'
-                            {...register('lmaU_AuthorFirstName', {})}
+                            label='Author Name'
+                            required
+                            placeholder='Enter Author Name'
+                            id='lmaU_AuthorFirstName'
+                            {...register('lmaU_AuthorFirstName')}
                             error={errors.lmaU_AuthorFirstName?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+
+                        <InputText
+                            label='Email Id'
+                            id='lmaU_EmailId'
+                            placeholder='Enter Email Id'
+                            {...register('lmaU_EmailId')}
+                            error={errors.lmaU_EmailId?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>
 
-                    {/* Root Error */}
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
+
+                <div className='space-y-4'>
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                        <InputText
+                            label='Mobile No'
+                            id='lmaU_MobileNo'
+                            placeholder='10-digit mobile number'
+                            maxLength={10}
+                            onKeyDown={(e) => {
+                                if (e.key.length === 1 && !/^[0-9]$/.test(e.key) && !e.ctrlKey && !e.metaKey) {
+                                    e.preventDefault();
+                                }
+                            }}
+                            onInput={(e: React.FormEvent<HTMLInputElement>) => {
+                                e.currentTarget.value = e.currentTarget.value.replace(/\D/g, '').slice(0, 10);
+                            }}
+                            {...register('lmaU_MobileNo')}
+                            error={errors.lmaU_MobileNo?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+
+                        <InputText
+                            label='Author Address'
+                            id='lmaU_Address'
+                            placeholder='Enter Author Address'
+                            {...register('lmaU_Address')}
+                            error={errors.lmaU_Address?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+                    </div>
+
+                    {errors.root && <FormError>{errors.root.message}</FormError>}
+                </div>
+
+              
 
                 {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
-                        type='button'
-                        variant='outline'
-                        onClick={handleReset}
-                        disabled={isSubmitting}
-                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                        Reset
-                    </Button>
-                    <Button
                         type='submit'
                         disabled={isSubmitting}
-                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                        className='order-1 w-fit bg-[#4251b1] hover:bg-[#35418e] text-white transition-all duration-200 hover:scale-105'
                         isLoading={isSubmitting}
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
                             Update Master Author
                         </div>
+                    </Button>
+                    <Button
+                        type='button'
+                        onClick={handleReset}
+                        disabled={isSubmitting}
+                        className='order-2 w-fit bg-[#ff5a30] hover:bg-[#e64d26] text-white transition-all duration-200 hover:scale-105'>
+                        Reset
                     </Button>
                 </div>
             </form>

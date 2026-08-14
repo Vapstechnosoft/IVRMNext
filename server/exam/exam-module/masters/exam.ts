@@ -2,7 +2,7 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { IMasterExam } from '@/types/exam/exam-module/masters';
+import type { IMasterClassYearlyList, IMasterExam } from '@/types/exam/exam-module/masters';
 
 export async function getMasterExam(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
@@ -35,3 +35,10 @@ export async function getExamsByCategoryandAcademicYear(asmaY_Id: number, emcA_I
     const url = `/exam_master/exam_drop_down_by_year_and_category_list/${asmaY_Id}/${emcA_Id}`;
     return await api.get<any>('exam', url);
 }
+
+export async function getExamAcademicYearDropdown() {
+    const url = '/exam_master/get_academic_year_list';
+    console.info('getAcademicYearDropdown', url);
+    return await api.get<IMasterClassYearlyList[]>('exam', url);
+}
+

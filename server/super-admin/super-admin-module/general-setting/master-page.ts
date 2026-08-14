@@ -6,46 +6,63 @@ import type { IMasterPage } from '@/types/super-admin/super-admin-module/general
 import { revalidatePath } from 'next/cache';
 
 export async function saveMasterPage(data: any) {
-    const validation = masterPageSchema.safeParse(data);
+    try {
+        const validation = masterPageSchema.safeParse(data);
 
-    if (!validation.success) {
+        if (!validation.success) {
+            return {
+                success: false,
+                message: 'Validation failed',
+                errors: validation.error.flatten().fieldErrors,
+            };
+        }
+
+        const payload = {
+            createdDate: new Date().toISOString(),
+            updatedDate: new Date().toISOString(),
+            ivrmP_Id: data.ivrmP_Id ?? 0,
+            ivrmmP_PageName: data.ivrmmP_PageName,
+            ivrmP_PageDesc: data.ivrmP_PageDesc,
+            ivrmP_PageURL: data.ivrmP_PageDesc, // Using PageDesc for URL based on previous pattern
+            ivrmP_TemplateFlag: data.ivrmP_TemplateFlag ?? true,
+            ivrM_Module_Category_Id: data.ivrM_Module_Category_Id ?? 0,
+            ivrmP_MandatoryFlag: !!data.ivrmP_MandatoryFlag,
+            ivrmP_PageDisplayName: data.ivrmP_PageDisplayName || data.ivrmmP_PageName || "string",
+            userid: data.userid ?? 0,
+            ivrmP_BrowerUrl: data.ivrmP_BrowerUrl || "string"
+        };
+
+        const response = await api.post<any>('sadmin', 'MasterPageFacade/master_map_save/1209', payload);
+
+        if (response.success) {
+            revalidatePath('/SuperAdmin/super-admin-module/general-setting/master-page');
+            return {
+                success: true,
+                message: response.message || 'Master Page saved successfully!',
+                data: response.data,
+            };
+        }
+
         return {
             success: false,
-            message: 'Validation failed',
-            errors: validation.error.flatten().fieldErrors,
+            message: response.message || 'Failed to save master page',
         };
-    }
-
-    const payload = {
-        ...data,
-        ...validation.data,
-        ivrmP_Id: data.ivrmP_Id ?? 0,
-        ivrmP_PageURL: data.ivrmP_PageDesc,
-        ivrmP_TemplateFlag: data.ivrmP_TemplateFlag ?? true,
-        ivrmP_MandatoryFlag: !!data.ivrmP_MandatoryFlag,
-        ivrmP_BrowerUrl: data.ivrmP_BrowerUrl || "",
-        userid: data.userid ?? 1,
-    };
-
-    const response = await api.post<any>('sadmin', 'MasterPageFacade', payload);
-
-    if (response.success) {
-        revalidatePath('/SuperAdmin/super-admin-module/general-setting/master-page');
+    } catch (error: any) {
+        console.error("Save Error:", error);
         return {
-            success: true,
-            message: response.message || 'Master Page saved successfully!',
-            data: response.data,
+            success: false,
+            message: error?.message || 'An unexpected error occurred while saving',
         };
     }
-
-    return {
-        success: false,
-        message: response.message || 'Failed to save master page',
-    };
 }
 
 export async function getMasterPages(searchParams: any) {
-    const query = getSearchParamsUrl(searchParams);
+    // If search_query is present but search_column is not, provide a default
+    const params = {
+        ...searchParams,
+        search_column: searchParams.search_column || (searchParams.search_query ? 'ivrmmP_PageName' : '')
+    };
+    const query = getSearchParamsUrl(params);
     const url = `MasterPageFacade/get_all_details_grid_master_page?${query}`;
 
     const response = await api.get<any>('sadmin', url);
@@ -72,20 +89,28 @@ export async function getMasterPages(searchParams: any) {
 }
 
 export async function deleteMasterPage(id: number) {
-    const response = await api.delete<any>('sadmin', `MasterPageFacade/delete_master_page/${id}`);
+    try {
+        const response = await api.delete<any>('sadmin', `MasterPageFacade/master_page_delete/${id}`);
 
-    if (response.success) {
-        revalidatePath('/SuperAdmin/super-admin-module/general-setting/master-page');
+        if (response.success) {
+            revalidatePath('/SuperAdmin/super-admin-module/general-setting/master-page');
+            return {
+                success: true,
+                message: response.message || 'Record deleted successfully',
+            };
+        }
+
         return {
-            success: true,
-            message: response.message || 'Record deleted successfully',
+            success: false,
+            message: response.message || 'Failed to delete record',
+        };
+    } catch (error: any) {
+        console.error("Delete Error:", error);
+        return {
+            success: false,
+            message: error?.message || 'Failed to delete record',
         };
     }
-
-    return {
-        success: false,
-        message: response.message || 'Failed to delete record',
-    };
 }
 
 export async function getMasterPageById(id: number) {

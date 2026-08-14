@@ -48,7 +48,7 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
 
     // categories and exams
     const [categories, setCategories] = useState<ICategory[]>([]);
-    const [exams, setExams] = useState<{ emE_Id: number; emE_ExamName: string }[]>([]);
+    const [exams, setExams] = useState<{ emE_Id: number; emE_ExamName: string; eycE_Id?: number }[]>([]);
 
     // When academic year changes -> load categories
     const selectedYearId = useWatch({ control, name: 'asmaY_Id' });
@@ -96,11 +96,31 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
                 setExams([]);
             }
         })();
-    }, [selectedCategoryId, setValue]);
+    }, [selectedCategoryId, setValue, selectedYearId]);
 
     const onSubmit = async (payload: FormFields) => {
+        // Remove empty string date fields instead of sending them,
+        // taking care of both cases where backend crashes on `null` or missing record mapping info.
+        const formattedPayload = { ...payload };
+
+        if (!formattedPayload.eycE_ExamStartDate || formattedPayload.eycE_ExamStartDate.trim() === '') {
+            (formattedPayload as any).eycE_ExamStartDate = undefined;
+        }
+        if (!formattedPayload.eycE_ExamEndDate || formattedPayload.eycE_ExamEndDate.trim() === '') {
+            (formattedPayload as any).eycE_ExamEndDate = undefined;
+        }
+        if (!formattedPayload.eycE_MarksEntryLastDate || formattedPayload.eycE_MarksEntryLastDate.trim() === '') {
+            (formattedPayload as any).eycE_MarksEntryLastDate = undefined;
+        }
+        if (!formattedPayload.eycE_MarksProcessLastDate || formattedPayload.eycE_MarksProcessLastDate.trim() === '') {
+            (formattedPayload as any).eycE_MarksProcessLastDate = undefined;
+        }
+        if (!formattedPayload.eycE_MarksPublishDate || formattedPayload.eycE_MarksPublishDate.trim() === '') {
+            (formattedPayload as any).eycE_MarksPublishDate = undefined;
+        }
+
         try {
-            const res = await addOrUpdateExamMarksProcessCondition(payload);
+            const res = await addOrUpdateExamMarksProcessCondition(formattedPayload);
             if (res?.success) {
                 toast.success(res.message ?? 'Saved successfully');
                 reset(); // reset shows placeholders and empty selects
@@ -199,7 +219,9 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
                                         label='Marks Entry Last Date'
                                         placeholder='Select Marks Entry Last Date'
                                         fromDate={
-                                            methods.watch('eycE_ExamEndDate') === '' ? today : new Date(methods.watch('eycE_ExamEndDate'))
+                                            methods.watch('eycE_ExamEndDate') === ''
+                                                ? today
+                                                : new Date(methods.watch('eycE_ExamEndDate' as any))
                                         }
                                     />
                                 )}
@@ -217,7 +239,7 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
                                         fromDate={
                                             methods.watch('eycE_MarksProcessLastDate') === ''
                                                 ? today
-                                                : new Date(methods.watch('eycE_MarksProcessLastDate'))
+                                                : new Date(methods.watch('eycE_MarksProcessLastDate' as any))
                                         }
                                     />
                                 )}
@@ -273,7 +295,7 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
                                         fromDate={
                                             methods.watch('eycE_ExamStartDate') === ''
                                                 ? today
-                                                : new Date(methods.watch('eycE_ExamStartDate'))
+                                                : new Date(methods.watch('eycE_ExamStartDate' as any))
                                         }
                                     />
                                 )}
@@ -291,7 +313,7 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
                                         fromDate={
                                             methods.watch('eycE_MarksEntryLastDate') === ''
                                                 ? today
-                                                : new Date(methods.watch('eycE_MarksEntryLastDate'))
+                                                : new Date(methods.watch('eycE_MarksEntryLastDate' as any))
                                         }
                                     />
                                 )}
@@ -309,7 +331,14 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
                                         <Select
                                             key={field.value}
                                             value={field.value && field.value !== 0 ? String(field.value) : undefined}
-                                            onValueChange={(val) => field.onChange(Number(val))}>
+                                            onValueChange={(val) => {
+                                                const selectedExamId = Number(val);
+                                                const selectedExam = exams.find((e) => e.emE_Id === selectedExamId);
+                                                if (selectedExam?.eycE_Id) {
+                                                    setValue('eycE_Id', selectedExam.eycE_Id);
+                                                }
+                                                field.onChange(selectedExamId);
+                                            }}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='--Select--' />
                                             </SelectTrigger>

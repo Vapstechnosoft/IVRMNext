@@ -3,8 +3,8 @@
 import { api } from '@/lib/apiService';
 import type { IClasswiseStudent, IYearwiseCount } from '@/types/alumni/alumni-dashboard';
 
-export async function getDashboardData(roleId = 30) {
-    const response = await api.get<any>('alumni', `/SchoolALUDASH/getloaddata?roleId=${roleId}`);
+export async function getDashboardData() {
+    const response = await api.get<any>('alumni', `/SchoolALUDASH/getloaddata`);
 
     if (response.success && response.data) {
         if (response.data.retObject3 && response.data.retObject3.length > 0) {
@@ -74,8 +74,8 @@ export async function getYearwiseList(asmaY_Id: number) {
                 item.noofstudents !== undefined
                     ? item.noofstudents
                     : item.NOofstudents !== undefined
-                      ? item.NOofstudents
-                      : item.studentcount || 0,
+                        ? item.NOofstudents
+                        : item.studentcount,
             ASMAY_Id: item.asmay_id || item.ASMAY_Id || asmaY_Id,
             ASMCL_Id: item.asmcL_Id || item.asmcl_id || item.ASMCL_Id || 0
         })) as IYearwiseCount[];

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { getCommonPinningStyles, tableSearchVariables } from '@/lib/data-table.config';
+import { cn } from '@/lib/utils';
 import { DoubleArrowLeftIcon, DoubleArrowRightIcon } from '@radix-ui/react-icons';
 import {
     type ColumnDef,
@@ -13,14 +14,14 @@ import {
     getCoreRowModel,
     getFilteredRowModel,
     getPaginationRowModel,
+    getSortedRowModel,
     useReactTable
 } from '@tanstack/react-table';
-import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
+import { ChevronLeftIcon, ChevronRightIcon, RotateCcw } from 'lucide-react';
 import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs';
 import { useEffect, useRef, useState } from 'react';
 import { forwardRef, useImperativeHandle } from 'react';
 import { toast } from 'sonner';
-import { DataTableSkeleton } from './data-table-skeleton';
 import { DataTableToolbar } from './data-table-toolbar';
 
 interface DataTableProps<TData, TValue> {
@@ -34,13 +35,15 @@ interface DataTableProps<TData, TValue> {
     columnPinning?: ColumnPinningState | undefined;
     isSearchRequired?: boolean;
     isPaginationRequired?: boolean;
-    // ✅ updated
     maxSelectableRows?: number;
     onRowSelectionChange?: (selectedRows: TData[]) => void;
     showSearchColumns?: boolean;
-    manualPagination?: boolean;
     scrollable?: boolean;
     maxHeight?: string;
+    getRowId?: (originalRow: TData, index: number) => string;
+    showPaginationInfo?: boolean;
+    showRowsPerPage?: boolean;
+    onPageChange?: (page: number) => void;
 }
 
 export interface DataTableRef {
@@ -62,9 +65,12 @@ function DataTableInner<TData, TValue>(
         maxSelectableRows = 0,
         onRowSelectionChange,
         showSearchColumns = false,
-        manualPagination = true,
         scrollable = false,
-        maxHeight = '600px'
+        maxHeight = '600px',
+        getRowId,
+        showPaginationInfo = true,
+        showRowsPerPage = true,
+        onPageChange
     }: DataTableProps<TData, TValue>,
     ref: React.Ref<DataTableRef>
 ) {
@@ -79,14 +85,38 @@ function DataTableInner<TData, TValue>(
     );
 
     // Sorting and filtering
-    const [sortBy] = useQueryState(tableSearchVariables.sort_column, parseAsString.withOptions({ shallow: false }).withDefault(''));
-    const [order] = useQueryState(
+    const [sortBy, setSortBy] = useQueryState(
+        tableSearchVariables.sort_column,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+    const [order, setOrder] = useQueryState(
         tableSearchVariables.sort_direction,
         parseAsStringLiteral(['asc', 'desc'] as const)
             .withOptions({ shallow: false })
             .withDefault('asc')
     );
     const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
+
+    const currentSorting = sortBy ? [{ id: sortBy, desc: order === 'desc' }] : [];
+
+    const onSortingChange = (updaterOrValue: any) => {
+        const newSortingState =
+            typeof updaterOrValue === 'function' ? updaterOrValue(currentSorting) : updaterOrValue;
+
+        const hasChanged = JSON.stringify(newSortingState) !== JSON.stringify(currentSorting);
+        if (!hasChanged) {
+            return;
+        }
+
+        if (newSortingState && newSortingState.length > 0) {
+            setSortBy(newSortingState[0].id);
+            setOrder(newSortingState[0].desc ? 'desc' : 'asc');
+        } else {
+            setSortBy(null);
+            setOrder(null);
+        }
+        setCurrentPage(1); // Reset to first page on sort
+    };
 
     // Generate a unique key for this table instance based on current page/filters
     const tableStateKey = `table_selection_${currentPage}_${pageSize}_${sortBy}_${order}_${searchQuery}`;
@@ -101,12 +131,28 @@ function DataTableInner<TData, TValue>(
     }, [rowSelection]);
 
     const paginationState = { pageIndex: currentPage - 1, pageSize };
-    const pageCount = Math.ceil(totalItems / pageSize);
+    // TanStack Table handles slicing for client-side pagination,
+    // but we still want to show the correct page count based on the data length.
+    const effectiveTotal = totalItems;
+    const pageCount = Math.max(1, Math.ceil(effectiveTotal / pageSize));
 
     const handlePaginationChange = (updaterOrValue: PaginationState | ((old: PaginationState) => PaginationState)) => {
         const pagination = typeof updaterOrValue === 'function' ? updaterOrValue(paginationState) : updaterOrValue;
+
+        if (effectiveTotal === 0) {
+            return;
+        }
+
+        if (pagination.pageIndex === paginationState.pageIndex && pagination.pageSize === paginationState.pageSize) {
+            return;
+        }
+
         setCurrentPage(pagination.pageIndex + 1);
         setPageSize(pagination.pageSize);
+
+        if (onPageChange) {
+            onPageChange(pagination.pageIndex + 1);
+        }
 
         setRowSelection({});
         rowSelectionRef.current = {};
@@ -115,17 +161,34 @@ function DataTableInner<TData, TValue>(
         }
     };
 
+    const [searchColumnsQuery] = useQueryState(
+        tableSearchVariables.search_columns,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+
     const table = useReactTable({
         data,
         columns,
         pageCount,
+        getRowId,
         state: {
             pagination: paginationState,
-            sorting: sortBy ? [{ id: sortBy, desc: order === 'desc' }] : [],
+            sorting: currentSorting,
             globalFilter: searchQuery,
             rowSelection
         },
         onPaginationChange: handlePaginationChange,
+        onSortingChange: onSortingChange,
+
+        globalFilterFn: (row, columnId, filterValue) => {
+            const searchCols = searchColumnsQuery ? searchColumnsQuery.split(',') : [];
+            if (searchCols.length > 0 && !searchCols.includes(columnId)) {
+                return false;
+            }
+            const value = row.getValue(columnId);
+            if (value == null) return false;
+            return String(value).toLowerCase().includes(String(filterValue).toLowerCase());
+        },
 
         // ✅ UPDATE THIS HANDLER
         onRowSelectionChange: (newSelection) => {
@@ -154,7 +217,8 @@ function DataTableInner<TData, TValue>(
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
-        manualPagination: manualPagination,
+        getSortedRowModel: getSortedRowModel(),
+        manualPagination: true,
         manualSorting: true,
         manualFiltering: true,
         initialState: {
@@ -190,7 +254,11 @@ function DataTableInner<TData, TValue>(
 
             {/* Table Content */}
             {isLoading ? (
-                <DataTableSkeleton columnCount={5} rowCount={5} showPagination showViewOptions={false} />
+                // <DataTableSkeleton columnCount={5} rowCount={5} showPagination showViewOptions={false} />
+                <div className='flex h-[120px] w-full flex-col items-center justify-center rounded-md border bg-muted/10'>
+                    <RotateCcw className='h-8 w-8 animate-spin text-primary' />
+                    <p className='mt-3 text-muted-foreground text-sm'>Loading employee list...</p>
+                </div>
             ) : (
                 <>
                     <div
@@ -205,15 +273,17 @@ function DataTableInner<TData, TValue>(
                                 : undefined
                         }>
                         <Table>
-                            <TableHeader className={scrollable ? 'sticky top-0 bg-background z-10' : undefined}>
+                            <TableHeader className='grid-header-row'>
                                 {table.getHeaderGroups().map((headerGroup) => (
-                                    <TableRow key={headerGroup.id}>
+                                    <TableRow key={headerGroup.id} className=' hover:bg-transparent'>
                                         {headerGroup.headers.map((header) => (
                                             <TableHead
                                                 key={header.id}
                                                 colSpan={header.colSpan}
-                                                className='w-fit'
-                                                style={{ ...getCommonPinningStyles({ column: header.column }) }}>
+                                                className='grid-header-cell top-0 z-10'
+                                                style={{
+                                                    ...getCommonPinningStyles({ column: header.column })
+                                                }}>
                                                 {header.isPlaceholder
                                                     ? null
                                                     : flexRender(header.column.columnDef.header, header.getContext())}
@@ -231,7 +301,9 @@ function DataTableInner<TData, TValue>(
                                                 <TableCell
                                                     key={cell.id}
                                                     className='whitespace-nowrap'
-                                                    style={{ ...getCommonPinningStyles({ column: cell.column }) }}>
+                                                    style={{
+                                                        ...getCommonPinningStyles({ column: cell.column })
+                                                    }}>
                                                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                                 </TableCell>
                                             ))}
@@ -265,72 +337,153 @@ function DataTableInner<TData, TValue>(
                                         row(s) selected.
                                     </div>
                                 ) : (
-                                    <div className='flex-1 whitespace-nowrap text-muted-foreground text-sm'>
-                                        {totalItems > 0
-                                            ? `Showing ${paginationState.pageIndex * paginationState.pageSize + 1} to ${Math.min(
-                                                (paginationState.pageIndex + 1) * paginationState.pageSize,
-                                                totalItems
-                                            )} of ${totalItems} entries`
-                                            : 'No entries found'}
-                                    </div>
+                                    showPaginationInfo && (
+                                        <div className='pagination-info'>
+                                            {effectiveTotal > 0 ? (
+                                                <>
+                                                    Showing{' '}
+                                                    <span className='pagination-number'>
+                                                        {paginationState.pageIndex * paginationState.pageSize + 1}
+                                                    </span>
+                                                    to{' '}
+                                                    <span className='pagination-number'>
+                                                        {Math.min(
+                                                            (paginationState.pageIndex + 1) * paginationState.pageSize,
+                                                            effectiveTotal
+                                                        )}
+                                                    </span>
+                                                    of <span className='pagination-number'>{effectiveTotal}</span> entries
+                                                </>
+                                            ) : (
+                                                'No entries found'
+                                            )}
+                                        </div>
+                                    )
                                 )}
 
                                 {/* Rows per page */}
-                                <div className='flex items-center space-x-2'>
-                                    <p className='whitespace-nowrap font-medium text-sm'>Rows per page</p>
-                                    <Select
-                                        value={`${paginationState.pageSize}`}
-                                        onValueChange={(value) => {
-                                            table.setPageSize(Number(value));
-                                        }}
-                                        searchable={false}>
-                                        <SelectTrigger className='h-8 w-[70px]'>
-                                            <SelectValue placeholder={paginationState.pageSize} />
-                                        </SelectTrigger>
-                                        <SelectContent side='top'>
-                                            {pageSizeOptions.map((pageSize) => (
-                                                <SelectItem key={pageSize} value={`${pageSize}`}>
-                                                    {pageSize}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+                                {showRowsPerPage && (
+                                    <div className='pagination-size-container'>
+                                        <p className='whitespace-nowrap font-semibold text-[11px] text-slate-500 uppercase tracking-wider'>
+                                            Rows per page
+                                        </p>
+                                        <Select
+                                            value={`${paginationState.pageSize}`}
+                                            onValueChange={(value) => {
+                                                table.setPageSize(Number(value));
+                                            }}
+                                            searchable={false}>
+                                            <SelectTrigger className='h-7 w-[70px] rounded-full border-none bg-white/50 shadow-none focus:ring-0'>
+                                                <SelectValue placeholder={paginationState.pageSize} />
+                                            </SelectTrigger>
+                                            <SelectContent side='top' className='rounded-xl border-slate-100 shadow-xl'>
+                                                {pageSizeOptions.map((pageSize) => (
+                                                    <SelectItem key={pageSize} value={`${pageSize}`} className='rounded-lg'>
+                                                        {pageSize}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
 
                                 {/* Pagination Controls */}
                                 <div className='flex items-center space-x-2'>
-                                    <Button
-                                        aria-label='Go to first page'
-                                        variant='outline'
-                                        className='hidden h-8 w-8 p-0 lg:flex'
-                                        onClick={() => table.setPageIndex(0)}
-                                        disabled={!table.getCanPreviousPage()}>
-                                        <DoubleArrowLeftIcon className='h-4 w-4' />
-                                    </Button>
-                                    <Button
-                                        aria-label='Go to previous page'
-                                        variant='outline'
-                                        className='h-8 w-8 p-0'
-                                        onClick={() => table.previousPage()}
-                                        disabled={!table.getCanPreviousPage()}>
-                                        <ChevronLeftIcon className='h-4 w-4' />
-                                    </Button>
-                                    <Button
-                                        aria-label='Go to next page'
-                                        variant='outline'
-                                        className='h-8 w-8 p-0'
-                                        onClick={() => table.nextPage()}
-                                        disabled={!table.getCanNextPage()}>
-                                        <ChevronRightIcon className='h-4 w-4' />
-                                    </Button>
-                                    <Button
-                                        aria-label='Go to last page'
-                                        variant='outline'
-                                        className='hidden h-8 w-8 p-0 lg:flex'
-                                        onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                                        disabled={!table.getCanNextPage()}>
-                                        <DoubleArrowRightIcon className='h-4 w-4' />
-                                    </Button>
+                                    <div className='pagination-bar'>
+                                        <Button
+                                            aria-label='Go to first page'
+                                            variant='ghost'
+                                            size='icon'
+                                            className='h-8 w-8 rounded-full p-0'
+                                            onClick={() => table.setPageIndex(0)}
+                                            disabled={!table.getCanPreviousPage()}>
+                                            <DoubleArrowLeftIcon className='h-4 w-4' />
+                                        </Button>
+                                        <Button
+                                            aria-label='Go to previous page'
+                                            variant='ghost'
+                                            size='icon'
+                                            className='h-8 w-8 rounded-full p-0'
+                                            onClick={() => table.previousPage()}
+                                            disabled={!table.getCanPreviousPage()}>
+                                            <ChevronLeftIcon className='h-4 w-4' />
+                                        </Button>
+
+                                        {(() => {
+                                            const currentPage = table.getState().pagination.pageIndex + 1;
+                                            const totalPages = table.getPageCount();
+
+                                            if (totalPages <= 1) return null;
+
+                                            const getRange = () => {
+                                                if (totalPages <= 7) {
+                                                    return Array.from({ length: totalPages }, (_, i) => i + 1);
+                                                }
+
+                                                // Complex range logic
+                                                if (currentPage <= 3) {
+                                                    return [1, 2, 3, 4, '...', totalPages - 2, totalPages - 1, totalPages];
+                                                } else if (currentPage >= totalPages - 2) {
+                                                    return [1, 2, 3, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+                                                } else {
+                                                    return [
+                                                        1,
+                                                        2,
+                                                        '...',
+                                                        currentPage - 1,
+                                                        currentPage,
+                                                        currentPage + 1,
+                                                        '...',
+                                                        totalPages - 1,
+                                                        totalPages
+                                                    ];
+                                                }
+                                            };
+
+                                            return getRange().map((page, i) => {
+                                                if (page === '...') {
+                                                    return (
+                                                        <span key={`dots-${i}`} className='px-2 text-slate-400'>
+                                                            ...
+                                                        </span>
+                                                    );
+                                                }
+
+                                                const pageNum = page as number;
+                                                return (
+                                                    <button
+                                                        key={pageNum}
+                                                        type='button'
+                                                        onClick={() => table.setPageIndex(pageNum - 1)}
+                                                        className={cn(
+                                                            'pagination-item',
+                                                            currentPage === pageNum && 'pagination-item-active'
+                                                        )}>
+                                                        {pageNum}
+                                                    </button>
+                                                );
+                                            });
+                                        })()}
+
+                                        <Button
+                                            aria-label='Go to next page'
+                                            variant='ghost'
+                                            size='icon'
+                                            className='h-8 w-8 rounded-full p-0'
+                                            onClick={() => table.nextPage()}
+                                            disabled={!table.getCanNextPage()}>
+                                            <ChevronRightIcon className='h-4 w-4' />
+                                        </Button>
+                                        <Button
+                                            aria-label='Go to last page'
+                                            variant='ghost'
+                                            size='icon'
+                                            className='h-8 w-8 rounded-full p-0'
+                                            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+                                            disabled={!table.getCanNextPage()}>
+                                            <DoubleArrowRightIcon className='h-4 w-4' />
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -340,4 +493,6 @@ function DataTableInner<TData, TValue>(
         </div>
     );
 }
-export const DataTable = forwardRef(DataTableInner) as <TData, TValue>(props: DataTableProps<TData, TValue> & { ref?: React.Ref<DataTableRef> }) => React.ReactElement;
+export const DataTable = forwardRef(DataTableInner) as <TData, TValue>(
+    props: DataTableProps<TData, TValue> & { ref?: React.Ref<DataTableRef> }
+) => React.ReactElement;

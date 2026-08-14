@@ -12,12 +12,22 @@ import { MasterHouseColumns } from './_components/columns';
 import UpdateMasterHouseForm from './_components/update-form';
 import ToggleMasterHouseForm from './_components/toggle-form';
 
-export default function MasterHousePage() {
-    const { data: response, isLoading, error, refetchAll } = useMasterHouses();
+import { use } from 'react';
+
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default function MasterHousePage(props: { searchParams: SearchParams }) {
+    const searchParams = use(props.searchParams);
+    const { loadData, refetchAll } = useMasterHouses(searchParams);
 
     return (
         <FormProvider<IMasterHouse>>
-            <MasterHousePageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
+            <MasterHousePageContent 
+                response={loadData.data} 
+                isLoading={loadData.isPending || loadData.isFetching} 
+                error={loadData.error} 
+                refetchAll={refetchAll} 
+            />
         </FormProvider>
     );
 }
@@ -73,6 +83,7 @@ function MasterHousePageContent({
                         columns={MasterHouseColumns}
                         isLoading={isLoading}
                         error={error}
+                        showSearchColumns={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading Houses...'
                         noDataTitle='No Houses Found'
@@ -102,7 +113,12 @@ function MasterHousePageContent({
                                         className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                         <X className='h-4 w-4 text-destructive' /> Close
                                     </Button>
-                                    <AddMasterHouseForm onSuccess={closeAddForm} />
+                                    <AddMasterHouseForm
+                                        onSuccess={() => {
+                                            refetchAll();
+                                            closeAddForm();
+                                        }}
+                                    />
                                 </div>
                             </CollapsibleSection>
                         </div>
@@ -129,7 +145,10 @@ function MasterHousePageContent({
                                     <UpdateMasterHouseForm
                                         key={selectedRow.spccmH_Id}
                                         selectedRow={selectedRow}
-                                        onSuccess={closeEditForm}
+                                        onSuccess={() => {
+                                            refetchAll();
+                                            closeEditForm();
+                                        }}
                                     />
                                 </div>
                             </CollapsibleSection>

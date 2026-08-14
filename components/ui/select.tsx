@@ -15,7 +15,7 @@ const SelectSearchContext = React.createContext<{
 }>({
     searchable: true,
     searchQuery: '',
-    setSearchQuery: () => {},
+    setSearchQuery: () => { },
     filteredItems: new Set(),
     isMobile: false
 });
@@ -69,15 +69,34 @@ const Select = ({ children, searchable = true, onOpenChange, ...props }: SelectP
         React.Children.forEach(children, (child) => {
             if (!React.isValidElement(child)) return;
 
-            if (child.type === SelectItem) {
-                const value = child.props.value;
-                const textContent = React.isValidElement(child.props.children) ? '' : String(child.props.children);
+            const element = child as React.ReactElement<any>;
+
+            if (element.type === SelectItem) {
+                const value = element.props.value;
+                // Favor an explicit search prop first, otherwise fallback to extracting text from children, otherwise just stringify
+                let textContent = '';
+
+                if (element.props.textValue) {
+                    textContent = element.props.textValue;
+                } else if (element.props.searchableText) {
+                    textContent = element.props.searchableText;
+                } else {
+                    // Try to recursively extract text if children is not a simple string or number
+                    const extractText = (node: React.ReactNode): string => {
+                        if (typeof node === 'string' || typeof node === 'number') return String(node);
+                        if (!node) return '';
+                        if (Array.isArray(node)) return node.map(extractText).join(' ');
+                        if (React.isValidElement(node)) return extractText((node as any).props.children);
+                        return '';
+                    };
+                    textContent = extractText(element.props.children);
+                }
 
                 if (value) values.push(`${value}:::${textContent}`);
             }
 
-            if (child.props.children) {
-                values.push(...collectItemValues(child.props.children));
+            if (element.props.children) {
+                values.push(...collectItemValues(element.props.children));
             }
         });
 
@@ -170,7 +189,7 @@ const Select = ({ children, searchable = true, onOpenChange, ...props }: SelectP
 
     return (
         <SelectSearchContext.Provider value={contextValue}>
-            <SelectPrimitive.Root value={normalizedValue} {...restProps} onOpenChange={handleOpenChange}>
+            <SelectPrimitive.Root key={normalizedValue !== undefined && normalizedValue !== null ? String(normalizedValue) : '__empty_select__'} value={normalizedValue} {...restProps} onOpenChange={handleOpenChange}>
                 {children}
             </SelectPrimitive.Root>
         </SelectSearchContext.Provider>
@@ -189,7 +208,7 @@ const SelectTrigger = React.forwardRef<
     <SelectPrimitive.Trigger
         ref={ref}
         className={cn(
-            'flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
+            'flex h-9 w-full items-center justify-between whitespace-nowrap rounded-xl border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
             className
         )}
         {...props}>
@@ -309,7 +328,7 @@ const SelectSearch = React.forwardRef<HTMLInputElement, React.InputHTMLAttribute
 
     return (
         <div className='sticky top-0 z-20 border-b bg-popover p-2'>
-            <div className='flex items-center rounded-md border px-2 py-1'>
+            <div className='flex items-center rounded-xl border px-2 py-1'>
                 <MagnifyingGlassIcon className='mr-2 h-4 w-4 text-muted-foreground' />
                 <input
                     ref={inputRef}
@@ -337,7 +356,6 @@ const SelectContent = React.forwardRef<
     React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
 >(({ className, children, position = 'popper', ...props }, ref) => {
     const { searchable, searchQuery, filteredItems } = React.useContext(SelectSearchContext);
-
     // Check if we should show "No Data Found" - only when actively searching and no matches
     const showNoResults = !!searchQuery && filteredItems.size === 0;
 
@@ -355,9 +373,9 @@ const SelectContent = React.forwardRef<
             <SelectPrimitive.Content
                 ref={ref}
                 className={cn(
-                    'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-56 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=closed]:animate-out data-[state=open]:animate-in',
+                    'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-56 min-w-[8rem] overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-md data-[state=closed]:animate-out data-[state=open]:animate-in',
                     position === 'popper' &&
-                        'data-[side=left]:-translate-x-1 data-[side=top]:-translate-y-1 data-[side=right]:translate-x-1 data-[side=bottom]:translate-y-1',
+                    'data-[side=left]:-translate-x-1 data-[side=top]:-translate-y-1 data-[side=right]:translate-x-1 data-[side=bottom]:translate-y-1',
                     !isPointerEventsEnabled && 'pointer-events-none', // Disable pointer events during updates
                     className
                 )}

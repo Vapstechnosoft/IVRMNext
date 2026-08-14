@@ -39,7 +39,7 @@ export default function DeleteMasterHolidayForm({ rowData, onClose }: DeleteMast
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await deleteMasterHoliday(Number(rowData.FOMHWDD_Id));
+            const response = await deleteMasterHoliday(Number(rowData.fomhwdD_Id));
 
             if (response.success) {
                 toast.success(response.message);
@@ -57,9 +57,9 @@ export default function DeleteMasterHolidayForm({ rowData, onClose }: DeleteMast
         <AdaptiveDialog title='Delete Master Holiday' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('fomhwdD_Id')} defaultValue={rowData.FOMHWDD_Id} />
+                    <input type='hidden' {...register('fomhwdD_Id')} defaultValue={rowData.fomhwdD_Id} />
                     <p>
-                        Are you sure you want to delete <strong>{rowData.FOMHWDD_Name}</strong>?
+                        Are you sure you want to delete <strong>{rowData.fomhwdD_Name}</strong>?
                     </p>
                     <FormError>{errors.fomhwdD_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>

@@ -1,18 +1,12 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
-import { FormError } from '@/components/ui/extension/field';
-import { useMasterTimeSlab } from '@/hooks/library/useMasters';
-import { masterTimeSlabSchema } from '@/schemas/library/masters';
+import { AdaptiveDialog } from '@/components/ui/extension/adaptive-dialog';
+import { useMasterTimeSlabList } from '@/hooks/library/useMasters';
 import { deactivateMasterTimeSlab } from '@/server/library/masters/time-slab';
 import type { IMasterTimeSlab } from '@/types/library/masters/time-slab';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { type SubmitHandler, useForm } from 'react-hook-form';
+import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import type { z } from 'zod';
-
-type FormFields = z.infer<typeof masterTimeSlabSchema.delete>;
+import { Button } from '@/components/ui/button';
 
 interface ToggleTimeSlabFormProps {
     rowData: IMasterTimeSlab;
@@ -20,65 +14,63 @@ interface ToggleTimeSlabFormProps {
 }
 
 export default function ToggleTimeSlabForm({ rowData, onClose }: ToggleTimeSlabFormProps) {
-    const { refetchAll } = useMasterTimeSlab();
+    const { refetchAll } = useMasterTimeSlabList();
     const isActive = rowData.lfsE_ActiveFlg;
 
-    const {
-        register,
-        handleSubmit,
-        reset,
-        formState: { errors, isSubmitting }
-    } = useForm<FormFields>({
-        resolver: zodResolver(masterTimeSlabSchema.delete),
-        mode: 'onChange'
+    const mutation = useMutation({
+        mutationFn: (id: number) => deactivateMasterTimeSlab(id),
+        onSuccess: async (data) => {
+            if (data.success) {
+                toast.success(data.message || `Record ${isActive ? 'Deactivated' : 'Activated'} Successfully!!!`);
+                await refetchAll();
+                onClose();
+            } else {
+                toast.error(data.message || `Failed to ${isActive ? 'Deactivate' : 'Activate'} Record`);
+            }
+        },
+        onError: (error) => {
+            toast.error('An error occurred while updating status');
+            console.error(error);
+        }
     });
 
-    function closeDialog() {
-        onClose();
-        reset();
-    }
-
-    const onSubmit: SubmitHandler<FormFields | any> = async () => {
-        try {
-            const payload = { ...rowData, lfsE_Id: rowData.lfsE_Id };
-            const response = await deactivateMasterTimeSlab(payload);
-
-            if (response.success) {
-                toast.success(response.message || 'Record Status Updated Successfully!!!');
-                refetchAll();
-                closeDialog();
-            } else {
-                toast.error(response.message || 'Failed to update status');
-            }
-        } catch (error: any) {
-            toast.error(error.message);
+    const handleConfirm = () => {
+        const id = (rowData as any).lfsE_Id ?? (rowData as any).LFSE_Id;
+        if (id) {
+            mutation.mutate(id);
+        } else {
+            toast.error('Invalid Record ID');
         }
     };
 
     return (
-        <AdaptiveDialog title='Toggle Time Slab Status' isOpen={true} onClose={closeDialog}>
-            <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
-                <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('lfsE_Id')} defaultValue={rowData.lfsE_Id} />
-                    <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'}{' '}
-                        <strong>
-                            {rowData.lfsE_UserType} ({rowData.lfsE_FromDay} - {rowData.lfsE_ToDay || '∞'})
-                        </strong>
-                        ?
-                    </p>
-                    <FormError>{errors.lfsE_Id?.message}</FormError>
-                    <FormError>{errors.root?.message}</FormError>
-                </AdaptiveBody>
-                <AdaptiveFooter>
-                    <Button variant='secondary' onClick={closeDialog} type='button'>
+        <AdaptiveDialog
+            title={isActive ? 'Deactivate Time Slab' : 'Activate Time Slab'}
+            isOpen={true}
+            onClose={onClose}>
+            <div className='flex flex-col gap-4'>
+                <p className='text-sm'>
+                    Are you sure you want to {isActive ? 'deactivate' : 'activate'} the record{' '}
+                    <strong className='font-bold'>
+                        {rowData.lfsE_UserType} ({rowData.lfsE_FromDay} - {rowData.lfsE_ToDay || '∞'})
+                    </strong>?
+                </p>
+                <div className='flex justify-end gap-3 pt-2'>
+                    <Button variant='outline' onClick={onClose} disabled={mutation.isPending}>
                         Cancel
                     </Button>
-                    <Button type='submit' isLoading={isSubmitting} variant={isActive ? 'destructive' : 'default'}>
-                        {isActive ? 'Deactivate' : 'Activate'}
+                    <Button
+                        variant={isActive ? 'destructive' : 'default'}
+                        onClick={handleConfirm}
+                        disabled={mutation.isPending}
+                        className='min-w-[100px]'>
+                        {mutation.isPending
+                            ? isActive ? 'Deactivating...' : 'Activating...'
+                            : isActive ? 'Yes, Deactivate' : 'Yes, Activate'}
                     </Button>
-                </AdaptiveFooter>
-            </form>
+                </div>
+            </div>
         </AdaptiveDialog>
     );
 }
+

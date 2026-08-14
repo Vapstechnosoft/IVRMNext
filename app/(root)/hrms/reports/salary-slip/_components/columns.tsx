@@ -15,15 +15,17 @@ export interface EmployeeSalarySlipDisplay {
 interface SalarySlipColumnsProps {
     onSelectAll: (checked: boolean) => void;
     onSelectEmployee: (employeeId: number, checked: boolean) => void;
+    selectedEmployeeIds: Set<number>;
+    isAllSelected: boolean;
+    isSomeSelected: boolean;
 }
-export const getSalarySlipColumns = ({ onSelectAll, onSelectEmployee }: SalarySlipColumnsProps): ColumnDef<EmployeeSalarySlipDisplay>[] => [
+export const getSalarySlipColumns = ({ onSelectAll, onSelectEmployee, selectedEmployeeIds, isAllSelected, isSomeSelected }: SalarySlipColumnsProps): ColumnDef<EmployeeSalarySlipDisplay>[] => [
     {
         id: 'select',
         header: ({ table }) => (
             <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
+                checked={isAllSelected ? true : (isSomeSelected ? 'indeterminate' : false)}
                 onCheckedChange={(value) => {
-                    table.toggleAllPageRowsSelected(!!value);
                     onSelectAll(!!value);
                 }}
                 aria-label='Select all'
@@ -31,7 +33,7 @@ export const getSalarySlipColumns = ({ onSelectAll, onSelectEmployee }: SalarySl
         ),
         cell: ({ row }) => (
             <Checkbox
-                checked={row.original.isSelected}
+                checked={selectedEmployeeIds.has(row.original.id)}
                 onCheckedChange={(value) => onSelectEmployee(row.original.id, !!value)}
                 aria-label='Select row'
             />
@@ -42,23 +44,24 @@ export const getSalarySlipColumns = ({ onSelectAll, onSelectEmployee }: SalarySl
     },
     {
         accessorKey: 'id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='SL. No' />,
+        header: ({ column }) => <div className='flex justify-center'><DataTableColumnHeader column={column} title='SL. No' /></div>,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
-            const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div className='text-center'>{continuousIndex}</div>;
+            const continuousIndex = (pageIndex * pageSize) + row.index + 1;
+            return <div className='flex justify-center'>{continuousIndex}</div>;
         },
         enableSorting: false,
         enableHiding: false,
-        size: 80
+        size: 20
     },
     {
         accessorKey: 'employeeCode',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
         cell: ({ row }) => <div className='font-medium'>{row.getValue('employeeCode')}</div>,
         enableSorting: true,
-        enableHiding: true
+        enableHiding: true,
+        size: 150
     },
     {
         accessorKey: 'employeeName',

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMasterReligionCasteCategory, useUnmappedCasteCategoryDropdown } from '@/hooks/admission/preadmission/useMasters';
+import { useMasterReligionCasteCategory, useMasterCasteCategoryDropdown } from '@/hooks/admission/preadmission/useMasters';
 import { useReligionDropdown } from '@/hooks/admission/preadmission/useTransactions';
 import { masterReligionCasteCategorySchema } from '@/schemas/admission/preadmission/masters';
 import { addMasterReligionCasteCategory } from '@/server/admission/preadmission/masters/religion_caste_category';
@@ -32,7 +32,7 @@ export default function AddMasterReligionCasteCategoryForm({ onSuccess, classNam
         data: unmappedCasteCategory,
         isLoading: unmappedCasteCategoryLoading,
         refetchAll: refetchUnmappedCasteCategory
-    } = useUnmappedCasteCategoryDropdown();
+    } = useMasterCasteCategoryDropdown();
 
     const {
         control,
@@ -94,7 +94,7 @@ export default function AddMasterReligionCasteCategoryForm({ onSuccess, classNam
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-5 md:grid-cols-2'>
                         <div className='group flex flex-col gap-1.5'>
-                            <Label aria-label='Religion' htmlFor='ivrmmR_Id'>
+                            <Label className='font-bold' aria-label='Religion' htmlFor='ivrmmR_Id'>
                                 Religion <span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <Controller
@@ -133,7 +133,7 @@ export default function AddMasterReligionCasteCategoryForm({ onSuccess, classNam
                             {errors.ivrmmR_Id && <FormError>{errors.ivrmmR_Id.message}</FormError>}
                         </div>
                         <div className='group flex flex-col gap-1.5'>
-                            <Label aria-label='Caste Category' htmlFor='caste_category_ids'>
+                            <Label className='font-bold' aria-label='Caste Category' htmlFor='caste_category_ids'>
                                 Caste Category <span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <Controller
@@ -142,7 +142,7 @@ export default function AddMasterReligionCasteCategoryForm({ onSuccess, classNam
                                 render={({ field }) => (
                                     <MultiSelect
                                         options={
-                                            unmappedCasteCategory?.data?.map((data) => ({
+                                            unmappedCasteCategory?.data?.map((data: any) => ({
                                                 label: data.imcC_CategoryName,
                                                 value: data.imcC_Id.toString()
                                             })) || []
@@ -153,7 +153,7 @@ export default function AddMasterReligionCasteCategoryForm({ onSuccess, classNam
                                         }}
                                         defaultValue={selectedCasteCategoryItems.map((data) => data.imcC_Id)}
                                         value={selectedCasteCategoryItems.map((data) => data.imcC_Id)}
-                                        placeholder='Select Classes'
+                                        placeholder='Select Caste Category'
                                         variant='inverted'
                                         disabled={unmappedCasteCategoryLoading}
                                     />

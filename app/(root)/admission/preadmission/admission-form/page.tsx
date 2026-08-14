@@ -8,19 +8,28 @@ import type { IadmissionStudentApplicationList } from '@/types/admission/admissi
 import type { ColumnDef } from '@tanstack/react-table';
 import { Plus, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-import { use, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import AddStudentAdmissionForm from './_components/add-form';
 import { studentApplicationColumns } from './_components/columns';
 import ApplicationFormSuccessDialog from './_components/success-dialog';
-
+import { useQueryState } from 'nuqs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function StudentApplicationPage(props: {
     searchParams: SearchParams;
 }) {
-    const searchParams = use(props.searchParams);
+    const searchParams = (React as any).use(props.searchParams);
+    
+    // Only pass asmay_id to the API so client-side changes don't trigger refetches or backend errors
+    const apiSearchParams = React.useMemo(() => {
+        return {
+            asmay_id: searchParams?.asmay_id
+        };
+    }, [searchParams?.asmay_id]);
+
     const { data: activePreadmission } = useGetAllAdmissionLists();
-    const { data: response, isLoading, error, refetch } = useGetAllAdmissionLists(searchParams);
+    const { data: response, isLoading, error, refetch } = useGetAllAdmissionLists(apiSearchParams);
     const { data: masterConfig } = useAcademicYearMasterConfiguration(0);
 
     return (
@@ -31,6 +40,7 @@ export default function StudentApplicationPage(props: {
                 error={error}
                 refetch={refetch}
                 masterConfig={masterConfig}
+                searchParams={searchParams}
             />
         </FormProvider>
     );
@@ -40,19 +50,55 @@ function StudentApplicationPageContent({
     response,
     isLoading,
     error,
-    refetch
+    refetch,
+    masterConfig,
+    searchParams
 }: {
     response: any;
     isLoading: boolean;
     error: any;
     refetch: () => void;
     masterConfig: any;
+    searchParams: any;
 }) {
     const { openAddForm } = useFormContext();
-    const tableProps = useDataTableProps(response);
+    
+    const searchQuery = (searchParams?.search_query as string) || '';
+    const page = parseInt(searchParams?.page as string) || 1;
+    const pageSize = parseInt(searchParams?.page_size as string) || 10;
+
+    const filteredData = React.useMemo(() => {
+        let result = response?.data?.studentList || [];
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            result = result.filter((row: any) => 
+                String(row.studentName || '').toLowerCase().includes(query) ||
+                String(row.className || '').toLowerCase().includes(query) ||
+                String(row.sectionName || '').toLowerCase().includes(query) ||
+                String(row.admissionNo || '').toLowerCase().includes(query) ||
+                String(row.emailId || '').toLowerCase().includes(query) ||
+                String(row.mobileNo || '').toLowerCase().includes(query)
+            );
+        }
+        return result;
+    }, [response, searchQuery]);
+
+    const paginatedData = React.useMemo(() => {
+        const start = (page - 1) * pageSize;
+        const end = start + pageSize;
+        return filteredData.slice(start, end);
+    }, [filteredData, page, pageSize]);
+
+    const tableProps = useDataTableProps(
+        response?.data && response.data.studentList 
+            ? { ...response, data: paginatedData, total: filteredData.length } 
+            : response
+    );
     const [isSuccessOpen, setSuccessOpen] = useState(false);
     const [successType, setSuccessType] = useState<'create' | 'update'>('create');
     const session = useSession();
+
+
 
     useEffect(() => {
         // Don't force a full page reload when session role is temporarily undefined.
@@ -72,11 +118,27 @@ function StudentApplicationPageContent({
         refetch();
     };
 
+    const [selectedYear, setSelectedYear] = useQueryState('asmay_id', { defaultValue: '' });
+
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Header */}
-                <div className='flex justify-end'>
+                <div className='flex justify-between items-center'>
+                    <div className='w-64'>
+                        <Select value={selectedYear} onValueChange={setSelectedYear}>
+                            <SelectTrigger className="w-full bg-background">
+                                <SelectValue placeholder='Select Academic Year' />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {response?.data?.academicyear?.map((year: any) => (
+                                    <SelectItem key={year.yearid} value={year.yearid.toString()}>
+                                        {year.year}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
                     <Button
                         type='button'
                         onClick={openAddForm}
@@ -110,18 +172,20 @@ function StudentApplicationPageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IadmissionStudentApplicationList>
-                        {...tableProps}
-                        columns={studentApplicationColumns as ColumnDef<IadmissionStudentApplicationList>[]}
-                        isLoading={isLoading}
-                        error={error}
-                        showViewOptions={false}
-                        columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading applications...'
-                        noDataTitle='No Applications Found'
-                        noDataDescription='Get started by creating your first applications'
-                        errorTitle='Error Loading Applications'
-                    />
+                    <div className='[&_table_tbody_tr:nth-child(even)]:!bg-primary/5 [&_table_tbody_tr[data-state=selected]]:!bg-purple-100 [&_table_tbody_tr:hover]:!bg-purple-200 [&_table_tbody_tr:hover_td]:!bg-purple-200 [&_table_tbody_tr]:cursor-pointer [&_table_tbody_tr]:transition-colors'>
+                        <GenericDataTable<IadmissionStudentApplicationList>
+                            {...tableProps}
+                            columns={studentApplicationColumns as ColumnDef<IadmissionStudentApplicationList>[]}
+                            isLoading={isLoading}
+                            error={error}
+                            showViewOptions={false}
+                            columnPinning={{ right: ['actions'] }}
+                            loadingMessage='Loading applications...'
+                            noDataTitle='No Applications Found'
+                            noDataDescription='Get started by creating your first applications'
+                            errorTitle='Error Loading Applications'
+                        />
+                    </div>
                 </CollapsibleSection>
             </div>
         </div>

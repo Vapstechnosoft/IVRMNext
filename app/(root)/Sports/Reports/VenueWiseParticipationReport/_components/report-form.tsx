@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
     Form,
@@ -24,25 +24,57 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { VenueWiseParticipationReportSchema, type VenueWiseParticipationReportFormSchema, type IVenueWiseReportData, type IVenueWiseReportDropdowns } from "@/types/sports/reports/venue-wise-participation-report";
 import { useVenueWiseParticipationReport } from "@/hooks/sports/useVenueWiseParticipationReport";
-import { getClass, getSection } from "@/server/sports/reports/venue-wise-participation-report";
+import * as z from "zod";
+
+const formSchema = z.object({
+    Type: z.enum(["House", "CS"]),
+    ASMAY_Id: z.number({ required_error: "Academic Year is required" }).min(1, "Academic Year is required"),
+    ASMCL_Id: z.number().optional(),
+    selectedSectionlist: z.array(z.object({ asmS_Id: z.number() })),
+    selectedhouselist: z.array(z.object({ spccmH_Id: z.number() })).min(1, "Select at least one house"),
+    selectedVenuelist: z.array(z.object({ spccmeV_Id: z.number() })).min(1, "Select at least one venue"),
+}).superRefine((data, ctx) => {
+    if (data.Type === "CS") {
+        if (!data.ASMCL_Id) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Class is required",
+                path: ["ASMCL_Id"],
+            });
+        }
+        if (!data.selectedSectionlist || data.selectedSectionlist.length === 0) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Select at least one section",
+                path: ["selectedSectionlist"],
+            });
+        }
+    }
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 interface ReportFormProps {
-    dropdowns: IVenueWiseReportDropdowns;
-    onReportGenerated: (data: IVenueWiseReportData[]) => void;
+    onReportGenerated: (data: any[]) => void;
     onReset: () => void;
 }
 
-export const ReportForm = ({ dropdowns, onReportGenerated, onReset }: ReportFormProps) => {
-    const { generateReport } = useVenueWiseParticipationReport();
-    const [classList, setClassList] = useState<IVenueWiseReportDropdowns['classList']>([]);
-    const [sectionList, setSectionList] = useState<IVenueWiseReportDropdowns['sectionList']>([]);
-    const [houseList, setHouseList] = useState<IVenueWiseReportDropdowns['houseList']>([]);
-    const [venueList, setVenueList] = useState<IVenueWiseReportDropdowns['venueList']>([]);
+export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
+    const {
+        years,
+        classes,
+        sections,
+        houses,
+        venues,
+        loading,
+        fetchClasses,
+        fetchSections,
+        generateReport
+    } = useVenueWiseParticipationReport();
 
-    const form = useForm<VenueWiseParticipationReportFormSchema>({
-        resolver: zodResolver(VenueWiseParticipationReportSchema),
+    const form = useForm<FormValues>({
+        resolver: zodResolver(formSchema),
         defaultValues: {
             Type: 'House',
             ASMAY_Id: undefined,
@@ -59,69 +91,39 @@ export const ReportForm = ({ dropdowns, onReportGenerated, onReset }: ReportForm
 
     // Reset dependent fields when Type changes
     useEffect(() => {
-        form.setValue('ASMAY_Id', undefined as any);
-        form.setValue('ASMCL_Id', undefined);
         form.setValue('selectedSectionlist', []);
         form.setValue('selectedhouselist', []);
         form.setValue('selectedVenuelist', []);
-        setClassList([]);
-        setSectionList([]);
-        setHouseList([]);
-        setVenueList([]);
+        if (watchedType === 'House') {
+            form.setValue('ASMCL_Id', undefined);
+        }
     }, [watchedType, form]);
 
     // Fetch Classes when Year changes
     useEffect(() => {
         if (watchedYear) {
-            const fetchClasses = async () => {
-                try {
-                    const data = await getClass(watchedYear);
-                    setClassList(data.classList || []);
-                    setHouseList(data.houseList || []);
-                    setVenueList(data.venueList || []);
-                } catch (error) {
-                    console.error("Failed to fetch classes", error);
-                    toast.error("Failed to load classes");
-                }
-            };
-            fetchClasses();
-        } else {
-            setClassList([]);
-            setHouseList([]);
-            setVenueList([]);
+            fetchClasses(watchedYear);
         }
     }, [watchedYear]);
 
     // Fetch Sections when Class changes (and Type is CS)
     useEffect(() => {
         if (watchedYear && watchedClass && watchedType === 'CS') {
-            const fetchSections = async () => {
-                try {
-                    const sections = await getSection(watchedYear, watchedClass);
-                    setSectionList(sections || []);
-                } catch (error) {
-                    console.error("Failed to fetch sections", error);
-                    toast.error("Failed to load sections");
-                }
-            };
-            fetchSections();
-        } else {
-            setSectionList([]);
+            fetchSections(watchedYear, watchedClass);
         }
     }, [watchedYear, watchedClass, watchedType]);
 
 
-    const onSubmit = (data: VenueWiseParticipationReportFormSchema) => {
-        generateReport.mutate(data, {
-            onSuccess: (responseData) => {
-                onReportGenerated(responseData || []);
-                toast.success('Report generated successfully');
-            },
-            onError: (error) => {
-                console.error("Report Generation Error:", error);
-                toast.error('Failed to generate report');
-            }
-        });
+    const onSubmit = (data: FormValues) => {
+        const payload = {
+            asmaY_Id: data.ASMAY_Id,
+            asmcL_Id: data.ASMCL_Id || 0,
+            type: data.Type,
+            selectedSectionlist: data.selectedSectionlist || [],
+            selectedhouselist: data.selectedhouselist || [],
+            selectedVenuelist: data.selectedVenuelist || []
+        };
+        onReportGenerated(payload);
     };
 
     // Helper for Select All
@@ -184,7 +186,7 @@ export const ReportForm = ({ dropdowns, onReportGenerated, onReset }: ReportForm
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {dropdowns?.yearlist?.map((item) => (
+                                        {years?.map((item) => (
                                             <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
                                                 {item.asmaY_Year}
                                             </SelectItem>
@@ -211,7 +213,7 @@ export const ReportForm = ({ dropdowns, onReportGenerated, onReset }: ReportForm
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {classList.map((item) => (
+                                            {classes.map((item) => (
                                                 <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
                                                     {item.asmcL_ClassName}
                                                 </SelectItem>
@@ -236,13 +238,13 @@ export const ReportForm = ({ dropdowns, onReportGenerated, onReset }: ReportForm
                                         <div className="flex items-center space-x-2 p-2 border-b bg-muted/30">
                                             <Checkbox
                                                 id="select-all-sections"
-                                                checked={sectionList.length > 0 && field.value?.length === sectionList.length}
-                                                onCheckedChange={(checked) => toggleAll(sectionList, 'asmS_Id', 'selectedSectionlist', !!checked)}
+                                                checked={sections.length > 0 && field.value?.length === sections.length}
+                                                onCheckedChange={(checked) => toggleAll(sections, 'asmS_Id', 'selectedSectionlist', !!checked)}
                                             />
                                             <label htmlFor="select-all-sections" className="text-sm font-medium">All</label>
                                         </div>
                                         <ScrollArea className="h-[150px] w-full p-2">
-                                            {sectionList.length > 0 ? sectionList.map((item) => (
+                                            {sections.length > 0 ? sections.map((item) => (
                                                 <div key={item.asmS_Id} className="flex items-center space-x-3 mb-2">
                                                     <Checkbox
                                                         id={`section-${item.asmS_Id}`}
@@ -280,13 +282,13 @@ export const ReportForm = ({ dropdowns, onReportGenerated, onReset }: ReportForm
                                     <div className="flex items-center space-x-2 p-2 border-b bg-muted/30">
                                         <Checkbox
                                             id="select-all-houses"
-                                            checked={houseList.length > 0 && field.value?.length === houseList.length}
-                                            onCheckedChange={(checked) => toggleAll(houseList, 'spccmH_Id', 'selectedhouselist', !!checked)}
+                                            checked={houses.length > 0 && field.value?.length === houses.length}
+                                            onCheckedChange={(checked) => toggleAll(houses, 'spccmH_Id', 'selectedhouselist', !!checked)}
                                         />
                                         <label htmlFor="select-all-houses" className="text-sm font-medium">All</label>
                                     </div>
                                     <ScrollArea className="h-[150px] w-full p-2">
-                                        {houseList.length > 0 ? houseList.map((item) => (
+                                        {houses.length > 0 ? houses.map((item) => (
                                             <div key={item.spccmH_Id} className="flex items-center space-x-3 mb-2">
                                                 <Checkbox
                                                     id={`house-${item.spccmH_Id}`}
@@ -323,13 +325,13 @@ export const ReportForm = ({ dropdowns, onReportGenerated, onReset }: ReportForm
                                     <div className="flex items-center space-x-2 p-2 border-b bg-muted/30">
                                         <Checkbox
                                             id="select-all-venues"
-                                            checked={venueList.length > 0 && field.value?.length === venueList.length}
-                                            onCheckedChange={(checked) => toggleAll(venueList, 'spccmeV_Id', 'selectedVenuelist', !!checked)}
+                                            checked={venues.length > 0 && field.value?.length === venues.length}
+                                            onCheckedChange={(checked) => toggleAll(venues, 'spccmeV_Id', 'selectedVenuelist', !!checked)}
                                         />
                                         <label htmlFor="select-all-venues" className="text-sm font-medium">All</label>
                                     </div>
                                     <ScrollArea className="h-[150px] w-full p-2">
-                                        {venueList.length > 0 ? venueList.map((item) => (
+                                        {venues.length > 0 ? venues.map((item) => (
                                             <div key={item.spccmeV_Id} className="flex items-center space-x-3 mb-2">
                                                 <Checkbox
                                                     id={`venue-${item.spccmeV_Id}`}
@@ -358,16 +360,12 @@ export const ReportForm = ({ dropdowns, onReportGenerated, onReset }: ReportForm
                 </div>
 
                 <div className="flex justify-center gap-4">
-                    <Button type="submit" disabled={generateReport.isPending} className="px-8">
-                        {generateReport.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <i className="fa fa-list-alt mr-2" aria-hidden="true"></i>}
+                    <Button type="submit" disabled={loading} className="px-8">
+                        {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <i className="fa fa-list-alt mr-2" aria-hidden="true"></i>}
                         Report
                     </Button>
                     <Button type="button" variant="destructive" onClick={() => {
                         form.reset();
-                        setClassList([]);
-                        setSectionList([]);
-                        setHouseList([]);
-                        setVenueList([]);
                         onReset();
                     }} className="px-8">
                         <i className="fa fa-times mr-2" aria-hidden="true"></i>

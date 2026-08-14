@@ -1,12 +1,13 @@
 'use client';
 
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useEffect, useState } from 'react';
+import { Form } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 import { useSportPointsAndRecordReport } from '@/hooks/sports/useSportPointsAndRecordReport';
 import { SportPointsAndRecordReportSchema, SportPointsAndRecordReportFormSchema } from '@/types/sports/reports/points-record-report';
 import { toast } from 'sonner';
@@ -17,7 +18,13 @@ interface ReportFormProps {
 }
 
 export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
-    const { loadData, generateReport } = useSportPointsAndRecordReport();
+    const { loadData, classHouseEventMutation, sectionMutation, generateReport } = useSportPointsAndRecordReport();
+    const [houseList, setHouseList] = useState<any[]>([]);
+    const [programList, setProgramList] = useState<any[]>([]);
+    const [eventList, setEventList] = useState<any[]>([]);
+    const [divisionList, setDivisionList] = useState<any[]>([]);
+    const [classList, setClassList] = useState<any[]>([]);
+    const [sectionList, setSectionList] = useState<any[]>([]);
 
     const form = useForm<SportPointsAndRecordReportFormSchema>({
         resolver: zodResolver(SportPointsAndRecordReportSchema),
@@ -26,7 +33,60 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
         },
     });
 
+    const {
+        control,
+        handleSubmit: hookHandleSubmit,
+        formState: { errors }
+    } = form;
+
+    const watchYear = useWatch({ control: form.control, name: 'asmaY_Id' });
+    const watchClass = useWatch({ control: form.control, name: 'asmcL_Id' });
     const watchType = useWatch({ control: form.control, name: 'qualification_type' });
+
+    useEffect(() => {
+        if (watchYear) {
+            classHouseEventMutation.mutate({ asmaY_Id: watchYear }, {
+                onSuccess: (data) => {
+                    if (data.classList) setClassList(data.classList);
+                    if (data.houseList && data.houseList.length > 0) setHouseList(data.houseList);
+                    if (data.events && data.events.length > 0) setProgramList(data.events);
+                    else if (data.eventList && data.eventList.length > 0) setProgramList(data.eventList);
+                    if (data.eventList && data.eventList.length > 0) setEventList(data.eventList);
+                }
+            });
+        } else {
+            setClassList([]);
+            setHouseList([]);
+            setProgramList([]);
+            setEventList([]);
+            form.setValue('asmcL_Id', undefined);
+            form.setValue('asmS_Id', undefined);
+        }
+    }, [watchYear]);
+
+    useEffect(() => {
+        if (watchYear && watchClass) {
+            sectionMutation.mutate({ asmaY_Id: watchYear, asmcL_Id: watchClass }, {
+                onSuccess: (data) => {
+                    setSectionList(data.sectionList || []);
+                }
+            });
+        } else {
+            setSectionList([]);
+            form.setValue('asmS_Id', undefined);
+        }
+    }, [watchYear, watchClass]);
+
+    useEffect(() => {
+        if (loadData.data) {
+            if (loadData.data.houseList) setHouseList(loadData.data.houseList);
+            if (loadData.data.events || loadData.data.eventList) {
+                setProgramList(loadData.data.events || loadData.data.eventList || []);
+            }
+            if (loadData.data.eventList) setEventList(loadData.data.eventList);
+            if (loadData.data.divisionList) setDivisionList(loadData.data.divisionList);
+        }
+    }, [loadData.data]);
 
     const handleSubmit = (data: SportPointsAndRecordReportFormSchema) => {
         generateReport.mutate(data, {
@@ -50,193 +110,273 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
     const handleCancel = () => {
         form.reset({
             qualification_type: 'others',
-            ASMAY_Id: undefined,
-            SPCCMH_Id: undefined,
-            SPCCE_Id: undefined,
-            SPCCME_Id: undefined,
-            SPCCMD_Id: undefined,
+            asmaY_Id: undefined,
+            asmcL_Id: undefined,
+            asmS_Id: undefined,
+            spccmH_Id: undefined,
+            spccE_Id: undefined,
+            spccmE_Id: undefined,
+            spccmD_Id: undefined,
         });
         onReportGenerated([]);
+        window.location.reload();
     };
 
     return (
         <div className="p-4 bg-white rounded-lg shadow-sm border space-y-4">
-            <h2 className="text-lg font-semibold border-b pb-2">Sport Point And Record Report</h2>
+            <h2 className="text-lg font-semibold border-b pb-2">Sport Points And Record Report</h2>
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
                     {/* Radio Buttons for Qualification Type */}
-                    <FormField
-                        control={form.control}
+                    <Controller
+                        control={control}
                         name="qualification_type"
                         render={({ field }) => (
-                            <FormItem className="space-y-3">
-                                <FormControl>
-                                    <RadioGroup
-                                        onValueChange={field.onChange}
-                                        defaultValue={field.value}
-                                        className="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-6 p-4 bg-gray-50 rounded-md"
-                                    >
-                                        <FormItem className="flex items-center space-x-2 space-y-0">
-                                            <FormControl>
-                                                <RadioGroupItem value="eca" />
-                                            </FormControl>
-                                            <FormLabel className="font-normal cursor-pointer">Extra Curricular Activities</FormLabel>
-                                        </FormItem>
-                                        <FormItem className="flex items-center space-x-2 space-y-0">
-                                            <FormControl>
-                                                <RadioGroupItem value="cca" />
-                                            </FormControl>
-                                            <FormLabel className="font-normal cursor-pointer">Co Curricular Activities</FormLabel>
-                                        </FormItem>
-                                        <FormItem className="flex items-center space-x-2 space-y-0">
-                                            <FormControl>
-                                                <RadioGroupItem value="ih" />
-                                            </FormControl>
-                                            <FormLabel className="font-normal cursor-pointer">Interhouse</FormLabel>
-                                        </FormItem>
-                                        <FormItem className="flex items-center space-x-2 space-y-0">
-                                            <FormControl>
-                                                <RadioGroupItem value="others" />
-                                            </FormControl>
-                                            <FormLabel className="font-normal cursor-pointer">Others</FormLabel>
-                                        </FormItem>
-                                    </RadioGroup>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
+                            <div className="flex flex-col gap-2">
+                                <RadioGroup
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                    className="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-6 p-4 bg-gray-50 rounded-md"
+                                >
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="eca" id="eca" />
+                                        <label htmlFor="eca" className="font-normal cursor-pointer">Extra Curricular Activities</label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="cca" id="cca" />
+                                        <label htmlFor="cca" className="font-normal cursor-pointer">Co Curricular Activities</label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="ih" id="ih" />
+                                        <label htmlFor="ih" className="font-normal cursor-pointer">Interhouse</label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="others" id="others" />
+                                        <label htmlFor="others" className="font-normal cursor-pointer">Others</label>
+                                    </div>
+                                </RadioGroup>
+                                {errors.qualification_type && <span className="text-xs font-medium text-destructive">{errors.qualification_type.message}</span>}
+                            </div>
                         )}
                     />
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Academic Year */}
-                        <FormField
-                            control={form.control}
-                            name="ASMAY_Id"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Academic Year <span className="text-red-500">*</span></FormLabel>
-                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value ? String(field.value) : ''}>
-                                        <FormControl>
-                                            <SelectTrigger>
+                        <div className="flex flex-col gap-2">
+                            <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Academic Year</Label>
+                            <Controller
+                                control={control}
+                                name="asmaY_Id"
+                                render={({ field }) => (
+                                    <div className="flex flex-col gap-1">
+                                        <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
+                                            <SelectTrigger className={errors.asmaY_Id ? 'border-destructive ring-destructive/20' : ''}>
                                                 <SelectValue placeholder="Select Academic Year" />
                                             </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {loadData.data?.academicYear.map((year) => (
-                                                <SelectItem key={year.asmaY_Id} value={String(year.asmaY_Id)}>
-                                                    {year.asmaY_Year}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                                            <SelectContent>
+                                                {loadData.data?.academicYear?.map((year, index) => (
+                                                    <SelectItem key={`${year.asmaY_Id}-${index}`} value={year.asmaY_Id.toString()}>
+                                                        {year.asmaY_Year}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        {errors.asmaY_Id && <span className="text-xs font-medium text-destructive">{errors.asmaY_Id.message}</span>}
+                                    </div>
+                                )}
+                            />
+                        </div>
+
+                        {/* Class Name */}
+                        <div className="flex flex-col gap-2">
+                            <Label className="text-sm font-semibold">Class Name</Label>
+                            <Controller
+                                control={control}
+                                name="asmcL_Id"
+                                render={({ field }) => (
+                                    <div className="flex flex-col gap-1">
+                                        <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
+                                            <SelectTrigger className={errors.asmcL_Id ? 'border-destructive ring-destructive/20' : ''}>
+                                                <SelectValue placeholder="Select Class Name" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {classList.map((cls, index) => (
+                                                    <SelectItem key={`${cls.asmcL_Id}-${index}`} value={String(cls.asmcL_Id)}>
+                                                        {cls.asmcL_ClassName}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        {errors.asmcL_Id && <span className="text-xs font-medium text-destructive">{errors.asmcL_Id.message}</span>}
+                                    </div>
+                                )}
+                            />
+                        </div>
+
+                        {/* Section Name */}
+                        <div className="flex flex-col gap-2">
+                            <Label className="text-sm font-semibold">Section Name</Label>
+                            <Controller
+                                control={control}
+                                name="asmS_Id"
+                                render={({ field }) => (
+                                    <div className="flex flex-col gap-1">
+                                        <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
+                                            <SelectTrigger className={errors.asmS_Id ? 'border-destructive ring-destructive/20' : ''}>
+                                                <SelectValue placeholder="Select Section Name" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {sectionList.map((sec, index) => (
+                                                    <SelectItem key={`${sec.asmS_Id}-${index}`} value={String(sec.asmS_Id)}>
+                                                        {sec.asmC_SectionName}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        {errors.asmS_Id && <span className="text-xs font-medium text-destructive">{errors.asmS_Id.message}</span>}
+                                    </div>
+                                )}
+                            />
+                        </div>
 
                         {/* House Name */}
-                        <FormField
-                            control={form.control}
-                            name="SPCCMH_Id"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>House Name <span className="text-red-500">*</span></FormLabel>
-                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value ? String(field.value) : ''}>
-                                        <FormControl>
-                                            <SelectTrigger>
+                        <div className="flex flex-col gap-2">
+                            <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">House Name</Label>
+                            <Controller
+                                control={control}
+                                name="spccmH_Id"
+                                render={({ field }) => (
+                                    <div className="flex flex-col gap-1">
+                                        <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
+                                            <SelectTrigger className={errors.spccmH_Id ? 'border-destructive ring-destructive/20' : ''}>
                                                 <SelectValue placeholder="Select House Name" />
                                             </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {loadData.data?.houseList.map((house) => (
-                                                <SelectItem key={house.spccmH_Id} value={String(house.spccmH_Id)}>
-                                                    {house.spccmH_HouseName}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                                            <SelectContent>
+                                                {houseList.map((house, index) => (
+                                                    <SelectItem key={`${house.spccmH_Id}-${index}`} value={String(house.spccmH_Id)}>
+                                                        {house.spccmH_HouseName}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        {errors.spccmH_Id && <span className="text-xs font-medium text-destructive">{errors.spccmH_Id.message}</span>}
+                                    </div>
+                                )}
+                            />
+                        </div>
 
                         {/* Program Master (Events) */}
-                        <FormField
-                            control={form.control}
-                            name="SPCCE_Id"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Program Master <span className="text-red-500">*</span></FormLabel>
-                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value ? String(field.value) : ''}>
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select Program Name" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {loadData.data?.events.map((prog) => (
-                                                <SelectItem key={prog.spccE_Id} value={String(prog.spccE_Id)}>
-                                                    {prog.spccpM_Name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                        <div className="flex flex-col gap-2">
+                            <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Program Master</Label>
+                            <Controller
+                                control={control}
+                                name="spccE_Id"
+                                render={({ field }) => {
+                                    // Deduplicate by ID and Name to ensure all unique choices are available
+                                    const uniquePrograms = Array.from(
+                                        new Map(
+                                            programList.map((prog) => {
+                                                const id = prog.spccE_Id || prog.spccpM_Id || prog.spccmE_Id || 0;
+                                                const name = prog.spccpM_Name || prog.spccE_EventName || prog.spccmE_EventName || "Unnamed Program";
+                                                return [`${id}::${name}`, prog];
+                                            })
+                                        ).values()
+                                    ) as any[];
+
+                                    // Find current selected value's composite key
+                                    const selectedProg = uniquePrograms.find((p) => String(p.spccE_Id || p.spccpM_Id || p.spccmE_Id || 0) === String(field.value));
+                                    const selectedName = selectedProg ? (selectedProg.spccpM_Name || selectedProg.spccE_EventName || selectedProg.spccmE_EventName || "Unnamed Program") : '';
+                                    const currentVal = field.value ? `${field.value}::${selectedName}` : '';
+
+                                    return (
+                                        <div className="flex flex-col gap-1">
+                                            <Select 
+                                                onValueChange={(val) => {
+                                                    const [id] = val.split('::');
+                                                    field.onChange(Number(id));
+                                                }} 
+                                                value={currentVal}
+                                            >
+                                                <SelectTrigger className={errors.spccE_Id ? 'border-destructive ring-destructive/20' : ''}>
+                                                    <SelectValue placeholder="Select Program Name" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {uniquePrograms.map((prog, index) => {
+                                                        const id = prog.spccE_Id || prog.spccpM_Id || prog.spccmE_Id || index;
+                                                        const name = prog.spccpM_Name || prog.spccE_EventName || prog.spccmE_EventName || "Unnamed Program";
+                                                        const idValue = `${id}::${name}`;
+                                                        return (
+                                                            <SelectItem 
+                                                                key={`${idValue}-${index}`} 
+                                                                value={idValue}
+                                                            >
+                                                                {name}
+                                                            </SelectItem>
+                                                        );
+                                                    })}
+                                                </SelectContent>
+                                            </Select>
+                                            {errors.spccE_Id && <span className="text-xs font-medium text-destructive">{errors.spccE_Id.message}</span>}
+                                        </div>
+                                    );
+                                }}
+                            />
+                        </div>
 
                         {/* Event Name */}
-                        <FormField
-                            control={form.control}
-                            name="SPCCME_Id"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Event Name <span className="text-red-500">*</span></FormLabel>
-                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value ? String(field.value) : ''}>
-                                        <FormControl>
-                                            <SelectTrigger>
+                        <div className="flex flex-col gap-2">
+                            <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Event Name</Label>
+                            <Controller
+                                control={control}
+                                name="spccmE_Id"
+                                render={({ field }) => (
+                                    <div className="flex flex-col gap-1">
+                                        <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
+                                            <SelectTrigger className={errors.spccmE_Id ? 'border-destructive ring-destructive/20' : ''}>
                                                 <SelectValue placeholder="Select Event Name" />
                                             </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {loadData.data?.eventList.map((evt) => (
-                                                <SelectItem key={evt.spccmE_Id} value={String(evt.spccmE_Id)}>
-                                                    {evt.spccmE_EventName}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                                            <SelectContent>
+                                                {eventList.map((evt, index) => {
+                                                    const idValue = String(evt.spccmE_Id || index);
+                                                    return (
+                                                        <SelectItem key={`${idValue}-${index}`} value={idValue}>
+                                                            {evt.spccmE_EventName}
+                                                        </SelectItem>
+                                                    );
+                                                })}
+                                            </SelectContent>
+                                        </Select>
+                                        {errors.spccmE_Id && <span className="text-xs font-medium text-destructive">{errors.spccmE_Id.message}</span>}
+                                    </div>
+                                )}
+                            />
+                        </div>
 
                         {/* Division Name */}
-                        <FormField
-                            control={form.control}
-                            name="SPCCMD_Id"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Division Name <span className="text-red-500">*</span></FormLabel>
-                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value ? String(field.value) : ''}>
-                                        <FormControl>
-                                            <SelectTrigger>
+                        <div className="flex flex-col gap-2">
+                            <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Division Name</Label>
+                            <Controller
+                                control={control}
+                                name="spccmD_Id"
+                                render={({ field }) => (
+                                    <div className="flex flex-col gap-1">
+                                        <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
+                                            <SelectTrigger className={errors.spccmD_Id ? 'border-destructive ring-destructive/20' : ''}>
                                                 <SelectValue placeholder="Select Division Name" />
                                             </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {loadData.data?.divisionList.map((div) => (
-                                                <SelectItem key={div.spccmD_Id} value={String(div.spccmD_Id)}>
-                                                    {div.spccmD_DivisionName}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                                            <SelectContent>
+                                                {divisionList.map((div, index) => (
+                                                    <SelectItem key={`${div.spccmD_Id}-${index}`} value={String(div.spccmD_Id)}>
+                                                        {div.spccmD_DivisionName}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        {errors.spccmD_Id && <span className="text-xs font-medium text-destructive">{errors.spccmD_Id.message}</span>}
+                                    </div>
+                                )}
+                            />
+                        </div>
                     </div>
 
                     <div className="flex justify-center space-x-4 pt-4">

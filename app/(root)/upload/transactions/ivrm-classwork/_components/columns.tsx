@@ -1,116 +1,135 @@
 'use client';
+
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
-import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IClassWorkDetails } from '@/types/upload/reports/classwork-upload-report';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Eye } from 'lucide-react';
-import { useCallback } from 'react';
+import { format } from 'date-fns';
+import { Eye, Pencil } from 'lucide-react';
 
-export const classWorkColumns: ColumnDef<IClassWorkDetails>[] = [
-    {
-        accessorKey: 'icW_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No' className='w-full pl-6' />,
-        cell: ({ row, table }) => {
-            const pageIndex = table.getState().pagination.pageIndex;
-            const pageSize = table.getState().pagination.pageSize;
-            return <div className='w-full pl-6'>{pageIndex * pageSize + row.index + 1}</div>;
-        },
-        enableSorting: false,
-        enableHiding: false
-    },
-    {
-        accessorKey: 'ismS_SubjectName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Subject Name' />,
-        cell: ({ row }) => <div>{row.getValue('ismS_SubjectName')}</div>
-    },
-    {
-        accessorKey: 'icW_Topic',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Topic' />,
-        cell: ({ row }) => <div>{row.getValue('icW_Topic')}</div>
-    },
-    {
-        accessorKey: 'icW_SubTopic',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sub Topic' />,
-        cell: ({ row }) => <div>{row.getValue('icW_SubTopic')}</div>
-    },
-    {
-        accessorKey: 'icW_Content',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Content' />,
-        cell: ({ row }) => <div>{row.getValue('icW_Content')}</div>
-    },
-    {
-        accessorKey: 'asmcL_ClassName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />,
-        cell: ({ row }) => <div>{row.getValue('asmcL_ClassName')}</div>
-    },
-    {
-        accessorKey: 'asmC_SectionName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Section' />,
-        cell: ({ row }) => <div style={{ textAlign: 'center' }}>{row.getValue('asmC_SectionName')}</div>
-    },
-    {
-        accessorKey: 'icW_FromDate',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Start Date' />,
-        cell: ({ row }) => (
-            <div>
-                {new Date(row.getValue('icW_FromDate')).toLocaleDateString('en-GB', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric'
-                })}
-            </div>
-        )
-    },
-    {
-        accessorKey: 'icW_ToDate',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='To Date' />,
-        cell: ({ row }) => (
-            <div>
-                {new Date(row.getValue('icW_ToDate')).toLocaleDateString('en-GB', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric'
-                })}
-            </div>
-        )
-    },
-
-    {
-        id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
-        accessorFn: (row: any) => row,
-        enableSorting: false,
-        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
-    }
-];
-
-function ActionButtonsCell({ rowData }: { rowData: IClassWorkDetails }) {
-    const { openEditForm, openDeleteForm, openDetailsView, openToggleForm } = useFormContext<IClassWorkDetails>();
-
-    const handleEdit = useCallback((data: IClassWorkDetails) => openEditForm(data), [openEditForm]);
-
-    const handleToggle = useCallback((data: IClassWorkDetails) => openToggleForm(data), [openToggleForm]);
-
-    const handleDelete = useCallback((data: IClassWorkDetails) => openDeleteForm(data), [openDeleteForm]);
-
-    const handleView = useCallback(() => {
-        openDetailsView(rowData);
-    }, [openDetailsView, rowData]);
-
-    return (
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <button type='button' onClick={handleView} className='rounded-md p-2 transition hover:bg-muted' title='View Grade Details'>
-                <Eye className='h-4 w-4 text-blue-600' />
-            </button>
-            <ActionButtons
-                rowData={rowData}
-                buttons={{ edit: true, toggle: true, delete: false }}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onToggle={handleToggle}
-                toggleConditionKey='icW_ActiveFlag'
-            />
-        </div>
-    );
+interface ClassWorkColumnProps {
+    onEdit: (row: IClassWorkDetails) => void;
+    onToggle: (row: IClassWorkDetails) => void;
+    onView: (row: IClassWorkDetails) => void;
 }
+
+export const classWorkColumns = ({
+    onEdit,
+    onToggle,
+    onView
+}: ClassWorkColumnProps): ColumnDef<IClassWorkDetails>[] => [
+        {
+            accessorKey: 'icW_Id',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='font-bold text-black justify-center' />,
+            cell: ({ row, table }) => {
+                const pageIndex = table.getState().pagination.pageIndex;
+                const pageSize = table.getState().pagination.pageSize;
+                return <div className='w-full text-center'>{pageIndex * pageSize + row.index + 1}</div>;
+            },
+            enableSorting: false,
+            enableHiding: false
+        },
+        {
+            accessorKey: 'isms_SubjectName',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Subject' className='font-bold text-black justify-left' />,
+            cell: ({ row }) => <div className='text-[11px] uppercase'>{row.getValue('isms_SubjectName')}</div>
+        },
+        {
+            accessorKey: 'icW_Topic',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Topic' className='font-bold text-black justify-left' />,
+            cell: ({ row }) => <div className='text-[11px] font-medium text-black'>{row.getValue('icW_Topic')}</div>
+        },
+        {
+            accessorKey: 'icW_SubTopic',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Sub Topic' className='font-bold text-black justify-left' />,
+            cell: ({ row }) => <div className='text-[11px] font-medium text-black italic'>{row.getValue('icW_SubTopic')}</div>
+        },
+        {
+            accessorKey: 'icW_Content',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Content' className='font-bold text-black justify-left' />,
+            cell: ({ row }) => <div className='text-[11px] text-black max-w-[200px] truncate' title={row.getValue('icW_Content')}>{row.getValue('icW_Content')}</div>
+        },
+        {
+            accessorKey: 'asmcL_ClassName',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Class' className='font-bold text-black justify-center' />,
+            cell: ({ row }) => <div className='text-[11px] text-center text-black'>{row.getValue('asmcL_ClassName')}</div>
+        },
+        {
+            accessorKey: 'asmC_SectionName',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Section' className='font-bold text-black justify-center' />,
+            cell: ({ row }) => <div className='text-[11px] text-center text-black'>{row.getValue('asmC_SectionName')}</div>
+        },
+        {
+            id: 'updateDateTime',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Update Date / Time' className='font-bold text-black justify-center' />,
+            cell: ({ row }) => {
+                const data = row.original as any;
+                return <div className='text-[10px] text-center font-medium tracking-tighter'>{data.createdDate ? `${data.createdDate} ${data.createdTime || ''}` : '---'}</div>;
+            }
+        },
+        {
+            accessorKey: 'icW_FromDate',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Start Date' className='font-bold text-black justify-center' />,
+            cell: ({ row }) => {
+                const date = row.getValue('icW_FromDate');
+                return <div className='text-[11px] text-center text-black'>{date ? format(new Date(date as string), 'dd-MM-yyyy') : '---'}</div>;
+            }
+        },
+        {
+            accessorKey: 'icW_ToDate',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='End Date' className='font-bold text-black justify-center' />,
+            cell: ({ row }) => {
+                const date = row.getValue('icW_ToDate');
+                return <div className='text-[11px] text-center text-black'>{date ? format(new Date(date as string), 'dd-MM-yyyy') : '---'}</div>;
+            }
+        },
+        {
+            id: 'attachment',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Attachment' className='font-bold text-black justify-center' />,
+            cell: ({ row }) => {
+                const rowData = row.original;
+                const hasAttachment = (rowData as any).filesCount > 0 || rowData.icW_Attachment || (rowData as any).attachementlist?.length > 0;
+                return (
+                    <div className='flex justify-center'>
+                        {hasAttachment ? (
+                            <button
+                                type='button'
+                                onClick={() => onView(rowData)}
+                                className='rounded-md p-1.5 bg-blue-50 text-blue-600 transition hover:bg-blue-600 hover:text-white shadow-sm ring-1 ring-blue-100 hover:ring-blue-600 transition-all duration-300'
+                                title='View Attachments'
+                            >
+                                <Eye className='h-3.5 w-3.5 shadow-sm' />
+                            </button>
+                        ) : (
+                            <span className='text-slate-300 text-[10px] tracking-widest'>---</span>
+                        )}
+                    </div>
+                );
+            }
+        },
+        {
+            id: 'actions',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='font-bold text-black justify-center' />,
+            cell: ({ row }) => {
+                const rowData = row.original;
+                return (
+                    <div className='flex items-center justify-center gap-3'>
+                        <button
+                            type='button'
+                            onClick={() => onEdit(rowData)}
+                            className='group rounded-md p-1.5 bg-slate-50 text-blue-600 transition hover:bg-blue-600 hover:text-white shadow-sm ring-1 ring-slate-100 hover:ring-blue-600 transition-all duration-300'
+                            title='Edit'
+                        >
+                            <Pencil className='h-3.5 w-3.5 group-hover:scale-110 transition-transform' />
+                        </button>
+                        <ActionButtons
+                            rowData={rowData}
+                            buttons={{ edit: false, toggle: true, delete: false }}
+                            onToggle={() => onToggle(rowData)}
+                            toggleConditionKey='icW_ActiveFlag'
+                        />
+                    </div>
+                );
+            }
+        }
+    ];

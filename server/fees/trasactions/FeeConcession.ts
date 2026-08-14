@@ -9,7 +9,6 @@ import type {
     IFeeConcessionAcademicyearDropDownList,
     IFeeConcessionAdmissionNo,
     IFeeConcessionCategoryDropDownList,
-    IFeeConcessionClassDropDownList,
     IFeeConcessionEdit,
     IFeeConcessionHeadList,
     IFeeConcessionOthersList,
@@ -29,13 +28,21 @@ export async function getConcessionTermDropdownData(groupOrTerm: string, asmaY_I
 // biome-ignore lint/correctness/noUnusedVariables: <explanation>
 export async function getConcessionAcademicDropdownData(mi_Id: number) {
     const url = 'FeeConcessionFacade/getacademicyears';
+
     return await api.get<IFeeConcessionAcademicyearDropDownList[]>('fees', url);
 }
 
-// biome-ignore lint/correctness/noUnusedVariables: <explanation>
-export async function getConcessionClassesDropdownData(mi_Id: number) {
+// export async function getConcessionClassesDropdownData() {
+//     const url = 'FeeConcessionFacade/getclasses';
+//     return await api.get<IFeeConcessionClassDropDownList[]>('fees', url);
+// }
+
+export async function getConcessionClassesDropdownData() {
     const url = 'FeeConcessionFacade/getclasses';
-    return await api.get<IFeeConcessionClassDropDownList[]>('fees', url);
+
+    const response: any = await api.get('fees', url);
+
+    return response.data;
 }
 
 // biome-ignore lint/correctness/noUnusedVariables: <explanation>
@@ -147,4 +154,11 @@ export async function getFeeConcessionAdmissionNo(asmaY_Id: number, searchfilter
 export async function getFeesConcessionStudentData(asmaY_Id: number, amsT_Id: number) {
     const url = `/FeeConcessionFacade/get-student-data?asmayId=${asmaY_Id || 0}&amst_id=${amsT_Id || 0}`;
     return await api.get<IFeeConcessionStudentData[]>('fees', url);
+}
+
+export async function deleteFeeConcessionnew(fsC_Id: number, asmay_id: number, FSCI_ID: number, FSCI_ConcessionAmount: number) {
+    const url = `/FeeConcessionFacade/deletefeeconcessionnew/${fsC_Id}/${asmay_id}/${FSCI_ID}/${FSCI_ConcessionAmount}`;
+
+    console.info('deleteFeeConcessionnew url:', url);
+    return await api.delete<any>('fees', url);
 }

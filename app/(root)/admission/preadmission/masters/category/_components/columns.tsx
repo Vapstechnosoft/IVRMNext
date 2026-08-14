@@ -9,7 +9,7 @@ import { useCallback } from 'react';
 export const masterCategoryColumns: ColumnDef<IMasterCategoryList>[] = [
     {
         accessorKey: 'amC_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6 font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -21,21 +21,21 @@ export const masterCategoryColumns: ColumnDef<IMasterCategoryList>[] = [
     },
     {
         accessorKey: 'amC_Type',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Category Type' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Category Type' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('amC_Type')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'amC_Name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Category Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Category Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('amC_Name')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'amC_Address',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Address' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Address' className='font-bold text-black' />,
         cell: ({ row }) => (
             <div className='max-w-[200px] overflow-hidden truncate text-ellipsis'>
                 {row.getValue('amC_Address') === ',,,' ? 'N.A' : row.getValue('amC_Address')}
@@ -46,7 +46,7 @@ export const masterCategoryColumns: ColumnDef<IMasterCategoryList>[] = [
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center font-bold text-black' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />

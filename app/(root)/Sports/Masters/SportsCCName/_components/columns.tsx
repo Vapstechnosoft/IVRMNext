@@ -1,110 +1,89 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
-import { Button } from '@/components/ui/button';
-import { ArrowUpDown, Pencil, Trash2 } from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
-import { SportsCCNameDTO } from '@/types/sports/masters/sports-cc-name';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { useFormContext } from '@/components/ui/form/form-provider';
+import type { SportsCCNameDTO } from '@/types/sports/masters/sports-cc-name';
+import type { ColumnDef, Row } from '@tanstack/react-table';
 
-interface ColumnsProps {
-    onEdit: (data: SportsCCNameDTO) => void;
-    onDelete: (row: SportsCCNameDTO) => void;
+/* ============================================
+   Actions Cell Component
+   ============================================ */
+function ActionsCell({ row }: { row: Row<SportsCCNameDTO> }) {
+    const data = row.original;
+    const { openEditForm, openToggleForm } = useFormContext<SportsCCNameDTO>();
+
+    return (
+        <ActionButtons
+            rowData={data}
+            buttons={{
+                edit: true,
+                toggle: true,
+                delete: false
+            }}
+            onEdit={() => openEditForm(data)}
+            onToggle={() => openToggleForm(data)}
+            toggleConditionKey='spccmscC_ActiveFlag'
+        />
+    );
 }
 
-export const createColumns = ({ onEdit, onDelete }: ColumnsProps): ColumnDef<SportsCCNameDTO>[] => [
+/* ============================================
+   Master Sports CC Name Columns Definition
+   ============================================ */
+export const MasterSportsCCNameColumns: ColumnDef<SportsCCNameDTO>[] = [
     {
-        id: 'slNo',
-        header: 'SL.NO',
-        cell: ({ row }) => row.index + 1,
-        enableSorting: false,
+        accessorKey: 'spccmscC_Id',
+        id: 'SPCCMSCC_Id',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='pl-6'>{continuousIndex}</div>;
+        },
+        enableSorting: true,
+        enableHiding: false
     },
     {
         accessorKey: 'groupName',
-        header: ({ column }) => {
-            return (
-                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                    Group Name
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-            );
-        },
+        id: 'groupName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Group Name' />,
+        enableSorting: true
     },
     {
         accessorKey: 'spccmscC_SportsCCName',
-        header: ({ column }) => {
-            return (
-                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                    Sports Name
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-            );
-        },
+        id: 'SPCCMSCC_SportsCCName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sports Name' />,
+        enableSorting: true
     },
     {
         accessorKey: 'spccmscC_SportsCCDesc',
-        header: ({ column }) => {
-            return (
-                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                    Description
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-            );
-        },
+        id: 'SPCCMSCC_SportsCCDesc',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Description' />,
+        enableSorting: true
     },
     {
         accessorKey: 'spccmscC_SGFlag',
-        header: ({ column }) => {
-            return (
-                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                    SG Flag
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-            );
-        },
+        id: 'SPCCMSCC_SGFlag',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SG Flag' />,
+        enableSorting: true
     },
     {
         accessorKey: 'spccmscC_NoOfMembers',
-        header: ({ column }) => {
-            return (
-                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                    No.Of Members
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-            );
-        },
+        id: 'SPCCMSCC_NoOfMembers',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='No.Of Members' />,
+        enableSorting: true
     },
     {
         accessorKey: 'spccmscC_RecHighLowFlag',
-        header: ({ column }) => {
-            return (
-                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                    High/Low Flag
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-            );
-        },
+        id: 'SPCCMSCC_RecHighLowFlag',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='High/Low Flag' />,
+        enableSorting: true
     },
     {
         id: 'actions',
-        header: 'Action',
-        cell: ({ row }) => {
-            const data = row.original;
-            return (
-                <div className="flex items-center space-x-2">
-                    <Button variant="ghost" size="icon" onClick={() => onEdit(data)}>
-                        <Pencil className="h-4 w-4 text-primary" />
-                    </Button>
-                    <div className="flex items-center space-x-1">
-                        <Switch
-                            checked={data.spccmscC_ActiveFlag}
-                            onCheckedChange={() => onDelete(data)}
-                        />
-                        <span className={data.spccmscC_ActiveFlag ? "text-green-600 text-xs" : "text-red-600 text-xs"}>
-                            {data.spccmscC_ActiveFlag ? 'Active' : 'Inactive'}
-                        </span>
-                    </div>
-                </div>
-            );
-        },
-    },
+        header: 'Actions',
+        cell: ActionsCell
+    }
 ];

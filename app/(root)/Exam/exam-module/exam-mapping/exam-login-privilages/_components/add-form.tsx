@@ -24,7 +24,7 @@ import type { IMasterClassSectionDropDown } from '@/types/admission/preadmission
 import type { IExamLoginPrivileges } from '@/types/exam/exam-module/exam-mapping';
 import type { IClass } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Edit, Trash2, RefreshCw } from 'lucide-react';
+import { Edit, RefreshCw, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, FormProvider, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -120,10 +120,8 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                 setEditMode('edit');
                 setDisableClassSection(true);
                 console.info(rowData.elP_Id, rowData.asmcL_Id, rowData.asmS_Id);
-                console.log("selected rowData", rowData);
                 // Call API to get edit details
                 const editData = await getExamLoginPrivilegesEditDetails(rowData.elP_Id, rowData.asmcL_Id, rowData.asmS_Id);
-                console.log("editData", editData);
                 if (editData?.success && Array.isArray(editData.data) && editData.data.length > 0) {
                     const editList = Array.isArray(editData.data) ? editData.data : [editData.data];
                     const isSubjectTeacherOrOthers = editList?.[0]?.elP_Flg === 'st' || editList?.[0]?.elP_Flg === 'others';
@@ -138,7 +136,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                     const employeeName = employee?.hrmE_EmployeeName ?? rowData?.hrmE_EmployeeName ?? '';
 
                     const userId = editList[0].ivrmulF_Id;
-                    const subSubjectItem = subSubjects?.find((sub: any) => sub.ismSS_Id === editList[0].ismSS_Id);
+                    const _subSubjectItem = subSubjects?.find((sub: any) => sub.ismSS_Id === editList[0].ismSS_Id);
                     console.info(employee);
                     // Determine entry type based on elP_Flg
                     let entryType = 'BY_CLASS_TEACHER';
@@ -160,8 +158,6 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                     const selectedSections: any[] = [];
 
                     editList.forEach((item: any) => {
-                        // Add class
-                        console.log("item", item);
                         const classItem = classes.find((c) => c.asmcL_Id === item.asmcL_Id);
                         const subject = subjects.find((s) => s.ismS_Id === item.ismS_Id);
                         const subSubject = subSubjects.find((ss) => ss.emsS_Id === item.emsS_Id);
@@ -225,7 +221,6 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                             group.subSubjects.add(selectedSubSubjects.get(item.emsS_Id));
                         }
                     });
-                    console.log("classSectionMap", classSectionMap);
                     // Create detail rows
                     // biome-ignore lint/correctness/noUnusedVariables: <explanation>
                     classSectionMap.forEach((group, key) => {
@@ -391,8 +386,8 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
             Array.isArray(v.classList) && v.classList.length
                 ? v.classList
                 : v.asmcL_Id
-                    ? classes.filter((c) => c.asmcL_Id === v.asmcL_Id)
-                    : [];
+                  ? classes.filter((c) => c.asmcL_Id === v.asmcL_Id)
+                  : [];
 
         if (rawClasses.length === 0) {
             toast.error('No classes selected');
@@ -413,9 +408,9 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
         // FIXED: Use emsS_Id instead of issS_Id
         const selectedSSubjects: any[] = Array.isArray(v.subSubjectList)
             ? v.subSubjectList.map((ss: any) => ({
-                emsS_Id: ss.emsS_Id,
-                emsS_SubSubjectName: ss.emsS_SubSubjectName || ''
-            }))
+                  emsS_Id: ss.emsS_Id,
+                  emsS_SubSubjectName: ss.emsS_SubSubjectName || ''
+              }))
             : [];
 
         const rows: DetailRow[] = [];
@@ -427,7 +422,9 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                     yearid: v.asmaY_Id ?? 0,
                     user_id: v.ivrmulF_Id ?? 0,
                     year: academicYear?.data?.find((y: any) => y.asmaY_Id === v.asmaY_Id)?.asmaY_Year ?? '',
-                    emp_name: (activeTab === 0 ? classTeachersData?.data : employeeData?.data)?.find((e: any) => e.hrmE_Id === v.hrmE_Id)?.hrmE_EmployeeName ?? '',
+                    emp_name:
+                        (activeTab === 0 ? classTeachersData?.data : employeeData?.data)?.find((e: any) => e.hrmE_Id === v.hrmE_Id)
+                            ?.hrmE_EmployeeName ?? '',
                     emp_Id: v.hrmE_Id ?? 0,
                     elpflg: activeTab === 0 ? 'ct' : activeTab === 1 ? 'st' : 'others',
                     clas: cls,
@@ -515,7 +512,9 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
             ssub: Array.isArray(v.subSubjectList) ? v.subSubjectList : details[rowIndex].ssub,
             yearid: v.asmaY_Id ?? details[rowIndex].yearid,
             user_id: v.ivrmulF_Id ?? details[rowIndex].user_id,
-            emp_name: (activeTab === 0 ? classTeachersData?.data : employeeData?.data)?.find((e: any) => e.hrmE_Id === v.hrmE_Id)?.hrmE_EmployeeName ?? details[rowIndex].emp_name,
+            emp_name:
+                (activeTab === 0 ? classTeachersData?.data : employeeData?.data)?.find((e: any) => e.hrmE_Id === v.hrmE_Id)
+                    ?.hrmE_EmployeeName ?? details[rowIndex].emp_name,
             emp_Id: v.hrmE_Id ?? details[rowIndex].emp_Id,
             elpflg: activeTab === 0 ? 'ct' : activeTab === 1 ? 'st' : 'others'
         };
@@ -648,7 +647,11 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                 {/* FIXED: Display emsS_SubSubjectName */}
                                 <td className='border p-2'>{(d.ssub || []).map((ss) => ss.emsS_SubSubjectName).join(', ')}</td>
                                 <td className='border p-2 text-center'>
-                                    {d.elpflg === 'BY_CLASS_TEACHER' || d.elpflg === 'ct' ? 'Class Teacher' : d.elpflg === 'BY_SUBJECT_TEACHER' || d.elpflg === 'st' ? 'Subject Teacher' : 'Others'}
+                                    {d.elpflg === 'BY_CLASS_TEACHER' || d.elpflg === 'ct'
+                                        ? 'Class Teacher'
+                                        : d.elpflg === 'BY_SUBJECT_TEACHER' || d.elpflg === 'st'
+                                          ? 'Subject Teacher'
+                                          : 'Others'}
                                 </td>
                                 <td className='border p-2'>
                                     <div className='flex justify-center gap-2'>
@@ -1070,16 +1073,16 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                             <div className='flex w-fit justify-center gap-3'>
                                 {editingId ? (
                                     <>
-                                        <Button type='button' onClick={handleUpdateRow}>
+                                        <Button type='button' onClick={handleUpdateRow} className='w-fit'>
                                             Update Row
                                         </Button>
-                                        <Button type='button' variant='outline' onClick={cancelEdit}>
+                                        <Button type='button' variant='outline' onClick={cancelEdit} className='w-fit'>
                                             Cancel Edit
                                         </Button>
                                     </>
                                 ) : (
                                     <>
-                                        <Button type='button' onClick={handleAddRows}>
+                                        <Button type='button' onClick={handleAddRows} className='w-fit'>
                                             + ADD
                                         </Button>
                                         <Button
@@ -1109,7 +1112,8 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                 setActiveTab(0);
                                                 setDisableClassSection(false);
                                                 setEditingId(null);
-                                            }}>
+                                            }}
+                                            className='w-fit'>
                                             Reset
                                         </Button>
                                     </>
@@ -1131,14 +1135,14 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                             <div className='overflow-x-auto'>{detailsTable}</div>
                             <div className='mt-5 flex w-full justify-center'>
                                 <div className='w-fit'>
-                                    <Button type='button' disabled={isSubmitting} onClick={() => onSubmit(getValues())}>
+                                    <Button type='button' disabled={isSubmitting} onClick={() => onSubmit(getValues())} className='w-fit'>
                                         {isSubmitting
                                             ? editMode === 'edit'
                                                 ? 'Updating...'
                                                 : 'Saving...'
                                             : editMode === 'edit'
-                                                ? 'Update'
-                                                : 'Save'}
+                                              ? 'Update'
+                                              : 'Save'}
                                     </Button>
 
                                     {editMode === 'edit' && (
@@ -1164,7 +1168,8 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                 onClick={() => {
                                     setConfirmOpen(false);
                                     setDeleteIndex(null);
-                                }}>
+                                }}
+                                className='w-fit'>
                                 Cancel
                             </Button>
                             <Button
@@ -1173,7 +1178,8 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                     handleDeleteRowByIndex(deleteIndex);
                                     setConfirmOpen(false);
                                     setDeleteIndex(null);
-                                }}>
+                                }}
+                                className='w-fit'>
                                 Yes, Delete
                             </Button>
                         </div>

@@ -18,7 +18,7 @@ import type { IPreadmissionApplicationList } from '@/types/admission/preadmissio
 import { CheckSquare } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { parseAsString, useQueryState } from 'nuqs';
-import { use, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { ApplicationStatusUpdateDialog } from './_components/application-status-update-form';
 import { transferApplicationColumns } from './_components/columns';
@@ -26,7 +26,7 @@ import { transferApplicationColumns } from './_components/columns';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function TransferApplicationStatusPage(props: { searchParams: SearchParams }) {
-    const searchParams = use(props.searchParams);
+    const searchParams = (React as any).use(props.searchParams);
     const router = useRouter();
     const pathname = usePathname();
 
@@ -44,6 +44,8 @@ export default function TransferApplicationStatusPage(props: { searchParams: Sea
         } else {
             setStatusId(value);
         }
+
+        handleResetSelection();
 
         // Reset to page 1 when filter changes
         const params = new URLSearchParams(searchParams as any);

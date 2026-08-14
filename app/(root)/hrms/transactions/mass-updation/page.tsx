@@ -283,6 +283,7 @@ export default function MassUpdationPage() {
         setHasSearched(false);
         setEmployees([]);
         setSelectedEmployeeIds([]);
+        setLocalSearch('');
         reset({
             groupType: [],
             department: [],
@@ -395,9 +396,9 @@ export default function MassUpdationPage() {
                         <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
                             <div className='space-y-3'>
                                 <Label className='font-semibold'>Group Type <span className='text-destructive'>*</span></Label>
-                                <Controller name='groupType' control={control} render={({ field }) => (
+                                <Controller name='groupType' control={control} rules={{ required: true }} render={({ field }) => (
                                     <MultiSelect
-                                        options={[{ label: 'All', value: 'All' }, ...groupTypes.map((gt: any) => ({ label: gt.HRMGT_EmployeeGroupType, value: gt.HRMGT_Id?.toString() || '' }))]}
+                                        options={[ ...groupTypes.map((gt: any) => ({ label: gt.HRMGT_EmployeeGroupType, value: gt.HRMGT_Id?.toString() || '' }))]}
                                         defaultValue={Array.isArray(field.value) ? field.value : []}
                                         onValueChange={field.onChange}
                                         placeholder='Select Group Types'
@@ -407,9 +408,9 @@ export default function MassUpdationPage() {
                             </div>
                             <div className='space-y-3'>
                                 <Label className='font-semibold'>Department <span className='text-destructive'>*</span></Label>
-                                <Controller name='department' control={control} render={({ field }) => (
+                                <Controller name='department' control={control} rules={{ required: true }} render={({ field }) => (
                                     <MultiSelect
-                                        options={[{ label: 'All', value: 'All' }, ...departments.map((d: any) => ({ label: d.HRMD_DepartmentName, value: d.HRMD_Id?.toString() || '' }))]}
+                                        options={[ ...departments.map((d: any) => ({ label: d.HRMD_DepartmentName, value: d.HRMD_Id?.toString() || '' }))]}
                                         defaultValue={Array.isArray(field.value) ? field.value : []}
                                         onValueChange={field.onChange}
                                         placeholder='Select Departments'
@@ -419,9 +420,9 @@ export default function MassUpdationPage() {
                             </div>
                             <div className='space-y-3'>
                                 <Label className='font-semibold'>Designation <span className='text-destructive'>*</span></Label>
-                                <Controller name='designation' control={control} render={({ field }) => (
+                                <Controller name='designation' control={control} rules={{ required: true }} render={({ field }) => (
                                     <MultiSelect
-                                        options={[{ label: 'All', value: 'All' }, ...designations.map((d: any) => ({ label: d.HRMDES_DesignationName, value: d.HRMDES_Id?.toString() || '' }))]}
+                                        options={[ ...designations.map((d: any) => ({ label: d.HRMDES_DesignationName, value: d.HRMDES_Id?.toString() || '' }))]}
                                         defaultValue={Array.isArray(field.value) ? field.value : []}
                                         onValueChange={field.onChange}
                                         placeholder='Select Designations'
@@ -430,10 +431,18 @@ export default function MassUpdationPage() {
                                 )} />
                             </div>
                         </div>
-                        <div className='flex justify-end'>
+                        <div className='flex justify-end gap-2'>
                             <Button type='submit' className='w-32' disabled={isSearching}>
                                 {isSearching ? <RefreshCw className='h-4 w-4 animate-spin mr-2' /> : <Search className='h-4 w-4 mr-2' />}
                                 Search
+                            </Button>
+                            <Button
+                                type='button'
+                                variant='outline'
+                                onClick={handleCancel}
+                                className='w-32 text-orange-600 hover:bg-orange-50 hover:text-orange-700 shadow-md hover:shadow-orange-200/50 transition-all rounded-xl '>
+                                <X className='h-4 w-4 mr-2' />
+                                CANCEL
                             </Button>
                         </div>
                     </form>
@@ -448,7 +457,7 @@ export default function MassUpdationPage() {
                                 <div className='space-y-6 pt-2'>
                                     <div className='space-y-2'>
                                         <Label>Earning / Deduction <span className='text-destructive'>*</span></Label>
-                                        <Controller name="earningDeduction" control={control} render={({ field }) => (
+                                        <Controller name="earningDeduction" control={control} rules={{ required: true }} render={({ field }) => (
                                             <RadioGroup
                                                 value={field.value}
                                                 onValueChange={(val) => {
@@ -471,7 +480,7 @@ export default function MassUpdationPage() {
 
                                     <div className='space-y-2'>
                                         <Label>Amount / Percentage <span className='text-destructive'>*</span></Label>
-                                        <Controller name="amountType" control={control} render={({ field }) => (
+                                        <Controller name="amountType" control={control} rules={{ required: true }} render={({ field }) => (
                                             <RadioGroup
                                                 value={field.value}
                                                 onValueChange={(val) => {
@@ -494,7 +503,7 @@ export default function MassUpdationPage() {
 
                                     <div className='space-y-2'>
                                         <Label>Head <span className='text-destructive'>*</span></Label>
-                                        <Controller name="selectedHead" control={control} render={({ field }) => (
+                                        <Controller name="selectedHead" control={control} rules={{ required: true }} render={({ field }) => (
                                             <Select onValueChange={field.onChange} value={field.value}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="Select Head" />
@@ -528,7 +537,7 @@ export default function MassUpdationPage() {
 
                                     <div className='space-y-2 border-t pt-4'>
                                         <Label>Action <span className='text-destructive'>*</span></Label>
-                                        <Controller name="addRemove" control={control} render={({ field }) => (
+                                        <Controller name="addRemove" control={control} rules={{ required: true }} render={({ field }) => (
                                             <RadioGroup
                                                 value={field.value}
                                                 onValueChange={field.onChange}

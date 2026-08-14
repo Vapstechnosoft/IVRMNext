@@ -5,7 +5,7 @@ import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
 
-import { useMasterLibrary } from '@/hooks/library/useMasters';
+import { useMasterPublisherList } from '@/hooks/library/useMasters';
 
 import { masterPublisherSchema } from '@/schemas/library/masters';
 import { addOrUpdateMasterPublisher } from '@/server/library/masters/master_publisher';
@@ -23,9 +23,7 @@ interface AddMasterPublisherFormProps {
 }
 
 export default function AddMasterPublisherForm({ onSuccess, className = '' }: AddMasterPublisherFormProps) {
-    //const { refetchAll: refetchMasterCasteCategoryCode } = useMasterLibrary();
-
-    const { refetchAll } = useMasterLibrary();
+    const { refetchAll } = useMasterPublisherList();
 
     const {
         register,
@@ -37,27 +35,23 @@ export default function AddMasterPublisherForm({ onSuccess, className = '' }: Ad
         mode: 'onChange'
     });
 
-    const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
+    const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const { lmP_PublisherName } = data;
-            const payload = {
-                lmP_Id: 0,
-                lmP_PublisherName: lmP_PublisherName
-            };
-
-            const response = await addOrUpdateMasterPublisher(payload);
+            const response = await addOrUpdateMasterPublisher({
+                ...data,
+                lmP_Id: 0
+            });
 
             if (response.success) {
-                toast.success(response.message);
+                toast.success(response.message || 'Master Publisher saved successfully');
                 reset();
-                //refetchMasterCasteCategoryCode();
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(response.message);
+                toast.error(response.message || 'Failed to save Master Publisher');
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error.message || 'Something went wrong');
         }
     };
 
@@ -74,23 +68,20 @@ export default function AddMasterPublisherForm({ onSuccess, className = '' }: Ad
                             label='Publisher Name'
                             required
                             id='lmP_PublisherName'
-                            placeholder='Enter publisher name'
+                            placeholder='e.g. Oxford University Press'
                             {...register('lmP_PublisherName')}
                             error={errors.lmP_PublisherName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                         <InputText
-                            label='Email Id :'
+                            label='Email Id'
                             id='lmP_EMailId'
-                            placeholder='Enter publisher email'
+                            placeholder='e.g. contact@publisher.com'
                             {...register('lmP_EMailId')}
                             error={errors.lmP_EMailId?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>
-
-                    {/* Root Error */}
-                    {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
                 <div className='space-y-4'>
@@ -98,39 +89,35 @@ export default function AddMasterPublisherForm({ onSuccess, className = '' }: Ad
                         <InputText
                             label='Mobile No'
                             id='lmP_MobileNo'
-                            placeholder='Enter mobile number'
+                            placeholder='10-digit mobile number'
+                            maxLength={10}
+                            onKeyDown={(e) => {
+                                if (e.key.length === 1 && !/^[0-9]$/.test(e.key) && !e.ctrlKey && !e.metaKey) {
+                                    e.preventDefault();
+                                }
+                            }}
+                            onInput={(e: React.FormEvent<HTMLInputElement>) => {
+                                e.currentTarget.value = e.currentTarget.value.replace(/\D/g, '').slice(0, 10);
+                            }}
                             {...register('lmP_MobileNo')}
                             error={errors.lmP_MobileNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-                        <InputTextarea
-                            label='Address'
-                            id='lmP_Address'
-                            placeholder='Enter address'
-                            {...register('lmP_Address')}
-                            error={errors.lmP_Address?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
                     </div>
-
-                    {/* Root Error */}
-                    {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
                 <div className='space-y-4'>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <InputText
-                            label='Phone No:'
-                            id='lmP_PhoneNo'
-                            placeholder='Enter phone number'
-                            {...register('lmP_PhoneNo')}
-                            error={errors.lmP_PhoneNo?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                    </div>
+                    <InputTextarea
+                        label='Address'
+                        id='lmP_Address'
+                        placeholder='Enter the complete office address'
+                        {...register('lmP_Address')}
+                        error={errors.lmP_Address?.message}
+                        className='transition-colors focus:ring-2 focus:ring-primary/20'
+                    />
 
                     {/* Root Error */}
-                    {errors.root && <FormError>{errors.root.message}</FormError>}
+                    {errors.root?.message && <FormError>{errors.root.message}</FormError>}
                 </div>
 
                 {/* Action Buttons */}

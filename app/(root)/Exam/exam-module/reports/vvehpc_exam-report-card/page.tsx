@@ -2,9 +2,8 @@
 
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { getExamReportCard, getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
-import type { IExamReportCard, IMasterInstitution, Institution, ISubject } from '@/types/exam/exam-module/report';
-import { Printer } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import type { IExamReportCard, IMasterInstitution, ISubject, Institution } from '@/types/exam/exam-module/report';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import ProgressCardReportForm from './_components/add-form';
 import ProgressCardReport from './_components/progress-card-report';
@@ -24,29 +23,31 @@ export default function ProgressCardReportPage() {
         if (isReportVisible && printRef.current) {
             printRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-    })
+    });
 
     const handleReportSuccess = async (payload: any) => {
         try {
-            console.log('Progress Card Report payload:', payload);
             const res = await getExamReportCard(payload);
-            if (!res?.success || !Array.isArray(res?.data) || res.data.length === 0) {
-                //toast.error('No records found');
+            const apiData = res?.data;
+            const flatRows: any[] =
+                apiData?.list ||
+                apiData?.savelist ||
+                apiData?.studentlist ||
+                apiData?.grid_list ||
+                (Array.isArray(apiData) ? apiData : Array.isArray(res) ? res : []);
+
+            if (!flatRows || !Array.isArray(flatRows) || flatRows.length === 0) {
+                toast.error('No records found for the selected criteria');
                 setIsReportVisible(false);
-                //return;
+                return;
             }
-            console.log('progress card report api response', res);
-
-            const flatRows: any[] = res.data;
-
-            //const flatRows: any[] = generateStaticData();
-            console.log('progress card report response Data', flatRows);
 
             const studentMap = new Map<number, IExamReportCard>();
             const subjectMap = new Map<number, ISubject>();
 
             flatRows.forEach((row) => {
                 const studentId = row.amsT_Id;
+                if (!studentId) return;
 
                 // Build unique subjects
                 if (row.ismS_Id && !subjectMap.has(row.ismS_Id)) {
@@ -65,7 +66,7 @@ export default function ProgressCardReportPage() {
                 if (!studentMap.has(studentId)) {
                     studentMap.set(studentId, {
                         amsT_Id: studentId,
-                        amsT_FirstName: row.amsT_FirstName.trim(),
+                        amsT_FirstName: (row.amsT_FirstName || '').trim(),
                         amsT_FatherName: row.amsT_FatherName || 'N/A',
                         amsT_DOB: row.amsT_DOB,
                         amaY_RollNo: row.amaY_RollNo,
@@ -105,18 +106,20 @@ export default function ProgressCardReportPage() {
                 .sort((a, b) => (a.eyceS_SubjectOrder ?? 999) - (b.eyceS_SubjectOrder ?? 999));
 
             const firstRow = flatRows[0];
+            if (!firstRow) {
+                toast.error('No records found for the selected criteria');
+                setIsReportVisible(false);
+                return;
+            }
 
             setSubjects(filteredSubjects);
             setReportData(Array.from(studentMap.values()));
-            const safeReportData = Array.from(studentMap.values());
-            console.log('reportData', safeReportData);
-            console.log(reportData);
             setHeaderInfo({
-                cla: firstRow.asmcL_ClassName,
-                sec: firstRow.asmC_SectionName
+                cla: firstRow?.asmcL_ClassName || '',
+                sec: firstRow?.asmC_SectionName || ''
             });
-            setExamName(firstRow.emE_ExamName || 'Progress Card');
-            setYear(firstRow.asmaY_Year || new Date().getFullYear().toString());
+            setExamName(firstRow?.emE_ExamName || 'Progress Card');
+            setYear(firstRow?.asmaY_Year || new Date().getFullYear().toString());
             setIsReportVisible(true);
             toast.success(`${studentMap.size} progress card(s) generated successfully!`);
         } catch (e: any) {
@@ -127,13 +130,13 @@ export default function ProgressCardReportPage() {
     };
 
     // 🔥 STATIC MOCK DATA (100 Students × 5 Subjects)
-    const generateStaticData = () => {
+    const _generateStaticData = () => {
         const subjects = [
-            { id: 101, name: "Mathematics", order: 1 },
-            { id: 102, name: "Science", order: 2 },
-            { id: 103, name: "English", order: 3 },
-            { id: 104, name: "Social", order: 4 },
-            { id: 105, name: "Computer", order: 5 }
+            { id: 101, name: 'Mathematics', order: 1 },
+            { id: 102, name: 'Science', order: 2 },
+            { id: 103, name: 'English', order: 3 },
+            { id: 104, name: 'Social', order: 4 },
+            { id: 105, name: 'Computer', order: 5 }
         ];
 
         const rows: any[] = [];
@@ -151,16 +154,16 @@ export default function ProgressCardReportPage() {
                     amsT_Id: 15000 + i,
                     amsT_FirstName: `Student ${i}`,
                     amsT_FatherName: `Father ${i}`,
-                    amsT_DOB: "2016-01-01T00:00:00",
+                    amsT_DOB: '2016-01-01T00:00:00',
                     amaY_RollNo: i,
                     amsT_AdmNo: `ADM${i}`,
                     amsT_RegistrationNo: `REG${i}`,
 
                     // Class Info
-                    asmcL_ClassName: "ClassnRhd",
-                    asmC_SectionName: "AAAA",
-                    emE_ExamName: "Vaps Exam1(Raju)",
-                    asmaY_Year: "2025",
+                    asmcL_ClassName: 'ClassnRhd',
+                    asmC_SectionName: 'AAAA',
+                    emE_ExamName: 'Vaps Exam1(Raju)',
+                    asmaY_Year: '2025',
 
                     // Subject Info
                     ismS_Id: sub.id,
@@ -173,39 +176,33 @@ export default function ProgressCardReportPage() {
                     // Marks
                     estmpS_MaxMarks: 100,
                     estmpS_ObtainedMarks: marks,
-                    estmpS_ObtainedGrade: "",
+                    estmpS_ObtainedGrade: '',
                     estmpS_PassFailFlg: marks >= 35,
 
                     // Totals
                     estmP_TotalMaxMarks: totalMax,
                     estmP_TotalObtMarks: 0, // temp
                     estmP_Percentage: 0,
-                    estmP_TotalGrade: "",
-                    estmP_Result: "",
+                    estmP_TotalGrade: '',
+                    estmP_Result: '',
                     estmP_ClassRank: i,
                     estmP_SectionRank: i,
                     asA_ClassHeld: 46,
                     asA_Class_Attended: 44,
-                    emgD_Remarks: "Good"
+                    emgD_Remarks: 'Good'
                 });
             });
 
             // Update totals for this student
             const percentage = Math.round((totalObt / totalMax) * 100);
-            const grade =
-                percentage >= 90 ? "A+" :
-                    percentage >= 75 ? "A" :
-                        percentage >= 60 ? "B" :
-                            percentage >= 50 ? "C" : "D";
+            const grade = percentage >= 90 ? 'A+' : percentage >= 75 ? 'A' : percentage >= 60 ? 'B' : percentage >= 50 ? 'C' : 'D';
 
-            rows
-                .filter(r => r.amsT_Id === 15000 + i)
-                .forEach(r => {
-                    r.estmP_TotalObtMarks = totalObt;
-                    r.estmP_Percentage = percentage;
-                    r.estmP_TotalGrade = grade;
-                    r.estmP_Result = percentage >= 35 ? "Pass" : "Fail";
-                });
+            rows.filter((r) => r.amsT_Id === 15000 + i).forEach((r) => {
+                r.estmP_TotalObtMarks = totalObt;
+                r.estmP_Percentage = percentage;
+                r.estmP_TotalGrade = grade;
+                r.estmP_Result = percentage >= 35 ? 'Pass' : 'Fail';
+            });
         }
 
         return rows;
@@ -218,15 +215,12 @@ export default function ProgressCardReportPage() {
                 const { data: institution_data } = institution_res;
                 setInstitution(institution_data);
             } catch (error) {
-                console.error("Error fetching institution:", error);
+                console.error('Error fetching institution:', error);
             }
         };
 
         fetchInstitution();
     }, []);
-
-
-
 
     const handlePrint = () => window.print();
 

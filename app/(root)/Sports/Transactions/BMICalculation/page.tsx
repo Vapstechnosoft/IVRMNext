@@ -16,11 +16,16 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function BMICalculationPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useBMICalculation(searchParams);
+    const { loadData, refetchAll } = useBMICalculation(searchParams);
 
     return (
         <FormProvider<IBMICalculation>>
-            <BMICalculationPageContent response={response} isLoading={isLoading} error={error} />
+            <BMICalculationPageContent 
+                response={loadData.data} 
+                isLoading={loadData.isPending || loadData.isFetching} 
+                error={loadData.error} 
+                refetchAll={refetchAll} 
+            />
         </FormProvider>
     );
 }
@@ -28,11 +33,13 @@ export default function BMICalculationPage(props: { searchParams: SearchParams }
 function BMICalculationPageContent({
     response,
     isLoading,
-    error
+    error,
+    refetchAll
 }: {
     response: any;
     isLoading: boolean;
     error: any;
+    refetchAll: any;
 }) {
     const { openAddForm, isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
         useFormContext<IBMICalculation>();
@@ -92,7 +99,7 @@ function BMICalculationPageContent({
                         columns={bmiCalculationColumns}
                         isLoading={isLoading}
                         error={error}
-                        //manualPagination={false}
+                        showSearchColumns={true}
                         showViewOptions={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading BMI data...'

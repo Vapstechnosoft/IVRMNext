@@ -17,11 +17,16 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterEventPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error, refetchAll } = useMasterEvents(searchParams);
+    const { loadData, refetchAll } = useMasterEvents(searchParams);
 
     return (
         <FormProvider<IMasterEvent>>
-            <MasterEventPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
+            <MasterEventPageContent 
+                response={loadData.data} 
+                isLoading={loadData.isPending || loadData.isFetching} 
+                error={loadData.error} 
+                refetchAll={refetchAll} 
+            />
         </FormProvider>
     );
 }
@@ -77,6 +82,7 @@ function MasterEventPageContent({
                         columns={MasterEventColumns}
                         isLoading={isLoading}
                         error={error}
+                        showSearchColumns={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading master events...'
                         noDataTitle='No Master Events Found'

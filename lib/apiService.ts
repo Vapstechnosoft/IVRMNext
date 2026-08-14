@@ -8,6 +8,7 @@ export interface ApiResponse<T> extends Partial<PaginationData> {
     success: boolean;
     message: string;
     data: T | null;
+    rawResponse?: any; // Added to preserve full legacy response
     [key: string]: unknown;
 }
 
@@ -47,7 +48,9 @@ export type ApiBaseUrlKey =
     | 'hostel'
     | 'coe'
     | 'lessonplanner'
-    | 'transport';
+    | 'transport'
+    | 'pettycashandassettracking'
+    | 'hrmsrecruitment';
 
 class ApiService {
     private instances: Map<string, AxiosInstance>;
@@ -77,7 +80,9 @@ class ApiService {
             coe: process.env.NEXT_PUBLIC_COE_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             portal: process.env.NEXT_PUBLIC_PORTAL_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             lessonplanner: process.env.NEXT_PUBLIC_LESSONPLANNER_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
-            transport: process.env.NEXT_PUBLIC_TRANSPORT_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || ''
+            transport: process.env.NEXT_PUBLIC_TRANSPORT_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            pettycashandassettracking: process.env.NEXT_PUBLIC_PETTYCASH_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            hrmsrecruitment: process.env.NEXT_PUBLIC_HRMS_RECRUITMENT_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || ''
         };
 
         // Debug: info base URLs in development
@@ -106,15 +111,15 @@ class ApiService {
             // Create config with optional SSL bypass for localhost in development
             const config: AxiosRequestConfig = {
                 baseURL,
-                timeout: 60000,
+                timeout: 180000,
                 headers: {
                     'Content-Type': 'application/json',
                     Accept: '*/*'
                 }
             };
 
-            // Add SSL bypass for localhost in development mode
-            if (isLocalhost && process.env.NODE_ENV === 'development' && typeof window === 'undefined') {
+            // Add SSL bypass for localhost in development/local mode
+            if (isLocalhost && typeof window === 'undefined') {
                 // biome-ignore lint/style/useNodejsImportProtocol: <explanation>
                 const https = require('https');
                 config.httpsAgent = new https.Agent({
@@ -142,8 +147,23 @@ class ApiService {
 
                     if (typeof window !== 'undefined') {
                         // Client-side: use getSession from next-auth/react
-                        const { getSession } = await import('next-auth/react');
+                        const { getSession, signOut } = await import('next-auth/react');
                         const session = await getSession();
+
+                        // Check if the session is expired pre-emptively
+                        // @ts-ignore
+                        if (session && session.expires_at) {
+                            const currentTimestamp = Math.round(Date.now() / 1000);
+                            // @ts-ignore
+                            if (currentTimestamp >= session.expires_at) {
+                                const Swal = (await import('sweetalert2')).default;
+                                await signOut({ redirect: false });
+                                await Swal.fire("Your Session has been Expired.....Please Re-login");
+                                window.location.href = '/sign-in';
+                                return Promise.reject(new Error("Session Expired"));
+                            }
+                        }
+
                         token = session?.token;
                     } else {
                         // Server-side: use auth from @/lib/auth
@@ -170,10 +190,14 @@ class ApiService {
             async (error) => {
                 if (error.response?.status === 401) {
                     try {
-                        await signOut();
-                        // Only redirect in browser environment
                         if (typeof window !== 'undefined') {
+                            const { signOut } = await import('next-auth/react');
+                            const Swal = (await import('sweetalert2')).default;
+                            await signOut({ redirect: false });
+                            await Swal.fire("Your Session has been Expired.....Please Re-login");
                             window.location.href = '/sign-in';
+                        } else {
+                            await signOut(); // uses the server-side signOut from top import
                         }
                     } catch (refreshError) {
                         console.error('Error refreshing session:', refreshError);
@@ -202,6 +226,27 @@ class ApiService {
                 `SSL Certificate Error: ${error.message}. ` +
                 'For local development, make sure the ApiService is configured to bypass SSL validation.'
             );
+        }
+
+        // Format detailed validation errors from dotnet if present
+        if (error?.response?.data?.errors) {
+            const validationErrors = Object.entries(error.response.data.errors)
+                .map(([field, msgs]) => `${field}: ${(msgs as string[]).join(', ')}`)
+                .join(' | ');
+            if (validationErrors) {
+                return `Validation Error: ${validationErrors}`;
+            }
+        }
+
+        if (error?.response?.data && typeof error.response.data === 'object') {
+            const dataStr = JSON.stringify(error.response.data);
+            if (dataStr && dataStr !== '{}' && dataStr.length < 300) {
+                return `API Error: ${dataStr}`;
+            }
+        }
+
+        if (typeof error === 'string') {
+            return error;
         }
 
         return error?.response?.data?.message || error?.message || 'An unknown error occurred.';
@@ -447,6 +492,14 @@ export function getSearchParamsUrl(searchParams: ApiSearchparams | undefined, se
             url += `&search_column=${encodeURIComponent(searchColumns)}`;
         } else if (search_columns && search_columns !== '') {
             url += `&search_column=${encodeURIComponent(search_columns)}`;
+        }
+    }
+
+    // Add any other arbitrary parameters from searchParams
+    const handledKeys = ['page', 'page_size', 'sort_column', 'sort_direction', 'search_query', 'search_columns', 'search_column'];
+    for (const key in searchParams) {
+        if (!handledKeys.includes(key) && searchParams[key] !== undefined && searchParams[key] !== null) {
+            url += `&${key}=${encodeURIComponent(String(searchParams[key]))}`;
         }
     }
 

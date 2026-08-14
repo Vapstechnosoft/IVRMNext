@@ -4,28 +4,29 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { fetchMasterSportsCCGroup } from '@/server/sports/masters/sports-cc-group';
+import { useMasterSportsCCGroup } from '@/hooks/sports/useMasterSportsCCGroup';
 import type { IMasterSportsCCGroup } from '@/types/sports/masters/sports-cc-group';
-import { useQuery } from '@tanstack/react-query';
 import { Plus, X } from 'lucide-react';
-import { useRef } from 'react';
+import { use, useRef } from 'react';
 import AddMasterSportsCCGroupForm from './_components/add-form';
 import { MasterSportsCCGroupColumns } from './_components/columns';
 import ToggleMasterSportsCCGroupForm from './_components/toggle-form';
 import UpdateMasterSportsCCGroupForm from './_components/update-form';
 
-export default function MasterSportsCCGroupPage() {
-    const { data: response, isLoading, error, refetch } = useQuery({
-        queryKey: ['masterSportsCCGroup'],
-        queryFn: async () => {
-            const result = await fetchMasterSportsCCGroup();
-            return result;
-        }
-    });
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default function MasterSportsCCGroupPage(props: { searchParams: SearchParams }) {
+    const searchParams = use(props.searchParams);
+    const { loadData, refetchAll } = useMasterSportsCCGroup(searchParams);
 
     return (
         <FormProvider<IMasterSportsCCGroup>>
-            <MasterSportsCCGroupPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetch} />
+            <MasterSportsCCGroupPageContent 
+                response={loadData.data} 
+                isLoading={loadData.isPending || loadData.isFetching} 
+                error={loadData.error} 
+                refetchAll={refetchAll} 
+            />
         </FormProvider>
     );
 }
@@ -39,7 +40,7 @@ function MasterSportsCCGroupPageContent({
     response: any;
     isLoading: boolean;
     error: any;
-    refetchAll: () => void;
+    refetchAll: any;
 }) {
     const {
         isAddFormOpen,
@@ -91,6 +92,7 @@ function MasterSportsCCGroupPageContent({
                         columns={MasterSportsCCGroupColumns}
                         isLoading={isLoading}
                         error={error}
+                        showSearchColumns={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading master sports cc groups...'
                         noDataTitle='No Records Found'

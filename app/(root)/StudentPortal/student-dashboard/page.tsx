@@ -32,12 +32,14 @@ import {
     achievementColumns,
     homeworkColumns,
     noticeColumns,
-    sportsColumns
+    sportsColumns,
+    classworkColumns
 } from './_components/columns';
 import { DashboardCharts } from './_components/dashboard-charts';
 import { DashboardWidget } from './_components/dashboard-widget';
 
 import { useStudentPortalInformation } from '@/hooks/staff-portal/useFeeOnlinePayment';
+import { useClasswork, useNoticeBoard } from '@/hooks/student-portal/useStudentDashboard';
 
 // Sample Data for Tables
 const mockNotices: NoticeBoardData[] = [
@@ -71,6 +73,27 @@ const mockAchievements: AchievementData[] = [
     { StudentName: 'John Doe', Class: 'X', Section: 'A', Date: '2023-12-15', Achievement: 'Best Coder' }
 ];
 
+const mockClasswork: AssignmentData[] = [
+    {
+        ismS_SubjectName: 'Mathematics',
+        icW_Topic: 'Algebra',
+        icW_SubTopic: 'Linear Equations',
+        icW_Content: 'Introduction to variables',
+        icW_FromDate: '2024-01-10',
+        icW_ToDate: '2024-01-15',
+        FilesCount: 1
+    },
+    {
+        ismS_SubjectName: 'Science',
+        icW_Topic: 'Biology',
+        icW_SubTopic: 'Cell Structure',
+        icW_Content: 'Plant vs Animal cells',
+        icW_FromDate: '2024-01-12',
+        icW_ToDate: '2024-01-18',
+        FilesCount: 2
+    }
+];
+
 import { useRouter } from 'next/navigation';
 
 export default function StudentDashboardPage() {
@@ -83,29 +106,14 @@ export default function StudentDashboardPage() {
 
     const { data: studentInfoDetails, isLoading, error } = useStudentPortalInformation();
 
-    console.log('studentInfoDetails', studentInfoDetails);
+    // The student object contains asmY_Id and amsT_Id but let's check what's available
+    const amstId = studentInfoDetails?.amsT_Id;
+    const asmayId = studentInfoDetails?.asmaY_Id;
 
-    // Use real API data or fallback to mock data
-    const student =
-        studentInfoDetails?.data && Array.isArray(studentInfoDetails.data) && studentInfoDetails.data.length > 0
-            ? {
-                  name: `${studentInfoDetails.data[0].amsT_FirstName} ${studentInfoDetails.data[0].amsT_LastName}`,
-                  class: studentInfoDetails.data[0].classname || 'N/A',
-                  section: studentInfoDetails.data[0].sectionname || 'N/A',
-                  admNo: studentInfoDetails.data[0].amsT_AdmNo || 'N/A',
-                  dob: studentInfoDetails.data[0].amsT_DOB || 'N/A',
-                  email: studentInfoDetails.data[0].amst_email_id || 'N/A',
-                  mobile: studentInfoDetails.data[0].amst_mobile?.toString() || 'N/A'
-              }
-            : {
-                  name: '',
-                  class: '',
-                  section: '',
-                  admNo: '',
-                  dob: '',
-                  email: '',
-                  mobile: ''
-              };
+    const { data: noticeBoardData, isLoading: isNoticeBoardLoading } = useNoticeBoard(amstId, asmayId);
+    const { data: classworkData, isLoading: isClassworkLoading } = useClasswork(amstId, asmayId);
+
+    console.log('studentInfoDetails', studentInfoDetails);
 
     const fees = {
         total: 50000,
@@ -124,7 +132,7 @@ export default function StudentDashboardPage() {
             <div className='flex items-center justify-between'>
                 <div>
                     <h2 className='font-bold text-3xl tracking-tight'>Student Dashboard</h2>
-                    <p className='text-muted-foreground'>Welcome back, {student.name}</p>
+                    <p className='text-muted-foreground'>Welcome back, {studentInfoDetails?.amsT_FirstName}</p>
                 </div>
             </div>
 
@@ -136,22 +144,23 @@ export default function StudentDashboardPage() {
                     icon={<User className='h-6 w-6' />}
                     colorClass='bg-green-500'
                     footerText='STUDENT PROFILE'
-                    onViewClick={() => {}}>
+                    onViewClick={() => { }}>
                     <div className='mt-2 text-slate-700 dark:text-slate-300'>
                         {isLoading ? (
                             <div className='space-y-2'>
                                 <div className='h-4 animate-pulse rounded bg-gray-200'></div>
                                 <div className='h-3 w-3/4 animate-pulse rounded bg-gray-200'></div>
                             </div>
-                        ) : error ? (
-                            <div className='text-red-500 text-sm'>Error loading student data</div>
                         ) : (
                             <>
-                                <h4 className='truncate font-semibold text-lg'>{student.name}</h4>
+                                <h4 className='truncate font-semibold text-lg'>
+                                    {studentInfoDetails?.amsT_FirstName} {studentInfoDetails?.amsT_MiddleName} {studentInfoDetails?.amsT_LastName}
+                                </h4>
                                 <p className='text-sm'>
-                                    {student.class} : {student.section}
+                                    {studentInfoDetails?.classname || 'N/A'} : {studentInfoDetails?.sectionname || 'N/A'}
                                 </p>
-                                <p className='text-gray-500 text-xs'>Adm No: {student.admNo}</p>
+                                {/* <p className='text-gray-500 text-xs'>Adm No: {studentInfoDetails?.amsT_AdmNo || 'N/A'}</p>
+                                <p className='text-gray-500 text-xs'>Reg No: {studentInfoDetails?.amsT_RegistrationNo || 'N/A'}</p> */}
                             </>
                         )}
                     </div>
@@ -186,7 +195,8 @@ export default function StudentDashboardPage() {
                     icon={<ClipboardList className='h-6 w-6' />}
                     colorClass='bg-yellow-500'
                     footerText='ATTENDANCE DETAILS'
-                    onViewClick={() => router.push('/StudentPortal/student-dashboard/EnrolledStudents/Transaction/AttendanceDetails')}>
+                    // onViewClick={() => router.push('/StudentPortal/student-dashboard/EnrolledStudents/Transaction/AttendanceDetails')}>
+                    onViewClick={() => router.push('/StudentPortal/masters/attendance-details')}>
                     <div className='mt-2 space-y-1 text-slate-700 text-sm dark:text-slate-300'>
                         <div className='flex justify-between'>
                             <span>Classes Held:</span>
@@ -209,7 +219,7 @@ export default function StudentDashboardPage() {
                     icon={<Calendar className='h-6 w-6' />}
                     colorClass='bg-pink-500'
                     footerText='VIEW CALENDAR OF EVENTS'
-                    onViewClick={() => {}}>
+                    onViewClick={() => { }}>
                     <div className='mt-4 flex justify-center'>
                         <p className='text-muted-foreground text-sm italic'>Check upcoming events & holidays</p>
                     </div>
@@ -248,7 +258,7 @@ export default function StudentDashboardPage() {
                     icon={<BookOpen className='h-6 w-6' />}
                     colorClass='bg-emerald-500'
                     footerText='VIEW CLASSWORK'
-                    onViewClick={() => {}}>
+                    onViewClick={() => openModal('CLASSWORK')}>
                     <div className='mt-2 space-y-2'>
                         <div className='text-center text-sm'>
                             <span className='text-muted-foreground'>Class Resources</span>
@@ -263,7 +273,7 @@ export default function StudentDashboardPage() {
                     icon={<Clock className='h-6 w-6' />}
                     colorClass='bg-pink-500'
                     footerText='VIEW TT'
-                    onViewClick={() => {}}>
+                    onViewClick={() => { }}>
                     <div className='mt-4 flex justify-center'>
                         <p className='text-muted-foreground text-sm italic'>Weekly Schedule</p>
                     </div>
@@ -274,7 +284,7 @@ export default function StudentDashboardPage() {
                     icon={<FileText className='h-6 w-6' />}
                     colorClass='bg-green-500'
                     footerText='VIEW SYLLABUS'
-                    onViewClick={() => {}}>
+                    onViewClick={() => { }}>
                     <div className='mt-4 flex justify-center'>
                         <p className='text-muted-foreground text-sm italic'>Course Curriculum</p>
                     </div>
@@ -286,7 +296,7 @@ export default function StudentDashboardPage() {
                     icon={<Library className='h-6 w-6' />}
                     colorClass='bg-orange-500'
                     footerText='VIEW LIBRARY'
-                    onViewClick={() => {}}>
+                    onViewClick={() => { }}>
                     <div className='mt-4 flex justify-center'>
                         <p className='text-muted-foreground text-sm italic'>Books & Returns</p>
                     </div>
@@ -310,7 +320,7 @@ export default function StudentDashboardPage() {
                     icon={<ShoppingCart className='h-6 w-6' />}
                     colorClass='bg-pink-500'
                     footerText='VIEW INVENTORY'
-                    onViewClick={() => {}}>
+                    onViewClick={() => { }}>
                     <div className='mt-4 flex justify-center'>
                         <p className='text-muted-foreground text-sm italic'>Purchase Items</p>
                     </div>
@@ -322,7 +332,7 @@ export default function StudentDashboardPage() {
                     icon={<Briefcase className='h-6 w-6' />}
                     colorClass='bg-yellow-500'
                     footerText='VIEW PDA'
-                    onViewClick={() => {}}>
+                    onViewClick={() => { }}>
                     <div className='mt-4 flex justify-center'>
                         <p className='text-muted-foreground text-sm italic'>Personal Deposit Account</p>
                     </div>
@@ -333,7 +343,7 @@ export default function StudentDashboardPage() {
                     title='PROMOTION'
                     icon={<GraduationCap className='h-6 w-6' />}
                     colorClass='bg-yellow-500'
-                    // footerText="View Details"
+                // footerText="View Details"
                 >
                     <div className='mt-2 text-sm'>
                         <p>
@@ -348,7 +358,7 @@ export default function StudentDashboardPage() {
                     icon={<ImageIcon className='h-6 w-6' />}
                     colorClass='bg-emerald-400'
                     footerText='VIEW GALLERY'
-                    onViewClick={() => {}}>
+                    onViewClick={() => { }}>
                     <div className='mt-4 flex justify-center'>
                         <p className='text-muted-foreground text-sm italic'>School Photos</p>
                     </div>
@@ -360,7 +370,7 @@ export default function StudentDashboardPage() {
                     icon={<Book className='h-6 w-6' />}
                     colorClass='bg-blue-500'
                     footerText='VIEW BOOK LIST'
-                    onViewClick={() => {}}>
+                    onViewClick={() => { }}>
                     <div className='mt-2 text-sm'>
                         <p>
                             Total Books: <span className='font-semibold'>0</span>
@@ -373,7 +383,7 @@ export default function StudentDashboardPage() {
                     title='ACHIEVEMENTS'
                     icon={<Trophy className='h-6 w-6' />}
                     colorClass='bg-green-500'
-                    // Custom footer handling for two links
+                // Custom footer handling for two links
                 >
                     <div className='mt-2 space-y-3'>
                         <button
@@ -422,7 +432,7 @@ export default function StudentDashboardPage() {
                             <DialogTitle>Notice Board</DialogTitle>
                             <DialogDescription>Recent announcements and circulars</DialogDescription>
                         </DialogHeader>
-                        <GenericDataTable columns={noticeColumns} data={mockNotices} isLoading={false} />
+                        <GenericDataTable columns={noticeColumns} data={noticeBoardData || []} isLoading={isNoticeBoardLoading} />
                     </DialogContent>
                 </Dialog>
 
@@ -450,6 +460,15 @@ export default function StudentDashboardPage() {
                             <DialogTitle>Achievements</DialogTitle>
                         </DialogHeader>
                         <GenericDataTable columns={achievementColumns} data={mockAchievements} isLoading={false} />
+                    </DialogContent>
+                </Dialog>
+
+                <Dialog open={activeModal === 'CLASSWORK'} onOpenChange={(open) => !open && closeModal()}>
+                    <DialogContent className='max-h-[80vh] max-w-4xl overflow-y-auto'>
+                        <DialogHeader>
+                            <DialogTitle>Classwork</DialogTitle>
+                        </DialogHeader>
+                        <GenericDataTable columns={classworkColumns} data={classworkData || []} isLoading={isClassworkLoading} />
                     </DialogContent>
                 </Dialog>
             </div>

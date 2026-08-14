@@ -2,7 +2,7 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { IadmissionStudentApplicationList } from '@/types/admission/admission';
+import type { IadmissionFormDetails, IadmissionStudentApplicationList } from '@/types/admission/admission';
 
 export async function saveFirstTabApi(data: any) {
     const url = '/StudentAdmissionFacade/savefirsttab';
@@ -85,9 +85,12 @@ export async function saveFinalTabApi(data: any) {
 export async function getAllAdmissionLists(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(
         searchParams ?? {},
-        'studentName,amst_Id,className,admissionDate,gender,registrationNo,admissionNo,emailId,mobileNo'
+        'studentName,amst_Id,className,sectionName,admissionDate,gender,registrationNo,admissionNo,emailId,mobileNo'
     );
-    const url = `/StudentAdmissionFacade/get-student-list${urlParams ? `?${urlParams}` : ''}`;
+
+    const asmayId = searchParams?.asmay_id || 0;
+    const url = `/StudentAdmissionFacade/get-student-list${urlParams ? `?${urlParams}&MI_Id=0&ASMAY_Id=${asmayId}` : `?MI_Id=0&ASMAY_Id=${asmayId}`}`;
+
     return await api.get<[IadmissionStudentApplicationList]>('admission', url);
 }
 
@@ -101,7 +104,31 @@ export async function getStudentAdmissionFormById(id: number) {
     return await api.get<any>('admission', url);
 }
 
+export async function getStudentProfileView(amstId: number, asmclId: number, asmsId: number) {
+    const url = `/StudentAdmissionFacade/ViewStudentProfile?AMST_Id=${amstId}&ASMCL_Id=${asmclId}&ASMS_Id=${asmsId}`;
+    return await api.post<any>('admission', url);
+}
+
 export async function deleteAdmissionForm(id: number) {
     const url = `/StudentAdmissionFacade/delete-admission/${id}`;
     return await api.delete('admission', url);
+}
+export async function getAdmissionFormDetails() {
+    const url = '/StudentAdmissionFacade/Getdetails';
+    return await api.get<IadmissionFormDetails>('admission', url);
+}
+
+export async function onchangeclassApi(data: { ASMCL_Id: number; ASMAY_Id: number }) {
+    const url = '/StudentAdmissionFacade/onchangeclass';
+    return await api.post<any>('admission', url, data);
+}
+
+export async function onchangestreamApi(data: { ASMST_Id: number }) {
+    const url = '/StudentAdmissionFacade/onchangestream';
+    return await api.post<any>('admission', url, data);
+}
+
+export async function getCasteByCasteCategoryApi(imccId: number) {
+    const url = `/StudentAdmissionFacade/getcastebycastecategory?IMCC_Id=${imccId}`;
+    return await api.getArray<any>('admission', url);
 }

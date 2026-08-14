@@ -138,16 +138,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                     maxSelectableRows={maxSelectableRows}
                     showSearch={showSearch}
                     showSorting={showSorting}
-                    onRowSelectionChange={(selectedRows) => {
-                        if (onRowSelectionChange) {
-                            onRowSelectionChange(selectedRows);
-                        }
-                    }}
-                    onSearchQueryChange={(value) => {
-                        if (onSearchQueryChange) {
-                            onSearchQueryChange(value);
-                        }
-                    }}
+                    onRowSelectionChange={onRowSelectionChange}
                 />
             </div>
         );

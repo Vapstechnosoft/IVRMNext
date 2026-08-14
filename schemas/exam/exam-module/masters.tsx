@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createExamCustomStringSchema, createStringSchema, deleteIdSchema } from '../../validationSchemas';
+import { createAlphaNumericSchema, createExamCustomStringSchema, createStringSchema, deleteIdSchema } from '../../validationSchemas';
 
 export const loginSchema = z.object({
     email: z.string({ message: 'Email is required' }),
@@ -11,7 +11,7 @@ export const masterSubjectSchema = {
         ismS_Id: z.number().int({ message: 'Subject Id is required' }).optional(),
         mI_Id: z.number().int().optional(),
         ismS_IVRSSubjectName: createExamCustomStringSchema('IVRS Subject Name', 1, 100),
-        ismS_SubjectCode: createStringSchema('Subject Code', 1, 50),
+        ismS_SubjectCode: createExamCustomStringSchema('Subject Code', 1, 50),
         ismS_SubjectNameNew: createExamCustomStringSchema('Subject Type / New Name', 1, 50),
         ismS_SubjectName: createExamCustomStringSchema('Subject Name', 1, 50),
         ismS_PreadmFlag: z.number().int({ message: 'Pre-Admission Flag is required' }),
@@ -34,9 +34,9 @@ export const masterExamSchema = {
         emE_Id: z.number().optional(),
         mI_Id: z.number().optional(),
         emE_ExamName: createExamCustomStringSchema('Exam Name', 1, 100),
-        emE_ExamCode: z.string().min(1, { message: 'Exam Code is required' }),
+        emE_ExamCode: createExamCustomStringSchema('Exam Code', 1, 50),
         emE_ExamDescription: createExamCustomStringSchema('Exam Description', 1, 100),
-        emE_IVRSExamName: z.string().min(1, { message: 'IVRS Exam Name is required' }),
+        emE_IVRSExamName: createExamCustomStringSchema('IVRS Exam Name', 1, 100),
         emE_FinalExamFlag: z.boolean({
             required_error: 'Final Exam flag is required'
         }),
@@ -69,7 +69,7 @@ export const masterSubExamSchema = {
         emsE_Id: z.number().int({ message: 'Sub Exam Id is required' }).optional(),
         mI_Id: z.number().int().optional(),
         emsE_SubExamName: createExamCustomStringSchema('Sub Exam Name', 1, 100),
-        emsE_SubExamCode: createExamCustomStringSchema('Sub Exam Code', 1, 50)
+        emsE_SubExamCode: createAlphaNumericSchema('Sub Exam Code', 1, 50)
     }),
 
     delete: z.object({
@@ -96,34 +96,45 @@ export const gradeDetailsSchema = z
     .object({
         emgD_Id: z.number().default(0),
         emgR_Id: z.number().default(0),
-        emgD_Name: createExamCustomStringSchema('Grade Name', 1, 100),
+        emgD_Name: z.string({ required_error: 'Enter Grade' })
+            .min(1, { message: 'Enter Grade' })
+            .max(100, { message: 'Grade Name cannot exceed 100 characters' }),
 
         emgD_From: z
-            .preprocess(
-                (v) => (v === '' || v === null || v === undefined ? null : Number(v)),
-                z.union([
-                    z.number().min(0, { message: 'From must be at least 0' }).max(100, { message: 'From cannot exceed 100' }),
-                    z.null()
-                ])
-            )
-            .default(null),
+            .any()
+            .refine((v) => v !== null && v !== undefined && String(v).trim() !== '', {
+                message: 'Enter valid Format[For Example 100.00,99.97,......]'
+            })
+            .refine((v) => /^[0-9]{0,4}\.?[0-9]{1,}?$/.test(String(v).trim()), {
+                message: 'Enter valid Format[For Example 100.00,99.97,......]'
+            })
+            .transform((v) => Number(v)),
 
         emgD_To: z
-            .preprocess(
-                (v) => (v === '' || v === null || v === undefined ? null : Number(v)),
-                z.union([z.number().min(0, { message: 'To must be at least 0' }).max(100, { message: 'To cannot exceed 100' }), z.null()])
-            )
-            .default(null),
+            .any()
+            .refine((v) => v !== null && v !== undefined && String(v).trim() !== '', {
+                message: 'Enter To[Range]'
+            })
+            .refine((v) => /^[0-9]{0,4}\.?[0-9]{1,}?$/.test(String(v).trim()), {
+                message: 'Enter valid Format[For Example 100.00,99.97,......]'
+            })
+            .transform((v) => Number(v)),
 
         emgD_GradePoints: z
-            .preprocess(
-                (v) => (v === '' || v === null || v === undefined ? null : Number(v)),
-                z.union([
-                    z.number().min(0, { message: 'Grade points must be at least 0' }).max(10, { message: 'Grade points cannot exceed 10' }),
-                    z.null()
-                ])
-            )
-            .default(null),
+            .any()
+            .refine((v) => v !== null && v !== undefined && String(v).trim() !== '', {
+                message: 'Enter Grade Points'
+            })
+            .refine((v) => /^[0-9]{0,4}\.?[0-9]{1,}?$/.test(String(v).trim()), {
+                message: 'Enter valid Format[For Example 100.00,99.97,......]'
+            })
+            .refine((v) => {
+                const num = Number(v);
+                return !isNaN(num) && num >= 0 && num <= 10;
+            }, {
+                message: 'Grade points must be between 0 and 10'
+            })
+            .transform((v) => Number(v)),
 
         emgD_Remarks: z.string().optional(),
         emgD_ActiveFlag: z.boolean().default(true)
@@ -152,14 +163,35 @@ export const gradeDetailsSchema = z
 
 // Master Grade Schema
 export const masterGradeSchema = {
-    addOrUpdate: z.object({
-        emgR_Id: z.number().optional(),
-        mI_Id: z.number().optional(),
-        emgR_GradeName: createExamCustomStringSchema('Grade Name', 1, 100),
-        emgR_MarksPerFlag: z.enum(['m', 'p'], { required_error: 'Marks/Percentage flag is required' }),
-        emgR_ActiveFlag: z.boolean().default(true),
-        grade_list: z.array(gradeDetailsSchema).min(1, { message: 'At least one grade detail is required' })
-    }),
+    addOrUpdate: z
+        .object({
+            emgR_Id: z.number().optional(),
+            mI_Id: z.number().optional(),
+            emgR_GradeName: createExamCustomStringSchema('Grade Name', 1, 100),
+            emgR_MarksPerFlag: z.enum(['M', 'P'], { required_error: 'Marks/Percentage flag is required' }),
+            emgR_ActiveFlag: z.boolean().default(true),
+            grade_list: z.array(gradeDetailsSchema).min(1, { message: 'At least one grade detail is required' })
+        })
+        .superRefine((data, ctx) => {
+            if (data.emgR_MarksPerFlag === 'P') {
+                data.grade_list.forEach((row, index) => {
+                    if (row.emgD_From !== null && (row.emgD_From < 0 || row.emgD_From > 100)) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: 'From value must be between 0 and 100 when percentage is selected',
+                            path: ['grade_list', index, 'emgD_From']
+                        });
+                    }
+                    if (row.emgD_To !== null && (row.emgD_To < 0 || row.emgD_To > 100)) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: 'To value must be between 0 and 100 when percentage is selected',
+                            path: ['grade_list', index, 'emgD_To']
+                        });
+                    }
+                });
+            }
+        }),
 
     delete: z.object({
         emgR_Id: z.number({ required_error: 'Grade Id is required' })
@@ -356,24 +388,21 @@ export const lifeSkillAreaMappingSchema = {
     addOrUpdate: z.object({
         ecS_Id: z.number().default(0),
         mI_Id: z.number().optional(),
-        ecS_SkillName: createExamCustomStringSchema('Skill Name', 1, 100),
-        ecS_SkillCode: createStringSchema('Skill Code', 1, 50),
+        ecS_SkillName: z.string().optional(),
+        ecS_SkillCode: z.string().optional(),
 
         subexamDTO: z
             .array(
                 z.object({
                     ecsA_Id: z.number().default(0),
                     ecsA_SkillOrder: z
-                        .number({
-                            required_error: 'Skill Area Order is required',
-                            invalid_type_error: 'Skill Area Order must be a number'
-                        })
+                        .number()
                         .int()
-                        .min(1, { message: 'Skill Area Order must be at least 1' }),
-                    ecsA_SkillArea: createExamCustomStringSchema('Skill Area Name', 1, 100)
+                        .optional(),
+                    ecsA_SkillArea: z.string().optional()
                 })
             )
-            .min(1, { message: 'At least one Skill Area entry is required' }),
+            .optional(),
 
         mappingDTO: z
             .array(

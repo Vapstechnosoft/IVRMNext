@@ -5,6 +5,7 @@ import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IMasterLeaveYearList } from '@/types/hrms/hrms-config/master';
 import type { ColumnDef } from '@tanstack/react-table';
+import { format } from 'date-fns';
 import { useCallback } from 'react';
 
 export const columns: ColumnDef<IMasterLeaveYearList>[] = [
@@ -29,7 +30,7 @@ export const columns: ColumnDef<IMasterLeaveYearList>[] = [
         header: ({ column }) => <DataTableColumnHeader column={column} title='From Date' className='whitespace-nowrap' />,
         cell: ({ row }) => {
             const dateValue = row.getValue('hrmlY_FromDate');
-            return dateValue ? new Date(dateValue as string).toLocaleDateString() : '-';
+            return dateValue ? format(new Date(dateValue as string), 'dd-MM-yyyy') : '-';
         }
     },
     {
@@ -37,7 +38,7 @@ export const columns: ColumnDef<IMasterLeaveYearList>[] = [
         header: ({ column }) => <DataTableColumnHeader column={column} title='To Date' className='whitespace-nowrap' />,
         cell: ({ row }) => {
             const dateValue = row.getValue('hrmlY_ToDate');
-            return dateValue ? new Date(dateValue as string).toLocaleDateString() : '-';
+            return dateValue ? format(new Date(dateValue as string), 'dd-MM-yyyy') : '-';
         }
     },
     {

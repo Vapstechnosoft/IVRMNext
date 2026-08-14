@@ -16,7 +16,7 @@ import type { z } from 'zod';
 
 type FormFields = z.infer<typeof masterGradeSchema.addOrUpdate>;
 
-export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSuccess?: () => void; className?: string }) {
+export default function AddMasterGradeForm({ onSuccess, refetchGrid, className = '' }: { onSuccess?: () => void; refetchGrid: () => void; className?: string }) {
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
     const {
@@ -32,16 +32,16 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
         defaultValues: {
             emgR_Id: 0,
             emgR_GradeName: '',
-            emgR_MarksPerFlag: 'm',
+            emgR_MarksPerFlag: 'M',
             emgR_ActiveFlag: true,
             grade_list: [
                 {
                     emgD_Id: 0,
                     emgR_Id: 0,
                     emgD_Name: '',
-                    emgD_From: null,
-                    emgD_To: null,
-                    emgD_GradePoints: null,
+                    emgD_From: '' as any,
+                    emgD_To: '' as any,
+                    emgD_GradePoints: '' as any,
                     emgD_Remarks: '',
                     emgD_ActiveFlag: true
                 }
@@ -59,6 +59,7 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
     const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
 
     const gradeName = watch('emgR_GradeName');
+    const marksPerFlag = watch('emgR_MarksPerFlag');
 
     useEffect(() => {
         setIsDetailsOpen(!!gradeName?.trim());
@@ -71,6 +72,10 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
 
         for (const row of data.grade_list) {
             // Check duplicate Name
+            if (!row.emgD_Name || row.emgD_Name.trim() === '') {
+                toast.error('Please enter a Grade Name');
+                return;
+            }
             const normalizedName = row.emgD_Name.trim().toLowerCase();
             if (names.has(normalizedName)) {
                 toast.error(`Duplicate grade name found: ${row.emgD_Name}`);
@@ -79,6 +84,21 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
             names.add(normalizedName);
 
             // Validate Range
+            if (row.emgD_From === null || row.emgD_From === undefined || (row.emgD_From as any) === '') {
+                toast.error(`Please enter the 'From' range field for grade: ${row.emgD_Name}`);
+                return;
+            }
+
+            if (row.emgD_To === null || row.emgD_To === undefined || (row.emgD_To as any) === '') {
+                toast.error(`Please enter the 'To' range field for grade: ${row.emgD_Name}`);
+                return;
+            }
+
+            if (row.emgD_GradePoints === null || row.emgD_GradePoints === undefined || (row.emgD_GradePoints as any) === '') {
+                toast.error(`Please enter Grade Points for grade: ${row.emgD_Name}`);
+                return;
+            }
+
             const from = Number(row.emgD_From);
             const to = Number(row.emgD_To);
 
@@ -126,6 +146,7 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                 reset();
                 setIsDetailsOpen(false);
                 onSuccess?.();
+                refetchGrid?.();
             } else {
                 toast.error(response.message);
             }
@@ -150,7 +171,7 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
         <form onSubmit={handleSubmit(onSubmit)} className={`space-y-6 ${className}`}>
             {/* Grade Name + Type */}
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                <InputText label='Grade Name' required {...register('emgR_GradeName')} error={errors.emgR_GradeName?.message} />
+                <InputText label='Grade Name' required placeholder='Enter Grade Name' {...register('emgR_GradeName')} error={errors.emgR_GradeName?.message} />
                 <div>
                     <Label>
                         Marks/Percentage <span className='text-red-500'>*</span>
@@ -161,11 +182,11 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                         render={({ field }) => (
                             <RadioGroup value={field.value} onValueChange={field.onChange} className='flex gap-4'>
                                 <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='m' id='marks' />
+                                    <RadioGroupItem value='M' id='marks' />
                                     <Label htmlFor='marks'>Marks</Label>
                                 </div>
                                 <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='p' id='percentage' />
+                                    <RadioGroupItem value='P' id='percentage' />
                                     <Label htmlFor='percentage'>Percentage</Label>
                                 </div>
                             </RadioGroup>
@@ -200,7 +221,7 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                         <td className='border'>
                                             <InputText
                                                 {...register(`grade_list.${index}.emgD_Name` as const)}
-                                                placeholder='Enter grade name'
+                                                placeholder='Enter Grade Name'
                                                 error={errors.grade_list?.[index]?.emgD_Name?.message}
                                             />
                                         </td>
@@ -208,16 +229,8 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                         {/* From Marks */}
                                         <td className='border'>
                                             <InputText
-                                                type='number'
-                                                step='any'
-                                                min='0'
-                                                max='100'
+                                                type='text'
                                                 {...register(`grade_list.${index}.emgD_From`, {
-                                                    setValueAs: (v) => {
-                                                        if (v === '' || v === null) return null;
-                                                        const num = Number(v);
-                                                        return Number.isNaN(num) ? null : num;
-                                                    },
                                                     onChange: (e) => {
                                                         // Allow only numbers and decimal point
                                                         const value = e.target.value;
@@ -226,7 +239,7 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                                         }
                                                     }
                                                 })}
-                                                placeholder='0-100'
+                                                placeholder='Enter From'
                                                 error={errors.grade_list?.[index]?.emgD_From?.message}
                                                 onKeyPress={(e) => {
                                                     // Prevent non-numeric characters except decimal point
@@ -248,16 +261,8 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                         {/* To Marks */}
                                         <td className='border'>
                                             <InputText
-                                                type='number'
-                                                step='any'
-                                                min='0'
-                                                max='100'
+                                                type='text'
                                                 {...register(`grade_list.${index}.emgD_To`, {
-                                                    setValueAs: (v) => {
-                                                        if (v === '' || v === null) return null;
-                                                        const num = Number(v);
-                                                        return Number.isNaN(num) ? null : num;
-                                                    },
                                                     onChange: (e) => {
                                                         // Allow only numbers and decimal point
                                                         const value = e.target.value;
@@ -266,7 +271,7 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                                         }
                                                     }
                                                 })}
-                                                placeholder='0-100'
+                                                placeholder='Enter To'
                                                 error={errors.grade_list?.[index]?.emgD_To?.message}
                                                 onKeyPress={(e) => {
                                                     // Prevent non-numeric characters except decimal point
@@ -288,16 +293,8 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                         {/* Grade Points */}
                                         <td className='border'>
                                             <InputText
-                                                type='number'
-                                                step='any'
-                                                min='0'
-                                                max='10'
+                                                type='text'
                                                 {...register(`grade_list.${index}.emgD_GradePoints`, {
-                                                    setValueAs: (v) => {
-                                                        if (v === '' || v === null) return null;
-                                                        const num = Number(v);
-                                                        return Number.isNaN(num) ? null : num;
-                                                    },
                                                     onChange: (e) => {
                                                         // Allow only numbers and decimal point
                                                         const value = e.target.value;
@@ -306,7 +303,7 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                                         }
                                                     }
                                                 })}
-                                                placeholder='0-10'
+                                                placeholder='Enter Grade Points'
                                                 error={errors.grade_list?.[index]?.emgD_GradePoints?.message}
                                                 onKeyPress={(e) => {
                                                     // Prevent non-numeric characters except decimal point
@@ -329,7 +326,7 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                         <td className='border'>
                                             <InputText
                                                 {...register(`grade_list.${index}.emgD_Remarks` as const)}
-                                                placeholder='Remarks'
+                                                placeholder='Enter Remarks'
                                                 error={errors.grade_list?.[index]?.emgD_Remarks?.message}
                                             />
                                         </td>
@@ -354,9 +351,9 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                                         emgD_Id: 0,
                                                         emgR_Id: 0,
                                                         emgD_Name: '',
-                                                        emgD_From: null,
-                                                        emgD_To: null,
-                                                        emgD_GradePoints: null,
+                                                        emgD_From: '' as any,
+                                                        emgD_To: '' as any,
+                                                        emgD_GradePoints: '' as any,
                                                         emgD_Remarks: '',
                                                         emgD_ActiveFlag: true
                                                     });

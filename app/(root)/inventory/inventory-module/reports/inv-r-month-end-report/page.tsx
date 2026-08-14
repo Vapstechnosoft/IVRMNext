@@ -15,30 +15,51 @@ import { GenericDataTable } from '@/components/ui/data-table/generic-data-table'
 import { columns } from './_components/columns';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
+
+import { InvRMonthEndReportPrint } from './_components/inv-r-month-end-report-print';
 
 export default function InvRMonthEndReportPage() {
     const [reportData, setReportData] = useState<IInvRMonthEndReportData | null>(null);
     const [currentPayload, setCurrentPayload] = useState<any | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [showReport, setShowReport] = useState(false);
+    const componentRef = useRef<HTMLDivElement>(null);
 
-    const handleReportGenerated = async (data: IInvRMonthEndReportPayload, extraPayload: any) => {
+    const handleReportGenerated = async (data: IInvRMonthEndReportPayload | null, extraPayload: any) => {
+        if (data === null) {
+            setReportData(null);
+            setCurrentPayload(null);
+            setShowReport(false);
+            return;
+        }
         setIsLoading(true);
         const result = await getInvRMonthEndReport(data);
         if (result.success && result.data) {
+            const hasData = result.data.grnCount > 0 || result.data.salesCount > 0 || result.data.itemCount > 0;
+            if (!hasData) {
+                toast.error("No record found");
+            }
             setReportData(result.data);
-            setCurrentPayload({ ...data, ...extraPayload }); // Merge with extra info like Year/Month names
+            setCurrentPayload({ ...data, ...extraPayload });
             setShowReport(true);
         } else {
             setReportData(null);
             setShowReport(false);
-            toast.error(result.message || "No records found");
+            toast.error(result.message || "No record found");
         }
         setIsLoading(false);
     };
 
+    const handlePrintContent = useReactToPrint({
+        contentRef: componentRef,
+        documentTitle: `Month End Report - ${format(new Date(), 'dd-MM-yyyy')}`
+    });
+
     const handlePrint = () => {
-        window.print();
+        if (!reportData) return;
+        handlePrintContent();
     };
 
     const getTableData = (): IInvRMonthEndReportTableRow[] => {
@@ -85,7 +106,7 @@ export default function InvRMonthEndReportPage() {
         XLSX.utils.book_append_sheet(workbook, worksheet, "Month End Report");
         const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
         const data = new Blob([excelBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8" });
-        saveAs(data, "Inventory_Month_End_Report.xlsx");
+        saveAs(data, `Inventory_Month_End_Report_${currentPayload?.Month_Name}_${currentPayload?.ASMAY_Year}.xlsx`);
     };
 
     const chartData = reportData ? [
@@ -97,21 +118,17 @@ export default function InvRMonthEndReportPage() {
     ] : [];
 
     return (
-        <div className="space-y-6">
-            <div className="print:hidden">
-                <Heading
-                    title="Inventory Month End Report"
-                    description="Generate Inventory Month End Report"
-                />
-            </div>
+        <div className="container mx-auto px-4 py-6 space-y-6">
+            <Heading
+                title="Inventory Month End Report"
+                description="Generate Inventory Month End Report"
+            />
 
-            <div className="print:hidden">
-                <ReportForm onReportGenerated={handleReportGenerated} isLoading={isLoading} />
-            </div>
+            <ReportForm onReportGenerated={handleReportGenerated} isLoading={isLoading} />
 
-            {showReport && reportData && currentPayload && (
+            {showReport && currentPayload && (
                 <CollapsibleSection title="Report Result" defaultOpen={true}>
-                    <div className="p-6 space-y-8 bg-white text-slate-900 rounded-lg shadow-sm border border-slate-200" id="printable-area">
+                    <div className="p-6 space-y-8 bg-white text-slate-900 rounded-lg shadow-sm border border-slate-200">
                         {/* Header Section */}
                         <div className="flex flex-col items-center justify-center space-y-3 mb-8 border-b border-slate-200 pb-6">
                             <h3 className="text-3xl font-bold uppercase tracking-tight text-slate-800 text-center">
@@ -179,12 +196,14 @@ export default function InvRMonthEndReportPage() {
                                     totalItems={tableData.length}
                                     isSearchRequired={false}
                                     isPaginationRequired={false}
+                                    noDataTitle="No Month End Data"
+                                    noDataDescription="No records found for the selected period."
                                 />
                             </div>
                         </div>
 
                         {/* Chart Section */}
-                        <div className="mb-8 bg-slate-50 p-6 rounded-xl border border-slate-200 shadow-sm print:hidden">
+                        <div className="mb-8 bg-slate-50 p-6 rounded-xl border border-slate-200 shadow-sm">
                             <h4 className="font-semibold text-slate-800 mb-6 px-2">Graphical Representation</h4>
                             <div className="h-[350px] w-full">
                                 <ResponsiveContainer width="100%" height="100%">
@@ -218,30 +237,35 @@ export default function InvRMonthEndReportPage() {
                             </div>
                         </div>
 
-                        {/* Signature Section */}
-                        <div className="grid grid-cols-2 gap-20 mt-20 pt-8 px-8 break-inside-avoid">
-                            <div className="space-y-12 text-center">
-                                <div className="h-16"></div> {/* Space for signature */}
-                                <div className="border-t-2 border-slate-300 pt-2 font-semibold text-slate-700">Implementation Engineer</div>
-                            </div>
-                            <div className="space-y-12 text-center">
-                                <div className="h-16"></div> {/* Space for signature */}
-                                <div className="border-t-2 border-slate-300 pt-2 font-semibold text-slate-700">Nodal Officer & Seal</div>
-                            </div>
-                        </div>
-
                         {/* Action Buttons */}
-                        <div className="flex justify-center gap-4 mt-8 print:hidden pt-8 border-t border-slate-100">
-                            <Button onClick={handlePrint} className="bg-slate-800 hover:bg-slate-900 text-white min-w-[120px]">
+                        <div className="flex justify-center gap-4 mt-8 pt-8 border-t border-slate-100">
+                            <Button onClick={handlePrint} variant="secondary" className="w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg">
                                 <Printer className="mr-2 h-4 w-4" /> Print
                             </Button>
-                            <Button onClick={handleExport} variant="outline" className="border-green-600 text-green-700 hover:bg-green-50 min-w-[120px]">
+                            <Button onClick={handleExport} variant="outline" className="w-fit border-green-600 text-green-700 hover:bg-green-50 shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg">
                                 <FileSpreadsheet className="mr-2 h-4 w-4" /> Export Excel
                             </Button>
                         </div>
                     </div>
                 </CollapsibleSection>
             )}
+
+            {/* Hidden Print Component */}
+            <div
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: 0,
+                    height: 0,
+                    overflow: 'visible',
+                    opacity: 0,
+                    pointerEvents: 'none',
+                    zIndex: -1
+                }}>
+                <InvRMonthEndReportPrint ref={componentRef} data={reportData} tableData={tableData} chartData={chartData} payload={currentPayload} />
+            </div>
         </div>
     );
 }
+

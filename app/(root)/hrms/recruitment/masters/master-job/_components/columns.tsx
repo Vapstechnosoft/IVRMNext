@@ -1,26 +1,43 @@
 'use client';
-import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Edit, Trash2 } from 'lucide-react';
+
 export interface MasterJob {
-    id: number;
-    jobCode: string;
-    jobTitle: string;
-    jobLocation: string;
-    isActive: boolean;
-    createdAt: string;
+    hrmJ_Id: number;
+    hrmJ_JobCode: string;
+    hrmJ_JobTiTle: string;
+    hrmlO_Id: number;
+    hrmlO_LocationName?: string;
+    hrmJ_Posted: string;
+    hrC_Id?: number;
+    hrmJ_ActiveFlg: number;
 }
+
 interface MasterJobColumnsProps {
     onEdit: (row: MasterJob) => void;
-    onDelete: (row: MasterJob) => void;
+    onToggle: (row: MasterJob) => void;
 }
-export const getMasterJobColumns = ({ onEdit, onDelete }: MasterJobColumnsProps): ColumnDef<MasterJob>[] => [
+export const getMasterJobColumns = ({ onEdit, onToggle }: MasterJobColumnsProps): ColumnDef<MasterJob>[] => [
     {
         id: 'sl',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO' />,
-        cell: ({ row }) => <div className='font-medium'>{row.index + 1}</div>,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO' className='text-center ' />,
+        cell: ({ row }) => <div className='font-medium text-center'>{row.index + 1}</div>,
+        size: 10,
         enableSorting: false
+    },
+    {
+        accessorKey: 'hrmJ_JobCode',
+        header: ({ column }) => <div className='flex justify-center items-center' ><DataTableColumnHeader column={column} title='Job Code' /></div>,
+        cell: ({ row }) => <div className='font-medium flex justify-center'>{row.original.hrmJ_JobCode}</div>,
+    },
+    {
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Job Title' />,
+        accessorKey: 'hrmJ_JobTiTle'
+    },
+    {
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Job Location' />,
+        accessorKey: 'hrmlO_LocationName'
     },
     // TODO: Add other columns based on the entity fields
     {
@@ -29,14 +46,13 @@ export const getMasterJobColumns = ({ onEdit, onDelete }: MasterJobColumnsProps)
         cell: ({ row }) => {
             const entity = row.original;
             return (
-                <div className='flex items-center gap-2'>
-                    <Button variant='outline' size='sm' onClick={() => onEdit(entity)}>
-                        <Edit className='h-4 w-4' />
-                    </Button>
-                    <Button variant='outline' size='sm' className='text-red-600' onClick={() => onDelete(entity)}>
-                        <Trash2 className='h-4 w-4' />
-                    </Button>
-                </div>
+                <ActionButtons
+                    rowData={entity}
+                    buttons={{ edit: true, toggle: true, delete: false }}
+                    onEdit={onEdit}
+                    onToggle={() => onToggle(entity)}
+                    toggleConditionKey='hrmJ_ActiveFlg'
+                />
             );
         }
     }

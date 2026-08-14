@@ -4,17 +4,15 @@ import { useDataTableProps } from '@/components/ui/data-table/generic-data-table
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { GenericDataTable } from '@/components/ui/view-data-table/view-generic-data-table';
 import { getCumulativeReport } from '@/server/exam/exam-module/reports/cumulative-report';
+import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 import type { ApiSearchparams } from '@/types';
-import type { ICumulativeReport, Institution, IMasterInstitution, IReportHeader, ISubject } from '@/types/exam/exam-module/report';
+import type { ICumulativeReport, IMasterInstitution, IReportHeader, ISubject } from '@/types/exam/exam-module/report';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import CumulativeReportForm from './_components/add-form';
 import CumulativeReportGridView from './_components/columns';
 import CumulativeReportExcel from './_components/cumulative-report-excel';
 import CumulativeReportPrintView from './_components/cumulative-report-printable';
-import { RefreshCw } from 'lucide-react';
-import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
-import { set } from 'date-fns';
 
 export default function CumulativeReportPage() {
     const [reportData, setReportData] = useState<ICumulativeReport[]>([]);
@@ -24,27 +22,38 @@ export default function CumulativeReportPage() {
     const [isReportVisible, setIsReportVisible] = useState(false);
     const [searchParams, setSearchParams] = useState<ApiSearchparams>({});
     const [currentPayload, setCurrentPayload] = useState<any>({});
-    const [isGenerating, setIsGenerating] = useState(false);
-    const [institution, setInstitution] = useState<IMasterInstitution | Institution | null>();
-
+    const [institution, setInstitution] = useState<IMasterInstitution | null>(null);
     const tableProps = useDataTableProps(reportTableProsData);
     const printRef = useRef<HTMLDivElement>(null);
 
     const [columnFlags, setColumnFlags] = useState({
-        admno: false,
+        admno: true,
         regno: false,
         rollno: true,
         classrank: true,
         sectionrank: true,
-        attendancedispaly: false
+        attendancedispaly: false,
+        applicable: true,
+        nonapplicable: false,
+        readmit: false,
+        grdaeDisply: false,
+        marksdisplay: false,
+        gradecolm: false,
+        status: false
     });
 
     const handleReportSuccess = async (payload: any, setSearchParams: any) => {
         if (!payload) return;
-        setIsGenerating(true);
+
+        // Hide the active report and clear previous data state immediately before fetching new data
+        setIsReportVisible(false);
+        setReportData([]);
+        setSubjects([]);
+
         try {
             setCurrentPayload(payload);
             const res = await getCumulativeReport(payload, setSearchParams);
+            console.log("cumulative res", res);
             const institudtion_res = await getMasterInstitution();
             const { data: institudtion_data } = institudtion_res;
             setInstitution(institudtion_data);
@@ -87,15 +96,18 @@ export default function CumulativeReportPage() {
                 (a, b) => (a.eyceS_SubjectOrder ?? 999) - (b.eyceS_SubjectOrder ?? 999)
             );
 
-
             const formatted: ICumulativeReport[] = rawList.map((s: any) => {
-                const fullName = [s.amsT_FirstName, s.amsT_MiddleName, s.amsT_LastName].filter(Boolean).join(' ').trim();
+                const fullName = [
+                    s.amsT_FirstName ?? s.AMST_FirstName,
+                    s.amsT_MiddleName ?? s.AMST_MiddleName,
+                    s.amsT_LastName ?? s.AMST_LastName
+                ].filter(Boolean).join(' ').trim() || s.studentName || s.AMST_StudentName || s.studentname || s.amsT_StudentName;
 
                 return {
                     amsT_FirstName: fullName || 'Unknown',
-                    amaY_RollNo: s.amaY_RollNo ?? null,
-                    amsT_AdmNo: s.amsT_AdmNo ?? null,
-                    amsT_RegistrationNo: s.amsT_RegistrationNo ?? null,
+                    amaY_RollNo: s.amaY_RollNo ?? s.AMAY_RollNo ?? s.amaY_Rollno ?? s.rollNo ?? s.rollno ?? null,
+                    amsT_AdmNo: s.amsT_AdmNo ?? s.AMST_AdmNo ?? s.amsT_Admno ?? s.AMST_Admno ?? s.admNo ?? s.admno ?? s.amsT_AdmNoValue ?? s.AMST_AdmNoValue ?? null,
+                    amsT_RegistrationNo: s.amsT_RegistrationNo ?? s.AMST_RegistrationNo ?? s.amsT_Registrationno ?? s.AMST_Registrationno ?? s.registrationNo ?? s.regno ?? s.regNo ?? null,
                     sub_list: (s.subjectsList ?? []).map((sub: any) => ({
                         ismS_Id: sub.ismS_Id,
                         estmpS_ObtainedMarks: sub.estmpS_ObtainedMarks ?? null,
@@ -114,9 +126,9 @@ export default function CumulativeReportPage() {
                 };
             });
 
-            const first = { ...rawList[0], ...institudtion_data }
+            const first = { ...rawList[0], ...institudtion_data };
             const header: Partial<IReportHeader> = {
-                mI_name: first?.mI_Name ?? 'Vidya Vikasa Vidya Samsthe (R)',
+                mI_Name: institudtion_data?.mI_Name,
                 yr: first?.asmaY_Year ?? '',
                 cla: first?.asmcL_ClassName ?? '',
                 sec: first?.asmC_SectionName ?? '',
@@ -126,12 +138,19 @@ export default function CumulativeReportPage() {
             const cfg = first?.exm_Configuration?.[0] ?? responseData.exm_Configuration?.[0] ?? {};
 
             setColumnFlags({
-                admno: cfg.exmConfig_AdmnoColumnDisplay ?? false,
+                admno: true, // Always show admission number as requested by the user
                 regno: cfg.exmConfig_RegnoColumnDisplay ?? false,
                 rollno: cfg.exmConfig_RollnoColumnDisplay ?? true,
-                classrank: true,
-                sectionrank: true,
-                attendancedispaly: false
+                classrank: payload.classrank ?? true,
+                sectionrank: payload.sectionrank ?? true,
+                attendancedispaly: payload.attendancedispaly ?? false,
+                applicable: payload.applicableFlag === '1',
+                nonapplicable: payload.nonApplicableFlag === '1',
+                readmit: payload.Percentage_Flag ?? false,
+                grdaeDisply: payload.Grade_Flag ?? false,
+                marksdisplay: payload.Marks_Flag ?? false,
+                gradecolm: payload.OverallGrade_Flag ?? false,
+                status: payload.Status_Flag ?? false
             });
 
             setSubjects(subjectsList);
@@ -144,11 +163,14 @@ export default function CumulativeReportPage() {
         } catch (e: any) {
             console.error('Report error:', e);
             toast.error(e?.message || 'Error generating report');
-        } finally {
-            setIsGenerating(false);
         }
     };
 
+    useEffect(() => {
+        if (isReportVisible && printRef.current) {
+            printRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [isReportVisible]);
 
     // Re-fetch when pagination changes
     useEffect(() => {
@@ -167,67 +189,59 @@ export default function CumulativeReportPage() {
     return (
         <div className='container mx-auto space-y-6 p-4'>
             <CollapsibleSection title='Cumulative Report' defaultOpen>
-                <CumulativeReportForm onSuccess={handleReportSuccess} apiSearchParams={searchParams} isGenerating={isGenerating} />
+                <CumulativeReportForm onSuccess={handleReportSuccess} apiSearchParams={searchParams} />
             </CollapsibleSection>
 
-            {isGenerating && (
-                <div className='flex flex-col items-center justify-center space-y-4 py-12'>
-                    <RefreshCw className='h-8 w-8 animate-spin text-secondary' />
-                    <p className='text-muted-foreground text-sm'>Loading data...</p>
-                </div>
-            )}
+            {isReportVisible && (
+                <CollapsibleSection title='Grid View' defaultOpen>
+                    <div ref={printRef}>
+                        {/* Print View */}
+                        {institution && (
+                            <CumulativeReportPrintView
+                                reportData={reportData}
+                                institution={institution}
+                                subjects={subjects}
+                                headerInfo={headerInfo}
+                                fontSize='medium'
+                                columnFlags={columnFlags}
+                            />
+                        )}
 
-            {
-                isReportVisible && (
-                    <CollapsibleSection title='Grid View' defaultOpen>
-                        <div ref={printRef}>
-                            {/* Print View */}
-                            {institution && (
-                                <CumulativeReportPrintView
-                                    reportData={reportData}
-                                    institution={institution}
-                                    subjects={subjects}
-                                    headerInfo={headerInfo}
-                                    fontSize='medium'
-                                    columnFlags={columnFlags}
-                                />
-                            )}
+                        {/* Screen View */}
+                        <CumulativeReportGridView
+                            reportData={reportData}
+                            institution={institution}
+                            subjects={subjects}
+                            headerInfo={headerInfo}
+                            columnFlags={columnFlags}
+                            onPrint={handlePrint}
+                        />
 
-                            {/* Screen View */}
-                            <CumulativeReportGridView
+                        <div className='mt-6 flex justify-end print:hidden'>
+                            <CumulativeReportExcel
                                 reportData={reportData}
                                 subjects={subjects}
                                 headerInfo={headerInfo}
                                 columnFlags={columnFlags}
-                                onPrint={handlePrint}
                             />
-
-                            <div className='mt-6 flex justify-end print:hidden'>
-                                <CumulativeReportExcel
-                                    reportData={reportData}
-                                    subjects={subjects}
-                                    headerInfo={headerInfo}
-                                    columnFlags={columnFlags}
-                                />
-                            </div>
-
-                            <div className='mt-10'>
-                                <GenericDataTable
-                                    isLoading={false}
-                                    {...tableProps}
-                                    columns={[]}
-                                    data={reportData}
-                                    noDataTitle='No results.'
-                                    noDataDescription='No student data matches the selected criteria.'
-                                    showPagination={true}
-                                    onSearchQueryChange={handleApiSearchParms}
-                                    currentApiParams={searchParams}
-                                />
-                            </div>
                         </div>
-                    </CollapsibleSection>
-                )
-            }
-        </div >
+
+                        <div className='mt-10'>
+                            <GenericDataTable
+                                isLoading={false}
+                                {...tableProps}
+                                columns={[]}
+                                data={reportData}
+                                noDataTitle='No results.'
+                                noDataDescription='No student data matches the selected criteria.'
+                                showPagination={false}
+                                onSearchQueryChange={handleApiSearchParms}
+                                currentApiParams={searchParams}
+                            />
+                        </div>
+                    </div>
+                </CollapsibleSection>
+            )}
+        </div>
     );
 }

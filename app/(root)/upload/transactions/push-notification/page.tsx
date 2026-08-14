@@ -225,7 +225,7 @@ export default function PushNotificationPage() {
                                     {isSubmitting ? 'Saving...' : 'Save'}
                                 </Button>
 
-                                <Button type='button' variant='outline' onClick={() => reset()}>
+                                <Button type='button' variant='outline' onClick={() => window.location.reload()}>
                                     <X className='mr-2 h-4 w-4' />
                                     Cancel
                                 </Button>

@@ -5,34 +5,32 @@ import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/ex
 import { FormError } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { INVENTORY_QUERY_KEYS } from '@/constants/query-keys';
 
-import { invMasterUserGroupSchema, type InvMasterUserGroupType } from '@/schemas/inventory/masters/inv-master-group';
+import { type InvMasterUserGroupType, invMasterUserGroupSchema } from '@/schemas/inventory/masters/inv-master-group';
 import { deactivateInvMasterGroup, saveInvMasterUserGroup } from '@/server/inventory/masters/inv-master-group';
 import type { IInvMasterUserGroup } from '@/types/inventory/masters/inv-master-group';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { Save } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+
+import { useInvMainGroupDropdown } from '@/hooks/inventory/masters/use-inv-master-user-group';
 
 interface UserGroupFormProps {
     onSuccess: () => void;
     initialData?: IInvMasterUserGroup;
     mode: 'add' | 'edit';
-    mainGroupOptions: { label: string; value: string }[];
 }
 
-function UserGroupForm({ onSuccess, initialData, mode, mainGroupOptions }: UserGroupFormProps) {
+function UserGroupForm({ onSuccess, initialData, mode }: UserGroupFormProps) {
     const queryClient = useQueryClient();
+    const [resetKey, setResetKey] = useState(0);
+
+    const { mainGroupOptions, isLoading: isDropdownLoading } = useInvMainGroupDropdown();
 
     const {
         control,
@@ -74,15 +72,15 @@ function UserGroupForm({ onSuccess, initialData, mode, mainGroupOptions }: UserG
         try {
             const result = await saveInvMasterUserGroup(data);
             if (result.success || result.returnval) {
-                toast.success(mode === 'add' ? 'User Group Saved Successfully' : 'User Group Updated Successfully');
+                toast.success(result.message || (mode === 'add' ? 'User group saved successfully' : 'User group updated successfully'));
                 queryClient.invalidateQueries({ queryKey: [INVENTORY_QUERY_KEYS.INV_MASTER_GROUP] });
                 onSuccess();
                 if (mode === 'add') reset();
             } else {
-                toast.error(result.message || (result.returnduplicatestatus as string) || 'Failed to save User Group');
+                toast.error(result.message || 'Failed to save record');
             }
         } catch (error: any) {
-            toast.error(error.message || 'An unexpected error occurred');
+            toast.error(error.message || 'An error occurred');
         }
     };
 
@@ -96,11 +94,12 @@ function UserGroupForm({ onSuccess, initialData, mode, mainGroupOptions }: UserG
         } else {
             reset();
         }
+        setResetKey((prev) => prev + 1);
     };
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+            <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                 <div className='flex flex-col gap-2'>
                     <Label htmlFor='invmG_ParentId'>
                         Main Group <span className='text-red-500'>*</span>
@@ -109,12 +108,12 @@ function UserGroupForm({ onSuccess, initialData, mode, mainGroupOptions }: UserG
                         name='invmG_ParentId'
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                            <Select key={resetKey} onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
                                 <SelectTrigger className={errors.invmG_ParentId ? 'border-destructive' : ''}>
-                                    <SelectValue placeholder='Select Main Group' />
+                                    <SelectValue placeholder={isDropdownLoading ? 'Loading...' : 'Select Main Group'} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {mainGroupOptions.map((option) => (
+                                    {mainGroupOptions.map((option: { label: string; value: string }) => (
                                         <SelectItem key={option.value} value={option.value}>
                                             {option.label}
                                         </SelectItem>
@@ -132,6 +131,7 @@ function UserGroupForm({ onSuccess, initialData, mode, mainGroupOptions }: UserG
                     </Label>
                     <Input
                         id='invmG_GroupName'
+                        placeholder='Enter User Group Name'
                         {...register('invmG_GroupName')}
                         className={errors.invmG_GroupName ? 'border-destructive' : ''}
                     />
@@ -142,6 +142,7 @@ function UserGroupForm({ onSuccess, initialData, mode, mainGroupOptions }: UserG
                     <Label htmlFor='invmG_AliasName'>Alias Name</Label>
                     <Input
                         id='invmG_AliasName'
+                        placeholder='Enter Alias Name'
                         {...register('invmG_AliasName')}
                         className={errors.invmG_AliasName ? 'border-destructive' : ''}
                     />
@@ -174,20 +175,18 @@ function UserGroupForm({ onSuccess, initialData, mode, mainGroupOptions }: UserG
     );
 }
 
-export function AddUserGroupForm({ onSuccess, mainGroupOptions }: { onSuccess: () => void; mainGroupOptions: { label: string; value: string }[] }) {
-    return <UserGroupForm onSuccess={onSuccess} mode='add' mainGroupOptions={mainGroupOptions} />;
+export function AddUserGroupForm({ onSuccess }: { onSuccess: () => void }) {
+    return <UserGroupForm onSuccess={onSuccess} mode='add' />;
 }
 
 export function UpdateUserGroupForm({
     selectedRow,
-    onSuccess,
-    mainGroupOptions
+    onSuccess
 }: {
     selectedRow: IInvMasterUserGroup;
     onSuccess: () => void;
-    mainGroupOptions: { label: string; value: string }[];
 }) {
-    return <UserGroupForm onSuccess={onSuccess} initialData={selectedRow} mode='edit' mainGroupOptions={mainGroupOptions} />;
+    return <UserGroupForm onSuccess={onSuccess} initialData={selectedRow} mode='edit' />;
 }
 
 interface ToggleUserGroupFormProps {
@@ -230,19 +229,20 @@ export function ToggleUserGroupForm({ rowData, onClose }: ToggleUserGroupFormPro
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <div className='space-y-3'>
                         <p className='text-sm text-warning-foreground'>
-                            Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.invmG_GroupName}</strong>?
+                            Are you sure you want to {isActive ? 'Deactivate' : 'Activate'} <strong>{rowData.invmG_GroupName}</strong>?
                         </p>
                     </div>
                 </AdaptiveBody>
 
                 <AdaptiveFooter>
-                    <Button variant='secondary' onClick={onClose} type='button' disabled={isSubmitting}>
+                    <Button variant='outline' onClick={onClose} type='button' disabled={isSubmitting}>
                         Cancel
                     </Button>
                     <Button
                         type='submit'
                         isLoading={isSubmitting}
-                        variant={isActive ? 'destructive' : 'default'}
+                        variant={isActive ? 'warning' : 'default'}
+                        className={isActive ? 'bg-orange-500 text-white hover:bg-orange-600' : ''}
                         loadingText={isActive ? 'Deactivating...' : 'Activating...'}>
                         {isActive ? 'Deactivate' : 'Activate'}
                     </Button>

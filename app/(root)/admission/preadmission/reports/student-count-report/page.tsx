@@ -7,11 +7,17 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useStudentCountReport } from '@/hooks/admission/preadmission/useReports';
 import type { IMasterStudentCountReportList } from '@/types/admission/preadmission/reports';
-import { X } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
+import { useReactToPrint } from 'react-to-print';
 import PreadmissionStatusCountReport from '../../transactions/application-form/_components/preadmission-status-count-report';
 import AddStudentCountReportForm from './_components/add-from';
-import { masterStudentCountReportColumns } from './_components/columns';
+import { toast } from 'sonner';
+import { addOrUpdateStudentCountReport } from '@/server/admission/preadmission/reports/student_count_report';
+import { getStudentCountReportColumns } from './_components/columns';
+import StudentCountReportPrint from './_components/report-print';
+import AddressBookPrint from './_components/address-book-print';
+import { FileDown, Printer } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -27,8 +33,9 @@ export default function StudentCountReportPage(props: {
         asmay_id: 0,
         asmcl_id: 0
     });
+    const [isSearched, setIsSearched] = useState(false);
 
-    const { data: response, isLoading, error } = useStudentCountReport(filterPayload, searchParams);
+    const { data: response, isLoading, error } = useStudentCountReport(filterPayload, searchParams, isSearched);
 
     return (
         <FormProvider<IMasterStudentCountReportList>>
@@ -37,13 +44,22 @@ export default function StudentCountReportPage(props: {
                 isLoading={isLoading}
                 error={error}
                 searchParams={searchParams}
-                onFilterChange={setFilterPayload}
+                onFilterChange={(payload, reset) => {
+                    if (reset) {
+                        setIsSearched(false);
+                    } else {
+                        setFilterPayload(payload);
+                        setIsSearched(true);
+                    }
+                }}
+                isSearched={isSearched}
+                filterPayload={filterPayload}
             />
         </FormProvider>
     );
 }
 
-function FormSections({ searchParams, onFilterChange }: { searchParams?: any; onFilterChange?: (payload: any) => void }) {
+function FormSections({ searchParams, onFilterChange }: { searchParams?: any; onFilterChange?: (payload: any, reset?: boolean) => void }) {
     const { closeAddForm, addFormRef } = useFormContext<IMasterStudentCountReportList>();
 
     return (
@@ -57,14 +73,7 @@ function FormSections({ searchParams, onFilterChange }: { searchParams?: any; on
                     size='md'
                     className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
                     <div className='relative'>
-                        <Button
-                            type='button'
-                            onClick={closeAddForm}
-                            variant='ghost'
-                            size='sm'
-                            className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                            <X className='h-4 w-4 text-destructive' /> Close
-                        </Button>
+                        <Button type='button' onClick={closeAddForm} variant='ghost' size='sm'></Button>
                         <AddStudentCountReportForm onSuccess={closeAddForm} searchParams={searchParams} onFilterChange={onFilterChange} />
                     </div>
                 </CollapsibleSection>
@@ -78,47 +87,193 @@ function StudentCountReportPageContent({
     isLoading,
     error,
     searchParams,
-    onFilterChange
+    onFilterChange,
+    isSearched,
+    filterPayload
 }: {
     response: any;
     isLoading: boolean;
     error: any;
     searchParams?: any;
-    onFilterChange?: (payload: any) => void;
+    onFilterChange?: (payload: any, reset?: boolean) => void;
+    isSearched: boolean;
+    filterPayload: any;
 }) {
+    const [printMode, setPrintMode] = useState<'report' | 'address'>('report');
+    const [allData, setAllData] = useState<IMasterStudentCountReportList[]>([]);
+    const [isFetchingAll, setIsFetchingAll] = useState(false);
+    const printRef = useRef<HTMLDivElement>(null);
+
+    const handlePrint = useReactToPrint({
+        contentRef: printRef,
+        documentTitle: printMode === 'report' ? 'Student Count Report' : 'Address Book',
+    });
+
+    const handlePrintAll = async (mode: 'report' | 'address') => {
+        try {
+            setIsFetchingAll(true);
+            setPrintMode(mode);
+            toast.loading('Preparing all records for print...', { id: 'print-loading' });
+
+            const response = await addOrUpdateStudentCountReport(filterPayload, {
+                page: 1,
+                page_size: 100000 // Large number to get all records
+            });
+
+            if (response.success && response.data) {
+                const records = Array.isArray(response.data) ? response.data : [];
+                setAllData(records);
+                
+                // Increase timeout to ensure render
+                setTimeout(() => {
+                    handlePrint();
+                    toast.dismiss('print-loading');
+                    setIsFetchingAll(false);
+                }, 1000);
+            } else {
+                toast.error('Failed to fetch records for print');
+                toast.dismiss('print-loading');
+                setIsFetchingAll(false);
+            }
+        } catch (error: any) {
+            toast.error(error.message);
+            toast.dismiss('print-loading');
+            setIsFetchingAll(false);
+        }
+    };
+
+    const exportToExcel = async () => {
+        try {
+            toast.loading('Preparing all records for excel export...', { id: 'excel-loading' });
+            
+            const response = await addOrUpdateStudentCountReport(filterPayload, {
+                page: 1,
+                page_size: 100000 // Large number to get all records
+            });
+
+            if (response.success && response.data) {
+                const records = Array.isArray(response.data) ? response.data : [];
+                if (records.length === 0) {
+                    toast.error('No records found to export');
+                    toast.dismiss('excel-loading');
+                    return;
+                }
+
+                // Map data for clean excel output
+                const excelData = records.map((row: any, index: number) => {
+                    const fullName = [row.FirstName, row.MiddleName, row.LastName].filter(Boolean).join(' ');
+                    return {
+                        'SL.NO': index + 1,
+                        'STUDENT NAME': fullName || 'N/A',
+                        'EMAIL-ID': row.EmailID || 'N/A',
+                        'MOBILE NUMBER': row.Mobileno || 'N/A',
+                        'REG DATE': row.RegDate ? new Date(row.RegDate).toLocaleDateString('en-GB') : 'N/A'
+                    };
+                });
+
+                const worksheet = XLSX.utils.json_to_sheet(excelData);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, 'Students');
+                XLSX.writeFile(workbook, 'StudentCountReport_All.xlsx');
+                toast.success('Excel exported successfully', { id: 'excel-loading' });
+            } else {
+                toast.error('Failed to fetch records for export');
+                toast.dismiss('excel-loading');
+            }
+        } catch (error: any) {
+            toast.error(error.message);
+            toast.dismiss('excel-loading');
+        }
+    };
+
     const tableProps = useDataTableProps(response);
+    const columns = getStudentCountReportColumns();
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Report Cards */}
-                <PreadmissionStatusCountReport />
+                <PreadmissionStatusCountReport filterPayload={isSearched ? filterPayload : undefined} />
 
                 {/* Add Form Section (shown first) */}
                 <FormSections searchParams={searchParams} onFilterChange={onFilterChange} />
 
                 {/* Data Table Section */}
-                <CollapsibleSection
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IMasterStudentCountReportList>
-                        {...tableProps}
-                        columns={masterStudentCountReportColumns}
-                        isLoading={isLoading}
-                        error={error}
-                        showViewOptions={false}
-                        isSearchRequired={true}
-                        // showSearchColumns={true}
-                        columnPinning={{ right: ['actions'] }}
-                        isPaginationRequired={true}
-                        loadingMessage='Loading  Student Count Reports...'
-                        noDataTitle='No  Student Count Reports Found'
-                        noDataDescription='Get started by creating your first Student Count Reports '
-                        errorTitle='Error Loading Student Count Reports'
-                    />
-                </CollapsibleSection>
+                {isSearched && (
+                    <CollapsibleSection
+                        defaultOpen={true}
+                        variant='default'
+                        size='lg'
+                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                        <div className='mb-6 flex flex-row items-center justify-center gap-4'>
+                            <Button
+                                variant='default'
+                                size='sm'
+                                onClick={() => handlePrintAll('report')}
+                                disabled={isFetchingAll}
+                                className='flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white border-none shadow-md transition-all hover:scale-105'>
+                                <Printer className='h-4 w-4' />
+                                {isFetchingAll && printMode === 'report' ? 'Preparing...' : 'Print Report (All)'}
+                            </Button>
+                            <Button
+                                variant='default'
+                                size='sm'
+                                onClick={() => handlePrintAll('address')}
+                                disabled={isFetchingAll}
+                                className='flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white border-none shadow-md transition-all hover:scale-105'>
+                                <Printer className='h-4 w-4' />
+                                {isFetchingAll && printMode === 'address' ? 'Preparing...' : 'Print Address Book (All)'}
+                            </Button>
+                            <Button
+                                variant='default'
+                                size='sm'
+                                onClick={exportToExcel}
+                                className='flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white border-none shadow-md transition-all hover:scale-105'>
+                                <FileDown className='h-4 w-4' />
+                                Export to Excel
+                            </Button>
+                        </div>
+                        <GenericDataTable<IMasterStudentCountReportList>
+                            {...tableProps}
+                            columns={columns}
+                            isLoading={isLoading}
+                            error={error}
+                            showViewOptions={true}
+                            isSearchRequired={true}
+                            columnPinning={{ right: ['actions'] }}
+                            isPaginationRequired={true}
+                            loadingMessage='Loading Student Count Reports...'
+                            noDataTitle='No Student Count Reports Found'
+                            noDataDescription='Try adjusting your search filters'
+                            errorTitle='Error Loading Student Count Reports'
+                        />
+
+                        {/* Print Content - Hidden from screen, visible for print */}
+                        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: 0, overflow: 'hidden', zIndex: -1000 }}>
+                            <div ref={printRef} key={allData.length + printMode} className="printable-content" style={{ background: 'white', color: 'black', opacity: 1, visibility: 'visible', height: 'auto', display: 'block' }}>
+                                {printMode === 'report' ? (
+                                    <StudentCountReportPrint
+                                        data={allData}
+                                        reportType={filterPayload.report_type?.toString() || '1'}
+                                        rangeType={filterPayload.type}
+                                        fromDate={filterPayload.from_date}
+                                        toDate={filterPayload.to_date}
+                                        academicYear={''} 
+                                    />
+                                ) : (
+                                    <AddressBookPrint
+                                        data={allData}
+                                        reportType={filterPayload.report_type?.toString() || '1'}
+                                        rangeType={filterPayload.type}
+                                        fromDate={filterPayload.from_date}
+                                        toDate={filterPayload.to_date}
+                                        academicYear={''}
+                                    />
+                                )}
+                            </div>
+                        </div>
+                    </CollapsibleSection>
+                )}
             </div>
         </div>
     );

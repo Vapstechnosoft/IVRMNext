@@ -9,7 +9,7 @@ import { useCallback } from 'react';
 export const periodTimeSettingColumns: ColumnDef<IPeriodTimeSettingData>[] = [
     {
         accessorKey: 'ttmdpT_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -21,42 +21,42 @@ export const periodTimeSettingColumns: ColumnDef<IPeriodTimeSettingData>[] = [
     },
     {
         accessorKey: 'asmaY_Year',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic year' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic year' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmaY_Year')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'ttmC_CategoryName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Category name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Category name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('ttmC_CategoryName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'ttmP_PeriodName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Period' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Period' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('ttmP_PeriodName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'ttmD_DayName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Day' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Day' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('ttmD_DayName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'ttmdpT_StartTime',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Start Time' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Start Time' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('ttmdpT_StartTime')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'ttmdpT_EndTime',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='End Time' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='End Time' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('ttmdpT_EndTime')}</div>,
         enableSorting: true,
         enableHiding: true
@@ -64,7 +64,7 @@ export const periodTimeSettingColumns: ColumnDef<IPeriodTimeSettingData>[] = [
 
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='font-bold text-black' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />

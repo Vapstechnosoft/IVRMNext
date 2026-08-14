@@ -224,6 +224,7 @@ export default function UpdateMasterCategoryForm({ onSuccess, className = '', se
                         </div>
                         <InputText
                             label='Category Name'
+                            placeholder='Enter Category Name'
                             required
                             id='amC_Name'
                             {...register('amC_Name')}
@@ -233,6 +234,7 @@ export default function UpdateMasterCategoryForm({ onSuccess, className = '', se
                         />
                         <InputTextarea
                             label='Category Address'
+                            placeholder='Enter Category Address'
                             id='amC_Address'
                             {...register('amC_Address')}
                             defaultValue={row.amC_Address}
@@ -358,7 +360,7 @@ export default function UpdateMasterCategoryForm({ onSuccess, className = '', se
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Master Category
+                            Update Master Category
                         </div>
                     </Button>
                 </div>

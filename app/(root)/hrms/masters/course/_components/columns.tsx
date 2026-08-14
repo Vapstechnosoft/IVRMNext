@@ -5,6 +5,7 @@ import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IMasterCourseList } from '@/types/hrms/hrms-config/master';
 import type { ColumnDef } from '@tanstack/react-table';
+import { Check, X } from 'lucide-react';
 import { useCallback } from 'react';
 
 export const columns: ColumnDef<IMasterCourseList>[] = [
@@ -22,15 +23,19 @@ export const columns: ColumnDef<IMasterCourseList>[] = [
     },
     {
         accessorKey: 'hrmC_QulaificationName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Qualification Name' className='whitespace-nowrap' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Qualification Name' className='whitespace-nowrap' />,
+        meta: { title: 'Qualification Name' }
     },
     {
         accessorKey: 'hrmC_QualificationDesc',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Description' className='whitespace-nowrap' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Description' className='whitespace-nowrap' />,
+        meta: { title: 'Qualification Description' }
     },
     {
         accessorKey: 'hrmC_Order',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Order' className='whitespace-nowrap' />,
+        meta: { title: 'Order' },
+        filterFn: 'equalsString',
         cell: ({ row }) => {
             const orderValue = row.original.hrmC_Order;
             return <div>{orderValue ?? '-'}</div>;
@@ -39,12 +44,38 @@ export const columns: ColumnDef<IMasterCourseList>[] = [
     {
         accessorKey: 'hrmC_DefaultQualFag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Default' className='whitespace-nowrap' />,
-        cell: ({ row }) => (row.original.hrmC_DefaultQualFag ? 'Yes' : 'No')
+        meta: { title: 'Default Qual', disableSearch: true },
+        cell: ({ row }) => (
+            <div className='flex justify-center'>
+                {row.original.hrmC_DefaultQualFag ? (
+                    <span className='rounded-full bg-green-100 p-1 text-green-600 dark:bg-green-900/30 dark:text-green-400'>
+                        <Check className='h-4 w-4' />
+                    </span>
+                ) : (
+                    <span className='rounded-full bg-red-100 p-1 text-red-600 dark:bg-red-900/30 dark:text-red-400'>
+                        <X className='h-4 w-4' />
+                    </span>
+                )}
+            </div>
+        )
     },
     {
         accessorKey: 'hrmC_SpecialisationFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Has Specialization' className='whitespace-nowrap' />,
-        cell: ({ row }) => (row.original.hrmC_SpecialisationFlag ? 'Yes' : 'No')
+        meta: { title: 'Specialisation', disableSearch: true },
+        cell: ({ row }) => (
+            <div className='flex justify-center'>
+                {row.original.hrmC_SpecialisationFlag ? (
+                    <span className='rounded-full bg-green-100 p-1 text-green-600 dark:bg-green-900/30 dark:text-green-400'>
+                        <Check className='h-4 w-4' />
+                    </span>
+                ) : (
+                    <span className='rounded-full bg-red-100 p-1 text-red-600 dark:bg-red-900/30 dark:text-red-400'>
+                        <X className='h-4 w-4' />
+                    </span>
+                )}
+            </div>
+        )
     },
     {
         id: 'actions',

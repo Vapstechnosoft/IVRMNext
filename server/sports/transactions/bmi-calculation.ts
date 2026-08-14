@@ -5,7 +5,16 @@ import type { ApiSearchparams } from '@/types';
 import type { IBMICalculation, IBMIClassResponse, IBMISectionResponse, IBMIStudentResponse } from '@/types/sports/transactions/bmi-calculation';
 
 export async function getBMILoadGrid(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const params = { ...searchParams };
+    if (params.search_query) {
+        params.search_query = params.search_query.trim();
+    }
+    // Default search columns for multi-column search if not provided
+    if (!params.search_column && !params.search_columns) {
+        params.search_columns = 'studentName,AMST_AdmNo,ASMCL_ClassName,ASMC_SectionName,ASMAY_Year,asondate,SPCCSHW_Height,SPCCSHW_Weight,SPCCSHW_BMI,SPCCSHW_BMIRemark';
+    }
+
+    const urlParams = getSearchParamsUrl(params);
     const url = `/BMICalculation/getDetails?roleid=4&${urlParams}`;
 
     try {

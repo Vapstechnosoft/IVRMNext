@@ -1,7 +1,8 @@
 'use client';
 
 import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
-import { deleteMessMenu, IMessMenu } from '@/server/hostel/hostel-management/masters/menu';
+import { toggleMessMenuStatus } from '@/server/hostel/hostel-management/masters/menu';
+import { IMessMenu } from '@/types/hostel/hostel-management/masters';
 import { toast } from 'sonner';
 
 interface ToggleMessMenuFormProps {
@@ -13,7 +14,7 @@ interface ToggleMessMenuFormProps {
 export const ToggleMessMenuForm = ({ rowData, onClose, onSuccess }: ToggleMessMenuFormProps) => {
     const onConfirm = async () => {
         try {
-            const result = await deleteMessMenu(rowData);
+            const result = await toggleMessMenuStatus(rowData.hlmmN_Id, rowData.hlmmN_ActiveFlag);
             if (result.success) {
                 toast.success(result.message);
                 onSuccess();

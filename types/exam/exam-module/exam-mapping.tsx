@@ -712,7 +712,11 @@ export interface IBackendSearchResponse {
     marksEntryStateDate: string | null;
     get_papertype_grade_details: any[];
     answer_sheet: any[];
+    saved_ssse_list?: any[];
+    saved_ss_list?: any[];
+    saved_se_list?: any[];
 }
+
 
 // types/marks-entry.ts
 export type SubSub = {
@@ -941,4 +945,28 @@ export interface IPromotionDetailsByIdResponse {
         promotion_SubGroup_List: IPromotionalSubGroupDetails[];
         group_Exam_List: IPromotionalSubGroupExamDetails[];
     };
+}
+
+export interface IExamTTSession {
+    ettS_Id: number;
+    ettS_SessionName: string;
+    ettS_StartTime: string;
+    ettS_EndTime: string;
+    ettS_Activeflag: boolean;
+}
+
+export interface IExamTTTransSettings {
+    extT_Id: number;
+    academicyear: string;
+    classname: string;
+    sectionname: string;
+    emG_GroupName: string;
+    examname: string;
+    extT_FromDate: string;
+    extT_EndDate: string;
+    asmaY_Id: number;
+    asmcL_Id: number;
+    asmS_Id: number;
+    emE_Id: number;
+    emG_Id: number;
 }

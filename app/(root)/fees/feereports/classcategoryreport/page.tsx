@@ -11,7 +11,7 @@ import { feesClassCategoryReportSchema } from '@/schemas/fees/reports';
 import { getFeeClassCategory } from '@/server/fees/reports/fee_class_category_reports';
 import type { FeeClassCategoryReportList } from '@/types/fees/reports/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -581,7 +581,7 @@ export default function ClassCategoryReport() {
                                                                     groups[groupKey].push(row);
                                                                 });
 
-                                                                const rows: JSX.Element[] = [];
+                                                                const rows: React.ReactNode[] = [];
                                                                 let groupCounter = 1;
 
                                                                 Object.entries(groups).forEach(([groupId, groupRows]) => {
@@ -698,7 +698,7 @@ export default function ClassCategoryReport() {
                                                                     groups[groupKey].push(row);
                                                                 });
 
-                                                                const rows: JSX.Element[] = [];
+                                                                const rows: React.ReactNode[] = [];
                                                                 let groupCounter = 1;
 
                                                                 Object.entries(groups).forEach(([installmentTypeId, groupRows]) => {
@@ -869,7 +869,7 @@ export default function ClassCategoryReport() {
                                                                     classGroups[classId][sectionId].push(row);
                                                                 });
 
-                                                                const rows: JSX.Element[] = [];
+                                                                const rows: React.ReactNode[] = [];
                                                                 let overallCounter = 1;
 
                                                                 Object.entries(classGroups).forEach(([classId, sectionGroups]) => {
@@ -985,7 +985,7 @@ export default function ClassCategoryReport() {
                                                                     groups[groupKey].push(row);
                                                                 });
 
-                                                                const rows: JSX.Element[] = [];
+                                                                const rows: React.ReactNode[] = [];
                                                                 let groupCounter = 1;
 
                                                                 Object.entries(groups).forEach(([userId, groupRows]) => {
@@ -1083,7 +1083,7 @@ export default function ClassCategoryReport() {
                                                                 });
 
                                                                 // Generate rows
-                                                                const rows: JSX.Element[] = [];
+                                                                const rows: React.ReactNode[] = [];
                                                                 let overallCounter = 1;
 
                                                                 Object.entries(termGroups).forEach(([termId, termRows]) => {
@@ -1211,7 +1211,7 @@ export default function ClassCategoryReport() {
                                                                     groups[groupKey].push(row);
                                                                 });
 
-                                                                const rows: JSX.Element[] = [];
+                                                                const rows: React.ReactNode[] = [];
                                                                 let groupCounter = 1;
 
                                                                 Object.entries(groups).forEach(([groupId, groupRows]) => {
@@ -1317,7 +1317,7 @@ export default function ClassCategoryReport() {
                                                                 });
 
                                                                 // Generate rows
-                                                                const rows: JSX.Element[] = [];
+                                                                const rows: React.ReactNode[] = [];
                                                                 let groupCounter = 1;
 
                                                                 Object.entries(groups).forEach(([groupId, groupRows]) => {

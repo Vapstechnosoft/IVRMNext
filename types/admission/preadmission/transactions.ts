@@ -129,13 +129,17 @@ export interface PaymentFormData {
     udf3: string;
 }
 export interface IPreadmissionStatusCountReport {
-    registered_applications: number;
-    application_not_filled: number;
-    application_filled: number;
-    application_fee_applicable: boolean;
-    payment_pending: number;
-    payment_completed: number;
-    admission_transferred: number;
+    report_data: Array<{
+        reg: number;
+        notapplicationform: number;
+        applicationform: number;
+        payment: number;
+        transferstu: number;
+        notpayment: number;
+        duplicate: number;
+    }>;
+    academic_years?: any[];
+    classes?: any[];
 }
 
 export interface IPreadmissionDocumentView {
@@ -146,4 +150,14 @@ export interface IPreadmissionDocumentView {
     academic_year: string;
     class_name: string;
     pasr_id: number;
+    student_name: string;
+    pasR_RegistrationNo: string;
+    pasR_Date?: string;
+    applied_class_name: string;
+    section_name: string;
+    classname?: string;
+    pasR_Student_Pic_Path?: string;
+    pasR_FatherPhoto?: string;
+    pasR_MotherPhoto?: string;
+    doclist?: any[];
 }

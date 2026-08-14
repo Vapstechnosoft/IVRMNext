@@ -4,16 +4,15 @@ import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
 import { useMasterLanguage } from '@/hooks/library/useMasters';
-import { masterLibrarySchema } from '@/schemas/library/masters';
+import { masterLanguageSchema } from '@/schemas/library/masters';
 import { toggleMasterLanguage } from '@/server/library/masters/master_language';
 import type { IMasterLanguageList } from '@/types/library/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import type { z } from 'zod';
 
-type FormFields = {
-    lmL_Id?: number | string;
-};
+type FormFields = z.infer<typeof masterLanguageSchema.delete>;
 
 interface ToggleMasterLanguageFormProps {
     rowData: IMasterLanguageList;
@@ -25,13 +24,16 @@ export default function ToggleMasterLanguageForm({ rowData, onClose }: ToggleMas
     const isActive = rowData.lmL_ActiveFlg;
 
     const {
-        // register,
+        register,
         handleSubmit,
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(masterLibrarySchema.delete),
-        mode: 'onChange'
+        resolver: zodResolver(masterLanguageSchema.delete),
+        mode: 'onChange',
+        defaultValues: {
+            lmL_Id: String(rowData.lmL_Id)
+        }
     });
 
     function closeDialog() {
@@ -39,7 +41,7 @@ export default function ToggleMasterLanguageForm({ rowData, onClose }: ToggleMas
         reset();
     }
 
-    const onSubmit: SubmitHandler<FormFields> = async () => {
+    const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
             const response = await toggleMasterLanguage(rowData.lmL_Id);
 
@@ -56,17 +58,15 @@ export default function ToggleMasterLanguageForm({ rowData, onClose }: ToggleMas
     };
 
     return (
-        <AdaptiveDialog title='Toggle Master Library Status' isOpen={true} onClose={closeDialog}>
+        <AdaptiveDialog title='Toggle Master Language Status' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    {/* Register as number so zod validation receives a number (not a string) */}
-                    {/* <input type='hidden' {...register('lmaL_Id', { valueAsNumber: true })} value={rowData.lmL_Id as any} /> */}
-                    {/* <input type='hidden' {...register('lmL_Id')} /> */}
+                    <input type='hidden' {...register('lmL_Id')} defaultValue={rowData.lmL_Id} />
 
                     <p>
                         Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.lmL_LanguageName}</strong>?
                     </p>
-                    {/* <FormError>{errors.lmL_Id?.message}</FormError> */}
+                    <FormError>{errors.lmL_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>
                 </AdaptiveBody>
                 <AdaptiveFooter>

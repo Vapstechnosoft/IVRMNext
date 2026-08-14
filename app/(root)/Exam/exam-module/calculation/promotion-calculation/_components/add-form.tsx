@@ -4,11 +4,10 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import { examMarksCalculationSchemaSchema } from '@/schemas/exam/exam-module/exam-mark-calculation';
-import { getExamCalculation } from '@/server/exam/exam-module/calculation/exam-mark-calculation';
+import { promotionCalculationSchemaSchema } from '@/schemas/exam/exam-module/promotion-calculation';
+import { promotionCalculation } from '@/server/exam/exam-module/calculation/promotion-calculation';
 import {
     getClassDropDownByAcademicYearlist,
-    getExamsDropDownByAcademicYearandClassandSectionlist,
     getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/cumulative-report';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -21,7 +20,7 @@ import { z } from 'zod';
 import FeedbackModal from './feedback-modal';
 import NotEnteredSubjectsModal from './not-entered-subjects-modal';
 
-type FormFields = z.infer<typeof examMarksCalculationSchemaSchema.addOrUpdate>;
+type FormFields = z.infer<typeof promotionCalculationSchemaSchema.addOrUpdate>;
 
 export default function ExamMarksCalculationForm() {
     const [notEnteredSubjects, setNotEnteredSubjects] = useState<any[]>([]);
@@ -30,12 +29,11 @@ export default function ExamMarksCalculationForm() {
     const [selectedInfo, setSelectedInfo] = useState<any>({});
 
     const methods = useForm<FormFields>({
-        resolver: zodResolver(examMarksCalculationSchemaSchema.addOrUpdate),
+        resolver: zodResolver(promotionCalculationSchemaSchema.addOrUpdate),
         defaultValues: {
             asmaY_Id: 0,
             asmcL_Id: 0,
-            asmS_Id: 0,
-            emE_Id: 0
+            asmS_Id: 0
         }
     });
 
@@ -44,12 +42,13 @@ export default function ExamMarksCalculationForm() {
 
     const selectedYear = useWatch({ control, name: 'asmaY_Id' });
     const selectedClass = useWatch({ control, name: 'asmcL_Id' });
-    const selectedSection = useWatch({ control, name: 'asmS_Id' });
+    const _selectedSection = useWatch({ control, name: 'asmS_Id' });
 
     const [academicYears, setAcademicYears] = useState<any[]>([]);
     const [classes, setClasses] = useState<any[]>([]);
     const [sections, setSections] = useState<any[]>([]);
-    const [exams, setExams] = useState<any[]>([]);
+    const [isLoadingClasses, setIsLoadingClasses] = useState(false);
+    const [isLoadingSections, setIsLoadingSections] = useState(false);
 
     const { data: academicData } = useAcademicYearDropdown();
 
@@ -64,19 +63,20 @@ export default function ExamMarksCalculationForm() {
         if (!selectedYear || selectedYear === 0) {
             setClasses([]);
             setSections([]);
-            setExams([]);
             setValue('asmcL_Id', 0);
             setValue('asmS_Id', 0);
-            setValue('emE_Id', 0);
             return;
         }
         (async () => {
+            setIsLoadingClasses(true);
             try {
                 const { data } = await getClassDropDownByAcademicYearlist(selectedYear);
                 setClasses(Array.isArray(data) ? data : []);
             } catch {
                 toast.error('Failed to load classes');
                 setClasses([]);
+            } finally {
+                setIsLoadingClasses(false);
             }
         })();
     }, [selectedYear, setValue]);
@@ -85,51 +85,35 @@ export default function ExamMarksCalculationForm() {
     useEffect(() => {
         if (!selectedYear || !selectedClass || selectedClass === 0) {
             setSections([]);
-            setExams([]);
             setValue('asmS_Id', 0);
-            setValue('emE_Id', 0);
             return;
         }
         (async () => {
+            setIsLoadingSections(true);
             try {
                 const { data } = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass);
                 setSections(Array.isArray(data) ? data : []);
             } catch {
                 toast.error('Failed to load sections');
                 setSections([]);
+            } finally {
+                setIsLoadingSections(false);
             }
         })();
     }, [selectedYear, selectedClass, setValue]);
 
     // Load Exams
-    useEffect(() => {
-        if (!selectedYear || !selectedClass || !selectedSection || selectedSection === 0) {
-            setExams([]);
-            setValue('emE_Id', 0);
-            return;
-        }
-        (async () => {
-            try {
-                const { data } = await getExamsDropDownByAcademicYearandClassandSectionlist(selectedYear, selectedClass, selectedSection);
-                setExams(Array.isArray(data) ? data : []);
-            } catch {
-                toast.error('Failed to load exams');
-                setExams([]);
-            }
-        })();
-    }, [selectedYear, selectedClass, selectedSection, setValue]);
 
     const onSubmit = async (data: FormFields) => {
         try {
-            const response = await getExamCalculation(data.asmaY_Id, data.asmcL_Id, data.asmS_Id, data.emE_Id);
+            const response = await promotionCalculation(data.asmaY_Id, data.asmcL_Id, data.asmS_Id);
 
             if (response.notEnteredSubjects && response.notEnteredSubjects.length > 0) {
                 setNotEnteredSubjects(response.notEnteredSubjects);
                 setSelectedInfo({
                     asmaY_Year: academicYears.find((y) => y.asmaY_Id === data.asmaY_Id)?.asmaY_Year,
                     asmcL_ClassName: classes.find((c) => c.asmcL_Id === data.asmcL_Id)?.asmcL_ClassName,
-                    asmC_SectionName: sections.find((s) => s.asmS_Id === data.asmS_Id)?.asmC_SectionName,
-                    emE_ExamName: exams.find((e) => e.emE_Id === data.emE_Id)?.emE_ExamName
+                    asmC_SectionName: sections.find((s) => s.asmS_Id === data.asmS_Id)?.asmC_SectionName
                 });
                 setShowNotEnteredModal(true);
             } else {
@@ -206,11 +190,21 @@ export default function ExamMarksCalculationForm() {
                                                             <SelectValue placeholder='Select Class' />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            {classes.map((c) => (
-                                                                <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
-                                                                    {c.asmcL_ClassName}
+                                                            {isLoadingClasses ? (
+                                                                <SelectItem value='loading' disabled>
+                                                                    Loading classes...
                                                                 </SelectItem>
-                                                            ))}
+                                                            ) : classes.length === 0 ? (
+                                                                <SelectItem value='none' disabled>
+                                                                    No classes found
+                                                                </SelectItem>
+                                                            ) : (
+                                                                classes.map((c) => (
+                                                                    <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
+                                                                        {c.asmcL_ClassName}
+                                                                    </SelectItem>
+                                                                ))
+                                                            )}
                                                         </SelectContent>
                                                     </Select>
                                                     {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -237,42 +231,21 @@ export default function ExamMarksCalculationForm() {
                                                             <SelectValue placeholder='Select Section' />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            {sections.map((s) => (
-                                                                <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
-                                                                    {s.asmC_SectionName}
+                                                            {isLoadingSections ? (
+                                                                <SelectItem value='loading' disabled>
+                                                                    Loading sections...
                                                                 </SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                    </Select>
-                                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                                </div>
-                                            </div>
-                                        )}
-                                    />
-
-                                    <Controller
-                                        name='emE_Id'
-                                        control={control}
-                                        render={({ field, fieldState }) => (
-                                            // biome-ignore lint/nursery/useSortedClasses: <explanation>
-                                            <div className='flex flex-col sm:flex-row gap-3'>
-                                                <Label className='w-32 font-medium'>
-                                                    Exam Name <span className='text-red-500'>*</span>
-                                                </Label>
-                                                <div className='flex-1'>
-                                                    <Select
-                                                        disabled={!selectedSection || selectedSection === 0}
-                                                        onValueChange={(v) => field.onChange(Number(v))}
-                                                        value={field.value ? String(field.value) : ''}>
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder='Select Exam Name' />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {exams.map((e) => (
-                                                                <SelectItem key={e.emE_Id} value={String(e.emE_Id)}>
-                                                                    {e.emE_ExamName}
+                                                            ) : sections.length === 0 ? (
+                                                                <SelectItem value='none' disabled>
+                                                                    No sections found
                                                                 </SelectItem>
-                                                            ))}
+                                                            ) : (
+                                                                sections.map((s) => (
+                                                                    <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
+                                                                        {s.asmC_SectionName}
+                                                                    </SelectItem>
+                                                                ))
+                                                            )}
                                                         </SelectContent>
                                                     </Select>
                                                     {fieldState.error && <FormError>{fieldState.error.message}</FormError>}

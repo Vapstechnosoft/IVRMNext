@@ -46,7 +46,8 @@ export default function UpdateCourseForm({ onSuccess, className = '', selectedRo
                 hrmC_QualificationDesc: row.hrmC_QualificationDesc,
                 hrmC_Order: row.hrmC_Order,
                 hrmC_DefaultQualFag: row.hrmC_DefaultQualFag,
-                hrmC_SpecialisationFlag: row.hrmC_SpecialisationFlag
+                hrmC_SpecialisationFlag: row.hrmC_SpecialisationFlag,
+                hrmC_ActiveFlag: row.hrmC_ActiveFlag
             });
         }
     }, [row, reset]);
@@ -60,7 +61,7 @@ export default function UpdateCourseForm({ onSuccess, className = '', selectedRo
                 hrmC_Order: Number(data.hrmC_Order) || 0,
                 hrmC_DefaultQualFag: data.hrmC_DefaultQualFag,
                 hrmC_SpecialisationFlag: data.hrmC_SpecialisationFlag,
-                hrmC_ActiveFlag: true
+                hrmC_ActiveFlag: data.hrmC_ActiveFlag ?? true
             };
             const response = await addOrUpdateMasterCourse(payload);
 
@@ -183,10 +184,10 @@ export default function UpdateCourseForm({ onSuccess, className = '', selectedRo
                         disabled={isSubmitting || !isDirty}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting}
-                        loadingText='Saving...'>
+                        loadingText='Updating...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Course
+                            Update Course
                         </div>
                     </Button>
                     {!isDirty && <span className='flex items-center text-muted-foreground text-sm'>No changes made</span>}

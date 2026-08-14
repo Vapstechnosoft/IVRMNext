@@ -1,18 +1,15 @@
 'use client';
-
-import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useEmployeeYearlyReport } from '@/hooks/hrms/attendance-management/useReports';
 import { exportToExcel } from '@/lib/utils';
 import { format } from 'date-fns';
-import { FileSpreadsheet, Printer, X } from 'lucide-react';
-import { useState } from 'react';
+import { FileSpreadsheet } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { use } from 'react';
+import { toast } from 'sonner';
 import AddEmployeeYearlyReportForm from './_components/add-from';
-import type { YearRow } from './_components/columns';
-import { employeeYearlyReportColumns } from './_components/columns';
+import { type YearRow, getEmployeeYearlyReportColumns } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -22,40 +19,24 @@ export default function EmployeeYearlyReportPage(props: {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useEmployeeYearlyReport(searchParams);
 
-    return (
-        <FormProvider<YearRow>>
-            <EmployeeYearlyReportPageContent response={response} isLoading={isLoading} error={error} searchParams={searchParams} />
-        </FormProvider>
-    );
+    return <EmployeeYearlyReportPageContent response={response} isLoading={isLoading} error={error} searchParams={searchParams} />;
 }
 
 function FormSections({ searchParams }: { searchParams?: any }) {
     const { closeAddForm, addFormRef } = useFormContext<YearRow>();
 
     return (
-        <>
-            <div ref={addFormRef}>
-                <CollapsibleSection
-                    title='Generate Employee Yearly Report'
-                    description='Fill in the details below to generate the report'
-                    defaultOpen={true}
-                    variant='outline'
-                    size='md'
-                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                    <div className='relative'>
-                        <Button
-                            type='button'
-                            onClick={closeAddForm}
-                            variant='ghost'
-                            size='sm'
-                            className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                            <X className='h-4 w-4 text-destructive' /> Close
-                        </Button>
-                        <AddEmployeeYearlyReportForm onSuccess={closeAddForm} searchParams={searchParams} />
-                    </div>
-                </CollapsibleSection>
-            </div>
-        </>
+        <div ref={addFormRef}>
+            <CollapsibleSection
+                title='Generate Employee Yearly Report'
+                description='Fill in the details below to generate the report'
+                defaultOpen={true}
+                variant='outline'
+                size='md'
+                className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                <AddEmployeeYearlyReportForm onSuccess={closeAddForm} searchParams={searchParams} />
+            </CollapsibleSection>
+        </div>
     );
 }
 
@@ -71,81 +52,139 @@ function EmployeeYearlyReportPageContent({
     searchParams?: any;
 }) {
     const [selectedRows, setSelectedRows] = useState<YearRow[]>([]);
-    const tableProps = useDataTableProps(response);
 
-    const handleRowSelectionChange = (rows: YearRow[]) => {
-        setSelectedRows(rows);
-    };
+    // Extract data from response structure
+    const reportData = useMemo(() => {
+        if (!response) return [];
+
+        // Check multiple possible data structures
+        if (Array.isArray(response.data)) return response.data;
+        if (response.data?.report && Array.isArray(response.data.report)) {
+            return response.data.report;
+        }
+        if (response.report && Array.isArray(response.report)) {
+            return response.report;
+        }
+        return [];
+    }, [response]);
+
+    const dynamicMonths = useMemo(() => {
+        if (!response) return [];
+        if (response.data?.columns && Array.isArray(response.data.columns)) {
+            return response.data.columns;
+        }
+        if (response.columns && Array.isArray(response.columns)) {
+            return response.columns;
+        }
+        return [];
+    }, [response]);
+
+    const totalWorkingDays = useMemo(() => {
+        if (!response) return 0;
+        return response.data?.tpdays || response.tpdays || 0;
+    }, [response]);
+
+    console.log('response', response);
+    console.log('reportData', reportData);
+    console.log('dynamicMonths', dynamicMonths);
+
+    const rawModes = searchParams?.mode;
+    const modes = useMemo(() => {
+        if (Array.isArray(rawModes)) return rawModes;
+        if (rawModes) return [rawModes as string];
+        return [];
+    }, [rawModes]);
+
+    const tableProps = useMemo(() => {
+        const total = response?.data?.total || response?.total || reportData.length;
+        const errorMessage = response?.message || response?.errorMessage || error?.message;
+
+        return {
+            data: reportData,
+            total: total,
+            errorMessage: errorMessage,
+            success: response?.success !== false
+        };
+    }, [reportData, response, error]);
+
+    const columns = useMemo(() => {
+        return getEmployeeYearlyReportColumns(dynamicMonths, modes);
+    }, [dynamicMonths, modes]);
+
+    const handleRowSelectionChange = useCallback(
+        (rows: YearRow[]) => {
+            if (
+                rows.length !== selectedRows.length ||
+                JSON.stringify(rows.map((r) => r.ecode)) !== JSON.stringify(selectedRows.map((r) => r.ecode))
+            ) {
+                setSelectedRows(rows);
+            }
+        },
+        [selectedRows]
+    );
+
+    useEffect(() => {
+        if (!isLoading && searchParams?.fromDate && searchParams?.toDate && reportData.length === 0 && response) {
+            if (response.message) {
+                toast.error(response.message);
+            } else {
+                toast.error('No Data Found');
+            }
+        }
+    }, [isLoading, reportData.length, searchParams?.fromDate, searchParams?.toDate, response]);
 
     const handleExportToExcel = () => {
-        if (selectedRows.length === 0) return;
+        const dataToExport = selectedRows.length > 0 ? selectedRows : reportData;
+        if (dataToExport.length === 0) return;
 
-        // Get all column keys from the first row (to handle dynamic columns)
-        const firstRow = selectedRows[0];
-        const allKeys = Object.keys(firstRow || {});
-
-        // Filter out internal keys and prepare column headers
-        const excludeKeys = ['user_id', 'id', '_id'];
-        const columnKeys = allKeys.filter((key) => !excludeKeys.includes(key));
-
-        // Prepare data for export with all columns dynamically
-        const exportData = selectedRows.map((row, index) => {
+        const exportData = dataToExport.map((row: YearRow, index: number) => {
             const exportRow: Record<string, any> = {
-                'Sl.No': index + 1
+                'Sl.No': index + 1,
+                'Employee Code': row.ecode || '',
+                'Employee Name': row.ename || '',
+                Designation: row.designation || ''
             };
 
-            // Add all other columns dynamically
-            columnKeys.forEach((key) => {
-                if (key === 'date_of_joining' && row[key]) {
-                    exportRow['Date of Joining'] = format(new Date(row[key]), 'dd-MM-yyyy');
-                } else {
-                    // Convert snake_case to Title Case for headers
-                    const headerName = key
-                        .split('_')
-                        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                        .join(' ');
-                    exportRow[headerName] = row[key] ?? '';
-                }
+            dynamicMonths.forEach((month: string) => {
+                exportRow[month.replace('_', ' ')] = row[month] ?? '';
             });
+
+            if (modes.includes('Total working Day')) {
+                exportRow['Total Present'] = row.tpdays ?? '';
+            }
+
+            if (modes.includes('Show Holiday Punch')) {
+                exportRow['Total Worked on Holidays'] = row.hwkdays ?? '';
+            }
+
+            if (modes.includes('Date Of Joining')) {
+                exportRow['Date of Joining'] = row.doj ? format(new Date(row.doj), 'dd-MM-yyyy') : '';
+            }
 
             return exportRow;
         });
 
-        exportToExcel(exportData, 'Employee_Yearly_Report');
+        exportToExcel(exportData, `Employee_Yearly_Report_${new Date().getTime()}`);
     };
 
     const handlePrint = () => {
-        if (selectedRows.length === 0) return;
+        const dataToPrint = selectedRows.length > 0 ? selectedRows : reportData;
+        if (dataToPrint.length === 0) return;
 
-        // Get all column keys from the first row
-        const firstRow = selectedRows[0];
-        const allKeys = Object.keys(firstRow || {});
-        const excludeKeys = ['user_id', 'id', '_id'];
-        const columnKeys = allKeys.filter((key) => !excludeKeys.includes(key));
-
-        // Create column headers
-        const columnHeaders = [
-            'Sl.No',
-            ...columnKeys.map((key) => {
-                if (key === 'date_of_joining') return 'Date of Joining';
-                return key
-                    .split('_')
-                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                    .join(' ');
-            })
-        ];
-
-        // Create a print-friendly table
         const printWindow = window.open('', '_blank');
         if (!printWindow) return;
 
-        const formatValue = (value: any, key: string): string => {
-            if (value === null || value === undefined) return '';
-            if (key === 'date_of_joining' && value) {
-                return format(new Date(value), 'dd-MM-yyyy');
-            }
-            return String(value);
-        };
+        const columnHeaders = [
+            'Sl.No',
+            'Employee Code',
+            'Employee Name',
+            'Designation',
+            ...dynamicMonths.map((m: string) => m.replace('_', ' '))
+        ];
+
+        if (modes.includes('Total working Day')) columnHeaders.push('Total Present');
+        if (modes.includes('Show Holiday Punch')) columnHeaders.push('Total Worked on Holidays');
+        if (modes.includes('Date Of Joining')) columnHeaders.push('Date of Joining');
 
         const printContent = `
             <!DOCTYPE html>
@@ -153,20 +192,29 @@ function EmployeeYearlyReportPageContent({
             <head>
                 <title>Employee Yearly Report</title>
                 <style>
-                    body { font-family: Arial, sans-serif; margin: 20px; }
-                    h1 { text-align: center; margin-bottom: 20px; }
-                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                    th { background-color: #4f46e5; color: white; }
-                    tr:nth-child(even) { background-color: #f2f2f2; }
+                    body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
+                    .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #4f46e5; padding-bottom: 10px; }
+                    h1 { color: #4f46e5; margin: 0; font-size: 24px; }
+                    p { margin: 5px 0; color: #666; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 10px; }
+                    th, td { border: 1px solid #e2e8f0; padding: 8px; text-align: left; }
+                    th { background-color: #f8fafc; color: #1e293b; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; }
+                    tr:nth-child(even) { background-color: #f1f5f9; }
+                    .footer { margin-top: 30px; text-align: right; font-size: 10px; color: #94a3b8; }
                     @media print {
                         body { margin: 0; }
-                        @page { margin: 1cm; }
+                        @page { margin: 1.5cm; landscape: true; }
+                        table { font-size: 9px; }
+                        .header { border-bottom-color: #000; }
+                        th { background-color: #eee !important; color: #000 !important; }
                     }
                 </style>
             </head>
             <body>
-                <h1>Employee Yearly Report</h1>
+                <div class="header">
+                    <h1>Employee Yearly Report</h1>
+                    <p>Generated on ${format(new Date(), 'dd MMMM yyyy, hh:mm a')}</p>
+                </div>
                 <table>
                     <thead>
                         <tr>
@@ -174,18 +222,27 @@ function EmployeeYearlyReportPageContent({
                         </tr>
                     </thead>
                     <tbody>
-                        ${selectedRows
+                        ${dataToPrint
                             .map(
-                                (row, index) => `
+                                (row: YearRow, index: number) => `
                             <tr>
                                 <td>${index + 1}</td>
-                                ${columnKeys.map((key) => `<td>${formatValue(row[key], key)}</td>`).join('')}
+                                <td>${row.ecode || ''}</td>
+                                <td>${row.ename || ''}</td>
+                                <td>${row.designation || ''}</td>
+                                ${dynamicMonths.map((m: string) => `<td>${row[m] ?? ''}</td>`).join('')}
+                                ${modes.includes('Total working Day') ? `<td>${row.tpdays ?? ''}</td>` : ''}
+                                ${modes.includes('Show Holiday Punch') ? `<td>${row.hwkdays ?? ''}</td>` : ''}
+                                ${modes.includes('Date Of Joining') ? `<td>${row.doj ? format(new Date(row.doj), 'dd-MM-yyyy') : ''}</td>` : ''}
                             </tr>
                         `
                             )
                             .join('')}
                     </tbody>
                 </table>
+                <div class="footer">
+                    Printed via IVRM Management System
+                </div>
             </body>
             </html>
         `;
@@ -196,66 +253,42 @@ function EmployeeYearlyReportPageContent({
         setTimeout(() => {
             printWindow.print();
             printWindow.close();
-        }, 250);
+        }, 300);
     };
 
+    const shouldShowTable = searchParams?.fromDate && searchParams?.toDate && reportData.length > 0;
+
     return (
-        <div className='min-h-screen'>
-            <div className='container space-y-4 p-1'>
-                {/* Add Form Section (shown first) */}
-                <FormSections searchParams={searchParams} />
+        <FormProvider<YearRow>>
+            <div className='min-h-screen'>
+                <div className='container space-y-4 p-1'>
+                    <FormSections searchParams={searchParams} />
 
-                {/* Action Buttons - Show when rows are selected */}
-                {selectedRows.length > 0 && (
-                    <div className='flex items-center gap-2 rounded-lg border bg-blue-50 p-4 shadow-sm'>
-                        <span className='font-medium text-gray-700 text-sm'>
-                            {selectedRows.length} row{selectedRows.length > 1 ? 's' : ''} selected
-                        </span>
-                        <div className='ml-auto flex items-center gap-2'>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                size='sm'
-                                onClick={handleExportToExcel}
-                                className='border-green-500 text-green-700 hover:bg-green-50'>
-                                <FileSpreadsheet className='mr-2 h-4 w-4' />
-                                Excel
-                            </Button>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                size='sm'
-                                onClick={handlePrint}
-                                className='border-blue-500 text-blue-700 hover:bg-blue-50'>
-                                <Printer className='mr-2 h-4 w-4' />
-                                Print
-                            </Button>
+                    {/* {shouldShowTable && (
+                        
+                    )} */}
+
+                    {isLoading && searchParams?.fromDate && searchParams?.toDate && (
+                        <div className='flex items-center justify-center py-12'>
+                            <div className='text-center'>
+                                <p className='mt-4 text-muted-foreground'>Loading report data...</p>
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )}
 
-                {/* Data Table Section */}
-                <CollapsibleSection
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<YearRow>
-                        {...tableProps}
-                        columns={employeeYearlyReportColumns}
-                        isLoading={isLoading}
-                        error={error}
-                        showViewOptions={false}
-                        columnPinning={{ right: ['actions'] }}
-                        isPaginationRequired={true}
-                        onRowSelectionChange={handleRowSelectionChange}
-                        loadingMessage='Loading Employee Yearly Reports...'
-                        noDataTitle='No Employee Yearly Reports Found'
-                        noDataDescription='Get started by generating your first Employee Yearly Report'
-                        errorTitle='Error Loading Employee Yearly Reports'
-                    />
-                </CollapsibleSection>
+                    {!isLoading && searchParams?.fromDate && searchParams?.toDate && reportData.length === 0 && response && (
+                        <div className='rounded-lg border bg-card p-12 text-center'>
+                            <div className='mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted'>
+                                <FileSpreadsheet className='h-6 w-6 text-muted-foreground' />
+                            </div>
+                            <h3 className='mt-4 font-semibold text-lg'>No Data Found</h3>
+                            <p className='mt-2 text-muted-foreground text-sm'>
+                                {response?.message || 'No employee yearly report data found for the selected criteria.'}
+                            </p>
+                        </div>
+                    )}
+                </div>
             </div>
-        </div>
+        </FormProvider>
     );
 }

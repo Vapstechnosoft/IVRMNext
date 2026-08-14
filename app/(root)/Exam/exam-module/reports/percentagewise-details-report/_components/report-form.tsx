@@ -17,7 +17,7 @@ import {
 } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 import { getAcademicYearDropdown } from '@/server/fees/masters/class_yearly_category';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { FileSpreadsheet, Loader2, Printer } from 'lucide-react';
+import { FileSpreadsheet, Printer } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -63,7 +63,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
     const selectedYear = watch('ASMAY_Id');
     const selectedCategory = watch('EMCA_Id');
     const selectedClass = watch('ASMCL_Id');
-    const selectedSection = watch('ASMS_Id');
+    const _selectedSection = watch('ASMS_Id');
 
     const [loadingCategories, setLoadingCategories] = useState(false);
     const [loadingClasses, setLoadingClasses] = useState(false);
@@ -173,6 +173,9 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
             const classId = data.qualification_type === 'all' ? 0 : data.ASMCL_Id;
             const sectionId = data.qualification_type === 'all' ? 0 : data.ASMS_Id;
 
+            const selected_Year = academicYears.find((y: any) => y.asmaY_Id === Number(data.ASMAY_Id))?.asmaY_Year;
+            const select_Exam = exams.find((e: any) => e.emE_Id === Number(data.EME_Id))?.emE_ExamName;
+
             const payload = {
                 mI_Id: 0, // usually institution id (set from session later if needed)
                 asmaY_Id: data.ASMAY_Id,
@@ -194,15 +197,13 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                 report_type: data.qualification_type,
                 percent: data.percent
             };
-            console.log('payload', payload);
             const response = await getReportDetails(payload);
-            console.log('response', response);
 
             if (response.success) {
                 if (response.data.length === 0) {
                     toast.info('No records found');
                 }
-                onReportGenerated(response, payload);
+                onReportGenerated(response, { selected_Year, select_Exam });
             } else {
                 toast.error(response.message || 'Failed to generate report');
             }
@@ -261,9 +262,9 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                                 name='ASMAY_Id'
                                 render={({ field }) => (
                                     <Select
-                                        key={field.value}
+                                        key={`${field.value}-${academicYears.length}`}
                                         onValueChange={(val) => field.onChange(Number(val))}
-                                        value={field.value ? String(field.value) : undefined}>
+                                        value={field.value && field.value !== 0 ? String(field.value) : undefined}>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Academic Year' />
                                         </SelectTrigger>
@@ -292,9 +293,9 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                                 name='EMCA_Id'
                                 render={({ field }) => (
                                     <Select
-                                        key={field.value}
+                                        key={`${field.value}-${categories.length}-${loadingCategories}`}
                                         onValueChange={(val) => field.onChange(Number(val))}
-                                        value={field.value ? String(field.value) : undefined}>
+                                        value={field.value && field.value !== 0 ? String(field.value) : undefined}>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Category' />
                                         </SelectTrigger>
@@ -333,9 +334,9 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                                 name='ASMCL_Id'
                                 render={({ field }) => (
                                     <Select
-                                        key={field.value}
+                                        key={`${field.value}-${classes.length}-${loadingClasses}`}
                                         onValueChange={(val) => field.onChange(Number(val))}
-                                        value={field.value ? String(field.value) : undefined}
+                                        value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                         disabled={qualificationType === 'all'}>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Class' />
@@ -375,9 +376,9 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                                 name='ASMS_Id'
                                 render={({ field }) => (
                                     <Select
-                                        key={field.value}
+                                        key={`${field.value}-${sections.length}-${loadingSections}`}
                                         onValueChange={(val) => field.onChange(Number(val))}
-                                        value={field.value !== undefined ? String(field.value) : undefined}
+                                        value={field.value !== undefined && field.value !== null ? String(field.value) : undefined}
                                         disabled={qualificationType === 'all'}>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Section' />
@@ -418,9 +419,9 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                                 name='EME_Id'
                                 render={({ field }) => (
                                     <Select
-                                        key={field.value}
+                                        key={`${field.value}-${exams.length}-${loadingExams}`}
                                         onValueChange={(val) => field.onChange(Number(val))}
-                                        value={field.value ? String(field.value) : undefined}>
+                                        value={field.value && field.value !== 0 ? String(field.value) : undefined}>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Exam' />
                                         </SelectTrigger>
@@ -456,7 +457,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                                 control={control}
                                 name='percent'
                                 render={({ field }) => (
-                                    <Select key={field.value} onValueChange={field.onChange} value={field.value}>
+                                    <Select key={field.value} onValueChange={field.onChange} value={field.value || undefined}>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Percentage' />
                                         </SelectTrigger>
@@ -477,12 +478,11 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                     </div>
 
                     <div className='flex justify-center space-x-4'>
-                        <Button type='submit' disabled={loading}>
-                            {loading && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+                        <Button type='submit' disabled={loading} isLoading={loading}>
                             Report
                         </Button>
-                        <Button type='button' variant='destructive' onClick={handleCancel}>
-                            Cancel
+                        <Button type='button' variant='outline' onClick={handleCancel}>
+                            Clear
                         </Button>
                         <Button
                             type='button'

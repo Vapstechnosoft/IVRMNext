@@ -74,6 +74,12 @@ export default function AddMasterInstallmentForm({ onSuccess }: { onSuccess?: ()
 
     const onSubmit = async (data: MasterInstallmentFormSchema) => {
         try {
+            const emptyInstallment = installments.find((item) => !item.ftI_Name || item.ftI_Name.trim() === '');
+
+            if (emptyInstallment) {
+                toast.error(`Please enter Installment Name for S.No ${emptyInstallment.sno}`);
+                return;
+            }
             const noOfInstallments = Number(data.fmI_No_Of_Installments) || installments.length || 0;
 
             const payload = {

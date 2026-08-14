@@ -1,17 +1,19 @@
 'use client';
 import type { PeriodDistributionColumn } from '@/types/timetable/masters/masters';
 
+import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { ColumnDef } from '@tanstack/react-table';
+import { Eye } from 'lucide-react';
 import { useCallback } from 'react';
 
 export const createPeriodDistributionColumns: ColumnDef<PeriodDistributionColumn>[] = [
     {
         accessorKey: 'ttfpD_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -23,7 +25,7 @@ export const createPeriodDistributionColumns: ColumnDef<PeriodDistributionColumn
     },
     {
         accessorKey: 'asmaY_Year',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmaY_Year')}</div>,
         enableSorting: true,
         enableHiding: true
@@ -31,7 +33,7 @@ export const createPeriodDistributionColumns: ColumnDef<PeriodDistributionColumn
 
     {
         accessorKey: 'staffName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Staff Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Staff Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('staffName')}</div>,
         enableSorting: true,
         enableHiding: true
@@ -39,20 +41,27 @@ export const createPeriodDistributionColumns: ColumnDef<PeriodDistributionColumn
 
     {
         accessorKey: 'ttfpD_TotWeekPeriods',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='No Of Periods' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='No Of Periods' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('ttfpD_TotWeekPeriods')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='font-bold text-black' />,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: PeriodDistributionColumn }) {
-    const { openToggleForm } = useFormContext<PeriodDistributionColumn>();
+    const { openEditForm, openToggleForm, openDetailsView } = useFormContext<PeriodDistributionColumn>();
+
+    const handleEdit = useCallback(
+        (data: PeriodDistributionColumn) => {
+            openEditForm(data);
+        },
+        [openEditForm]
+    );
 
     const handleToggle = useCallback(
         (data: PeriodDistributionColumn) => {
@@ -61,91 +70,35 @@ function ActionButtonsCell({ rowData }: { rowData: PeriodDistributionColumn }) {
         [openToggleForm]
     );
 
-    return <ActionButtons rowData={rowData} buttons={{ toggle: true }} onToggle={handleToggle} toggleConditionKey='ttfpD_ActiveFlag' />;
+    const handleView = useCallback(() => {
+        openDetailsView(rowData);
+    }, [openDetailsView, rowData]);
+
+    return (
+        <div className='flex items-center gap-3'>
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant='ghost'
+                            size='sm'
+                            onClick={handleView}
+                            className='h-8 w-8 p-0 transition-all duration-200 hover:bg-purple-50 hover:text-purple-600'>
+                            <Eye className='h-4 w-4' />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>View</p>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+            <ActionButtons
+                rowData={rowData}
+                buttons={{ edit: true, toggle: true, delete: false }}
+                onEdit={handleEdit}
+                onToggle={handleToggle}
+                toggleConditionKey='ttfpD_ActiveFlag'
+            />
+        </div>
+    );
 }
-
-// 'use client';
-// import { Button } from '@/components/ui/button';
-// import { Switch } from '@/components/ui/switch';
-// import type { PeriodDistributionColumn } from '@/types/timetable/masters/masters';
-// import type { ColumnDef } from '@tanstack/react-table';
-// import { ArrowUpDown, Eye, Pencil } from 'lucide-react';
-
-// interface PeriodDistributionColumnsProps {
-//     onEdit: (data: PeriodDistributionColumn) => void;
-//     onDelete: (data: PeriodDistributionColumn) => void;
-//     onToggleActive: (data: PeriodDistributionColumn) => void;
-//     onView?: (data: PeriodDistributionColumn) => void;
-// }
-
-// export const createPeriodDistributionColumns = ({
-//     onEdit,
-//     onDelete,
-//     onToggleActive,
-//     onView
-// }: PeriodDistributionColumnsProps): ColumnDef<PeriodDistributionColumn>[] => [
-//     {
-//         id: 'index',
-//         header: 'SL NO',
-//         cell: ({ row }) => <div>{row.index + 1}</div>,
-//         size: 80
-//     },
-//     {
-//         accessorKey: 'asmaY_Year',
-//         header: ({ column }) => {
-//             return (
-//                 <Button variant='ghost' onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-//                     Academic Year
-//                     <ArrowUpDown className='ml-2 h-4 w-4' />
-//                 </Button>
-//             );
-//         }
-//     },
-//     {
-//         accessorKey: 'staffName',
-//         header: ({ column }) => {
-//             return (
-//                 <Button variant='ghost' onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-//                     Staff Name
-//                     <ArrowUpDown className='ml-2 h-4 w-4' />
-//                 </Button>
-//             );
-//         }
-//     },
-//     {
-//         accessorKey: 'ttfpD_TotWeekPeriods',
-//         header: ({ column }) => {
-//             return (
-//                 <Button variant='ghost' onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-//                     No Of Periods
-//                     <ArrowUpDown className='ml-2 h-4 w-4' />
-//                 </Button>
-//             );
-//         }
-//     },
-//     {
-//         id: 'actions',
-//         header: 'Actions',
-//         cell: ({ row }) => {
-//             return (
-//                 <div className='flex items-center gap-2'>
-//                     <Button variant='ghost' size='icon' onClick={() => onView?.(row.original)} title='View Details'>
-//                         <Eye className='h-4 w-4 text-purple-600' />
-//                     </Button>
-//                     <Button variant='ghost' size='icon' onClick={() => onEdit(row.original)} title='Edit'>
-//                         <Pencil className='h-4 w-4 text-primary' />
-//                     </Button>
-//                     <div className='flex items-center space-x-2'>
-//                         <Switch
-//                             checked={row.original.ttfpD_ActiveFlag}
-//                             onCheckedChange={() => onToggleActive(row.original)}
-//                             className={
-//                                 row.original.ttfpD_ActiveFlag ? 'data-[state=checked]:bg-green-500' : 'data-[state=unchecked]:bg-red-500'
-//                             }
-//                         />
-//                     </div>
-//                 </div>
-//             );
-//         }
-//     }
-// ];

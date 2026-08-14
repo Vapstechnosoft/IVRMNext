@@ -17,102 +17,8 @@ import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 
-const Marks_reportData = {
-    "success": true,
-    "message": "Marks entry report generated successfully.",
-    "data": [
-        {
-            "mI_Id": "30",
-            "asmcL_Id": "409",
-            "asmS_Id": "162",
-            "asmcL_ClassName": "Nursery",
-            "asmC_SectionName": "Section A",
-            "ismS_Id": 1069,
-            "ismS_SubjectName": "COLOURING  SCENIC PICTURE",
-            "subjectOrder": 1,
-            "employename": "",
-            "sourceMarksEntryFlag": 1,
-            "sourceMarksColorFlag": "Green",
-            "sourceMarksEntry": "Full Entered"
-        },
-        {
-            "mI_Id": "30",
-            "asmcL_Id": "409",
-            "asmS_Id": "162",
-            "asmcL_ClassName": "Nursery",
-            "asmC_SectionName": "Section A",
-            "ismS_Id": 970,
-            "ismS_SubjectName": "SENSORIAL",
-            "subjectOrder": 2,
-            "employename": "",
-            "sourceMarksEntryFlag": 0,
-            "sourceMarksColorFlag": "Red",
-            "sourceMarksEntry": "Not Entered"
-        },
-        {
-            "mI_Id": "30",
-            "asmcL_Id": "409",
-            "asmS_Id": "162",
-            "asmcL_ClassName": "Nursery",
-            "asmC_SectionName": "Section A",
-            "ismS_Id": 762,
-            "ismS_SubjectName": "@#$%^&",
-            "subjectOrder": 3,
-            "employename": "",
-            "sourceMarksEntryFlag": 0,
-            "sourceMarksColorFlag": "Red",
-            "sourceMarksEntry": "Not Entered"
-        },
-        {
-            "mI_Id": "30",
-            "asmcL_Id": "409",
-            "asmS_Id": "162",
-            "asmcL_ClassName": "Nursery",
-            "asmC_SectionName": "Section A",
-            "ismS_Id": 779,
-            "ismS_SubjectName": "EVS",
-            "subjectOrder": 4,
-            "employename": "",
-            "sourceMarksEntryFlag": 0,
-            "sourceMarksColorFlag": "Red",
-            "sourceMarksEntry": "Not Entered"
-        },
-        {
-            "mI_Id": "30",
-            "asmcL_Id": "409",
-            "asmS_Id": "162",
-            "asmcL_ClassName": "Nursery",
-            "asmC_SectionName": "Section A",
-            "ismS_Id": 775,
-            "ismS_SubjectName": "KANNADA",
-            "subjectOrder": 5,
-            "employename": "",
-            "sourceMarksEntryFlag": 1,
-            "sourceMarksColorFlag": "Green",
-            "sourceMarksEntry": "Full Entered"
-        },
-        {
-            "mI_Id": "30",
-            "asmcL_Id": "409",
-            "asmS_Id": "162",
-            "asmcL_ClassName": "Nursery",
-            "asmC_SectionName": "Section A",
-            "ismS_Id": 767,
-            "ismS_SubjectName": "ENGLISH",
-            "subjectOrder": 6,
-            "employename": "",
-            "sourceMarksEntryFlag": 1,
-            "sourceMarksColorFlag": "Green",
-            "sourceMarksEntry": "Full Entered"
-        }
-    ],
-    "total": 6,
-    "page": null,
-    "page_size": null
-}
-
 interface ReportFormProps {
-    onReportGenerated: (data: any) => void;
+    onReportGenerated: (data: any, year: string, exam: string) => void;
     onReset: () => void;
 }
 
@@ -252,26 +158,22 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                 EME_Id: Number(data.EME_Id)
             };
 
-            console.log('marks entry report payload', payload);
-
+            const selected_Year = years.find((y: any) => y.asmaY_Id === Number(data.ASMAY_Id))?.asmaY_Year || '';
+            const selected_Exam = exams.find((e: any) => e.emE_Id === Number(data.EME_Id))?.emE_ExamName || '';
             const result = await getReportDetails(payload);
 
-            console.log('marks entry report data', result.data);
+            const resultData = Array.isArray(result.data) ? result.data : [];
 
-            const resultData = Array.isArray(result.data) ? result.data[0] : [];
-
-            // TODO: Use dummy data if result is empty - REMOVE IN PRODUCTION
-            if (!resultData || (Array.isArray(resultData) && resultData.length === 0) || !result.data || result.data.length === 0) {
-                onReportGenerated(Marks_reportData.data);
+            if (!result.data || resultData.length === 0) {
+                toast.error('No records found');
+                onReportGenerated([], selected_Year, selected_Exam);
             } else {
-                onReportGenerated(resultData);
+                onReportGenerated(result.data, selected_Year, selected_Exam);
             }
-
         } catch (error) {
             console.error('Error:', error);
         }
     };
-
 
     const handleClear = () => {
         reset();
@@ -453,11 +355,11 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                         </div>
 
                         <div className='mt-8 flex justify-center gap-4'>
-                            <Button type='submit' disabled={isSubmitting}>
-                                {isSubmitting ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null} Report
+                            <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting}>
+                                Report
                             </Button>
                             <Button type='button' variant='outline' onClick={handleClear} disabled={isSubmitting}>
-                                Cancel
+                                Clear
                             </Button>
                         </div>
                     </div>

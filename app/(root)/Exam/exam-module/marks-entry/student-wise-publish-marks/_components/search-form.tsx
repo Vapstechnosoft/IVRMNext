@@ -218,7 +218,6 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                 ismS_Id: 0,
                 tempGroupList: formData.feeGroupIds?.length ? formData.feeGroupIds : [0]
             };
-            console.log('Payload:', payload);
             const { data: response } = await getStudentWisePublishMarksData(payload);
             const apiStudents = Array.isArray(response) ? response : [];
 
@@ -309,7 +308,9 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                 <div className='space-y-4'>
                     {/* Academic Year */}
                     <div>
-                        <Label>Academic Year *</Label>
+                        <Label>
+                            Academic Year <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             control={control}
                             name='asmaY_Id'
@@ -355,7 +356,7 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                                 <div className='flex items-center space-x-2'>
                                     <Checkbox id='feeinstallmentcheckbox' checked={field.value} onCheckedChange={field.onChange} />
                                     <Label htmlFor='feeinstallmentcheckbox' className='font-medium'>
-                                        Exclude Fee Defaulters: *
+                                        Exclude Fee Defaulters <span className='text-red-500'>*</span>
                                     </Label>
                                 </div>
                             )}
@@ -364,7 +365,9 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
 
                     {/* Fee Term (only when Exclude Fee Defaulters is checked) */}
                     <div>
-                        <Label>Fee Term *</Label>
+                        <Label>
+                            Fee Term <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             control={control}
                             name='FMT_Id'
@@ -406,7 +409,9 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                     {/* Fee Group Multi-select */}
                     <div>
                         <div className='mb-2'>
-                            <Label className='font-medium'>Fee Group: *</Label>
+                            <Label className='font-medium'>
+                                Fee Group <span className='text-red-500'>*</span>
+                            </Label>
                         </div>
                         <Controller
                             control={control}
@@ -436,7 +441,9 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                 <div className='space-y-4'>
                     {/* Class */}
                     <div>
-                        <Label>Class *</Label>
+                        <Label>
+                            Class <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             control={control}
                             name='asmcL_Id'
@@ -475,7 +482,9 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
 
                     {/* Section */}
                     <div>
-                        <Label>Section *</Label>
+                        <Label>
+                            Section <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             control={control}
                             name='asmS_Id'
@@ -514,7 +523,9 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
 
                     {/* Exam Name (only for Exam Wise) */}
                     <div>
-                        <Label>Exam Name {watchType === 'Exam' && '*'}</Label>
+                        <Label>
+                            Exam Name <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             control={control}
                             name='emE_Id'

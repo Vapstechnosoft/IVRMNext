@@ -14,6 +14,8 @@ import AddMasterStudentFeeGroupMapping from './_components/add-form';
 import { masterStudentFeeGroupMapping } from './_components/columns';
 import DeleteStudentFeeGroupMappingForm from './_components/delete-form';
 
+import UpdateMasterStudentFeeGroupMappingsForm from './_components/update-form';
+
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterStudentGroupMappingPage(props: {
@@ -23,11 +25,13 @@ export default function MasterStudentGroupMappingPage(props: {
     const { data: response, isLoading, error, refetchAll } = useStudentFeeGroupMapping(searchParams);
     const [isAddFormOpen, setIsAddFormOpen] = useState(false);
     const [isEditFormOpen, setIsEditFormOpen] = useState(false);
+    const [isDeleteFormOpen, setIsDeleteFormOpen] = useState(false);
     const [selectedRow, setSelectedRow] = useState<any>(null);
 
     const formState = {
         isAddFormOpen,
         isEditFormOpen,
+        isDeleteFormOpen,
         selectedRow,
 
         openAddForm: () => setIsAddFormOpen(true),
@@ -40,6 +44,15 @@ export default function MasterStudentGroupMappingPage(props: {
         closeEditForm: () => {
             setSelectedRow(null);
             setIsEditFormOpen(false);
+        },
+
+        openDeleteForm: (row: any) => {
+            setSelectedRow(row);
+            setIsDeleteFormOpen(true);
+        },
+        closeDeleteForm: () => {
+            setSelectedRow(null);
+            setIsDeleteFormOpen(false);
         },
 
         addFormRef: React.createRef<HTMLDivElement>(),
@@ -110,8 +123,17 @@ function MasterStudentFeeGroupMapping({
 }
 
 function FormSections() {
-    const { isAddFormOpen, isDeleteFormOpen, selectedRow, closeAddForm, closeDeleteForm, addFormRef } =
-        useFormContext<IMasterStudentFeeGroupMappingList>();
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isDeleteFormOpen,
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        closeDeleteForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<IMasterStudentFeeGroupMappingList>();
     return (
         <>
             {/* Add Form */}
@@ -135,6 +157,31 @@ function FormSections() {
                             </Button>
 
                             <AddMasterStudentFeeGroupMapping onSuccess={closeAddForm} />
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
+
+            {isEditFormOpen && selectedRow && (
+                <div ref={editFormRef}>
+                    <CollapsibleSection
+                        title='Update Student Fee Group Mapping'
+                        description='Modify the details below to update the Student Fee Group Mapping'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeEditForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+
+                            <UpdateMasterStudentFeeGroupMappingsForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>

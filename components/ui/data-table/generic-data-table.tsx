@@ -50,7 +50,9 @@ interface GenericDataTableProps<T> {
     defaultVisibility?: { [key: string]: boolean };
     scrollable?: boolean;
     maxHeight?: string;
-    //manualPagination?: boolean;
+    getRowId?: (row: T) => string;
+    onPageChange?: (page: number) => void;
+    // Bento-Glass Props
 }
 
 export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<any>>(function GenericDataTable<T>(
@@ -77,10 +79,10 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         ErrorComponent,
         showSearchColumns = false,
         showExportOptions = false,
-        // manualPagination = true
         scrollable = false,
-        maxHeight = '600px'
-        //manualPagination = false
+        maxHeight = '600px',
+        getRowId,
+        onPageChange
     }: GenericDataTableProps<T>,
     ref: React.Ref<DataTableRef>
 ) {
@@ -136,6 +138,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                     columns={columns}
                     data={[]} // Empty array
                     totalItems={0}
+                    getRowId={getRowId}
                     showViewOptions={showViewOptions}
                     isSearchRequired={isSearchRequired}
                     isPaginationRequired={isPaginationRequired}
@@ -143,32 +146,32 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                     showSearchColumns={showSearchColumns}
                     showExportOptions={showExportOptions}
                     maxSelectableRows={maxSelectableRows}
-                    //manualPagination={manualPagination}
                     onRowSelectionChange={(selectedRows) => {
                         if (onRowSelectionChange) {
                             onRowSelectionChange(selectedRows);
                         }
                     }}
+                    onPageChange={onPageChange}
                 />
             </div>
         );
     }
 
     return (
-        <div className='overflow-hidden rounded-lg bg-card'>
+        <div className='bg-card'>
             <DataTable
                 ref={ref}
                 isLoading={isLoading}
                 columns={columns}
                 data={data}
                 totalItems={totalItems}
+                getRowId={getRowId}
                 showViewOptions={showViewOptions}
                 isSearchRequired={isSearchRequired}
                 isPaginationRequired={isPaginationRequired}
                 columnPinning={columnPinning}
                 maxSelectableRows={maxSelectableRows}
                 showSearchColumns={showSearchColumns}
-                //manualPagination={manualPagination}
                 scrollable={scrollable}
                 maxHeight={maxHeight}
                 onRowSelectionChange={(selectedRows) => {
@@ -176,6 +179,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                         onRowSelectionChange(selectedRows);
                     }
                 }}
+                onPageChange={onPageChange}
             />
         </div>
     );
@@ -191,11 +195,23 @@ export function useDataTableProps(
         messageKey?: string;
     }
 ) {
+    // Handle raw array response directly
+    if (Array.isArray(response)) {
+        return {
+            data: response,
+            totalItems: response.length,
+            success: true,
+            errorMessage: undefined
+        };
+    }
+
     const { dataKey = 'data', totalKey = 'total', successKey = 'success', messageKey = 'message' } = options || {};
 
+    const extractedData = response?.[dataKey] || [];
+
     return {
-        data: response?.[dataKey] || [],
-        totalItems: response?.[totalKey] || 0,
+        data: extractedData,
+        totalItems: response?.[totalKey] || extractedData.length || 0,
         success: response?.[successKey],
         errorMessage: response?.[messageKey]
     };

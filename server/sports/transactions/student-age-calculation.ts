@@ -1,44 +1,29 @@
 'use server';
 
-import { api, type ApiResponse } from '@/lib/apiService';
+import { api, getSearchParamsUrl, type ApiResponse } from '@/lib/apiService';
 import { IDropdown } from '@/types';
 import { StudentAgeCalculationFormData, StudentAgeRecord } from '@/schemas/sports/transactions/student-age-calculation';
 import { StudentAgeCalculationInitialData } from '@/types/sports/transactions/student-age-calculation';
 
-export async function getInitialData(): Promise<ApiResponse<{ academicYears: IDropdown[], classes: IDropdown[], sections: IDropdown[], records: StudentAgeRecord[] }>> {
+export async function getInitialData(searchParams?: any): Promise<ApiResponse<{ academicYears: IDropdown[], classes: IDropdown[], sections: IDropdown[], records: StudentAgeRecord[], total: number }>> {
     try {
-        const response = await api.post<StudentAgeCalculationInitialData>('sports', '/StudentAgeCalc/Getdetails', {});
+        const params = { ...searchParams };
+        if (params.search_query) {
+            params.search_query = params.search_query.toString().trim();
+        }
+        const urlParams = getSearchParamsUrl(params ?? {});
+        const response = await api.post<StudentAgeCalculationInitialData>('sports', `/StudentAgeCalc/Getdetails?${urlParams}`, {});
 
         if (!response.success && !response.data) {
             return {
                 success: false,
                 message: response.message || 'Failed to fetch details',
-                data: { academicYears: [], classes: [], sections: [], records: [] }
+                data: { academicYears: [], classes: [], sections: [], records: [], total: 0 }
             };
         }
 
-        const academicYears: IDropdown[] = response.data?.academicYear?.map(item => ({
-            id: item.asmaY_Id,
-            label: item.asmaY_Year,
-            code: item.asmaY_AcademicYearCode,
-            name: item.asmaY_Year
-        })) || [];
-
-        const classes: IDropdown[] = response.data?.classList?.map(item => ({
-            id: item.asmcL_Id,
-            label: item.asmcL_ClassName,
-            code: item.asmcL_ClassCode,
-            name: item.asmcL_ClassName
-        })) || [];
-
-        const sections: IDropdown[] = response.data?.sectionList?.map(item => ({
-            id: item.asmS_Id,
-            label: item.asmC_SectionName,
-            code: item.asmC_SectionName,
-            name: item.asmC_SectionName
-        })) || [];
-
-        const records: StudentAgeRecord[] = (response.data?.eventsStudentRecordList || []).map((r: any, index: number) => ({
+        const data = (response.data as any);
+        const records: StudentAgeRecord[] = (data.listt || []).map((r: any, index: number) => ({
             id: index + 1,
             asmaY_Year: r.asmaY_Year,
             studentName: r.studentName,
@@ -49,16 +34,43 @@ export async function getInitialData(): Promise<ApiResponse<{ academicYears: IDr
             age_Days: r.age_Days
         }));
 
+        const academicYears: IDropdown[] = (data.academicYear || []).map((item: any) => ({
+            id: item.asmaY_Id,
+            label: item.asmaY_Year,
+            code: item.asmaY_AcademicYearCode,
+            name: item.asmaY_Year
+        }));
+
+        const classes: IDropdown[] = (data.classList || []).map((item: any) => ({
+            id: item.asmcL_Id,
+            label: item.asmcL_ClassName,
+            code: item.asmcL_ClassCode,
+            name: item.asmcL_ClassName
+        }));
+
+        const sections: IDropdown[] = (data.sectionList || []).map((item: any) => ({
+            id: item.asmS_Id,
+            label: item.asmC_SectionName,
+            code: item.asmC_SectionName,
+            name: item.asmC_SectionName
+        }));
+
         return {
-            success: true,
-            message: 'Initial data fetched successfully',
-            data: { academicYears, classes, sections, records }
+            success: response.success,
+            message: response.message || 'Initial data fetched successfully',
+            data: { 
+                academicYears, 
+                classes, 
+                sections, 
+                records, 
+                total: response.total ?? 0 
+            }
         };
     } catch (error: any) {
         return {
             success: false,
             message: error.message || 'Failed to fetch details',
-            data: { academicYears: [], classes: [], sections: [], records: [] }
+            data: { academicYears: [], classes: [], sections: [], records: [], total: 0 }
         };
     }
 }

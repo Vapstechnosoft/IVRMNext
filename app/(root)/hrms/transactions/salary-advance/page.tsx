@@ -92,13 +92,10 @@ function SalaryAdvancePageContent({
                 enableHiding: true
             },
             {
-                accessorKey: 'hrmE_Id',
+                accessorFn: (row) => getEmployeeNameById(row.hrmE_Id),
                 id: 'employeeName',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
-                cell: ({ row }) => {
-                    const employeeId = row.original.hrmE_Id;
-                    return <div>{getEmployeeNameById(employeeId)}</div>;
-                },
+                cell: ({ row }) => <div>{row.getValue('employeeName')}</div>,
                 enableSorting: true,
                 enableHiding: true
             },
@@ -117,9 +114,23 @@ function SalaryAdvancePageContent({
                 enableHiding: true
             },
             {
+                accessorKey: 'hresA_ReferenceNo',
+                header: ({ column }) => <DataTableColumnHeader column={column} title='Reference No' />,
+                cell: ({ row }) => <div>{row.getValue('hresA_ReferenceNo')}</div>,
+                enableSorting: true,
+                enableHiding: true
+            },
+            {
                 accessorKey: 'hresA_AppliedAmount',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Applied Amount' />,
                 cell: ({ row }) => <div>₹{row.getValue('hresA_AppliedAmount')?.toLocaleString()}</div>,
+                enableSorting: true,
+                enableHiding: true
+            },
+            {
+                accessorKey: 'hresA_Remarks',
+                header: ({ column }) => <DataTableColumnHeader column={column} title='Remarks' />,
+                cell: ({ row }) => <div>{row.getValue('hresA_Remarks')}</div>,
                 enableSorting: true,
                 enableHiding: true
             },
@@ -145,6 +156,7 @@ function SalaryAdvancePageContent({
                 enableSorting: true,
                 enableHiding: true
             },
+            
             {
                 id: 'actions',
                 header: 'Actions',
@@ -157,7 +169,13 @@ function SalaryAdvancePageContent({
         ];
         return (
             <div className='overflow-hidden rounded-lg bg-card'>
-                <DataTable<SalaryAdvanceGridItem, any> columns={columns} data={advances} totalItems={advances.length} isLoading={isLoading} />
+                <DataTable<SalaryAdvanceGridItem, any>
+                    columns={columns}
+                    data={advances}
+                    totalItems={advances.length}
+                    isLoading={isLoading}
+                    showSearchColumns={true}
+                />
             </div>
         );
     };

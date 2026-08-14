@@ -10,7 +10,7 @@ import { getReportDetails } from '@/server/exam/exam-module/reports/grade-slab-r
 import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 import type { IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, X } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -96,11 +96,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
 
     const onSubmit = async (values: FormFields) => {
         try {
-            console.log('Grade Slab Report payload:', values);
-            const [{ data: result }, institutionRes] = await Promise.all([
-                getReportDetails(values),
-                getMasterInstitution()
-            ]);
+            const [{ data: result }, institutionRes] = await Promise.all([getReportDetails(values), getMasterInstitution()]);
             const safeData = Array.isArray(result) ? result : [];
             console.info(safeData);
             onReportGenerated(safeData, institutionRes?.success ? institutionRes.data : null);
@@ -211,13 +207,11 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                     </div>
 
                     <div className='flex justify-center gap-4 border-t pt-4'>
-                        <Button type='submit' disabled={isSubmitting} className='flex w-fit'>
-                            {isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+                        <Button type='submit' disabled={isSubmitting} className='flex w-fit' isLoading={isSubmitting}>
                             Report
                         </Button>
                         <Button type='button' variant='outline' onClick={handleCancel} className='flex w-fit'>
-                            <X className='mr-2 h-4 w-4' />
-                            Cancel
+                            Clear
                         </Button>
                     </div>
                 </form>

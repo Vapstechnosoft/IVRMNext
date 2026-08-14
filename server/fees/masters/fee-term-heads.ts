@@ -40,9 +40,7 @@ export async function getinstallmentsdropdown(searchParams?: ApiSearchparams) {
     return await api.get<IMasterInstallmentsDropdownList[]>('fees', url);
 }
 
-export async function gettermsdropdown(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/FeeMasterTerms/fee_term_Dropdown?${urlParams}`;
-
+export async function gettermsdropdown() {
+    const url = '/FeeMasterTerms/fee_term_Dropdown';
     return await api.get<IMasterTermDropdownList[]>('fees', url);
 }

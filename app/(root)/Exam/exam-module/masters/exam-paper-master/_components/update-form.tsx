@@ -8,7 +8,7 @@ import { masterExamPaperSchema } from '@/schemas/exam/exam-module/masters';
 import { addOrUpdateMasterExamPaper } from '@/server/exam/exam-module/masters/exam-paper';
 import type { IMasterExamPaper } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save, RefreshCw } from 'lucide-react';
+import { RefreshCw, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -80,9 +80,9 @@ export default function UpdateMasterExamPaperForm({ onSuccess, className = '', s
         setIsLoading(true);
         const timer = setTimeout(() => {
             setIsLoading(false);
-        }, 500)
+        }, 500);
         return () => clearTimeout(timer);
-    }, [row])
+    }, [row]);
 
     if (isLoading) {
         return (
@@ -101,6 +101,7 @@ export default function UpdateMasterExamPaperForm({ onSuccess, className = '', s
                         <InputText
                             label='Paper Type Name'
                             required
+                            placeholder='Enter Paper Type Name'
                             id='empatY_PaperTypeName'
                             {...register('empatY_PaperTypeName')}
                             defaultValue={row.empatY_PaperTypeName}
@@ -109,6 +110,7 @@ export default function UpdateMasterExamPaperForm({ onSuccess, className = '', s
                         <InputText
                             label='Color'
                             required
+                            placeholder='Enter Color'
                             id='empatY_Color'
                             {...register('empatY_Color')}
                             defaultValue={row.empatY_Color}
@@ -120,6 +122,7 @@ export default function UpdateMasterExamPaperForm({ onSuccess, className = '', s
                         <InputText
                             label='Paper Type Description'
                             required
+                            placeholder='Enter Paper Type Description'
                             id='empatY_PaperTypeDescription'
                             {...register('empatY_PaperTypeDescription')}
                             defaultValue={row.empatY_PaperTypeDescription}
@@ -142,7 +145,7 @@ export default function UpdateMasterExamPaperForm({ onSuccess, className = '', s
                         className='order-1 w-fit'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Paper Type
+                            Save
                         </div>
                     </Button>
                 </div>

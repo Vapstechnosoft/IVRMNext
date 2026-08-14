@@ -12,8 +12,7 @@ import {
 } from '@/hooks/timetable/useMasters';
 import { cn } from '@/lib/utils';
 import { masterDayClasswiseSchema } from '@/schemas/timetable/masters';
-import { ClassDropDownDataOnchnGeYrAndCategory } from '@/server/timetable/masters/masterdayclasswise';
-import { savePeriodClass } from '@/server/timetable/masters/periodallocation';
+import { ClassDropDownDataOnchnGeYrAndCategory, addOrUpdateMasterDayClasswise } from '@/server/timetable/masters/masterdayclasswise';
 import type { ClassDropDownDataTT } from '@/types/timetable/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckSquare, Save, Square } from 'lucide-react';
@@ -232,23 +231,26 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
 
     const onSubmit = async (data: FormFields) => {
         try {
+            const temp_day_Arraydata = data.dayids.map((id) => ({ ttmD_Id: Number(id) }));
+            const temp_day_Classdata = data.calssids.map((id) => ({ asmcL_Id: Number(id) }));
             const payload = {
-                TTMPC_Id: 0,
-                ASMAY_Id: data.asmay_id
+                ttmdC_Id: 0,
+                asmaY_Id: data.asmay_id,
+                temp_day_Array: temp_day_Arraydata,
+                temp_class_Array: temp_day_Classdata
+
                 // Add other required fields based on your schema
             };
 
             // TODO: Replace with actual save function for day class wise
-            const response = await savePeriodClass(payload);
-            if (response.returnval) {
-                toast.success('Data successfully Saved');
+            const response = await addOrUpdateMasterDayClasswise(payload);
+            if (response.success) {
+                toast.success(response.message);
                 onSuccess?.();
                 refetchAll();
                 handleReset();
-            } else if (response.returnduplicatestatus === 'Duplicate') {
-                toast.error('Records Already Exist !');
             } else {
-                toast.error('Data Not Saved !');
+                toast.error(response.message);
             }
         } catch (error: any) {
             toast.error(error.message || 'An error occurred');
@@ -292,7 +294,9 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
                                     field.onChange(value ? Number(value) : '');
                                 }}
                                 value={field.value?.toString() || undefined}>
-                                <SelectTrigger className='w-full'>
+                                <SelectTrigger className={cn(
+                                    !field.value ? "text-gray-400" : "text-black"
+                                )}>
                                     <SelectValue placeholder='Select Academic Year' />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -332,7 +336,9 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
                                     field.onChange(value ? Number(value) : '');
                                 }}
                                 value={field.value?.toString() || undefined}>
-                                <SelectTrigger className='w-full'>
+                                <SelectTrigger className={cn(
+                                    !field.value ? "text-gray-400" : "text-black"
+                                )}>
                                     <SelectValue placeholder='Select Category' />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -451,7 +457,7 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
                                         : 'border-gray-300 hover:border-primary/40'
                                 )}>
                                 {day_ids.length === (daySearch.trim() ? filteredDayIds.length : Masterdaydata.data.length) &&
-                                day_ids.length > 0 ? (
+                                    day_ids.length > 0 ? (
                                     <CheckSquare className='h-4 w-4 text-primary' />
                                 ) : (
                                     <Square className='h-4 w-4 text-gray-400' />

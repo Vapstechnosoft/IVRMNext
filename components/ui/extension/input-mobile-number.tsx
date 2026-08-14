@@ -11,7 +11,10 @@ interface MobileNumberInputProps extends React.InputHTMLAttributes<HTMLInputElem
     error?: string;
     inputFieldClassName?: string;
     showSpinner?: boolean;
+    requiredTooltip?: string;
 }
+
+import { StandardTooltip } from '@/components/StandardTooltip';
 
 function MobileNumberInput({
     label,
@@ -23,29 +26,35 @@ function MobileNumberInput({
     optional,
     showSpinner = true,
     value,
+    requiredTooltip,
     ...props
 }: MobileNumberInputProps) {
-    const handleNumericInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-        event.target.value = event.target.value.replace(/\D/g, '');
-        props.onChange?.(event);
+    const handleNumericInput = (event: React.FormEvent<HTMLInputElement>) => {
+        const target = event.currentTarget;
+        target.value = target.value.replace(/\D/g, '');
+        props.onChange?.(event as any);
     };
 
     return (
         <div className={cn('group flex flex-col gap-1.5', className)}>
             <Label aria-label={label}>
                 {label}
-                {required && <span className='ml-1 text-red-500'>*</span>}
+                {required && (
+                    <StandardTooltip content={requiredTooltip || `${label} is mandatory. Please fill it.`}>
+                        <span className='ml-1 text-red-500 font-bold hover:scale-110 transition-transform'>*</span>
+                    </StandardTooltip>
+                )}
                 {optional && <span className='text-muted-foreground'>(optional)</span>}
             </Label>
             <FieldGroup className={cn('w-full', inputFieldClassName)}>
                 <Input
+                    {...props}
                     type='tel'
                     pattern='[0-9]*'
                     inputMode='numeric'
                     className='w-fit min-w-0 flex-1 border-transparent bg-background pr-2 outline-none placeholder:text-muted-foreground disabled:text-muted-foreground [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'
                     onInput={handleNumericInput}
                     value={value ?? ''}
-                    {...props}
                 />
             </FieldGroup>
             {description && !error && <span className='text-[0.8rem] text-muted-foreground'>{description}</span>}

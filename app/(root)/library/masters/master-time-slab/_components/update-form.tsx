@@ -5,7 +5,7 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { useMasterTimeSlab } from '@/hooks/library/useMasters';
+import { useMasterTimeSlabList } from '@/hooks/library/useMasters';
 import { masterTimeSlabSchema } from '@/schemas/library/masters';
 import { addOrUpdateMasterTimeSlab } from '@/server/library/masters/time-slab';
 import type { IMasterTimeSlab } from '@/types/library/masters/time-slab';
@@ -19,13 +19,14 @@ import type { z } from 'zod';
 type FormFields = z.infer<typeof masterTimeSlabSchema.addOrUpdate>;
 
 interface UpdateMasterTimeSlabFormProps {
+    onloaddata?: any;
     onSuccess?: () => void;
     className?: string;
     selectedRow: IMasterTimeSlab;
 }
 
-export default function UpdateMasterTimeSlabForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterTimeSlabFormProps) {
-    const { refetchAll } = useMasterTimeSlab();
+export default function UpdateMasterTimeSlabForm({ onloaddata, onSuccess, className = '', selectedRow: row }: UpdateMasterTimeSlabFormProps) {
+    const { refetchAll } = useMasterTimeSlabList();
 
     const {
         register,
@@ -36,7 +37,17 @@ export default function UpdateMasterTimeSlabForm({ onSuccess, className = '', se
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterTimeSlabSchema.addOrUpdate),
-        mode: 'onChange'
+        mode: 'onSubmit',
+        defaultValues: {
+            lfsE_Id: (row as any).lfsE_Id ?? (row as any).LFSE_Id ?? 0,
+            lfsE_UserType: (row as any).lfsE_UserType ?? (row as any).LFSE_UserType ?? '',
+            lfsE_SlabTypeFlg: (row as any).lfsE_SlabTypeFlg ?? (row as any).LFSE_SlabTypeFlg ?? '',
+            lfsE_PerDayFlg: (row as any).lfsE_PerDayFlg === true || (row as any).lfsE_PerDayFlg === 1 || (row as any).LFSE_PerDayFlg === true || (row as any).LFSE_PerDayFlg === 1 ? 1 : 0,
+            lfsE_FromDay: (row as any).lfsE_FromDay ?? (row as any).LFSE_FromDay ?? 0,
+            lfsE_ToDay: (row as any).lfsE_ToDay ?? (row as any).LFSE_ToDay ?? 0,
+            lfsE_Amount: (row as any).lfsE_Amount ?? (row as any).LFSE_Amount ?? 0,
+            lfsE_ActiveFlg: (row as any).lfsE_ActiveFlg ?? (row as any).LFSE_ActiveFlg ?? true
+        }
     });
 
     const slabType = watch('lfsE_SlabTypeFlg');
@@ -44,26 +55,34 @@ export default function UpdateMasterTimeSlabForm({ onSuccess, className = '', se
     useEffect(() => {
         if (row) {
             reset({
-                lfsE_Id: row.lfsE_Id,
-                lfsE_UserType: row.lfsE_UserType,
-                lfsE_SlabTypeFlg: row.lfsE_SlabTypeFlg,
-                lfsE_PerDayFlg: row.lfsE_PerDayFlg,
-                lfsE_FromDay: row.lfsE_FromDay,
-               // lfsE_ToDay: row.lfsE_ToDay,
-                lfsE_Amount: row.lfsE_Amount,
-                lfsE_ActiveFlg: row.lfsE_ActiveFlg
+                lfsE_Id: (row as any).lfsE_Id ?? (row as any).LFSE_Id,
+                lfsE_UserType: (row as any).lfsE_UserType ?? (row as any).LFSE_UserType ?? '',
+                lfsE_SlabTypeFlg: (row as any).lfsE_SlabTypeFlg ?? (row as any).LFSE_SlabTypeFlg ?? '',
+                lfsE_PerDayFlg: (row as any).lfsE_PerDayFlg === true || (row as any).lfsE_PerDayFlg === 1 || (row as any).LFSE_PerDayFlg === true || (row as any).LFSE_PerDayFlg === 1 ? 1 : 0,
+                lfsE_FromDay: (row as any).lfsE_FromDay ?? (row as any).LFSE_FromDay ?? 0,
+                lfsE_ToDay: (row as any).lfsE_ToDay ?? (row as any).LFSE_ToDay ?? 0,
+                lfsE_Amount: (row as any).lfsE_Amount ?? (row as any).LFSE_Amount ?? 0,
+                lfsE_ActiveFlg: (row as any).lfsE_ActiveFlg ?? (row as any).LFSE_ActiveFlg ?? true
             });
         }
     }, [row, reset]);
 
+
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload = {
-                ...data,
-                lfsE_Id: row.lfsE_Id
+                lfsE_Id: (row as any).lfsE_Id ?? (row as any).LFSE_Id,
+                lfsE_UserType: data.lfsE_UserType,
+                lfsE_SlabTypeFlg: data.lfsE_SlabTypeFlg,
+              lfsE_PerDayFlg: data.lfsE_PerDayFlg === 1 ?true : false,
+                lfsE_FromDay: Number(data.lfsE_FromDay),
+                lfsE_ToDay: data.lfsE_SlabTypeFlg === 'BETWEEN' ? Number(data.lfsE_ToDay) : 0,
+                lfsE_Amount: Number(data.lfsE_Amount),
+                lfsE_ActiveFlg: row.lfsE_ActiveFlg
             };
 
             const response = await addOrUpdateMasterTimeSlab(payload);
+
 
             if (response.success) {
                 toast.success(response.message || 'Record Updated Successfully!!!');
@@ -78,19 +97,18 @@ export default function UpdateMasterTimeSlabForm({ onSuccess, className = '', se
     };
 
     const handleReset = () => {
-        if (row) {
-            reset({
-                lfsE_Id: row.lfsE_Id,
-                lfsE_UserType: row.lfsE_UserType,
-                lfsE_SlabTypeFlg: row.lfsE_SlabTypeFlg,
-                lfsE_PerDayFlg: row.lfsE_PerDayFlg,
-                lfsE_FromDay: row.lfsE_FromDay,
-                //lfsE_ToDay: row.lfsE_ToDay,
-                lfsE_Amount: row.lfsE_Amount,
-                lfsE_ActiveFlg: row.lfsE_ActiveFlg
-            });
-        }
+        reset({
+            lfsE_Id: (row as any).lfsE_Id ?? (row as any).LFSE_Id,
+            lfsE_UserType: '',
+            lfsE_SlabTypeFlg: '',
+            lfsE_PerDayFlg: 0,
+            lfsE_FromDay: 0,
+            lfsE_ToDay: 0,
+            lfsE_Amount: 0,
+            lfsE_ActiveFlg: (row as any).lfsE_ActiveFlg ?? (row as any).LFSE_ActiveFlg ?? true
+        });
     };
+
 
     return (
         <div className={className}>
@@ -107,10 +125,20 @@ export default function UpdateMasterTimeSlabForm({ onSuccess, className = '', se
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value='STUDENT'>STUDENT</SelectItem>
-                                        <SelectItem value='STAFF'>STAFF</SelectItem>
-                                        <SelectItem value='DEPARTMENT'>DEPARTMENT</SelectItem>
-                                        <SelectItem value='GUEST'>GUEST</SelectItem>
+                                        {onloaddata?.usertype && onloaddata.usertype.length > 0 ? (
+                                            onloaddata.usertype.map((item: any, index: number) => (
+                                                <SelectItem key={index} value={item.ivrmrT_Role}>
+                                                    {item.ivrmrT_Role}
+                                                </SelectItem>
+                                            ))
+                                        ) : (
+                                            <>
+                                                <SelectItem value='STUDENT'>STUDENT</SelectItem>
+                                                <SelectItem value='STAFF'>STAFF</SelectItem>
+                                                <SelectItem value='DEPARTMENT'>DEPARTMENT</SelectItem>
+                                                <SelectItem value='GUEST'>GUEST</SelectItem>
+                                            </>
+                                        )}
                                     </SelectContent>
                                 </Select>
                             )}
@@ -129,8 +157,18 @@ export default function UpdateMasterTimeSlabForm({ onSuccess, className = '', se
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value='BETWEEN'>BETWEEN</SelectItem>
-                                        <SelectItem value='GREATER'>GREATER</SelectItem>
+                                        {onloaddata?.slabtype && onloaddata.slabtype.length > 0 ? (
+                                            onloaddata.slabtype.map((item: any, index: number) => (
+                                                <SelectItem key={index} value={item.slabtype}>
+                                                    {item.slabtype}
+                                                </SelectItem>
+                                            ))
+                                        ) : (
+                                            <>
+                                                <SelectItem value='BETWEEN'>BETWEEN</SelectItem>
+                                                <SelectItem value='GREATER'>GREATER</SelectItem>
+                                            </>
+                                        )}
                                     </SelectContent>
                                 </Select>
                             )}
@@ -157,6 +195,7 @@ export default function UpdateMasterTimeSlabForm({ onSuccess, className = '', se
                         label='From Day'
                         type='number'
                         required
+                        placeholder='Enter From Day'
                         {...register('lfsE_FromDay')}
                         error={errors.lfsE_FromDay?.message}
                     />
@@ -166,6 +205,7 @@ export default function UpdateMasterTimeSlabForm({ onSuccess, className = '', se
                             label='To Day'
                             type='number'
                             required
+                            placeholder='Enter To Day'
                             {...register('lfsE_ToDay')}
                             error={errors.lfsE_ToDay?.message}
                         />
@@ -176,6 +216,7 @@ export default function UpdateMasterTimeSlabForm({ onSuccess, className = '', se
                         type='number'
                         step='0.01'
                         required
+                        placeholder='Enter Amount'
                         {...register('lfsE_Amount')}
                         error={errors.lfsE_Amount?.message}
                     />
@@ -183,23 +224,22 @@ export default function UpdateMasterTimeSlabForm({ onSuccess, className = '', se
 
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
-                        type='button'
-                        variant='outline'
-                        onClick={handleReset}
-                        disabled={isSubmitting}
-                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                        Reset
-                    </Button>
-                    <Button
                         type='submit'
                         disabled={isSubmitting}
-                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                        className='order-1 w-fit bg-[#4251b1] hover:bg-[#35418e] text-white transition-all duration-200 hover:scale-105'
                         isLoading={isSubmitting}
                         loadingText='Updating...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
                             Update
                         </div>
+                    </Button>
+                    <Button
+                        type='button'
+                        onClick={handleReset}
+                        disabled={isSubmitting}
+                        className='order-2 w-fit bg-[#ff5a30] hover:bg-[#e64d26] text-white transition-all duration-200 hover:scale-105'>
+                        Reset
                     </Button>
                 </div>
             </form>

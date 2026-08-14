@@ -117,6 +117,7 @@ export default function MainGroupForm({ onSuccess, className = '', selectedRow }
                             <Input
                                 id='invmG_GroupName'
                                 {...register('invmG_GroupName')}
+                                placeholder='Enter Group Name'
                                 className={errors.invmG_GroupName ? 'border-destructive' : ''}
                             />
                             {errors.invmG_GroupName && <FormError>{errors.invmG_GroupName.message}</FormError>}
@@ -127,6 +128,7 @@ export default function MainGroupForm({ onSuccess, className = '', selectedRow }
                             <Input
                                 id='invmG_AliasName'
                                 {...register('invmG_AliasName')}
+                                placeholder='Enter Alias Name'
                                 className={errors.invmG_AliasName ? 'border-destructive' : ''}
                             />
                             {errors.invmG_AliasName && <FormError>{errors.invmG_AliasName.message}</FormError>}
@@ -137,6 +139,7 @@ export default function MainGroupForm({ onSuccess, className = '', selectedRow }
                             <Input
                                 id='invmG_GroupPrefix'
                                 {...register('invmG_GroupPrefix')}
+                                placeholder='Enter Group Prefix'
                                 className={errors.invmG_GroupPrefix ? 'border-destructive' : ''}
                             />
                             {errors.invmG_GroupPrefix && <FormError>{errors.invmG_GroupPrefix.message}</FormError>}
@@ -147,6 +150,7 @@ export default function MainGroupForm({ onSuccess, className = '', selectedRow }
                             <Input
                                 id='invmG_GroupSuffix'
                                 {...register('invmG_GroupSuffix')}
+                                placeholder='Enter Group Suffix'
                                 className={errors.invmG_GroupSuffix ? 'border-destructive' : ''}
                             />
                             {errors.invmG_GroupSuffix && <FormError>{errors.invmG_GroupSuffix.message}</FormError>}
@@ -157,6 +161,7 @@ export default function MainGroupForm({ onSuccess, className = '', selectedRow }
                             <Input
                                 id='invmG_GroupStartingNo'
                                 {...register('invmG_GroupStartingNo')}
+                                placeholder='Enter Group Starting No'
                                 className={errors.invmG_GroupStartingNo ? 'border-destructive' : ''}
                             />
                             {errors.invmG_GroupStartingNo && <FormError>{errors.invmG_GroupStartingNo.message}</FormError>}
@@ -238,13 +243,14 @@ export function ToggleMainGroupForm({ rowData, onClose }: ToggleMainGroupFormPro
                 </AdaptiveBody>
 
                 <AdaptiveFooter>
-                    <Button variant='secondary' onClick={onClose} type='button' disabled={isSubmitting}>
+                    <Button variant='outline' onClick={onClose} type='button' disabled={isSubmitting}>
                         Cancel
                     </Button>
                     <Button
                         type='submit'
                         isLoading={isSubmitting}
-                        variant={isActive ? 'destructive' : 'default'}
+                        variant={isActive ? 'warning' : 'default'}
+                        className={isActive ? 'bg-orange-500 hover:bg-orange-600 text-white' : ''}
                         loadingText={isActive ? 'Deactivating...' : 'Activating...'}>
                         {isActive ? 'Deactivate' : 'Activate'}
                     </Button>

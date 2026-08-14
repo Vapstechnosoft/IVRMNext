@@ -3,29 +3,34 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useDeleteLeaveAuthorization, useLeaveAuthorization } from '@/hooks/hrms/leave-management/useMasters';
+import { useDeleteLeaveAuthorization, useLeaveAuthorization, useLeaveAuthorizationDropdowns } from '@/hooks/hrms/leave-management/useMasters';
 import { Plus, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import AddLeaveAuthorizationForm from './_components/add-form';
 import { type LeaveAuthorization, getLeaveAuthorizationColumns } from './_components/columns';
 import UpdateLeaveAuthorizationForm from './_components/update-form';
+import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
+
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-export default function LeaveAuthorizationPage(props: { searchParams: SearchParams }) {
-    const [initialSearchParams, setInitialSearchParams] = useState<any>({});
+export default function LeaveAuthorizationPage(_props: { searchParams: SearchParams }) {
+    const [params] = useQueryStates({
+        page: parseAsInteger.withDefault(1),
+        page_size: parseAsInteger.withDefault(10),
+        search_query: parseAsString.withDefault(''),
+        sort_column: parseAsString.withDefault(''),
+        sort_direction: parseAsString.withDefault('asc')
+    });
 
-    useEffect(() => {
-        const fetchParams = async () => {
-            const params = await props.searchParams;
-            setInitialSearchParams(params);
-        };
-        fetchParams();
-    }, [props.searchParams]);
+    const normalizedParams = useMemo(() => ({
+        page: params.page,
+        page_size: params.page_size,
+        search_query: params.search_query || '',
+        sort_column: params.sort_column || '',
+        sort_direction: params.sort_direction as 'asc' | 'desc'
+    }), [params]);
 
-    const searchParams = useMemo(() => {
-        return initialSearchParams;
-    }, [initialSearchParams]);
-
-    const { data: response, isLoading, error } = useLeaveAuthorization(searchParams);
+    const { data: response, isLoading, error } = useLeaveAuthorization(normalizedParams);
+    console.log("Leave Auth Response", response);
     return (
         <FormProvider<LeaveAuthorization>>
             <LeaveAuthorizationPageContent response={response} isLoading={isLoading} error={error} />
@@ -41,18 +46,15 @@ function LeaveAuthorizationPageContent({
     isLoading: boolean;
     error: any;
 }) {
+    // Prefetch dropdowns so they are ready when forms open
+    useLeaveAuthorizationDropdowns();
+
     const { openAddForm } = useFormContext<LeaveAuthorization>();
     const { openEditForm, openDeleteForm } = useFormContext<LeaveAuthorization>();
     const tableProps = useDataTableProps(response);
     const columns = getLeaveAuthorizationColumns({
         onEdit: openEditForm,
-        onDelete: (id: number) => {
-            // Find the row by id and open delete form
-            const row = response?.data?.find((r: LeaveAuthorization) => r.id === id);
-            if (row) {
-                openDeleteForm(row);
-            }
-        }
+        onDelete: openDeleteForm
     });
     return (
         <div className='min-h-screen'>
@@ -79,7 +81,7 @@ function LeaveAuthorizationPageContent({
                         isLoading={isLoading}
                         error={error}
                         showViewOptions={false}
-                        columnPinning={{ right: ['actions'] }}
+                        // columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading leave authorizations...'
                         noDataTitle='No Leave Authorizations Found'
                         noDataDescription='Get started by creating your first leave authorization'

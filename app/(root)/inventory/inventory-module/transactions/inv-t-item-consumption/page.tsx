@@ -12,7 +12,7 @@ import {
     type InvTItemConsumptionSchema,
 } from '@/schemas/inventory/transactions/inv-t-item-consumption';
 import type { InvTItemConsumption } from '@/types/inventory/transactions/inv-t-item-consumption';
-import { Plus, X, PackageMinus, PlusCircle, Pencil } from 'lucide-react';
+import { Plus, X, PackageMinus, PlusCircle, Pencil, List } from 'lucide-react';
 import { use } from 'react';
 import AddItemConsumptionForm from './_components/add-form';
 import { invTItemConsumptionColumns } from './_components/columns';
@@ -41,12 +41,22 @@ export default function InvTItemConsumptionPage(props: { searchParams: SearchPar
         tableSearchVariables.search,
         parseAsString.withOptions({ shallow: false }).withDefault('')
     );
+    const [sortColumn] = useQueryState(
+        tableSearchVariables.sort_column,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+    const [sortDirection] = useQueryState(
+        tableSearchVariables.sort_direction,
+        parseAsString.withOptions({ shallow: false }).withDefault('asc')
+    );
 
     const queryParams = {
         ...searchParams,
         page: currentPage,
         page_size: pageSize,
-        search_query: searchQuery
+        search_query: searchQuery,
+        sort_column: sortColumn,
+        sort_direction: sortDirection
     };
 
     const { data: response, isLoading, error } = useInvTItemConsumption(queryParams);
@@ -92,8 +102,8 @@ function InvTItemConsumptionPageContent({
 
     const { deleteMutation } = useInvTItemConsumption();
 
-    const tableProps = useDataTableProps(response?.data, {
-        dataKey: 'get_itemconsumption',
+    const tableProps = useDataTableProps(response, {
+        dataKey: 'data',
         totalKey: 'total' // Adjust if API returns total differently
     });
 
@@ -114,6 +124,28 @@ function InvTItemConsumptionPageContent({
                     </Button>
                 </div>
 
+                <CollapsibleSection
+                    title='Consumption Records'
+                    defaultOpen={true}
+                    variant='default'
+                    size='lg'
+                    className='shadow-lg'
+                    icon={<PackageMinus className='h-5 w-5' />}>
+                    <GenericDataTable<InvTItemConsumption>
+                        {...tableProps}
+                        data={response?.data || []}
+                        columns={invTItemConsumptionColumns}
+                        isLoading={isLoading}
+                        success={true}
+                        isSearchRequired={true}
+                        columnPinning={{ right: ['actions'] }}
+                        loadingMessage='Loading Consumption records...'
+                        noDataTitle='No Records Found'
+                        noDataDescription='Create a new Item Consumption record to start'
+                        errorTitle='Error Loading Data'
+                    />
+                </CollapsibleSection>
+
                 {isAddFormOpen && (
                     <div ref={addFormRef}>
                         <CollapsibleSection
@@ -130,7 +162,7 @@ function InvTItemConsumptionPageContent({
                                     onClick={closeAddForm}
                                     variant='ghost'
                                     size='sm'
-                                    className='absolute top-[-3.5rem] right-0 hover:bg-destructive/10 text-destructive'>
+                                    className='absolute top-[-3.5rem] right-12 w-fit border p-2 shadow-md hover:bg-destructive/10 text-destructive'>
                                     <X className='h-4 w-4 mr-1' /> Close
                                 </Button>
                                 <AddItemConsumptionForm onSuccess={closeAddForm} />
@@ -154,7 +186,7 @@ function InvTItemConsumptionPageContent({
                                     onClick={closeEditForm}
                                     variant='ghost'
                                     size='sm'
-                                    className='absolute top-[-3.5rem] right-0 hover:bg-destructive/10 text-destructive'>
+                                    className='absolute top-[-3.5rem] right-12 w-fit border p-2 shadow-md hover:bg-destructive/10 text-destructive'>
                                     <X className='h-4 w-4 mr-1' /> Close
                                 </Button>
                                 <AddItemConsumptionForm onSuccess={closeEditForm} initialData={selectedRow} />
@@ -174,28 +206,6 @@ function InvTItemConsumptionPageContent({
                 {isDetailsViewOpen && selectedRow && selectedRow.invmiC_Remarks === 'VIEW_STAFF' && (
                     <ViewStaffModal rowData={selectedRow} onClose={closeDetailsView} />
                 )}
-
-                <CollapsibleSection
-                    title='Consumption Records'
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg'
-                    icon={<PackageMinus className='h-5 w-5' />}>
-                    <GenericDataTable<InvTItemConsumption>
-                        {...tableProps}
-                        data={response?.data?.get_itemconsumption || []}
-                        columns={invTItemConsumptionColumns}
-                        isLoading={isLoading}
-                        error={error}
-                        isSearchRequired={true}
-                        columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading Consumption records...'
-                        noDataTitle='No Records Found'
-                        noDataDescription='Create a new Item Consumption record to start'
-                        errorTitle='Error Loading Data'
-                    />
-                </CollapsibleSection>
             </div>
         </div>
     );

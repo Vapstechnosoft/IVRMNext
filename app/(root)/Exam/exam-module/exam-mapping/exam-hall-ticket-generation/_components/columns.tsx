@@ -1,12 +1,12 @@
 'use client';
 
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { IHallTicketGeneratedItem } from '@/types/exam/exam-module/exam-mapping';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { useFormContext } from '@/components/ui/form/form-provider';
+import type { IHallTicketGeneratedItem } from '@/types/exam/exam-module/exam-mapping';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
-import { useFormContext } from '@/components/ui/form/form-provider';
 import { useCallback } from 'react';
-import { ActionButtons } from '@/components/ui/form/action-buttons';
 
 export const HallTicketGeneratedColumns: ColumnDef<IHallTicketGeneratedItem>[] = [
     // SL No
@@ -64,7 +64,11 @@ function ActionButtonsCell({ rowData }: { rowData: IHallTicketGeneratedItem }) {
 
     return (
         <div className='flex justify-center gap-2'>
-            <button type='button' onClick={handleView} className='rounded-md p-2 transition hover:bg-muted' title='View Mapping Details'>
+            <button
+                type='button'
+                onClick={handleView}
+                className='w-fit rounded-md p-2 transition hover:bg-muted'
+                title='View Mapping Details'>
                 <Eye className='h-4 w-4 text-blue-600' />
             </button>
             <ActionButtons rowData={rowData} buttons={{ edit: false, delete: false, toggle: false }} />

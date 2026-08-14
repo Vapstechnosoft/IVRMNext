@@ -63,6 +63,7 @@ export function ViewGroupsModal({
     exams,
     onClose,
     onAddGroup,
+    onDeleteGroup,
     onSave,
     onOpenExams,
     promotionType
@@ -71,6 +72,7 @@ export function ViewGroupsModal({
     exams: any[];
     onClose: () => void;
     onAddGroup: (g: GroupItem) => void;
+    onDeleteGroup: (groupId: number) => void;
     onSave: (groups: GroupItem[]) => void;
     onOpenExams: (g: GroupItem) => void;
     promotionType: 'M' | 'P' | 'T' | 'F';
@@ -124,10 +126,10 @@ export function ViewGroupsModal({
 
         // Validate each selected exam for converted marks
         selectedExams.forEach((exam) => {
-            if (!exam.convertedMarks || exam.convertedMarks.trim() === '') {
+            if (exam.convertedMarks === undefined || exam.convertedMarks === null || exam.convertedMarks.trim() === '') {
                 newErrors[`exam-${exam.id}-marks`] = 'Converted marks are required for selected exams';
-            } else if (Number.isNaN(Number.parseInt(exam.convertedMarks)) || Number.parseInt(exam.convertedMarks) <= 0) {
-                newErrors[`exam-${exam.id}-marks`] = 'Converted marks must be a positive number';
+            } else if (Number.isNaN(Number.parseInt(exam.convertedMarks)) || Number.parseInt(exam.convertedMarks) < 0) {
+                newErrors[`exam-${exam.id}-marks`] = 'Converted marks must be 0 or greater';
             }
         });
 
@@ -140,6 +142,13 @@ export function ViewGroupsModal({
         }
         if (formData.groupOrder < 1) {
             newErrors.groupOrder = 'Order must be at least 1';
+        } else {
+            const duplicateOrder = groups.some(
+                (g) => g.EMPSG_Order === formData.groupOrder && g.id !== editingGroupId
+            );
+            if (duplicateOrder) {
+                newErrors.groupOrder = 'already the order number exist';
+            }
         }
 
         if (promotionType === 'P') {
@@ -272,8 +281,72 @@ export function ViewGroupsModal({
         setLeftExams((prev) => prev.map((exam) => (exam.id === id ? { ...exam, conversionRequired: value } : exam)));
     };
 
+    // Cancel editing
+    const cancelEdit = () => {
+        setEditingGroupId(null);
+        setFormData({
+            marks: '',
+            percentage: '',
+            groupName: '',
+            displayName: '',
+            groupOrder: groups.length > 0 ? Math.max(...groups.map((g: { EMPSG_Order: any }) => g.EMPSG_Order)) + 1 : 1,
+            maxOff: '',
+            bestOff: '',
+            roundOff: false,
+            exams: []
+        });
+        const mappedExams = exams.map((exam: ExamDetail) => ({
+            id: exam.emE_Id,
+            name: exam.emE_ExamName,
+            isSelected: false,
+            convertedMarks: '',
+            conversionRequired: false
+        }));
+        setLeftExams(mappedExams);
+        setErrors({});
+    };
+
     // Reset form
     const resetForm = () => {
+        if (editingGroupId) {
+            const group = groups.find((g) => g.id === editingGroupId);
+            if (group) {
+                setFormData({
+                    marks: group.EMPSG_MarksValue,
+                    percentage: group.EMPSG_PercentValue,
+                    groupName: group.EMPSG_GroupName,
+                    displayName: group.EMPSG_DisplayName,
+                    groupOrder: group.EMPSG_Order,
+                    maxOff: group.EMPSG_MaxOff,
+                    bestOff: group.EMPSG_BestOff,
+                    roundOff: group.EMPSG_RoundOffFlag || false,
+                    exams: []
+                });
+                const updatedLeftExams = leftExams.map((exam) => {
+                    const groupExam = group.Exm_M_Prom_Subj_Group_Exams_master.find((g: { emE_Id: number }) => g.emE_Id === exam.id);
+                    return groupExam
+                        ? {
+                              ...exam,
+                              isSelected: true,
+                              convertedMarks: groupExam.EMPSGE_ForMaxMarkrs.toString(),
+                              conversionRequired: groupExam.EMPSGE_ConvertionReqOrNot || false,
+                              error: undefined
+                          }
+                        : {
+                              ...exam,
+                              isSelected: false,
+                              convertedMarks: '',
+                              conversionRequired: false,
+                              error: undefined
+                          };
+                });
+                setLeftExams(updatedLeftExams);
+                setErrors({});
+                return;
+            }
+        }
+
+        // Default clean reset (Add mode)
         setFormData({
             marks: '',
             percentage: '',
@@ -299,6 +372,14 @@ export function ViewGroupsModal({
 
     // Add or Update group
     const handleAddOrUpdate = () => {
+        const duplicateOrder = groups.some(
+            (g) => g.EMPSG_Order === formData.groupOrder && g.id !== editingGroupId
+        );
+        if (duplicateOrder) {
+            validateForm();
+            return;
+        }
+
         if (!validateForm()) {
             toast.error('Please fix validation errors');
             return;
@@ -325,9 +406,11 @@ export function ViewGroupsModal({
             Exm_M_Prom_Subj_Group_Exams_master: selectedExams
         };
 
+        const isEdit = !!editingGroupId;
         onAddGroup(newGroup);
+        setEditingGroupId(null);
         resetForm();
-        toast.success(editingGroupId ? 'Group updated successfully' : 'Group added successfully');
+        toast.success(isEdit ? 'Group updated successfully' : 'Group added successfully');
     };
 
     // Edit group
@@ -387,8 +470,7 @@ export function ViewGroupsModal({
 
     const confirmDelete = () => {
         if (groupToDelete) {
-            // You would typically call a prop function here to update the parent state
-            // For now, we'll show a toast and close the dialog
+            onDeleteGroup(groupToDelete.id);
             toast.success(`Group "${groupToDelete.EMPSG_GroupName}" deleted successfully`);
             setIsDeleteDialogOpen(false);
             setGroupToDelete(null);
@@ -600,7 +682,7 @@ export function ViewGroupsModal({
                                     )}
                                 </Button>
                                 {editingGroupId && (
-                                    <Button variant='outline' onClick={resetForm}>
+                                    <Button variant='outline' onClick={cancelEdit}>
                                         Cancel Edit
                                     </Button>
                                 )}

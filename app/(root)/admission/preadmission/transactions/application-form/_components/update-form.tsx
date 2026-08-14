@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import 'react-phone-input-2/lib/style.css';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useAcademicYearMasterConfiguration } from '@/hooks/admission/preadmission/useConfigurations';
 import {
     useActivePreadmissionDetails,
@@ -88,7 +89,14 @@ const steps = [
 export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, className = '' }: UpdateStudentApplicationFormProps) {
     const [currentStep, setCurrentStep] = useState(1);
     const [phoneValues, setPhoneValues] = useState<Record<string, string>>({});
-    const [phoneExpectedInfo, setPhoneExpectedInfo] = useState<Record<string, { expected?: number; name?: string; dial?: string }>>({});
+    const [phoneExpectedInfo, setPhoneExpectedInfo] = useState<Record<string, { expected?: number; dial?: string; name?: string }>>({});
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
+
+    const handleImagePreview = (url: string) => {
+        setPreviewImage(url);
+        setIsImagePreviewOpen(true);
+    };
 
     const {
         watch,
@@ -154,10 +162,12 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 if (
                     normalized === '' ||
                     normalized === null ||
-                    (normalized === 0 && !['pasR_TransportReqdFlag'].includes(key)) ||
+                    (normalized === 0 && !['pasR_TransportReqdFlag', 'pasR_ConState', 'pasR_PerState', 'caste_Id', 'religion_Id', 'asmcL_Id'].includes(key)) ||
                     normalized === '0'
                 ) {
-                    normalized = undefined;
+                    if (!['pasR_TransportReqdFlag', 'pasR_ConState', 'pasR_PerState', 'caste_Id', 'religion_Id', 'asmcL_Id'].includes(key)) {
+                        normalized = undefined;
+                    }
                 }
 
                 if (
@@ -175,16 +185,32 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                     normalized = String(normalized);
                 }
 
-                if (['pasR_Nationality', 'pasR_FatherNationality', 'pasR_MotherNationality'].includes(key) && normalized !== undefined) {
+                if (
+                    ['pasR_Nationality', 'pasR_FatherNationality', 'pasR_MotherNationality', 'pasR_Sex'].includes(key) &&
+                    normalized !== undefined
+                ) {
                     normalized = typeof normalized === 'number' ? String(normalized) : normalized;
                 }
 
-                if (['pasR_ConState', 'pasR_PerState'].includes(key) && normalized !== undefined) {
-                    normalized = typeof normalized === 'string' ? Number(normalized) : normalized;
+                if (['pasR_ConState', 'pasR_PerState', 'asmcL_Id', 'caste_Id', 'religion_Id'].includes(key) && normalized !== undefined) {
+                    // Check if the value is numeric before converting
+                    if (!isNaN(Number(normalized))) {
+                        normalized = Number(normalized);
+                    }
+                }
+
+                if (['pasR_Nationality', 'pasR_FatherNationality', 'pasR_MotherNationality'].includes(key) && normalized !== undefined) {
+                    normalized = String(normalized);
                 }
 
                 setValue(key as any, normalized);
             });
+
+            // Set specific fields that might be named differently or need explicit setting
+            if (rowData.pasR_Sex) setValue('pasR_Sex', rowData.pasR_Sex);
+            if (rowData.religion_Id) setValue('religion_Id', Number(rowData.religion_Id));
+            if (rowData.caste_Id) setValue('caste_Id', Number(rowData.caste_Id));
+            if (rowData.pasR_Nationality) setValue('pasR_Nationality', String(rowData.pasR_Nationality));
 
             setValue('pasA_WillingToContributeFlg', rowData.pasA_WillingToContributeFlg ? 1 : 0);
             setValue('pasA_WillingToContributeRemarks', rowData.pasA_WillingToContributeRemarks ?? undefined);
@@ -333,6 +359,21 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             const dob = new Date(rowData.pasR_DOB);
             const allClasses = preadmissionClass.data;
 
+            // Validate the date of birth
+            if (!rowData.pasR_DOB || Number.isNaN(dob.getTime())) {
+                setFilteredClasses([]);
+                setIsClassDisabled(true);
+                return;
+            }
+
+            // Ensure DOB is not in the future
+            const today = new Date();
+            if (dob > today) {
+                setFilteredClasses([]);
+                setIsClassDisabled(true);
+                return;
+            }
+
             const validClasses: IPreadmissionClassDropdown[] = [];
 
             allClasses.forEach((classItem: IPreadmissionClassDropdown) => {
@@ -341,6 +382,14 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                     validClasses.push(classItem);
                 }
             });
+
+            const currentClassId = rowData.asmcL_Id || rowData.asmcL_id;
+            if (currentClassId && !validClasses.some((c) => c.asmcL_Id === currentClassId)) {
+                const currentClass = allClasses.find((c: any) => c.asmcL_Id === currentClassId);
+                if (currentClass) {
+                    validClasses.push(currentClass);
+                }
+            }
 
             setFilteredClasses(validClasses);
             setIsClassDisabled(false);
@@ -581,6 +630,58 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         trigger(fieldName as any);
     };
 
+    const handleReset = () => {
+        reset({
+            pasR_FirstName: '',
+            pasR_MiddleName: '',
+            pasR_LastName: '',
+            asmcL_Id: 0,
+            pasR_emailId: '',
+            pasR_DOB: undefined,
+            pasR_MobileNo: '',
+            pasA_WillingToContributeFlg: 0,
+            pasR_UndertakingFlag: 0,
+            previousSchoolDetails: [
+                {
+                    pasrpS_PrvSchoolName: '',
+                    pasrpS_PreviousClass: '',
+                    pasrpS_Board: '',
+                    pasrpS_LeftYear: '',
+                    pasrpS_LeftReason: '',
+                    pasrpS_Address: ''
+                }
+            ],
+            siblingsDetails: []
+        });
+        setCurrentStep(1);
+        setSelectedSourceItems([]);
+        setSelectedReferenceItems([]);
+        setSameAsResidential(false);
+        setPreviousSchool({
+            pasrpS_Id: 0,
+            pasR_Id: 0,
+            pasrpS_PrvSchoolName: '',
+            pasrpS_PreviousClass: '',
+            pasrpS_Board: '',
+            pasrpS_LeftYear: '',
+            pasrpS_LeftReason: '',
+            pasrpS_Address: ''
+        });
+        setUploadedDocuments([]);
+        setFilteredClasses([]);
+        setIsClassDisabled(true);
+        setStudentPhoto(null);
+        setStudentPhotoError(null);
+        setFatherPhoto(null);
+        setFatherPhotoError(null);
+        setMotherPhoto(null);
+        setMotherPhotoError(null);
+        setDocumentErrors({});
+        setPhoneValues({});
+        setPhoneExpectedInfo({});
+        clearErrors();
+    };
+
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         if (data.pasR_UndertakingFlag === 0) {
             toast.error('Please accept undertaking');
@@ -701,25 +802,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         refetchDropdowns();
     };
 
-    const handleReset = () => {
-        reset();
-        setCurrentStep(1);
-        setSelectedSourceItems([]);
-        setSelectedReferenceItems([]);
-        setSameAsResidential(false);
-        setPreviousSchool({
-            pasrpS_Id: 0,
-            pasR_Id: 0,
-            pasrpS_PrvSchoolName: '',
-            pasrpS_PreviousClass: '',
-            pasrpS_Board: '',
-            pasrpS_LeftYear: '',
-            pasrpS_LeftReason: '',
-            pasrpS_Address: ''
-        });
-        setUploadedDocuments([]);
-        setDocumentErrors({});
-    };
+
 
     const handleSourceSelection = (selectedValues: string[]) => {
         const selectedSources = selectedValues.map((value) => {
@@ -1058,6 +1141,22 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     const validateAgeForClass = (dob: Date, classData: IPreadmissionClassDropdown, config: any): { isValid: boolean; reason?: string } => {
         const cutOffDate = config.ispaC_ApplCutOffDateFlag === 1 ? new Date(config.asmaY_Cut_Of_Date) : new Date();
 
+        // Validate that DOB is not after cutoff date
+        if (dob > cutOffDate) {
+            return {
+                isValid: false,
+                reason: 'Date of birth cannot be after the application cutoff date'
+            };
+        }
+
+        // Additional validation to ensure DOB is valid and not in the future
+        if (!dob || Number.isNaN(dob.getTime())) {
+            return {
+                isValid: false,
+                reason: 'Invalid date of birth provided'
+            };
+        }
+
         const age = calculateAge(dob, cutOffDate);
 
         // Check minimum age if flag is enabled
@@ -1111,6 +1210,23 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             return;
         }
 
+        // Validate the date
+        if (Number.isNaN(date.getTime())) {
+            setIsClassDisabled(true);
+            setFilteredClasses([]);
+            setValue('asmcL_Id', 0);
+            return;
+        }
+
+        // Ensure date is not in the future
+        const today = new Date();
+        if (date > today) {
+            setIsClassDisabled(true);
+            setFilteredClasses([]);
+            setValue('asmcL_Id', 0);
+            return;
+        }
+
         const allClasses = preadmissionClass?.data || [];
 
         const validClasses: IPreadmissionClassDropdown[] = [];
@@ -1136,8 +1252,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             setIsClassDisabled(false);
             // Don't reset class selection in update form if current class is still valid
             const currentClassId = getValues('asmcL_Id');
+            const initialClassId = rowData?.asmcL_Id || rowData?.asmcL_id;
             const isCurrentClassValid = validClasses.some((c) => c.asmcL_Id === currentClassId);
-            if (!isCurrentClassValid) {
+            if (!isCurrentClassValid && currentClassId !== initialClassId) {
                 setValue('asmcL_Id', 0);
             }
         }
@@ -1174,6 +1291,42 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         prevPerCountryRef.current = perConuntryId;
     }, [perConuntryId, setValue]);
 
+    // Reactive address synchronization
+    const watchedConStreet = watch('pasR_ConStreet');
+    const watchedConArea = watch('pasR_ConArea');
+    const watchedConCountry = watch('pasR_ConCountry');
+    const watchedConState = watch('pasR_ConState');
+    const watchedConCity = watch('pasR_ConCity');
+    const watchedConPincode = watch('pasR_ConPincode');
+
+    useEffect(() => {
+        if (sameAsResidential) {
+            setValue('pasR_PerStreet', watchedConStreet);
+            setValue('pasR_PerArea', watchedConArea);
+            setValue('pasR_PerCountry', watchedConCountry);
+            setValue('pasR_PerState', watchedConState ? Number(watchedConState) : undefined);
+            setValue('pasR_PerCity', watchedConCity);
+
+            if (perZipLength && typeof watchedConPincode === 'string') {
+                setValue('pasR_PerPincode', watchedConPincode.slice(0, perZipLength));
+            } else if (perZipLength && typeof watchedConPincode === 'number') {
+                setValue('pasR_PerPincode', String(watchedConPincode).slice(0, perZipLength));
+            } else {
+                setValue('pasR_PerPincode', watchedConPincode);
+            }
+        }
+    }, [
+        sameAsResidential,
+        watchedConStreet,
+        watchedConArea,
+        watchedConCountry,
+        watchedConState,
+        watchedConCity,
+        watchedConPincode,
+        setValue,
+        perZipLength
+    ]);
+
     return (
         <>
             <div className={cn('mx-auto w-full max-w-7xl px-4 py-2', className)}>
@@ -1198,8 +1351,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         currentStep === step.id
                                                             ? 'border-blue-600 bg-blue-600 text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                              ? 'border-green-500 bg-green-500 text-white'
-                                                              : 'border-gray-300 bg-white text-gray-400'
+                                                                ? 'border-green-500 bg-green-500 text-white'
+                                                                : 'border-gray-300 bg-white text-gray-400'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-5 w-5' />
@@ -1248,8 +1401,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         currentStep === step.id
                                                             ? 'border-secondary bg-secondary text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                              ? 'border-green-500 bg-green-500 text-white'
-                                                              : 'border-gray-300 bg-white text-gray-500'
+                                                                ? 'border-green-500 bg-green-500 text-white'
+                                                                : 'border-gray-300 bg-white text-gray-500'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-6 w-6' />
@@ -1299,16 +1452,26 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                             </p>
                                         </div>
 
-                                        <div className='flex justify-between'>
-                                            <InputText
-                                                label='Academic Year'
-                                                required
-                                                id='academic_year'
-                                                placeholder='Academic Year'
-                                                defaultValue={activePreadmission?.data?.asmaY_Year}
-                                                className='w-fit font-semibold'
-                                                disabled
-                                            />
+                                        <div className='flex items-center justify-between gap-4'>
+                                            <div className='flex items-center gap-4'>
+                                                <InputText
+                                                    label='Academic Year'
+                                                    required
+                                                    id='academic_year'
+                                                    placeholder='Academic Year'
+                                                    defaultValue={activePreadmission?.data?.asmaY_Year}
+                                                    className='w-fit font-semibold'
+                                                    disabled
+                                                />
+                                                <InputText
+                                                    label='Application No.'
+                                                    id='pasR_RegistrationNo'
+                                                    placeholder='Application No.'
+                                                    {...register('pasR_RegistrationNo')}
+                                                    className='w-fit font-semibold'
+                                                    disabled
+                                                />
+                                            </div>
 
                                             {/* Student Photo Upload */}
                                             <div className='col-span-full w-fit'>
@@ -1438,7 +1601,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     variant='outline'
                                                                     size='sm'
                                                                     onClick={() =>
-                                                                        window.open(studentPhoto.pasR_Student_Pic_Path, '_blank')
+                                                                        handleImagePreview(studentPhoto.pasR_Student_Pic_Path)
                                                                     }>
                                                                     <Eye className='h-4 w-4' />
                                                                 </Button>
@@ -1588,9 +1751,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             />
                                                             {phoneExpectedInfo.pasR_MobileNo?.expected && (
                                                                 <span className='mt-1 text-muted-foreground text-xs'>
-                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MobileNo.expected} digits for ${
-                                                                        phoneExpectedInfo.pasR_MobileNo.name ?? 'selected country'
-                                                                    }`}
+                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MobileNo.expected} digits for ${phoneExpectedInfo.pasR_MobileNo.name ?? 'selected country'
+                                                                        }`}
                                                                 </span>
                                                             )}
                                                         </div>
@@ -1614,7 +1776,10 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
-                                                            onValueChange={(value) => field.onChange(Number(value))}
+                                                            onValueChange={(value) => {
+                                                                field.onChange(Number(value));
+                                                                setValue('caste_Id', 0);
+                                                            }}
                                                             value={field.value?.toString() || undefined}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select religion' />
@@ -1650,8 +1815,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
+                                                            key={`caste-${watch('religion_Id')}-${casteLoading}`}
                                                             onValueChange={(value) => field.onChange(Number(value))}
-                                                            value={field.value?.toString() || undefined}
+                                                            value={field.value?.toString() || ''}
                                                             disabled={!watch('religion_Id')}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select caste' />
@@ -1660,10 +1826,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 {casteLoading ? (
                                                                     <SelectItem value='loading' disabled>
                                                                         Loading...
-                                                                    </SelectItem>
-                                                                ) : casteError ? (
-                                                                    <SelectItem value='error' disabled>
-                                                                        Error loading
                                                                     </SelectItem>
                                                                 ) : (
                                                                     caste?.data?.map((item) => (
@@ -1685,32 +1847,34 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                 <Controller
                                                     name='pasR_Sex'
                                                     control={control}
-                                                    render={({ field }) => (
-                                                        <Select
-                                                            onValueChange={(value) => field.onChange(value)}
-                                                            value={field.value?.toString() || undefined}>
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder='Select gender' />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {genderLoading ? (
-                                                                    <SelectItem value='loading' disabled>
-                                                                        Loading...
-                                                                    </SelectItem>
-                                                                ) : genderError ? (
-                                                                    <SelectItem value='error' disabled>
-                                                                        Error loading
-                                                                    </SelectItem>
-                                                                ) : (
-                                                                    gender?.data?.map((item) => (
-                                                                        <SelectItem key={item.ivrmmG_Id} value={item.ivrmmG_GenderName}>
-                                                                            {item.ivrmmG_GenderName}
+                                                    render={({ field }) => {
+                                                        const normalizedValue = gender?.data?.find(
+                                                            (g) => g.ivrmmG_GenderName.toUpperCase() === field.value?.toString().toUpperCase()
+                                                        )?.ivrmmG_GenderName || field.value?.toString();
+
+                                                        return (
+                                                            <Select
+                                                                onValueChange={(value) => field.onChange(value)}
+                                                                value={normalizedValue || undefined}>
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder='Select gender' />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {genderLoading ? (
+                                                                        <SelectItem value='loading' disabled>
+                                                                            Loading...
                                                                         </SelectItem>
-                                                                    ))
-                                                                )}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    )}
+                                                                    ) : (
+                                                                        gender?.data?.map((item) => (
+                                                                            <SelectItem key={item.ivrmmG_Id} value={item.ivrmmG_GenderName}>
+                                                                                {item.ivrmmG_GenderName}
+                                                                            </SelectItem>
+                                                                        ))
+                                                                    )}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        );
+                                                    }}
                                                 />
                                                 {errors.pasR_Sex && <FormError>{errors.pasR_Sex.message}</FormError>}
                                             </div>
@@ -1724,14 +1888,17 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 Applying For Class <span className='ml-1 text-red-500'>*</span>
                                                             </Label>
                                                             <Select
+                                                                key={`${field.value}-${filteredClasses.length}`}
+                                                                onValueChange={(value) => {
+                                                                    const selectedVal = Number(value);
+                                                                    field.onChange(selectedVal);
+                                                                }}
                                                                 value={
                                                                     field.value === null || field.value === 0
                                                                         ? ''
                                                                         : field.value?.toString() || ''
                                                                 }
-                                                                onValueChange={(value) => field.onChange(Number(value))}
-                                                                disabled={isClassDisabled}
-                                                                searchable={false}>
+                                                                disabled={isClassDisabled}>
                                                                 <SelectTrigger className={cn('w-full', error && 'border-red-500')}>
                                                                     <SelectValue
                                                                         placeholder={
@@ -1944,7 +2111,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
                                         <div className='space-y-8'>
                                             <div className='space-y-4'>
-                                                <h3 className='font-semibold text-gray-800 text-lg'>Residential Address</h3>
+                                                <h3 className='font-bold text-gray-800 text-lg'>Residential Address</h3>
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                     <InputText
                                                         label='Street'
@@ -1967,7 +2134,10 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
-                                                                    onValueChange={(value) => field.onChange(value)}
+                                                                    onValueChange={(value) => {
+                                                                        field.onChange(value);
+                                                                        setValue('pasR_ConState', 0);
+                                                                    }}
                                                                     value={field.value?.toString() || undefined}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select country' />
@@ -2003,8 +2173,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
+                                                                    key={`con-state-${watch('pasR_ConCountry')}-${conStateLoading}`}
                                                                     onValueChange={(value) => field.onChange(Number(value))}
-                                                                    value={field.value?.toString() || undefined}
+                                                                    value={field.value?.toString() || ''}
                                                                     disabled={!conConuntryId}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select state' />
@@ -2047,15 +2218,15 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             rules={
                                                                 conZipLength
                                                                     ? {
-                                                                          minLength: {
-                                                                              value: conZipLength,
-                                                                              message: `Pin code must be ${conZipLength} digits`
-                                                                          },
-                                                                          maxLength: {
-                                                                              value: conZipLength,
-                                                                              message: `Pin code must be ${conZipLength} digits`
-                                                                          }
-                                                                      }
+                                                                        minLength: {
+                                                                            value: conZipLength,
+                                                                            message: `Pin code must be ${conZipLength} digits`
+                                                                        },
+                                                                        maxLength: {
+                                                                            value: conZipLength,
+                                                                            message: `Pin code must be ${conZipLength} digits`
+                                                                        }
+                                                                    }
                                                                     : undefined
                                                             }
                                                             render={({ field }) => (
@@ -2119,7 +2290,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                 </Label>
                                             </div>
                                             <div className='space-y-4'>
-                                                <h3 className='font-semibold text-gray-800 text-lg'>Permanent Address</h3>
+                                                <h3 className='font-bold text-gray-800 text-lg'>Permanent Address</h3>
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                     <InputText
                                                         label='Street'
@@ -2144,7 +2315,10 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
-                                                                    onValueChange={(value) => field.onChange(value)}
+                                                                    onValueChange={(value) => {
+                                                                        field.onChange(value);
+                                                                        setValue('pasR_PerState', 0);
+                                                                    }}
                                                                     value={field.value?.toString() || undefined}
                                                                     disabled={sameAsResidential}>
                                                                     <SelectTrigger>
@@ -2181,8 +2355,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
+                                                                    key={`per-state-${watch('pasR_PerCountry')}-${perStateLoading}`}
                                                                     onValueChange={(value) => field.onChange(Number(value))}
-                                                                    value={field.value?.toString() || undefined}
+                                                                    value={field.value?.toString() || ''}
                                                                     disabled={!perConuntryId || sameAsResidential}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select state' />
@@ -2226,15 +2401,15 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             rules={
                                                                 perZipLength
                                                                     ? {
-                                                                          minLength: {
-                                                                              value: perZipLength,
-                                                                              message: `Pin code must be ${perZipLength} digits`
-                                                                          },
-                                                                          maxLength: {
-                                                                              value: perZipLength,
-                                                                              message: `Pin code must be ${perZipLength} digits`
-                                                                          }
-                                                                      }
+                                                                        minLength: {
+                                                                            value: perZipLength,
+                                                                            message: `Pin code must be ${perZipLength} digits`
+                                                                        },
+                                                                        maxLength: {
+                                                                            value: perZipLength,
+                                                                            message: `Pin code must be ${perZipLength} digits`
+                                                                        }
+                                                                    }
                                                                     : undefined
                                                             }
                                                             render={({ field }) => (
@@ -2298,7 +2473,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
                                         <div className='space-y-8'>
                                             <div className='space-y-4'>
-                                                <h3 className='font-semibold text-gray-800 text-lg'>Father Details</h3>
+                                                <h3 className='font-bold text-gray-800 text-lg'>Father Details</h3>
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                     {/* Father Photo Upload - Mandatory */}
                                                     <div className='col-span-full w-fit'>
@@ -2431,7 +2606,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                             variant='outline'
                                                                             size='sm'
                                                                             onClick={() =>
-                                                                                window.open(fatherPhoto.pasR_FatherPhoto, '_blank')
+                                                                                handleImagePreview(fatherPhoto.pasR_FatherPhoto)
                                                                             }>
                                                                             <Eye className='h-4 w-4' />
                                                                         </Button>
@@ -2582,10 +2757,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     />
                                                                     {phoneExpectedInfo.pasR_FatherMobleNo?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_FatherMobleNo.expected} digits for ${
-                                                                                phoneExpectedInfo.pasR_FatherMobleNo.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_FatherMobleNo.expected} digits for ${phoneExpectedInfo.pasR_FatherMobleNo.name ??
                                                                                 'selected country'
-                                                                            }`}
+                                                                                }`}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -2646,7 +2820,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                             </div>
 
                                             <div className='space-y-4'>
-                                                <h3 className='font-semibold text-gray-800 text-lg'>Mother Details</h3>
+                                                <h3 className='font-bold text-gray-800 text-lg'>Mother Details</h3>
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                     {/* Mother Photo Upload - Mandatory */}
                                                     <div className='col-span-full w-fit'>
@@ -2779,7 +2953,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                             variant='outline'
                                                                             size='sm'
                                                                             onClick={() =>
-                                                                                window.open(motherPhoto.pasR_MotherPhoto, '_blank')
+                                                                                handleImagePreview(motherPhoto.pasR_MotherPhoto)
                                                                             }>
                                                                             <Eye className='h-4 w-4' />
                                                                         </Button>
@@ -2930,10 +3104,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     />
                                                                     {phoneExpectedInfo.pasR_MotherMobleNo?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MotherMobleNo.expected} digits for ${
-                                                                                phoneExpectedInfo.pasR_MotherMobleNo.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MotherMobleNo.expected} digits for ${phoneExpectedInfo.pasR_MotherMobleNo.name ??
                                                                                 'selected country'
-                                                                            }`}
+                                                                                }`}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -2994,7 +3167,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                             </div>
 
                                             <div className='space-y-4'>
-                                                <h3 className='font-semibold text-gray-800 text-lg'>Additional Contact</h3>
+                                                <h3 className='font-bold text-gray-800 text-lg'>Additional Contact</h3>
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                                                     <div className='flex flex-col gap-1.5 '>
                                                         <Controller
@@ -3038,10 +3211,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     />
                                                                     {phoneExpectedInfo.pasR_AltContactNo?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_AltContactNo.expected} digits for ${
-                                                                                phoneExpectedInfo.pasR_AltContactNo.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_AltContactNo.expected} digits for ${phoneExpectedInfo.pasR_AltContactNo.name ??
                                                                                 'selected country'
-                                                                            }`}
+                                                                                }`}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -3278,9 +3450,16 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                                 <Button
                                                                                     type='button'
                                                                                     className='w-fit'
-                                                                                    onClick={() =>
-                                                                                        window.open(uploadedDoc.document_Path, '_blank')
-                                                                                    }>
+                                                                                    onClick={() => {
+                                                                                        const path = uploadedDoc.document_Path;
+                                                                                        if (
+                                                                                            path.match(/\.(jpg|jpeg|png|gif|webp)$/i)
+                                                                                        ) {
+                                                                                            handleImagePreview(path);
+                                                                                        } else {
+                                                                                            window.open(path, '_blank');
+                                                                                        }
+                                                                                    }}>
                                                                                     <Eye className='h-4 w-4' />
                                                                                 </Button>
                                                                                 <Button
@@ -3381,7 +3560,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                         {/* Sibling Details Section (controlled) */}
                                         <div className='space-y-4'>
                                             <div className='flex items-center justify-between'>
-                                                <h3 className='font-semibold text-gray-800 text-lg'>Sibling Details</h3>
+                                                <h3 className='font-bold text-gray-800 text-lg'>Sibling Details</h3>
                                                 <Button
                                                     type='button'
                                                     variant='outline'
@@ -3487,7 +3666,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
                                         {/* Previous School Details Section */}
                                         <div className='space-y-4'>
-                                            <h3 className='font-semibold text-gray-800 text-lg'>Previous School Details</h3>
+                                            <h3 className='font-bold text-gray-800 text-lg'>Previous School Details</h3>
                                             <div className='mb-2'>
                                                 {/* <Button
                                                     type='button'
@@ -3759,14 +3938,14 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
                             {/* Navigation Footer */}
                             <div className='flex items-center justify-end border-t bg-gray-50 px-6 py-4 md:px-8'>
-                                {/* <Button
+                                <Button
                                     type='button'
                                     variant='outline'
                                     onClick={handleReset}
                                     disabled={isSubmitting}
                                     className='w-fit transition-all duration-200 hover:scale-105'>
                                     Reset Form
-                                </Button> */}
+                                </Button>
 
                                 <div className='flex gap-3'>
                                     {currentStep > 1 && (
@@ -3806,8 +3985,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                             classes={ineligibleClasses}
                             cutOffDate={
                                 masterConfig?.data &&
-                                masterConfig.data.ispaC_ApplCutOffDateFlag === 1 &&
-                                masterConfig.data.asmaY_Cut_Of_Date
+                                    masterConfig.data.ispaC_ApplCutOffDateFlag === 1 &&
+                                    masterConfig.data.asmaY_Cut_Of_Date
                                     ? new Date(masterConfig.data.asmaY_Cut_Of_Date)
                                     : new Date()
                             }
@@ -3815,6 +3994,24 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                     </div>
                 </div>
             </div>
+            <Dialog open={isImagePreviewOpen} onOpenChange={setIsImagePreviewOpen}>
+                <DialogContent className='max-w-3xl'>
+                    <DialogHeader>
+                        <DialogTitle>Image Preview</DialogTitle>
+                    </DialogHeader>
+                    <div className='flex items-center justify-center p-4'>
+                        {previewImage && (
+                            <img
+                                src={previewImage}
+                                alt='Preview'
+                                className='max-h-[70vh] w-auto rounded-lg shadow-lg'
+                            />
+                        )}
+                    </div>
+                </DialogContent>
+            </Dialog>
         </>
     );
 }
+
+

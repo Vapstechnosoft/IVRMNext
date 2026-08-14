@@ -6,7 +6,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 export const registrationColumns: ColumnDef<IRigistrationReportList>[] = [
     {
         accessorKey: 'rowNumber',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6 font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -19,21 +19,21 @@ export const registrationColumns: ColumnDef<IRigistrationReportList>[] = [
 
     {
         accessorKey: 'name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('name')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'smsCount',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='SMS Count' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SMS Count' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('smsCount')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'emailCount',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Email Count' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Email Count' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('emailCount')}</div>,
         enableSorting: true,
         enableHiding: true

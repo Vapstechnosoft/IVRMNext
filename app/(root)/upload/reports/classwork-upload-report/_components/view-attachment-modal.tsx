@@ -3,14 +3,14 @@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import type { IAttachment } from '@/types/upload/reports/classwork-upload-report';
+import type { IClassWorkAttachment } from '@/types/upload/reports/classwork-upload-report';
 import { Download, Eye } from 'lucide-react';
 import { useState } from 'react';
 
 interface ViewAttachmentModalProps {
     isOpen: boolean;
     onClose: () => void;
-    attachments: IAttachment[];
+    attachments: IClassWorkAttachment[];
 }
 
 export const ViewAttachmentModal = ({ isOpen, onClose, attachments }: ViewAttachmentModalProps) => {

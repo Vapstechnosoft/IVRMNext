@@ -30,6 +30,16 @@ import {
     getFeeAdjutmentGridList
 } from '@/server/fees/trasactions/fee_adjustment';
 import {
+    getClassDropDownDetails,
+    getFeeChequeBounceAcademicYear,
+    getFeeChequeBounceInitialData,
+    getFeeChequeBounceReceipts,
+    getFeeChequeBounceSections,
+    getFeeChequeBounceStudents,
+    getSectionDropDownDetails,
+    getStudentDropDownDetails
+} from '@/server/fees/trasactions/fee_cheque_bounce';
+import {
     getOpeningAcademicYearDropdownData,
     getOpeningBalanceList,
     getOpeningCategoryDropdownData,
@@ -63,8 +73,18 @@ import {
     get_Receipt_number,
     geteditThirdpartytrasaction
 } from '@/server/fees/trasactions/thirdPartyTrasaction';
-import { feeTransactionWaivedOff, getClassdetails, getsectiondetails } from '@/server/fees/trasactions/waived_off';
+import {
+    getAcademicThirdPartyTrasaction_GM,
+    getThirdPartyTrasactionBankDropDown_GM,
+    getThirdPartyTrasactionGroupDropDown_GM,
+    getThirdPartyTrasactionHeadDropDown_GM,
+    getThirdPartyTrasactionStudentDropDown_GM,
+    getThirdPartyTrasaction_GM,
+    geteditThirdpartytrasaction_GM
+} from '@/server/fees/trasactions/thirdpartyTransaction_GM';
+import { getStudentFeeEnablePartialPaymentDetails } from '@/server/fees/trasactions/student_fee_enable_partial_payment';
 import type { ApiSearchparams } from '@/types';
+import { feeTransactionWaivedOff, getClassdetails, getsectiondetails } from '@/server/fees/trasactions/waived_off';
 
 export const useFeeAmountEntry = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
@@ -88,13 +108,13 @@ export const useacademicyerdropdowndatafee = (searchParams?: ApiSearchparams) =>
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.ACADEMIC_DROPDOWN_FEES, searchParams ?? {}],
+            queryKey: [FEES_QUERY_KEYS.ACADEMIC_DROPDOWN_FEES1, searchParams ?? {}],
             queryFn: async () => getAcademicYearDropdownData(),
             staleTime: 0
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [FEES_QUERY_KEYS.ACADEMIC_DROPDOWN_FEES]
+                queryKey: [FEES_QUERY_KEYS.ACADEMIC_DROPDOWN_FEES1]
             });
         }
     };
@@ -116,15 +136,40 @@ export const useopeningacademicyerdropdowndatafee = (searchParams?: ApiSearchpar
         }
     };
 };
-
-export const useopeningClassdropdowndatafee = (searchParams?: ApiSearchparams) => {
+export const useopeningacademicyerdropdowndatafee1 = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_OPENING_CLASS_DROPDOWN, searchParams ?? {}],
-            queryFn: async () => getOpeningClassDropdownData(),
+            queryKey: [FEES_QUERY_KEYS.FEE_OPENING_ACADEMIC_YEAR_DROPDOWN1, searchParams ?? {}],
+            queryFn: async () => getOpeningAcademicYearDropdownData(),
             staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_OPENING_ACADEMIC_YEAR_DROPDOWN1]
+            });
+        }
+    };
+};
+export const useopeningClassdropdowndatafee = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_OPENING_CLASS_DROPDOWN],
+            queryFn: async () => {
+                try {
+                    const response = await getOpeningClassDropdownData();
+                    console.log('Class dropdown API response:', response);
+                    return response;
+                } catch (error) {
+                    console.error('Class dropdown API error:', error);
+                    throw error;
+                }
+            },
+            staleTime: 0,
+            retry: 1 // Add retry to see if it helps
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -282,18 +327,18 @@ export const useFeeThirdParty = (searchParams?: ApiSearchparams) => {
     };
 };
 
-export const useGroupdropdowndatathirdpartytransaction = (searchParams?: ApiSearchparams) => {
+export const useGroupdropdowndatathirdpartytransaction = () => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_GROUPDROPDOWN, searchParams ?? {}],
+            queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_GROUPDROPDOWN1],
             queryFn: async () => getThirdPartyTrasactionGroupDropDown(),
             staleTime: 0
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_GROUPDROPDOWN]
+                queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_GROUPDROPDOWN1]
             });
         }
     };
@@ -618,13 +663,13 @@ export const useFeeRefundableList = (asmay_Id: number, searchParams?: ApiSearchp
     };
 };
 
-export const useFeeConcessionClassDropdowndata = (mi_id: number, searchParams?: ApiSearchparams) => {
+export const useFeeConcessionClassDropdowndata = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CLASS_DROPDOWN, mi_id, searchParams ?? {}],
-            queryFn: async () => getConcessionClassesDropdownData(mi_id),
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CLASS_DROPDOWN, searchParams ?? {}],
+            queryFn: async () => getConcessionClassesDropdownData(),
             staleTime: 0
         }),
         refetchAll: () => {
@@ -1094,5 +1139,309 @@ export const useFeeTransactionListStThomas = (asmaY_Id: number, searchParams?: A
             queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_TRANSACTIONSTTHOMAS]
             })
+    };
+};
+
+//cheque bounce
+
+//academic year for cheque bounce
+export const useFeeChequeBounceAcademicYear = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CHEQUE_BOUNCE_ACADEMIC_YEAR],
+            queryFn: async () => getFeeChequeBounceAcademicYear(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CHEQUE_BOUNCE_ACADEMIC_YEAR]
+            });
+        }
+    };
+};
+
+//class
+export const useFeeChequeBounceClass = (data: any) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CHEQUE_BOUNCE_CLASSES, data],
+            queryFn: async () => getClassDropDownDetails(data),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CHEQUE_BOUNCE_CLASSES]
+            });
+        }
+    };
+};
+
+//section
+export const useFeeChequeBounceSection = (data: any) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CHEQUE_BOUNCE_SECTIONS, data],
+            queryFn: async () => getSectionDropDownDetails(data),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CHEQUE_BOUNCE_SECTIONS]
+            });
+        }
+    };
+};
+
+//student
+export const useFeeChequeBounceStudent = (data: any) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CHEQUE_BOUNCE_STUDENTS, data],
+            queryFn: async () => getStudentDropDownDetails(data),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CHEQUE_BOUNCE_STUDENTS]
+            });
+        }
+    };
+};
+
+export const useFeeChequeBounceInitialData = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CHEQUE_BOUNCE_DROPDOWNS],
+            queryFn: async () => getFeeChequeBounceInitialData(),
+            staleTime: 0,
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CHEQUE_BOUNCE_DROPDOWNS]
+            });
+        }
+    };
+};
+
+
+export const useFeeChequeBounceClasses = (asmaY_Id: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CHEQUE_BOUNCE_CLASSES, asmaY_Id],
+            queryFn: async () => getClassDropDownDetails({ asmaY_Id }),
+            staleTime: 0,
+            enabled: !!asmaY_Id
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CHEQUE_BOUNCE_CLASSES]
+            });
+        }
+    };
+};
+
+export const useFeeChequeBounceSections = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CHEQUE_BOUNCE_SECTIONS],
+            queryFn: async () => getFeeChequeBounceSections(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CHEQUE_BOUNCE_SECTIONS]
+            });
+        }
+    };
+};
+
+export const useFeeChequeBounceStudents = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CHEQUE_BOUNCE_STUDENTS],
+            queryFn: async () => getFeeChequeBounceStudents(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CHEQUE_BOUNCE_STUDENTS]
+            });
+        }
+    };
+};
+
+export const useFeeChequeBounceReceipts = (data?: any) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CHEQUE_BOUNCE_RECEIPTS, data],
+            queryFn: async () => getFeeChequeBounceReceipts(data),
+            staleTime: 0,
+            enabled: !!data?.AMST_Id
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CHEQUE_BOUNCE_RECEIPTS]
+            });
+        }
+    };
+};
+
+//GM Third party
+export const useFeeThirdPartyGM = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_TRASACTION, searchParams ?? {}],
+            queryFn: async () => getThirdPartyTrasaction_GM(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_TRASACTION]
+            });
+        }
+    };
+};
+
+export const useGroupdropdowndatathirdpartytransaction_GM = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_GROUPDROPDOWN, searchParams ?? {}],
+            queryFn: async () => getThirdPartyTrasactionGroupDropDown_GM(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_GROUPDROPDOWN]
+            });
+        }
+    };
+};
+
+export const useHeaddropdowndatathirdpartytransaction_GM = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_HEADDROPDOWN, searchParams ?? {}],
+            queryFn: async () => getThirdPartyTrasactionHeadDropDown_GM(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_HEADDROPDOWN]
+            });
+        }
+    };
+};
+
+export const useBankdropdowndatathirdpartytransaction_GM = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_BANKDROPDOWN, searchParams ?? {}],
+            queryFn: async () => getThirdPartyTrasactionBankDropDown_GM(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_BANKDROPDOWN]
+            });
+        }
+    };
+};
+
+export const useStudentdowndatathirdpartytransaction_GM = (asmaY_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_STUDENTDROPDOWN, asmaY_Id, searchParams ?? {}],
+            queryFn: async () => getThirdPartyTrasactionStudentDropDown_GM(asmaY_Id),
+            staleTime: 0,
+            enabled: asmaY_Id > 0 // Prevent API call when asmaY_id=0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_STUDENTDROPDOWN, asmaY_Id]
+            });
+        }
+    };
+};
+
+export const useacademicyerdropdowndatafee_GM = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.ACADEMIC_DROPDOWN_FEES, searchParams ?? {}],
+            queryFn: async () => getAcademicThirdPartyTrasaction_GM(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.ACADEMIC_DROPDOWN_FEES]
+            });
+        }
+    };
+};
+
+export const useeditThirdpartytrasaction_GM = (mi_id: number, asmaY_Id: number, fyp_id: number, options?: { enabled?: boolean }) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_EDITDATA],
+            queryFn: async () => geteditThirdpartytrasaction_GM(mi_id, asmaY_Id, fyp_id),
+            enabled: options?.enabled ?? !!fyp_id,
+            //enabled: !!asmaY_Id, // 🔥 only run when academic year selected
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_EDITDATA]
+            });
+        }
+    };
+};
+
+export const useStudentFeeEnablePartialPayment = (pageId: number = 2) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.STUDENT_FEE_ENABLE_PARTIAL_PAYMENT, pageId],
+            queryFn: async () => getStudentFeeEnablePartialPaymentDetails(pageId),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.STUDENT_FEE_ENABLE_PARTIAL_PAYMENT]
+            });
+        }
     };
 };

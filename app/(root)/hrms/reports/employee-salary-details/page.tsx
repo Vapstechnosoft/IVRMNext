@@ -1,17 +1,15 @@
 'use client';
-
-import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FormProvider } from '@/components/ui/form/form-provider';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMasterYears, useYearWiseSalaryDetails, useMonthWiseSalaryDetails } from '@/hooks/hrms/useReports';
+import { useMasterYears, useMonthWiseSalaryDetails, useYearWiseSalaryDetails } from '@/hooks/hrms/useReports';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { toast } from 'sonner';
 import { z } from 'zod';
 import { type MonthlySalaryDetail, getMonthlySalaryDetailColumns } from './_components/columns';
 import { DepartmentBreakdownDialog } from './_components/department-breakdown-dialog';
@@ -23,9 +21,19 @@ const monthEndReportSchema = z.object({
 type FormFields = z.infer<typeof monthEndReportSchema>;
 
 export default function HRMSMonthEndReportPage() {
+    return (
+        <FormProvider<MonthlySalaryDetail>>
+            <EmployeeSalaryDetailsContent />
+        </FormProvider>
+    );
+}
+
+function EmployeeSalaryDetailsContent() {
     const [selectedMonth, setSelectedMonth] = useState<MonthlySalaryDetail | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const printRef = useRef<HTMLDivElement>(null);
+
+
 
     const { data: masterYears, isLoading: masterYearsLoading, isError: masterYearsError } = useMasterYears();
 
@@ -50,8 +58,8 @@ export default function HRMSMonthEndReportPage() {
         selectedMonth?.month || ''
     );
 
-    const reportData: MonthlySalaryDetail[] =
-        yearSalaryResponse?.success && yearSalaryResponse.data
+    const reportData: MonthlySalaryDetail[] = useMemo(() => {
+        return yearSalaryResponse?.success && yearSalaryResponse.data
             ? yearSalaryResponse.data.map((item: any, index: number) => ({
                 id: index + 1,
                 month: item.month,
@@ -60,6 +68,7 @@ export default function HRMSMonthEndReportPage() {
                 createdAt: new Date()
             }))
             : [];
+    }, [yearSalaryResponse, selectedYear]);
 
     const YearsOptions =
         masterYears?.data?.map((item: any) => ({
@@ -71,7 +80,6 @@ export default function HRMSMonthEndReportPage() {
         setSelectedMonth(monthData);
         setIsDialogOpen(true);
     });
-
 
     const chartData = reportData?.map((item) => ({
         month: item.month.substring(0, 3),
@@ -119,9 +127,9 @@ export default function HRMSMonthEndReportPage() {
                                     name='year'
                                     control={control}
                                     render={({ field }) => (
-                                        <Select onValueChange={field.onChange} value={field.value}>
+                                        <Select onValueChange={field.onChange} value={field.value} disabled={masterYearsLoading}>
                                             <SelectTrigger className='w-full'>
-                                                <SelectValue placeholder='Select Financial Year' />
+                                                <SelectValue placeholder={masterYearsLoading ? "Loading..." : "Select Financial Year"} />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {masterYearsLoading ? (
@@ -162,13 +170,13 @@ export default function HRMSMonthEndReportPage() {
                                 columns={columns}
                                 isLoading={isYearLoading}
                                 showViewOptions={true}
+                                isSearchRequired={true}
                                 columnPinning={{ right: ['viewDetails'] }}
                                 loadingMessage='Loading salary details...'
                                 noDataTitle='No Salary Data Found'
                                 noDataDescription='No salary records available for the selected year'
                                 errorTitle='Error Loading Salary Data'
                             />
-
                         </CollapsibleSection>
 
                         <CollapsibleSection

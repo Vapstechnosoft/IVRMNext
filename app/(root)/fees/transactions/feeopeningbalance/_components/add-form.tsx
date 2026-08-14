@@ -11,13 +11,12 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     useFeeOpeningRefundable,
-    useMasterFeeOpeningBalance,
     useopeningCategorydropdowndatafee,
     useopeningClassdropdowndatafee,
     useopeningGroupdropdowndatafee,
     useopeningInstallmentdropdowndatafee,
     useopeningSectiondropdowndatafee,
-    useopeningacademicyerdropdowndatafee
+    useopeningacademicyerdropdowndatafee1
 } from '@/hooks/fees/useTrasactions';
 import { feeOpeningBalanceSchema } from '@/schemas/fees/trasactions';
 import { addOrUpdateFeeOpeningBalance, studentListDropdown, studentNameDropdown } from '@/server/fees/trasactions/fee_opening_balance';
@@ -39,15 +38,13 @@ interface StudentRow {
     fmoB_Institution_Due: number;
     checked: boolean;
 }
-
-export default function AddFeeOpeningBalanceForm({
-    onSuccess,
-    className = ''
-}: {
-    onSuccess?: () => void;
+interface AddFeeOpeningBalanceFormProps {
+    academicYear: number | null; // Add this
+    onSuccess: () => void;
     className?: string;
-}) {
-    const { refetchAll } = useMasterFeeOpeningBalance();
+}
+export default function AddFeeOpeningBalanceForm({ academicYear, className, onSuccess }: AddFeeOpeningBalanceFormProps) {
+    // const { refetchAll } = useMasterFeeOpeningBalance();
 
     const { control, reset, setValue } = useForm<FormFields>({
         resolver: zodResolver(feeOpeningBalanceSchema.addOrUpdate),
@@ -90,7 +87,7 @@ export default function AddFeeOpeningBalanceForm({
     const [changedRefundableType, setChangedRefundableType] = useState<string>('');
 
     // Data Hooks
-    const { data: academicYearData, isLoading: loadingAcademicYear } = useopeningacademicyerdropdowndatafee();
+    const { data: academicYearData, isLoading: loadingAcademicYear } = useopeningacademicyerdropdowndatafee1();
     const { data: classData, isLoading: loadingClasses } = useopeningClassdropdowndatafee();
     const { data: sectionData, isLoading: loadingSections } = useopeningSectiondropdowndatafee(
         academicYearId ? Number(academicYearId) : 0,
@@ -300,12 +297,12 @@ export default function AddFeeOpeningBalanceForm({
 
             const res = await addOrUpdateFeeOpeningBalance(payload);
             if (res.success || res.returnval) {
-                toast.success('Opening balance saved successfully!');
+                toast.success(res.message);
                 resetAllFormState();
-                refetchAll();
+                // refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(res.message || 'Failed to save');
+                toast.error(res.message);
             }
         } catch {
             toast.error('Error saving data');

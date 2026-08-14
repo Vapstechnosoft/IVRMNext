@@ -14,6 +14,7 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useAcademicYearMasterConfiguration } from '@/hooks/admission/preadmission/useConfigurations';
 import {
     useActivePreadmissionDetails,
@@ -138,6 +139,14 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
     const [phoneExpectedInfo, setPhoneExpectedInfo] = useState<Record<string, { expected?: number; name?: string; dial?: string }>>({});
 
     const [phoneValues, setPhoneValues] = useState<Record<string, string>>({});
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
+
+    const handleImagePreview = (url: string) => {
+        setPreviewImage(url);
+        setIsImagePreviewOpen(true);
+    };
+
     const [uploadedDocuments, setUploadedDocuments] = useState<
         Array<{
             pasrD_Id: number;
@@ -544,13 +553,35 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
     };
 
     const handleReset = () => {
-        reset();
+        reset({
+            pasR_FirstName: '',
+            pasR_MiddleName: '',
+            pasR_LastName: '',
+            asmcL_Id: 0,
+            pasR_emailId: '',
+            pasR_DOB: undefined,
+            pasR_MobileNo: '',
+            pasA_WillingToContributeFlg: 0,
+            pasR_UndertakingFlag: 0,
+            previousSchoolDetails: [
+                {
+                    pasrpS_PrvSchoolName: '',
+                    pasrpS_PreviousClass: '',
+                    pasrpS_Board: '',
+                    pasrpS_LeftYear: '',
+                    pasrpS_LeftReason: '',
+                    pasrpS_Address: ''
+                }
+            ],
+            siblingsDetails: []
+        });
         setCurrentStep(1);
         setSelectedSourceItems([]);
         setSelectedReferenceItems([]);
         setSameAsResidential(false);
-        // REMOVE: setPreviousSchool(...);
         setUploadedDocuments([]);
+        setFilteredClasses([]);
+        setIsClassDisabled(true);
         setStudentPhoto(null);
         setStudentPhotoError(null);
         setFatherPhoto(null);
@@ -558,6 +589,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         setMotherPhoto(null);
         setMotherPhotoError(null);
         setDocumentErrors({});
+        setPhoneValues({});
+        setPhoneExpectedInfo({});
+        clearErrors();
     };
 
     const handleSourceSelection = (selectedValues: string[]) => {
@@ -1054,6 +1088,42 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         setValue('pasR_PerPincode', '');
     }, [perConuntryId, setValue]);
 
+    // Reactive address synchronization
+    const watchedConStreet = watch('pasR_ConStreet');
+    const watchedConArea = watch('pasR_ConArea');
+    const watchedConCountry = watch('pasR_ConCountry');
+    const watchedConState = watch('pasR_ConState');
+    const watchedConCity = watch('pasR_ConCity');
+    const watchedConPincode = watch('pasR_ConPincode');
+
+    useEffect(() => {
+        if (sameAsResidential) {
+            setValue('pasR_PerStreet', watchedConStreet);
+            setValue('pasR_PerArea', watchedConArea);
+            setValue('pasR_PerCountry', watchedConCountry);
+            setValue('pasR_PerState', watchedConState);
+            setValue('pasR_PerCity', watchedConCity);
+
+            if (perZipLength && typeof watchedConPincode === 'string') {
+                setValue('pasR_PerPincode', watchedConPincode.slice(0, perZipLength));
+            } else if (perZipLength && typeof watchedConPincode === 'number') {
+                setValue('pasR_PerPincode', String(watchedConPincode).slice(0, perZipLength));
+            } else {
+                setValue('pasR_PerPincode', watchedConPincode);
+            }
+        }
+    }, [
+        sameAsResidential,
+        watchedConStreet,
+        watchedConArea,
+        watchedConCountry,
+        watchedConState,
+        watchedConCity,
+        watchedConPincode,
+        setValue,
+        perZipLength
+    ]);
+
     return (
         <>
             <div className={cn('mx-auto w-full max-w-7xl px-4 py-2', className)}>
@@ -1295,7 +1365,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     variant='outline'
                                                                     size='sm'
                                                                     onClick={() =>
-                                                                        window.open(studentPhoto.pasR_Student_Pic_Path, '_blank')
+                                                                        handleImagePreview(studentPhoto.pasR_Student_Pic_Path)
                                                                     }>
                                                                     <Eye className='h-4 w-4' />
                                                                 </Button>
@@ -1466,7 +1536,10 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     render={({ field }) => (
                                                         <Select
                                                             key={field.value || 'empty'}
-                                                            onValueChange={(value) => field.onChange(Number(value))}
+                                                            onValueChange={(value) => {
+                                                                field.onChange(Number(value));
+                                                                setValue('caste_Id', 0);
+                                                            }}
                                                             value={field.value?.toString() || ''}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select religion' />
@@ -1502,7 +1575,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
-                                                            key={field.value || 'empty'}
+                                                            key={`caste-${watch('religion_Id')}-${casteLoading}`}
                                                             onValueChange={(value) => field.onChange(Number(value))}
                                                             value={field.value?.toString() || ''}
                                                             disabled={!watch('religion_Id')}>
@@ -1800,7 +1873,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
                                         <div className='space-y-8'>
                                             <div className='space-y-4'>
-                                                <h3 className='font-semibold text-gray-800 text-lg'>Residential Address</h3>
+                                                <h3 className='font-bold text-gray-800 text-lg'>Residential Address</h3>
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                     <InputText
                                                         label='Street'
@@ -1824,8 +1897,11 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             render={({ field }) => (
                                                                 <Select
                                                                     key={field.value || 'empty'}
-                                                                    onValueChange={(value) => field.onChange(value)}
-                                                                    value={field.value ? String(field.value) : undefined}>
+                                                                    onValueChange={(value) => {
+                                                                        field.onChange(value);
+                                                                        setValue('pasR_ConState', 0);
+                                                                    }}
+                                                                    value={field.value ? String(field.value) : ''}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select country' />
                                                                     </SelectTrigger>
@@ -1860,9 +1936,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
-                                                                    key={field.value || 'empty'}
+                                                                    key={`con-state-${watch('pasR_ConCountry')}-${conStateLoading}`}
                                                                     onValueChange={(value) => field.onChange(Number(value))}
-                                                                    value={field.value ? String(field.value) : undefined}
+                                                                    value={field.value ? String(field.value) : ''}
                                                                     disabled={isConStateDisabled}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select state' />
@@ -1981,7 +2057,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                 </Label>
                                             </div>
                                             <div className='space-y-4'>
-                                                <h3 className='font-semibold text-gray-800 text-lg'>Permanent Address</h3>
+                                                <h3 className='font-bold text-gray-800 text-lg'>Permanent Address</h3>
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                     <InputText
                                                         label='Street'
@@ -2007,7 +2083,10 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             render={({ field }) => (
                                                                 <Select
                                                                     key={field.value || 'empty'}
-                                                                    onValueChange={(value) => field.onChange(value)}
+                                                                    onValueChange={(value) => {
+                                                                        field.onChange(value);
+                                                                        setValue('pasR_PerState', 0);
+                                                                    }}
                                                                     value={field.value?.toString() || ''}
                                                                     disabled={sameAsResidential}>
                                                                     <SelectTrigger>
@@ -2044,9 +2123,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
-                                                                    key={field.value || 'empty'}
+                                                                    key={`per-state-${watch('pasR_PerCountry')}-${perStateLoading}`}
                                                                     onValueChange={(value) => field.onChange(Number(value))}
-                                                                    value={field.value ? String(field.value) : undefined}
+                                                                    value={field.value ? String(field.value) : ''}
                                                                     disabled={isPerStateDisabled || sameAsResidential}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select state' />
@@ -2168,7 +2247,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
                                         <div className='space-y-8'>
                                             <div className='space-y-4'>
-                                                <h3 className='font-semibold text-gray-800 text-lg'>Father Details</h3>
+                                                <h3 className='font-bold text-gray-800 text-lg'>Father Details</h3>
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                     {/* Father Photo Upload - Mandatory */}
                                                     <div className='col-span-full w-fit'>
@@ -2280,7 +2359,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                             variant='outline'
                                                                             size='sm'
                                                                             onClick={() =>
-                                                                                window.open(fatherPhoto.pasR_FatherPhoto, '_blank')
+                                                                                handleImagePreview(fatherPhoto.pasR_FatherPhoto)
                                                                             }>
                                                                             <Eye className='h-4 w-4' />
                                                                         </Button>
@@ -2495,7 +2574,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                             </div>
 
                                             <div className='space-y-4'>
-                                                <h3 className='font-semibold text-gray-800 text-lg'>Mother Details</h3>
+                                                <h3 className='font-bold text-gray-800 text-lg'>Mother Details</h3>
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                     {/* Mother Photo Upload - Mandatory */}
                                                     <div className='col-span-full w-fit'>
@@ -2607,7 +2686,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                             variant='outline'
                                                                             size='sm'
                                                                             onClick={() =>
-                                                                                window.open(motherPhoto.pasR_MotherPhoto, '_blank')
+                                                                                handleImagePreview(motherPhoto.pasR_MotherPhoto)
                                                                             }>
                                                                             <Eye className='h-4 w-4' />
                                                                         </Button>
@@ -2822,7 +2901,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                             </div>
 
                                             <div className='space-y-4'>
-                                                <h3 className='font-semibold text-gray-800 text-lg'>Additional Contact</h3>
+                                                <h3 className='font-bold text-gray-800 text-lg'>Additional Contact</h3>
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                                                     <div className='flex flex-col gap-1.5 '>
                                                         <Controller
@@ -3101,9 +3180,16 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                                 <Button
                                                                                     type='button'
                                                                                     className='w-fit'
-                                                                                    onClick={() =>
-                                                                                        window.open(uploadedDoc.document_Path, '_blank')
-                                                                                    }>
+                                                                                    onClick={() => {
+                                                                                        const path = uploadedDoc.document_Path;
+                                                                                        if (
+                                                                                            path.match(/\.(jpg|jpeg|png|gif|webp)$/i)
+                                                                                        ) {
+                                                                                            handleImagePreview(path);
+                                                                                        } else {
+                                                                                            window.open(path, '_blank');
+                                                                                        }
+                                                                                    }}>
                                                                                     <Eye className='h-4 w-4' />
                                                                                 </Button>
                                                                                 <Button
@@ -3204,7 +3290,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                         {/* Sibling Details Section */}
                                         <div className='space-y-4'>
                                             <div className='flex items-center justify-between'>
-                                                <h3 className='font-semibold text-gray-800 text-lg'>Sibling Details</h3>
+                                                <h3 className='font-bold text-gray-800 text-lg'>Sibling Details</h3>
                                                 <Button
                                                     type='button'
                                                     variant='outline'
@@ -3312,7 +3398,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
                                         {/* Previous School Details Section */}
                                         <div className='space-y-4'>
-                                            <h3 className='font-semibold text-gray-800 text-lg'>Previous School Details</h3>
+                                            <h3 className='font-bold text-gray-800 text-lg'>Previous School Details</h3>
                                             <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                 <Controller
                                                     control={control}
@@ -3577,6 +3663,23 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                     </div>
                 </div>
             </div>
+            <Dialog open={isImagePreviewOpen} onOpenChange={setIsImagePreviewOpen}>
+                <DialogContent className='max-w-3xl'>
+                    <DialogHeader>
+                        <DialogTitle>Image Preview</DialogTitle>
+                    </DialogHeader>
+                    <div className='flex items-center justify-center p-4'>
+                        {previewImage && (
+                            <img
+                                src={previewImage}
+                                alt='Preview'
+                                className='max-h-[70vh] w-auto rounded-lg shadow-lg'
+                            />
+                        )}
+                    </div>
+                </DialogContent>
+            </Dialog>
         </>
     );
 }
+

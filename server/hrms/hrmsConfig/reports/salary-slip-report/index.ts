@@ -49,9 +49,19 @@ export async function getSalarySlipOnload(
 export async function filterEmployeesByYearMonth(
     requestBody: SalarySlipFilterRequest
 ): Promise<ApiResponse<SalarySlipResponse>> {
+    let url = '/api/ReportEmployeeSalarySlipGeneration/get_employee_list_by_leave_year_and_month';
+    const params = new URLSearchParams();
+    if (requestBody.page) params.append('page', requestBody.page.toString());
+    if (requestBody.page_size) params.append('page_size', requestBody.page_size.toString());
+    if (requestBody.search) params.append('search', requestBody.search);
+
+    if (params.toString()) {
+        url += `?${params.toString()}`;
+    }
+
     const response = await api.post<SalarySlipResponse>(
         'hrms',
-        '/api/ReportEmployeeSalarySlipGeneration/get_employee_list_by_leave_year_and_month',
+        url,
         requestBody
     );
     // The backend returns raw data, not wrapped in ApiResponse format
@@ -94,5 +104,27 @@ export async function generateSalarySlip(
         success: true,
         message: 'Salary slip generated successfully',
         data: rawResponse
+    };
+}
+
+/**
+ * Send Salary Slip via Email or SMS/WhatsApp
+ * POST /api/EmployeeSalarySlipGeneration/SendEmailSMS
+ */
+export async function sendSalarySlipEmailSMSWhatsApp(
+    requestBody: any
+): Promise<ApiResponse<any>> {
+    const response = await api.post<any>(
+        'hrms',
+        '/api/EmployeeSalarySlipGeneration/SendEmailSMSWhatsApp',
+        requestBody
+    );
+    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        return response as ApiResponse<any>;
+    }
+    return {
+        success: true,
+        message: 'Sent successfully',
+        data: response
     };
 }

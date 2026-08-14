@@ -1,19 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider } from '@/components/ui/form/form-provider';
 import { Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
 import { exportToExcel } from '@/lib/export-to-file';
 import { usePFForm5 } from '@/hooks/hrms/useReports';
-import { Loader2, Search, Download } from 'lucide-react';
+import { Loader2, Search, Printer, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { getMasterInstitution } from '@/server/hrms/master-dropdown';
+import { printPFForm5 } from './_components/pf-form5-print';
 
 const MONTH_LIST = [
     { id: 1, name: 'January' }, { id: 2, name: 'February' }, { id: 3, name: 'March' },
@@ -37,14 +38,38 @@ export default function PFForm5Page() {
 
 function PFForm5Content() {
     const [reportData, setReportData] = useState<any>(null);
-    const { control, handleSubmit } = useForm<FilterFormValues>({
+    const [institution, setInstitution] = useState<any>(null);
+    const [reportMonth, setReportMonth] = useState('');
+    const [reportYear, setReportYear] = useState('');
+    const [resetKey,setResetKey] = useState(0);
+
+    useEffect(() => {
+        const fetchInstitution = async () => {
+            try {
+                const res = await getMasterInstitution();
+                if (res?.data) {
+                    setInstitution(Array.isArray(res.data) ? res.data[0] : res.data);
+                }
+            } catch (error) {
+                console.error('Error fetching institution:', error);
+            }
+        };
+        fetchInstitution();
+    }, []);
+    const { control, handleSubmit, reset } = useForm<FilterFormValues>({
         defaultValues: {
             year: '',
             month: ''
         }
     });
 
-    const { data: yearsData } = useLeaveYearDropdown();
+    const handleCancel = () => {
+        reset();
+        setReportData(null);
+        setResetKey(prev => prev + 1);
+    };
+
+    const { data: yearsData, isLoading: isLoadingLeaveYear } = useLeaveYearDropdown();
     const { mutate: generateReport, isPending } = usePFForm5();
 
     const onSubmit = (data: FilterFormValues) => {
@@ -64,92 +89,45 @@ function PFForm5Content() {
             hreS_Month: monthName
         }, {
             onSuccess: (res) => {
-                if (res.success && res.data) {
+                if (res.success && res.data && res?.data?.pfreportdetails && res?.data?.pfreportdetails.length > 0) {
+                    console.log("response",res)
                     setReportData(res.data);
+                    setReportMonth(monthName);
+                    setReportYear(yearString);
                     toast.success('Report generated successfully');
                 } else {
-                    toast.error(res.message || 'No data found');
+                    toast.warning(res.message || 'No data found for this selected criteria');
                 }
             }
         });
     };
 
-    const handleExport = () => {
+    const handlePrint = () => {
         if (!reportData || !reportData.pfreportdetails || reportData.pfreportdetails.length === 0) {
-            toast.error('No data to export');
+            toast.error('No data to print');
             return;
         }
 
-        const exportColumns = [
-            { label: 'PF Account No', value: 'hrmE_PFAccNo' },
-            { label: 'Employee Name', value: 'empName' },
-            { label: 'Father/Husband Name', value: 'fatherHusbandName' },
-            { label: 'Date of Birth', value: 'dob' },
-            { label: 'Gender', value: 'ivrmmG_GenderName' },
-            { label: 'PF Joining Date', value: 'pfDate' }
-        ];
-
-        const processedContent = reportData.pfreportdetails.map((row: any) => ({
-            ...row,
-            empName: `${row.hrmE_EmployeeFirstName || ''} ${row.hrmE_EmployeeMiddleName || ''} ${row.hrmE_EmployeeLastName || ''}`.trim(),
-            dob: row.hrmE_DOB ? format(new Date(row.hrmE_DOB), 'dd-MM-yyyy') : '',
-            pfDate: row.hrmE_PFDate ? format(new Date(row.hrmE_PFDate), 'dd-MM-yyyy') : ''
-        }));
-
-        exportToExcel('PF_Form_5', JSON.stringify(exportColumns), JSON.stringify(processedContent));
+        printPFForm5(reportData, institution, reportMonth, reportYear);
     };
 
-    const columns = [
-        {
-            id: 'slNo',
-            header: 'SL.No',
-            cell: ({ row }: any) => row.index + 1
-        },
-        {
-            accessorKey: 'hrmE_PFAccNo',
-            header: 'PF Acc No'
-        },
-        {
-            header: 'Employee Name',
-            cell: ({ row }: any) => {
-                const e = row.original;
-                return `${e.hrmE_EmployeeFirstName || ''} ${e.hrmE_EmployeeMiddleName || ''} ${e.hrmE_EmployeeLastName || ''}`.trim();
-            }
-        },
-        {
-            accessorKey: 'fatherHusbandName',
-            header: 'Father/Husband Name'
-        },
-        {
-            header: 'Date of Birth',
-            cell: ({ row }: any) => row.original.hrmE_DOB ? format(new Date(row.original.hrmE_DOB), 'dd-MM-yyyy') : ''
-        },
-        {
-            accessorKey: 'ivrmmG_GenderName',
-            header: 'Gender'
-        },
-        {
-            header: 'PF Joining Date',
-            cell: ({ row }: any) => row.original.hrmE_PFDate ? format(new Date(row.original.hrmE_PFDate), 'dd-MM-yyyy') : ''
-        }
-    ];
+
+
 
     return (
         <div className='container min-h-screen space-y-4 p-2'>
-            <div className='flex items-center justify-between'>
+            {/* <div className='flex items-center justify-between'>
                 <h2 className='text-2xl font-bold tracking-tight'>PF Form 5</h2>
-            </div>
+            </div> */}
 
             <CollapsibleSection defaultOpen={true} title="Report Criteria" variant='outline' className='shadow-sm'>
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                     <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
                         <div className='space-y-2'>
                             <Label>Year <span className='text-destructive'>*</span></Label>
-                            <Controller name='year' control={control} render={({ field }) => (
+                            <Controller name='year' control={control} key={resetKey}  render={({ field }) => (
                                 <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Year" />
-                                    </SelectTrigger>
+                                    <SelectTrigger disabled={isLoadingLeaveYear}><SelectValue placeholder={isLoadingLeaveYear ? 'Loading...' : 'Select Year'} /></SelectTrigger>
                                     <SelectContent>
                                         {yearsData?.data?.map((y: any) => (
                                             <SelectItem key={y.hrmlY_Id} value={y.hrmlY_Id.toString()}>
@@ -163,10 +141,10 @@ function PFForm5Content() {
 
                         <div className='space-y-2'>
                             <Label>Month <span className='text-destructive'>*</span></Label>
-                            <Controller name='month' control={control} render={({ field }) => (
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Month" />
+                            <Controller name='month' control={control} key={resetKey} render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value} >
+                                    <SelectTrigger disabled={isLoadingLeaveYear}>
+                                        <SelectValue placeholder={isLoadingLeaveYear ? 'Loading...' : 'Select Month'} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {MONTH_LIST.map((m) => (
@@ -180,8 +158,17 @@ function PFForm5Content() {
                         </div>
                     </div>
 
-                    <div className='flex justify-end'>
-                        <Button type='submit' disabled={isPending} className='w-32'>
+                    <div className='flex justify-end gap-2'>
+                        <Button
+                            type='button'
+                            variant='outline'
+                            onClick={handleCancel}
+                            disabled={isPending}
+                            className='w-32 border-orange-500 text-orange-600 hover:bg-orange-50 transition-all rounded-xl'>
+                            <X className='mr-2 h-4 w-4' />
+                            CANCEL
+                        </Button>
+                        <Button type='submit' disabled={isPending} className='w-32 transition-all rounded-xl'>
                             {isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
                             Generate
                         </Button>
@@ -193,21 +180,137 @@ function PFForm5Content() {
                 <CollapsibleSection title="Report Details" defaultOpen={true} className='shadow-md border'
                     rightElement={
                         <div className='flex gap-2'>
-                            <Button variant='outline' size='sm' onClick={handleExport} className='gap-2'>
-                                <Download className='h-4 w-4' />
-                                Export
+                            <Button variant='outline' size='sm' onClick={handlePrint} className='gap-2'>
+                                <Printer className='h-4 w-4' />
+                                Print
+                            </Button>
+                            <Button variant='outline' size='sm' onClick={handleCancel} className='gap-2'>
+                                <X className='h-4 w-4' />
+                                Cancel
                             </Button>
                         </div>
                     }
                 >
-                    <GenericDataTable
-                        data={reportData.alldata || reportData.pfreportdetails || []}
-                        columns={columns}
-                        totalItems={(reportData.alldata || reportData.pfreportdetails || []).length}
-                        isPaginationRequired={false}
-                        isSearchRequired={false}
-                        isLoading={isPending}
-                    />
+                    <div className="text-right">
+                        <h4 className="font-semibold text-lg">Form 5</h4>
+                    </div>
+                    <div className="text-center space-y-1">
+                        <h4 className="font-semibold text-lg">The Employees&apos; Provident Fund Scheme, 1952</h4>
+                        <h6 className="font-medium"> Paragraph 36 (2) (a) and (b)</h6>
+                        <h4 className="font-semibold text-lg"> Employees&apos; Pension Scheme, 1995</h4>
+                        <h6 className="font-medium"> Paragraph 20 (4)</h6>
+                    </div>
+                    <hr className="my-4" />
+                    <div className="mt-5 mb-2.5">
+                        <div className="col-span-12 space-y-2">
+                            <p>
+                                Return of Employees&apos; qualifying for membership of the Employees&apos; Provident Fund, Employees&apos; Pension Scheme &
+                                Employees&apos; Deposit Linked Insurance Fund for the first time during the month of <span className="border-b font-semibold">{reportMonth} - {reportYear}</span>
+                            </p>
+                            <p>
+                                To be sent to the Commissioner with Form 2 (EPF & EPS)
+                            </p>
+                        </div>
+                        <div className="grid grid-cols-12 gap-4 mt-4">
+                            <div className="col-span-8">
+                                <table className="table mt-2.5 w-full">
+                                    <tbody>
+                                        <tr>
+                                            <td className="w-1/3 py-1 font-medium">Name of Establishment :</td>
+                                            <td className="border-b text-left py-1">{institution?.mI_Name}</td>
+                                        </tr>
+                                        <tr>
+                                            <td className="w-1/3 py-1 font-medium"> Address of the Factory/ Establishment :</td>
+                                            <td className="border-b text-left py-1">
+                                                {reportData?.currentInstuteAddress || institution?.mI_Address1}, {institution?.ivrmmcT_Name} - {institution?.mI_Pincode}.
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div className="col-span-4">
+                                <table className="table mt-2.5 w-full">
+                                    <tbody>
+                                        <tr>
+                                            <td className="py-1 font-medium">Code No. of Factory/ Establishment :</td>
+                                            <td className="border-b text-left py-1">
+                                                {reportData?.payrollStandard?.[0]?.hrC_PFAccNoPrefix || reportData?.payrollstandard?.[0]?.hrC_PFAccNoPrefix || ''}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className="py-1"></td>
+                                            <td className="py-1"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-8 overflow-x-auto">
+                        <table className="w-full border-collapse border border-gray-300 text-xs">
+                            <thead>
+                                <tr className="bg-gray-100 font-semibold text-gray-900">
+                                    <th className="border border-gray-300 px-3 py-2 text-center">S. No</th>
+                                    <th className="border border-gray-300 px-3 py-2 text-left">Account No.</th>
+                                    <th className="border border-gray-300 px-3 py-2 text-left">Name of the Member (in BLOCK letters)</th>
+                                    <th className="border border-gray-300 px-3 py-2 text-left">Father's Name or Husband's Name in case of married women</th>
+                                    <th className="border border-gray-300 px-3 py-2 text-center">Age/Date of Birth</th>
+                                    <th className="border border-gray-300 px-3 py-2 text-center">Sex</th>
+                                    <th className="border border-gray-300 px-3 py-2 text-center">Date of Eligibility for Service</th>
+                                    <th className="border border-gray-300 px-3 py-2 text-left">Total Period of Previous Service (excluding period of breaks) as on the date of joining the Fund</th>
+                                    <th className="border border-gray-300 px-3 py-2 text-left">Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {(reportData.alldata || reportData.pfreportdetails || []).map((record: any, index: number) => {
+                                    const empName = `${record.hrmE_EmployeeFirstName || ''} ${record.hrmE_EmployeeMiddleName || ''} ${record.hrmE_EmployeeLastName || ''}`.trim().toUpperCase();
+                                    const fatherHusbandName = record.fatherHusbandName || record.hrmE_FatherName || '';
+                                    const dob = record.hrmE_DOB ? format(new Date(record.hrmE_DOB), 'dd-MM-yyyy') : '';
+                                    const age = record.hrmE_Age ? `${record.hrmE_Age} Years` : '';
+                                    const ageDob = dob && age ? `${dob} (${age})` : (dob || age || '');
+                                    const sex = record.ivrmmG_GenderName || '';
+                                    const eligibilityDate = record.hrmE_PFDate ? format(new Date(record.hrmE_PFDate), 'dd-MM-yyyy') : '';
+                                    const totalService = record.totalServicePeriod || '';
+                                    const remarks = record.remark || record.remarks || '';
+
+                                    return (
+                                        <tr key={index} className="hover:bg-gray-50">
+                                            <td className="border border-gray-300 px-3 py-2 text-center">{index + 1}</td>
+                                            <td className="border border-gray-300 px-3 py-2 text-left">{record.hrmE_PFAccNo || ''}</td>
+                                            <td className="border border-gray-300 px-3 py-2 text-left">{empName}</td>
+                                            <td className="border border-gray-300 px-3 py-2 text-left">{fatherHusbandName}</td>
+                                            <td className="border border-gray-300 px-3 py-2 text-center">{ageDob}</td>
+                                            <td className="border border-gray-300 px-3 py-2 text-center">{sex}</td>
+                                            <td className="border border-gray-300 px-3 py-2 text-center">{eligibilityDate}</td>
+                                            <td className="border border-gray-300 px-3 py-2 text-left">{totalService}</td>
+                                            <td className="border border-gray-300 px-3 py-2 text-left">{remarks}</td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div className="grid grid-cols-12 gap-4 mt-8">
+                        <div className="col-span-12 flex justify-between">
+                            <div className="mt-8 text-center">
+                                Date : 
+                            </div>
+                            <div className="mt-12 text-center">
+                                <label className="clearfix border-t border-black pt-2 px-8 font-medium">Signature of the employer with Official Seal</label>
+                            </div>
+                        </div>
+                        <div className="col-span-12">
+                            <div className="mt-4 text-sm text-gray-700">
+                                <p>
+                                    Note: Please furnish details of the membership in remarks column if the employee was a member of Employees&apos;
+                                    Provident Fund and Employees&apos; Pension scheme before joining yourself/ factory.
+                                    i.e. Account No. and/ or the name and particulars of the last employer.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </CollapsibleSection>
             )}
         </div>

@@ -113,7 +113,6 @@ function FormSections({ refetch }: { refetch: () => void }) {
                 <div ref={addFormRef}>
                     <CollapsibleSection
                         title='Add New Feedback'
-                        description='Fill in the details below to create a new mapping'
                         defaultOpen
                         variant='outline'
                         size='md'

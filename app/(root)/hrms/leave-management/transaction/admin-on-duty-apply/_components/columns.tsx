@@ -6,21 +6,20 @@ import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import type { AdminOnDutyApply } from '@/types/hrms/leave-management/admin-on-duty-apply';
 import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import { Eye, Trash2, Calendar, Clock, User } from 'lucide-react';
+import { Edit, Trash2, Calendar, User, Eye } from 'lucide-react';
 
-import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 
 interface AdminOnDutyApplyColumnsProps {
     onView: (id: number) => void;
-    onDelete: (id: number) => void;
-    onToggle: (id: number) => void;
+    onDelete: (row: AdminOnDutyApply) => void;
+    onEdit: (row: AdminOnDutyApply) => void;
 }
 
 export const getAdminOnDutyApplyColumns = ({
     onView,
     onDelete,
-    onToggle
+    onEdit
 }: AdminOnDutyApplyColumnsProps): ColumnDef<AdminOnDutyApply>[] => [
         {
             id: 'slNo',
@@ -116,34 +115,34 @@ export const getAdminOnDutyApplyColumns = ({
             }
         },
         {
-            id: 'view',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='VIEW' />,
-            cell: ({ row }) => (
-                <Button
-                    variant='ghost'
-                    size='icon'
-                    className='h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50'
-                    onClick={() => onView(row.original.id)}
-                >
-                    <Eye className='h-4 w-4' />
-                </Button>
-            )
-        },
-        {
             id: 'action',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Action' />,
             cell: ({ row }) => (
                 <div className='flex items-center gap-2'>
-                    <Switch
-                        checked={row.original.isActive}
-                        onCheckedChange={() => onToggle(row.original.id)}
-                        className='scale-75'
-                    />
+                    <Button
+                        variant='ghost'
+                        size='icon'
+                        className='h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50'
+                        onClick={() => onView(row.original.id)}
+                        title='View'
+                    >
+                        <Eye className='h-4 w-4' />
+                    </Button>
+                    <Button
+                        variant='ghost'
+                        size='icon'
+                        className='h-8 w-8 text-primary hover:text-primary hover:bg-primary/5'
+                        onClick={() => onEdit(row.original)}
+                        title='Edit'
+                    >
+                        <Edit className='h-4 w-4' />
+                    </Button>
                     <Button
                         variant='ghost'
                         size='icon'
                         className='h-8 w-8 text-destructive hover:text-destructive hover:bg-red-50'
-                        onClick={() => onDelete(row.original.id)}
+                        onClick={() => onDelete(row.original)}
+                        title='Delete'
                     >
                         <Trash2 className='h-4 w-4' />
                     </Button>

@@ -22,7 +22,7 @@ import type {
 } from '@/types/hrms/hrms-config/master';
 import type { MasterEarningsDeductionsInput } from '@/types/hrms/master-earnings-deductions';
 import { Save } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -149,23 +149,35 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
         const stringVal = String(val).trim();
         if (stringVal === '') return undefined;
 
+        // Normalize function to remove spaces and special chars
+        const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const normalizedVal = normalize(stringVal);
+
         // 1. Try exact key match (Internal ID)
         const exactKeyMatch = list.find((item: DropdownItem) => String(item.key).trim() === stringVal);
         if (exactKeyMatch) return String(exactKeyMatch.key).trim();
 
-        // 2. Try exact value/name match (Display Label) - Case Insensitive
+        // 2. Try normalized key match
+        const normKeyMatch = list.find((item: DropdownItem) => normalize(String(item.key)) === normalizedVal);
+        if (normKeyMatch) return String(normKeyMatch.key).trim();
+
+        // 3. Try exact value/name match (Display Label) - Case Insensitive
         const exactValueMatch = list.find((item: DropdownItem) => String(item.value).trim().toLowerCase() === stringVal.toLowerCase());
         if (exactValueMatch) return String(exactValueMatch.key).trim();
 
-        // 3. Try partial matches for common variations (e.g., "Earning" vs "Earnings")
+        // 4. Try normalized value match
+        const normValueMatch = list.find((item: DropdownItem) => normalize(String(item.value)) === normalizedVal);
+        if (normValueMatch) return String(normValueMatch.key).trim();
+
+        // 5. Try partial matches
         const partialMatch = list.find((item: DropdownItem) => {
-            const v = String(item.value).trim().toLowerCase();
-            const s = stringVal.toLowerCase();
+            const v = normalize(String(item.value));
+            const s = normalizedVal;
             return v.startsWith(s) || s.startsWith(v) || v.includes(s) || s.includes(v);
         });
         if (partialMatch) return String(partialMatch.key).trim();
 
-        return undefined; // Return undefined if no mapping found to prevent showing invalid data
+        return undefined; // Return undefined if no mapping found
     };
 
     const findValue = (list: DropdownItem[], val: any) => {
@@ -173,84 +185,53 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
         const stringVal = String(val).trim();
         if (stringVal === '') return undefined;
 
+        const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const normalizedVal = normalize(stringVal);
+
         // 1. Try exact value match (Display Label) - Case Insensitive
         const exactValueMatch = list.find((item: DropdownItem) => String(item.value).trim().toLowerCase() === stringVal.toLowerCase());
         if (exactValueMatch) return String(exactValueMatch.value).trim();
 
-        // 2. Try exact key match (Internal ID)
+        // 2. Try normalized value match
+        const normValueMatch = list.find((item: DropdownItem) => normalize(String(item.value)) === normalizedVal);
+        if (normValueMatch) return String(normValueMatch.value).trim();
+
+        // 3. Try exact key match (Internal ID)
         const exactKeyMatch = list.find((item: DropdownItem) => String(item.key).trim() === stringVal);
         if (exactKeyMatch) return String(exactKeyMatch.value).trim();
 
-        // 3. Try partial matches
-        const partialMatch = list.find((item: DropdownItem) => {
-            const v = String(item.value).trim().toLowerCase();
-            const s = stringVal.toLowerCase();
-            return v.startsWith(s) || s.startsWith(v) || v.includes(s) || s.includes(v);
-        });
-        if (partialMatch) return String(partialMatch.value).trim();
+        // 4. Try normalized key match
+        const normKeyMatch = list.find((item: DropdownItem) => normalize(String(item.key)) === normalizedVal);
+        if (normKeyMatch) return String(normKeyMatch.value).trim();
 
         return undefined;
     };
 
-    // Consolidated row data binding
+    const [isBinding, setIsBinding] = useState(true);
+
+    // Wait until all dropdown APIs have completed their initial fetch
+    const isReady = !isLoadingEarningsDeductionsTypes && !isLoadingRoundingTypes && !isLoadingAmountOrPercentage && !isLoadingSalaryComponentType;
+
     useEffect(() => {
-        if (row && reset) {
+        if (row && isReady) {
             reset({
                 HRMED_Id: row.hrmeD_Id,
                 MI_Id: row.mI_Id || 0,
                 HRMED_Name: row.hrmeD_Name || '',
-                HRMED_EDTypeFlag: findValue(earningsDeductionsTypeDropdown, row.hrmeD_EDTypeFlag),
-                HRMED_EarnDedFlag: findKey(salaryComponentTypeDropdown, row.hrmeD_EarnDedFlag),
-                HRMED_AmountPercentFlag: findKey(amountOrPercentageDropdown, row.hrmeD_AmountPercentFlag),
+                HRMED_EDTypeFlag: findKey(earningsDeductionsTypeDropdown, row.hrmeD_EDTypeFlag) ?? (row.hrmeD_EDTypeFlag != null ? String(row.hrmeD_EDTypeFlag) : undefined),
+                HRMED_EarnDedFlag: findKey(salaryComponentTypeDropdown, row.hrmeD_EarnDedFlag) ?? (row.hrmeD_EarnDedFlag != null ? String(row.hrmeD_EarnDedFlag) : undefined),
+                HRMED_AmountPercentFlag: findKey(amountOrPercentageDropdown, row.hrmeD_AmountPercentFlag) ?? (row.hrmeD_AmountPercentFlag != null ? String(row.hrmeD_AmountPercentFlag) : undefined),
                 HRMED_AmountPercent: String(row.hrmeD_AmountPercent ?? ''),
                 HRMED_ActiveFlag: row.hrmeD_ActiveFlag,
-                HRMED_RoundOffFlag: findKey(roundingTypeDropdown, row.hrmeD_RoundOffFlag),
+                HRMED_RoundOffFlag: findKey(roundingTypeDropdown, row.hrmeD_RoundOffFlag) ?? (row.hrmeD_RoundOffFlag != null ? String(row.hrmeD_RoundOffFlag) : undefined),
                 HRMED_Order: row.hrmeD_Order,
                 HRMED_ReviseFlg: row.hrmeD_ReviseFlg
-            }, { keepDefaultValues: false });
+            });
+            setIsBinding(false);
         }
-    }, [row, reset]); // Trigger when row changes
-
-    // Robust synchronization as dropdown data arrives
-    useEffect(() => {
-        if (row && earningsDeductionsTypeDropdown.length > 0) {
-            const target = findValue(earningsDeductionsTypeDropdown, row.hrmeD_EDTypeFlag);
-            const current = getValues('HRMED_EDTypeFlag');
-            if (target !== undefined && target !== current) {
-                setValue('HRMED_EDTypeFlag', target, { shouldDirty: false, shouldValidate: true });
-            }
-        }
-    }, [earningsDeductionsTypeDropdown, row, setValue, getValues]);
-
-    useEffect(() => {
-        if (row && salaryComponentTypeDropdown.length > 0) {
-            const target = findKey(salaryComponentTypeDropdown, row.hrmeD_EarnDedFlag);
-            const current = getValues('HRMED_EarnDedFlag');
-            if (target !== undefined && target !== current) {
-                setValue('HRMED_EarnDedFlag', target, { shouldDirty: false, shouldValidate: true });
-            }
-        }
-    }, [salaryComponentTypeDropdown, row, setValue, getValues]);
-
-    useEffect(() => {
-        if (row && amountOrPercentageDropdown.length > 0) {
-            const target = findKey(amountOrPercentageDropdown, row.hrmeD_AmountPercentFlag);
-            const current = getValues('HRMED_AmountPercentFlag');
-            if (target !== undefined && target !== current) {
-                setValue('HRMED_AmountPercentFlag', target, { shouldDirty: false, shouldValidate: true });
-            }
-        }
-    }, [amountOrPercentageDropdown, row, setValue, getValues]);
-
-    useEffect(() => {
-        if (row && roundingTypeDropdown.length > 0) {
-            const target = findKey(roundingTypeDropdown, row.hrmeD_RoundOffFlag);
-            const current = getValues('HRMED_RoundOffFlag');
-            if (target !== undefined && target !== current) {
-                setValue('HRMED_RoundOffFlag', target, { shouldDirty: false, shouldValidate: true });
-            }
-        }
-    }, [roundingTypeDropdown, row, setValue, getValues]);
+        // Intentionally omitting dropdown arrays to prevent wiping user input during background refetches
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [row, reset, isReady]);
     const onSubmit = async (data: MasterEarningsDeductionsInput) => {
         try {
             // Build the request body - map to lowercase field names as per API
@@ -286,10 +267,16 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
     };
     return (
         <div className={className}>
-            <form className='space-y-6' onSubmit={handleSubmit(onSubmit)}>
-                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                    <input type='hidden' {...register('HRMED_Id', { valueAsNumber: true })} />
-                    <input type='hidden' {...register('MI_Id', { valueAsNumber: true })} />
+            {isBinding ? (
+                <div className='flex h-48 flex-col items-center justify-center space-y-4'>
+                    <div className='h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent' />
+                    <p className='text-sm text-muted-foreground'>Binding data...</p>
+                </div>
+            ) : (
+                <form className='space-y-6' onSubmit={handleSubmit(onSubmit)}>
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                        <input type='hidden' {...register('HRMED_Id', { valueAsNumber: true })} />
+                        <input type='hidden' {...register('MI_Id', { valueAsNumber: true })} />
                     <div className='group flex flex-col gap-1.5'>
                         <Label htmlFor='HRMED_Name'>
                             Name <span className='text-destructive'>*</span>
@@ -331,12 +318,12 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                                                     return val != null && val !== '' && String(val).trim() !== '';
                                                 })
                                                 .map((item: DropdownItem) => {
-                                                    const key = (item.value || item.key)?.toString().trim();
-                                                    const label = item.value || String(key);
+                                                    const key = item.key?.toString().trim();
+                                                    const value = item.value || String(key);
                                                     if (!key || key === '') return null;
                                                     return (
                                                         <SafeSelectItem key={key} value={key}>
-                                                            {label}
+                                                            {value}
                                                         </SafeSelectItem>
                                                     );
                                                 })
@@ -377,7 +364,7 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                                                     return key != null && key !== '' && String(key).trim() !== '';
                                                 })
                                                 .map((item: DropdownItem) => {
-                                                    const key = (item.key || item.value)?.toString().trim();
+                                                    const key = item.key?.toString().trim();
                                                     const value = item.value || String(key);
                                                     if (!key || key === '') return null;
                                                     return (
@@ -423,7 +410,7 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                                                     return key != null && key !== '' && String(key).trim() !== '';
                                                 })
                                                 .map((item: DropdownItem) => {
-                                                    const key = (item.key || item.value)?.toString().trim();
+                                                    const key = item.key?.toString().trim();
                                                     const value = item.value || String(key);
                                                     if (!key || key === '') return null;
                                                     return (
@@ -474,7 +461,7 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                                                     return key != null && key !== '' && String(key).trim() !== '';
                                                 })
                                                 .map((item: DropdownItem) => {
-                                                    const key = (item.key || item.value)?.toString().trim();
+                                                    const key = item.key?.toString().trim();
                                                     const value = item.value || String(key);
                                                     if (!key || key === '') return null;
                                                     return (
@@ -527,6 +514,16 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                                     return true;
                                 }
                             })}
+                            onInput={(e) => {
+                                const target = e.currentTarget;
+                                let val = target.value;
+                                val = val.replace(/[^0-9.]/g, '');
+                                const parts = val.split('.');
+                                if (parts.length > 2) {
+                                    val = parts[0] + '.' + parts.slice(1).join('');
+                                }
+                                target.value = val;
+                            }}
                         />
                     </div>
                     <div className='group flex items-center gap-2'>
@@ -556,15 +553,16 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                         disabled={isSubmitting || !isDirty}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting}
-                        loadingText='Saving...'>
+                        loadingText='Updating...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Earning/Deduction
+                            Update Earning/Deduction
                         </div>
                     </Button>
                     {!isDirty && <span className='flex items-center text-muted-foreground text-sm'>No changes made</span>}
                 </div>
             </form>
+            )}
         </div>
     );
 }

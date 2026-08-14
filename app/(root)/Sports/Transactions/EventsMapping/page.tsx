@@ -11,14 +11,22 @@ import AddEventsMappingForm from './_components/add-form';
 import { eventsMappingColumns } from './_components/columns';
 import UpdateEventsMappingForm from './_components/update-form';
 
-export default function EventsMappingPage() {
-    const { loadGrid } = useEventMapping();
-    const { data: response, isLoading, error } = loadGrid;
+import { use } from 'react';
 
-    // We pass the full response to the content component to handle pagination metadata
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default function EventsMappingPage(props: { searchParams: SearchParams }) {
+    const searchParams = use(props.searchParams);
+    const { loadData, refetchAll } = useEventMapping(searchParams);
+
     return (
-        <FormProvider<any>>
-            <EventsMappingPageContent response={response} isLoading={isLoading} error={error} />
+        <FormProvider<IEventsMappingData>>
+            <EventsMappingPageContent 
+                response={loadData.data} 
+                isLoading={loadData.isPending || loadData.isFetching} 
+                error={loadData.error} 
+                refetchAll={refetchAll} 
+            />
         </FormProvider>
     );
 }
@@ -35,8 +43,11 @@ function EventsMappingPageContent({
     const { openAddForm, isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
         useFormContext<IEventsMappingData>();
 
-    const gridData = response?.data?.eventmappingList || [];
-    const tableProps = useDataTableProps({ ...response, data: gridData });
+    const tableProps = {
+        ...useDataTableProps(response?.data, { dataKey: 'records', totalKey: 'total' }), 
+        success: response?.success,
+        errorMessage: response?.message
+    };
 
     return (
         <div className='min-h-screen'>
@@ -64,6 +75,7 @@ function EventsMappingPageContent({
                         columns={eventsMappingColumns}
                         isLoading={isLoading}
                         error={error}
+                        showSearchColumns={true}
                         showViewOptions={false}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading mapping details...'
