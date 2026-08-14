@@ -86,7 +86,7 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterEvent }) {
         <div className='flex justify-center'>
             <ActionButtons
                 rowData={rowData}
-                buttons={{ edit: true, toggle: true, delete: true, view: true }}
+                buttons={{ edit: true, toggle: true, view: true }}
                 onEdit={handleEdit}
                 onToggle={handleToggle}
                 onDelete={handleDelete}
