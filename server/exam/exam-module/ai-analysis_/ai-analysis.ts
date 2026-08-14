@@ -52,7 +52,7 @@ Identify exactly 5 weak performers and 5 top performers. Focus on overall perfor
                 Authorization: `Bearer ${GROQ_API_KEY}`
             },
             body: JSON.stringify({
-                model: 'llama-3.3-70b-versatile',
+                model: 'openai/gpt-oss-120b',
                 messages: [
                     {
                         role: 'system',
@@ -123,7 +123,7 @@ Format your response as JSON with this structure:
                 Authorization: `Bearer ${GROQ_API_KEY}`
             },
             body: JSON.stringify({
-                model: 'llama-3.3-70b-versatile',
+                model: 'openai/gpt-oss-120b',
                 messages: [
                     {
                         role: 'system',
@@ -213,7 +213,7 @@ Ensure all scores are numbers. If a score is missing or invalid, skip that subje
                 Authorization: `Bearer ${GROQ_API_KEY}`
             },
             body: JSON.stringify({
-                model: 'llama-3.3-70b-versatile',
+                model: 'openai/gpt-oss-120b',
                 messages: [
                     {
                         role: 'system',

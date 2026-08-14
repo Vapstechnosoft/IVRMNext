@@ -241,7 +241,7 @@ export async function POST(req: NextRequest) {
                 },
                 { role: 'user', content: prompt }
             ],
-            model: 'llama-3.3-70b-versatile',
+            model: 'openai/gpt-oss-120b',
             temperature: 0.6, // Increased for wordier, more descriptive content
             max_tokens: 4096 // Full output capacity for maximum length
         });
