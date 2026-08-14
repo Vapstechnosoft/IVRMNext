@@ -15,8 +15,8 @@ import { useEffect } from 'react';
 import * as z from 'zod';
 
 const formSchema = z.object({
-    LMAL_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Library Name is required')),
-    ASMAY_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Academic Year is required')),
+    LMAL_Id: z.preprocess((val) => (val ? Number(val) : 0), z.number().min(1, 'Select Library Name')),
+    ASMAY_Id: z.preprocess((val) => (val ? Number(val) : 0), z.number().min(1, 'Select Academic Year')),
     statuscount: z.boolean().default(false),
     Issue_Date: z.date({ required_error: 'From Date is required' }),
     IssueToDate: z.date({ required_error: 'To Date is required' })

@@ -29,7 +29,7 @@ export default function AddMasterAuthorForm({ onSuccess, className = '' }: AddMa
         formState: { errors, isSubmitting }
     } = useForm<z.infer<typeof masterAuthorSchema.addOrUpdate>>({
         resolver: zodResolver(masterAuthorSchema.addOrUpdate),
-        mode: 'onSubmit',
+        mode: 'onChange',
         defaultValues: {
             lmaU_Id: undefined,
             lmaU_AuthorFirstName: '',
@@ -113,7 +113,16 @@ export default function AddMasterAuthorForm({ onSuccess, className = '' }: AddMa
                         <InputText
                             label='Mobile No'
                             id='lmaU_MobileNo'
-                            placeholder='Enter Mobile No'
+                            placeholder='10-digit mobile number'
+                            maxLength={10}
+                            onKeyDown={(e) => {
+                                if (e.key.length === 1 && !/^[0-9]$/.test(e.key) && !e.ctrlKey && !e.metaKey) {
+                                    e.preventDefault();
+                                }
+                            }}
+                            onInput={(e: React.FormEvent<HTMLInputElement>) => {
+                                e.currentTarget.value = e.currentTarget.value.replace(/\D/g, '').slice(0, 10);
+                            }}
                             {...register('lmaU_MobileNo')}
                             error={errors.lmaU_MobileNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'

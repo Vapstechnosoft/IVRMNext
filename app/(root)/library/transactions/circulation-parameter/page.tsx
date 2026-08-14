@@ -21,15 +21,27 @@ export default function CirculationParameterPage() {
     const [editingId, setEditingId] = useState<number | null>(null);
     const [dynamicCategoryList, setDynamicCategoryList] = useState<any[]>([]);
 
+    const defaultFormValues: CirculationParameterFormValues = {
+        id: undefined,
+        bookParameterFlag: 'BP',
+        issuerType: 'STUDENT',
+        status: true,
+        bookType: undefined,
+        categoryId: undefined,
+        categoryName: undefined,
+        classId: undefined,
+        employeeGroupId: undefined,
+        departmentId: undefined,
+        guestId: undefined,
+        maxIssueItems: undefined,
+        maxIssueDays: undefined,
+        maxRenewals: undefined
+    };
+
     // Form initialization
     const form = useForm<CirculationParameterFormValues>({
         resolver: zodResolver(circulationParameterSchema),
-        defaultValues: {
-            bookParameterFlag: 'BP',
-            issuerType: 'STUDENT',
-            status: true,
-            bookType: 'Issue'
-        }
+        defaultValues: defaultFormValues
     });
 
     const bookParameterFlag = form.watch('bookParameterFlag');
@@ -84,7 +96,7 @@ export default function CirculationParameterPage() {
     const columns = useMemo(
         () =>
             createCirculationParameterColumns({
-                onEdit: (data) => {
+                onEdit: (data: any) => {
                     setEditingId(data.lmC_Id);
                     form.reset({
                         id: data.lmC_Id,
@@ -94,9 +106,13 @@ export default function CirculationParameterPage() {
                         maxIssueDays: data.lmC_MaxIssueDays,
                         maxRenewals: data.lmC_MaxRenewals,
                         status: data.lmC_ActiveFlag,
-                        bookType: data.lmB_BookTypeflag === 'BP' ? data.lmC_CategoryName : undefined,
+                        bookType: data.lmB_BookTypeflag === 'BP' ? (data.lmB_BookType || data.lmC_CategoryName || undefined) : undefined,
                         categoryId: data.lmB_BookTypeflag === 'NBP' ? data.lmC_Id : undefined,
-                        categoryName: data.lmB_BookTypeflag === 'NBP' ? data.lmC_CategoryName : undefined
+                        categoryName: data.lmB_BookTypeflag === 'NBP' ? data.lmC_CategoryName : undefined,
+                        classId: data.asmcl_id || data.asmcL_Id || undefined,
+                        employeeGroupId: data.hrmgt_id || data.hrmgT_Id || undefined,
+                        departmentId: data.hrmd_id || data.hrmD_Id || undefined,
+                        guestId: data.guest_id || data.guest_Id || undefined
                     });
                 },
                 onToggleStatus: (data) => {
@@ -124,24 +140,14 @@ export default function CirculationParameterPage() {
 
         saveMutation.mutate(payload, {
             onSuccess: () => {
-                form.reset({
-                    bookParameterFlag: values.bookParameterFlag,
-                    issuerType: values.issuerType,
-                    status: true,
-                    bookType: 'Issue'
-                });
+                form.reset(defaultFormValues);
                 setEditingId(null);
             }
         });
     };
 
     const handleCancel = () => {
-        form.reset({
-            bookParameterFlag: 'BP',
-            issuerType: 'STUDENT',
-            status: true,
-            bookType: 'Issue'
-        });
+        form.reset(defaultFormValues);
         setEditingId(null);
     };
 
