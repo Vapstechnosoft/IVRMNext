@@ -29,7 +29,7 @@ export default async function Navbar() {
                         <IntelligentAppsMenu />
                         <AIAgentHeader />
 
-                        <UserNotificationPage />
+                        {/* <UserNotificationPage /> */}
                         <UserNav session={session} />
                     </div>
                 </div>
