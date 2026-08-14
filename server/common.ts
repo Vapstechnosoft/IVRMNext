@@ -4642,78 +4642,78 @@ export async function getUserAccessibleModules() {
                                             title: 'Employee Contribution Report',
                                             description: 'Manage Employee Contribution Report'
                                         },
-                                        {
-                                            id: 30,
-                                            name: 'PS7 Form Report',
-                                            icon: 'Clock',
-                                            url: '/hrms/reports/PS7FromReportStJames',
-                                            title: 'PS7 Form Report',
-                                            description: 'Manage PS7 Form Report'
-                                        },
-                                        {
-                                            id: 31,
-                                            name: 'MONTH WISE REPORT(st.james)',
-                                            icon: 'Clock',
-                                            url: '/hrms/reports/PS8_MonthWiseReportStjames',
-                                            title: 'PS8 Month Wise Report',
-                                            description: 'Manage Month Wise Report (st.james)'
-                                        },
-                                        {
-                                            id: 32,
-                                            name: 'PS8 Form Report(st.james)',
-                                            icon: 'Clock',
-                                            url: '/hrms/reports/PS8_ReportStjames',
-                                            title: 'PS8 Form Report',
-                                            description: 'Manage PS8 Form Report (st.james)'
-                                        },
-                                        {
-                                            id: 33,
-                                            name: 'VPF YEARLY REPORT',
-                                            icon: 'Calandar',
-                                            url: '/hrms/reports/VPFYearlyReport',
-                                            title: 'VPF Yearly Report',
-                                            description: 'Manage VPF Yearly Report'
-                                        },
-                                        {
-                                            id: 34,
-                                            name: 'VPF SUMMARY REPORT',
-                                            icon: 'Calandar',
-                                            url: '/hrms/reports/VPFSummaryReport',
-                                            title: 'VPF Summary Report',
-                                            description: 'Manage VPF Summary Report'
-                                        },
-                                        {
-                                            id: 35,
-                                            name: 'PF SUMMARY REPORT',
-                                            icon: 'Calandar',
-                                            url: '/hrms/reports/PFSummaryReport',
-                                            title: 'PF Summary Report',
-                                            description: 'Manage PF Summary Report'
-                                        },
-                                        {
-                                            id: 36,
-                                            name: 'PF YEARLY REPORT',
-                                            icon: 'Calandar',
-                                            url: '/hrms/reports/PFYearlyReport',
-                                            title: 'PF Yearly Report',
-                                            description: 'Manage PF Yearly Report'
-                                        },
-                                        {
-                                            id: 37,
-                                            name: 'Employee Salary Slip SRKVS Report',
-                                            icon: 'FileType',
-                                            url: '/hrms/reports/employeeSalarySlipSRKVS',
-                                            title: 'Employee Salary Slip SRKVS Report',
-                                            description: 'Employee Salary Slips'
-                                        },
-                                        {
-                                            id: 38,
-                                            name: 'Employee Salary Slip St Mary Report',
-                                            icon: 'FileType',
-                                            url: '/hrms/reports/EmployeeSalarySlipStMary',
-                                            title: 'Employee Salary Slip St Mary Report',
-                                            description: 'Employee Salary Slips'
-                                        },
+                                        // {
+                                        //     id: 30,
+                                        //     name: 'PS7 Form Report',
+                                        //     icon: 'Clock',
+                                        //     url: '/hrms/reports/PS7FromReportStJames',
+                                        //     title: 'PS7 Form Report',
+                                        //     description: 'Manage PS7 Form Report'
+                                        // },
+                                        // {
+                                        //     id: 31,
+                                        //     name: 'MONTH WISE REPORT(st.james)',
+                                        //     icon: 'Clock',
+                                        //     url: '/hrms/reports/PS8_MonthWiseReportStjames',
+                                        //     title: 'PS8 Month Wise Report',
+                                        //     description: 'Manage Month Wise Report (st.james)'
+                                        // },
+                                        // {
+                                        //     id: 32,
+                                        //     name: 'PS8 Form Report(st.james)',
+                                        //     icon: 'Clock',
+                                        //     url: '/hrms/reports/PS8_ReportStjames',
+                                        //     title: 'PS8 Form Report',
+                                        //     description: 'Manage PS8 Form Report (st.james)'
+                                        // },
+                                        // {
+                                        //     id: 33,
+                                        //     name: 'VPF YEARLY REPORT',
+                                        //     icon: 'Calandar',
+                                        //     url: '/hrms/reports/VPFYearlyReport',
+                                        //     title: 'VPF Yearly Report',
+                                        //     description: 'Manage VPF Yearly Report'
+                                        // },
+                                        // {
+                                        //     id: 34,
+                                        //     name: 'VPF SUMMARY REPORT',
+                                        //     icon: 'Calandar',
+                                        //     url: '/hrms/reports/VPFSummaryReport',
+                                        //     title: 'VPF Summary Report',
+                                        //     description: 'Manage VPF Summary Report'
+                                        // },
+                                        // {
+                                        //     id: 35,
+                                        //     name: 'PF SUMMARY REPORT',
+                                        //     icon: 'Calandar',
+                                        //     url: '/hrms/reports/PFSummaryReport',
+                                        //     title: 'PF Summary Report',
+                                        //     description: 'Manage PF Summary Report'
+                                        // },
+                                        // {
+                                        //     id: 36,
+                                        //     name: 'PF YEARLY REPORT',
+                                        //     icon: 'Calandar',
+                                        //     url: '/hrms/reports/PFYearlyReport',
+                                        //     title: 'PF Yearly Report',
+                                        //     description: 'Manage PF Yearly Report'
+                                        // },
+                                        // {
+                                        //     id: 37,
+                                        //     name: 'Employee Salary Slip SRKVS Report',
+                                        //     icon: 'FileType',
+                                        //     url: '/hrms/reports/employeeSalarySlipSRKVS',
+                                        //     title: 'Employee Salary Slip SRKVS Report',
+                                        //     description: 'Employee Salary Slips'
+                                        // },
+                                        // {
+                                        //     id: 38,
+                                        //     name: 'Employee Salary Slip St Mary Report',
+                                        //     icon: 'FileType',
+                                        //     url: '/hrms/reports/EmployeeSalarySlipStMary',
+                                        //     title: 'Employee Salary Slip St Mary Report',
+                                        //     description: 'Employee Salary Slips'
+                                        // },
                                         {
                                             id: 39,
                                             name: 'Employee Salary Statement',
@@ -4721,189 +4721,190 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/cumulative-salary-report',
                                             title: 'Employee Salary Statement',
                                             description: 'Employee Salary Statement'
-                                        },
-                                        {
-                                            id: 40,
-                                            name: 'NDA Employee offer letter',
-                                            icon: 'FileType',
-                                            url: '/hrms/reports/nda_employeeOfferAndExperienceReport',
-                                            title: 'NDA Employee Offer Letter',
-                                            description: 'Employee Offer Letter'
                                         }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            id: 2,
-                            name: 'Recruitment',
-                            icon: 'UserPlus',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Masters',
-                                    icon: 'Database',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Master Job',
-                                            icon: 'Briefcase',
-                                            url: '/hrms/recruitment/masters/master-job',
-                                            title: 'Master Job',
-                                            description: 'Manage Job Positions'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Master Location',
-                                            icon: 'MapPin',
-                                            url: '/hrms/recruitment/masters/master-location',
-                                            title: 'Master Location',
-                                            description: 'Manage Locations'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Master Position',
-                                            icon: 'Target',
-                                            url: '/hrms/recruitment/masters/master-position',
-                                            title: 'Master Position',
-                                            description: 'Manage Positions'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Master Position Type',
-                                            icon: 'Tag',
-                                            url: '/hrms/recruitment/masters/master-positionType',
-                                            title: 'Master Position Type',
-                                            description: 'Manage Position Types'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'Master Priority',
-                                            icon: 'Flag',
-                                            url: '/hrms/recruitment/masters/master-priority',
-                                            title: 'Master Priority',
-                                            description: 'Manage Priority Levels'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 2,
-                                    name: 'Transactions',
-                                    icon: 'FileText',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Add Candidate',
-                                            icon: 'UserPlus',
-                                            url: '/hrms/recruitment/transaction/add-candidate',
-                                            title: 'Add Candidate',
-                                            description: 'Add New Candidates'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Add Candidate Interview',
-                                            icon: 'Calendar',
-                                            url: '/hrms/recruitment/transaction/add-candidate-interview',
-                                            title: 'Add Candidate Interview',
-                                            description: 'Add Candidate Interview'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Candidate Interview List',
-                                            icon: 'List',
-                                            url: '/hrms/recruitment/transaction/candidate-interview-list',
-                                            title: 'Candidate Interview List',
-                                            description: 'View All Candidate Interviews'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Interviewer Feedback',
-                                            icon: 'MessageSquare',
-                                            url: '/hrms/recruitment/transaction/interviewer-feedback',
-                                            title: 'Interviewer Feedback',
-                                            description: 'Manage Interviewer Feedback'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'Job List',
-                                            icon: 'Briefcase',
-                                            url: '/hrms/recruitment/transaction/job-list',
-                                            title: 'Job List',
-                                            description: 'View All Jobs'
-                                        },
-                                        {
-                                            id: 6,
-                                            name: 'Job Posting List',
-                                            icon: 'FileText',
-                                            url: '/hrms/recruitment/transaction/job-posting-list',
-                                            title: 'Job Posting List',
-                                            description: 'View All Job Postings'
-                                        }
+                                        // ,
                                         // {
-                                        //     id: 7,
-                                        //     name: 'VMS Job',
-                                        //     icon: 'Briefcase',
-                                        //     url: '/hrms/recruitment/transaction/VMSJobList',
-                                        //     title: 'VMS Job',
-                                        //     description: 'View All VMS Job'
+                                        //     id: 40,
+                                        //     name: 'NDA Employee offer letter',
+                                        //     icon: 'FileType',
+                                        //     url: '/hrms/reports/nda_employeeOfferAndExperienceReport',
+                                        //     title: 'NDA Employee Offer Letter',
+                                        //     description: 'Employee Offer Letter'
                                         // }
                                     ]
                                 }
-                                // {
-                                //     id: 3,
-                                //     name: 'MRF Approval',
-                                //     icon: 'CheckSquare',
-                                //     pages: [
-                                //         {
-                                //             id: 1,
-                                //             name: 'MRF Requisition Form',
-                                //             icon: 'FileCheck',
-                                //             url: '/hrms/recruitment/mrf-approval/mrf-requisition-form',
-                                //             title: 'MRF Requisition Form',
-                                //             description: 'Approve MRF Requests'
-                                //         }
-                                //     ]
-                                // },
-                                // {
-                                //     id: 4,
-                                //     name: 'Feedback',
-                                //     icon: 'MessageSquare',
-                                //     pages: [
-                                //         {
-                                //             id: 1,
-                                //             name: 'Candidate Feedback',
-                                //             icon: 'Star',
-                                //             url: '/hrms/recruitment/feedback/candidate-feedback',
-                                //             title: 'Candidate Feedback',
-                                //             description: 'Record Candidate Feedback'
-                                //         }
-                                //     ]
-                                // },
-                                // {
-                                //     id: 5,
-                                //     name: 'Reports',
-                                //     icon: 'FileText',
-                                //     pages: [
-                                //         {
-                                //             id: 1,
-                                //             name: 'Candidate Report',
-                                //             icon: 'Users',
-                                //             url: '/hrms/recruitment/reports/candidate-report',
-                                //             title: 'Candidate Report',
-                                //             description: 'Candidate Summary Report'
-                                //         },
-                                //         {
-                                //             id: 2,
-                                //             name: 'Interview Report',
-                                //             icon: 'ClipboardList',
-                                //             url: '/hrms/recruitment/reports/interview-report',
-                                //             title: 'Interview Report',
-                                //             description: 'Interview Summary Report'
-                                //         }
-                                //     ]
-                                // }
                             ]
                         },
+                        // {
+                        //     id: 2,
+                        //     name: 'Recruitment',
+                        //     icon: 'UserPlus',
+                        //     sub_menu: [
+                        //         {
+                        //             id: 1,
+                        //             name: 'Masters',
+                        //             icon: 'Database',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Master Job',
+                        //                     icon: 'Briefcase',
+                        //                     url: '/hrms/recruitment/masters/master-job',
+                        //                     title: 'Master Job',
+                        //                     description: 'Manage Job Positions'
+                        //                 },
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'Master Location',
+                        //                     icon: 'MapPin',
+                        //                     url: '/hrms/recruitment/masters/master-location',
+                        //                     title: 'Master Location',
+                        //                     description: 'Manage Locations'
+                        //                 },
+                        //                 {
+                        //                     id: 3,
+                        //                     name: 'Master Position',
+                        //                     icon: 'Target',
+                        //                     url: '/hrms/recruitment/masters/master-position',
+                        //                     title: 'Master Position',
+                        //                     description: 'Manage Positions'
+                        //                 },
+                        //                 {
+                        //                     id: 4,
+                        //                     name: 'Master Position Type',
+                        //                     icon: 'Tag',
+                        //                     url: '/hrms/recruitment/masters/master-positionType',
+                        //                     title: 'Master Position Type',
+                        //                     description: 'Manage Position Types'
+                        //                 },
+                        //                 {
+                        //                     id: 5,
+                        //                     name: 'Master Priority',
+                        //                     icon: 'Flag',
+                        //                     url: '/hrms/recruitment/masters/master-priority',
+                        //                     title: 'Master Priority',
+                        //                     description: 'Manage Priority Levels'
+                        //                 }
+                        //             ]
+                        //         },
+                        //         {
+                        //             id: 2,
+                        //             name: 'Transactions',
+                        //             icon: 'FileText',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Add Candidate',
+                        //                     icon: 'UserPlus',
+                        //                     url: '/hrms/recruitment/transaction/add-candidate',
+                        //                     title: 'Add Candidate',
+                        //                     description: 'Add New Candidates'
+                        //                 },
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'Add Candidate Interview',
+                        //                     icon: 'Calendar',
+                        //                     url: '/hrms/recruitment/transaction/add-candidate-interview',
+                        //                     title: 'Add Candidate Interview',
+                        //                     description: 'Add Candidate Interview'
+                        //                 },
+                        //                 {
+                        //                     id: 3,
+                        //                     name: 'Candidate Interview List',
+                        //                     icon: 'List',
+                        //                     url: '/hrms/recruitment/transaction/candidate-interview-list',
+                        //                     title: 'Candidate Interview List',
+                        //                     description: 'View All Candidate Interviews'
+                        //                 },
+                        //                 {
+                        //                     id: 4,
+                        //                     name: 'Interviewer Feedback',
+                        //                     icon: 'MessageSquare',
+                        //                     url: '/hrms/recruitment/transaction/interviewer-feedback',
+                        //                     title: 'Interviewer Feedback',
+                        //                     description: 'Manage Interviewer Feedback'
+                        //                 },
+                        //                 {
+                        //                     id: 5,
+                        //                     name: 'Job List',
+                        //                     icon: 'Briefcase',
+                        //                     url: '/hrms/recruitment/transaction/job-list',
+                        //                     title: 'Job List',
+                        //                     description: 'View All Jobs'
+                        //                 },
+                        //                 {
+                        //                     id: 6,
+                        //                     name: 'Job Posting List',
+                        //                     icon: 'FileText',
+                        //                     url: '/hrms/recruitment/transaction/job-posting-list',
+                        //                     title: 'Job Posting List',
+                        //                     description: 'View All Job Postings'
+                        //                 }
+                        //                 // {
+                        //                 //     id: 7,
+                        //                 //     name: 'VMS Job',
+                        //                 //     icon: 'Briefcase',
+                        //                 //     url: '/hrms/recruitment/transaction/VMSJobList',
+                        //                 //     title: 'VMS Job',
+                        //                 //     description: 'View All VMS Job'
+                        //                 // }
+                        //             ]
+                        //         }
+                        //         // {
+                        //         //     id: 3,
+                        //         //     name: 'MRF Approval',
+                        //         //     icon: 'CheckSquare',
+                        //         //     pages: [
+                        //         //         {
+                        //         //             id: 1,
+                        //         //             name: 'MRF Requisition Form',
+                        //         //             icon: 'FileCheck',
+                        //         //             url: '/hrms/recruitment/mrf-approval/mrf-requisition-form',
+                        //         //             title: 'MRF Requisition Form',
+                        //         //             description: 'Approve MRF Requests'
+                        //         //         }
+                        //         //     ]
+                        //         // },
+                        //         // {
+                        //         //     id: 4,
+                        //         //     name: 'Feedback',
+                        //         //     icon: 'MessageSquare',
+                        //         //     pages: [
+                        //         //         {
+                        //         //             id: 1,
+                        //         //             name: 'Candidate Feedback',
+                        //         //             icon: 'Star',
+                        //         //             url: '/hrms/recruitment/feedback/candidate-feedback',
+                        //         //             title: 'Candidate Feedback',
+                        //         //             description: 'Record Candidate Feedback'
+                        //         //         }
+                        //         //     ]
+                        //         // },
+                        //         // {
+                        //         //     id: 5,
+                        //         //     name: 'Reports',
+                        //         //     icon: 'FileText',
+                        //         //     pages: [
+                        //         //         {
+                        //         //             id: 1,
+                        //         //             name: 'Candidate Report',
+                        //         //             icon: 'Users',
+                        //         //             url: '/hrms/recruitment/reports/candidate-report',
+                        //         //             title: 'Candidate Report',
+                        //         //             description: 'Candidate Summary Report'
+                        //         //         },
+                        //         //         {
+                        //         //             id: 2,
+                        //         //             name: 'Interview Report',
+                        //         //             icon: 'ClipboardList',
+                        //         //             url: '/hrms/recruitment/reports/interview-report',
+                        //         //             title: 'Interview Report',
+                        //         //             description: 'Interview Summary Report'
+                        //         //         }
+                        //         //     ]
+                        //         // }
+                        //     ]
+                        // },
                         {
                             id: 404,
                             name: 'Attendance Management',
