@@ -32,14 +32,14 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { Trash2, Plus, Upload, X } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { 
-  useHeader, 
-  useModulePage, 
+import {
+  useHeader,
+  useModulePage,
   useParameter,
-  useSaveSmsMailSetting 
+  useSaveSmsMailSetting
 } from "@/hooks/sms-email-configuration/useSmsMailSetting";
-import { 
-  SmsMailSettingInitialData, 
+import {
+  SmsMailSettingInitialData,
   SmsEmailSettingList,
   SmsMailSettingDetailsResponse
 } from "@/types/sms-email-configuration/sms-mail-setting";
@@ -49,7 +49,7 @@ const formSchema = z.object({
   IVRMIM_Id: z.coerce.number().min(1, { message: "Select Module Name" }),
   IVRMIMP_Id: z.coerce.number().min(1, { message: "Select Module Page Name" }),
   ISES_Template_Name: z.string().min(1, { message: "Select Header Name" }),
-  
+
   // SMS Settings
   ISES_TemplateId: z.string().optional(),
   ISES_SMSMessage: z.string().min(1, { message: "Enter Message Body" }),
@@ -64,6 +64,7 @@ const formSchema = z.object({
   // Mail Settings
   ISMHTML_Id: z.coerce.number().optional(),
   ISES_MailSubject: z.string().min(1, { message: "Enter Subject" }),
+  ISES_MailHTMLTemplate: z.string().optional(),
   ISES_MailFooter: z.string().min(1, { message: "Enter Mail Footer" }),
   ISES_MailActiveFlag: z.boolean(),
   filelist: z.array(
@@ -116,7 +117,7 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
   const { data: modulePageData } = useModulePage(selectedModuleId);
   const { data: headerDataResponse } = useHeader(selectedModuleId, selectedPageId);
   const { data: parameterData } = useParameter(selectedHeaderId);
-  
+
   const saveMutation = useSaveSmsMailSetting();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -180,7 +181,7 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
       form.setValue("ISES_Id", setting.iseS_Id);
       form.setValue("IVRMIM_Id", setting.ivrmiM_Id);
       setSelectedModuleId(setting.ivrmiM_Id);
-      
+
       setTimeout(() => {
         form.setValue("IVRMIMP_Id", setting.ivrmimP_Id);
         setSelectedPageId(setting.ivrmimP_Id);
@@ -194,7 +195,7 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
       form.setValue("ISES_SMSMessage", setting.iseS_SMSMessage || "");
       form.setValue("ISES_SMSActiveFlag", setting.iseS_SMSActiveFlag);
       form.setValue("ISES_EnableSMSCCFlg", setting.iseS_EnableSMSCCFlg);
-      
+
       if (setting.iseS_SMSCCMobileNo) {
         const mobiles = setting.iseS_SMSCCMobileNo.split(',').filter(Boolean);
         if (mobiles.length > 0) {
@@ -206,13 +207,14 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
 
       form.setValue("ISMHTML_Id", editData.ismhtmL_Id || 0);
       form.setValue("ISES_MailSubject", setting.iseS_MailSubject || "");
+      form.setValue("ISES_MailHTMLTemplate", setting.iseS_MailHTMLTemplate || setting.iseS_Mail_Message || setting.iseS_MailBody || "");
       form.setValue("ISES_MailFooter", setting.iseS_MailFooter || "");
       form.setValue("ISES_MailActiveFlag", setting.iseS_MailActiveFlag);
-      
+
       if (editData.editfiles && editData.editfiles.length > 0) {
         form.setValue("filelist", editData.editfiles);
       }
-      
+
       form.setValue("ISES_EnableMailCCFlg", setting.iseS_EnableMailCCFlg);
       if (setting.iseS_MailCCId) {
         const emails = setting.iseS_MailCCId.split(',').filter(Boolean);
@@ -238,36 +240,77 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
       form.setValue("ISES_PNActiveFlg", setting.iseS_PNActiveFlg || false);
       form.setValue("ISES_AlertBeforeDays", setting.iseS_AlertBeforeDays || "");
       form.setValue("ISES_PNMessage", setting.iseS_PNMessage || "");
-      
+
       if (editData.rolelist) {
-         const allRoles = initialData?.rolelist || [];
-         const mappedRoles = allRoles.map(r => ({
-           ...r,
-           empck: editData.rolelist.some(er => er.ivrmrT_Id === r.ivrmrT_Id)
-         }));
-         form.setValue("roleids", mappedRoles);
+        const allRoles = initialData?.rolelist || [];
+        const mappedRoles = allRoles.map(r => ({
+          ...r,
+          empck: editData.rolelist.some(er => er.ivrmrT_Id === r.ivrmrT_Id)
+        }));
+        form.setValue("roleids", mappedRoles);
       }
     }
   }, [editData, initialData, form]);
 
   const institutionModuleList = (initialData?.institutionModuleList as any[]) || [];
-  const institutionPageLists = ((modulePageData as any)?.data as any[]) || ((modulePageData as any)?.institutionPageList as any[]) || ((editData as any)?.institutionPageList as any[]) || (initialData?.institutionPageList as any[]) || [];
-  const pageWiseHeaderList = ((headerDataResponse as any)?.data as any[]) || ((headerDataResponse as any)?.pageWiseHeaderList as any[]) || ((editData as any)?.pageWiseHeaderList as any[]) || [];
-  const parameters = ((parameterData as any)?.data as any[]) || ((parameterData as any)?.parameterList as any[]) || ((editData as any)?.parameterList as any[]) || [];
+
+  const institutionPageLists = React.useMemo(() => {
+    if (editData && selectedModuleId === editData.emailSmsSettingList?.[0]?.ivrmiM_Id && editData.institutionPageList && editData.institutionPageList.length > 0) {
+      return editData.institutionPageList;
+    }
+    const fromModule = ((modulePageData as any)?.data as any[]) || ((modulePageData as any)?.institutionPageList as any[]);
+    return fromModule && fromModule.length > 0 ? fromModule : (initialData?.institutionPageList || []);
+  }, [editData, selectedModuleId, modulePageData, initialData]);
+
+  const pageWiseHeaderList = React.useMemo(() => {
+    let list: any[] = [];
+    if (editData && selectedPageId === editData.emailSmsSettingList?.[0]?.ivrmimP_Id && editData.pageWiseHeaderList && editData.pageWiseHeaderList.length > 0) {
+      list = editData.pageWiseHeaderList;
+    } else {
+      const fromHeader = ((headerDataResponse as any)?.data as any[]) || ((headerDataResponse as any)?.pageWiseHeaderList as any[]);
+      list = fromHeader && fromHeader.length > 0 ? fromHeader : [];
+    }
+
+    // Add the current template if it's missing from the list but we have it from editData
+    if (editData && editData.templname) {
+      const exists = list.some((h: any) => h.ivrmhE_Name === editData.templname || h.ivrmhE_Id === editData.ivrmhE_Id);
+      if (!exists) {
+        list = [...list, {
+          ivrmhE_Id: editData.ivrmhE_Id ? editData.ivrmhE_Id : editData.templname,
+          ivrmhE_Name: editData.templname
+        }];
+      }
+    }
+
+    return list;
+  }, [editData, selectedPageId, headerDataResponse]);
+
+  const parameters = React.useMemo(() => {
+    // If the template matches the edit data, we can use the parameterList from editData
+    if (editData && editData.parameterList && editData.parameterList.length > 0) {
+      // It's a bit tricky to match selectedHeaderId with editData because we don't always have it perfectly synced, but we'll try
+      return editData.parameterList;
+    }
+    const fromParam = ((parameterData as any)?.data as any[]) || ((parameterData as any)?.parameterList as any[]);
+    return fromParam && fromParam.length > 0 ? fromParam : [];
+  }, [editData, parameterData]);
+
   const emailTemplates = (initialData?.emailtemplatelist as any[]) || [];
 
   useEffect(() => {
     if (pageWiseHeaderList && pageWiseHeaderList.length > 0) {
       const templateVal = form.getValues("ISES_Template_Name");
       if (templateVal && !isNaN(Number(templateVal))) {
-         setSelectedHeaderId(Number(templateVal));
+        setSelectedHeaderId(Number(templateVal));
       } else if (templateVal) {
-         // Fallback if somehow it's still storing name from legacy edit data
-         const matched = pageWiseHeaderList.find((h: any) => h.ivrmhE_Name === templateVal || h.ivrmhE_Id.toString() === templateVal);
-         if (matched) {
-            setSelectedHeaderId(matched.ivrmhE_Id);
-            form.setValue("ISES_Template_Name", matched.ivrmhE_Id.toString());
-         }
+        // Fallback if somehow it's still storing name from legacy edit data
+        const matched = pageWiseHeaderList.find((h: any) => h.ivrmhE_Name === templateVal || h.ivrmhE_Id.toString() === templateVal);
+        if (matched) {
+          if (!isNaN(Number(matched.ivrmhE_Id))) {
+            setSelectedHeaderId(Number(matched.ivrmhE_Id));
+          }
+          form.setValue("ISES_Template_Name", matched.ivrmhE_Id.toString());
+        }
       }
     }
   }, [pageWiseHeaderList, form.watch("ISES_Template_Name")]);
@@ -287,6 +330,7 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
       iseS_SMSMessage: values.ISES_SMSMessage,
       iseS_SMSActiveFlag: values.ISES_SMSActiveFlag,
       iseS_MailSubject: values.ISES_MailSubject,
+      iseS_MailHTMLTemplate: values.ISES_MailHTMLTemplate,
       iseS_MailFooter: values.ISES_MailFooter,
       iseS_MailActiveFlag: values.ISES_MailActiveFlag,
       iseS_EnableSMSCCFlg: values.ISES_EnableSMSCCFlg,
@@ -305,7 +349,7 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
       roleids: values.roleids?.filter(r => r.empck),
       filelist: values.filelist?.filter(f => f.cfilename)
     };
-    
+
     saveMutation.mutate(payload as any, {
       onSuccess: () => {
         handleClear();
@@ -324,7 +368,7 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        
+
         {/* Common Setting */}
         <Card>
           <CardHeader>
@@ -353,8 +397,8 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {institutionModuleList.map((m) => (
-                          <SelectItem key={m.ivrmiM_Id} value={m.ivrmiM_Id.toString()}>
+                        {institutionModuleList.map((m, index) => (
+                          <SelectItem key={`${m.ivrmiM_Id}-${index}`} value={m.ivrmiM_Id.toString()}>
                             {m.ivrmM_ModuleName}
                           </SelectItem>
                         ))}
@@ -385,8 +429,8 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {institutionPageLists.map((p) => (
-                          <SelectItem key={p.ivrmimP_Id} value={p.ivrmimP_Id.toString()}>
+                        {institutionPageLists.map((p, index) => (
+                          <SelectItem key={`${p.ivrmimP_Id}-${index}`} value={p.ivrmimP_Id.toString()}>
                             {p.ivrmmP_PageName}
                           </SelectItem>
                         ))}
@@ -417,8 +461,8 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {pageWiseHeaderList.map((h: any) => (
-                          <SelectItem key={h.ivrmhE_Id} value={h.ivrmhE_Id.toString()}>
+                        {pageWiseHeaderList.map((h: any, index: number) => (
+                          <SelectItem key={`${h.ivrmhE_Id}-${index}`} value={h.ivrmhE_Id.toString()}>
                             {h.ivrmhE_Name || h.ivrmhE_Id.toString()}
                           </SelectItem>
                         ))}
@@ -432,7 +476,7 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
           </CardContent>
         </Card>
 
-        {selectedHeaderId > 0 && (
+        {(selectedHeaderId > 0 || !!form.watch("ISES_Template_Name")) && (
           <>
             {/* Sms Setting */}
             <Card>
@@ -455,29 +499,29 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
                         </FormItem>
                       )}
                     />
-                    
+
                     <div className="grid grid-cols-3 items-start gap-4">
                       <FormLabel className="text-right mt-2">Parameter: <span className="text-red-500">*</span></FormLabel>
                       <div className="col-span-2">
-                         <select 
-                            multiple 
-                            className="w-full border rounded-md p-2 h-32 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            onChange={(e) => {
-                                const options = e.target.options;
-                                for (let i = 0; i < options.length; i++) {
-                                    if (options[i].selected) {
-                                        handleParameterInsert("ISES_SMSMessage", options[i].value);
-                                        options[i].selected = false;
-                                    }
-                                }
-                            }}
-                         >
-                            {parameters.map((p: any) => (
-                              <option key={p.ismP_ID} value={p.ismP_NAME}>
-                                {p.ismP_NAME}
-                              </option>
-                            ))}
-                         </select>
+                        <select
+                          multiple
+                          className="w-full border rounded-md p-2 h-32 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          onChange={(e) => {
+                            const options = e.target.options;
+                            for (let i = 0; i < options.length; i++) {
+                              if (options[i].selected) {
+                                handleParameterInsert("ISES_SMSMessage", options[i].value);
+                                options[i].selected = false;
+                              }
+                            }
+                          }}
+                        >
+                          {parameters.map((p: any, index: number) => (
+                            <option key={`${p.ismP_ID}-${index}`} value={p.ismP_NAME}>
+                              {p.ismP_NAME}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                     </div>
 
@@ -596,8 +640,8 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {emailTemplates.map((t) => (
-                                <SelectItem key={t.ismhtmL_Id} value={t.ismhtmL_Id.toString()}>
+                              {emailTemplates.map((t, index) => (
+                                <SelectItem key={`${t.ismhtmL_Id}-${index}`} value={t.ismhtmL_Id.toString()}>
                                   {t.ismhtmL_HTMLName}
                                 </SelectItem>
                               ))}
@@ -615,6 +659,20 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
                           <FormLabel className="text-right">Subject: <span className="text-red-500">*</span></FormLabel>
                           <FormControl className="col-span-2">
                             <Input {...field} />
+                          </FormControl>
+                          <FormMessage className="col-start-2 col-span-2" />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="ISES_MailHTMLTemplate"
+                      render={({ field }) => (
+                        <FormItem className="grid grid-cols-3 items-center gap-4">
+                          <FormLabel className="text-right">Mail Body / Message:</FormLabel>
+                          <FormControl className="col-span-2">
+                            <Textarea {...field} rows={4} value={field.value || ""} />
                           </FormControl>
                           <FormMessage className="col-start-2 col-span-2" />
                         </FormItem>
@@ -661,83 +719,83 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
                         </FormItem>
                       )}
                     />
-                    
+
                     <div className="pt-4">
-                       <div className="table-responsive">
-                         <table className="table w-full border-collapse border border-gray-300 text-sm text-center">
-                            <thead className="bg-gray-100">
-                                <tr>
-                                    <th className="border p-2">SL.NO.</th>
-                                    <th className="border p-2">UPLOAD</th>
-                                    <th className="border p-2">VIEW</th>
-                                    <th className="border p-2">ACTION</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {fileFields.map((field, index) => (
-                                    <tr key={field.id} className={index % 2 !== 0 ? 'bg-gray-50' : ''}>
-                                        <td className="border p-2">{index + 1}</td>
-                                        <td className="border p-2">
-                                            <div className="flex items-center justify-center">
-                                              <label className="bg-[#2757a6] text-white px-3 py-1 cursor-pointer rounded text-xs hover:bg-[#1f4585]">
-                                                  Upload File
-                                                  <input 
-                                                    type="file" 
-                                                    className="hidden" 
-                                                    accept="image/*, application/pdf,application/msword,video/mp4,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel"
-                                                    onChange={(e) => {
-                                                        const file = e.target.files?.[0];
-                                                        if (file) {
-                                                            // Handle simulated upload
-                                                            const newFilelist = [...form.getValues("filelist") || []];
-                                                            if (newFilelist[index]) {
-                                                                newFilelist[index].cfilename = file.name;
-                                                                newFilelist[index].cfilepath = URL.createObjectURL(file);
-                                                                form.setValue("filelist", newFilelist);
-                                                            }
-                                                        }
-                                                    }}
-                                                  />
-                                              </label>
-                                            </div>
-                                            {form.watch(`filelist.${index}.cfilename`) && (
-                                                <div className="mt-1 text-xs text-green-600 truncate max-w-[150px] mx-auto">
-                                                    {form.watch(`filelist.${index}.cfilename`)}
-                                                </div>
-                                            )}
-                                        </td>
-                                        <td className="border p-2">
-                                            {form.watch(`filelist.${index}.cfilepath`) && (
-                                                <a href={form.watch(`filelist.${index}.cfilepath`)} target="_blank" rel="noopener noreferrer" className="text-red-500 font-bold hover:underline">
-                                                    View
-                                                </a>
-                                            )}
-                                        </td>
-                                        <td className="border p-2">
-                                            <div className="flex justify-center gap-2">
-                                              {index === fileFields.length - 1 && fileFields.length < 10 && (
-                                                <button type="button" onClick={() => appendFile({ cfilepath: "", cfilename: "" })} className="text-black hover:text-gray-700">
-                                                  <Plus className="h-4 w-4" />
-                                                </button>
-                                              )}
-                                              {((fileFields.length > 1) || (fileFields.length === 1 && form.watch(`filelist.0.cfilename`))) && (
-                                                <button type="button" onClick={() => {
-                                                    if (fileFields.length > 1) {
-                                                        removeFile(index);
-                                                    } else {
-                                                        form.setValue("filelist", [{ cfilepath: "", cfilename: "", filetype: "" }]);
-                                                    }
-                                                }} className="text-black hover:text-gray-700">
-                                                  <Trash2 className="h-4 w-4 text-black" />
-                                                </button>
-                                              )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                         </table>
-                       </div>
+                      <div className="table-responsive">
+                        <table className="table w-full border-collapse border border-gray-300 text-sm text-center">
+                          <thead className="bg-gray-100">
+                            <tr>
+                              <th className="border p-2">SL.NO.</th>
+                              <th className="border p-2">UPLOAD</th>
+                              <th className="border p-2">VIEW</th>
+                              <th className="border p-2">ACTION</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {fileFields.map((field, index) => (
+                              <tr key={field.id} className={index % 2 !== 0 ? 'bg-gray-50' : ''}>
+                                <td className="border p-2">{index + 1}</td>
+                                <td className="border p-2">
+                                  <div className="flex items-center justify-center">
+                                    <label className="bg-[#2757a6] text-white px-3 py-1 cursor-pointer rounded text-xs hover:bg-[#1f4585]">
+                                      Upload File
+                                      <input
+                                        type="file"
+                                        className="hidden"
+                                        accept="image/*, application/pdf,application/msword,video/mp4,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel"
+                                        onChange={(e) => {
+                                          const file = e.target.files?.[0];
+                                          if (file) {
+                                            // Handle simulated upload
+                                            const newFilelist = [...form.getValues("filelist") || []];
+                                            if (newFilelist[index]) {
+                                              newFilelist[index].cfilename = file.name;
+                                              newFilelist[index].cfilepath = URL.createObjectURL(file);
+                                              form.setValue("filelist", newFilelist);
+                                            }
+                                          }
+                                        }}
+                                      />
+                                    </label>
+                                  </div>
+                                  {form.watch(`filelist.${index}.cfilename`) && (
+                                    <div className="mt-1 text-xs text-green-600 truncate max-w-[150px] mx-auto">
+                                      {form.watch(`filelist.${index}.cfilename`)}
+                                    </div>
+                                  )}
+                                </td>
+                                <td className="border p-2">
+                                  {form.watch(`filelist.${index}.cfilepath`) && (
+                                    <a href={form.watch(`filelist.${index}.cfilepath`)} target="_blank" rel="noopener noreferrer" className="text-red-500 font-bold hover:underline">
+                                      View
+                                    </a>
+                                  )}
+                                </td>
+                                <td className="border p-2">
+                                  <div className="flex justify-center gap-2">
+                                    {index === fileFields.length - 1 && fileFields.length < 10 && (
+                                      <button type="button" onClick={() => appendFile({ cfilepath: "", cfilename: "" })} className="text-black hover:text-gray-700">
+                                        <Plus className="h-4 w-4" />
+                                      </button>
+                                    )}
+                                    {((fileFields.length > 1) || (fileFields.length === 1 && form.watch(`filelist.0.cfilename`))) && (
+                                      <button type="button" onClick={() => {
+                                        if (fileFields.length > 1) {
+                                          removeFile(index);
+                                        } else {
+                                          form.setValue("filelist", [{ cfilepath: "", cfilename: "", filetype: "" }]);
+                                        }
+                                      }} className="text-black hover:text-gray-700">
+                                        <Trash2 className="h-4 w-4 text-black" />
+                                      </button>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   </div>
 
@@ -787,7 +845,7 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
                         />
                       ))}
                     </div>
-                    
+
                     <div className="border-t pt-4">
                       <FormField
                         control={form.control}
@@ -844,164 +902,164 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
                 <CardTitle>Other Parameters</CardTitle>
               </CardHeader>
               <CardContent>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                       <div className="grid grid-cols-3 items-start gap-4">
-                        <FormLabel className="text-right mt-2">Parameter:</FormLabel>
-                        <div className="col-span-2">
-                         <select 
-                            multiple 
-                            className="w-full border rounded-md p-2 h-32 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            onChange={(e) => {
-                                const options = e.target.options;
-                                for (let i = 0; i < options.length; i++) {
-                                    if (options[i].selected) {
-                                        handleParameterInsert("ISES_IVRSTextMsg", options[i].value);
-                                        options[i].selected = false;
-                                    }
-                                }
-                            }}
-                         >
-                            {parameters.map((p: any) => (
-                              <option key={p.ismP_ID} value={p.ismP_NAME}>
-                                {p.ismP_NAME}
-                              </option>
-                            ))}
-                         </select>
-                        </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-3 items-start gap-4">
+                      <FormLabel className="text-right mt-2">Parameter:</FormLabel>
+                      <div className="col-span-2">
+                        <select
+                          multiple
+                          className="w-full border rounded-md p-2 h-32 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          onChange={(e) => {
+                            const options = e.target.options;
+                            for (let i = 0; i < options.length; i++) {
+                              if (options[i].selected) {
+                                handleParameterInsert("ISES_IVRSTextMsg", options[i].value);
+                                options[i].selected = false;
+                              }
+                            }
+                          }}
+                        >
+                          {parameters.map((p: any, index: number) => (
+                            <option key={`${p.ismP_ID}-${index}`} value={p.ismP_NAME}>
+                              {p.ismP_NAME}
+                            </option>
+                          ))}
+                        </select>
                       </div>
-
-                      <FormField
-                        control={form.control}
-                        name="ISES_IVRSTextMsg"
-                        render={({ field }) => (
-                          <FormItem className="grid grid-cols-3 items-center gap-4">
-                            <FormLabel className="text-right">IVRS Text Message:</FormLabel>
-                            <FormControl className="col-span-2">
-                              <Textarea {...field} rows={3} value={field.value || ""} />
-                            </FormControl>
-                            <FormMessage className="col-start-2 col-span-2" />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormItem className="grid grid-cols-3 items-center gap-4">
-                        <FormLabel className="text-right">Upload Voice Msg:</FormLabel>
-                        <div className="col-span-2">
-                          <Button type="button" variant="outline" className="w-full">
-                            <Upload className="h-4 w-4 mr-2" />
-                            Choose Audio File
-                          </Button>
-                        </div>
-                      </FormItem>
                     </div>
 
-                    <div className="space-y-4 border-l pl-6">
-                       <FormField
-                        control={form.control}
-                        name="ISES_PNActiveFlg"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 mb-4">
-                            <FormControl>
-                              <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                            </FormControl>
-                            <div className="space-y-1 leading-none">
-                              <FormLabel className="font-bold cursor-pointer">ENABLE PUSH NOTIFICATION</FormLabel>
-                            </div>
-                          </FormItem>
-                        )}
-                      />
+                    <FormField
+                      control={form.control}
+                      name="ISES_IVRSTextMsg"
+                      render={({ field }) => (
+                        <FormItem className="grid grid-cols-3 items-center gap-4">
+                          <FormLabel className="text-right">IVRS Text Message:</FormLabel>
+                          <FormControl className="col-span-2">
+                            <Textarea {...field} rows={3} value={field.value || ""} />
+                          </FormControl>
+                          <FormMessage className="col-start-2 col-span-2" />
+                        </FormItem>
+                      )}
+                    />
 
-                      <FormField
-                        control={form.control}
-                        name="ISES_AlertBeforeDays"
-                        render={({ field }) => (
-                          <FormItem className="grid grid-cols-3 items-center gap-4">
-                            <FormLabel className="text-right">Alert Reminder Days:</FormLabel>
-                            <FormControl className="col-span-2">
-                              <Input {...field} value={field.value || ""} />
-                            </FormControl>
-                            <FormMessage className="col-start-2 col-span-2" />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <div className="grid grid-cols-3 items-start gap-4">
-                        <FormLabel className="text-right mt-2">Parameter:</FormLabel>
-                        <div className="col-span-2">
-                         <select 
-                            multiple 
-                            className="w-full border rounded-md p-2 h-24 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            onChange={(e) => {
-                                const options = e.target.options;
-                                for (let i = 0; i < options.length; i++) {
-                                    if (options[i].selected) {
-                                        handleParameterInsert("ISES_PNMessage", options[i].value);
-                                        options[i].selected = false;
-                                    }
-                                }
-                            }}
-                         >
-                            {parameters.map((p: any) => (
-                              <option key={p.ismP_ID} value={p.ismP_NAME}>
-                                {p.ismP_NAME}
-                              </option>
+                    <FormItem className="grid grid-cols-3 items-center gap-4">
+                      <FormLabel className="text-right">Upload Voice Msg:</FormLabel>
+                      <div className="col-span-2">
+                        <Button type="button" variant="outline" className="w-full">
+                          <Upload className="h-4 w-4 mr-2" />
+                          Choose Audio File
+                        </Button>
+                      </div>
+                    </FormItem>
+                  </div>
+
+                  <div className="space-y-4 border-l pl-6">
+                    <FormField
+                      control={form.control}
+                      name="ISES_PNActiveFlg"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 mb-4">
+                          <FormControl>
+                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel className="font-bold cursor-pointer">ENABLE PUSH NOTIFICATION</FormLabel>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="ISES_AlertBeforeDays"
+                      render={({ field }) => (
+                        <FormItem className="grid grid-cols-3 items-center gap-4">
+                          <FormLabel className="text-right">Alert Reminder Days:</FormLabel>
+                          <FormControl className="col-span-2">
+                            <Input {...field} value={field.value || ""} />
+                          </FormControl>
+                          <FormMessage className="col-start-2 col-span-2" />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="grid grid-cols-3 items-start gap-4">
+                      <FormLabel className="text-right mt-2">Parameter:</FormLabel>
+                      <div className="col-span-2">
+                        <select
+                          multiple
+                          className="w-full border rounded-md p-2 h-24 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          onChange={(e) => {
+                            const options = e.target.options;
+                            for (let i = 0; i < options.length; i++) {
+                              if (options[i].selected) {
+                                handleParameterInsert("ISES_PNMessage", options[i].value);
+                                options[i].selected = false;
+                              }
+                            }
+                          }}
+                        >
+                          {parameters.map((p: any, index: number) => (
+                            <option key={`${p.ismP_ID}-${index}`} value={p.ismP_NAME}>
+                              {p.ismP_NAME}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="ISES_PNMessage"
+                      render={({ field }) => (
+                        <FormItem className="grid grid-cols-3 items-center gap-4">
+                          <FormLabel className="text-right">Notification Message:</FormLabel>
+                          <FormControl className="col-span-2">
+                            <Textarea {...field} rows={3} value={field.value || ""} />
+                          </FormControl>
+                          <FormMessage className="col-start-2 col-span-2" />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormItem className="grid grid-cols-3 items-start gap-4">
+                      <FormLabel className="text-right mt-2">Role:</FormLabel>
+                      <div className="col-span-2">
+                        <div className="border rounded-md">
+                          <div className="p-2 border-b">
+                            <Input
+                              placeholder="search Role here..."
+                              className="h-8"
+                              onChange={(e) => {
+                                // Filter roles manually if needed, but for simplicity relying on scroll area for now
+                              }}
+                            />
+                          </div>
+                          <ScrollArea className="h-32 p-3">
+                            {form.watch("roleids")?.map((role, index) => (
+                              <FormField
+                                key={`${role.ivrmrT_Id}-${index}`}
+                                control={form.control}
+                                name={`roleids.${index}.empck`}
+                                render={({ field }) => (
+                                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 mb-2">
+                                    <FormControl>
+                                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                    </FormControl>
+                                    <FormLabel className="font-bold cursor-pointer text-sm leading-none">
+                                      {role.ivrmrT_Role}
+                                    </FormLabel>
+                                  </FormItem>
+                                )}
+                              />
                             ))}
-                         </select>
+                          </ScrollArea>
                         </div>
                       </div>
-
-                      <FormField
-                        control={form.control}
-                        name="ISES_PNMessage"
-                        render={({ field }) => (
-                          <FormItem className="grid grid-cols-3 items-center gap-4">
-                            <FormLabel className="text-right">Notification Message:</FormLabel>
-                            <FormControl className="col-span-2">
-                              <Textarea {...field} rows={3} value={field.value || ""} />
-                            </FormControl>
-                            <FormMessage className="col-start-2 col-span-2" />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormItem className="grid grid-cols-3 items-start gap-4">
-                         <FormLabel className="text-right mt-2">Role:</FormLabel>
-                         <div className="col-span-2">
-                            <div className="border rounded-md">
-                               <div className="p-2 border-b">
-                                 <Input 
-                                   placeholder="search Role here..." 
-                                   className="h-8"
-                                   onChange={(e) => {
-                                     // Filter roles manually if needed, but for simplicity relying on scroll area for now
-                                   }}
-                                 />
-                               </div>
-                               <ScrollArea className="h-32 p-3">
-                                  {form.watch("roleids")?.map((role, index) => (
-                                    <FormField
-                                       key={role.ivrmrT_Id}
-                                       control={form.control}
-                                       name={`roleids.${index}.empck`}
-                                       render={({ field }) => (
-                                         <FormItem className="flex flex-row items-start space-x-3 space-y-0 mb-2">
-                                           <FormControl>
-                                             <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                                           </FormControl>
-                                           <FormLabel className="font-bold cursor-pointer text-sm leading-none">
-                                             {role.ivrmrT_Role}
-                                           </FormLabel>
-                                         </FormItem>
-                                       )}
-                                    />
-                                  ))}
-                               </ScrollArea>
-                            </div>
-                         </div>
-                      </FormItem>
-                    </div>
-                 </div>
+                    </FormItem>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
@@ -1010,10 +1068,7 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
                 <i className="fa fa-floppy-o mr-2" aria-hidden="true"></i>
                 Save
               </Button>
-              <Button type="button" variant="destructive" onClick={handleClear}>
-                <X className="h-4 w-4 mr-2" />
-                Clear
-              </Button>
+
               <Button type="button" variant="outline" onClick={() => { handleClear(); onCancel(); }}>
                 <X className="h-4 w-4 mr-2" />
                 Cancel

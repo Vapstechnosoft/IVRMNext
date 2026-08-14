@@ -22,6 +22,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
+import { useQueryState, parseAsString, parseAsInteger } from "nuqs";
+import { tableSearchVariables } from "@/lib/data-table.config";
 
 import { MasterSmsEmailParameter } from "@/types/sms-email-configuration/master-sms-email-parameter";
 import {
@@ -58,9 +60,40 @@ export function MasterSmsEmailParameterForm() {
     queryFn: getMasterSmsEmailParameters,
   });
 
-  const parameterList = useMemo(() => {
+  const [searchQuery] = useQueryState(
+    tableSearchVariables.search,
+    parseAsString.withOptions({ shallow: false }).withDefault("")
+  );
+  
+  const [currentPage] = useQueryState(
+    tableSearchVariables.page,
+    parseAsInteger.withDefault(1)
+  );
+
+  const [pageSize] = useQueryState(
+    tableSearchVariables.page_size,
+    parseAsInteger.withDefault(10)
+  );
+
+  const allParameters = useMemo(() => {
     return (initialData?.data as MasterSmsEmailParameter[]) || [];
   }, [initialData]);
+
+  const filteredData = useMemo(() => {
+    if (!searchQuery) return allParameters;
+    const lowerQuery = searchQuery.toLowerCase();
+    return allParameters.filter(
+      (item) =>
+        item.ismP_NAME?.toLowerCase().includes(lowerQuery) ||
+        item.ismP_ParameterDesc?.toLowerCase().includes(lowerQuery) ||
+        item.ismP_Query?.toLowerCase().includes(lowerQuery)
+    );
+  }, [allParameters, searchQuery]);
+
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return filteredData.slice(startIndex, startIndex + pageSize);
+  }, [filteredData, currentPage, pageSize]);
 
   const saveMutation = useMutation({
     mutationFn: saveMasterSmsEmailParameter,
@@ -175,24 +208,24 @@ export function MasterSmsEmailParameterForm() {
   const columns: ColumnDef<MasterSmsEmailParameter>[] = [
     {
       id: "slno",
-      header: "SL.NO",
-      cell: ({ row }) => <div className="text-center">{row.index + 1}</div>,
+      header: () => <div className="text-center font-bold">SL.NO</div>,
+      cell: ({ row }) => <div className="text-center">{(currentPage - 1) * pageSize + row.index + 1}</div>,
     },
     {
       accessorKey: "ismP_NAME",
-      header: "PARAMETER NAME",
+      header: () => <div className="text-center font-bold">PARAMETER NAME</div>,
     },
     {
       accessorKey: "ismP_ParameterDesc",
-      header: "DESCRIPTION",
+      header: () => <div className="text-center font-bold">DESCRIPTION</div>,
     },
     {
       accessorKey: "ismP_Query",
-      header: "QUERY",
+      header: () => <div className="text-center font-bold">QUERY</div>,
     },
     {
       id: "actions",
-      header: () => <div className="text-center">Action</div>,
+      header: () => <div className="text-center font-bold">ACTION</div>,
       cell: ({ row }) => (
         <div className="flex justify-center items-center gap-4">
           <button
@@ -329,8 +362,8 @@ export function MasterSmsEmailParameterForm() {
         <CardContent className="pt-6">
           <DataTable
             columns={columns as any}
-            data={parameterList}
-            totalItems={parameterList.length}
+            data={paginatedData}
+            totalItems={filteredData.length}
           />
         </CardContent>
       </Card>

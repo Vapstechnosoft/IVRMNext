@@ -1,3 +1,5 @@
+"use client";
+
 import { MasterSmsEmailParameterForm } from "@/components/sms-email-configuration/master-sms-email-parameter/master-sms-email-parameter-form";
 
 export default function MasterSmsEmailParameterPage() {

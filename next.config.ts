@@ -1,4 +1,4 @@
-import { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
     output: 'standalone',
@@ -24,8 +24,18 @@ const nextConfig: NextConfig = {
         remotePatterns: [
             {
                 protocol: 'https',
-                hostname: '**.blob.core.windows.net',
-                pathname: '**'
+                hostname: 'dcampusstrg.blob.core.windows.net',
+                pathname: '/**'
+            },
+            {
+                protocol: 'https',
+                hostname: 'vapsclg.blob.core.windows.net',
+                pathname: '/**'
+            },
+            {
+                protocol: 'https',
+                hostname: '*.blob.core.windows.net',
+                pathname: '/**'
             }
         ]
     },
@@ -39,3 +49,6 @@ const nextConfig: NextConfig = {
         ];
     }
 };
+
+export default nextConfig;
+

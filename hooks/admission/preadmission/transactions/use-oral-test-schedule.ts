@@ -93,7 +93,7 @@ export function useOralTestScheduleSelectedRow(id: number) {
 export function useDeleteOralTestScheduleStudent() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ paotsId, pasrId }: { paotsId: number; pasrId: number }) => 
+        mutationFn: ({ paotsId, pasrId }: { paotsId: number; pasrId: number }) =>
             deleteOralTestScheduleStudentData(paotsId, pasrId),
         onSuccess: () => {
             toast.success('Record Deleted Successfully');
