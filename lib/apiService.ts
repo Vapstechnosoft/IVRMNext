@@ -147,8 +147,23 @@ class ApiService {
 
                     if (typeof window !== 'undefined') {
                         // Client-side: use getSession from next-auth/react
-                        const { getSession } = await import('next-auth/react');
+                        const { getSession, signOut } = await import('next-auth/react');
                         const session = await getSession();
+
+                        // Check if the session is expired pre-emptively
+                        // @ts-ignore
+                        if (session && session.expires_at) {
+                            const currentTimestamp = Math.round(Date.now() / 1000);
+                            // @ts-ignore
+                            if (currentTimestamp >= session.expires_at) {
+                                const Swal = (await import('sweetalert2')).default;
+                                await signOut({ redirect: false });
+                                await Swal.fire("Your Session has been Expired.....Please Re-login");
+                                window.location.href = '/sign-in';
+                                return Promise.reject(new Error("Session Expired"));
+                            }
+                        }
+
                         token = session?.token;
                     } else {
                         // Server-side: use auth from @/lib/auth
@@ -175,10 +190,14 @@ class ApiService {
             async (error) => {
                 if (error.response?.status === 401) {
                     try {
-                        await signOut();
-                        // Only redirect in browser environment
                         if (typeof window !== 'undefined') {
+                            const { signOut } = await import('next-auth/react');
+                            const Swal = (await import('sweetalert2')).default;
+                            await signOut({ redirect: false });
+                            await Swal.fire("Your Session has been Expired.....Please Re-login");
                             window.location.href = '/sign-in';
+                        } else {
+                            await signOut(); // uses the server-side signOut from top import
                         }
                     } catch (refreshError) {
                         console.error('Error refreshing session:', refreshError);
