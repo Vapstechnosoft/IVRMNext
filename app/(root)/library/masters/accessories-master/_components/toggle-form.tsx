@@ -31,7 +31,10 @@ export default function ToggleAccessoriesForm({ rowData, onClose }: ToggleAccess
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterAccessoriesSchema.delete),
-        mode: 'onChange'
+        mode: 'onChange',
+        defaultValues: {
+            lmaC_Id: Number(rowData.lmaC_Id)
+        }
     });
 
     function closeDialog() {

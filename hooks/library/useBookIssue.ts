@@ -4,6 +4,7 @@ import {
     getDepartmentDetails,
     getStaffDetails,
     getStudentDetailsById,
+    getStudentsByClassSection,
     issueBook,
     loadAvailableBooks
 } from '@/server/library/transactions/book-return';
@@ -63,6 +64,16 @@ export const useStudentDetails = () => {
         onError: (error) => {
             console.error('Error fetching student details:', error);
             toast.error('Failed to fetch student details');
+        }
+    });
+};
+
+export const useStudentsByClassSection = () => {
+    return useMutation({
+        mutationFn: getStudentsByClassSection,
+        onError: (error) => {
+            console.error('Error fetching students by class/section:', error);
+            toast.error('Failed to fetch students for selected class and section');
         }
     });
 };

@@ -31,7 +31,10 @@ export default function ToggleMasterVendorForm({ rowData, onClose, onSuccess }: 
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterVendorSchema.delete),
-        mode: 'onChange'
+        mode: 'onChange',
+        defaultValues: {
+            lmV_Id: String(rowData.lmV_Id)
+        }
     });
 
     function closeDialog() {

@@ -30,7 +30,10 @@ export default function ToggleMasterPublisherForm({ rowData, onClose }: toggleMa
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterPublisherSchema.delete),
-        mode: 'onChange'
+        mode: 'onChange',
+        defaultValues: {
+            lmP_Id: String(rowData.lmP_Id)
+        }
     });
 
     function closeDialog() {

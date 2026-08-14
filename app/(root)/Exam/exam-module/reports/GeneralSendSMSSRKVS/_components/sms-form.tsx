@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { 
+import {
     getGeneralSendSMSOnLoad,
     getGeneralSendSMSClasses,
     getGeneralSendSMSSections,
@@ -156,7 +156,7 @@ export const SMSForm = ({ onDataFetched, onReset }: SMSFormProps) => {
 
             if (response?.success && response.data) {
                 const list = response.data.getcumulativereportdetails || response.data.studentlist || [];
-                
+
                 // Grouping logic from legacy JS
                 const uniqueStudents: any[] = [];
                 list.forEach((dev: any) => {
@@ -176,8 +176,8 @@ export const SMSForm = ({ onDataFetched, onReset }: SMSFormProps) => {
                     }
                 });
 
-                onDataFetched(uniqueStudents, { 
-                    ...data, 
+                onDataFetched(uniqueStudents, {
+                    ...data,
                     year: academicYears.find(y => String(y.asmaY_Id) === data.ASMAY_Id)?.asmaY_Year,
                     class: classes.find(c => String(c.asmcL_Id) === data.ASMCL_Id)?.asmcL_ClassName,
                     section: sections.find(s => String(s.asmS_Id) === data.ASMS_Id)?.asmC_SectionName
@@ -209,7 +209,7 @@ export const SMSForm = ({ onDataFetched, onReset }: SMSFormProps) => {
                                         <Select onValueChange={field.onChange} value={field.value}>
                                             <SelectTrigger><SelectValue placeholder='Select Year' /></SelectTrigger>
                                             <SelectContent>
-                                                {loadingYears ? <SelectItem value='0' disabled>Loading...</SelectItem> : 
+                                                {loadingYears ? <SelectItem value='0' disabled>Loading...</SelectItem> :
                                                     academicYears.map((y) => <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>{y.asmaY_Year}</SelectItem>)
                                                 }
                                             </SelectContent>
@@ -228,7 +228,7 @@ export const SMSForm = ({ onDataFetched, onReset }: SMSFormProps) => {
                                         <Select onValueChange={field.onChange} value={field.value}>
                                             <SelectTrigger><SelectValue placeholder='Select Section' /></SelectTrigger>
                                             <SelectContent>
-                                                {loadingSections ? <SelectItem value='0' disabled>Loading...</SelectItem> : 
+                                                {loadingSections ? <SelectItem value='0' disabled>Loading...</SelectItem> :
                                                     sections.map((s) => <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>{s.asmC_SectionName}</SelectItem>)
                                                 }
                                             </SelectContent>
@@ -255,7 +255,7 @@ export const SMSForm = ({ onDataFetched, onReset }: SMSFormProps) => {
                                             <Select onValueChange={field.onChange} value={field.value}>
                                                 <SelectTrigger><SelectValue placeholder='Select Grade' /></SelectTrigger>
                                                 <SelectContent>
-                                                    {loadingFilters ? <SelectItem value='0' disabled>Loading...</SelectItem> : 
+                                                    {loadingFilters ? <SelectItem value='0' disabled>Loading...</SelectItem> :
                                                         grades.map((g) => <SelectItem key={g.emgR_Id} value={String(g.emgR_Id)}>{g.emgR_GradeName}</SelectItem>)
                                                     }
                                                 </SelectContent>
@@ -277,7 +277,7 @@ export const SMSForm = ({ onDataFetched, onReset }: SMSFormProps) => {
                                         <Select onValueChange={field.onChange} value={field.value}>
                                             <SelectTrigger><SelectValue placeholder='Select Class' /></SelectTrigger>
                                             <SelectContent>
-                                                {loadingClasses ? <SelectItem value='0' disabled>Loading...</SelectItem> : 
+                                                {loadingClasses ? <SelectItem value='0' disabled>Loading...</SelectItem> :
                                                     classes.map((c) => <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>{c.asmcL_ClassName}</SelectItem>)
                                                 }
                                             </SelectContent>
@@ -291,19 +291,19 @@ export const SMSForm = ({ onDataFetched, onReset }: SMSFormProps) => {
                                 <div className='space-y-2'>
                                     <Label>Exams <span className='text-red-500'>*</span></Label>
                                     <div className='max-h-40 overflow-y-auto rounded-md border p-3 space-y-2'>
-                                        {loadingFilters ? <p className='text-sm text-gray-500'>Loading exams...</p> : 
+                                        {loadingFilters ? <p className='text-sm text-gray-500'>Loading exams...</p> :
                                             exams.map((ex) => (
                                                 <div key={ex.emE_Id} className='flex items-center space-x-2'>
                                                     <Controller
                                                         control={control}
                                                         name="selectedExams"
                                                         render={({ field }) => (
-                                                            <Checkbox 
+                                                            <Checkbox
                                                                 id={`ex-${ex.emE_Id}`}
                                                                 checked={field.value?.includes(String(ex.emE_Id))}
                                                                 onCheckedChange={(checked) => {
                                                                     const current = field.value || [];
-                                                                    const next = checked 
+                                                                    const next = checked
                                                                         ? [...current, String(ex.emE_Id)]
                                                                         : current.filter(id => id !== String(ex.emE_Id));
                                                                     field.onChange(next);
@@ -317,7 +317,7 @@ export const SMSForm = ({ onDataFetched, onReset }: SMSFormProps) => {
                                         }
                                     </div>
                                     <Controller control={control} name="selectedExams" render={({ fieldState }) => (
-                                        fieldState.error ? <FormError>{fieldState.error.message}</FormError> : null
+                                        <>{fieldState.error && <FormError>{fieldState.error.message}</FormError>}</>
                                     )} />
                                 </div>
                             )}
