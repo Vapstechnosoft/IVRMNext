@@ -4,8 +4,11 @@ import { format } from 'date-fns';
 import React, { Fragment } from 'react';
 
 interface TotalStrengthPrintProps {
-    groupedData: Record<number, any[]>;
+    groupedData: Record<string, any[]>;
     totalGrand: number;
+    totalBoysGrand?: number;
+    totalGirlsGrand?: number;
+    academicYearName?: string;
     schoolName?: string;
     schoolAddress?: string;
     schoolPhone?: string;
@@ -13,11 +16,21 @@ interface TotalStrengthPrintProps {
 }
 
 export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrengthPrintProps>(
-    ({ groupedData, totalGrand, schoolName, schoolAddress, schoolPhone, logoUrl }, ref) => {
+    ({ groupedData, totalGrand, totalBoysGrand, totalGirlsGrand, academicYearName, schoolName, schoolAddress, schoolPhone, logoUrl }, ref) => {
         const currentDate = format(new Date(), 'dd/MM/yyyy');
 
-        const calculateClassTotal = (rowNumber: number) => {
-            const items = groupedData[rowNumber] || [];
+        const calculateClassBoysTotal = (key: string) => {
+            const items = groupedData[key] || [];
+            return items.reduce((sum, item) => sum + (item.boys || 0), 0);
+        };
+
+        const calculateClassGirlsTotal = (key: string) => {
+            const items = groupedData[key] || [];
+            return items.reduce((sum, item) => sum + (item.girls || 0), 0);
+        };
+
+        const calculateClassTotal = (key: string) => {
+            const items = groupedData[key] || [];
             return items.reduce((sum, item) => sum + (item.totalstudents || 0), 0);
         };
 
@@ -97,17 +110,11 @@ export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrength
                                 {/* Header */}
                                 <div className='header-section'>
                                     <div className='flex items-center justify-center gap-4 mb-4'>
-                                        {logoUrl && <img src={logoUrl} alt="Logo" className="w-16 h-16 object-contain" />}
-                                        <div className="text-center">
-                                            <h1 className="text-xl font-bold uppercase">{schoolName || 'Institution Name'}</h1>
-                                            <p className="text-xs">{schoolAddress || 'Institution Address'}</p>
-                                            <p className="text-xs">Ph: {schoolPhone || 'N/A'}</p>
-                                        </div>
+                                        {logoUrl && <img src={logoUrl} alt="Logo" style={{ width: '100%', height: 'auto', objectFit: 'contain' }} className="w-full" />}
                                     </div>
-                                    <h2 className='text-md font-bold border-y border-black inline-block px-4 py-1 uppercase'>
-                                        Total Strength Report
+                                    <h2 className='text-md font-bold inline-block px-4 py-1 uppercase'>
+                                        Total Strength Report {academicYearName ? `FOR ${academicYearName}` : ''}
                                     </h2>
-                                    <p className='text-xs mt-2'>Date: {currentDate}</p>
                                 </div>
                             </td>
                         </tr>
@@ -128,11 +135,11 @@ export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrength
                                     </thead>
                                     <tbody>
                                         {Object.entries(groupedData)
-                                            .sort(([a], [b]) => Number(a) - Number(b))
-                                            .map(([rowNumber, sections], index) => (
-                                                <Fragment key={rowNumber}>
+                                            .sort(([, aSec], [, bSec]) => (aSec[0]?.ASMCL_Order || 0) - (bSec[0]?.ASMCL_Order || 0))
+                                            .map(([groupKey, sections], index) => (
+                                                <Fragment key={groupKey}>
                                                     {sections.map((item: any, sectionIndex) => (
-                                                        <tr key={`${rowNumber}-${item.sectionname}-${sectionIndex}`}>
+                                                        <tr key={`${groupKey}-${item.sectionname}-${sectionIndex}`}>
                                                             <td>{sectionIndex === 0 ? index + 1 : ''}</td>
                                                             <td className='text-left'>{sectionIndex === 0 ? item.classname : ''}</td>
                                                             <td className='text-left'>{item.sectionname}</td>
@@ -143,16 +150,18 @@ export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrength
                                                     ))}
                                                     <tr className='bg-gray-50 font-bold'>
                                                         <td colSpan={3} className='text-right'>
-                                                            Total for {sections[0]?.classname || ''}
+                                                            Total for {sections[0]?.classname || groupKey}
                                                         </td>
-                                                        <td></td>
-                                                        <td className='text-right'>{calculateClassTotal(Number(rowNumber))}</td>
+                                                        <td>{calculateClassBoysTotal(groupKey)}</td>
+                                                        <td>{calculateClassGirlsTotal(groupKey)}</td>
+                                                        <td className='text-right'>{calculateClassTotal(groupKey)}</td>
                                                     </tr>
                                                 </Fragment>
                                             ))}
                                         <tr className='bg-gray-200 font-bold uppercase'>
                                             <td colSpan={3} className='text-right'>Grand Total</td>
-                                            <td colSpan={2}></td>
+                                            <td>{totalBoysGrand ?? ''}</td>
+                                            <td>{totalGirlsGrand ?? ''}</td>
                                             <td className='text-right'>{totalGrand}</td>
                                         </tr>
                                     </tbody>
@@ -178,3 +187,4 @@ export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrength
 );
 
 TotalStrengthPrint.displayName = 'TotalStrengthPrint';
+

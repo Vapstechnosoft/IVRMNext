@@ -3,7 +3,7 @@
 import { InputText } from '@/components/ui/extension/input-text';
 import { Checkbox } from '@/components/ui/checkbox';
 import { IPrivilegePage } from '@/types/super-admin/super-admin-module/general-setting/privileges';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { ColumnDef } from '@tanstack/react-table';
 
@@ -16,19 +16,29 @@ export function MasterPagesGrid({ data, onSelect }: MasterPagesGridProps) {
     if (!data || data.length === 0) return null;
 
     const [searchTerm, setSearchTerm] = useState('');
-    const [pagination, setPagination] = useState({
-        pageIndex: 1,
-        pageSize: 10,
-    });
+    const [pageIndex, setPageIndex] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
 
-    const filteredData = data.filter(item =>
-        item.ivrmmP_PageName.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredData = useMemo(() => {
+        if (!searchTerm) return data;
+        return (data || []).filter(item =>
+            item.ivrmmP_PageName?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }, [data, searchTerm]);
 
-    const paginatedData = filteredData.slice(
-        (pagination.pageIndex - 1) * pagination.pageSize,
-        pagination.pageIndex * pagination.pageSize
-    );
+    const paginatedData = useMemo(() => {
+        const start = (pageIndex - 1) * pageSize;
+        return filteredData.slice(start, start + pageSize);
+    }, [filteredData, pageIndex, pageSize]);
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(e.target.value);
+        setPageIndex(1);
+    };
+
+    const handlePageChange = (page: number) => {
+        setPageIndex(page);
+    };
 
     const columns: ColumnDef<IPrivilegePage>[] = [
         {
@@ -37,7 +47,7 @@ export function MasterPagesGrid({ data, onSelect }: MasterPagesGridProps) {
             cell: ({ row }) => {
                 return (
                     <div>
-                        {(pagination.pageIndex - 1) * pagination.pageSize + row.index + 1}
+                        {(pageIndex - 1) * pageSize + row.index + 1}
                     </div>
                 );
             },
@@ -73,14 +83,21 @@ export function MasterPagesGrid({ data, onSelect }: MasterPagesGridProps) {
                     <InputText
                         placeholder="Search here..."
                         value={searchTerm}
-                        onChange={(e) => {
-                            setSearchTerm(e.target.value);
-                            setPagination(prev => ({ ...prev, pageIndex: 1 }));
-                        }}
+                        onChange={handleSearchChange}
                     />
                 </div>
             </div>
-           
+            <div className="p-4">
+                <GenericDataTable
+                    columns={columns}
+                    data={paginatedData}
+                    totalItems={filteredData.length}
+                    isLoading={false}
+                    isSearchRequired={false}
+                    isPaginationRequired={true}
+                    onPageChange={handlePageChange}
+                />
+            </div>
         </div>
     );
 }

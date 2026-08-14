@@ -152,6 +152,11 @@ export default function StaffUserCreationPage() {
     const watchFilterData = methods.watch('filterData');
     const watchUserName = methods.watch('userName');
 
+    const isRoleSelected = !!watchRoleType && watchRoleType !== '';
+    const selectedRole = roleTypes.find(r => String(r.ivrmrT_Id) === watchRoleType);
+    const roleName = selectedRole?.ivrmrT_Role || '';
+    const isAdmin = roleName.toUpperCase() === 'ADMIN' || roleName.toUpperCase() === 'SUPER ADMIN';
+
     const clearGrids = () => {
         setWebPages([]);
         setStagedWebPages([]);
@@ -850,65 +855,70 @@ export default function StaffUserCreationPage() {
                                 showViewUsernames={true} // Visibility now handled inside SelectionForm based on isAdmin
                             />
 
-                            <UserDetails
-                                categories={categories}
-                                onCategoryChange={setCategories}
-                                modules={modules}
-                                onModuleChange={handleModulesChange}
-                                onSelectAllCategories={handleSelectAllCategories}
-                                onSelectAllModules={handleSelectAllModules}
-                                isUserNameDisabled={isUserNameDisabled}
-                                onChangeUsernameToggle={() => setIsChangeModalOpen(true)}
-                                isStaffDataLoading={isStaffDataLoading}
-                            />
+                            {/* UserDetails & Modules (Only visible when role and institution/staff selections are made) */}
+                            {isRoleSelected && (isAdmin ? (watchFilterData === 'Multiple' ? institutions.some(i => i.Selected) : !!watchInstitution) : (!!watchInstitution && (watchFilterData === 'Multiple' || !!watchStaffId))) && (
+                                <>
+                                    <UserDetails
+                                        categories={categories}
+                                        onCategoryChange={setCategories}
+                                        modules={modules}
+                                        onModuleChange={handleModulesChange}
+                                        onSelectAllCategories={handleSelectAllCategories}
+                                        onSelectAllModules={handleSelectAllModules}
+                                        isUserNameDisabled={isUserNameDisabled}
+                                        onChangeUsernameToggle={() => setIsChangeModalOpen(true)}
+                                        isStaffDataLoading={isStaffDataLoading}
+                                    />
 
-                            {/* Conditional Rendering of Mapping Grids */}
-                            {(watchFilterData === 'Single' ? isUserNameDisabled : staffList.some(s => s.Selected)) && (
-                                <PageMappingGrids
-                                    webPages={webPages}
-                                    onWebPageUpdate={setWebPages}
-                                    stagedWebPages={stagedWebPages}
-                                    onStagedWebPageUpdate={setStagedWebPages}
-                                    webPageTotal={webPageTotal}
-                                    onWebPageParamsChange={setWebPageParams}
-                                    currentWebPageParams={webPageParams}
-                                    isWebPageLoading={isWebPageLoading}
-                                    savedGridTotal={savedGridTotal}
-                                    onSavedGridParamsChange={setSavedGridParams}
-                                    currentSavedGridParams={savedGridParams}
-                                    isSavedGridLoading={isSavedGridLoading}
-                                    mobilePageTotal={mobilePageTotal}
-                                    onMobilePageParamsChange={setMobilePageParams}
-                                    currentMobilePageParams={mobilePageParams}
-                                    isMobilePageLoading={isMobilePageLoading}
-                                    savedMobilePageTotal={savedMobilePageTotal}
-                                    onSavedMobilePageParamsChange={setSavedMobilePageParams}
-                                    currentSavedMobilePageParams={savedMobilePageParams}
-                                    isSavedMobilePageLoading={isSavedMobilePageLoading}
-                                    mobilePages={mobilePages}
-                                    onMobilePageUpdate={setMobilePages}
-                                    savedGrid={savedGrid}
-                                    onSavedGridUpdate={setSavedGrid}
-                                    savedMobilePages={savedMobilePages}
-                                    onSavedMobileUpdate={setSavedMobilePages}
-                                    showInstitution={!!watchTrust}
-                                />
-                            )}
-
-                            <div className='flex justify-center gap-4'>
-                                <Button type='submit' className='px-8 shadow-md' size='lg' disabled={isSaving}>
-                                    {isSaving ? (
-                                        <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                                    ) : (
-                                        <Save className='mr-2 h-4 w-4' />
+                                    {/* Conditional Rendering of Mapping Grids */}
+                                    {(watchFilterData === 'Single' ? isUserNameDisabled : staffList.some(s => s.Selected)) && (
+                                        <PageMappingGrids
+                                            webPages={webPages}
+                                            onWebPageUpdate={setWebPages}
+                                            stagedWebPages={stagedWebPages}
+                                            onStagedWebPageUpdate={setStagedWebPages}
+                                            webPageTotal={webPageTotal}
+                                            onWebPageParamsChange={setWebPageParams}
+                                            currentWebPageParams={webPageParams}
+                                            isWebPageLoading={isWebPageLoading}
+                                            savedGridTotal={savedGridTotal}
+                                            onSavedGridParamsChange={setSavedGridParams}
+                                            currentSavedGridParams={savedGridParams}
+                                            isSavedGridLoading={isSavedGridLoading}
+                                            mobilePageTotal={mobilePageTotal}
+                                            onMobilePageParamsChange={setMobilePageParams}
+                                            currentMobilePageParams={mobilePageParams}
+                                            isMobilePageLoading={isMobilePageLoading}
+                                            savedMobilePageTotal={savedMobilePageTotal}
+                                            onSavedMobilePageParamsChange={setSavedMobilePageParams}
+                                            currentSavedMobilePageParams={savedMobilePageParams}
+                                            isSavedMobilePageLoading={isSavedMobilePageLoading}
+                                            mobilePages={mobilePages}
+                                            onMobilePageUpdate={setMobilePages}
+                                            savedGrid={savedGrid}
+                                            onSavedGridUpdate={setSavedGrid}
+                                            savedMobilePages={savedMobilePages}
+                                            onSavedMobileUpdate={setSavedMobilePages}
+                                            showInstitution={!!watchTrust}
+                                        />
                                     )}
-                                    {isSaving ? "Saving..." : "Save"}
-                                </Button>
-                                <Button type='button' variant='outline' onClick={() => methods.reset()} className='px-8' size='lg'>
-                                    <X className='mr-2 h-4 w-4' />
-                                    Cancel
-                                </Button>
-                            </div>
+
+                                    <div className='flex justify-center gap-4'>
+                                        <Button type='submit' className='px-8 shadow-md' size='lg' disabled={isSaving}>
+                                            {isSaving ? (
+                                                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                                            ) : (
+                                                <Save className='mr-2 h-4 w-4' />
+                                            )}
+                                            {isSaving ? "Saving..." : "Save"}
+                                        </Button>
+                                        <Button type='button' variant='outline' onClick={() => methods.reset()} className='px-8' size='lg'>
+                                            <X className='mr-2 h-4 w-4' />
+                                            Cancel
+                                        </Button>
+                                    </div>
+                                </>
+                            )}
                         </form>
                     </FormProvider>
                 </CardContent>

@@ -8,7 +8,7 @@ import { useMasterDay } from '@/hooks/timetable/useMasters';
 import { getMasterDaySetOrderDetails, saveSetOrderMasterDay } from '@/server/timetable/masters/masterday';
 import type { IMasterDayList, IMasterDaySetOrderList } from '@/types/timetable/masters/masters';
 import { List, Plus, X } from 'lucide-react';
-import { use, useState } from 'react';
+import { use, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import AddMasterDayForm from './_components/add-form';
 import { masterDayColumns } from './_components/columns';
@@ -47,7 +47,22 @@ function MasterDayPageContent({
     refetchAll: any;
 }) {
     const { openAddForm } = useFormContext<IMasterDayList>();
-    const tableProps = useDataTableProps(response);
+
+    const sortedResponse = useMemo(() => {
+        if (!response) return response;
+        if (Array.isArray(response)) {
+            return [...response].sort((a, b) => (Number(a.order_Id) || 0) - (Number(b.order_Id) || 0));
+        }
+        if (Array.isArray(response.data)) {
+            return {
+                ...response,
+                data: [...response.data].sort((a, b) => (Number(a.order_Id) || 0) - (Number(b.order_Id) || 0))
+            };
+        }
+        return response;
+    }, [response]);
+
+    const tableProps = useDataTableProps(sortedResponse);
 
     const [orderModalOpen, setOrderModalOpen] = useState(false);
     const [orderData, setOrderData] = useState<
@@ -66,22 +81,24 @@ function MasterDayPageContent({
             if (response.success && response.data) {
                 const masterdaydata: IMasterDaySetOrderList[] = Array.isArray(response.data) ? response.data : [];
 
-                const mappedData = masterdaydata.map((d, index) => ({
-                    ...d,
-                    id: d.ttmD_Id,
-                    ttmD_DayName: d.ttmD_DayName,
-                    ttmD_DayCode: d.ttmD_DayCode,
-                    ttmD_Id: d.ttmD_Id
-                }));
+                const mappedData = masterdaydata
+                    .map((d, index) => ({
+                        ...d,
+                        id: d.ttmD_Id,
+                        ttmD_DayName: d.ttmD_DayName,
+                        ttmD_DayCode: d.ttmD_DayCode,
+                        ttmD_Id: d.ttmD_Id
+                    }))
+                    .sort((a, b) => (Number(a.order_Id) || 0) - (Number(b.order_Id) || 0));
                 console.log('mappedData in handleSetOrder', mappedData);
                 setOrderData(mappedData);
                 setIsOrderloading(false);
             } else {
-                toast.error('Failed to fetch Fee Heads.');
+                toast.error('Failed to fetch Master Days.');
                 setIsOrderloading(false);
             }
         } catch (error: any) {
-            toast.error(error.message || 'Something went wrong while fetching Heads.');
+            toast.error(error.message || 'Something went wrong while fetching Master Days.');
         }
     };
 

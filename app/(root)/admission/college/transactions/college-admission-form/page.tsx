@@ -1,6 +1,8 @@
 import { getInitialData } from '@/server/admission/college/admission-form';
 import { AdmissionFormWrapper } from './_components/admission-form-wrapper';
 
+export const dynamic = 'force-dynamic';
+
 export default async function CollegeAdmissionFormPage() {
     const initialData = await getInitialData();
 

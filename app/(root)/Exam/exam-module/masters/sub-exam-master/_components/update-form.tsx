@@ -100,7 +100,6 @@ export default function UpdateMasterSubExamForm({ onSuccess, className = '', sel
                             label='Sub Exam Name'
                             placeholder='Enter Sub Exam Name'
                             required
-                            placeholder='Enter Sub Exam Name'
                             id='emsE_SubExamName'
                             {...register('emsE_SubExamName')}
                             defaultValue={row.emsE_SubExamName}
@@ -110,7 +109,6 @@ export default function UpdateMasterSubExamForm({ onSuccess, className = '', sel
                             label='Sub Exam Code'
                             placeholder='Enter Sub Exam Code'
                             required
-                            placeholder='Enter Sub Exam Code'
                             id='emsE_SubExamCode'
                             {...register('emsE_SubExamCode')}
                             defaultValue={row.emsE_SubExamCode}

@@ -46,7 +46,7 @@ export function PageMappingProvider({ children }: { children: React.ReactNode })
 
         const fetchPages = async () => {
             setIsLoading(true);
-            const pagesRes = await getAvailablePages(selectedModuleId);
+            const pagesRes = await getAvailablePages({ ivrmM_Id: selectedModuleId });
             if (pagesRes.success && pagesRes.data) {
                 setAvailablePages(pagesRes.data);
             }
