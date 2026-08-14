@@ -33,3 +33,35 @@ export interface IRolePrivilegeMapping {
     ivrmM_ModuleName: string;
     ivrmmP_PageName: string;
 }
+
+export interface ISearchPagesPayload {
+    ivrmrT_Id: number;
+    ivrmM_Id: number[];
+}
+
+export interface ISearchPagesApiRequestDTO {
+    IVRMRT_Id: number;
+    savetmpdata: Array<{ IVRMM_Id: number }>;
+}
+
+export interface ISavePrivilegesApiRequestDTO {
+    IVRMRT_Id: number;
+    savetmpdata: Array<{
+        IVRMMP_Id: number;
+        IVRMRP_AddFlag: boolean;
+        IVRMRP_DeleteFlag: boolean;
+        IVRMRP_UpdateFlag: boolean;
+        IVRMRP_ProcessFlag: boolean;
+        IVRMRP_ReportFlag: boolean;
+    }>;
+    previoussavetmpdata: Array<{
+        IVRMRP_Id?: number;
+        IVRMMP_Id: number;
+        IVRMRP_AddFlag: boolean;
+        IVRMRP_DeleteFlag: boolean;
+        IVRMRP_UpdateFlag: boolean;
+        IVRMRP_ProcessFlag: boolean;
+        IVRMRP_ReportFlag: boolean;
+    }>;
+}
+
