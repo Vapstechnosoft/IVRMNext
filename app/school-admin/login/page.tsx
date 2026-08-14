@@ -96,9 +96,9 @@ export default function SchoolAdminLoginPage() {
                                 <Checkbox id="remember" className="rounded border-primary text-primary" />
                                 <Label htmlFor="remember" className="text-sm font-semibold text-muted-foreground">Remember me</Label>
                             </div>
-                            <button type="button" className="text-sm font-bold text-secondary hover:text-primary transition-colors">
+                            {/* <button type="button" className="text-sm font-bold text-secondary hover:text-primary transition-colors">
                                 Forgot password?
-                            </button>
+                            </button> */}
                         </div>
 
                         <Button

@@ -130,7 +130,6 @@ export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrength
                                             <th className='text-left'>Class</th>
                                             <th className='text-left'>Section</th>
                                             <th>Boys</th>
-                                            <th>Girls</th>
                                             <th className='text-right w-24'>Total</th>
                                         </tr>
                                     </thead>
@@ -145,7 +144,7 @@ export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrength
                                                             <td className='text-left'>{sectionIndex === 0 ? item.classname : ''}</td>
                                                             <td className='text-left'>{item.sectionname}</td>
                                                             <td>{item.boys}</td>
-                                                            <td>{item.girls}</td>
+
                                                             <td className='text-right'>{item.totalstudents}</td>
                                                         </tr>
                                                     ))}
