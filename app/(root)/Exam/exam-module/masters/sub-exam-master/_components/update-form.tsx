@@ -98,7 +98,9 @@ export default function UpdateMasterSubExamForm({ onSuccess, className = '', sel
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
                             label='Sub Exam Name'
+                            placeholder='Enter Sub Exam Name'
                             required
+                            placeholder='Enter Sub Exam Name'
                             id='emsE_SubExamName'
                             {...register('emsE_SubExamName')}
                             defaultValue={row.emsE_SubExamName}
@@ -106,7 +108,9 @@ export default function UpdateMasterSubExamForm({ onSuccess, className = '', sel
                         />
                         <InputText
                             label='Sub Exam Code'
+                            placeholder='Enter Sub Exam Code'
                             required
+                            placeholder='Enter Sub Exam Code'
                             id='emsE_SubExamCode'
                             {...register('emsE_SubExamCode')}
                             defaultValue={row.emsE_SubExamCode}

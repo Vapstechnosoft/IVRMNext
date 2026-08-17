@@ -45,11 +45,11 @@ function CalendarYear({ className, classNames, showOutsideDays = true, selected,
     // Range of years to show in the year dropdown
     const years = React.useMemo(() => {
         const currentYear = new Date().getFullYear();
-        const endYear = props.toDate ? props.toDate.getFullYear() : currentYear;
-        const startYear = endYear - 50; // adjust range as desired
+        const startYear = props.fromDate ? props.fromDate.getFullYear() : currentYear - 100;
+        const endYear = props.toDate ? props.toDate.getFullYear() : currentYear + 50;
 
-        return Array.from({ length: endYear - startYear + 1 }, (_, i) => startYear + i);
-    }, [props.toDate]);
+        return Array.from({ length: Math.max(0, endYear - startYear + 1) }, (_, i) => startYear + i);
+    }, [props.toDate, props.fromDate]);
 
     // Handle year change
     const handleYearChange = (year: string) => {

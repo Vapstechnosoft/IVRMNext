@@ -217,6 +217,7 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
                             <InputNumber
                                 label='Max Subjects'
                                 required
+                                placeholder='Enter Max Subjects'
                                 minValue={1}
                                 value={field.value}
                                 onChange={(v) => {
@@ -238,6 +239,7 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
                             <InputNumber
                                 label='Max Applicable Subjects'
                                 required
+                                placeholder='Enter Max Applicable Subjects'
                                 minValue={1}
                                 value={field.value}
                                 onChange={(v) => {
@@ -259,6 +261,7 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
                             <InputNumber
                                 label='Min Applicable Subjects'
                                 required
+                                placeholder='Enter Min Applicable Subjects'
                                 minValue={1}
                                 value={field.value}
                                 onChange={(v) => {
@@ -280,6 +283,7 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
                             <InputNumber
                                 label='Best Off Subjects'
                                 required
+                                placeholder='Enter Best Off Subjects'
                                 minValue={0}
                                 value={field.value}
                                 onChange={(v) => {

@@ -27,6 +27,7 @@ import * as XLSX from 'xlsx';
 export default function PreadmissionStatusPage() {
     const { data: activePreadmission } = useActivePreadmissionDetails();
     const { data: initialData } = useStatusInitialData();
+    console.log(initialData);
     const searchMutation = useSearchStatusData();
     const saveMutation = useSaveStatusData();
     const forgotOTPMutation = useForgotOTP();
@@ -36,7 +37,7 @@ export default function PreadmissionStatusPage() {
     // Form State
     const [statusType, setStatusType] = useState('Appsts');
     const [asmayId, setAsmayId] = useState<number>(0);
-    const [asmclId, setAsmclId] = useState<number>(0);
+    const [asmclId, setAsmclId] = useState<number | ''>('');
     const [pamstId, setPamstId] = useState<number>(0);
 
     // Grid Data (Combined to avoid double renders)
@@ -149,7 +150,7 @@ export default function PreadmissionStatusPage() {
 
     const handleSearch = async () => {
         if (!asmayId) return toast.error('Please select Academic Year');
-        if (!asmclId) return toast.error('Please select Class');
+        if (asmclId === undefined || asmclId === null || asmclId.toString() === '') return toast.error('Please select Class');
         if (!pamstId) return toast.error('Please select Status');
         setSelectedStudents([]);
         try {
@@ -291,7 +292,11 @@ export default function PreadmissionStatusPage() {
                     <div className="mx-auto w-full max-w-2xl space-y-4 rounded-xl border bg-background p-8 shadow-sm">
                         <div className="grid grid-cols-3 items-center gap-4"><Label className="text-right font-semibold">Academic Year <span className="text-red-500">*</span></Label><div className="col-span-2"><Select value={String(asmayId)} onValueChange={(v) => setAsmayId(Number(v))}><SelectTrigger className="bg-muted/10"><SelectValue placeholder="Select Year" /></SelectTrigger><SelectContent>{initialData?.data?.academicList?.map((y: any) => (<SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>{y.asmaY_Year}</SelectItem>))}</SelectContent></Select></div></div>
                         <div className="grid grid-cols-3 items-center gap-4"><Label className="text-right font-semibold">Class <span className="text-red-500">*</span></Label><div className="col-span-2"><Select value={String(asmclId)} onValueChange={(v) => setAsmclId(Number(v))}><SelectTrigger className="bg-muted/10"><SelectValue placeholder="Select Class" /></SelectTrigger><SelectContent><SelectItem value="0">ALL</SelectItem>{initialData?.data?.classlist?.map((c: any) => (<SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>{c.asmcL_ClassName}</SelectItem>))}</SelectContent></Select></div></div>
-                        <div className="grid grid-cols-3 items-center gap-4"><Label className="text-right font-semibold">Status <span className="text-red-500">*</span></Label><div className="col-span-2"><Select value={String(pamstId)} onValueChange={(v) => setPamstId(Number(v))}><SelectTrigger className="bg-muted/10"><SelectValue placeholder="Select Status" /></SelectTrigger><SelectContent><SelectItem value="0">Select</SelectItem>{statusOptions.map((s: any) => (<SelectItem key={s.pamsT_Id} value={String(s.pamsT_Id)}>{s.pamsT_Status}</SelectItem>))}</SelectContent></Select></div></div>
+                        <div className="grid grid-cols-3 items-center gap-4">
+                            <Label className="text-right font-semibold">Status
+                                <span className="text-red-500">*</span></Label>
+                            <div className="col-span-2">
+                                <Select value={String(pamstId)} onValueChange={(v) => setPamstId(Number(v))}><SelectTrigger className="bg-muted/10"><SelectValue placeholder="Select Status" /></SelectTrigger><SelectContent><SelectItem value="0">Select</SelectItem>{statusOptions.map((s: any) => (<SelectItem key={s.pamsT_Id} value={String(s.pamsT_Id)}>{s.pamsT_Status}</SelectItem>))}</SelectContent></Select></div></div>
                         <div className="flex justify-center gap-4 pt-6">
                             <Button onClick={handleSearch} disabled={searchMutation.isPending} className="bg-indigo-700 hover:bg-indigo-800 text-white font-bold px-8 uppercase shadow-md transition-all active:scale-95"><Search className="mr-2 h-4 w-4" /> Search</Button>
                             <Button variant="destructive" onClick={() => window.location.reload()} className="bg-orange-600 hover:bg-orange-700 text-white font-bold px-8 uppercase shadow-md transition-all active:scale-95"><X className="mr-2 h-4 w-4" /> Cancel</Button>

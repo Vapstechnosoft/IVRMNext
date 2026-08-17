@@ -112,6 +112,13 @@ function InvTSalesPageContent({
 
     const columns = useMemo(() => getInvTSalesColumns(handleViewItem), []);
 
+    const processedData = useMemo(() => {
+        return (response?.data || []).map((row: any, index: number) => ({
+            ...row,
+            _uniqueRowId: row.invmsL_Id ? `sale-${row.invmsL_Id}-${index}` : `sale-idx-${index}`
+        }));
+    }, [response?.data]);
+
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-4'>
@@ -138,12 +145,13 @@ function InvTSalesPageContent({
                     icon={<ShoppingCart className='h-5 w-5' />}>
                     <GenericDataTable<IInvTSales>
                         {...tableProps}
-                        data={response?.data || []}
+                        data={processedData}
                         columns={columns}
                         isLoading={isLoading}
                         error={error}
                         isSearchRequired={true}
                         columnPinning={{ right: ['actions'] }}
+                        getRowId={(row: any) => row._uniqueRowId}
                         loadingMessage='Loading Sales records...'
                         noDataTitle='No Sales Found'
                         noDataDescription='Create a new Sales record to start'

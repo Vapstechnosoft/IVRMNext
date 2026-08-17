@@ -100,7 +100,7 @@ export const ReportList = ({ data, academicYear, performanceAnalysis, generatedD
                     EME_Id: 9800000,
                     EME_ExamName: "Total",
                     EMPG_DistplayName: group.empG_DistplayName || group.EMPG_DistplayName,
-                    EMPSGE_ForMaxMarkrs: exams.reduce((acc, curr) => acc + (curr.empsgE_ForMaxMarkrs || curr.EMPSGE_ForMaxMarkrs || 0), 0)
+                    EMPSGE_ForMaxMarkrs: exams.reduce((acc: number, curr: any) => acc + (curr.empsgE_ForMaxMarkrs || curr.EMPSGE_ForMaxMarkrs || 0), 0)
                 });
 
                 // Append Grade column for this group
@@ -159,6 +159,7 @@ export const ReportList = ({ data, academicYear, performanceAnalysis, generatedD
                         const studentMarks = getstudentmarksdetails.filter((m: any) => String(m.amsT_Id ?? m.AMST_Id ?? m.studentId) === String(studentID));
                         const studentSummary = (data.getexammaxmarks || []).find((emm: any) => String(emm.amsT_Id ?? emm.AMST_Id ?? emm.studentId) === String(studentID)) || {};
                         const remarksObj = getpromotionremarksdetails.find((rem: any) => String(rem.amsT_Id ?? rem.AMST_Id ?? rem.studentId) === String(studentID)) || {};
+                        console.log('remarkobj', remarksObj);
 
                         const workAtt = (work_attendence || []).find((a: any) => String(a.AMST_Id ?? a.amsT_Id ?? a.studentId ?? a.StudentId) === String(studentID)) || {};
                         const presentAtt = (present_attendence || []).find((a: any) => String(a.AMST_Id ?? a.amsT_Id ?? a.studentId ?? a.StudentId) === String(studentID)) || {};
@@ -590,23 +591,15 @@ export const ReportList = ({ data, academicYear, performanceAnalysis, generatedD
                                             <tr>
                                                 <th className='border border-gray-400 bg-[#BABABA] p-2 font-bold uppercase'>Total number of working days</th>
                                                 <td className='border border-gray-400 p-2 font-bold w-32'>
-                                                    {report.totalSchoolDays ?? workAtt.TotalSchoolDays ?? workAtt.totalSchoolDays ?? workAtt.TotalSchool_Days ?? workAtt.totalSchool_Days ?? workAtt.TotalWorkingDays ?? workAtt.totalWorkingDays ?? ''}
+                                                    {presentAtt.totalSchoolDays ?? ''}
                                                 </td>
                                                 <th className='border border-gray-400 bg-[#BABABA] p-2 font-bold uppercase'>Number of days attended</th>
                                                 <td className='border border-gray-400 p-2 font-bold w-32'>
-                                                    {report.totalPresentDays ?? presentAtt.TotalPresentDays ?? presentAtt.totalPresentDays ?? presentAtt.TotalPresent_Days ?? presentAtt.totalPresent_Days ?? presentAtt.presentDays ?? presentAtt.present_days ?? ''}
+                                                    {presentAtt.totalWorkingDays ?? '-'}
                                                 </td>
                                                 <th className='border border-gray-400 bg-[#BABABA] p-2 font-bold uppercase'>Attendance Percentage</th>
                                                 <td className='border border-gray-400 p-2 font-bold w-32'>
-                                                    {report.total_Percentage !== undefined && report.total_Percentage !== null
-                                                        ? `${report.total_Percentage}`
-                                                        : presentAtt.Total_Percentage !== undefined && presentAtt.Total_Percentage !== null
-                                                            ? `${presentAtt.Total_Percentage}`
-                                                            : presentAtt.total_Percentage !== undefined && presentAtt.total_Percentage !== null
-                                                                ? `${presentAtt.total_Percentage}`
-                                                                : presentAtt.percentage !== undefined && presentAtt.percentage !== null
-                                                                    ? `${presentAtt.percentage}`
-                                                                    : ''}
+                                                    {presentAtt.total_Percentage ?? '-'}
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -618,7 +611,7 @@ export const ReportList = ({ data, academicYear, performanceAnalysis, generatedD
                                     <div className='mb-8 border border-gray-400 text-sm'>
                                         <div className='flex border-b border-gray-400'>
                                             <div className='w-32 bg-[#BABABA] p-2 font-bold border-r border-gray-400 text-center uppercase'>Results</div>
-                                            <div className='flex-1 p-2 font-bold uppercase'>{report.eprD_PromotionName || studentSummary.overallResult || '-'}</div>
+                                            <div className='flex-1 p-2 font-bold uppercase'>{remarksObj.eprD_PromotionName || '-'}</div>
                                         </div>
                                     </div>
 

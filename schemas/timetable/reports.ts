@@ -82,15 +82,18 @@ export const staffWiseReportSchema = {
 export const deputationReportSchema = {
     search: z.object({
         asmaY_Id: z.number().min(1, 'Academic Year is required'),
-        date: z.date({
-            required_error: 'Date is required'
+        fromdate: z.date({
+            required_error: 'From Date is required'
+        }),
+        todate: z.date({
+            required_error: 'To Date is required'
         }),
         flag: z.enum(['D', 'C'], {
             required_error: 'Report Type is required'
-        }),
-        Classids: z.array(z.number()).optional(),
-        sectionids: z.array(z.number()).optional(),
-        staffids: z.array(z.number()).optional()
+        })
+    }).refine((data) => data.todate >= data.fromdate, {
+        message: 'To Date must be greater than or equal to From Date',
+        path: ['todate']
     })
 };
 
@@ -103,8 +106,14 @@ export const staffWiseWorkingHoursReportSchema = {
 
 export const ttMonthEndReportSchema = {
     search: z.object({
-        asmaY_Id: z.coerce.number().min(1, 'Academic Year is required'),
-        month: z.coerce.number().min(1, 'Month is required'),
+        asmaY_Id: z.coerce.number({
+            required_error: 'Please enter academic year',
+            invalid_type_error: 'Please enter academic year'
+        }).min(1, 'Please enter academic year'),
+        month: z.coerce.number({
+            required_error: 'Please enter month',
+            invalid_type_error: 'Please enter month'
+        }).min(1, 'Please enter month'),
         name: z.string().optional()
     })
 };

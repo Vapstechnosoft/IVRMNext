@@ -6,7 +6,7 @@ import type { ApiSearchparams } from '@/types';
 export async function fetchInvMasterGroupData(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/INV_MasterGroupFacade/loadMainGroup?${urlParams}`;
-    return await api.post<any>('inventory', url, {});
+    return await api.get<any>('inventory', url, {});
 }
 
 export async function fetchMainGroupDropdownData() {

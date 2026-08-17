@@ -70,7 +70,6 @@ export default function AddMasterReligionForm({ onSuccess, className = '' }: Add
                             placeholder='Enter Religion Name'
                             required
                             id='ivrmmR_Name'
-                            placeholder='Enter Religion Name'
                             {...register('ivrmmR_Name')}
                             error={errors.ivrmmR_Name?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'

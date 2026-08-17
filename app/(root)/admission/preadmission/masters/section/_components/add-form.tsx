@@ -66,7 +66,7 @@ export default function AddMasterSectionForm({ onSuccess, className = '' }: AddM
     };
 
     const handleReset = () => {
-        reset();
+        window.location.reload();
     };
 
     return (
@@ -142,7 +142,7 @@ export default function AddMasterSectionForm({ onSuccess, className = '' }: AddM
                         onClick={handleReset}
                         disabled={isSubmitting}
                         className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                        Reset
+                        Cancel
                     </Button>
                     <Button
                         type='submit'

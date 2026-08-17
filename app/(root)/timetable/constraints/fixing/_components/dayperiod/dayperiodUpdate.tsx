@@ -272,7 +272,7 @@ export default function DayPeriodUpdate({ academicList, categoryList, dayList, p
 
                     <FormField control={form.control} name='asmcL_Id' render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Class</FormLabel>
+                            <FormLabel>Class <span className='text-red-500'>*</span></FormLabel>
                             <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => handleClassChange(Number(v))} value={field.value?.toString()}>
                                 <FormControl><SelectTrigger><SelectValue placeholder={isClassLoading ? 'Loading...' : 'Select'} /></SelectTrigger></FormControl>
                                 <SelectContent>{classList?.map((item: any) => (<SelectItem key={item.asmcL_Id} value={item.asmcL_Id?.toString()}>{item.asmcL_ClassName}</SelectItem>))}</SelectContent>
@@ -283,7 +283,7 @@ export default function DayPeriodUpdate({ academicList, categoryList, dayList, p
 
                     <FormField control={form.control} name='asmS_Id' render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Section</FormLabel>
+                            <FormLabel>Section <span className='text-red-500'>*</span></FormLabel>
                             <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => handleSectionChange(Number(v))} value={field.value?.toString()}>
                                 <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
                                 <SelectContent>{sectionList?.map((item: any) => (<SelectItem key={item.asmS_Id || item.asmC_Id} value={(item.asmS_Id || item.asmC_Id)?.toString()}>{item.asmS_SectionName || item.asmC_SectionName}</SelectItem>))}</SelectContent>
@@ -294,7 +294,7 @@ export default function DayPeriodUpdate({ academicList, categoryList, dayList, p
 
                     <FormField control={form.control} name='hrmE_Id' render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Staff</FormLabel>
+                            <FormLabel>Staff <span className='text-red-500'>*</span></FormLabel>
                             <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => handleStaffChange(Number(v))} value={field.value?.toString()}>
                                 <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
                                 <SelectContent>{staffList?.map((item: any) => (<SelectItem key={item.hrmE_Id} value={item.hrmE_Id?.toString()}>{item.staffName}</SelectItem>))}</SelectContent>
@@ -305,7 +305,7 @@ export default function DayPeriodUpdate({ academicList, categoryList, dayList, p
 
                     <FormField control={form.control} name='ismS_Id' render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Subject</FormLabel>
+                            <FormLabel>Subject <span className='text-red-500'>*</span></FormLabel>
                             <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
                                 <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
                                 <SelectContent>{subjectList?.map((item: any) => (<SelectItem key={item.ismS_Id} value={item.ismS_Id?.toString()}>{item.ismS_SubjectName}</SelectItem>))}</SelectContent>
@@ -316,7 +316,7 @@ export default function DayPeriodUpdate({ academicList, categoryList, dayList, p
 
                     <FormField control={form.control} name='ttmD_Id' render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Day</FormLabel>
+                            <FormLabel>Day <span className='text-red-500'>*</span></FormLabel>
                             <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
                                 <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
                                 <SelectContent>{dayList?.map((item: any) => (<SelectItem key={item.ttmD_Id} value={item.ttmD_Id?.toString()}>{item.ttmD_DayName}</SelectItem>))}</SelectContent>
@@ -327,7 +327,7 @@ export default function DayPeriodUpdate({ academicList, categoryList, dayList, p
 
                     <FormField control={form.control} name='ttmP_Id' render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Period</FormLabel>
+                            <FormLabel>Period <span className='text-red-500'>*</span></FormLabel>
                             <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
                                 <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
                                 <SelectContent>{periodList?.map((item: any) => (<SelectItem key={item.ttmP_Id} value={item.ttmP_Id?.toString()}>{item.ttmP_PeriodName}</SelectItem>))}</SelectContent>
@@ -349,3 +349,4 @@ export default function DayPeriodUpdate({ academicList, categoryList, dayList, p
         </Form>
     );
 }
+

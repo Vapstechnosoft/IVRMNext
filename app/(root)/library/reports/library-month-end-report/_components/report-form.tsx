@@ -13,8 +13,14 @@ import { Controller, useForm } from 'react-hook-form';
 import * as z from 'zod';
 
 const formSchema = z.object({
-    ASMAY_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Academic Year is required')),
-    IVRM_Month_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Month is required')),
+    ASMAY_Id: z.preprocess(
+        (val) => (val ? Number(val) : 0),
+        z.number({ invalid_type_error: 'Select Academic Year' }).min(1, 'Select Academic Year')
+    ),
+    IVRM_Month_Id: z.preprocess(
+        (val) => (val ? Number(val) : 0),
+        z.number({ invalid_type_error: 'Select Month' }).min(1, 'Select Month')
+    ),
     LMRA_Id: z.preprocess((val) => (val === '' || val === undefined ? 0 : Number(val)), z.number().optional()),
     IE_Name: z.string().optional(),
     year: z.string().min(1, 'Year is required')

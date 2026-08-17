@@ -44,7 +44,7 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
             hrmL_LeaveCode: '',
             hrmL_LeaveType: '',
             hrmL_LeaveDetails: '',
-            hrmL_LeaveCreditFlg: true,
+            hrmL_LeaveCreditFlg: false,
             hrmL_LateDeductFlag: false,
             hrmL_ProbationNotApplicableFlg: false,
             hrmL_LeaveApplyCriteria: '',

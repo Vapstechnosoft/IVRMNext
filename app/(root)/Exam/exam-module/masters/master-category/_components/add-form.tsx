@@ -73,6 +73,7 @@ export default function AddMasterCategoryForm({ onSuccess, className = '' }: Add
                         <InputText
                             label='Category Name'
                             required
+                            placeholder='Enter Category Name'
                             id='emcA_CategoryName'
                             {...register('emcA_CategoryName')}
                             error={errors.emcA_CategoryName?.message}

@@ -17,7 +17,7 @@ import {
   useReportDepartments,
   useReportDesignations,
   useReportGroupTypes,
-  useSalaryCertificateEmployees,
+  useReportEmployeesByGroupTypeDeptAndDesignation,
   useSalaryCertificateReport,
 } from "@/hooks/hrms/useReports";
 import {
@@ -34,10 +34,6 @@ import { toast } from "sonner";
 export default function SalaryCertificatePage() {
   const [isSearching, setIsSearching] = useState(false);
   const [reportData, setReportData] = useState<any>(null);
-  const [employeeOptions, setEmployeeOptions] = useState<
-    { label: string; value: string }[]
-  >([]);
-  const [isEmployeeLoading, setIsEmployeeLoading] = useState(false);
   const [resetKey, setResetKey] = useState(0); // State to force reset the form
   const reportRef = useRef<HTMLDivElement>(null);
 
@@ -66,13 +62,13 @@ export default function SalaryCertificatePage() {
   const selectedMonth = watch("month");
   const selectedYear = watch("year");
 
-  const { data: masterGroupTypes } = useReportGroupTypes();
+  const { data: masterGroupTypes, isLoading: isGroupTypeLoading } = useReportGroupTypes();
 
   const groupTypeIds = selectedGroupType?.join(",") || "";
-  const { data: masterDepartments } = useReportDepartments(groupTypeIds);
+  const { data: masterDepartments, isLoading: isDepartmentLoading } = useReportDepartments(groupTypeIds);
 
   const deptIds = selectedDepartment?.join(",") || "";
-  const { data: masterDesignations } = useReportDesignations(
+  const { data: masterDesignations, isLoading: isDesignationLoading } = useReportDesignations(
     groupTypeIds,
     deptIds,
   );
@@ -89,8 +85,26 @@ export default function SalaryCertificatePage() {
 
   const { mutateAsync: getSalaryCertificateReport } =
     useSalaryCertificateReport();
-  const { mutateAsync: getSalaryCertificateEmployees } =
-    useSalaryCertificateEmployees();
+
+  const groupTypeIdsArray = useMemo(
+    () => selectedGroupType?.map(Number).filter(Boolean) || [],
+    [selectedGroupType]
+  );
+  const deptIdsArray = useMemo(
+    () => selectedDepartment?.map(Number).filter(Boolean) || [],
+    [selectedDepartment]
+  );
+  const desigIdsArray = useMemo(
+    () => selectedDesignation?.map(Number).filter(Boolean) || [],
+    [selectedDesignation]
+  );
+
+  const { data: employeesData, isLoading: isEmployeeLoading } =
+    useReportEmployeesByGroupTypeDeptAndDesignation(
+      groupTypeIdsArray,
+      deptIdsArray,
+      desigIdsArray
+    );
 
   // Formate the Type, department, designation
   const groupTypeOptions =
@@ -128,63 +142,21 @@ export default function SalaryCertificatePage() {
   }, [masterYears]);
 
   // Get the employees
-  useEffect(() => {
-    const fetchEmployees = async () => {
-      if (
-        !selectedMonth ||
-        !selectedYear ||
-        !selectedDesignation?.length ||
-        !selectedDepartment?.length ||
-        !selectedGroupType?.length
-      )
-        return;
+  const employeeOptions = useMemo(() => {
+    const list = employeesData?.data?.employeeNames || employeesData;
+    if (!list || !Array.isArray(list)) return [];
 
-      setIsEmployeeLoading(true);
-
-      const year =
-        yearOptions.find((y: any) => y.value === selectedYear)?.label ||
-        selectedYear;
-      console.log("year", year);
-      try {
-        const payload = {
-          hreS_Month: selectedMonth,
-          hreS_Year: year,
-          hrmdeS_IdList: selectedDesignation.map(Number),
-          hrmD_IdList: selectedDepartment.map(Number),
-          groupTypeIdList: selectedGroupType.map(Number),
-        };
-
-        const res = await getSalaryCertificateEmployees(payload);
-
-        console.log("Employees API response :", res);
-
-        if (res?.success) {
-          const options = res.data.map((emp: any) => ({
-            label: emp.employeeName || emp.hrmE_EmployeeFirstName,
-            value: String(emp.hrmE_Id),
-          }));
-          console.log("Employee options :", options);
-          setEmployeeOptions(options);
-        } else {
-          setEmployeeOptions([]);
-          toast.error(res.message || "Failed to load employees");
-        }
-      } catch (error: any) {
-        setEmployeeOptions([]);
-        toast.error(error.message || "Failed to load employees");
-      } finally {
-        setIsEmployeeLoading(false);
-      }
-    };
-
-    fetchEmployees();
-  }, [
-    selectedMonth,
-    selectedYear,
-    selectedDesignation,
-    selectedDepartment,
-    selectedGroupType,
-  ]);
+    return list
+      .map((emp: any) => ({
+        label:
+          emp.employeeFullName ||
+          emp.employeeName ||
+          emp.hrmE_EmployeeFirstName ||
+          "Unknown Employee",
+        value: String(emp.hrmE_Id || emp.id),
+      }))
+      .filter((e: any) => e.value);
+  }, [employeesData]);
 
   useEffect(() => {
     if (reportData && reportRef.current) {
@@ -304,7 +276,9 @@ export default function SalaryCertificatePage() {
                     options={groupTypeOptions}
                     defaultValue={field.value}
                     onValueChange={field.onChange}
-                    placeholder="Select Designations"
+                    placeholder={
+                      isGroupTypeLoading ? "Loading..." : "Select Group Type"
+                    }
                   />
                 )}
               />
@@ -325,7 +299,9 @@ export default function SalaryCertificatePage() {
                     options={departmentsOptions}
                     defaultValue={field.value}
                     onValueChange={field.onChange}
-                    placeholder="Select Departments"
+                    placeholder={
+                      isDepartmentLoading ? "Loading..." : "Select Department"
+                    }
                   />
                 )}
               />
@@ -346,7 +322,9 @@ export default function SalaryCertificatePage() {
                     options={designationsOptions}
                     defaultValue={field.value}
                     onValueChange={field.onChange}
-                    placeholder="Select Designations"
+                    placeholder={
+                      isDesignationLoading ? "Loading..." : "Select Designation"
+                    }
                   />
                 )}
               />
@@ -367,9 +345,13 @@ export default function SalaryCertificatePage() {
                 name="month"
                 control={control}
                 render={({ field }) => (
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value} disabled={masterYearsLoading}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select Month" />
+                      <SelectValue
+                        placeholder={
+                          masterMonthsLoading ? "Loading..." : "Select Month"
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent>
                       {masterMonthsLoading ? (
@@ -402,9 +384,13 @@ export default function SalaryCertificatePage() {
                 name="year"
                 control={control}
                 render={({ field }) => (
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value} disabled = {masterYearsLoading}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select Year" />
+                      <SelectValue
+                        placeholder={
+                          masterYearsLoading ? "Loading..." : "Select Year"
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent>
                       {masterYearsLoading ? (

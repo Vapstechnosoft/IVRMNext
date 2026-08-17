@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useOralReScheduleDetails, useDeleteOralReSchedule } from '@/hooks/admission/preadmission/transactions/use-oral-test-reschedule';
 import OralReScheduleForm from './components/re-add-form';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
@@ -14,6 +14,8 @@ import { toast } from 'sonner';
 import { useForm, FormProvider } from 'react-hook-form';
 import ReportModal from './components/report-modal';
 import { FileText } from 'lucide-react';
+import { useQueryState, parseAsString, parseAsStringLiteral } from 'nuqs';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 
 
 export default function OralReSchedulePage() {
@@ -24,6 +26,62 @@ export default function OralReSchedulePage() {
     const [reportSchedule, setReportSchedule] = useState<any>(null);
     const [isReportOpen, setIsReportOpen] = useState(false);
 
+    const [sortBy] = useQueryState('sort_column', parseAsString.withOptions({ shallow: false }).withDefault(''));
+    const [order] = useQueryState(
+        'sort_direction',
+        parseAsStringLiteral(['asc', 'desc'] as const)
+            .withOptions({ shallow: false })
+            .withDefault('asc')
+    );
+    const [searchQuery] = useQueryState('search_query', parseAsString.withOptions({ shallow: false }).withDefault(''));
+
+    const filteredAndSortedData = useMemo(() => {
+        let list = [...(details?.oralTestSchedule || [])];
+
+        // Client-side search filtering
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            list = list.filter((item: any) => {
+                const scheduleName = String(item.paotS_ScheduleName || '').toLowerCase();
+                const dateVal = item.paotS_ScheduleDate;
+                const dateStr = dateVal ? format(new Date(dateVal), 'dd-MM-yyyy') : '';
+                const fromTime = String(item.paotS_ScheduleTime || '').toLowerCase();
+                const toTime = String(item.paotS_ScheduleTimeTo || '').toLowerCase();
+                return (
+                    scheduleName.includes(query) ||
+                    dateStr.includes(query) ||
+                    fromTime.includes(query) ||
+                    toTime.includes(query)
+                );
+            });
+        }
+
+        // Client-side sorting
+        if (!sortBy) return list;
+
+        return list.sort((a, b) => {
+            let aVal = a[sortBy];
+            let bVal = b[sortBy];
+
+            if (aVal === undefined || aVal === null) return 1;
+            if (bVal === undefined || bVal === null) return -1;
+
+            if (sortBy === 'paotS_ScheduleDate') {
+                const aTime = new Date(aVal).getTime();
+                const bTime = new Date(bVal).getTime();
+                if (isNaN(aTime)) return 1;
+                if (isNaN(bTime)) return -1;
+                return order === 'asc' ? aTime - bTime : bTime - aTime;
+            }
+
+            // String comparison
+            const aStr = String(aVal).toLowerCase();
+            const bStr = String(bVal).toLowerCase();
+            if (aStr < bStr) return order === 'asc' ? -1 : 1;
+            if (aStr > bStr) return order === 'asc' ? 1 : -1;
+            return 0;
+        });
+    }, [details?.oralTestSchedule, searchQuery, sortBy, order]);
 
     const methods = useForm();
 
@@ -35,22 +93,22 @@ export default function OralReSchedulePage() {
         },
         {
             accessorKey: 'paotS_ScheduleName',
-            header: () => <div className="text-center">Schedule Name</div>,
+            header: ({ column }) => <DataTableColumnHeader column={column} title="Schedule Name" className="justify-center" />,
             cell: ({ row }) => <div className="text-center">{row.original.paotS_ScheduleName}</div>,
         },
         {
             accessorKey: 'paotS_ScheduleDate',
-            header: () => <div className="text-center">Date</div>,
+            header: ({ column }) => <DataTableColumnHeader column={column} title="Date" className="justify-center" />,
             cell: ({ row }) => <div className="text-center">{format(new Date(row.original.paotS_ScheduleDate), 'dd-MM-yyyy')}</div>,
         },
         {
             accessorKey: 'paotS_ScheduleTime',
-            header: () => <div className="text-center">From</div>,
+            header: ({ column }) => <DataTableColumnHeader column={column} title="From" className="justify-center" />,
             cell: ({ row }) => <div className="text-center">{row.original.paotS_ScheduleTime}</div>,
         },
         {
             accessorKey: 'paotS_ScheduleTimeTo',
-            header: () => <div className="text-center">To</div>,
+            header: ({ column }) => <DataTableColumnHeader column={column} title="To" className="justify-center" />,
             cell: ({ row }) => <div className="text-center">{row.original.paotS_ScheduleTimeTo}</div>,
         }
         // {
@@ -147,10 +205,11 @@ export default function OralReSchedulePage() {
                 <CardContent className="p-0">
                     <div className="[&_th]:text-black [&_th]:font-bold [&_th]:text-[13px]">
                         <GenericDataTable
-                            data={details?.oralTestSchedule || []}
+                            data={filteredAndSortedData}
                             columns={columns}
                             isLoading={isLoading}
                             isSearchRequired={true}
+                            totalItems={filteredAndSortedData.length}
                         />
                     </div>
                 </CardContent>

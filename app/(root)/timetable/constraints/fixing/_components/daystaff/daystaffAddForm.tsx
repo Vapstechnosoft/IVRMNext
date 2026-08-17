@@ -38,6 +38,7 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
     const [selectedSection, setSelectedSection] = useState<number | undefined>();
     const [selectedSubject, setSelectedSubject] = useState<number | undefined>();
     const [nop, setNop] = useState<string>('');
+    const [gridErrors, setGridErrors] = useState<any>({});
 
     const form = useForm<FixingDayStaffSchema>({
         resolver: zodResolver(fixingDayStaffSchema),
@@ -167,10 +168,26 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
     };
 
     const addToGrid = () => {
-        if (!selectedClass || !selectedSection || !selectedSubject || !nop) {
-            toast.warning('Please select all fields');
+        console.log("Add button clicked. Current state:", { selectedClass, selectedSection, selectedSubject, nop });
+
+        const errs: any = {};
+        if (!selectedClass || selectedClass <= 0) errs.class = 'Class is required';
+        if (!selectedSection || selectedSection <= 0) errs.section = 'Section is required';
+        if (!selectedSubject || selectedSubject <= 0) errs.subject = 'Subject is required';
+        if (!nop || Number(nop) <= 0) errs.nop = 'Periods is required';
+
+        console.log("Validation errors evaluated as:", errs);
+
+        if (Object.keys(errs).length > 0) {
+            setGridErrors(errs);
+            toast.warning('Please select all required fields');
             return;
         }
+
+        setGridErrors({});
+        console.log("Validation passed, proceeding to add to grid.");
+
+        if (!selectedClass || !selectedSection || !selectedSubject || !nop) return;
 
         const clsObj = classList.find((c) => c.asmcL_Id === selectedClass);
         const secObj = sectionList.find((s) => s.asmS_Id === selectedSection);
@@ -220,6 +237,14 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                 data.tempararyArrayList = [];
             } else {
                 if (!data.tempararyArrayList || data.tempararyArrayList.length === 0) {
+                    // Trigger validation errors for the grid inputs so they turn red
+                    const errs: any = {};
+                    if (!selectedClass || selectedClass <= 0) errs.class = 'Class is required';
+                    if (!selectedSection || selectedSection <= 0) errs.section = 'Section is required';
+                    if (!selectedSubject || selectedSubject <= 0) errs.subject = 'Subject is required';
+                    if (!nop || Number(nop) <= 0) errs.nop = 'Periods is required';
+
+                    setGridErrors(errs);
                     toast.warning("Please add at least one Class Details");
                     return;
                 }
@@ -252,7 +277,7 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                         name='asmaY_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Academic Year</FormLabel>
+                                <FormLabel>Academic Year <span className='text-red-500'>*</span></FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => handleAcademicYearChange(Number(v))}
@@ -276,7 +301,7 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                         name='ttmD_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Day</FormLabel>
+                                <FormLabel>Day <span className='text-red-500'>*</span></FormLabel>
                                 <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
                                     <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
                                     <SelectContent>
@@ -297,7 +322,7 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                         name='hrmE_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Staff</FormLabel>
+                                <FormLabel>Staff <span className='text-red-500'>*</span></FormLabel>
                                 <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => handleStaffChange(Number(v))} value={field.value?.toString()}>
                                     <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
                                     <SelectContent>
@@ -336,7 +361,7 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                         <h4 className='font-semibold'>Add Class Details</h4>
                         <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-5'>
                             <div className='space-y-2'>
-                                <FormLabel>Class</FormLabel>
+                                <FormLabel>Class <span className='text-red-500'>*</span></FormLabel>
                                 <Select key={selectedClass?.toString() || 'empty'} onValueChange={(v) => handleClassChange(Number(v))} value={selectedClass?.toString()}>
                                     <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
                                     <SelectContent>
@@ -353,9 +378,10 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                                         )}
                                     </SelectContent>
                                 </Select>
+                                {gridErrors.class && <p className='text-[0.8rem] font-medium text-destructive mt-1'>{gridErrors.class}</p>}
                             </div>
                             <div className='space-y-2'>
-                                <FormLabel>Section</FormLabel>
+                                <FormLabel>Section <span className='text-red-500'>*</span></FormLabel>
                                 <Select key={selectedSection?.toString() || 'empty'} onValueChange={(v) => handleSectionChange(Number(v))} value={selectedSection?.toString()}>
                                     <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
                                     <SelectContent>
@@ -368,9 +394,10 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                                         })}
                                     </SelectContent>
                                 </Select>
+                                {gridErrors.section && <p className='text-[0.8rem] font-medium text-destructive mt-1'>{gridErrors.section}</p>}
                             </div>
                             <div className='space-y-2'>
-                                <FormLabel>Subject</FormLabel>
+                                <FormLabel>Subject <span className='text-red-500'>*</span></FormLabel>
                                 <Select key={selectedSubject?.toString() || 'empty'} onValueChange={(v) => setSelectedSubject(Number(v))} value={selectedSubject?.toString()}>
                                     <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
                                     <SelectContent>
@@ -383,10 +410,15 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                                         })}
                                     </SelectContent>
                                 </Select>
+                                {gridErrors.subject && <p className='text-[0.8rem] font-medium text-destructive mt-1'>{gridErrors.subject}</p>}
                             </div>
                             <div className='space-y-2'>
-                                <FormLabel>Periods</FormLabel>
-                                <Input type='number' value={nop} onChange={(e) => setNop(e.target.value)} />
+                                <FormLabel>Periods <span className='text-red-500'>*</span></FormLabel>
+                                <Input type='number' value={nop}
+                                    onChange={(e) => setNop(e.target.value)}
+                                    placeholder="Enter No Of Periods"
+                                />
+                                {gridErrors.nop && <p className='text-[0.8rem] font-medium text-destructive mt-1'>{gridErrors.nop}</p>}
                             </div>
                         </div>
                         <Button type='button' onClick={addToGrid}>Add</Button>
@@ -407,3 +439,4 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
         </Form>
     );
 }
+

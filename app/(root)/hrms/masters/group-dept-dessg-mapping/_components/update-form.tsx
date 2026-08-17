@@ -60,8 +60,8 @@ export default function UpdateGroupDeptDessgMappingForm({
             const designationids = row.hrmdeS_Id ? [row.hrmdeS_Id] : [];
             reset({
                 hrgtddS_Id: row.hrgtddS_Id,
-                hrmgT_Id: row.hrmgT_Id,
-                hrmD_Id: row.hrmD_Id,
+                hrmgT_Id: row.hrmgT_Id?.toString() || '',
+                hrmD_Id: row.hrmD_Id?.toString() || '',
                 hrmdeS_Id: row.hrmdeS_Id || 0,
                 designationids: designationids
             });
@@ -72,8 +72,8 @@ export default function UpdateGroupDeptDessgMappingForm({
             const originalDesignationIds = row.hrmdeS_Id ? [row.hrmdeS_Id] : [];
             const currentDesignationIds = (data.designationids || []).sort((a, b) => a - b);
             const hasChanges =
-                row.hrmgT_Id !== data.hrmgT_Id ||
-                row.hrmD_Id !== data.hrmD_Id ||
+                row.hrmgT_Id?.toString() !== data.hrmgT_Id ||
+                row.hrmD_Id?.toString() !== data.hrmD_Id ||
                 originalDesignationIds.length !== currentDesignationIds.length ||
                 !originalDesignationIds.every((id, index) => id === currentDesignationIds[index]);
             if (!hasChanges) {
@@ -84,8 +84,8 @@ export default function UpdateGroupDeptDessgMappingForm({
             // Construct API request body matching Swagger spec
             const requestBody = {
                 hrgtddS_Id: row.hrgtddS_Id,
-                hrmgT_Id: data.hrmgT_Id,
-                hrmD_Id: data.hrmD_Id,
+                hrmgT_Id: Number(data.hrmgT_Id),
+                hrmD_Id: Number(data.hrmD_Id),
                 hrmdeS_Ids: data.designationids || []
             };
             saveMapping(requestBody, {
@@ -152,7 +152,7 @@ export default function UpdateGroupDeptDessgMappingForm({
                                     <Select
                                         key={`group-select-${row.hrgtddS_Id}-${field.value}`}
                                         value={field.value?.toString() || ''}
-                                        onValueChange={(value) => field.onChange(Number(value))}>
+                                        onValueChange={(value) => field.onChange(value)}>
                                         <SelectTrigger id='hrmgT_Id' className='transition-colors focus:ring-2 focus:ring-primary/20'>
                                             <SelectValue placeholder='Select group type' />
                                         </SelectTrigger>
@@ -189,7 +189,7 @@ export default function UpdateGroupDeptDessgMappingForm({
                                     <Select
                                         key={`dept-select-${row.hrgtddS_Id}-${field.value}`}
                                         value={field.value?.toString() || ''}
-                                        onValueChange={(value) => field.onChange(Number(value))}>
+                                        onValueChange={(value) => field.onChange(value)}>
                                         <SelectTrigger id='hrmD_Id' className='transition-colors focus:ring-2 focus:ring-primary/20'>
                                             <SelectValue placeholder='Select department' />
                                         </SelectTrigger>
@@ -234,7 +234,13 @@ export default function UpdateGroupDeptDessgMappingForm({
                                             options={designationOptions}
                                             defaultValue={stringValues}
                                             onValueChange={(values) => {
-                                                field.onChange(values.map((v) => Number(v)));
+                                                const currentStringValues = field.value?.map((id) => id.toString()) || [];
+                                                if (
+                                                    values.length !== currentStringValues.length ||
+                                                    !values.every((v) => currentStringValues.includes(v))
+                                                ) {
+                                                    field.onChange(values.map((v) => Number(v)));
+                                                }
                                             }}
                                             placeholder='Select designations'
                                             maxCount={3}
@@ -264,10 +270,10 @@ export default function UpdateGroupDeptDessgMappingForm({
                         disabled={isSubmitting || isPending || !isDirty}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting || isPending}
-                        loadingText='Saving...'>
+                        loadingText='Update...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Mapping
+                            Update Mapping
                         </div>
                     </Button>
                     {!isDirty && <span className='flex items-center text-muted-foreground text-sm'>No changes made</span>}

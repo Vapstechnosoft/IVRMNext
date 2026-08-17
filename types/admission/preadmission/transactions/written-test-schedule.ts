@@ -58,4 +58,13 @@ export interface IWrittenTestScheduleDetails {
         pawtS_Id: number;
         count: number;
     }>;
+    allname5?: Array<{
+        pasr_id: number;
+        studentname: string;
+        registrationNo: string;
+        classid: number;
+        gender: string;
+        email: string;
+        mobileNumber: string;
+    }>;
 }

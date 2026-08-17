@@ -92,13 +92,14 @@ function EmployeeOfferLetterContent() {
     const watchedDepartment = watch('departmentId');
     const watchedDesignation = watch('designationId');
     const watchedLetterType = watch('letterType');
+    const watchedDOJ = watch('hrmE_DOJ');
 
     // Queries
-    const { data: groupTypesData } = useReportGroupTypes();
-    const { data: departmentsData } = useReportDepartments(watchedGroupType);
-    const { data: designationsData } = useReportDesignations(watchedGroupType, watchedDepartment);
+    const { data: groupTypesData, isLoading: isLoadingGroupTypes } = useReportGroupTypes();
+    const { data: departmentsData, isLoading: isLoadingDepartments } = useReportDepartments(watchedGroupType);
+    const { data: designationsData, isLoading: isLoadingDesignations } = useReportDesignations(watchedGroupType, watchedDepartment);
 
-    const { data: employeesData } = useReportEmployees(
+    const { data: employeesData, isLoading: isLoadingEmployees } = useReportEmployees(
         Number(watchedDesignation),
         Number(watchedDepartment),
         Number(watchedGroupType)
@@ -155,8 +156,8 @@ function EmployeeOfferLetterContent() {
                                 <div className='space-y-2'>
                                     <Label>Type <span className='text-destructive'>*</span></Label>
                                     <Controller name='groupTypeId' control={control} key={resetKey} rules={{ required: 'Select Type' }} render={({ field }) => (
-                                        <Select onValueChange={(val) => { field.onChange(val); setValue('departmentId', ''); setValue('designationId', ''); setValue('employeeId', ''); }} value={field.value}>
-                                            <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                                        <Select onValueChange={(val) => { field.onChange(val); setValue('departmentId', ''); setValue('designationId', ''); setValue('employeeId', ''); }} value={field.value} disabled={isLoadingGroupTypes}>
+                                            <SelectTrigger><SelectValue placeholder={isLoadingGroupTypes ? 'Loading...' : 'Select'} /></SelectTrigger>
                                             <SelectContent>
                                                 {groupTypesData?.data?.map((gt: any) => (
                                                     <SelectItem key={gt.key} value={gt.key.toString()}>{gt.value}</SelectItem>
@@ -233,14 +234,14 @@ function EmployeeOfferLetterContent() {
                                 <div className='space-y-2'>
                                     <Label>Date Of Interview <span className='text-destructive'>*</span></Label>
                                     <Controller name='hrmeR_DOI' control={control} key={resetKey} rules={{ required: 'Select Date Of Interview' }} render={({ field }) => (
-                                        <DatePicker date={field.value} setDate={field.onChange} />
+                                        <DatePicker date={field.value} setDate={field.onChange} disabled={watchedDOJ ? { after: watchedDOJ } : undefined} />
                                     )} />
                                     {errors.hrmeR_DOI && <span className="text-red-500 text-xs font-medium block">{errors.hrmeR_DOI.message}</span>}
                                 </div>
                                 <div className='space-y-2'>
                                     <Label>Date Of Response <span className='text-destructive'>*</span></Label>
                                     <Controller name='hrmeR_DOR' control={control} key={resetKey} rules={{ required: 'Select Date Of Response' }} render={({ field }) => (
-                                        <DatePicker date={field.value} setDate={field.onChange} />
+                                        <DatePicker date={field.value} setDate={field.onChange} disabled={watchedDOJ ? { after: watchedDOJ } : undefined} />
                                     )} />
                                     {errors.hrmeR_DOR && <span className="text-red-500 text-xs font-medium block">{errors.hrmeR_DOR.message}</span>}
                                 </div>

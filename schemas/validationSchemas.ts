@@ -277,7 +277,7 @@ export function createCustomStringSchema(field: string, min: number, max: number
         .refine((value) => value.trim() === value, {
             message: `${field} cannot have leading or trailing spaces`
         })
-        .refine((val) => /^[A-Za-z0-9][A-Za-z0-9+\s!@#$%^&*(),.?":{}|<>-]*$/.test(val), {
+        .refine((val) => /^[A-Za-z0-9][A-Za-z0-9+\s\/!@#$%^&*(),.?":{}|<>-]*$/.test(val), {
             message: `${field} should not start with a special character`
         })
         .refine((val) => !/^[0-9]+$/.test(val), { message: `${field} cannot be only numbers` });
@@ -294,7 +294,7 @@ export function createExamCustomStringSchema(field: string, min: number, max: nu
         .refine((value) => value.trim() === value, {
             message: `${field} cannot have leading or trailing spaces`
         })
-        .refine((val) => /^[A-Za-z0-9][A-Za-z0-9+_\s!@#$%^&*(),.?":{}|<>-]*$/.test(val), {
+        .refine((val) => /^[A-Za-z0-9][A-Za-z0-9+_\s\/!@#$%^&*(),.?":{}|<>-]*$/.test(val), {
             message: `${field} should not start with a special character`
         })
         .refine((val) => !/^[0-9]+$/.test(val.trim()), {

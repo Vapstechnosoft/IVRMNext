@@ -31,10 +31,10 @@ import {
     viewSubjectsGroupExams
 } from '@/server/exam/exam-module/exam-mapping/promotional-setting';
 
-import { getYearlyCategoryDatesMapping } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
-import { getYearlyCategorySubjectMapping } from '@/server/exam/exam-module/exam-mapping/yearly-category-subject-mapping';
 import { getExamTTSessionList } from '@/server/exam/exam-module/exam-mapping/exam-tt-session';
 import { getExamTTTransSettingsList } from '@/server/exam/exam-module/exam-mapping/exam-tt-trans-settings';
+import { getYearlyCategoryDatesMapping } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
+import { getYearlyCategorySubjectMapping } from '@/server/exam/exam-module/exam-mapping/yearly-category-subject-mapping';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -330,8 +330,9 @@ export const usegetHallTicketStudentList = (params: any, searchParams?: ApiSearc
 
     return {
         ...useQuery({
-            queryKey: [EXAM_QUERY_KEYS.EXAM_HALL_TICKET_STUDENT_LIST, searchParams ?? {}],
+            queryKey: [EXAM_QUERY_KEYS.EXAM_HALL_TICKET_STUDENT_LIST, params, searchParams ?? {}],
             queryFn: async () => getHallTicketStudentList(params),
+            enabled: !!(params?.ASMAY_Id && params?.ASMCL_Id && params?.EME_Id),
             staleTime: 0
         }),
 

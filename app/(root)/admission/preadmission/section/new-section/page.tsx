@@ -285,20 +285,7 @@ export default function MasterNewSectionPage(props: {
     };
 
     const handleReset = () => {
-        reset({
-            leftAcademicYear: 0,
-            leftClassAdmitted: '',
-            rightAcademicYear: 0,
-            rightClass: '',
-            rightSection: ''
-        });
-        setLeftStudents([]);
-        setRightStudents([]);
-        setLeftSelectedStudents(new Set());
-        setRightSelectedStudents(new Set());
-        setLeftSelectAll(false);
-        setRightSelectAll(false);
-        setShowTables(false);
+        window.location.reload();
     };
 
     const getAcademicYearDisplay = (id: number) => {

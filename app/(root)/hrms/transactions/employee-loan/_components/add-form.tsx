@@ -100,7 +100,7 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                         control={control}
                         render={({ field }) => (
                             <div className='space-y-2'>
-                                <Label>Employee *</Label>
+                                <Label>Employee <span className='text-destructive'>*</span></Label>
                                 <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
                                     <SelectTrigger
                                         className={cn(
@@ -128,7 +128,7 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                         )}
                     />
                     <div className='space-y-2'>
-                        <Label>Applied Date *</Label>
+                        <Label>Applied Date <span className='text-destructive'>*</span></Label>
                         <Controller
                             name='startDate'
                             control={control}
@@ -161,7 +161,7 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                 </div>
                 <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                     <div className='space-y-2'>
-                        <Label>Loan Type *</Label>
+                        <Label>Loan Type <span className='text-destructive'>*</span></Label>
                         <Select
                             key={`loan-type-${loanTypes.length}`}
                             onValueChange={(value) => {
@@ -177,7 +177,7 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                                         .filter((type) => type && type.HRMLN_Id !== undefined && type.HRMLN_Id !== null)
                                         .map((loanType) => (
                                             <SelectItem key={`loan-${loanType.HRMLN_Id}`} value={loanType.HRMLN_Id.toString()}>
-                                                {`${loanType.HRML_LoanType} (Max: ₹${loanType.HRML_Max?.toLocaleString() || 0})`}
+                                                {`${loanType.HRML_LoanType} `}
                                             </SelectItem>
                                         ))
                                 ) : (
@@ -194,7 +194,7 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                         control={control}
                         render={({ field }) => (
                             <div className='space-y-2'>
-                                <Label>Mode Of Payment *</Label>
+                                <Label>Mode Of Payment <span className='text-destructive'>*</span></Label>
                                 <Select onValueChange={field.onChange} value={field.value}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='--Select--' />
@@ -234,7 +234,7 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                 </div>
                 <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                     <InputText
-                        label='Loan Amount *'
+                        label='Loan Amount '
                         type='number'
                         id='amount'
                         step='0.01'
@@ -243,9 +243,10 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                         error={errors.amount?.message}
                         disabled={!isEmployeeSelected}
                         className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        required
                     />
                     <InputText
-                        label='Loan Interest *'
+                        label='Loan Interest '
                         type='number'
                         id='loanInterest'
                         step='0.01'
@@ -254,11 +255,12 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                         error={errors.loanInterest?.message}
                         disabled={!isEmployeeSelected}
                         className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        required
                     />
                 </div>
                 <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                     <InputText
-                        label='Loan Installments (IN MONTHS) *'
+                        label='Loan Installments (IN MONTHS) '
                         type='number'
                         id='installments'
                         placeholder='Enter loan installments (max 4 digits)'
@@ -266,9 +268,10 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                         error={errors.installments?.message}
                         disabled={!isEmployeeSelected}
                         className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        required
                     />
                     <InputText
-                        label='Loan EMI *'
+                        label='Loan EMI '
                         type='number'
                         id='loanEMI'
                         step='0.01'
@@ -277,6 +280,7 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                         error={errors.loanEMI?.message}
                         disabled={!isEmployeeSelected}
                         className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        required
                     />
                 </div>
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>

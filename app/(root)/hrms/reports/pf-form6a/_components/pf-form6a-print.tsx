@@ -1,5 +1,5 @@
 export const printPFForm6A = (
-    reportData: any[],
+    reportData: any[] | null,
     fullReportData: any,
     institution: any,
     fromDateStr: string,
@@ -11,7 +11,7 @@ export const printPFForm6A = (
         return;
     }
 
-    const tableRows = reportData.map((record: any, index: number) => {
+    const tableRows = reportData?.map((record: any, index: number) => {
         return `
             <tr>
                 <td class="text-center">${index + 1}</td>

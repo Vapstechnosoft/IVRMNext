@@ -96,34 +96,45 @@ export const gradeDetailsSchema = z
     .object({
         emgD_Id: z.number().default(0),
         emgR_Id: z.number().default(0),
-        emgD_Name: createExamCustomStringSchema('Grade Name', 1, 100),
+        emgD_Name: z.string({ required_error: 'Enter Grade' })
+            .min(1, { message: 'Enter Grade' })
+            .max(100, { message: 'Grade Name cannot exceed 100 characters' }),
 
         emgD_From: z
-            .preprocess(
-                (v) => (v === '' || v === null || v === undefined ? null : Number(v)),
-                z.union([
-                    z.number().min(0, { message: 'From must be at least 0' }),
-                    z.null()
-                ])
-            )
-            .default(null),
+            .any()
+            .refine((v) => v !== null && v !== undefined && String(v).trim() !== '', {
+                message: 'Enter valid Format[For Example 100.00,99.97,......]'
+            })
+            .refine((v) => /^[0-9]{0,4}\.?[0-9]{1,}?$/.test(String(v).trim()), {
+                message: 'Enter valid Format[For Example 100.00,99.97,......]'
+            })
+            .transform((v) => Number(v)),
 
         emgD_To: z
-            .preprocess(
-                (v) => (v === '' || v === null || v === undefined ? null : Number(v)),
-                z.union([z.number().min(0, { message: 'To must be at least 0' }), z.null()])
-            )
-            .default(null),
+            .any()
+            .refine((v) => v !== null && v !== undefined && String(v).trim() !== '', {
+                message: 'Enter To[Range]'
+            })
+            .refine((v) => /^[0-9]{0,4}\.?[0-9]{1,}?$/.test(String(v).trim()), {
+                message: 'Enter valid Format[For Example 100.00,99.97,......]'
+            })
+            .transform((v) => Number(v)),
 
         emgD_GradePoints: z
-            .preprocess(
-                (v) => (v === '' || v === null || v === undefined ? null : Number(v)),
-                z.union([
-                    z.number().min(0, { message: 'Grade points must be at least 0' }).max(10, { message: 'Grade points cannot exceed 10' }),
-                    z.null()
-                ])
-            )
-            .default(null),
+            .any()
+            .refine((v) => v !== null && v !== undefined && String(v).trim() !== '', {
+                message: 'Enter Grade Points'
+            })
+            .refine((v) => /^[0-9]{0,4}\.?[0-9]{1,}?$/.test(String(v).trim()), {
+                message: 'Enter valid Format[For Example 100.00,99.97,......]'
+            })
+            .refine((v) => {
+                const num = Number(v);
+                return !isNaN(num) && num >= 0 && num <= 10;
+            }, {
+                message: 'Grade points must be between 0 and 10'
+            })
+            .transform((v) => Number(v)),
 
         emgD_Remarks: z.string().optional(),
         emgD_ActiveFlag: z.boolean().default(true)
@@ -377,24 +388,21 @@ export const lifeSkillAreaMappingSchema = {
     addOrUpdate: z.object({
         ecS_Id: z.number().default(0),
         mI_Id: z.number().optional(),
-        ecS_SkillName: createExamCustomStringSchema('Skill Name', 1, 100),
-        ecS_SkillCode: createStringSchema('Skill Code', 1, 50),
+        ecS_SkillName: z.string().optional(),
+        ecS_SkillCode: z.string().optional(),
 
         subexamDTO: z
             .array(
                 z.object({
                     ecsA_Id: z.number().default(0),
                     ecsA_SkillOrder: z
-                        .number({
-                            required_error: 'Skill Area Order is required',
-                            invalid_type_error: 'Skill Area Order must be a number'
-                        })
+                        .number()
                         .int()
-                        .min(1, { message: 'Skill Area Order must be at least 1' }),
-                    ecsA_SkillArea: createExamCustomStringSchema('Skill Area Name', 1, 100)
+                        .optional(),
+                    ecsA_SkillArea: z.string().optional()
                 })
             )
-            .min(1, { message: 'At least one Skill Area entry is required' }),
+            .optional(),
 
         mappingDTO: z
             .array(

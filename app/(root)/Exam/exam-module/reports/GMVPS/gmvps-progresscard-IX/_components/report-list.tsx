@@ -466,11 +466,11 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                         <tbody>
                                             <tr>
                                                 <th className='border border-gray-400 bg-[#BABABA] p-2 font-bold uppercase'>Total number of working days</th>
-                                                <td className='border border-gray-400 p-2 font-bold w-32'>{workAtt.TotalSchoolDays ?? workAtt.totalSchoolDays ?? workAtt.TotalSchool_Days ?? workAtt.totalSchool_Days ?? workAtt.TotalWorkingDays ?? workAtt.totalWorkingDays ?? ''}</td>
+                                                <td className='border border-gray-400 p-2 font-bold w-32'>{presentAtt.totalSchoolDays ?? ''}</td>
                                                 <th className='border border-gray-400 bg-[#BABABA] p-2 font-bold uppercase'>Number of days attended</th>
-                                                <td className='border border-gray-400 p-2 font-bold w-32'>{presentAtt.TotalPresentDays ?? presentAtt.totalPresentDays ?? presentAtt.TotalPresent_Days ?? presentAtt.totalPresent_Days ?? presentAtt.presentDays ?? presentAtt.present_days ?? ''}</td>
+                                                <td className='border border-gray-400 p-2 font-bold w-32'>{presentAtt.totalWorkingDays ?? ''}</td>
                                                 <th className='border border-gray-400 bg-[#BABABA] p-2 font-bold uppercase'>Attendance Percentage</th>
-                                                <td className='border border-gray-400 p-2 font-bold w-32'>{presentAtt.Total_Percentage ?? presentAtt.total_Percentage ?? presentAtt.percentage ?? presentAtt.Percentage ?? ''}</td>
+                                                <td className='border border-gray-400 p-2 font-bold w-32'>{presentAtt.total_Percentage ?? ''}</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -481,7 +481,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                     <div className='mb-8 border border-gray-400 text-sm'>
                                         <div className='flex border-b border-gray-400'>
                                             <div className='w-32 bg-[#BABABA] p-2 font-bold border-r border-gray-400 text-center uppercase'>Results</div>
-                                            <div className='flex-1 p-2 font-bold uppercase'>{report.eprD_PromotionName || studentSummary.overallResult || '-'}</div>
+                                            <div className='flex-1 p-2 font-bold uppercase'>{remarksObj.eprD_PromotionName || studentSummary.overallResult || '-'}</div>
                                         </div>
                                     </div>
 

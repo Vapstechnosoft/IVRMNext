@@ -5,12 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { 
-    Search, 
-    Paperclip, 
-    MessageSquare, 
-    Calendar, 
-    RefreshCw, 
+import {
+    Search,
+    Paperclip,
+    MessageSquare,
+    Calendar,
+    RefreshCw,
     Trash2,
     Eye,
     ChevronRight,
@@ -29,7 +29,7 @@ interface InboxTabProps {
     onRefresh: () => void;
     roleFlg: string;
 }
-
+export const dynamic = 'force-dynamic';
 export function InboxTab({ data, onRefresh, roleFlg }: InboxTabProps) {
     const [searchFrom, setSearchFrom] = useState('');
     const [searchClass, setSearchClass] = useState('');
@@ -45,9 +45,9 @@ export function InboxTab({ data, onRefresh, roleFlg }: InboxTabProps) {
         return rawMsgs.map((curr: IMessage) => {
             const flag = readFlags.find(f => f.ISMINT_Id === curr.ISMINT_Id);
             const admNo = curr.AMST_AdmNo || (curr as any).AMST_AdmissionNo || (curr as any).amst_admno;
-            
-            return { 
-                ...curr, 
+
+            return {
+                ...curr,
                 ISTINT_ReadFlg: flag ? flag.ISTINT_ReadFlg : 0,
                 AMST_AdmNo: admNo
             };
@@ -64,7 +64,7 @@ export function InboxTab({ data, onRefresh, roleFlg }: InboxTabProps) {
     const handleViewMessage = async (msg: IMessage) => {
         setSelectedMessage(msg);
         setIsViewModalOpen(true);
-        
+
         if (msg.ISTINT_ReadFlg === 0) {
             try {
                 await markMessageAsRead(msg.ISTINT_Id);
@@ -81,7 +81,7 @@ export function InboxTab({ data, onRefresh, roleFlg }: InboxTabProps) {
                 <div className="flex flex-col gap-0.5">
                     <div className="flex items-center gap-2">
                         <h2 className="text-[14px] font-black uppercase tracking-wider text-[#1e40af]">
-                            MESSAGE INBOX 
+                            MESSAGE INBOX
                         </h2>
                         <span className="flex h-6 px-1.5 min-w-[24px] items-center justify-center rounded-sm bg-[#1e40af] text-[10px] font-black text-white shadow-sm">
                             {filteredMessages.length}
@@ -96,7 +96,7 @@ export function InboxTab({ data, onRefresh, roleFlg }: InboxTabProps) {
                     <div className="flex items-center gap-2 text-[10px] font-black uppercase text-slate-500">
                         <Calendar className="h-3.5 w-3.5 text-slate-400" />
                         {format(new Date(), 'MM/dd/yyyy hh:mm a')}
-                        <button 
+                        <button
                             onClick={onRefresh}
                             className="p-1 px-1.5 ml-2 rounded-sm hover:bg-slate-100 transition-all border border-slate-200 bg-white"
                             title="Refresh"
@@ -110,7 +110,7 @@ export function InboxTab({ data, onRefresh, roleFlg }: InboxTabProps) {
             {/* Triple Search Filters - Matches Legacy Layout */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="relative">
-                    <input 
+                    <input
                         className="h-10 w-full rounded-none border border-slate-300 bg-white px-3 text-[11px] font-bold placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition-all"
                         placeholder="Search by From Username..."
                         value={searchFrom}
@@ -118,7 +118,7 @@ export function InboxTab({ data, onRefresh, roleFlg }: InboxTabProps) {
                     />
                 </div>
                 <div className="relative">
-                    <input 
+                    <input
                         className="h-10 w-full rounded-none border border-slate-300 bg-white px-3 text-[11px] font-bold placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition-all"
                         placeholder="Search by Classname..."
                         value={searchClass}
@@ -126,7 +126,7 @@ export function InboxTab({ data, onRefresh, roleFlg }: InboxTabProps) {
                     />
                 </div>
                 <div className="relative">
-                    <input 
+                    <input
                         className="h-10 w-full rounded-none border border-slate-300 bg-white px-3 text-[11px] font-bold placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition-all"
                         placeholder="Search by Sectionname..."
                         value={searchSection}
@@ -147,7 +147,7 @@ export function InboxTab({ data, onRefresh, roleFlg }: InboxTabProps) {
                         const isComposedByMe = msg.ISMINT_ComposedById === (data as any).userhrmE_Id || msg.ISMINT_ComposedById === (data as any).userAMST_Id;
 
                         return (
-                            <div 
+                            <div
                                 key={msg.ISTINT_Id}
                                 onClick={() => handleViewMessage(msg)}
                                 className={cn(
@@ -200,7 +200,7 @@ export function InboxTab({ data, onRefresh, roleFlg }: InboxTabProps) {
             </div>
 
             {isViewModalOpen && selectedMessage && (
-                <ViewReplyModal 
+                <ViewReplyModal
                     isOpen={isViewModalOpen}
                     onClose={() => {
                         setIsViewModalOpen(false);

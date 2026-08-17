@@ -166,7 +166,7 @@ export default function StaffReplacementExistingToNewForm({ onFetch }: StaffRepl
                         />
 
                         <FormSelect
-                            label='Subject'
+                            label='Subject *'
                             name='ismS_Id'
                             placeholder='-- Select Subject --'
                             control={control}
@@ -177,7 +177,7 @@ export default function StaffReplacementExistingToNewForm({ onFetch }: StaffRepl
                         />
 
                         <FormSelect
-                            label='Class'
+                            label='Class *'
                             name='asmcL_Id'
                             placeholder='-- Select Class --'
                             control={control}
@@ -188,7 +188,7 @@ export default function StaffReplacementExistingToNewForm({ onFetch }: StaffRepl
                         />
 
                         <FormSelect
-                            label='Section'
+                            label='Section *'
                             name='asms_Id'
                             placeholder='-- Select Section --'
                             control={control}
