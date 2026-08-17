@@ -1,5 +1,5 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 
 export async function getMasterPositionGridData(mi_id: number): Promise<ApiResponse<any>> {
     const url = `/api/MasterPosition/get_master_position_grid/${mi_id}`;
@@ -8,7 +8,7 @@ export async function getMasterPositionGridData(mi_id: number): Promise<ApiRespo
         return {
             success: response?.success ?? true,
             message: response?.message || 'Data fetched successfully',
-            data: response?.data || response,
+            data: response?.data || response
         };
     } catch (error) {
         console.error('Error fetching master position grid data:', error);
@@ -32,7 +32,7 @@ export async function saveOrUpdatePosition(payload: saveOrUpdatePositionPayload)
         return {
             success: response?.success ?? true,
             message: response?.message || 'Data saved successfully',
-            data: response?.data || response,
+            data: response?.data || response
         };
     } catch (error) {
         console.error('Error saving or updating position:', error);
@@ -47,7 +47,7 @@ export async function togglePositionStatusData(hrmp_Id: number): Promise<ApiResp
         return {
             success: response?.success ?? true,
             message: response?.message || 'Status toggled successfully',
-            data: response?.data || response,
+            data: response?.data || response
         };
     } catch (error) {
         console.error('Error toggling position status:', error);

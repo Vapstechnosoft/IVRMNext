@@ -1,15 +1,24 @@
 import { PREADMISSION_QUERY_KEYS } from '@/constants/query-keys';
-import { getInstitutionList, getPreAdmissionSetOrder, getPreAdmissionYear } from '@/server/admission/preadmission/configuration/academic_year_master';
+import { tableSearchVariables } from '@/lib/data-table.config';
+import {
+    getInstitutionList,
+    getPreAdmissionSetOrder,
+    getPreAdmissionYear
+} from '@/server/admission/preadmission/configuration/academic_year_master';
 import { checkPreadmissionLive } from '@/server/admission/preadmission/configuration/configuration';
 import {
     getAcademicYearMasterConfiguration,
     getMasterConfiguration
 } from '@/server/admission/preadmission/configuration/master_configuration';
-import { getMasterNumbering, getPreRegistrationNumbering, getRegistrationNumbering, getRegNumbering } from '@/server/preconfiguration/transaction-numbering';
-import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs';
-import { tableSearchVariables } from '@/lib/data-table.config';
+import {
+    getMasterNumbering,
+    getPreRegistrationNumbering,
+    getRegNumbering,
+    getRegistrationNumbering
+} from '@/server/preconfiguration/transaction-numbering';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs';
 
 export const useMasterNumberingDropdown = () => {
     return useQuery({

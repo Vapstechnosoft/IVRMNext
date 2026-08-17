@@ -3,10 +3,10 @@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { downloadFile } from '@/lib/utils';
 import type { IHomeWorkAttachment } from '@/types/upload/reports/homework-upload-report';
 import { Download, Eye } from 'lucide-react';
 import { useState } from 'react';
-import { downloadFile } from '@/lib/utils';
 
 interface ViewAttachmentModalProps {
     isOpen: boolean;
@@ -59,21 +59,16 @@ export const ViewAttachmentModal = ({ isOpen, onClose, attachments }: ViewAttach
                                         <TableCell>{att.ihwatT_FileName}</TableCell>
                                         <TableCell className='text-center'>
                                             {att.ihW_Attachment !== 'HyperLink' && (
-                                                <Button
-                                                    variant='ghost'
-                                                    size='icon'
-                                                    onClick={() => handlePreview(att.ihwatT_Attachment)}
-                                                >
+                                                <Button variant='ghost' size='icon' onClick={() => handlePreview(att.ihwatT_Attachment)}>
                                                     <Eye className='h-4 w-4' />
                                                 </Button>
                                             )}
                                         </TableCell>
                                         <TableCell className='text-center'>
-                                            <Button 
-                                                variant='ghost' 
+                                            <Button
+                                                variant='ghost'
                                                 size='icon'
-                                                onClick={() => downloadFile(att.ihwatT_Attachment, att.ihwatT_FileName)}
-                                            >
+                                                onClick={() => downloadFile(att.ihwatT_Attachment, att.ihwatT_FileName)}>
                                                 <Download className='h-4 w-4' />
                                             </Button>
                                         </TableCell>
@@ -86,20 +81,21 @@ export const ViewAttachmentModal = ({ isOpen, onClose, attachments }: ViewAttach
 
                 {previewUrl && (
                     <div className='mt-4 border-t pt-4'>
-                        <div className='flex items-center justify-between mb-2'>
+                        <div className='mb-2 flex items-center justify-between'>
                             <h4 className='font-semibold'>Preview</h4>
                             <Button variant='outline' size='sm' onClick={() => setPreviewUrl(null)}>
                                 Close Preview
                             </Button>
                         </div>
-                        <div className='aspect-video w-full border rounded overflow-hidden'>
-                            <iframe 
-                                src={getFileType(previewUrl) === 'office' 
-                                    ? `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(previewUrl)}` 
-                                    : previewUrl
-                                } 
-                                className='h-full w-full border-none' 
-                                title='Attachment Preview' 
+                        <div className='aspect-video w-full overflow-hidden rounded border'>
+                            <iframe
+                                src={
+                                    getFileType(previewUrl) === 'office'
+                                        ? `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(previewUrl)}`
+                                        : previewUrl
+                                }
+                                className='h-full w-full border-none'
+                                title='Attachment Preview'
                             />
                         </div>
                     </div>

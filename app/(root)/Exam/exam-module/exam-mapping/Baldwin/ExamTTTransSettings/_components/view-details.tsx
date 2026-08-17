@@ -1,8 +1,8 @@
 'use client';
 
-import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { getExamTTTransViewRecords, toggleExamTTTransRecord } from '@/server/exam/exam-module/exam-mapping/exam-tt-trans-settings';
 import type { IExamTTTransSettings } from '@/types/exam/exam-module/exam-mapping';
 import { useEffect, useState } from 'react';
@@ -47,10 +47,11 @@ export default function ExamTTTransSettingsViewDetails({ rowData, onClose }: Pro
             const res = await toggleExamTTTransRecord(record.exttS_Id);
             if (res?.success === true) {
                 toast.success(res.message);
-                setRecords(prev =>
-                    prev.map(r => (r.exttS_Id === record.exttS_Id ? { ...r, exttS_ActiveFlag: !r.exttS_ActiveFlag } : r))
+                setRecords((prev) =>
+                    prev.map((r) => (r.exttS_Id === record.exttS_Id ? { ...r, exttS_ActiveFlag: !r.exttS_ActiveFlag } : r))
                 );
-                setConfirmRecord(null); ``
+                setConfirmRecord(null);
+                ``;
             } else {
                 toast.error(res?.message);
             }
@@ -83,14 +84,12 @@ export default function ExamTTTransSettingsViewDetails({ rowData, onClose }: Pro
                             </thead>
                             <tbody>
                                 {records.map((r, i) => (
-                                    <tr key={i} className='border-t border-gray-200 hover:bg-accent/30 transition-colors'>
+                                    <tr key={i} className='border-gray-200 border-t transition-colors hover:bg-accent/30'>
                                         <td className='px-3 py-2'>{i + 1}</td>
                                         <td className='px-3 py-2'>{r.examname}</td>
                                         <td className='px-3 py-2'>{r.subjectName}</td>
                                         <td className='px-3 py-2'>{r.slotname}</td>
-                                        <td className='px-3 py-2'>
-                                            {r.slotdate ? new Date(r.slotdate).toLocaleDateString('en-GB') : '-'}
-                                        </td>
+                                        <td className='px-3 py-2'>{r.slotdate ? new Date(r.slotdate).toLocaleDateString('en-GB') : '-'}</td>
                                         <td className='px-3 py-2 text-center'>
                                             <div className='flex justify-center'>
                                                 <ActionButtons

@@ -21,11 +21,7 @@ interface UpdateRouteScheduleFormProps {
     selectedRow: IMasterRouteSchedule;
 }
 
-export default function UpdateRouteScheduleForm({
-    onSuccess,
-    className = '',
-    selectedRow: row
-}: UpdateRouteScheduleFormProps) {
+export default function UpdateRouteScheduleForm({ onSuccess, className = '', selectedRow: row }: UpdateRouteScheduleFormProps) {
     const { refetchAll } = useMasterRouteSchedule();
 
     const {

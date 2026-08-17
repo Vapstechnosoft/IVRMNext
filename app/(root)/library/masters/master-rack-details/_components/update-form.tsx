@@ -23,12 +23,7 @@ interface UpdateMasterRackFormProps {
     subjectList: any[];
 }
 
-export default function UpdateMasterRackForm({
-    onSuccess,
-    className = '',
-    selectedRow: row,
-    subjectList
-}: UpdateMasterRackFormProps) {
+export default function UpdateMasterRackForm({ onSuccess, className = '', selectedRow: row, subjectList }: UpdateMasterRackFormProps) {
     const { refetchAll } = useMasterRackDetails();
 
     const {
@@ -60,11 +55,9 @@ export default function UpdateMasterRackForm({
         }
     }, [row, reset]);
 
-
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const response: any = await addOrUpdateMasterRack(data);
-
 
             if (response.returnval || response.success) {
                 toast.success(response.message || 'Record Updated Successfully!!!');
@@ -76,7 +69,6 @@ export default function UpdateMasterRackForm({
             } else {
                 toast.error(response.message || 'Record Not Updated Successfully!!!');
             }
-
         } catch (error: any) {
             toast.error(error.message || 'Something went wrong');
         }
@@ -94,7 +86,6 @@ export default function UpdateMasterRackForm({
             lmrA_ActiveFlag: row.lmrA_ActiveFlag
         });
     };
-
 
     return (
         <div className={className}>
@@ -126,7 +117,7 @@ export default function UpdateMasterRackForm({
                             name='lmS_Id'
                             render={({ field }) => (
                                 <div className='flex flex-col gap-1.5'>
-                                    <label className='text-sm font-medium'>
+                                    <label className='font-medium text-sm'>
                                         Subject Name <span className='text-red-500'>*</span>
                                     </label>
                                     <Select
@@ -143,7 +134,7 @@ export default function UpdateMasterRackForm({
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    {errors.lmS_Id && <span className='text-sm text-red-500'>{errors.lmS_Id.message}</span>}
+                                    {errors.lmS_Id && <span className='text-red-500 text-sm'>{errors.lmS_Id.message}</span>}
                                 </div>
                             )}
                         />
@@ -157,7 +148,7 @@ export default function UpdateMasterRackForm({
                     </div>
                     <div className='grid grid-cols-1'>
                         <div className='flex flex-col gap-1.5'>
-                            <label className='text-sm font-medium'>
+                            <label className='font-medium text-sm'>
                                 Location <span className='text-red-500'>*</span>
                             </label>
                             <textarea
@@ -165,7 +156,7 @@ export default function UpdateMasterRackForm({
                                 placeholder='Enter Location'
                                 {...register('lmrA_Location')}
                             />
-                            {errors.lmrA_Location && <span className='text-sm text-red-500'>{errors.lmrA_Location.message}</span>}
+                            {errors.lmrA_Location && <span className='text-red-500 text-sm'>{errors.lmrA_Location.message}</span>}
                         </div>
                     </div>
                 </div>

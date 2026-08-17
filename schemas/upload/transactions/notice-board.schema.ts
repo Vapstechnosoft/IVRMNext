@@ -48,29 +48,59 @@ export const noticeBoardSchema = z
         feedefaulters: z.boolean().optional().default(false),
 
         // Student Selection
-        asmcL_Id: z.array(z.object({ asmcL_Id: z.number() })).optional().default([]),
-        asmS_Id: z.array(z.object({ asmS_Id: z.number() })).optional().default([]),
-        amsT_Id: z.array(z.object({ amsT_Id: z.number() })).optional().default([]),
-        ismS_Id: z.array(z.object({ ismS_Id: z.number() })).optional().default([]),
+        asmcL_Id: z
+            .array(z.object({ asmcL_Id: z.number() }))
+            .optional()
+            .default([]),
+        asmS_Id: z
+            .array(z.object({ asmS_Id: z.number() }))
+            .optional()
+            .default([]),
+        amsT_Id: z
+            .array(z.object({ amsT_Id: z.number() }))
+            .optional()
+            .default([]),
+        ismS_Id: z
+            .array(z.object({ ismS_Id: z.number() }))
+            .optional()
+            .default([]),
 
         // Staff Selection
-        hrmd_Id: z.array(z.object({ hrmd_Id: z.number() })).optional().default([]),
-        hrmdeS_Id: z.array(z.object({ hrmdeS_Id: z.number() })).optional().default([]),
-        hrmE_Id: z.array(z.object({ hrmE_Id: z.number() })).optional().default([]),
+        hrmd_Id: z
+            .array(z.object({ hrmd_Id: z.number() }))
+            .optional()
+            .default([]),
+        hrmdeS_Id: z
+            .array(z.object({ hrmdeS_Id: z.number() }))
+            .optional()
+            .default([]),
+        hrmE_Id: z
+            .array(z.object({ hrmE_Id: z.number() }))
+            .optional()
+            .default([]),
 
         // Route & Fee Logic
         select_route: z.boolean().default(false),
-        routeList: z.array(z.object({ trmR_Id: z.number() })).optional().default([]),
-        
+        routeList: z
+            .array(z.object({ trmR_Id: z.number() }))
+            .optional()
+            .default([]),
+
         fee_def: z.boolean().default(false),
-        feeGroupList: z.array(z.object({ fmg_Id: z.number() })).optional().default([]),
-        feeTermList: z.array(z.object({ fmT_Id: z.number() })).optional().default([]), // Added Fee Term
+        feeGroupList: z
+            .array(z.object({ fmg_Id: z.number() }))
+            .optional()
+            .default([]),
+        feeTermList: z
+            .array(z.object({ fmT_Id: z.number() }))
+            .optional()
+            .default([]), // Added Fee Term
 
         // Meta
         intB_FilePath: z.string().optional().nullable(),
         asmaY_Year: z.string().optional(),
         createdDate: z.string().optional(),
-        displayDate: z.string().optional(),
+        displayDate: z.string().optional()
     })
     .refine(
         (data) => {
@@ -101,19 +131,18 @@ export const noticeBoardSchema = z
             if (!data.asmcL_Id || data.asmcL_Id.length === 0) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
-                    message: "Class name is required",
-                    path: ['asmcL_Id'],
+                    message: 'Class name is required',
+                    path: ['asmcL_Id']
                 });
             }
             if (!data.asmS_Id || data.asmS_Id.length === 0) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
-                    message: "Section name is required",
-                    path: ['asmS_Id'],
+                    message: 'Section name is required',
+                    path: ['asmS_Id']
                 });
             }
         }
     });
 
 export type INoticeBoard = z.infer<typeof noticeBoardSchema>;
-

@@ -1,13 +1,13 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
 import {
-    getEligibilityCertificateReport,
-    getClasses,
-    getSections,
-    getStudents,
+    generateEligibilityCertificateReport,
     getAge,
-    generateEligibilityCertificateReport
+    getClasses,
+    getEligibilityCertificateReport,
+    getSections,
+    getStudents
 } from '@/server/sports/reports/eligibility-certificate-report';
 import type { IEligibilityCertificateReport } from '@/types/sports/reports/eligibility-certificate-report';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const useEligibilityCertificateReport = () => {
     const { data, isLoading, error, refetch } = useQuery({

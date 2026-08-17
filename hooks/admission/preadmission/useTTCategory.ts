@@ -1,5 +1,5 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getTTCategories } from '@/server/admission/preadmission/newsharedhost/masters/ttcategory';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useTTCategory = () => {
     const queryClient = useQueryClient();

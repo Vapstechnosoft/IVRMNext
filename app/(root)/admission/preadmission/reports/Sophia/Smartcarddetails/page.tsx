@@ -1,38 +1,21 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import { useSophiaSmartcardReport } from '@/hooks/admission/preadmission/reports/useSophiaSmartcardReport';
-import { FilterForm } from './_components/filter-form';
-import { SmartcardPrint } from './_components/smart-card-print';
-import { SectionSummaryTable, ReligionSummaryTable } from './_components/summary-tables';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useSophiaSmartcardReport } from '@/hooks/admission/preadmission/reports/useSophiaSmartcardReport';
+import { AlertCircle, Search, UserCircle } from 'lucide-react';
+import { useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
-import {
-    FileBarChart,
-    Search,
-    Download,
-    Printer,
-    Users,
-    AlertCircle,
-    UserCircle,
-    CheckCircle2
-} from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { FilterForm } from './_components/filter-form';
+import { SmartcardPrint } from './_components/smart-card-print';
+import { ReligionSummaryTable, SectionSummaryTable } from './_components/summary-tables';
 
 export default function SmartcardReportPage() {
     const { reportMutation, loadData } = useSophiaSmartcardReport();
@@ -58,7 +41,7 @@ export default function SmartcardReportPage() {
                 stdmobilenumber: formData.Admnoallind
             };
 
-            const response = await reportMutation.mutateAsync(payload) as any;
+            const response = (await reportMutation.mutateAsync(payload)) as any;
             const resData = response.data || {};
 
             // Map the different lists from the response
@@ -101,7 +84,7 @@ export default function SmartcardReportPage() {
     const exportToExcel = () => {
         let headers: string[] = [];
         let rows: any[][] = [];
-        let fileName = "Sophia_Smart_Card_Report.csv";
+        let fileName = 'Sophia_Smart_Card_Report.csv';
 
         if (activeTab === 'list') {
             const dataToExport = filteredStudents;
@@ -109,7 +92,7 @@ export default function SmartcardReportPage() {
                 toast.warning('No student records found to export.');
                 return;
             }
-            headers = ["SL.NO", "Student Name", "Father Name", "Adm No.", "Street", "Area", "City", "Mobile", "Email ID", "Blood Group"];
+            headers = ['SL.NO', 'Student Name', 'Father Name', 'Adm No.', 'Street', 'Area', 'City', 'Mobile', 'Email ID', 'Blood Group'];
             rows = dataToExport.map((s, i) => [
                 i + 1,
                 s.studentname || '',
@@ -122,13 +105,13 @@ export default function SmartcardReportPage() {
                 s.emailid || '',
                 s.bloodgroup || ''
             ]);
-            fileName = "Sophia_Smart_Card_Student_List.csv";
+            fileName = 'Sophia_Smart_Card_Student_List.csv';
         } else if (activeTab === 'summary') {
             if (summaryData.length === 0) {
                 toast.warning('No summary data found to export.');
                 return;
             }
-            headers = ["SL.NO", "Class", "Section", "Male", "Female", "Total"];
+            headers = ['SL.NO', 'Class', 'Section', 'Male', 'Female', 'Total'];
             rows = summaryData.map((s, i) => [
                 i + 1,
                 s.asmcl_classname || '',
@@ -137,13 +120,38 @@ export default function SmartcardReportPage() {
                 s.female || 0,
                 s.totalcount || 0
             ]);
-            fileName = "Sophia_Smart_Card_Section_Summary.csv";
+            fileName = 'Sophia_Smart_Card_Section_Summary.csv';
         } else if (activeTab === 'detailed') {
             if (detailedSummaryData.length === 0) {
                 toast.warning('No detailed summary records found to export.');
                 return;
             }
-            headers = ["SL.NO", "Class", "Section", "M_Gen", "F_Gen", "M_OBC", "F_OBC", "M_SC", "F_SC", "M_ST", "F_ST", "M_Hindu", "F_Hindu", "M_Chris", "F_Chris", "M_Islam", "F_Islam", "M_Other", "F_Other", "Male_Total", "Female_Total", "New", "Old", "Total"];
+            headers = [
+                'SL.NO',
+                'Class',
+                'Section',
+                'M_Gen',
+                'F_Gen',
+                'M_OBC',
+                'F_OBC',
+                'M_SC',
+                'F_SC',
+                'M_ST',
+                'F_ST',
+                'M_Hindu',
+                'F_Hindu',
+                'M_Chris',
+                'F_Chris',
+                'M_Islam',
+                'F_Islam',
+                'M_Other',
+                'F_Other',
+                'Male_Total',
+                'Female_Total',
+                'New',
+                'Old',
+                'Total'
+            ];
             rows = detailedSummaryData.map((s, i) => [
                 i + 1,
                 s.asmcl_classname || '',
@@ -170,31 +178,40 @@ export default function SmartcardReportPage() {
                 s.oldst_totalcount || 0,
                 s.total || 0
             ]);
-            fileName = "Sophia_Smart_Card_Religious_Summary.csv";
+            fileName = 'Sophia_Smart_Card_Religious_Summary.csv';
         }
 
-        const csvContent = headers.join(",") + "\n"
-            + rows.map(r => r.map(cell => {
-                const val = String(cell ?? '').replace(/"/g, '""');
-                return `"${val}"`;
-            }).join(",")).join("\n");
+        const csvContent =
+            headers.join(',') +
+            '\n' +
+            rows
+                .map((r) =>
+                    r
+                        .map((cell) => {
+                            const val = String(cell ?? '').replace(/"/g, '""');
+                            return `"${val}"`;
+                        })
+                        .join(',')
+                )
+                .join('\n');
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.setAttribute("href", url);
-        link.setAttribute("download", fileName);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', fileName);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
-        
+
         toast.success(`Exported ${rows.length} records!`);
     };
 
-    const filteredStudents = students.filter(s =>
-        (s.studentnam || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (s.AdmNo || '').toLowerCase().includes(searchQuery.toLowerCase())
+    const filteredStudents = students.filter(
+        (s) =>
+            (s.studentnam || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (s.AdmNo || '').toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     const toggleAll = (checked: boolean) => {
@@ -207,49 +224,45 @@ export default function SmartcardReportPage() {
 
     const toggleStudent = (student: any, checked: boolean) => {
         if (checked) {
-            setSelectedStudents(prev => [...prev, student]);
+            setSelectedStudents((prev) => [...prev, student]);
         } else {
-            setSelectedStudents(prev => prev.filter(s => (s.amst_id || s.admno) !== (student.amst_id || student.admno)));
+            setSelectedStudents((prev) => prev.filter((s) => (s.amst_id || s.admno) !== (student.amst_id || student.admno)));
         }
     };
 
     return (
-        <div className="flex flex-col gap-6 p-6 min-h-screen bg-slate-50/50">
+        <div className='flex min-h-screen flex-col gap-6 bg-slate-50/50 p-6'>
             {/* Header section with Stats */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className='flex flex-col justify-between gap-4 md:flex-row md:items-center'>
                 <div>
-                    <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight flex items-center gap-3">
-                        <UserCircle className="w-9 h-9 text-sky-600" />
+                    <h1 className='flex items-center gap-3 font-extrabold text-3xl text-slate-800 tracking-tight'>
+                        <UserCircle className='h-9 w-9 text-sky-600' />
                         Sophia Smart Card Details
                     </h1>
-                    <p className="text-slate-500 font-medium ml-12">
-                        Comprehensive report for student ID details and card management.
-                    </p>
+                    <p className='ml-12 font-medium text-slate-500'>Comprehensive report for student ID details and card management.</p>
                 </div>
                 {showReport && (
-                    <div className="flex gap-4 p-2 bg-white rounded-xl shadow-sm border px-6">
-                        <div className="flex flex-col items-center">
-                            <span className="text-2xl font-bold text-sky-600">{students.length}</span>
-                            <span className="text-[10px] uppercase font-bold text-slate-400">Total</span>
+                    <div className='flex gap-4 rounded-xl border bg-white p-2 px-6 shadow-sm'>
+                        <div className='flex flex-col items-center'>
+                            <span className='font-bold text-2xl text-sky-600'>{students.length}</span>
+                            <span className='font-bold text-[10px] text-slate-400 uppercase'>Total</span>
                         </div>
-                        <Separator orientation="vertical" className="h-10 mx-2" />
-                        <div className="flex flex-col items-center">
-                            <span className="text-2xl font-bold text-emerald-600">{selectedStudents.length}</span>
-                            <span className="text-[10px] uppercase font-bold text-slate-400">Selected</span>
+                        <Separator orientation='vertical' className='mx-2 h-10' />
+                        <div className='flex flex-col items-center'>
+                            <span className='font-bold text-2xl text-emerald-600'>{selectedStudents.length}</span>
+                            <span className='font-bold text-[10px] text-slate-400 uppercase'>Selected</span>
                         </div>
                     </div>
                 )}
             </div>
 
-            <Card className="rounded-none border-t-2 border-t-[#3c8dbc] shadow-md overflow-hidden bg-white">
-                <CardHeader className="bg-white border-b py-2 px-4 h-10 flex justify-center">
-                    <CardTitle className="text-sm font-bold text-[#337ab7]">
-                        SMART CARD DETAILS REPORT
-                    </CardTitle>
+            <Card className='overflow-hidden rounded-none border-t-2 border-t-[#3c8dbc] bg-white shadow-md'>
+                <CardHeader className='flex h-10 justify-center border-b bg-white px-4 py-2'>
+                    <CardTitle className='font-bold text-[#337ab7] text-sm'>SMART CARD DETAILS REPORT</CardTitle>
                 </CardHeader>
-                <CardContent className="pt-6">
-                    <FilterForm 
-                        onSubmit={handleReport} 
+                <CardContent className='pt-6'>
+                    <FilterForm
+                        onSubmit={handleReport}
                         onReset={handleReset}
                         onExport={exportToExcel}
                         onPrint={() => handlePrint()}
@@ -260,32 +273,36 @@ export default function SmartcardReportPage() {
             </Card>
 
             {showReport && (
-                <Card className="rounded-none border-t-2 border-t-[#3c8dbc] shadow-md bg-white overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-500">
-                    <CardHeader className="bg-white border-b py-2 px-4 h-10 flex justify-center">
-                        <CardTitle className="text-sm font-bold text-[#337ab7]">
-                            SMART CARD DETAILS REPORT
-                        </CardTitle>
+                <Card className='fade-in slide-in-from-bottom-5 animate-in overflow-hidden rounded-none border-t-2 border-t-[#3c8dbc] bg-white shadow-md duration-500'>
+                    <CardHeader className='flex h-10 justify-center border-b bg-white px-4 py-2'>
+                        <CardTitle className='font-bold text-[#337ab7] text-sm'>SMART CARD DETAILS REPORT</CardTitle>
                     </CardHeader>
-                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                        <CardHeader className="border-b bg-white flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0 p-4">
-                            <TabsList className="grid grid-cols-3 w-full md:w-[600px] h-11 bg-slate-100 p-1">
-                                <TabsTrigger value="list" className="rounded-md font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
+                        <CardHeader className='flex flex-col items-center justify-between space-y-4 border-b bg-white p-4 md:flex-row md:space-y-0'>
+                            <TabsList className='grid h-11 w-full grid-cols-3 bg-slate-100 p-1 md:w-[600px]'>
+                                <TabsTrigger
+                                    value='list'
+                                    className='rounded-md font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm'>
                                     Student List
                                 </TabsTrigger>
-                                <TabsTrigger value="summary" className="rounded-md font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                                <TabsTrigger
+                                    value='summary'
+                                    className='rounded-md font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm'>
                                     Section Summary
                                 </TabsTrigger>
-                                <TabsTrigger value="detailed" className="rounded-md font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                                <TabsTrigger
+                                    value='detailed'
+                                    className='rounded-md font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm'>
                                     Religious/Category
                                 </TabsTrigger>
                             </TabsList>
 
-                            <div className="flex items-center gap-3 w-full md:w-auto">
-                                <div className="relative flex-1 md:flex-none">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                            <div className='flex w-full items-center gap-3 md:w-auto'>
+                                <div className='relative flex-1 md:flex-none'>
+                                    <Search className='-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-slate-400' />
                                     <Input
-                                        placeholder="search here..."
-                                        className="pl-9 h-10 w-full md:w-[250px] border-slate-300 focus:ring-sky-500 focus:border-sky-500 font-medium bg-white rounded-none"
+                                        placeholder='search here...'
+                                        className='h-10 w-full rounded-none border-slate-300 bg-white pl-9 font-medium focus:border-sky-500 focus:ring-sky-500 md:w-[250px]'
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                     />
@@ -293,64 +310,97 @@ export default function SmartcardReportPage() {
                             </div>
                         </CardHeader>
 
-                        <CardContent className="bg-white p-4">
-                            <TabsContent value="list" className="mt-0 outline-none">
-                                <div className="flex items-center gap-2 mb-4">
-                                    <div className="flex items-center gap-2 px-3 py-1 bg-white border border-slate-200 rounded-sm shadow-sm">
-                                        <span className="text-sm font-bold text-slate-700">Total Grid Records :</span>
-                                        <Badge className="bg-[#3c8dbc] text-white hover:bg-[#3c8dbc] rounded-full w-6 h-6 flex items-center justify-center p-0">
+                        <CardContent className='bg-white p-4'>
+                            <TabsContent value='list' className='mt-0 outline-none'>
+                                <div className='mb-4 flex items-center gap-2'>
+                                    <div className='flex items-center gap-2 rounded-sm border border-slate-200 bg-white px-3 py-1 shadow-sm'>
+                                        <span className='font-bold text-slate-700 text-sm'>Total Grid Records :</span>
+                                        <Badge className='flex h-6 w-6 items-center justify-center rounded-full bg-[#3c8dbc] p-0 text-white hover:bg-[#3c8dbc]'>
                                             {filteredStudents.length}
                                         </Badge>
                                     </div>
                                 </div>
-                                <ScrollArea className="h-[600px] w-full border rounded-md">
-                                    <Table className="relative border-collapse">
-                                        <TableHeader className="bg-[#337ab7] sticky top-0 z-10">
-                                            <TableRow className="hover:bg-transparent border-b">
-                                                <TableHead className="w-[50px] text-center text-white font-bold">
+                                <ScrollArea className='h-[600px] w-full rounded-md border'>
+                                    <Table className='relative border-collapse'>
+                                        <TableHeader className='sticky top-0 z-10 bg-[#337ab7]'>
+                                            <TableRow className='border-b hover:bg-transparent'>
+                                                <TableHead className='w-[50px] text-center font-bold text-white'>
                                                     <Checkbox
-                                                        checked={selectedStudents.length === filteredStudents.length && filteredStudents.length > 0}
+                                                        checked={
+                                                            selectedStudents.length === filteredStudents.length &&
+                                                            filteredStudents.length > 0
+                                                        }
                                                         onCheckedChange={(checked) => toggleAll(!!checked)}
-                                                        className="border-white data-[state=checked]:bg-white data-[state=checked]:text-[#337ab7]"
+                                                        className='border-white data-[state=checked]:bg-white data-[state=checked]:text-[#337ab7]'
                                                     />
                                                 </TableHead>
-                                                <TableHead className="w-[60px] text-center text-white font-bold">SL.NO</TableHead>
-                                                <TableHead className="text-white font-bold">Student Name</TableHead>
-                                                <TableHead className="text-white font-bold">Father Name</TableHead>
-                                                <TableHead className="text-white font-bold text-center">Adm No.</TableHead>
-                                                <TableHead className="text-white font-bold">Street</TableHead>
-                                                <TableHead className="text-white font-bold">Area</TableHead>
-                                                <TableHead className="text-white font-bold">city</TableHead>
-                                                <TableHead className="text-white font-bold text-center">Mobile</TableHead>
-                                                <TableHead className="text-white font-bold text-center">Email_ID</TableHead>
-                                                <TableHead className="text-white font-bold text-center uppercase tracking-tighter">BloodGroup</TableHead>
+                                                <TableHead className='w-[60px] text-center font-bold text-white'>SL.NO</TableHead>
+                                                <TableHead className='font-bold text-white'>Student Name</TableHead>
+                                                <TableHead className='font-bold text-white'>Father Name</TableHead>
+                                                <TableHead className='text-center font-bold text-white'>Adm No.</TableHead>
+                                                <TableHead className='font-bold text-white'>Street</TableHead>
+                                                <TableHead className='font-bold text-white'>Area</TableHead>
+                                                <TableHead className='font-bold text-white'>city</TableHead>
+                                                <TableHead className='text-center font-bold text-white'>Mobile</TableHead>
+                                                <TableHead className='text-center font-bold text-white'>Email_ID</TableHead>
+                                                <TableHead className='text-center font-bold text-white uppercase tracking-tighter'>
+                                                    BloodGroup
+                                                </TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
                                             {filteredStudents.length > 0 ? (
                                                 filteredStudents.map((student, index) => {
-                                                    const isSelected = selectedStudents.some(s => (s.amst_id || s.admno) === (student.amst_id || student.admno));
+                                                    const isSelected = selectedStudents.some(
+                                                        (s) => (s.amst_id || s.admno) === (student.amst_id || student.admno)
+                                                    );
                                                     return (
-                                                        <TableRow key={student.amst_id || student.admno || index} className={isSelected ? "bg-sky-50/40 hover:bg-sky-50/60" : "hover:bg-slate-50/80"}>
-                                                            <TableCell className="text-center">
+                                                        <TableRow
+                                                            key={student.amst_id || student.admno || index}
+                                                            className={
+                                                                isSelected ? 'bg-sky-50/40 hover:bg-sky-50/60' : 'hover:bg-slate-50/80'
+                                                            }>
+                                                            <TableCell className='text-center'>
                                                                 <Checkbox
                                                                     checked={isSelected}
                                                                     onCheckedChange={(checked) => toggleStudent(student, !!checked)}
-                                                                    className={isSelected ? "border-sky-500 bg-sky-500 text-white" : "border-slate-300"}
+                                                                    className={
+                                                                        isSelected
+                                                                            ? 'border-sky-500 bg-sky-500 text-white'
+                                                                            : 'border-slate-300'
+                                                                    }
                                                                 />
                                                             </TableCell>
-                                                            <TableCell className="text-center font-bold text-slate-500">{index + 1}</TableCell>
-                                                            <TableCell>
-                                                                <div className="font-bold text-slate-800 uppercase text-xs">{student.studentname}</div>
+                                                            <TableCell className='text-center font-bold text-slate-500'>
+                                                                {index + 1}
                                                             </TableCell>
-                                                            <TableCell className="text-slate-600 uppercase text-xs">{student.fathername}</TableCell>
-                                                            <TableCell className="text-center font-mono text-[10px] font-semibold">{student.admno}</TableCell>
-                                                            <TableCell className="text-slate-600 uppercase text-[10px]">{student.street || '-'}</TableCell>
-                                                            <TableCell className="text-slate-600 uppercase text-[10px]">{student.area || '-'}</TableCell>
-                                                            <TableCell className="uppercase text-slate-600 text-[10px]">{student.city || '-'}</TableCell>
-                                                            <TableCell className="text-center text-slate-600 text-[10px]">{student.mobile || '-'}</TableCell>
-                                                            <TableCell className="text-slate-600 text-[10px]">{student.emailid || '-'}</TableCell>
-                                                            <TableCell className="text-center font-bold text-slate-700 text-[10px]">
+                                                            <TableCell>
+                                                                <div className='font-bold text-slate-800 text-xs uppercase'>
+                                                                    {student.studentname}
+                                                                </div>
+                                                            </TableCell>
+                                                            <TableCell className='text-slate-600 text-xs uppercase'>
+                                                                {student.fathername}
+                                                            </TableCell>
+                                                            <TableCell className='text-center font-mono font-semibold text-[10px]'>
+                                                                {student.admno}
+                                                            </TableCell>
+                                                            <TableCell className='text-[10px] text-slate-600 uppercase'>
+                                                                {student.street || '-'}
+                                                            </TableCell>
+                                                            <TableCell className='text-[10px] text-slate-600 uppercase'>
+                                                                {student.area || '-'}
+                                                            </TableCell>
+                                                            <TableCell className='text-[10px] text-slate-600 uppercase'>
+                                                                {student.city || '-'}
+                                                            </TableCell>
+                                                            <TableCell className='text-center text-[10px] text-slate-600'>
+                                                                {student.mobile || '-'}
+                                                            </TableCell>
+                                                            <TableCell className='text-[10px] text-slate-600'>
+                                                                {student.emailid || '-'}
+                                                            </TableCell>
+                                                            <TableCell className='text-center font-bold text-[10px] text-slate-700'>
                                                                 {student.bloodgroup || '-'}
                                                             </TableCell>
                                                             {/* <TableCell className="text-center">
@@ -361,14 +411,14 @@ export default function SmartcardReportPage() {
                                                                 )}
                                                             </TableCell> */}
                                                         </TableRow>
-                                                    )
+                                                    );
                                                 })
                                             ) : (
                                                 <TableRow>
-                                                    <TableCell colSpan={8} className="h-64 text-center">
-                                                        <div className="flex flex-col items-center gap-4 text-slate-400">
-                                                            <AlertCircle className="w-12 h-12 stroke-[1.5]" />
-                                                            <p className="font-semibold text-lg">No students matching your search.</p>
+                                                    <TableCell colSpan={8} className='h-64 text-center'>
+                                                        <div className='flex flex-col items-center gap-4 text-slate-400'>
+                                                            <AlertCircle className='h-12 w-12 stroke-[1.5]' />
+                                                            <p className='font-semibold text-lg'>No students matching your search.</p>
                                                         </div>
                                                     </TableCell>
                                                 </TableRow>
@@ -378,11 +428,11 @@ export default function SmartcardReportPage() {
                                 </ScrollArea>
                             </TabsContent>
 
-                            <TabsContent value="summary" className="mt-0 outline-none">
+                            <TabsContent value='summary' className='mt-0 outline-none'>
                                 <SectionSummaryTable data={summaryData} />
                             </TabsContent>
 
-                            <TabsContent value="detailed" className="mt-0 outline-none">
+                            <TabsContent value='detailed' className='mt-0 outline-none'>
                                 <ReligionSummaryTable data={detailedSummaryData} />
                             </TabsContent>
                         </CardContent>
@@ -391,10 +441,10 @@ export default function SmartcardReportPage() {
             )}
 
             {/* Hidden Print Wrapper */}
-            <div className="hidden">
-                <SmartcardPrint 
-                    ref={printRef} 
-                    data={selectedStudents.length > 0 ? selectedStudents : students} 
+            <div className='hidden'>
+                <SmartcardPrint
+                    ref={printRef}
+                    data={selectedStudents.length > 0 ? selectedStudents : students}
                     summaryData={summaryData}
                     detailedSummaryData={detailedSummaryData}
                     imgName={institution?.logo}

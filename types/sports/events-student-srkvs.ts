@@ -1,5 +1,4 @@
-
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { z } from 'zod';
 
 // Interfaces for Grid Data
@@ -87,27 +86,27 @@ export interface IEventsStudentSRKVSDropdowns {
 }
 
 export const eventsStudentSRKVSSchema = z.object({
-    asmaY_Id: z.coerce.number().min(1, "Academic Year is required"),
-    spccmsccG_SCCFlag: z.enum(["Sports", "Co-Curricular"]),
+    asmaY_Id: z.coerce.number().min(1, 'Academic Year is required'),
+    spccmsccG_SCCFlag: z.enum(['Sports', 'Co-Curricular']),
     // spccesT_House_Class_Flag: z.enum(["CC", "House", "Class", "CS"]).optional(), // Removed
     spccmcC_Id: z.coerce.number().optional(), // Category (for CC)
     comcat_idcls: z.coerce.number().optional(), // Category (for Class/House?)
-    spccmcL_Id: z.coerce.number().min(1, "Competition Level is required"),
-    spccmE_Id: z.coerce.number().min(1, "Event is required"),
-    spccmsccG_Id: z.coerce.number().min(1, "Main Event is required"),
-    spccmsccG_Idsub: z.coerce.number().min(1, "Sub Sub Event is required"),
-    spccmscC_Id: z.coerce.number().min(1, "Sub Event is required"),
-    spccmuoM_Id: z.coerce.number().min(1, "UOM is required"),
-    spccmeV_Id: z.coerce.number().min(1, "Venue is required"),
-    spccE_StartDate: z.string().min(1, "Start Date is required"),
-    spccE_EndDate: z.string().min(1, "End Date is required"),
+    spccmcL_Id: z.coerce.number().min(1, 'Competition Level is required'),
+    spccmE_Id: z.coerce.number().min(1, 'Event is required'),
+    spccmsccG_Id: z.coerce.number().min(1, 'Main Event is required'),
+    spccmsccG_Idsub: z.coerce.number().min(1, 'Sub Sub Event is required'),
+    spccmscC_Id: z.coerce.number().min(1, 'Sub Event is required'),
+    spccmuoM_Id: z.coerce.number().min(1, 'UOM is required'),
+    spccmeV_Id: z.coerce.number().min(1, 'Venue is required'),
+    spccE_StartDate: z.string().min(1, 'Start Date is required'),
+    spccE_EndDate: z.string().min(1, 'End Date is required'),
     spccesT_Remarks: z.string().optional(),
     spccesT_OldRecord: z.string().optional(),
 
     // Filtering Arrays
     // selectedHouses: z.array(z.number()).optional(), // Removed
     selectedClasses: z.array(z.number()).optional(),
-    selectedSections: z.array(z.number()).optional(),
+    selectedSections: z.array(z.number()).optional()
 });
 
 export type EventsStudentSRKVSFormSchema = z.infer<typeof eventsStudentSRKVSSchema>;

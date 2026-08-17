@@ -3,8 +3,8 @@
 import { Spinner } from '@/components/ui/spinner';
 import { useMasterConfigurationEdit } from '@/hooks/preconfiguration/useMasterConfiguration';
 import type { IMasterConfiguration, IMasterConfigurationResponse } from '@/types/preconfiguration/master-configuration';
-import MasterConfigurationForm from './add-form';
 import { useEffect, useState } from 'react';
+import MasterConfigurationForm from './add-form';
 
 export default function UpdateMasterConfigurationForm({
     selectedRow,
@@ -21,16 +21,16 @@ export default function UpdateMasterConfigurationForm({
     useEffect(() => {
         if (editData?.mstConfigList?.[0]) {
             const config = editData.mstConfigList[0];
-            
+
             // Map the selected category back for the UI
             let amC_Id;
             let amcoC_Id;
 
             if (editData.mI_SchoolCollegeFlag === 'S') {
-                const selectedCat = editData.studentlicategorylist?.find(c => c.amC_Id === config.amC_Id);
+                const selectedCat = editData.studentlicategorylist?.find((c) => c.amC_Id === config.amC_Id);
                 amC_Id = selectedCat?.amC_Id;
             } else {
-                const selectedCat = editData.studentlicategorylist?.find(c => c.amcoC_Id === config.amcoC_Id);
+                const selectedCat = editData.studentlicategorylist?.find((c) => c.amcoC_Id === config.amcoC_Id);
                 amcoC_Id = selectedCat?.amcoC_Id;
             }
 
@@ -82,14 +82,14 @@ export default function UpdateMasterConfigurationForm({
 
     if (isLoading || !initialData) {
         return (
-            <div className="flex justify-center p-8">
-                <Spinner className="h-8 w-8" />
+            <div className='flex justify-center p-8'>
+                <Spinner className='h-8 w-8' />
             </div>
         );
     }
 
     if (error) {
-        return <div className="text-center text-red-500 p-4">Failed to load configuration data.</div>;
+        return <div className='p-4 text-center text-red-500'>Failed to load configuration data.</div>;
     }
 
     // Merge response with edit data specifically for lists if necessary
@@ -100,11 +100,5 @@ export default function UpdateMasterConfigurationForm({
         mI_SchoolCollegeFlag: editData?.mI_SchoolCollegeFlag || response?.mI_SchoolCollegeFlag
     } as IMasterConfigurationResponse;
 
-    return (
-        <MasterConfigurationForm
-            response={mergedResponse}
-            onSuccess={onSuccess}
-            initialData={initialData}
-        />
-    );
+    return <MasterConfigurationForm response={mergedResponse} onSuccess={onSuccess} initialData={initialData} />;
 }

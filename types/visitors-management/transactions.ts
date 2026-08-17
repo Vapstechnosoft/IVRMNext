@@ -1,24 +1,23 @@
-
 export interface VisitorTransactionData {
-  vmmV_Id: number;
-  vmmV_VisitorName: string;
-  vmmV_VisitorContactNo: string;
-  vmmV_VisitorEmailid: string;
-  vmmV_MeetingDateTime: string; // ISO String
-  vmmV_EntryDateTime: string;
-  vmmV_FromPlace: string;
-  empname?: string; // For display
-  vmmV_MeetingPurpose: string;
-  vmmV_FromAddress: string;
-  vmmV_MeetingLocation: string;
-  vmmV_VisitorPhoto?: string;
-  vmmV_ExitDate?: string; // Potential future field
-  vmmV_ExitTime?: string; // Potential future field
+    vmmV_Id: number;
+    vmmV_VisitorName: string;
+    vmmV_VisitorContactNo: string;
+    vmmV_VisitorEmailid: string;
+    vmmV_MeetingDateTime: string; // ISO String
+    vmmV_EntryDateTime: string;
+    vmmV_FromPlace: string;
+    empname?: string; // For display
+    vmmV_MeetingPurpose: string;
+    vmmV_FromAddress: string;
+    vmmV_MeetingLocation: string;
+    vmmV_VisitorPhoto?: string;
+    vmmV_ExitDate?: string; // Potential future field
+    vmmV_ExitTime?: string; // Potential future field
 }
 
 export interface AddVisitorInitialData {
-  emplist: { hrmE_Id: number; hrmE_EmployeeFirstName: string }[];
-  gridoptions: VisitorTransactionData[];
+    emplist: { hrmE_Id: number; hrmE_EmployeeFirstName: string }[];
+    gridoptions: VisitorTransactionData[];
 }
 
 export interface PreviousVisitorData {
@@ -128,8 +127,21 @@ export interface GatePassTransactionData {
 }
 
 export interface GatePassInitialData {
-    emplist: { hrmE_Id: number; hrmE_EmployeeFirstName: string; hrmD_DepartmentName: string; hrmdeS_DesignationName: string; hrmE_MobileNo: string }[];
-    studentlist: { amsT_Id: number; amsT_FirstName: string; amsT_AdmNo: string; asmcL_ClassName: string; asmC_SectionName: string; amsT_MobileNo: string }[];
+    emplist: {
+        hrmE_Id: number;
+        hrmE_EmployeeFirstName: string;
+        hrmD_DepartmentName: string;
+        hrmdeS_DesignationName: string;
+        hrmE_MobileNo: string;
+    }[];
+    studentlist: {
+        amsT_Id: number;
+        amsT_FirstName: string;
+        amsT_AdmNo: string;
+        asmcL_ClassName: string;
+        asmC_SectionName: string;
+        amsT_MobileNo: string;
+    }[];
     getdata: GatePassTransactionData[];
 }
 

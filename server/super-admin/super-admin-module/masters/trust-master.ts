@@ -49,10 +49,7 @@ export async function getTrustMasterData(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/OrganisationFacade/get_on_load_details?${urlParams}`;
     try {
-        const response = await api.get<ITrustMaster[]>(
-            'sadmin',
-            url
-        );
+        const response = await api.get<ITrustMaster[]>('sadmin', url);
         return response;
     } catch (error) {
         throw error;

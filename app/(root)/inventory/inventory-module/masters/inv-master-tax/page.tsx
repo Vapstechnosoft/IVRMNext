@@ -1,19 +1,19 @@
 'use client';
 
-import { use } from 'react';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { Plus, X, Percent, PlusCircle, Pencil } from 'lucide-react';
 import { useInvMasterTax } from '@/hooks/inventory/masters/use-inv-master-tax';
 import type { IInvMasterTax } from '@/types/inventory/masters/inv-master-tax';
+import { Pencil, Percent, Plus, PlusCircle, X } from 'lucide-react';
+import { use } from 'react';
+import { useState } from 'react';
 import AddInvMasterTaxForm from './_components/add-form';
 import { getInvMasterTaxColumns } from './_components/columns';
+import TaxLedgerSheet from './_components/tax-ledger-sheet';
 import ToggleInvMasterTaxForm from './_components/toggle-form';
 import UpdateInvMasterTaxForm from './_components/update-form';
-import TaxLedgerSheet from './_components/tax-ledger-sheet';
-import { useState } from 'react';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -91,22 +91,16 @@ function InvMasterTaxPageContent({
                         noDataDescription='Get started by creating your first tax'
                         errorTitle='Error Loading Taxes'
                     />
-                </CollapsibleSection >
+                </CollapsibleSection>
 
                 {/* Tax Ledger Sheet */}
-                {
-                    isLedgerSheetOpen && (
-                        <TaxLedgerSheet
-                            isOpen={isLedgerSheetOpen}
-                            onClose={() => setIsLedgerSheetOpen(false)}
-                            tax={selectedTaxForLedger}
-                        />
-                    )
-                }
+                {isLedgerSheetOpen && (
+                    <TaxLedgerSheet isOpen={isLedgerSheetOpen} onClose={() => setIsLedgerSheetOpen(false)} tax={selectedTaxForLedger} />
+                )}
 
                 <FormSections />
-            </div >
-        </div >
+            </div>
+        </div>
     );
 }
 

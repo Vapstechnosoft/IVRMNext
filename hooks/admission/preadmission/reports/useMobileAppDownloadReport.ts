@@ -1,8 +1,8 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
 import {
     getMobileAppDownloadLoadData,
     getMobileAppDownloadReport
 } from '@/server/admission/preadmission/reports/mobile_app_download_report';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const useMobileAppDownloadLoadData = () => {
     return useQuery({

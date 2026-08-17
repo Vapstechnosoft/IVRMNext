@@ -1,17 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { MasterSubMenuINSDTO, SetOrderRequest } from '@/types/super-admin/configuration-setting/master-sub-menu-ins';
-import { ArrowUp, ArrowDown, Save } from 'lucide-react';
-import { toast } from 'sonner';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import type { MasterSubMenuINSDTO, SetOrderRequest } from '@/types/super-admin/configuration-setting/master-sub-menu-ins';
+import { ArrowDown, ArrowUp, Save } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface SetOrderModalProps {
     isOpen: boolean;
@@ -56,45 +49,47 @@ export default function SetOrderModal({ isOpen, onClose, data, onSave }: SetOrde
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className='sm:max-w-md'>
                 <DialogHeader>
                     <DialogTitle>Set Order</DialogTitle>
                 </DialogHeader>
-                <div className="max-h-[60vh] overflow-y-auto border rounded-md p-2">
-                    <ul className="space-y-2">
+                <div className='max-h-[60vh] overflow-y-auto rounded-md border p-2'>
+                    <ul className='space-y-2'>
                         {items.map((item, index) => (
-                            <li key={`${item.ivrmmmI_Id}-${index}`} className="flex items-center justify-between bg-secondary/20 p-2 rounded-md border">
-                                <span className="text-sm font-medium">{index + 1}. {item.ivrmmmI_MenuName} (Module: {item.modulename})</span>
-                                <div className="flex gap-1">
+                            <li
+                                key={`${item.ivrmmmI_Id}-${index}`}
+                                className='flex items-center justify-between rounded-md border bg-secondary/20 p-2'>
+                                <span className='font-medium text-sm'>
+                                    {index + 1}. {item.ivrmmmI_MenuName} (Module: {item.modulename})
+                                </span>
+                                <div className='flex gap-1'>
                                     <Button
-                                        variant="ghost"
-                                        size="sm"
+                                        variant='ghost'
+                                        size='sm'
                                         disabled={index === 0}
                                         onClick={() => moveItem(index, 'up')}
-                                        title="Move Up"
-                                    >
-                                        <ArrowUp className="h-4 w-4" />
+                                        title='Move Up'>
+                                        <ArrowUp className='h-4 w-4' />
                                     </Button>
                                     <Button
-                                        variant="ghost"
-                                        size="sm"
+                                        variant='ghost'
+                                        size='sm'
                                         disabled={index === items.length - 1}
                                         onClick={() => moveItem(index, 'down')}
-                                        title="Move Down"
-                                    >
-                                        <ArrowDown className="h-4 w-4" />
+                                        title='Move Down'>
+                                        <ArrowDown className='h-4 w-4' />
                                     </Button>
                                 </div>
                             </li>
                         ))}
                     </ul>
                 </div>
-                <DialogFooter className="sm:justify-end gap-2">
-                    <Button variant="outline" onClick={onClose}>
+                <DialogFooter className='gap-2 sm:justify-end'>
+                    <Button variant='outline' onClick={onClose}>
                         Close
                     </Button>
-                    <Button type="button" onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white">
-                        <Save className="mr-2 h-4 w-4" /> Save Order
+                    <Button type='button' onClick={handleSave} className='bg-blue-600 text-white hover:bg-blue-700'>
+                        <Save className='mr-2 h-4 w-4' /> Save Order
                     </Button>
                 </DialogFooter>
             </DialogContent>

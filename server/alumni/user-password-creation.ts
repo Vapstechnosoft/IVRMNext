@@ -3,7 +3,7 @@
 import { api } from '@/lib/apiService';
 import type { IStudent } from '@/types/alumni/user-password-creation';
 
-export async function getInitialData(mi_id: number = 1) {
+export async function getInitialData(mi_id = 1) {
     const url = `/UsrPwd/getdata/${mi_id}`;
     try {
         const response = await api.get<any>('alumni', url);
@@ -31,7 +31,7 @@ export async function getInitialData(mi_id: number = 1) {
             };
         }
     } catch (error: any) {
-        console.error("getInitialData error:", error);
+        console.error('getInitialData error:', error);
     }
     return { success: false, data: { yearList: [], classlist: [], sectionlist: [] } };
 }
@@ -70,7 +70,7 @@ export async function getReportDetails(data: {
             total: mappedStudents.length
         };
     } catch (error: any) {
-        console.error("getReportDetails error:", error);
+        console.error('getReportDetails error:', error);
         return {
             success: false,
             data: [],
@@ -98,7 +98,7 @@ export async function createUsername(data: {
         }
         return { success: false, message: resData?.message || 'Failed to create usernames' };
     } catch (error: any) {
-        console.error("createUsername error:", error);
+        console.error('createUsername error:', error);
         return { success: false, message: typeof error === 'string' ? error : error?.message || 'Failed to create usernames' };
     }
 }

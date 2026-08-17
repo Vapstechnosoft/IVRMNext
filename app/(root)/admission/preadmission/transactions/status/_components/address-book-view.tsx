@@ -9,16 +9,17 @@ interface AddressBookViewProps {
 const AddressBookView = React.forwardRef<HTMLDivElement, AddressBookViewProps>(({ data }, ref) => {
     if (!data || data.length === 0) {
         return (
-            <div ref={ref} className='p-5 text-center bg-white text-black'>
+            <div ref={ref} className='bg-white p-5 text-center text-black'>
                 No data selected for address book.
             </div>
         );
     }
 
     return (
-        <div ref={ref} className='print-preview-container bg-white text-black min-h-full w-full'>
-            <style dangerouslySetInnerHTML={{
-                __html: `
+        <div ref={ref} className='print-preview-container min-h-full w-full bg-white text-black'>
+            <style
+                dangerouslySetInnerHTML={{
+                    __html: `
                     @media print {
                         @page {
                             margin: 10mm;
@@ -65,25 +66,29 @@ const AddressBookView = React.forwardRef<HTMLDivElement, AddressBookViewProps>((
                         }
                     }
                 `
-            }} />
+                }}
+            />
 
             <div className='header-section'>
-                <h2 className='text-xl font-bold uppercase underline'>Address Book</h2>
-                <p className='text-sm text-gray-600'>Total Records: {data.length}</p>
+                <h2 className='font-bold text-xl uppercase underline'>Address Book</h2>
+                <p className='text-gray-600 text-sm'>Total Records: {data.length}</p>
             </div>
 
             <div className='address-grid'>
                 {data.map((user, index) => (
                     <div key={index} className='address-card'>
-                        <div className='font-bold uppercase border-b pb-1 mb-2'>
+                        <div className='mb-2 border-b pb-1 font-bold uppercase'>
                             {user.name} ({user.pasR_RegistrationNo})
                         </div>
                         <div className='space-y-1'>
                             {user.pasR_FatherName && (
-                                <div><span className='font-semibold'>S/O:</span> <span className='uppercase'>{user.pasR_FatherName}</span></div>
+                                <div>
+                                    <span className='font-semibold'>S/O:</span> <span className='uppercase'>{user.pasR_FatherName}</span>
+                                </div>
                             )}
                             <div className='mt-2'>
-                                <span className='font-semibold'>Address:</span><br />
+                                <span className='font-semibold'>Address:</span>
+                                <br />
                                 {user.pasR_ConStreet && <div>{user.pasR_ConStreet},</div>}
                                 {user.pasR_ConArea && <div>{user.pasR_ConArea},</div>}
                                 <div>
@@ -91,12 +96,8 @@ const AddressBookView = React.forwardRef<HTMLDivElement, AddressBookViewProps>((
                                     {user.pasR_ConPincode && <span> - {user.pasR_ConPincode}</span>}
                                 </div>
                             </div>
-                            {user.pasR_MobileNo && (
-                                <div className='mt-2 font-semibold'>Mobile: {user.pasR_MobileNo}</div>
-                            )}
-                            {user.pasR_emailId && (
-                                <div className='text-xs text-gray-600'>{user.pasR_emailId}</div>
-                            )}
+                            {user.pasR_MobileNo && <div className='mt-2 font-semibold'>Mobile: {user.pasR_MobileNo}</div>}
+                            {user.pasR_emailId && <div className='text-gray-600 text-xs'>{user.pasR_emailId}</div>}
                         </div>
                     </div>
                 ))}

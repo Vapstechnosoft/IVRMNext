@@ -1,7 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { HostelFoodConveyanceReportValues } from '@/schemas/hostel/reports/hostel-food-conveyance-report.schema';
+import type { HostelFoodConveyanceReportValues } from '@/schemas/hostel/reports/hostel-food-conveyance-report.schema';
 
 export interface HFCReportLoadDataResponse {
     allAcademicYear: any[];
@@ -21,12 +21,11 @@ export interface HFCReportStudent {
     [key: string]: any;
 }
 
-
 export interface HFCReportResponse {
     studentlist: HFCReportStudent[];
 }
 
-export async function getHFCReportLoadData(pageId: number = 0): Promise<HFCReportLoadDataResponse | null> {
+export async function getHFCReportLoadData(pageId = 0): Promise<HFCReportLoadDataResponse | null> {
     try {
         const response = await api.get<HFCReportLoadDataResponse>('hostel', `/api/HostelFoodConveyanceReport/getdata/${pageId}`);
         return response.data;
@@ -50,4 +49,3 @@ export async function getHFCReport(data: HostelFoodConveyanceReportValues): Prom
         return null;
     }
 }
-

@@ -2,7 +2,6 @@
 
 import { api } from '@/lib/apiService';
 import type { IAcademicYearandClassandsection } from '@/types/exam/exam-module/report';
-import { dataTagSymbol } from '@tanstack/react-query';
 
 /**
  * BCEHS Final Promotion Report - Shared Dropdowns & Specific Actions
@@ -59,7 +58,12 @@ export async function getBCEHSFinalPromotionReport(data: any) {
     const subjectlist = getProp(actualData, 'subjectlist', 'subjectList');
 
     if (actualData && examlist && subjectlist) {
-        const transformed = await transformReportData(actualData, Number(data.asmaY_Id || data.ASMAY_Id), Number(data.asmcL_Id || data.ASMCL_Id), Number(data.asmS_Id || data.ASMS_Id));
+        const transformed = await transformReportData(
+            actualData,
+            Number(data.asmaY_Id || data.ASMAY_Id),
+            Number(data.asmcL_Id || data.ASMCL_Id),
+            Number(data.asmS_Id || data.ASMS_Id)
+        );
         return {
             ...response,
             data: transformed
@@ -141,9 +145,14 @@ export async function transformReportData(promise: any, ASMAY_Id: number, ASMCL_
     // 3. Calculate Max Marks for Exams (uses eyceS_MaxMarks as specified in angular)
     for (const exm of examlist) {
         const temp_subdetails = examsubjectwise_details.filter((sd: any) => sd.eycE_Id === exm.eycE_Id && sd.eyceS_AplResultFlg);
-        const max_sub_marks = temp_subdetails.length > 0
-            ? Math.max(...temp_subdetails.map((item: any) => item.eyceS_MaxMarks !== undefined ? item.eyceS_MaxMarks : item.eyceS_MarksEntryMax))
-            : 0;
+        const max_sub_marks =
+            temp_subdetails.length > 0
+                ? Math.max(
+                      ...temp_subdetails.map((item: any) =>
+                          item.eyceS_MaxMarks !== undefined ? item.eyceS_MaxMarks : item.eyceS_MarksEntryMax
+                      )
+                  )
+                : 0;
         exm.marks = max_sub_marks;
     }
 
@@ -156,7 +165,8 @@ export async function transformReportData(promise: any, ASMAY_Id: number, ASMCL_
     // 5. Process Subjects flag & final exam grade details mapping
     for (const sub of subjectlist) {
         const temp_subdetails = examsubjectwise_details.filter((sd: any) => sd.ismS_Id === sub.ismS_Id);
-        const applicable_flag = temp_subdetails.length > 0 ? Math.max(...temp_subdetails.map((item: any) => item.eyceS_AplResultFlg)) : true;
+        const applicable_flag =
+            temp_subdetails.length > 0 ? Math.max(...temp_subdetails.map((item: any) => item.eyceS_AplResultFlg)) : true;
         sub.flag = applicable_flag;
 
         const final_sd = temp_subdetails.find((sd: any) => sd.eycE_Id === Final_EYCE_Id);
@@ -167,18 +177,21 @@ export async function transformReportData(promise: any, ASMAY_Id: number, ASMCL_
         console.log('sub:', JSON.stringify(sub, null, 2));
     }
 
-
     // 6. Transform Promotion Data headers if Flag is 'P'
-    let temp_headers: any[] = [];
+    const temp_headers: any[] = [];
     if (exmConfig_PromotionFlag && emP_MarksPerFlg === 'P') {
-        const final_exam_grps = prom_subj_grp_exms.filter((e1: any) => examlist.some((e2: any) => e2.emE_Id === e1.emE_Id && e2.emE_FinalExamFlag));
-        const other_exam_grps = prom_subj_grp_exms.filter((e1: any) => examlist.some((e2: any) => e2.emE_Id === e1.emE_Id && !e2.emE_FinalExamFlag));
+        const final_exam_grps = prom_subj_grp_exms.filter((e1: any) =>
+            examlist.some((e2: any) => e2.emE_Id === e1.emE_Id && e2.emE_FinalExamFlag)
+        );
+        const other_exam_grps = prom_subj_grp_exms.filter((e1: any) =>
+            examlist.some((e2: any) => e2.emE_Id === e1.emE_Id && !e2.emE_FinalExamFlag)
+        );
 
         const grp_ids_other = Array.from(new Set(other_exam_grps.map((ot: any) => ot.empsG_Id)));
         const grp_ids_final = Array.from(new Set(final_exam_grps.map((fin: any) => fin.empsG_Id)));
 
         let total_oth = 0;
-        let oth_group_names: any[] = [];
+        const oth_group_names: any[] = [];
         for (const grp of grp_ids_other) {
             const s_grp = prom_subj_groupdetails.find((sg: any) => sg.empsG_Id === grp);
             if (s_grp) {
@@ -191,7 +204,7 @@ export async function transformReportData(promise: any, ASMAY_Id: number, ASMCL_
         }
 
         let total_fin = 0;
-        let fin_group_names: any[] = [];
+        const fin_group_names: any[] = [];
         for (const grp of grp_ids_final) {
             const s_grp = prom_subj_groupdetails.find((sg: any) => sg.empsG_Id === grp);
             if (s_grp) {
@@ -251,9 +264,9 @@ export async function transformReportData(promise: any, ASMAY_Id: number, ASMCL_
             const oth_empsg_ids: number[] = [];
             const fin_empsg_ids: number[] = [];
 
-            const sub_grps = prom_subj_groupdetails_all.filter((sg: any) =>
-                (sub.empS_Id !== undefined && sg.empS_Id === sub.empS_Id) ||
-                (sg.ismS_Id === sub.ismS_Id || sg.ismS_id === sub.ismS_Id)
+            const sub_grps = prom_subj_groupdetails_all.filter(
+                (sg: any) =>
+                    (sub.empS_Id !== undefined && sg.empS_Id === sub.empS_Id) || sg.ismS_Id === sub.ismS_Id || sg.ismS_id === sub.ismS_Id
             );
             for (const sub_grp of sub_grps) {
                 for (const temp of temp_headers) {
@@ -284,13 +297,17 @@ export async function transformReportData(promise: any, ASMAY_Id: number, ASMCL_
                 const s_grp_id = Temp_EMPSG_Ids.find((s: any) => s.ismS_Id === subj.ismS_Id);
                 if (s_grp_id) {
                     for (const ot of s_grp_id.O_Ids) {
-                        const grpmar = promotion_stumarks_grpwise.find((gm: any) => gm.empsG_Id === ot && gm.estmppS_Id === subj.estmppS_Id);
+                        const grpmar = promotion_stumarks_grpwise.find(
+                            (gm: any) => gm.empsG_Id === ot && gm.estmppS_Id === subj.estmppS_Id
+                        );
                         if (grpmar) {
                             subject_marks_other += Number(grpmar.estmppsG_GroupObtMarks || 0);
                         }
                     }
                     for (const fin of s_grp_id.F_Ids) {
-                        const grpmar = promotion_stumarks_grpwise.find((gm: any) => gm.empsG_Id === fin && gm.estmppS_Id === subj.estmppS_Id);
+                        const grpmar = promotion_stumarks_grpwise.find(
+                            (gm: any) => gm.empsG_Id === fin && gm.estmppS_Id === subj.estmppS_Id
+                        );
                         if (grpmar) {
                             subject_marks_final += Number(grpmar.estmppsG_GroupObtMarks || 0);
                         }
@@ -326,7 +343,9 @@ export async function transformReportData(promise: any, ASMAY_Id: number, ASMCL_
         // Calculate Percentage max marks
         let Total_max_grp = 0;
         for (const subj of stuWiseSubjects) {
-            const pro_sub_max_marks = promotion_subectdetails.find((ps: any) => ps.ismS_Id === subj.ismS_Id && (subj.flag || subj.flag === undefined));
+            const pro_sub_max_marks = promotion_subectdetails.find(
+                (ps: any) => ps.ismS_Id === subj.ismS_Id && (subj.flag || subj.flag === undefined)
+            );
             if (pro_sub_max_marks) {
                 Total_max_grp += Math.round(Number(pro_sub_max_marks.empS_MaxMarks || 100));
             } else {
@@ -423,10 +442,7 @@ export async function transformReportData(promise: any, ASMAY_Id: number, ASMCL_
                 subj_marks_details: subj_marks
             };
         });
-        const total_max_sub_marks = examlist.reduce(
-            (total: number, ex: any) => total + Number(ex.marks || 0),
-            0
-        );
+        const total_max_sub_marks = examlist.reduce((total: number, ex: any) => total + Number(ex.marks || 0), 0);
 
         return {
             ...stu,
@@ -444,8 +460,6 @@ export async function transformReportData(promise: any, ASMAY_Id: number, ASMCL_
     });
 
     const Class_Teacher_Name = classteacher?.[0]?.hrmE_EmployeeFirstName || '';
-
-
 
     return {
         ...promise,

@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
 import { format } from 'date-fns';
+import React from 'react';
 
 interface StatusPrintViewProps {
     data: any[];
@@ -13,16 +13,17 @@ const StatusPrintView = React.forwardRef<HTMLDivElement, StatusPrintViewProps>((
 
     if (!data || data.length === 0) {
         return (
-            <div ref={ref} className='p-5 text-center bg-white text-black'>
+            <div ref={ref} className='bg-white p-5 text-center text-black'>
                 No data selected for printing.
             </div>
         );
     }
 
     return (
-        <div ref={ref} className='print-preview-container bg-white text-black min-h-full w-full'>
-            <style dangerouslySetInnerHTML={{
-                __html: `
+        <div ref={ref} className='print-preview-container min-h-full w-full bg-white text-black'>
+            <style
+                dangerouslySetInnerHTML={{
+                    __html: `
                     @media print {
                         @page {
                             margin: 10mm;
@@ -89,7 +90,8 @@ const StatusPrintView = React.forwardRef<HTMLDivElement, StatusPrintViewProps>((
                         }
                     }
                 `
-            }} />
+                }}
+            />
 
             <table className='main-table no-border'>
                 <thead>
@@ -97,8 +99,8 @@ const StatusPrintView = React.forwardRef<HTMLDivElement, StatusPrintViewProps>((
                         <td className='no-border'>
                             {/* Header */}
                             <div className='header-section text-center'>
-                                <h2 className='text-lg font-bold uppercase underline'>Preadmission Status Report</h2>
-                                <p className='text-xs text-gray-600 mt-1'>Generated on: {currentDate}</p>
+                                <h2 className='font-bold text-lg uppercase underline'>Preadmission Status Report</h2>
+                                <p className='mt-1 text-gray-600 text-xs'>Generated on: {currentDate}</p>
                             </div>
                         </td>
                     </tr>
@@ -133,8 +135,10 @@ const StatusPrintView = React.forwardRef<HTMLDivElement, StatusPrintViewProps>((
                                         </tr>
                                     ))}
                                     <tr className='bg-gray-100 font-bold'>
-                                        <td colSpan={1} className='text-center'>Total</td>
-                                        <td colSpan={7} className='text-left px-4'>
+                                        <td colSpan={1} className='text-center'>
+                                            Total
+                                        </td>
+                                        <td colSpan={7} className='px-4 text-left'>
                                             {data.length} Records
                                         </td>
                                     </tr>
@@ -146,7 +150,7 @@ const StatusPrintView = React.forwardRef<HTMLDivElement, StatusPrintViewProps>((
                 <tfoot>
                     <tr>
                         <td className='no-border'>
-                            <div className='footer-section border-t pt-4 mt-4'>
+                            <div className='footer-section mt-4 border-t pt-4'>
                                 <div>Printed Date: {currentDate}</div>
                                 <div>Printed By: {userName || 'System Admin'}</div>
                                 <div>Authorized Signature</div>

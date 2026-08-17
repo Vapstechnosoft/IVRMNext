@@ -6,7 +6,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useMasterAccessories } from '@/hooks/library/useMasters';
 import type { IMasterAccessories } from '@/types/library/masters/accessories';
-import { Plus, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterAccessoriesForm from './_components/add-form';
 import { MasterAccessoriesColumns } from './_components/columns';
@@ -46,7 +46,11 @@ function MasterAccessoriesPageContent({
                 {/* Entry Form Section */}
                 <CollapsibleSection
                     title={isEditFormOpen ? 'EDIT ACCESSORIES' : 'ACCESSORIES ENTRY'}
-                    description={isEditFormOpen ? 'Update the details of the selected accessory' : 'Fill in the details below to create a new master accessory'}
+                    description={
+                        isEditFormOpen
+                            ? 'Update the details of the selected accessory'
+                            : 'Fill in the details below to create a new master accessory'
+                    }
                     defaultOpen={true}
                     variant='outline'
                     size='md'
@@ -98,11 +102,7 @@ function MasterAccessoriesPageContent({
 }
 
 function FormSections() {
-    const {
-        isToggleFormOpen,
-        selectedRow,
-        closeToggleForm,
-    } = useFormContext<IMasterAccessories>();
+    const { isToggleFormOpen, selectedRow, closeToggleForm } = useFormContext<IMasterAccessories>();
 
     return (
         <>

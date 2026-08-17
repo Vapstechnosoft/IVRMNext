@@ -1,9 +1,7 @@
 'use client';
-import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Edit, Trash2 } from 'lucide-react';
 
 export interface MasterPositionType {
     hrmpT_Id: number;
@@ -30,14 +28,12 @@ export const getMasterPositionTypeColumns = ({ onEdit, onToggle }: MasterPositio
     {
         accessorKey: 'hrmpT_Name',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Position Type' />,
-        cell: ({ row }) => <div>{row.original.hrmpT_Name}</div>,
-
+        cell: ({ row }) => <div>{row.original.hrmpT_Name}</div>
     },
     {
         accessorKey: 'hrmpT_Desc',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Description' />,
-        cell: ({ row }) => <div>{row.original.hrmpT_Desc}</div>,
-
+        cell: ({ row }) => <div>{row.original.hrmpT_Desc}</div>
     },
     {
         id: 'actions',

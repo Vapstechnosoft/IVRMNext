@@ -1,10 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type {
-    ICollegeAdmissionInitialData,
-    ICollegeAdmissionFormState
-} from '@/types/admission/college/admission-form';
+import type { ICollegeAdmissionInitialData } from '@/types/admission/college/admission-form';
 
 const BASE_URL = '/ClgStudentAdmissionFacade';
 

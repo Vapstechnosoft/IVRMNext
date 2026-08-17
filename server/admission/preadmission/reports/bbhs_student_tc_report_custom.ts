@@ -15,7 +15,6 @@ export async function getBbhsStudentTcInitialData() {
  * Fetches student list based on radio selection (Adm No or Name)
  */
 export async function getBbhsStudentTcStudentList(data: {
-
     ASMAY_Id: number;
     ASMCL_Id?: number;
     ASMC_Id?: number;

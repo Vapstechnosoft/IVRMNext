@@ -1,9 +1,11 @@
 export interface MasterProfessionalTaxResponse {
     success?: boolean;
     message?: string;
-    data?: ProfessionalTaxDetail[] | {
-        pTaxrList: ProfessionalTaxDetail[];
-    };
+    data?:
+        | ProfessionalTaxDetail[]
+        | {
+              pTaxrList: ProfessionalTaxDetail[];
+          };
     pTaxrList?: ProfessionalTaxDetail[];
     retrunMsg?: string;
     total?: number;

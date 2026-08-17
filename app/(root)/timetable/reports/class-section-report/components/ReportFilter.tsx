@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2, RotateCcw, Search } from 'lucide-react';
 
 import { Label } from '@/components/ui/extension/field';
-import { useTimeTableAcademicYear, useTimeTableCategoryDropDownData, useTimeTableClassDropdownData } from '@/hooks/timetable/useMasters';
 import { useTimeTableCategoryDropDownClassWise, useTimeTableClassDropdown, useTimeTableSectionDropdown } from '@/hooks/timetable/reports';
 
 /* -------------------- SCHEMA -------------------- */
@@ -48,7 +47,6 @@ export default function ReportFilter({ onFetch }: ReportFilterProps) {
 
     const mastersLoading = catLoading || classLoading || sectionLoading;
 
-
     const isFormComplete = !!watch('asmS_Id') && !!watch('ttmC_Id') && !!watch('asmcL_Id');
     const onSubmit = (data: FormValues) => {
         const payload = {
@@ -64,14 +62,12 @@ export default function ReportFilter({ onFetch }: ReportFilterProps) {
         onFetch(null); // 🔥 clears grid in parent
     };
 
-
     return (
         <div className='mx-auto max-w-7xl space-y-4'>
             <CollapsibleSection title='Class Section Report' defaultOpen>
                 <div className='rounded-xl border border-purple-100 bg-white p-6 shadow-md'>
                     <form onSubmit={handleSubmit(onSubmit)}>
                         <div className='grid grid-cols-1 gap-5 md:grid-cols-3'>
-
                             {/* Category */}
                             <div className='space-y-1'>
                                 <Label className='font-bold text-purple-900 text-xs uppercase'>
@@ -85,8 +81,7 @@ export default function ReportFilter({ onFetch }: ReportFilterProps) {
                                         <Select
                                             key={field.value}
                                             onValueChange={(value) => field.onChange(value || '')}
-                                            value={field.value?.toString() || undefined}
-                                        >
+                                            value={field.value?.toString() || undefined}>
                                             <SelectTrigger className={`h-9 text-sm ${errors.ttmC_Id ? 'border-red-500' : ''}`}>
                                                 <SelectValue placeholder={catLoading ? 'Loading...' : 'Select Category'} />
                                             </SelectTrigger>
@@ -116,8 +111,7 @@ export default function ReportFilter({ onFetch }: ReportFilterProps) {
                                         <Select
                                             key={field.value}
                                             onValueChange={(value) => field.onChange(value || '')}
-                                            value={field.value?.toString() || undefined}
-                                        >
+                                            value={field.value?.toString() || undefined}>
                                             <SelectTrigger className={`h-9 text-sm ${errors.asmcL_Id ? 'border-red-500' : ''}`}>
                                                 <SelectValue placeholder={classLoading ? 'Loading...' : 'Select Class'} />
                                             </SelectTrigger>
@@ -147,8 +141,7 @@ export default function ReportFilter({ onFetch }: ReportFilterProps) {
                                         <Select
                                             key={field.value}
                                             onValueChange={(value) => field.onChange(value || '')}
-                                            value={field.value?.toString() || undefined}
-                                        >
+                                            value={field.value?.toString() || undefined}>
                                             <SelectTrigger className={`h-9 text-sm ${errors.asmS_Id ? 'border-red-500' : ''}`}>
                                                 <SelectValue placeholder={sectionLoading ? 'Loading...' : 'Select Section'} />
                                             </SelectTrigger>

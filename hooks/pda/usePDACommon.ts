@@ -1,12 +1,6 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-    getAcademicYearData,
-    getClassDetails,
-    getSectionDetails,
-    getCategoryDetails,
-    getStudentDetails
-} from '@/server/pda/pda-common';
 import { PDA_QUERY_KEYS } from '@/constants/pda-query-keys';
+import { getAcademicYearData, getCategoryDetails, getClassDetails, getSectionDetails, getStudentDetails } from '@/server/pda/pda-common';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 // export const usePDAAcademicYear = () => {
 //     return useQuery({

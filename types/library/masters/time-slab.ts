@@ -13,4 +13,3 @@ export interface IMasterTimeSlab {
     createdDate?: string;
     updatedDate?: string;
 }
-

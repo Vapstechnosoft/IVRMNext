@@ -1,4 +1,3 @@
-
 export interface ISportVenueWiseParticipationReportYear {
     asmaY_Id: number;
     mI_Id: number;

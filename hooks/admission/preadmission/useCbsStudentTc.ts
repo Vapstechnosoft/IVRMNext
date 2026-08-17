@@ -1,60 +1,60 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-    getCbsTcInitialData,
-    changeCbsTcYear,
     changeCbsTcClass,
     changeCbsTcSection,
+    changeCbsTcYear,
     getCbsTcDetails,
-    saveCbsTcCertificates,
-    getCbsTcStudentDetails
+    getCbsTcInitialData,
+    getCbsTcStudentDetails,
+    saveCbsTcCertificates
 } from '@/server/admission/preadmission/reports/cbs-student-tc';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const cbsTcKeys = {
     all: ['cbs-student-tc'] as const,
     load: () => [...cbsTcKeys.all, 'load'] as const,
-    report: (data: any) => [...cbsTcKeys.all, 'report', data] as const,
+    report: (data: any) => [...cbsTcKeys.all, 'report', data] as const
 };
 
 export const useCbsTcInitialData = () => {
     return useQuery({
         queryKey: cbsTcKeys.load(),
         queryFn: getCbsTcInitialData,
-        staleTime: 1000 * 60 * 5, // 5 minutes
+        staleTime: 1000 * 60 * 5 // 5 minutes
     });
 };
 
 export const useCbsTcYearChange = () => {
     return useMutation({
-        mutationFn: changeCbsTcYear,
+        mutationFn: changeCbsTcYear
     });
 };
 
 export const useCbsTcClassChange = () => {
     return useMutation({
-        mutationFn: changeCbsTcClass,
+        mutationFn: changeCbsTcClass
     });
 };
 
 export const useCbsTcSectionChange = () => {
     return useMutation({
-        mutationFn: changeCbsTcSection,
+        mutationFn: changeCbsTcSection
     });
 };
 
 export const useCbsTcReport = () => {
     return useMutation({
-        mutationFn: getCbsTcDetails,
+        mutationFn: getCbsTcDetails
     });
 };
 
 export const useCbsTcSave = () => {
     return useMutation({
-        mutationFn: saveCbsTcCertificates,
+        mutationFn: saveCbsTcCertificates
     });
 };
 
 export const useCbsTcStudentDetails = () => {
     return useMutation({
-        mutationFn: getCbsTcStudentDetails,
+        mutationFn: getCbsTcStudentDetails
     });
 };

@@ -3,7 +3,7 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { APIResponse, AuthorOption, BookOption, ILostBookList } from '@/types/library/transactions/transactions';
+import type { AuthorOption, BookOption } from '@/types/library/transactions/transactions';
 
 // Get lost books list with search params
 export async function getLostBookList(searchParams?: ApiSearchparams) {
@@ -41,4 +41,3 @@ export async function deleteLostBookRecord(id: number) {
     const url = `/LostBook/delete/${id}`;
     return await api.delete('library', url);
 }
-

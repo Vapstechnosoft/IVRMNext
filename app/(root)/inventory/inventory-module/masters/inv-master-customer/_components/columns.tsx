@@ -17,27 +17,31 @@ export const invMasterCustomerColumns: ColumnDef<IInvMasterCustomer>[] = [
             const pageSize = table.getState().pagination.pageSize;
             return <div>{pageIndex * pageSize + row.index + 1}</div>;
         },
-        enableSorting: false,
+        enableSorting: false
     },
     {
         accessorKey: 'invmC_CustomerName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Customer Name' />,
-        cell: ({ row }) => <div>{row.getValue('invmC_CustomerName')}</div>,
+        cell: ({ row }) => <div>{row.getValue('invmC_CustomerName')}</div>
     },
     {
         accessorKey: 'invmC_CustomerContactPerson',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Contact Person' />,
-        cell: ({ row }) => <div>{row.getValue('invmC_CustomerContactPerson')}</div>,
+        cell: ({ row }) => <div>{row.getValue('invmC_CustomerContactPerson')}</div>
     },
     {
         accessorKey: 'invmC_CustomerContactNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Contact No.' />,
-        cell: ({ row }) => <div>{row.getValue('invmC_CustomerContactNo')}</div>,
+        cell: ({ row }) => <div>{row.getValue('invmC_CustomerContactNo')}</div>
     },
     {
         accessorKey: 'invmC_CustomerAddress',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Address' />,
-        cell: ({ row }) => <div className="truncate max-w-[200px]" title={row.getValue('invmC_CustomerAddress')}>{row.getValue('invmC_CustomerAddress')}</div>,
+        cell: ({ row }) => (
+            <div className='max-w-[200px] truncate' title={row.getValue('invmC_CustomerAddress')}>
+                {row.getValue('invmC_CustomerAddress')}
+            </div>
+        )
     },
     {
         accessorKey: 'invmC_ActiveFlg',
@@ -49,14 +53,14 @@ export const invMasterCustomerColumns: ColumnDef<IInvMasterCustomer>[] = [
                     {status ? 'Active' : 'Inactive'}
                 </Badge>
             );
-        },
+        }
     },
     {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
         cell: ({ row }) => <CustomerActionButtons rowData={row.original} />,
-        enableSorting: false,
-    },
+        enableSorting: false
+    }
 ];
 
 function CustomerActionButtons({ rowData }: { rowData: IInvMasterCustomer }) {
@@ -66,7 +70,7 @@ function CustomerActionButtons({ rowData }: { rowData: IInvMasterCustomer }) {
     // const handleDelete = useCallback(() => openDeleteForm(rowData), [openDeleteForm, rowData]); // Using toggle for deactivate
 
     const handleToggle = useCallback(() => {
-        // We can just call the mutation directly or open a confirmation. 
+        // We can just call the mutation directly or open a confirmation.
         // The ActionButtons component handles standard confirmation if we pass onToggle.
         // Actually, ActionButtons usually takes onToggle and shows a dialog confirmation internal or emitting event.
         // Let's rely on standard ActionButtons behavior.

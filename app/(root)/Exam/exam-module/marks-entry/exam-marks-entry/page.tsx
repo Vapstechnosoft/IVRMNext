@@ -60,7 +60,6 @@ function MarksEntryContent() {
             const yrs = academicDropdownData.data.map((y: any) => ({ asmaY_Id: y.asmaY_Id, asmaY_Year: y.asmaY_Year }));
             setAcademicYears(yrs);
         }
-
     }, [academicDropdownData, academicError, selectedAcademicYear]);
 
     /* -------------------------
@@ -240,7 +239,6 @@ function MarksEntryContent() {
         setSubjects([]);
     };
 
-
     return (
         <div className='min-h-screen bg-gray-50 p-4'>
             <div className='container mx-auto space-y-4'>
@@ -258,8 +256,6 @@ function MarksEntryContent() {
                                 //id="academicYear"
                                 value={selectedAcademicYear ? String(selectedAcademicYear) : undefined}
                                 onValueChange={(v) => setSelectedAcademicYear(v !== 'none' ? Number(v) : undefined)}>
-
-
                                 <SelectTrigger className='h-10'>
                                     <SelectValue placeholder='Select Academic Year' />
                                 </SelectTrigger>
@@ -292,8 +288,6 @@ function MarksEntryContent() {
                                 value={selectedClass ? String(selectedClass) : undefined}
                                 onValueChange={(v) => setSelectedClass(v !== 'none' ? Number(v) : undefined)}
                                 disabled={!selectedAcademicYear || loadingClasses}>
-
-
                                 <SelectTrigger className='h-10'>
                                     <SelectValue placeholder='Select Class' />
                                 </SelectTrigger>
@@ -328,8 +322,6 @@ function MarksEntryContent() {
                                 value={selectedSectionId ? String(selectedSectionId) : undefined}
                                 onValueChange={(v) => setSelectedSectionId(v !== 'none' ? Number(v) : undefined)}
                                 disabled={!selectedClass || loadingSections}>
-
-
                                 <SelectTrigger className='h-10'>
                                     <SelectValue placeholder='Select Section' />
                                 </SelectTrigger>
@@ -362,8 +354,6 @@ function MarksEntryContent() {
                                 value={selectedExam ? String(selectedExam) : undefined}
                                 onValueChange={(v) => setSelectedExam(v !== 'none' && v !== 'disabled' ? Number(v) : undefined)}
                                 disabled={activeTab === 1 || loadingExams}>
-
-
                                 <SelectTrigger className='h-10'>
                                     <SelectValue placeholder={activeTab === 1 ? '-- Disabled for Overall --' : 'Select exam'} />
                                 </SelectTrigger>
@@ -397,8 +387,6 @@ function MarksEntryContent() {
                                 //id="subjectSelect"
                                 value={selectedSubjectId ? String(selectedSubjectId) : undefined}
                                 onValueChange={(v) => setSelectedSubjectId(v !== 'none' ? Number(v) : undefined)}>
-
-
                                 <SelectTrigger className='h-10'>
                                     <SelectValue placeholder='Select Subject' />
                                 </SelectTrigger>
@@ -438,7 +426,6 @@ function MarksEntryContent() {
                             CANCEL
                         </Button>
                     </div>
-
                 </div>
 
                 {isStudentsGridOpen && selectedAcademicYear && selectedClass && selectedSectionId && selectedSubjectId && (

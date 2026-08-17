@@ -1,19 +1,19 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { Button } from '@/components/ui/button';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useFormContext } from '@/components/ui/form/form-provider';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useStudentGatePass } from '@/hooks/visitors-management/transactions/useStudentGatePass';
-import { useFormContext } from '@/components/ui/form/form-provider';
-import { StudentGatePassData } from '@/types/visitors-management/transactions';
-import { DatePicker } from '@/components/ui/date-picker';
 import { Textarea } from '@/components/ui/textarea';
-import { useEffect, useState } from 'react';
+import { useStudentGatePass } from '@/hooks/visitors-management/transactions/useStudentGatePass';
+import type { StudentGatePassData } from '@/types/visitors-management/transactions';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
 
 const formSchema = z.object({
     gphS_Id: z.number().optional(),
@@ -22,14 +22,14 @@ const formSchema = z.object({
     asmS_Id: z.number().min(1, 'Section is required'),
     amsT_Id: z.number().min(1, 'Student is required'),
     gphS_DateTime: z.date({
-        required_error: "Date is required",
+        required_error: 'Date is required'
     }),
     gphS_IDCardNo: z.string().optional(),
     gphS_ReceiverName: z.string().min(1, 'Receiver Name is required'),
     gphS_ReceiverPhoneNo: z.string().min(10, 'Valid Phone No is required'),
     gphS_ReceiverIdProof: z.string().min(1, 'ID Proof Type is required'),
     gphS_ReceiverIdProofNo: z.string().min(1, 'ID Proof No is required'),
-    gphS_Remarks: z.string().optional(),
+    gphS_Remarks: z.string().optional()
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -41,13 +41,7 @@ interface StudentGatePassFormProps {
 
 export default function StudentGatePassForm({ onSuccess, academicYears }: StudentGatePassFormProps) {
     const { selectedRow: formData } = useFormContext<StudentGatePassData>();
-    const {
-        saveStudentGatePass,
-        isSaving,
-        getGatePassClasses,
-        getGatePassSections,
-        getGatePassStudents
-    } = useStudentGatePass();
+    const { saveStudentGatePass, isSaving, getGatePassClasses, getGatePassSections, getGatePassStudents } = useStudentGatePass();
 
     const isEditMode = !!formData?.gphS_Id;
 
@@ -59,7 +53,7 @@ export default function StudentGatePassForm({ onSuccess, academicYears }: Studen
     const [isLoadingSections, setIsLoadingSections] = useState(false);
     const [isLoadingStudents, setIsLoadingStudents] = useState(false);
 
-    const defaultYear = academicYears.find(y => y.Selected)?.asmaY_Id || academicYears[0]?.asmaY_Id || 0;
+    const defaultYear = academicYears.find((y) => y.Selected)?.asmaY_Id || academicYears[0]?.asmaY_Id || 0;
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -146,7 +140,7 @@ export default function StudentGatePassForm({ onSuccess, academicYears }: Studen
     const onSubmit = async (data: FormValues) => {
         const submitData = {
             ...data,
-            gphS_DateTime: data.gphS_DateTime.toISOString(),
+            gphS_DateTime: data.gphS_DateTime.toISOString()
         };
 
         await saveStudentGatePass(submitData);
@@ -155,16 +149,17 @@ export default function StudentGatePassForm({ onSuccess, academicYears }: Studen
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-
-                <h3 className="text-sm font-semibold text-primary uppercase border-b pb-2">Student Details</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
+                <h3 className='border-b pb-2 font-semibold text-primary text-sm uppercase'>Student Details</h3>
+                <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4'>
                     <FormField
                         control={form.control}
-                        name="asmaY_Id"
+                        name='asmaY_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Academic Year <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>
+                                    Academic Year <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <Select
                                     onValueChange={(val) => {
                                         field.onChange(Number(val));
@@ -173,16 +168,17 @@ export default function StudentGatePassForm({ onSuccess, academicYears }: Studen
                                         form.setValue('amsT_Id', 0);
                                     }}
                                     value={field.value ? field.value.toString() : ''}
-                                    disabled={isEditMode}
-                                >
+                                    disabled={isEditMode}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Year" />
+                                            <SelectValue placeholder='Select Year' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {academicYears.map(year => (
-                                            <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>{year.asmaY_Year}</SelectItem>
+                                        {academicYears.map((year) => (
+                                            <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
+                                                {year.asmaY_Year}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -193,10 +189,12 @@ export default function StudentGatePassForm({ onSuccess, academicYears }: Studen
 
                     <FormField
                         control={form.control}
-                        name="asmcL_Id"
+                        name='asmcL_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Class <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>
+                                    Class <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <Select
                                     onValueChange={(val) => {
                                         field.onChange(Number(val));
@@ -204,16 +202,17 @@ export default function StudentGatePassForm({ onSuccess, academicYears }: Studen
                                         form.setValue('amsT_Id', 0);
                                     }}
                                     value={field.value && field.value !== 0 ? field.value.toString() : ''}
-                                    disabled={isEditMode || isLoadingClasses || classes.length === 0}
-                                >
+                                    disabled={isEditMode || isLoadingClasses || classes.length === 0}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder={isLoadingClasses ? "Loading..." : "Select Class"} />
+                                            <SelectValue placeholder={isLoadingClasses ? 'Loading...' : 'Select Class'} />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {classes.map(c => (
-                                            <SelectItem key={c.asmcL_Id} value={c.asmcL_Id.toString()}>{c.asmcL_ClassName}</SelectItem>
+                                        {classes.map((c) => (
+                                            <SelectItem key={c.asmcL_Id} value={c.asmcL_Id.toString()}>
+                                                {c.asmcL_ClassName}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -224,26 +223,29 @@ export default function StudentGatePassForm({ onSuccess, academicYears }: Studen
 
                     <FormField
                         control={form.control}
-                        name="asmS_Id"
+                        name='asmS_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Section <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>
+                                    Section <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <Select
                                     onValueChange={(val) => {
                                         field.onChange(Number(val));
                                         form.setValue('amsT_Id', 0);
                                     }}
                                     value={field.value && field.value !== 0 ? field.value.toString() : ''}
-                                    disabled={isEditMode || isLoadingSections || sections.length === 0}
-                                >
+                                    disabled={isEditMode || isLoadingSections || sections.length === 0}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder={isLoadingSections ? "Loading..." : "Select Section"} />
+                                            <SelectValue placeholder={isLoadingSections ? 'Loading...' : 'Select Section'} />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {sections.map(s => (
-                                            <SelectItem key={s.asmS_Id} value={s.asmS_Id.toString()}>{s.asmC_SectionName}</SelectItem>
+                                        {sections.map((s) => (
+                                            <SelectItem key={s.asmS_Id} value={s.asmS_Id.toString()}>
+                                                {s.asmC_SectionName}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -254,23 +256,26 @@ export default function StudentGatePassForm({ onSuccess, academicYears }: Studen
 
                     <FormField
                         control={form.control}
-                        name="amsT_Id"
+                        name='amsT_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Student <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>
+                                    Student <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <Select
                                     onValueChange={(val) => field.onChange(Number(val))}
                                     value={field.value && field.value !== 0 ? field.value.toString() : ''}
-                                    disabled={isEditMode || isLoadingStudents || students.length === 0}
-                                >
+                                    disabled={isEditMode || isLoadingStudents || students.length === 0}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder={isLoadingStudents ? "Loading..." : "Select Student"} />
+                                            <SelectValue placeholder={isLoadingStudents ? 'Loading...' : 'Select Student'} />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {students.map(st => (
-                                            <SelectItem key={st.amsT_Id} value={st.amsT_Id.toString()}>{st.studentname}</SelectItem>
+                                        {students.map((st) => (
+                                            <SelectItem key={st.amsT_Id} value={st.amsT_Id.toString()}>
+                                                {st.studentname}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -280,14 +285,16 @@ export default function StudentGatePassForm({ onSuccess, academicYears }: Studen
                     />
                 </div>
 
-                <h3 className="text-sm font-semibold text-primary uppercase border-b pb-2 pt-4">Gate Pass Details</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <h3 className='border-b pt-4 pb-2 font-semibold text-primary text-sm uppercase'>Gate Pass Details</h3>
+                <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                     <FormField
                         control={form.control}
-                        name="gphS_DateTime"
+                        name='gphS_DateTime'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Date <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>
+                                    Date <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <FormControl>
                                     <DatePicker date={field.value} setDate={field.onChange} />
                                 </FormControl>
@@ -298,12 +305,12 @@ export default function StudentGatePassForm({ onSuccess, academicYears }: Studen
 
                     <FormField
                         control={form.control}
-                        name="gphS_IDCardNo"
+                        name='gphS_IDCardNo'
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>ID Card No</FormLabel>
                                 <FormControl>
-                                    <Input {...field} placeholder="Enter Card No" />
+                                    <Input {...field} placeholder='Enter Card No' />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -312,12 +319,14 @@ export default function StudentGatePassForm({ onSuccess, academicYears }: Studen
 
                     <FormField
                         control={form.control}
-                        name="gphS_ReceiverName"
+                        name='gphS_ReceiverName'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Receiver Name <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>
+                                    Receiver Name <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <FormControl>
-                                    <Input {...field} placeholder="Enter Receiver Name" />
+                                    <Input {...field} placeholder='Enter Receiver Name' />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -326,12 +335,14 @@ export default function StudentGatePassForm({ onSuccess, academicYears }: Studen
 
                     <FormField
                         control={form.control}
-                        name="gphS_ReceiverPhoneNo"
+                        name='gphS_ReceiverPhoneNo'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Receiver Phone No <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>
+                                    Receiver Phone No <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <FormControl>
-                                    <Input {...field} placeholder="Enter Mobile Number" />
+                                    <Input {...field} placeholder='Enter Mobile Number' />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -340,22 +351,24 @@ export default function StudentGatePassForm({ onSuccess, academicYears }: Studen
 
                     <FormField
                         control={form.control}
-                        name="gphS_ReceiverIdProof"
+                        name='gphS_ReceiverIdProof'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>ID Proof Type <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>
+                                    ID Proof Type <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select ID Proof" />
+                                            <SelectValue placeholder='Select ID Proof' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        <SelectItem value="Aadhar Card">Aadhar Card</SelectItem>
-                                        <SelectItem value="Voter Id">Voter Id</SelectItem>
-                                        <SelectItem value="DL">Driving License</SelectItem>
-                                        <SelectItem value="Passport">Passport</SelectItem>
-                                        <SelectItem value="Others">Others</SelectItem>
+                                        <SelectItem value='Aadhar Card'>Aadhar Card</SelectItem>
+                                        <SelectItem value='Voter Id'>Voter Id</SelectItem>
+                                        <SelectItem value='DL'>Driving License</SelectItem>
+                                        <SelectItem value='Passport'>Passport</SelectItem>
+                                        <SelectItem value='Others'>Others</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -365,12 +378,14 @@ export default function StudentGatePassForm({ onSuccess, academicYears }: Studen
 
                     <FormField
                         control={form.control}
-                        name="gphS_ReceiverIdProofNo"
+                        name='gphS_ReceiverIdProofNo'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>ID Proof No <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>
+                                    ID Proof No <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <FormControl>
-                                    <Input {...field} placeholder="Enter ID Proof No" />
+                                    <Input {...field} placeholder='Enter ID Proof No' />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -379,12 +394,12 @@ export default function StudentGatePassForm({ onSuccess, academicYears }: Studen
 
                     <FormField
                         control={form.control}
-                        name="gphS_Remarks"
+                        name='gphS_Remarks'
                         render={({ field }) => (
-                            <FormItem className="md:col-span-2 lg:col-span-3">
+                            <FormItem className='md:col-span-2 lg:col-span-3'>
                                 <FormLabel>Remarks</FormLabel>
                                 <FormControl>
-                                    <Textarea {...field} placeholder="Enter remarks (optional)..." rows={2} />
+                                    <Textarea {...field} placeholder='Enter remarks (optional)...' rows={2} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -392,12 +407,12 @@ export default function StudentGatePassForm({ onSuccess, academicYears }: Studen
                     />
                 </div>
 
-                <div className="flex justify-end gap-4 mt-6 pt-4 border-t">
-                    <Button type="button" variant="outline" onClick={onSuccess}>
+                <div className='mt-6 flex justify-end gap-4 border-t pt-4'>
+                    <Button type='button' variant='outline' onClick={onSuccess}>
                         Cancel
                     </Button>
-                    <Button type="submit" disabled={isSaving}>
-                        {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    <Button type='submit' disabled={isSaving}>
+                        {isSaving && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
                         Save
                     </Button>
                 </div>

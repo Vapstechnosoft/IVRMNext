@@ -1,20 +1,12 @@
 'use client';
 
-import { useState, useRef } from 'react';
 import { useStAnnsTcDetails } from '@/hooks/admission/preadmission/useStAnnsTcReport';
-import { FilterForm } from './_components/filter-form';
-import TcReport from './_components/tc-report';
-import { Button } from '@/components/ui/button';
+import { Search } from 'lucide-react';
+import { useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
-import {
-    Search,
-    Printer,
-    FileCheck
-} from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
+import { FilterForm } from './_components/filter-form';
+import TcReport from './_components/tc-report';
 
 export default function StAnnsTcCustomReportPage() {
     const detailsMutation = useStAnnsTcDetails();
@@ -60,45 +52,37 @@ export default function StAnnsTcCustomReportPage() {
     });
 
     return (
-        <div className="min-h-screen bg-white p-2">
+        <div className='min-h-screen bg-white p-2'>
             {/* Legacy Style Header Bar */}
-            <div className="w-full bg-[#3a5999] px-4 py-1 flex items-center justify-between shadow-sm">
-                <h1 className="text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2">
-                    STUDENT TC CUSTOM REPORT
-                </h1>
-                <div className="text-white cursor-pointer hover:opacity-80">
-                    <span className="text-xl leading-none">−</span>
+            <div className='flex w-full items-center justify-between bg-[#3a5999] px-4 py-1 shadow-sm'>
+                <h1 className='flex items-center gap-2 font-bold text-white text-xs uppercase tracking-wider'>STUDENT TC CUSTOM REPORT</h1>
+                <div className='cursor-pointer text-white hover:opacity-80'>
+                    <span className='text-xl leading-none'>−</span>
                 </div>
             </div>
 
             {/* Form Section */}
-            <div className="border border-t-0 p-4 bg-white">
-                <FilterForm
-                    onSubmit={handleReport}
-                    onReset={handleReset}
-                    onPrint={() => handlePrint()}
-                    hasData={showReport}
-                />
+            <div className='border border-t-0 bg-white p-4'>
+                <FilterForm onSubmit={handleReport} onReset={handleReset} onPrint={() => handlePrint()} hasData={showReport} />
             </div>
 
             {/* Report Preview Section */}
             {showReport && reportData && (
-                <div className="mt-8 flex flex-col items-center">
-                    <div className="bg-slate-100 w-full p-8 flex justify-center overflow-x-auto">
-                        <div className="bg-white shadow-2xl p-0">
-                            <TcReport
-                                ref={printRef}
-                                data={reportData}
-                            />
+                <div className='mt-8 flex flex-col items-center'>
+                    <div className='flex w-full justify-center overflow-x-auto bg-slate-100 p-8'>
+                        <div className='bg-white p-0 shadow-2xl'>
+                            <TcReport ref={printRef} data={reportData} />
                         </div>
                     </div>
                 </div>
             )}
 
             {!showReport && (
-                <div className="mt-10 flex flex-col items-center justify-center opacity-30">
-                    <Search className="w-12 h-12 text-slate-400 mb-2" />
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Select criteria and click report to view certificate</p>
+                <div className='mt-10 flex flex-col items-center justify-center opacity-30'>
+                    <Search className='mb-2 h-12 w-12 text-slate-400' />
+                    <p className='font-bold text-[10px] text-slate-500 uppercase tracking-widest'>
+                        Select criteria and click report to view certificate
+                    </p>
                 </div>
             )}
         </div>

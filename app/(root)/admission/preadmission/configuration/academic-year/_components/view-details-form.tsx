@@ -77,57 +77,56 @@ export default function ViewDetailsForm({ data, institution }: ViewDetailsFormPr
                 </div>
 
                 <div>
-                    <div ref={printRef} className='bg-white p-8 text-black printable-content'>
-
+                    <div ref={printRef} className='printable-content bg-white p-8 text-black'>
                         {(() => {
                             const displayLogo = institution?.mI_Logo || logo;
                             return displayLogo ? (
                                 <div className='flex flex-col items-center justify-center gap-6 border-b pb-4 md:flex-row'>
-                                <img
-                                    src={displayLogo}
-                                    alt='Institution Logo'
-                                    className='h-auto w-auto max-h-32 max-w-full shrink-0 object-contain'
-                                />
-                            </div>
-                        ) : null;
-                    })()}
+                                    <img
+                                        src={displayLogo}
+                                        alt='Institution Logo'
+                                        className='h-auto max-h-32 w-auto max-w-full shrink-0 object-contain'
+                                    />
+                                </div>
+                            ) : null;
+                        })()}
 
-                    <div className='text-center'>
-                        <h2 className='font-bold text-blue-800 text-xl uppercase tracking-wider'>ACADEMIC YEAR LIST REPORT</h2>
-                    </div>
-                    <div className='rounded-md border print:border-none'>
-                        <table className='w-full text-left text-sm print:text-xs'>
-                            <thead className='bg-muted/50 font-semibold text-xs uppercase print:bg-gray-100'>
-                                <tr>
-                                    <th className='w-16 border-b px-6 py-3 text-center'>SLNO</th>
-                                    <th className='border-b px-6 py-3 text-center'>Academic year</th>
-                                    <th className='border-b px-6 py-3 text-center'>From Date</th>
-                                    <th className='border-b px-6 py-3 text-center'>To Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {data.map((item, index) => (
-                                    <tr key={item.asmaY_Id} className='border-b last:border-b-0 hover:bg-muted/30'>
-                                        <td className='px-6 py-3 text-center'>{index + 1}</td>
-                                        <td className='px-6 py-3 text-center'>{item.asmaY_Year}</td>
-                                        <td className='px-6 py-3 text-center'>
-                                            {item.asmaY_From_Date ? format(new Date(item.asmaY_From_Date), 'dd/MM/yyyy') : ''}
-                                        </td>
-                                        <td className='px-6 py-3 text-center'>
-                                            {item.asmaY_To_Date ? format(new Date(item.asmaY_To_Date), 'dd/MM/yyyy') : ''}
-                                        </td>
-                                    </tr>
-                                ))}
-                                {data.length === 0 && (
+                        <div className='text-center'>
+                            <h2 className='font-bold text-blue-800 text-xl uppercase tracking-wider'>ACADEMIC YEAR LIST REPORT</h2>
+                        </div>
+                        <div className='rounded-md border print:border-none'>
+                            <table className='w-full text-left text-sm print:text-xs'>
+                                <thead className='bg-muted/50 font-semibold text-xs uppercase print:bg-gray-100'>
                                     <tr>
-                                        <td colSpan={4} className='px-6 py-8 text-center text-muted-foreground'>
-                                            No academic years found.
-                                        </td>
+                                        <th className='w-16 border-b px-6 py-3 text-center'>SLNO</th>
+                                        <th className='border-b px-6 py-3 text-center'>Academic year</th>
+                                        <th className='border-b px-6 py-3 text-center'>From Date</th>
+                                        <th className='border-b px-6 py-3 text-center'>To Date</th>
                                     </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+                                <tbody>
+                                    {data.map((item, index) => (
+                                        <tr key={item.asmaY_Id} className='border-b last:border-b-0 hover:bg-muted/30'>
+                                            <td className='px-6 py-3 text-center'>{index + 1}</td>
+                                            <td className='px-6 py-3 text-center'>{item.asmaY_Year}</td>
+                                            <td className='px-6 py-3 text-center'>
+                                                {item.asmaY_From_Date ? format(new Date(item.asmaY_From_Date), 'dd/MM/yyyy') : ''}
+                                            </td>
+                                            <td className='px-6 py-3 text-center'>
+                                                {item.asmaY_To_Date ? format(new Date(item.asmaY_To_Date), 'dd/MM/yyyy') : ''}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {data.length === 0 && (
+                                        <tr>
+                                            <td colSpan={4} className='px-6 py-8 text-center text-muted-foreground'>
+                                                No academic years found.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </DialogContent>

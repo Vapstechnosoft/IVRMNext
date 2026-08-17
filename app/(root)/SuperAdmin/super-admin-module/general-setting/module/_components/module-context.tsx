@@ -9,11 +9,7 @@ interface ModuleContextType {
 const ModuleContext = createContext<ModuleContextType | null>(null);
 
 export function ModuleProvider({ children, refreshData }: { children: React.ReactNode; refreshData: () => void }) {
-    return (
-        <ModuleContext.Provider value={{ refreshData }}>
-            {children}
-        </ModuleContext.Provider>
-    );
+    return <ModuleContext.Provider value={{ refreshData }}>{children}</ModuleContext.Provider>;
 }
 
 export function useModuleContext() {

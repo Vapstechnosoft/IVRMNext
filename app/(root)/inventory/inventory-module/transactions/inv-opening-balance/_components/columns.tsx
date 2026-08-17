@@ -29,9 +29,9 @@ export const invOpeningBalanceColumns: ColumnDef<IInvOpeningBalance>[] = [
         accessorKey: 'invmI_ItemName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Item' />,
         cell: ({ row }) => (
-            <div className="flex flex-col">
-                <span className="font-medium">{row.getValue('invmI_ItemName')}</span>
-                <span className="text-[10px] text-muted-foreground">{row.original.invmuoM_UOMName}</span>
+            <div className='flex flex-col'>
+                <span className='font-medium'>{row.getValue('invmI_ItemName')}</span>
+                <span className='text-[10px] text-muted-foreground'>{row.original.invmuoM_UOMName}</span>
             </div>
         )
     },
@@ -44,9 +44,7 @@ export const invOpeningBalanceColumns: ColumnDef<IInvOpeningBalance>[] = [
         accessorKey: 'invoB_Qty',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Quantity' className='justify-end' />,
         cell: ({ row }) => (
-            <div className='text-right'>
-                {Number(row.getValue('invoB_Qty')).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-            </div>
+            <div className='text-right'>{Number(row.getValue('invoB_Qty')).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
         )
     },
     {
@@ -70,12 +68,8 @@ export const invOpeningBalanceColumns: ColumnDef<IInvOpeningBalance>[] = [
         accessorKey: 'invoB_TAmount',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Total' className='justify-end' />,
         cell: ({ row }) => {
-            const amount = row.original.invoB_TAmount ?? (row.original.invoB_PurchaseRate * row.original.invoB_Qty);
-            return (
-                <div className='text-right font-medium'>
-                    {Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                </div>
-            );
+            const amount = row.original.invoB_TAmount ?? row.original.invoB_PurchaseRate * row.original.invoB_Qty;
+            return <div className='text-right font-medium'>{Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>;
         }
     },
     {
@@ -113,4 +107,3 @@ function InvOpeningBalanceActionButtons({ rowData }: { rowData: IInvOpeningBalan
         </div>
     );
 }
-

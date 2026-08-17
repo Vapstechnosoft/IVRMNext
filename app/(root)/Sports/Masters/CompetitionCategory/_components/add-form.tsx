@@ -2,14 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { saveMasterCompetitionCategory } from '@/server/sports/masters/competition-category';
@@ -74,13 +67,14 @@ export default function AddMasterCompetitionCategoryForm({ onSuccess }: AddMaste
 
             const result = await saveMasterCompetitionCategory(payload);
             const msg = (result?.message || result?.Message || '') as string;
-            const isSuccess = result.success || 
-                             result?.returnval == true || 
-                             result?.returnVal == true ||
-                             result?.returnVal === 'updated' || 
-                             msg.toLowerCase() === 'saved' ||
-                             msg.toLowerCase() === 'updated' ||
-                             msg.toLowerCase().includes('success');
+            const isSuccess =
+                result.success ||
+                result?.returnval == true ||
+                result?.returnVal == true ||
+                result?.returnVal === 'updated' ||
+                msg.toLowerCase() === 'saved' ||
+                msg.toLowerCase() === 'updated' ||
+                msg.toLowerCase().includes('success');
 
             if (isSuccess) {
                 toast.success('Record saved successfully');
@@ -181,7 +175,7 @@ export default function AddMasterCompetitionCategoryForm({ onSuccess }: AddMaste
                 </div>
 
                 {isAgeFlagChecked && (
-                    <div className='rounded-lg border bg-muted/50 p-4 space-y-4'>
+                    <div className='space-y-4 rounded-lg border bg-muted/50 p-4'>
                         <h3 className='font-medium text-primary'>Age Configuration</h3>
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                             <FormField
@@ -323,7 +317,7 @@ export default function AddMasterCompetitionCategoryForm({ onSuccess }: AddMaste
                 )}
 
                 {isWeightFlagChecked && (
-                    <div className='rounded-lg border bg-muted/50 p-4 space-y-4'>
+                    <div className='space-y-4 rounded-lg border bg-muted/50 p-4'>
                         <h3 className='font-medium text-primary'>Weight Configuration</h3>
                         <FormField
                             control={form.control}
@@ -351,21 +345,27 @@ export default function AddMasterCompetitionCategoryForm({ onSuccess }: AddMaste
                     </div>
                 )}
 
-                <div className='flex justify-end gap-3 pt-4 border-t'>
-                    <Button type='submit' className='min-w-[120px] shadow-md transition-all active:scale-95' disabled={form.formState.isSubmitting}>
+                <div className='flex justify-end gap-3 border-t pt-4'>
+                    <Button
+                        type='submit'
+                        className='min-w-[120px] shadow-md transition-all active:scale-95'
+                        disabled={form.formState.isSubmitting}>
                         {form.formState.isSubmitting ? (
                             <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                                 Saving...
                             </>
                         ) : (
                             'Save Category'
                         )}
                     </Button>
-                    <Button type="button" variant="destructive" onClick={() => {
-                        form.reset();
-                        onSuccess();
-                    }}>
+                    <Button
+                        type='button'
+                        variant='destructive'
+                        onClick={() => {
+                            form.reset();
+                            onSuccess();
+                        }}>
                         Cancel
                     </Button>
                 </div>

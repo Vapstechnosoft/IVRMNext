@@ -1,4 +1,4 @@
-// academicyear 
+// academicyear
 export interface IFeeIncomeTaxAcademicYearDropdownList {
     asmaY_Id: number;
     asmaY_Year: string;
@@ -58,5 +58,3 @@ export interface IFeeIncomeTaxReportPayload {
     amsC_Id: number;
     amsT_Id: number;
 }
-
-

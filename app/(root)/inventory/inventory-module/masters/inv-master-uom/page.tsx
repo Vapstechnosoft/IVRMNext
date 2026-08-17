@@ -1,13 +1,13 @@
 'use client';
 
-import { use } from 'react';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { Plus, X, Ruler, PlusCircle, Pencil } from 'lucide-react';
 import { useInvMasterUom } from '@/hooks/inventory/masters/use-inv-master-uom';
 import type { IInvMasterUOM } from '@/types/inventory/masters/inv-master-uom';
+import { Pencil, Plus, PlusCircle, Ruler, X } from 'lucide-react';
+import { use } from 'react';
 import { InvMasterUOMColumns } from './_components/columns';
 import UOMForm, { ToggleUOMForm } from './_components/uom-form';
 
@@ -149,9 +149,7 @@ function FormSections() {
             )}
 
             {/* Toggle Form */}
-            {isToggleFormOpen && selectedRow && (
-                <ToggleUOMForm rowData={selectedRow} onClose={closeToggleForm} />
-            )}
+            {isToggleFormOpen && selectedRow && <ToggleUOMForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

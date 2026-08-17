@@ -1,19 +1,23 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { FormError, Label } from '@/components/ui/extension/field';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/extension/field';
+import { useStudentFeeGroupMapping } from '@/hooks/fees/useMasters';
 import { getStudentFeeGroupMappingEditData, updtaeStudentFeeGroupMapping } from '@/server/fees/masters/student_fee_group_mapping';
 import { Save } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { useStudentFeeGroupMapping } from '@/hooks/fees/useMasters';
 
-export default function UpdateMasterStudentFeeGroupMappingsForm({ onSuccess, selectedRow, className = '' }: { onSuccess?: () => void, selectedRow: any, className?: string }) {
+export default function UpdateMasterStudentFeeGroupMappingsForm({
+    onSuccess,
+    selectedRow,
+    className = ''
+}: { onSuccess?: () => void; selectedRow: any; className?: string }) {
     const { refetchAll } = useStudentFeeGroupMapping();
     const [loading, setLoading] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    
+
     // Store the structure of groups/heads/installments
     const [feeGroups, setFeeGroups] = useState<any[]>([]);
     const [collapsedGroups, setCollapsedGroups] = useState<Record<number, boolean>>({});
@@ -28,7 +32,7 @@ export default function UpdateMasterStudentFeeGroupMappingsForm({ onSuccess, sel
             try {
                 // Fetch the data from the API as per user instruction
                 const response = await getStudentFeeGroupMappingEditData(selectedRow.fmgM_Id);
-                
+
                 // Usually the API returns { data: { ... } } or { feeGroups: [...] } or { editdata: [...] }
                 let groups: any[] = [];
                 if (response?.feeGroups) {
@@ -63,18 +67,18 @@ export default function UpdateMasterStudentFeeGroupMappingsForm({ onSuccess, sel
         const buildPayload = () => {
             const mappings: any[] = [];
             const originalGroups = originalFeeGroupsRef.current;
-            
+
             feeGroups.forEach((group) => {
                 if (!group.checked && group.heads?.length === 0) return;
-                
+
                 const originalGroup = originalGroups.find((g: any) => g.fmG_Id === group.fmG_Id);
-                
+
                 group.heads?.forEach((head: any) => {
                     const originalHead = originalGroup?.heads?.find((h: any) => h.fmH_Id === head.fmH_Id);
-                    
+
                     head.installments?.forEach((inst: any) => {
                         const originalInst = originalHead?.installments?.find((i: any) => i.ftI_Id === inst.ftI_Id);
-                        
+
                         // Check if value changed, or if we should just send all checked
                         if (!originalInst || inst.checked !== originalInst.checked) {
                             mappings.push({
@@ -98,7 +102,7 @@ export default function UpdateMasterStudentFeeGroupMappingsForm({ onSuccess, sel
 
         const payload = buildPayload();
         console.log('Update payload:', JSON.stringify(payload));
-        
+
         try {
             const response = await updtaeStudentFeeGroupMapping(payload);
             if (response?.success) {
@@ -217,37 +221,40 @@ export default function UpdateMasterStudentFeeGroupMappingsForm({ onSuccess, sel
 
     return (
         <div className={`space-y-6 ${className}`}>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted/20 p-4 rounded-md'>
+            <div className='grid grid-cols-1 gap-4 rounded-md bg-muted/20 p-4 md:grid-cols-2'>
                 <div>
-                    <Label className="text-muted-foreground">Student Name</Label>
-                    <div className="font-medium mt-1">
-                        {`${selectedRow?.amsT_FirstName || ''} ${selectedRow?.amsT_MiddleName || ''} ${selectedRow?.amsT_LastName || ''}`.trim() || 'N/A'}
+                    <Label className='text-muted-foreground'>Student Name</Label>
+                    <div className='mt-1 font-medium'>
+                        {`${selectedRow?.amsT_FirstName || ''} ${selectedRow?.amsT_MiddleName || ''} ${selectedRow?.amsT_LastName || ''}`.trim() ||
+                            'N/A'}
                     </div>
                 </div>
                 <div>
-                    <Label className="text-muted-foreground">Class & Section</Label>
-                    <div className="font-medium mt-1">
+                    <Label className='text-muted-foreground'>Class & Section</Label>
+                    <div className='mt-1 font-medium'>
                         {selectedRow?.asmcL_ClassName || 'N/A'} - {selectedRow?.asmC_SectionName || 'N/A'}
                     </div>
                 </div>
                 <div>
-                    <Label className="text-muted-foreground">Phone Number</Label>
-                    <div className="font-medium mt-1">{selectedRow?.amsT_Mobile || 'N/A'}</div>
+                    <Label className='text-muted-foreground'>Phone Number</Label>
+                    <div className='mt-1 font-medium'>{selectedRow?.amsT_Mobile || 'N/A'}</div>
                 </div>
                 <div>
-                    <Label className="text-muted-foreground">Group Name</Label>
-                    <div className="font-medium mt-1">{selectedRow?.fmG_GroupName || 'N/A'}</div>
+                    <Label className='text-muted-foreground'>Group Name</Label>
+                    <div className='mt-1 font-medium'>{selectedRow?.fmG_GroupName || 'N/A'}</div>
                 </div>
             </div>
 
-            <div className='border rounded-md p-4 min-h-[200px] max-h-[400px] overflow-y-auto'>
+            <div className='max-h-[400px] min-h-[200px] overflow-y-auto rounded-md border p-4'>
                 {loading ? (
-                    <div className='flex items-center justify-center h-full'>
-                        <span className="text-muted-foreground">Loading mapping data...</span>
+                    <div className='flex h-full items-center justify-center'>
+                        <span className='text-muted-foreground'>Loading mapping data...</span>
                     </div>
                 ) : feeGroups.length === 0 ? (
-                    <div className='flex items-center justify-center h-full'>
-                        <span className="text-muted-foreground">No mapping data available or standard update form should be bound here.</span>
+                    <div className='flex h-full items-center justify-center'>
+                        <span className='text-muted-foreground'>
+                            No mapping data available or standard update form should be bound here.
+                        </span>
                     </div>
                 ) : (
                     <div>
@@ -257,7 +264,7 @@ export default function UpdateMasterStudentFeeGroupMappingsForm({ onSuccess, sel
                                     <button
                                         type='button'
                                         onClick={() => toggleGroup(group.fmG_Id)}
-                                        className='mr-2 cursor-pointer text-xl w-6 text-center hover:bg-muted rounded'>
+                                        className='mr-2 w-6 cursor-pointer rounded text-center text-xl hover:bg-muted'>
                                         {collapsedGroups[group.fmG_Id] ? '−' : '+'}
                                     </button>
                                     <Checkbox
@@ -265,18 +272,20 @@ export default function UpdateMasterStudentFeeGroupMappingsForm({ onSuccess, sel
                                         disabled={group.disabled}
                                         onCheckedChange={() => handleGroupCheck(group)}
                                     />
-                                    <span className={group.disabled ? 'text-muted-foreground' : 'font-medium'}>{group.groupName || group.fmG_GroupName}</span>
+                                    <span className={group.disabled ? 'text-muted-foreground' : 'font-medium'}>
+                                        {group.groupName || group.fmG_GroupName}
+                                    </span>
                                 </div>
 
                                 {collapsedGroups[group.fmG_Id] && group.heads && group.heads.length > 0 && (
-                                    <div className='pl-8 mt-2'>
+                                    <div className='mt-2 pl-8'>
                                         {group.heads.map((head: any) => (
                                             <div key={head.fmH_Id} className='mb-2'>
                                                 <div className='flex items-center gap-3'>
                                                     <button
                                                         type='button'
                                                         onClick={() => toggleHead(group.fmG_Id, head.fmH_Id)}
-                                                        className='w-6 text-xl text-center hover:bg-muted rounded'>
+                                                        className='w-6 rounded text-center text-xl hover:bg-muted'>
                                                         {isHeadCollapsed(group.fmG_Id, head.fmH_Id) ? '−' : '+'}
                                                     </button>
                                                     <Checkbox
@@ -289,27 +298,33 @@ export default function UpdateMasterStudentFeeGroupMappingsForm({ onSuccess, sel
                                                     </span>
                                                 </div>
 
-                                                {isHeadCollapsed(group.fmG_Id, head.fmH_Id) && head.installments && head.installments.length > 0 && (
-                                                    <div className='mt-2 ml-10 space-y-2 border-l-2 pl-4 py-1'>
-                                                        {head.installments.map((inst: any) => (
-                                                            <div key={inst.ftI_Id || inst.fti_id} className='flex items-center gap-2'>
-                                                                <Checkbox
-                                                                    checked={inst.checked}
-                                                                    disabled={inst.disabled}
-                                                                    onCheckedChange={() =>
-                                                                        handleInstallmentCheck(group.fmG_Id, head.fmH_Id, inst.ftI_Id || inst.fti_id)
-                                                                    }
-                                                                />
-                                                                <span
-                                                                    className={`text-sm ${
-                                                                        inst.disabled ? 'text-muted-foreground' : ''
-                                                                    }`}>
-                                                                    {inst.installmentName || inst.ftI_Name || inst.fti_name}
-                                                                </span>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                )}
+                                                {isHeadCollapsed(group.fmG_Id, head.fmH_Id) &&
+                                                    head.installments &&
+                                                    head.installments.length > 0 && (
+                                                        <div className='mt-2 ml-10 space-y-2 border-l-2 py-1 pl-4'>
+                                                            {head.installments.map((inst: any) => (
+                                                                <div key={inst.ftI_Id || inst.fti_id} className='flex items-center gap-2'>
+                                                                    <Checkbox
+                                                                        checked={inst.checked}
+                                                                        disabled={inst.disabled}
+                                                                        onCheckedChange={() =>
+                                                                            handleInstallmentCheck(
+                                                                                group.fmG_Id,
+                                                                                head.fmH_Id,
+                                                                                inst.ftI_Id || inst.fti_id
+                                                                            )
+                                                                        }
+                                                                    />
+                                                                    <span
+                                                                        className={`text-sm ${
+                                                                            inst.disabled ? 'text-muted-foreground' : ''
+                                                                        }`}>
+                                                                        {inst.installmentName || inst.ftI_Name || inst.fti_name}
+                                                                    </span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                             </div>
                                         ))}
                                     </div>
@@ -321,19 +336,10 @@ export default function UpdateMasterStudentFeeGroupMappingsForm({ onSuccess, sel
             </div>
 
             <div className='flex flex-col gap-3 pt-4 sm:flex-row sm:justify-end'>
-                <Button
-                    type='button'
-                    variant='outline'
-                    onClick={onSuccess}
-                    disabled={isSubmitting}
-                    className='w-fit'>
+                <Button type='button' variant='outline' onClick={onSuccess} disabled={isSubmitting} className='w-fit'>
                     Cancel
                 </Button>
-                <Button
-                    type='button'
-                    onClick={submit}
-                    disabled={isSubmitting || feeGroups.length === 0}
-                    className='w-fit'>
+                <Button type='button' onClick={submit} disabled={isSubmitting || feeGroups.length === 0} className='w-fit'>
                     <Save className='mr-2 h-4 w-4' />
                     {isSubmitting ? 'Updating...' : 'Update Mapping'}
                 </Button>

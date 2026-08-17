@@ -21,5 +21,3 @@ export interface ITrustMaster {
     createdDate: string;
     updatedDate: string;
 }
-
-

@@ -1,16 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useForm, Controller, useFieldArray } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { studentEligibleReportSchema, IStudentEligibleReport } from '@/types/sports/reports/student-eligible-report';
-import { useStudentEligibleReport } from '@/hooks/sports/useStudentEligibleReport';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
+import { useStudentEligibleReport } from '@/hooks/sports/useStudentEligibleReport';
+import { type IStudentEligibleReport, studentEligibleReportSchema } from '@/types/sports/reports/student-eligible-report';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { FileSpreadsheet, FileText, Loader2, Printer, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { FileText, X, Printer, FileSpreadsheet, Loader2 } from 'lucide-react';
 
 interface ReportFormProps {
     onReport: (data: any, payload: any) => void;
@@ -25,7 +25,13 @@ export default function ReportForm({ onReport, onReset, onPrint, onExcel, hasDat
     const { data: loadGridData, getClasses, getSections, getStudents } = useStudentEligibleReport();
     const [showStudentList, setShowStudentList] = useState(false);
 
-    const { control, handleSubmit, watch, reset, formState: { errors } } = useForm<IStudentEligibleReport>({
+    const {
+        control,
+        handleSubmit,
+        watch,
+        reset,
+        formState: { errors }
+    } = useForm<IStudentEligibleReport>({
         resolver: zodResolver(studentEligibleReportSchema),
         defaultValues: {
             asmaY_Id: 0,
@@ -61,24 +67,26 @@ export default function ReportForm({ onReport, onReset, onPrint, onExcel, hasDat
     // Cascade: Section -> Students
     useEffect(() => {
         if (watchedAsmaY_Id && watchedAsmcL_Id && watchedAsmS_Id) {
-            getStudents.mutateAsync({
-                ASMAY_Id: watchedAsmaY_Id,
-                ASMCL_Id: watchedAsmcL_Id,
-                ASMS_Id: watchedAsmS_Id
-            }).then(data => {
-                if (data && data.length > 0) {
-                    replace(data.map((s: any) => ({ ...s, Selected: false })));
-                    setShowStudentList(true);
-                } else {
-                    replace([]);
-                    setShowStudentList(false);
-                }
-            });
+            getStudents
+                .mutateAsync({
+                    ASMAY_Id: watchedAsmaY_Id,
+                    ASMCL_Id: watchedAsmcL_Id,
+                    ASMS_Id: watchedAsmS_Id
+                })
+                .then((data) => {
+                    if (data && data.length > 0) {
+                        replace(data.map((s: any) => ({ ...s, Selected: false })));
+                        setShowStudentList(true);
+                    } else {
+                        replace([]);
+                        setShowStudentList(false);
+                    }
+                });
         }
     }, [watchedAsmaY_Id, watchedAsmcL_Id, watchedAsmS_Id, getStudents.mutateAsync, replace]);
 
     const onSubmit = (values: IStudentEligibleReport) => {
-        const selectedStudents = values.studentList?.filter(s => s.Selected) || [];
+        const selectedStudents = values.studentList?.filter((s) => s.Selected) || [];
         if (selectedStudents.length === 0) {
             toast.error('Please select at least one student');
             return;
@@ -88,7 +96,7 @@ export default function ReportForm({ onReport, onReset, onPrint, onExcel, hasDat
             asmaY_Id: values.asmaY_Id,
             asmcL_Id: values.asmcL_Id,
             asmS_Id: values.asmS_Id,
-            studentList: selectedStudents.map(s => ({ amsT_Id: s.amsT_Id }))
+            studentList: selectedStudents.map((s) => ({ amsT_Id: s.amsT_Id }))
         };
 
         // Notify parent; the reportQuery in Page will handle the fetch
@@ -114,7 +122,9 @@ export default function ReportForm({ onReport, onReset, onPrint, onExcel, hasDat
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                 {/* Academic Year */}
                 <div className='flex flex-col gap-2'>
-                    <Label>Academic Year <span className='text-destructive'>*</span></Label>
+                    <Label>
+                        Academic Year <span className='text-destructive'>*</span>
+                    </Label>
                     <Controller
                         name='asmaY_Id'
                         control={control}
@@ -125,18 +135,22 @@ export default function ReportForm({ onReport, onReset, onPrint, onExcel, hasDat
                                 </SelectTrigger>
                                 <SelectContent>
                                     {loadGridData?.yearlist?.map((y: any) => (
-                                        <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>{y.asmaY_Year}</SelectItem>
+                                        <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>
+                                            {y.asmaY_Year}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         )}
                     />
-                    {errors.asmaY_Id && <span className='text-xs text-destructive'>{errors.asmaY_Id.message}</span>}
+                    {errors.asmaY_Id && <span className='text-destructive text-xs'>{errors.asmaY_Id.message}</span>}
                 </div>
 
                 {/* Class */}
                 <div className='flex flex-col gap-2'>
-                    <Label>Class <span className='text-destructive'>*</span></Label>
+                    <Label>
+                        Class <span className='text-destructive'>*</span>
+                    </Label>
                     <Controller
                         name='asmcL_Id'
                         control={control}
@@ -147,18 +161,22 @@ export default function ReportForm({ onReport, onReset, onPrint, onExcel, hasDat
                                 </SelectTrigger>
                                 <SelectContent>
                                     {getClasses.data?.map((c: any) => (
-                                        <SelectItem key={c.asmcL_Id} value={c.asmcL_Id.toString()}>{c.asmcL_ClassName}</SelectItem>
+                                        <SelectItem key={c.asmcL_Id} value={c.asmcL_Id.toString()}>
+                                            {c.asmcL_ClassName}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         )}
                     />
-                    {errors.asmcL_Id && <span className='text-xs text-destructive'>{errors.asmcL_Id.message}</span>}
+                    {errors.asmcL_Id && <span className='text-destructive text-xs'>{errors.asmcL_Id.message}</span>}
                 </div>
 
                 {/* Section */}
                 <div className='flex flex-col gap-2'>
-                    <Label>Section <span className='text-destructive'>*</span></Label>
+                    <Label>
+                        Section <span className='text-destructive'>*</span>
+                    </Label>
                     <Controller
                         name='asmS_Id'
                         control={control}
@@ -169,25 +187,27 @@ export default function ReportForm({ onReport, onReset, onPrint, onExcel, hasDat
                                 </SelectTrigger>
                                 <SelectContent>
                                     {getSections.data?.map((s: any) => (
-                                        <SelectItem key={s.asmS_Id} value={s.asmS_Id.toString()}>{s.asmC_SectionName}</SelectItem>
+                                        <SelectItem key={s.asmS_Id} value={s.asmS_Id.toString()}>
+                                            {s.asmC_SectionName}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         )}
                     />
-                    {errors.asmS_Id && <span className='text-xs text-destructive'>{errors.asmS_Id.message}</span>}
+                    {errors.asmS_Id && <span className='text-destructive text-xs'>{errors.asmS_Id.message}</span>}
                 </div>
 
                 {/* Students Multiselect */}
                 {showStudentList && (
                     <div className='flex flex-col gap-2'>
-                        <Label>Student <span className='text-destructive'>*</span></Label>
-                        <div className='h-32 overflow-y-auto rounded-md border p-2 space-y-1'>
-                            <div className='flex items-center space-x-2 pb-1 border-b mb-1'>
-                                <Checkbox
-                                    onCheckedChange={(checked) => handleSelectAll(!!checked)}
-                                />
-                                <span className='text-xs font-medium'>Select All</span>
+                        <Label>
+                            Student <span className='text-destructive'>*</span>
+                        </Label>
+                        <div className='h-32 space-y-1 overflow-y-auto rounded-md border p-2'>
+                            <div className='mb-1 flex items-center space-x-2 border-b pb-1'>
+                                <Checkbox onCheckedChange={(checked) => handleSelectAll(!!checked)} />
+                                <span className='font-medium text-xs'>Select All</span>
                             </div>
                             {fields.map((field, index) => (
                                 <div key={field.id} className='flex items-center space-x-2'>

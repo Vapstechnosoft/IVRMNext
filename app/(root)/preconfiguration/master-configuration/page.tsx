@@ -20,12 +20,7 @@ export default function MasterConfigurationPage(props: { searchParams: SearchPar
 
     return (
         <FormProvider<IMasterConfiguration>>
-            <MasterConfigurationPageContent
-                response={response}
-                isLoading={isLoading}
-                error={error}
-                onRefresh={refetchAll}
-            />
+            <MasterConfigurationPageContent response={response} isLoading={isLoading} error={error} onRefresh={refetchAll} />
         </FormProvider>
     );
 }
@@ -58,7 +53,7 @@ function MasterConfigurationPageContent({
                         type='button'
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='h-4 w-4 mr-2' />
+                        <Plus className='mr-2 h-4 w-4' />
                         Add Master Configuration
                     </Button>
                 </div>
@@ -91,15 +86,8 @@ function MasterConfigurationPageContent({
 }
 
 function FormSections({ response, onRefresh }: { response: any; onRefresh: () => void }) {
-    const {
-        isAddFormOpen,
-        isEditFormOpen,
-        selectedRow,
-        closeAddForm,
-        closeEditForm,
-        addFormRef,
-        editFormRef
-    } = useFormContext<IMasterConfiguration>();
+    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
+        useFormContext<IMasterConfiguration>();
 
     return (
         <>
@@ -120,7 +108,7 @@ function FormSections({ response, onRefresh }: { response: any; onRefresh: () =>
                                 variant='ghost'
                                 size='sm'
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive mr-1' /> Close
+                                <X className='mr-1 h-4 w-4 text-destructive' /> Close
                             </Button>
                             <AddMasterConfigurationForm
                                 response={response}
@@ -150,7 +138,7 @@ function FormSections({ response, onRefresh }: { response: any; onRefresh: () =>
                                 variant='ghost'
                                 size='sm'
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive mr-1' /> Close
+                                <X className='mr-1 h-4 w-4 text-destructive' /> Close
                             </Button>
                             <UpdateMasterConfigurationForm
                                 selectedRow={selectedRow}

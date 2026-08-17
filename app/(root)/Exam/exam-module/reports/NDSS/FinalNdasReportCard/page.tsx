@@ -1,11 +1,11 @@
 'use client';
 
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { getNDS9Report } from '@/server/exam/exam-module/reports/NDSS/FinalNdasReportCard';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import FinalNdasReportForm from './_components/final-ndas-report-form';
 import FinalNdasReportDisplay from './_components/final-ndas-report-display';
-import { getNDS9Report } from '@/server/exam/exam-module/reports/NDSS/FinalNdasReportCard';
+import FinalNdasReportForm from './_components/final-ndas-report-form';
 
 export default function FinalNdasReportCardPage() {
     const [reportData, setReportData] = useState<any>(null);
@@ -15,7 +15,7 @@ export default function FinalNdasReportCardPage() {
     const handleReportSuccess = async (payload: any) => {
         try {
             const res = await getNDS9Report(payload);
-            console.log("response data: ", res);
+            console.log('response data: ', res);
 
             const reportContent = res?.data || res; // Fallback if not wrapped
 
@@ -50,10 +50,7 @@ export default function FinalNdasReportCardPage() {
 
             {isReportVisible && reportData && (
                 <CollapsibleSection title='Progress Cards Report' defaultOpen>
-                    <FinalNdasReportDisplay 
-                        data={reportData} 
-                        date={reportDate}
-                    />
+                    <FinalNdasReportDisplay data={reportData} date={reportDate} />
                 </CollapsibleSection>
             )}
         </div>

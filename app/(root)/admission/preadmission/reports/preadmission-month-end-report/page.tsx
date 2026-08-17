@@ -1,6 +1,4 @@
 'use client';
-
-import { format } from 'date-fns';
 import { FileSpreadsheet, Printer, RotateCcw, Save } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
@@ -118,7 +116,7 @@ export default function MonthendreportPage() {
 
             if (reportList?.length) {
                 const r = reportList[0];
-                const fetchedLogo = r.MI_Logo || r.mI_Logo || r.mi_logo || (instDetails[0]?.mI_Logo) || '/school-logo.png';
+                const fetchedLogo = r.MI_Logo || r.mI_Logo || r.mi_logo || instDetails[0]?.mI_Logo || '/school-logo.png';
                 setLogo(fetchedLogo);
                 setInstitutionDetails(instDetails);
 
@@ -189,8 +187,8 @@ export default function MonthendreportPage() {
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                    });
+                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                      });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);
@@ -321,14 +319,14 @@ export default function MonthendreportPage() {
                     <Button
                         onClick={() => handlePrint()}
                         variant='outline'
-                        className='bg-primary/10 text-primary hover:bg-primary/20 shadow-sm transition-all duration-300'>
+                        className='bg-primary/10 text-primary shadow-sm transition-all duration-300 hover:bg-primary/20'>
                         <Printer className='mr-2 h-4 w-4' />
                         Print Report
                     </Button>
                     <Button
                         onClick={downloadExcel}
                         variant='outline'
-                        className='bg-green-50 text-green-600 hover:bg-green-100 border-green-200 shadow-sm transition-all duration-300'>
+                        className='border-green-200 bg-green-50 text-green-600 shadow-sm transition-all duration-300 hover:bg-green-100'>
                         <FileSpreadsheet className='mr-2 h-4 w-4' />
                         Download Excel
                     </Button>

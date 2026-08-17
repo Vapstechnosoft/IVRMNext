@@ -1,24 +1,23 @@
-
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Search, X, List } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type {
-    IStudentTransactionInitialData,
-    IClass,
-    ISection,
-    IExamTerm,
-    IExamMaster,
-    ISkill,
     IActivity,
     IArea,
+    IClass,
+    IExamMaster,
+    IExamTerm,
+    ISection,
+    ISkill,
+    IStudentTransactionInitialData,
     IStudentTransactionSearchRequest
 } from '@/types/staff-portal/student-transaction-cce';
+import { List, Search, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface FilterProps {
     initialData?: IStudentTransactionInitialData | null;
@@ -27,8 +26,14 @@ interface FilterProps {
     isLoading: boolean;
     getClasses: (y: number, f: string) => Promise<IClass[]>;
     getSections: (y: number, c: number, f: string) => Promise<ISection[]>;
-    getTermsOrExams: (y: number, c: number, s: number, f: string) => Promise<{ examTerms: IExamTerm[], exammaster: IExamMaster[] }>;
-    getSkillsOrActivities: (sk: string, y: number, c: number, s: number, f: string) => Promise<{ skillsList: ISkill[], activitiesList: IActivity[] }>;
+    getTermsOrExams: (y: number, c: number, s: number, f: string) => Promise<{ examTerms: IExamTerm[]; exammaster: IExamMaster[] }>;
+    getSkillsOrActivities: (
+        sk: string,
+        y: number,
+        c: number,
+        s: number,
+        f: string
+    ) => Promise<{ skillsList: ISkill[]; activitiesList: IActivity[] }>;
     getActivitiesAreas: (data: any) => Promise<IArea[]>;
     getSkillsAreas: (data: any) => Promise<IArea[]>;
 }
@@ -176,7 +181,7 @@ export default function StudentTransactionFilter({
             ECS_Id: Number(selectedSkill || 0),
             ECACT_Id: Number(selectedActivity || 0),
             ECSA_Id: Number(skillsType === 'Skills' ? selectedArea : 0),
-            ECACTA_Id: Number(skillsType === 'Activities' ? selectedArea : 0),
+            ECACTA_Id: Number(skillsType === 'Activities' ? selectedArea : 0)
         };
 
         if (flag === 'TermWise') params.ECT_Id = Number(selectedTerm);
@@ -186,162 +191,179 @@ export default function StudentTransactionFilter({
     };
 
     return (
-        <Card className="shadow-md border-primary/10">
-            <CardHeader className="pb-3 px-6">
-                <CardTitle className="text-lg font-semibold flex items-center gap-2 text-primary">
-                    <List className="h-5 w-5" />
+        <Card className='border-primary/10 shadow-md'>
+            <CardHeader className='px-6 pb-3'>
+                <CardTitle className='flex items-center gap-2 font-semibold text-lg text-primary'>
+                    <List className='h-5 w-5' />
                     Student Transaction Filter
                 </CardTitle>
             </CardHeader>
-            <CardContent className="px-6 pb-6 pt-2">
-                <div className="flex justify-center mb-6">
+            <CardContent className='px-6 pt-2 pb-6'>
+                <div className='mb-6 flex justify-center'>
                     <RadioGroup
                         value={flag}
                         onValueChange={handleFlagChange as any}
-                        className="flex items-center gap-8 bg-muted/40 p-3 rounded-full border border-primary/5 px-8"
-                    >
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="TermWise" id="term-wise" />
-                            <Label htmlFor="term-wise" className="cursor-pointer font-medium">Term Wise</Label>
+                        className='flex items-center gap-8 rounded-full border border-primary/5 bg-muted/40 p-3 px-8'>
+                        <div className='flex items-center space-x-2'>
+                            <RadioGroupItem value='TermWise' id='term-wise' />
+                            <Label htmlFor='term-wise' className='cursor-pointer font-medium'>
+                                Term Wise
+                            </Label>
                         </div>
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="ExamWise" id="exam-wise" />
-                            <Label htmlFor="exam-wise" className="cursor-pointer font-medium">Exam Wise</Label>
+                        <div className='flex items-center space-x-2'>
+                            <RadioGroupItem value='ExamWise' id='exam-wise' />
+                            <Label htmlFor='exam-wise' className='cursor-pointer font-medium'>
+                                Exam Wise
+                            </Label>
                         </div>
                     </RadioGroup>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div className="space-y-2">
+                <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
+                    <div className='space-y-2'>
                         <Label>Academic Year</Label>
                         <Select value={selectedYear} onValueChange={handleYearChange}>
                             <SelectTrigger>
-                                <SelectValue placeholder="--Select Year--" />
+                                <SelectValue placeholder='--Select Year--' />
                             </SelectTrigger>
                             <SelectContent>
-                                {initialData?.academicYear?.map(yr => (
-                                    <SelectItem key={yr.asmaY_Id} value={yr.asmaY_Id.toString()}>{yr.asmaY_Year}</SelectItem>
+                                {initialData?.academicYear?.map((yr) => (
+                                    <SelectItem key={yr.asmaY_Id} value={yr.asmaY_Id.toString()}>
+                                        {yr.asmaY_Year}
+                                    </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
                     </div>
 
-                    <div className="space-y-2">
+                    <div className='space-y-2'>
                         <Label>Class</Label>
                         <Select value={selectedClass} onValueChange={handleClassChange} disabled={!selectedYear}>
                             <SelectTrigger>
-                                <SelectValue placeholder="--Select Class--" />
+                                <SelectValue placeholder='--Select Class--' />
                             </SelectTrigger>
                             <SelectContent>
-                                {classList.map(cls => (
-                                    <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>{cls.asmcL_ClassName}</SelectItem>
+                                {classList.map((cls) => (
+                                    <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>
+                                        {cls.asmcL_ClassName}
+                                    </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
                     </div>
 
-                    <div className="space-y-2">
+                    <div className='space-y-2'>
                         <Label>Section</Label>
                         <Select value={selectedSection} onValueChange={handleSectionChange} disabled={!selectedClass}>
                             <SelectTrigger>
-                                <SelectValue placeholder="--Select Section--" />
+                                <SelectValue placeholder='--Select Section--' />
                             </SelectTrigger>
                             <SelectContent>
-                                {sectionList.map(sec => (
-                                    <SelectItem key={sec.asmS_Id} value={sec.asmS_Id.toString()}>{sec.asmC_SectionName}</SelectItem>
+                                {sectionList.map((sec) => (
+                                    <SelectItem key={sec.asmS_Id} value={sec.asmS_Id.toString()}>
+                                        {sec.asmC_SectionName}
+                                    </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
                     </div>
 
-                    <div className="space-y-2">
+                    <div className='space-y-2'>
                         <Label>{flag === 'TermWise' ? 'Exam Term' : 'Exam'}</Label>
                         <Select
                             value={flag === 'TermWise' ? selectedTerm : selectedExam}
                             onValueChange={handleTermOrExamChange}
-                            disabled={!selectedSection}
-                        >
+                            disabled={!selectedSection}>
                             <SelectTrigger>
-                                <SelectValue placeholder="--Select--" />
+                                <SelectValue placeholder='--Select--' />
                             </SelectTrigger>
                             <SelectContent>
-                                {flag === 'TermWise' ? (
-                                    examTerms.map(t => <SelectItem key={t.ecT_Id} value={t.ecT_Id.toString()}>{t.ecT_TermName}</SelectItem>)
-                                ) : (
-                                    exammaster.map(e => <SelectItem key={e.emE_Id} value={e.emE_Id.toString()}>{e.emE_ExamName}</SelectItem>)
-                                )}
+                                {flag === 'TermWise'
+                                    ? examTerms.map((t) => (
+                                          <SelectItem key={t.ecT_Id} value={t.ecT_Id.toString()}>
+                                              {t.ecT_TermName}
+                                          </SelectItem>
+                                      ))
+                                    : exammaster.map((e) => (
+                                          <SelectItem key={e.emE_Id} value={e.emE_Id.toString()}>
+                                              {e.emE_ExamName}
+                                          </SelectItem>
+                                      ))}
                             </SelectContent>
                         </Select>
                     </div>
 
-                    <div className="space-y-2">
+                    <div className='space-y-2'>
                         <Label>Skill / Activities</Label>
                         <Select value={skillsType} onValueChange={handleSkillsTypeChange} disabled={!(selectedTerm || selectedExam)}>
                             <SelectTrigger>
-                                <SelectValue placeholder="--Select--" />
+                                <SelectValue placeholder='--Select--' />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="Skills">Skills</SelectItem>
-                                <SelectItem value="Activities">Activities</SelectItem>
+                                <SelectItem value='Skills'>Skills</SelectItem>
+                                <SelectItem value='Activities'>Activities</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
 
-                    <div className="space-y-2">
+                    <div className='space-y-2'>
                         <Label>{skillsType === 'Skills' ? 'Skills Name' : 'Activities Name'}</Label>
                         <Select
                             value={skillsType === 'Skills' ? selectedSkill : selectedActivity}
                             onValueChange={handleItemChange}
-                            disabled={!skillsType}
-                        >
+                            disabled={!skillsType}>
                             <SelectTrigger>
-                                <SelectValue placeholder="--Select--" />
+                                <SelectValue placeholder='--Select--' />
                             </SelectTrigger>
                             <SelectContent>
-                                {skillsType === 'Skills' ? (
-                                    skillsList.map(s => <SelectItem key={s.ecS_Id} value={s.ecS_Id.toString()}>{s.ecS_SkillName}</SelectItem>)
-                                ) : (
-                                    activitiesList.map(a => <SelectItem key={a.ecacT_Id} value={a.ecacT_Id.toString()}>{a.ecacT_SkillName}</SelectItem>)
-                                )}
+                                {skillsType === 'Skills'
+                                    ? skillsList.map((s) => (
+                                          <SelectItem key={s.ecS_Id} value={s.ecS_Id.toString()}>
+                                              {s.ecS_SkillName}
+                                          </SelectItem>
+                                      ))
+                                    : activitiesList.map((a) => (
+                                          <SelectItem key={a.ecacT_Id} value={a.ecacT_Id.toString()}>
+                                              {a.ecacT_SkillName}
+                                          </SelectItem>
+                                      ))}
                             </SelectContent>
                         </Select>
                     </div>
 
-                    <div className="space-y-2 lg:col-span-1">
+                    <div className='space-y-2 lg:col-span-1'>
                         <Label>{skillsType === 'Skills' ? 'Skill Area' : 'Activities Area'}</Label>
-                        <Select
-                            value={selectedArea}
-                            onValueChange={setSelectedArea}
-                            disabled={!(selectedSkill || selectedActivity)}
-                        >
+                        <Select value={selectedArea} onValueChange={setSelectedArea} disabled={!(selectedSkill || selectedActivity)}>
                             <SelectTrigger>
-                                <SelectValue placeholder="--Select--" />
+                                <SelectValue placeholder='--Select--' />
                             </SelectTrigger>
                             <SelectContent>
-                                {areasList.map(area => {
+                                {areasList.map((area) => {
                                     const id = (skillsType === 'Skills' ? area.ecsA_Id : area.ecactA_Id)?.toString() || '';
-                                    return <SelectItem key={id} value={id}>{area.areaName}</SelectItem>;
+                                    return (
+                                        <SelectItem key={id} value={id}>
+                                            {area.areaName}
+                                        </SelectItem>
+                                    );
                                 })}
                             </SelectContent>
                         </Select>
                     </div>
                 </div>
 
-                <div className="mt-8 flex justify-center gap-4">
+                <div className='mt-8 flex justify-center gap-4'>
                     <Button
-                        variant="ghost"
+                        variant='ghost'
                         onClick={onReset}
-                        className="flex items-center gap-2 hover:bg-destructive/10 text-destructive border border-destructive/20"
-                    >
-                        <X className="h-4 w-4" />
+                        className='flex items-center gap-2 border border-destructive/20 text-destructive hover:bg-destructive/10'>
+                        <X className='h-4 w-4' />
                         Clear Selections
                     </Button>
                     <Button
                         onClick={handleSearch}
                         disabled={isLoading || !selectedArea}
-                        className="bg-primary hover:bg-primary/90 flex items-center gap-2 min-w-[160px] shadow-lg shadow-primary/20"
-                    >
-                        <Search className="h-4 w-4" />
+                        className='flex min-w-[160px] items-center gap-2 bg-primary shadow-lg shadow-primary/20 hover:bg-primary/90'>
+                        <Search className='h-4 w-4' />
                         {isLoading ? 'Loading List...' : 'Student List'}
                     </Button>
                 </div>

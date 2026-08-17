@@ -1,9 +1,9 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
-import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
 export const studentAllotmentColumns: ColumnDef<any, any>[] = [
@@ -20,27 +20,27 @@ export const studentAllotmentColumns: ColumnDef<any, any>[] = [
     },
     {
         accessorKey: 'studentName',
-        header: ({ column }) => <ColumnHeader column={column} title='Student Name' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Student Name' />
     },
     {
         accessorKey: 'ASMCL_ClassName',
-        header: ({ column }) => <ColumnHeader column={column} title='Class' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Class' />
     },
     {
         accessorKey: 'AMST_RegistrationNo',
-        header: ({ column }) => <ColumnHeader column={column} title='Reg No' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Reg No' />
     },
     {
         accessorKey: 'HLMH_Name',
-        header: ({ column }) => <ColumnHeader column={column} title='Hostel' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Hostel' />
     },
     {
         accessorKey: 'HLMRCA_RoomCategory',
-        header: ({ column }) => <ColumnHeader column={column} title='Room Category' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Room Category' />
     },
     {
         accessorKey: 'HRMRM_RoomNo',
-        header: ({ column }) => <ColumnHeader column={column} title='Room No' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Room No' />
     },
     {
         accessorKey: 'HLHSALT_AllotmentDate',
@@ -55,7 +55,7 @@ export const studentAllotmentColumns: ColumnDef<any, any>[] = [
         id: 'actions',
         header: ({ column }) => <ColumnHeader column={column} title='Action' className='text-center' />,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
-    },
+    }
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: any }) {

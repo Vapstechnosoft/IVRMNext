@@ -1,18 +1,16 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { IGeneralConfiguration } from '@/types/preconfiguration/general-config';
+import type { IGeneralConfiguration } from '@/types/preconfiguration/general-config';
+import type { ColumnDef } from '@tanstack/react-table';
 import { useConfigStore } from './genconfig-store';
 
 export const columns: ColumnDef<IGeneralConfiguration>[] = [
     {
         id: 'slNo',
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Sl. No." />
-        ),
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No.' />,
         cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
         enableSorting: false,
         enableHiding: false,
@@ -20,9 +18,7 @@ export const columns: ColumnDef<IGeneralConfiguration>[] = [
     },
     {
         accessorKey: 'instuitename',
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Institute Name" />
-        ),
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Institute Name' />,
         cell: ({ row }) => <div>{row.getValue('instuitename')}</div>
     },
     {
@@ -31,7 +27,7 @@ export const columns: ColumnDef<IGeneralConfiguration>[] = [
         cell: ({ row }) => {
             const { openEditForm } = useFormContext<IGeneralConfiguration>();
             const { setEditId } = useConfigStore();
-            
+
             return (
                 <ActionButtons
                     rowData={row.original}
@@ -44,5 +40,5 @@ export const columns: ColumnDef<IGeneralConfiguration>[] = [
             );
         },
         size: 100
-    },
+    }
 ];

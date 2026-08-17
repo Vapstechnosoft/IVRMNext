@@ -90,15 +90,19 @@ export const bmiCalculationSchema = z.object({
     ASMAY_Id: z.coerce.number().min(1, 'Academic Year is required'),
     ASMCL_Id: z.coerce.number().min(1, 'Class is required'),
     ASMS_Id: z.coerce.number().min(1, 'Section is required'),
-    SPCCSHW_AsOnDate: z.union([z.string(), z.date()]).refine(val => !!val, 'Date is required'),
-    student: z.array(z.object({
-        AMST_Id: z.number(),
-        studentName: z.string().optional(),
-        AMST_AdmNo: z.string().optional(),
-        SPCCSHW_Weight: z.coerce.number().min(0, 'Weight must be positive'),
-        SPCCSHW_Height: z.coerce.number().min(0, 'Height must be positive'),
-        SPCCSHW_BMI: z.coerce.number(),
-        SPCCSHW_BMIRemark: z.string(),
-        selected: z.boolean().optional()
-    })).optional()
+    SPCCSHW_AsOnDate: z.union([z.string(), z.date()]).refine((val) => !!val, 'Date is required'),
+    student: z
+        .array(
+            z.object({
+                AMST_Id: z.number(),
+                studentName: z.string().optional(),
+                AMST_AdmNo: z.string().optional(),
+                SPCCSHW_Weight: z.coerce.number().min(0, 'Weight must be positive'),
+                SPCCSHW_Height: z.coerce.number().min(0, 'Height must be positive'),
+                SPCCSHW_BMI: z.coerce.number(),
+                SPCCSHW_BMIRemark: z.string(),
+                selected: z.boolean().optional()
+            })
+        )
+        .optional()
 });

@@ -4,16 +4,19 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useAcademicYearDropDownMasterDayClasswise, useCategtoryDropDownMasterDayClasswise, useSubjectRestrictionDayPeriodGridData } from '@/hooks/timetable/constraints/subjectrestriction';
+import {
+    useAcademicYearDropDownMasterDayClasswise,
+    useCategtoryDropDownMasterDayClasswise,
+    useSubjectRestrictionDayPeriodGridData
+} from '@/hooks/timetable/constraints/subjectrestriction';
 import { getdetailsAllFixing } from '@/server/timetable/constraints/fixing';
-import { extractList } from '../../../fixing/_components/dayperiod/utils';
 import { Plus, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import { dayPeriodColumns } from './dayperiodColumns';
+import { extractList } from '../../../fixing/_components/dayperiod/utils';
 import DayPeriodAddForm from './dayperiodAddForm';
-import DayPeriodUpdate from './dayperiodUpdate';
+import { dayPeriodColumns } from './dayperiodColumns';
 import DayPeriodToggle from './dayperiodToggle';
+import DayPeriodUpdate from './dayperiodUpdate';
 
 interface DayPeriodTabProps {
     initialData?: any;
@@ -48,7 +51,11 @@ function DayPeriodTabContent() {
     const academicList = extractList(academicYearData);
     const categoryList = extractList(categoryData);
 
-    const { data: gridData, isLoading: gridLoading, refetch } = useSubjectRestrictionDayPeriodGridData({
+    const {
+        data: gridData,
+        isLoading: gridLoading,
+        refetch
+    } = useSubjectRestrictionDayPeriodGridData({
         ASMAY_Id: 0,
         TTMC_Id: 0
     });
@@ -61,7 +68,9 @@ function DayPeriodTabContent() {
                     setDayList(res.data.daylist || []);
                     setPeriodList(res.data.periodlist || []);
                 }
-            } catch (error) { console.error(error); }
+            } catch (error) {
+                console.error(error);
+            }
         };
         loadDropdowns();
     }, []);
@@ -108,12 +117,7 @@ function DayPeriodTabContent() {
                         </Button>
 
                         {isAddFormOpen && (
-                            <DayPeriodAddForm
-                                dayList={dayList}
-                                periodList={periodList}
-                                onSuccess={onFormSuccess}
-                                onCancel={closeAddForm}
-                            />
+                            <DayPeriodAddForm dayList={dayList} periodList={periodList} onSuccess={onFormSuccess} onCancel={closeAddForm} />
                         )}
 
                         {isEditFormOpen && selectedRow && (

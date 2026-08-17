@@ -1,20 +1,20 @@
-import { NextRequest, NextResponse } from "next/server";
-import Groq from "groq-sdk";
 import { Readable } from 'stream';
+import Groq from 'groq-sdk';
+import { type NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
 // Initialize Groq client
 const groq = new Groq({
-    apiKey: process.env.GROQ_API_KEY || process.env.paper_Groq_api_key || "",
+    apiKey: process.env.GROQ_API_KEY || process.env.paper_Groq_api_key || ''
 });
 
 // Helper utility to extract chapter content (Identical to Question Paper Generator logic)
 function extractChapterContent(fullText: string, chapters: string[]): string {
-    let combinedContent = "";
+    let combinedContent = '';
 
     // 1. Identify all potential chapter boundaries in the document
-    const chapterMatches: { number: string, index: number }[] = [];
+    const chapterMatches: { number: string; index: number }[] = [];
 
     // Regex from Question Paper Generator
     const regex = /(?:^|\n)\s*(?:chapter|unit|lesson|module)\s+([0-9]+(?:\.[0-9]+)*)|(?:^|\n)\s*([0-9]+(?:\.[0-9]+)*)\.\s+[A-Za-z]/gi;
@@ -38,7 +38,7 @@ function extractChapterContent(fullText: string, chapters: string[]): string {
         const targetNum = chapter.trim().toLowerCase();
 
         // Find the start match
-        const startMatchIndex = chapterMatches.findIndex(m => m.number === targetNum);
+        const startMatchIndex = chapterMatches.findIndex((m) => m.number === targetNum);
 
         if (startMatchIndex === -1) {
             continue;
@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
         const pdf = require('pdf-parse/lib/pdf-parse.js');
 
         if (!req.body) {
-            return NextResponse.json({ error: "No request body" }, { status: 400 });
+            return NextResponse.json({ error: 'No request body' }, { status: 400 });
         }
 
         log('Streaming request body...');
@@ -134,22 +134,22 @@ export async function POST(req: NextRequest) {
         });
 
         if (!fileBuffer) {
-            return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+            return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
         }
 
         const buffer = fileBuffer as Buffer;
         log(`File received: ${fileName}, Size: ${buffer.length}`);
 
-        const chapter = formFields["chapter"] || "";
-        const mode = formFields["mode"] || "both"; // both, summary, notes
+        const chapter = formFields['chapter'] || '';
+        const mode = formFields['mode'] || 'both'; // both, summary, notes
 
-        let extractedText = "";
+        let extractedText = '';
 
-        if (fileName.toLowerCase().endsWith(".pdf")) {
+        if (fileName.toLowerCase().endsWith('.pdf')) {
             log('Parsing PDF...');
             const data = await pdf(buffer);
             extractedText = data.text;
-        } else if (fileName.toLowerCase().endsWith(".txt")) {
+        } else if (fileName.toLowerCase().endsWith('.txt')) {
             log('Parsing TXT...');
             extractedText = buffer.toString('utf-8');
         } else {
@@ -157,37 +157,35 @@ export async function POST(req: NextRequest) {
         }
 
         if (!extractedText || extractedText.trim().length === 0) {
-            throw new Error("No text content found in file.");
+            throw new Error('No text content found in file.');
         }
 
         log(`Text extracted. Length: ${extractedText.length}`);
 
         // Filter by chapter if provided - Increased to 100k for MASSIVE detail
-        const contextContent = chapter
-            ? extractChapterContent(extractedText, [chapter])
-            : extractedText.slice(0, 100000);
+        const contextContent = chapter ? extractChapterContent(extractedText, [chapter]) : extractedText.slice(0, 100000);
 
         log(`Context prepared. Length: ${contextContent.length}`);
 
-        let prompt = "";
+        let prompt = '';
 
-        if (mode === "summary") {
+        if (mode === 'summary') {
             prompt = `
                 Text Content:
                 ${contextContent}
 
                 TASK:
-                Create a high-level Academic Executive Summary ${chapter ? "for chapter " + chapter : "for the provided document"}.
+                Create a high-level Academic Executive Summary ${chapter ? 'for chapter ' + chapter : 'for the provided document'}.
                 Identify the core message, primary concepts, and the significance of the topics discussed.
                 Focus on what remains most important from an exam perspective.
             `;
-        } else if (mode === "notes") {
+        } else if (mode === 'notes') {
             prompt = `
                 Text Content:
                 ${contextContent}
 
                 TASK:
-                Create **Exhaustive, Ultra-Detailed Study Material** ${chapter ? "specifically for chapter " + chapter : "for the provided material"}.
+                Create **Exhaustive, Ultra-Detailed Study Material** ${chapter ? 'specifically for chapter ' + chapter : 'for the provided material'}.
 
                 **COMPULSORY REQUIREMENT: 1500+ WORDS MINIMUM**
                 You are strictly forbidden from giving short answers. You must produce a MASSIVE, long-form academic document.
@@ -235,33 +233,33 @@ export async function POST(req: NextRequest) {
         const chatCompletion = await groq.chat.completions.create({
             messages: [
                 {
-                    role: "system",
-                    content: "You are an Elite Academic Architect. You produce MASSIVE, ultra-detailed, long-form study materials (minimum 1500-2000 words). You never summarize; you expand every single concept provided into a full, standalone lesson with deep descriptive paragraphs. You are characterized by extreme verbosity and academic depth."
+                    role: 'system',
+                    content:
+                        'You are an Elite Academic Architect. You produce MASSIVE, ultra-detailed, long-form study materials (minimum 1500-2000 words). You never summarize; you expand every single concept provided into a full, standalone lesson with deep descriptive paragraphs. You are characterized by extreme verbosity and academic depth.'
                 },
-                { role: "user", content: prompt }
+                { role: 'user', content: prompt }
             ],
-            model: "openai/gpt-oss-120b",
+            model: 'openai/gpt-oss-120b',
             temperature: 0.6, // Increased for wordier, more descriptive content
-            max_tokens: 4096, // Full output capacity for maximum length
+            max_tokens: 4096 // Full output capacity for maximum length
         });
 
-        const content = chatCompletion.choices[0]?.message?.content || "";
+        const content = chatCompletion.choices[0]?.message?.content || '';
 
-        let summary = "";
-        let notes = "";
+        let summary = '';
+        let notes = '';
 
-        if (mode === "both") {
+        if (mode === 'both') {
             const parts = content.split(/---NOTES---/i);
-            summary = parts[0].replace(/---SUMMARY---/i, "").trim();
-            notes = parts[1]?.trim() || "";
-        } else if (mode === "summary") {
+            summary = parts[0].replace(/---SUMMARY---/i, '').trim();
+            notes = parts[1]?.trim() || '';
+        } else if (mode === 'summary') {
             summary = content;
         } else {
             notes = content;
         }
 
         return NextResponse.json({ summary, notes, chapter });
-
     } catch (error: any) {
         log(`Error: ${error.message}`);
         return NextResponse.json({ error: error.message, logs }, { status: 500 });

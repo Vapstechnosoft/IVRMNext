@@ -11,7 +11,7 @@ import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { saveMonthEndReportData } from '@/server/transport/transport-module/reports/month-end-report';
 import type { IMonthEndReportData } from '@/types/transport/transport-module/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Printer } from 'lucide-react';
+import { Printer } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
@@ -19,12 +19,8 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 
 const formSchema = z.object({
-    ASMAY_Id: z.coerce
-        .number({ required_error: 'Please select the academic year' })
-        .min(1, 'Please select the academic year'),
-    IVRM_Month_Id: z.coerce
-        .number({ required_error: 'Please select the month' })
-        .min(1, 'Please select the month'),
+    ASMAY_Id: z.coerce.number({ required_error: 'Please select the academic year' }).min(1, 'Please select the academic year'),
+    IVRM_Month_Id: z.coerce.number({ required_error: 'Please select the month' }).min(1, 'Please select the month'),
     ieName: z
         .string()
         .trim()
@@ -77,7 +73,12 @@ export default function MonthEndReportPage() {
         }
     });
 
-    const { control, register, handleSubmit, formState: { errors } } = form;
+    const {
+        control,
+        register,
+        handleSubmit,
+        formState: { errors }
+    } = form;
 
     // Attempt to get logo from localStorage as per legacy code
     useEffect(() => {
@@ -304,9 +305,7 @@ export default function MonthEndReportPage() {
                                         </Select>
                                     )}
                                 />
-                                {errors.ASMAY_Id && (
-                                    <FormError>{errors.ASMAY_Id.message}</FormError>
-                                )}
+                                {errors.ASMAY_Id && <FormError>{errors.ASMAY_Id.message}</FormError>}
                             </div>
 
                             {/* Month */}
@@ -335,9 +334,7 @@ export default function MonthEndReportPage() {
                                         </Select>
                                     )}
                                 />
-                                {errors.IVRM_Month_Id && (
-                                    <FormError>{errors.IVRM_Month_Id.message}</FormError>
-                                )}
+                                {errors.IVRM_Month_Id && <FormError>{errors.IVRM_Month_Id.message}</FormError>}
                             </div>
 
                             {/* Implementation Name */}

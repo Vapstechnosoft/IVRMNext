@@ -7,7 +7,6 @@ import type { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -34,13 +33,7 @@ interface ReportFormProps {
     onClear: () => void;
 }
 
-export default function ReportForm({
-    academicYears,
-    months,
-    loadingDetails,
-    onSubmit,
-    onClear
-}: ReportFormProps) {
+export default function ReportForm({ academicYears, months, loadingDetails, onSubmit, onClear }: ReportFormProps) {
     const {
         control,
         handleSubmit,

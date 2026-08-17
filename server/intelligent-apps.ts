@@ -1,9 +1,9 @@
 'use server';
 
+import { randomUUID } from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { PDFDocument } from 'pdf-lib';
-import { randomUUID } from 'crypto';
 import * as XLSX from 'xlsx';
 
 export interface ChatgptDTO {
@@ -43,8 +43,8 @@ export interface TranslatorDTO {
 }
 
 export async function chatGPT(data: ChatgptDTO): Promise<ChatgptDTO> {
-    const apiKey = "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";
-    const endpoint = "https://api.groq.com/openai/v1/chat/completions";
+    const apiKey = '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';
+    const endpoint = 'https://api.groq.com/openai/v1/chat/completions';
     const maxTokens = 500;
     const temperature = 0.5;
 
@@ -53,12 +53,12 @@ export async function chatGPT(data: ChatgptDTO): Promise<ChatgptDTO> {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
+                Authorization: `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                messages: [{ role: "user", content: data.message }],
+                messages: [{ role: 'user', content: data.message }],
                 max_tokens: maxTokens,
-                model: "llama-3.1-8b-instant",
+                model: 'llama-3.1-8b-instant',
                 temperature: temperature
             })
         });
@@ -74,74 +74,73 @@ export async function chatGPT(data: ChatgptDTO): Promise<ChatgptDTO> {
             return { ...data, ChatCompletion: `Error: ${response.status} - ${errorBody}` };
         }
     } catch (error) {
-        console.error("Error in chatGPT:", error);
-        return { ...data, ChatCompletion: "Internal server error" };
+        console.error('Error in chatGPT:', error);
+        return { ...data, ChatCompletion: 'Internal server error' };
     }
 }
 
 export async function whatsAppCall(data: ChatgptDTO): Promise<string> {
-    const accessToken = "EAALIaEGktRgBOxmK05MMqsi9jKwo4ZBSzps3ZAWckqVLvDMe0LZCSPZCDHEUkrsGjuKkR43wKzvBVZC4XnPNrESHgZC9ZADLVZAHLAAZCDZCY7mhy6hdqwt2FRTTAdjUUqrqNUrwasJwdOBEeXzFGDonc5ri5KZCts64szUfrhQ1kc0RLIdeQWjYZAx4Gi2SupDgg3aP2e8xsSfMt4QVVj7u";
-    const endpoint = "https://graph.facebook.com/v17.0/177948302058854/messages";
+    const accessToken =
+        'EAALIaEGktRgBOxmK05MMqsi9jKwo4ZBSzps3ZAWckqVLvDMe0LZCSPZCDHEUkrsGjuKkR43wKzvBVZC4XnPNrESHgZC9ZADLVZAHLAAZCDZCY7mhy6hdqwt2FRTTAdjUUqrqNUrwasJwdOBEeXzFGDonc5ri5KZCts64szUfrhQ1kc0RLIdeQWjYZAx4Gi2SupDgg3aP2e8xsSfMt4QVVj7u';
+    const endpoint = 'https://graph.facebook.com/v17.0/177948302058854/messages';
 
-    let templateName = "";
+    let templateName = '';
     // biome-ignore lint/style/useConst: <explanation>
-    let languageCode = "en";
+    let languageCode = 'en';
     let bodyParameters: { type: string; text: string | undefined }[] = [];
 
-    if (data.Typedropdown === "Board") {
-        templateName = "welcomevaps";
+    if (data.Typedropdown === 'Board') {
+        templateName = 'welcomevaps';
         // C# code commented out parameters for Board, so we assume no parameters or handle similarly
-    } else if (data.Typedropdown === "Birthday") {
-        templateName = "birthdaynew";
+    } else if (data.Typedropdown === 'Birthday') {
+        templateName = 'birthdaynew';
         bodyParameters = [
-            { type: "text", text: data.BirthdayName },
-            { type: "text", text: data.InstituteNameB }
+            { type: 'text', text: data.BirthdayName },
+            { type: 'text', text: data.InstituteNameB }
         ];
-    } else if (data.Typedropdown === "Attendance") {
-        templateName = "attendance";
+    } else if (data.Typedropdown === 'Attendance') {
+        templateName = 'attendance';
         bodyParameters = [
-            { type: "text", text: data.Attendance1 },
-            { type: "text", text: data.Attendance2 },
-            { type: "text", text: data.Attendance3 },
-            { type: "text", text: data.Attendance4 },
-            { type: "text", text: data.Attendance5 }
+            { type: 'text', text: data.Attendance1 },
+            { type: 'text', text: data.Attendance2 },
+            { type: 'text', text: data.Attendance3 },
+            { type: 'text', text: data.Attendance4 },
+            { type: 'text', text: data.Attendance5 }
         ];
-    } else if (data.Typedropdown === "FeeDue") {
-        templateName = "feedefault";
+    } else if (data.Typedropdown === 'FeeDue') {
+        templateName = 'feedefault';
+        bodyParameters = [{ type: 'text', text: data.FeeDue }];
+    } else if (data.Typedropdown === 'FeeTransaction') {
+        templateName = 'feetransaction';
         bodyParameters = [
-            { type: "text", text: data.FeeDue }
-        ];
-    } else if (data.Typedropdown === "FeeTransaction") {
-        templateName = "feetransaction";
-        bodyParameters = [
-            { type: "text", text: data.FeeTransaction1 },
-            { type: "text", text: data.FeeTransaction2 },
-            { type: "text", text: data.FeeTransaction3 },
-            { type: "text", text: data.FeeTransaction4 },
-            { type: "text", text: data.FeeTransaction5 }
+            { type: 'text', text: data.FeeTransaction1 },
+            { type: 'text', text: data.FeeTransaction2 },
+            { type: 'text', text: data.FeeTransaction3 },
+            { type: 'text', text: data.FeeTransaction4 },
+            { type: 'text', text: data.FeeTransaction5 }
         ];
     } else {
         // LoginCredentials or default
-        templateName = "administrator";
+        templateName = 'administrator';
         bodyParameters = [
-            { type: "text", text: data.LoginCredentials1 },
-            { type: "text", text: data.LoginCredentials2 },
-            { type: "text", text: data.LoginCredentials3 },
-            { type: "text", text: data.LoginCredentials4 },
-            { type: "text", text: data.LoginCredentials5 }
+            { type: 'text', text: data.LoginCredentials1 },
+            { type: 'text', text: data.LoginCredentials2 },
+            { type: 'text', text: data.LoginCredentials3 },
+            { type: 'text', text: data.LoginCredentials4 },
+            { type: 'text', text: data.LoginCredentials5 }
         ];
     }
 
     const payload = {
-        messaging_product: "whatsapp",
+        messaging_product: 'whatsapp',
         to: data.MobileNumber,
-        type: "template",
+        type: 'template',
         template: {
             name: templateName,
             language: { code: languageCode },
             components: [
                 {
-                    type: "body",
+                    type: 'body',
                     parameters: bodyParameters
                 }
             ]
@@ -160,16 +159,16 @@ export async function whatsAppCall(data: ChatgptDTO): Promise<string> {
         if (response.ok) {
             const body = await response.json();
             console.log(body);
-            return "success";
+            return 'success';
         } else {
             console.error(`Error: ${response.status} ${response.statusText}`);
             const errorBody = await response.text();
             console.error(errorBody);
-            return "failed";
+            return 'failed';
         }
     } catch (error) {
-        console.error("Error in whatsAppCall:", error);
-        return "error";
+        console.error('Error in whatsAppCall:', error);
+        return 'error';
     }
 }
 
@@ -177,7 +176,7 @@ export async function whatsAppBulkCall(formData: FormData): Promise<string> {
     const file = formData.get('file') as File;
     const type = formData.get('type') as string;
 
-    if (!file) return "no_file";
+    if (!file) return 'no_file';
 
     try {
         const buffer = await file.arrayBuffer();
@@ -211,7 +210,7 @@ export async function whatsAppBulkCall(formData: FormData): Promise<string> {
                     LoginCredentials2: String(row.LoginCredentials2 || row.Cred2 || ''),
                     LoginCredentials3: String(row.LoginCredentials3 || row.Cred3 || ''),
                     LoginCredentials4: String(row.LoginCredentials4 || row.Cred4 || ''),
-                    LoginCredentials5: String(row.LoginCredentials5 || row.Cred5 || ''),
+                    LoginCredentials5: String(row.LoginCredentials5 || row.Cred5 || '')
                 };
 
                 const res = await whatsAppCall(chatData);
@@ -222,15 +221,15 @@ export async function whatsAppBulkCall(formData: FormData): Promise<string> {
 
         return `Bulk process completed. Success: ${successCount}, Failed: ${failCount}`;
     } catch (error) {
-        console.error("Error in whatsAppBulkCall:", error);
-        return "error";
+        console.error('Error in whatsAppBulkCall:', error);
+        return 'error';
     }
 }
 
 export async function languageTranslator(data: TranslatorDTO): Promise<TranslatorDTO> {
-    const key = "ae1549ade3594811b31d5b7eedf42758";
-    const endpoint = "https://api.cognitive.microsofttranslator.com";
-    const location = "centralindia";
+    const key = 'ae1549ade3594811b31d5b7eedf42758';
+    const endpoint = 'https://api.cognitive.microsofttranslator.com';
+    const location = 'centralindia';
     const route = `/translate?api-version=3.0&from=${data.fromlanguage}&to=${data.tolanguage}`;
     const url = `${endpoint}${route}`;
 
@@ -254,7 +253,7 @@ export async function languageTranslator(data: TranslatorDTO): Promise<Translato
             try {
                 jsonResponse = JSON.parse(resultText);
             } catch (e) {
-                // fall back or handle error? Azure usually returns JSON. 
+                // fall back or handle error? Azure usually returns JSON.
                 jsonResponse = [];
             }
 
@@ -282,14 +281,10 @@ export async function languageTranslator(data: TranslatorDTO): Promise<Translato
             return { ...data, result: errorText, translateddata: [] };
         }
     } catch (error) {
-        console.error("Error in languageTranslator:", error);
-        return { ...data, result: "Internal server error", translateddata: [] };
+        console.error('Error in languageTranslator:', error);
+        return { ...data, result: 'Internal server error', translateddata: [] };
     }
 }
-
-
-
-
 
 export async function compressPdf(formData: FormData) {
     console.log('Starting PDF compression...');
@@ -348,7 +343,6 @@ export async function compressPdf(formData: FormData) {
             savings,
             filename: path.basename(outputPath)
         };
-
     } catch (error) {
         console.error('PDF compression error:', error);
         return { success: false, error: 'Compression failed: ' + String(error) };

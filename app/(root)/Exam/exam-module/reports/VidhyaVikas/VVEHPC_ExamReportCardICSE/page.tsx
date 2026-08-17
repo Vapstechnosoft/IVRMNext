@@ -100,18 +100,14 @@ export default function ProgressCardReportPage() {
                 });
             });
 
-            const filteredSubjects = Array.from(subjectMap.values()).sort(
-                (a, b) => a.eyceS_SubjectOrder - b.eyceS_SubjectOrder
-            );
+            const filteredSubjects = Array.from(subjectMap.values()).sort((a, b) => a.eyceS_SubjectOrder - b.eyceS_SubjectOrder);
 
             const selectedStudentIds: number[] = (payload?.selectedStudents || payload?.studentList || [])
                 .map((s: any) => Number(s.amsT_Id ?? s.AMST_Id))
                 .filter(Boolean);
 
             const sortedReportData = selectedStudentIds.length
-                ? selectedStudentIds
-                    .map((id) => studentMap.get(id))
-                    .filter((s): s is IExamReportCard => s !== undefined)
+                ? selectedStudentIds.map((id) => studentMap.get(id)).filter((s): s is IExamReportCard => s !== undefined)
                 : Array.from(studentMap.values());
 
             const firstRow = flatRows[0];
@@ -149,7 +145,7 @@ export default function ProgressCardReportPage() {
 
         for (let i = 1; i <= studentCount; i++) {
             const studentItem = rawSelected[i - 1];
-            const stId = studentItem?.amsT_Id || (15000 + i);
+            const stId = studentItem?.amsT_Id || 15000 + i;
             const stName = studentItem?.studentName || `Student ${i}`;
             const admNo = studentItem?.amsT_AdmNo || `ADM${i}`;
 

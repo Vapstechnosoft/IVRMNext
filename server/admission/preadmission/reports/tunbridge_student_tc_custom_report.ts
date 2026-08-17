@@ -7,7 +7,6 @@ function tcTempParam(v: string) {
     return u === 'temp' || u === 'temporary' ? 'temp' : 'per';
 }
 
-
 export async function getTunBridgeTcLoadData() {
     const url = '/StudenttcCustomReport/getinitialdata';
     return await api.get<any>('admission', url);
@@ -56,4 +55,3 @@ export async function getTunBridgeTcDetails(data: {
     const url = `/StudenttcCustomReport/getTCdata?tctemporper=${data.tctemporper}&ASMAY_Id=${data.ASMAY_Id}&ASMCL_Id=${data.ASMCL_Id}&ASMS_Id=${data.ASMS_Id}&AMST_Id=${data.AMST_Id}`;
     return await api.get<any>('admission', url);
 }
-

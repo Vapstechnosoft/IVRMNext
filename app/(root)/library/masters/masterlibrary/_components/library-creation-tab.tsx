@@ -32,13 +32,19 @@ export default function LibraryCreationTab({
 }) {
     const { openAddForm } = useFormContext<IMasterLibraryList>();
     const tableProps = useDataTableProps(
-        Array.isArray(response) ? { data: response, success: true } :
-        response?.data?.liballdata ? { ...response, data: response.data.liballdata } :
-        response?.data?.list ? { ...response, data: response.data.list } :
-        response?.alldata ? { ...response, data: response.alldata } : 
-        response?.get_master_library ? { ...response, data: response.get_master_library } : 
-        response?.['master-library-list'] ? { ...response, data: response['master-library-list'] } : 
-        response
+        Array.isArray(response)
+            ? { data: response, success: true }
+            : response?.data?.liballdata
+              ? { ...response, data: response.data.liballdata }
+              : response?.data?.list
+                ? { ...response, data: response.data.list }
+                : response?.alldata
+                  ? { ...response, data: response.alldata }
+                  : response?.get_master_library
+                    ? { ...response, data: response.get_master_library }
+                    : response?.['master-library-list']
+                      ? { ...response, data: response['master-library-list'] }
+                      : response
     );
 
     return (
@@ -77,8 +83,8 @@ export default function LibraryCreationTab({
             </CollapsibleSection>
 
             {/* Forms */}
-            <FormSections 
-                refetch={refetch} 
+            <FormSections
+                refetch={refetch}
                 selectedLibraryId={selectedLibraryId}
                 setSelectedLibraryId={setSelectedLibraryId}
                 setActiveTab={setActiveTab}
@@ -87,16 +93,16 @@ export default function LibraryCreationTab({
     );
 }
 
-function FormSections({ 
-    refetch, 
-    selectedLibraryId, 
-    setSelectedLibraryId, 
-    setActiveTab 
-}: { 
-    refetch: () => any; 
-    selectedLibraryId: string; 
-    setSelectedLibraryId: (id: string) => void; 
-    setActiveTab: (tab: string) => void; 
+function FormSections({
+    refetch,
+    selectedLibraryId,
+    setSelectedLibraryId,
+    setActiveTab
+}: {
+    refetch: () => any;
+    selectedLibraryId: string;
+    setSelectedLibraryId: (id: string) => void;
+    setActiveTab: (tab: string) => void;
 }) {
     const {
         isAddFormOpen,
@@ -156,7 +162,9 @@ function FormSections({
                                         try {
                                             const res = await refetch();
                                             const list = res?.data?.liballdata || res?.data?.list || res?.liballdata || res?.list || [];
-                                            const matched = list.find((item: any) => item.lmaL_LibraryName?.toLowerCase() === name.toLowerCase());
+                                            const matched = list.find(
+                                                (item: any) => item.lmaL_LibraryName?.toLowerCase() === name.toLowerCase()
+                                            );
                                             finalId = matched?.lmaL_Id;
                                         } catch (e) {
                                             console.error('Error matching new library name:', e);
@@ -195,12 +203,12 @@ function FormSections({
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateMasterLibraryForm 
-                                selectedRow={selectedRow} 
+                            <UpdateMasterLibraryForm
+                                selectedRow={selectedRow}
                                 onSuccess={() => {
                                     handleSuccess();
                                     closeEditForm();
-                                }} 
+                                }}
                                 onSaveAndNext={(id: string) => {
                                     handleSuccess();
                                     closeEditForm();

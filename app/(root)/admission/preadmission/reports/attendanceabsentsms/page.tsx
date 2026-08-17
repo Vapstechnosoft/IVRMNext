@@ -1,33 +1,30 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { z } from 'zod';
-import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { Save, CalendarIcon, Send, X, Mail, Bell } from 'lucide-react';
+import { Bell, CalendarIcon, Mail, Save, Send, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
-import { FormError, Label } from '@/components/ui/extension/field';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarYear } from '@/components/ui/calendar_year';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { summaryColumns, getStudentColumns } from './_components/columns';
-
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { FormError, Label } from '@/components/ui/extension/field';
+import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { getStudentColumns, summaryColumns } from './_components/columns';
 
 import {
+    useAttendanceAbsentCommunication,
     useAttendanceAbsentInitialDetails,
-    useAttendanceAbsentSmsReport,
-    useAttendanceAbsentCommunication
+    useAttendanceAbsentSmsReport
 } from '@/hooks/admission/preadmission/useReports';
 import { cn } from '@/lib/utils';
-import type { ApiSearchparams } from '@/types';
 
 // helper to compare local dates
 const isBeforeOrEqualLocalDate = (a: Date, b: Date) =>
@@ -39,10 +36,13 @@ const schema = z.object({
     frequency: z.enum(['0', '1']).default('0'), // 0: Daily Once, 1: Daily Twice
     asmaY_Id: z.number().min(1, 'Academic Year is required'),
     amC_Id: z.number().optional(),
-    from_date: z.string().nonempty('Date is required').refine((val) => {
-        const d = new Date(val);
-        return isBeforeOrEqualLocalDate(d, new Date());
-    }, 'Only today or previous dates are allowed')
+    from_date: z
+        .string()
+        .nonempty('Date is required')
+        .refine((val) => {
+            const d = new Date(val);
+            return isBeforeOrEqualLocalDate(d, new Date());
+        }, 'Only today or previous dates are allowed')
 });
 
 type FormFields = z.infer<typeof schema>;
@@ -52,16 +52,15 @@ export default function AttendanceAbsentSmsPage(props: { searchParams: SearchPar
     const searchParams = (React as any).use(props.searchParams);
     const [openPopover, setOpenPopover] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    
+
     // Grids Data
     const [students, setStudents] = useState<any[]>([]);
     const [studentTeacherList, setStudentTeacherList] = useState<any[]>([]);
-    
+
     // Pagination Totals
     const [totalStudents, setTotalStudents] = useState(0);
     const [totalAbsent, setTotalAbsent] = useState(0);
 
-    
     // Search
     const [searchValue, setSearchValue] = useState('');
     const [searchValue1234, setSearchValue1234] = useState('');
@@ -69,12 +68,12 @@ export default function AttendanceAbsentSmsPage(props: { searchParams: SearchPar
     // Modal states
     const [showSmsModal, setShowSmsModal] = useState(false);
     const [showOtpModal, setShowOtpModal] = useState(false);
-    
+
     const [otpType, setOtpType] = useState<'M' | 'E'>('M');
     const [forgetEmailOTP, setForgetEmailOTP] = useState('');
     const [otpVerified, setOtpVerified] = useState(true); // default to true if no otp needed
     const [resendOtpButton, setResendOtpButton] = useState(false);
-    
+
     const [actionType, setActionType] = useState<'sms' | 'email' | 'notice' | null>(null);
 
     const {
@@ -99,10 +98,17 @@ export default function AttendanceAbsentSmsPage(props: { searchParams: SearchPar
     const amC_Id = watch('amC_Id');
 
     const { data: initialData, isLoading: initialLoading } = useAttendanceAbsentInitialDetails();
-    
+
     // Format date properly before sending to API to avoid timezone shifts
     const formattedFromDate = from_date ? format(new Date(from_date), 'yyyy-MM-dd') : '';
-    const { refetch: fetchReport } = useAttendanceAbsentSmsReport(asmaY_Id, formattedFromDate, frequency, amC_Id, frequency === '0' ? 'D' : 'H', searchParams);
+    const { refetch: fetchReport } = useAttendanceAbsentSmsReport(
+        asmaY_Id,
+        formattedFromDate,
+        frequency,
+        amC_Id,
+        frequency === '0' ? 'D' : 'H',
+        searchParams
+    );
     const { sendSms, sendEmail, sendNotice, sendOtp, verifyOtp } = useAttendanceAbsentCommunication();
 
     const initData = initialData as any;
@@ -124,21 +130,21 @@ export default function AttendanceAbsentSmsPage(props: { searchParams: SearchPar
         if (academicListdefault.length > 0 && !asmaY_Id) {
             setValue('asmaY_Id', academicListdefault[0].asmaY_Id);
         }
-        
+
         // Config settings from local storage
         try {
-            const configsettingsnew = JSON.parse(localStorage.getItem("ivrmgeneralconfiglist") || "null");
+            const configsettingsnew = JSON.parse(localStorage.getItem('ivrmgeneralconfiglist') || 'null');
             if (configsettingsnew && configsettingsnew.length > 0) {
                 const config = configsettingsnew[0];
                 setEmailOtpEnabled(config.ivrmgC_emailValOTPFlag === 1);
                 setMobileOtpEnabled(config.ivrmgC_MobileValOTPFlag === 1);
-                
+
                 const mobilenofull = config.ivrmgC_OTPMobileNo?.toString() || '0';
                 setMobileFull(mobilenofull);
                 if (mobilenofull !== '0' && mobilenofull.length >= 10) {
                     setMobileNoMasked(mobilenofull.substring(6, 10));
                 }
-                
+
                 const emailidforotp = config.ivrmgC_OTPMailId;
                 setEmailFull(emailidforotp || '');
                 if (emailidforotp) {
@@ -162,18 +168,18 @@ export default function AttendanceAbsentSmsPage(props: { searchParams: SearchPar
             if (resData) {
                 setStudents(resData.studentAttendanceList || []);
                 setTotalStudents(resData.totalAttendanceRecords || resData.studentAttendanceList?.length || 0);
-                
+
                 const detailedList: any[] = resData.absentStudentList || [];
                 setTotalAbsent(resData.totalAbsentRecords || detailedList.length || 0);
-                
+
                 // Initialize selected property
                 detailedList.forEach((item: any) => {
                     item.selected = false;
-                    item.FirstHalfflag = item.ASA_Class_Attended === 0.50 || (item.ASA_Class_Attended === 0.00 && item.FirstHalf === 1);
-                    item.SecondHalfflag = item.ASA_Class_Attended === 0.50 || (item.ASA_Class_Attended === 0.00 && item.SecondHalf === 1);
+                    item.FirstHalfflag = item.ASA_Class_Attended === 0.5 || (item.ASA_Class_Attended === 0.0 && item.FirstHalf === 1);
+                    item.SecondHalfflag = item.ASA_Class_Attended === 0.5 || (item.ASA_Class_Attended === 0.0 && item.SecondHalf === 1);
                 });
                 setStudentTeacherList(detailedList);
-                
+
                 if (!resData.studentAttendanceList?.length && !detailedList.length) {
                     toast.error('No Records Found!');
                 }
@@ -196,24 +202,27 @@ export default function AttendanceAbsentSmsPage(props: { searchParams: SearchPar
     };
 
     // Filter Logic
-    const filteredStudents = students.filter(obj => 
+    const filteredStudents = students.filter((obj) =>
         (obj.ASMCL_ClassName + '-' + obj.ASMC_SectionName).toLowerCase().includes(searchValue.toLowerCase())
     );
 
-    const filteredStudentTeacherList = studentTeacherList.filter(obj => 
-        (obj.classsection || '').toLowerCase().includes(searchValue1234.toLowerCase()) || 
-        (obj.studentname || '').toLowerCase().includes(searchValue1234.toLowerCase())
+    const filteredStudentTeacherList = studentTeacherList.filter(
+        (obj) =>
+            (obj.classsection || '').toLowerCase().includes(searchValue1234.toLowerCase()) ||
+            (obj.studentname || '').toLowerCase().includes(searchValue1234.toLowerCase())
     );
 
-    const selectedStudents = studentTeacherList.filter(item => item.selected);
+    const selectedStudents = studentTeacherList.filter((item) => item.selected);
 
     const handleRowSelection = (selectedRows: any[]) => {
         // Update the 'selected' property based on row selection from DataTable
-        const selectedIds = new Set(selectedRows.map(r => r.AMST_Id));
-        setStudentTeacherList(prev => prev.map(item => ({
-            ...item,
-            selected: selectedIds.has(item.AMST_Id)
-        })));
+        const selectedIds = new Set(selectedRows.map((r) => r.AMST_Id));
+        setStudentTeacherList((prev) =>
+            prev.map((item) => ({
+                ...item,
+                selected: selectedIds.has(item.AMST_Id)
+            }))
+        );
     };
 
     // ACTION Handlers
@@ -224,7 +233,7 @@ export default function AttendanceAbsentSmsPage(props: { searchParams: SearchPar
         }
         setActionType(type);
         setOtpVerified(!(emailOtpEnabled || mobileOtpEnabled));
-        
+
         if (emailOtpEnabled || mobileOtpEnabled) {
             setShowOtpModal(true);
             setOtpType(mobileOtpEnabled ? 'M' : 'E');
@@ -257,7 +266,7 @@ export default function AttendanceAbsentSmsPage(props: { searchParams: SearchPar
             return;
         }
         try {
-            const response = await verifyOtp.mutateAsync({ EMAILOTP: forgetEmailOTP }) as any;
+            const response = (await verifyOtp.mutateAsync({ EMAILOTP: forgetEmailOTP })) as any;
             if (response === 'Success' || response?.data === 'Success' || response?.message === 'Success') {
                 setOtpVerified(true);
                 toast.success('OTP Verified successfully');
@@ -306,7 +315,7 @@ export default function AttendanceAbsentSmsPage(props: { searchParams: SearchPar
             <form onSubmit={handleSubmit(onSubmit)}>
                 <div className='mb-4 rounded-xl border bg-card p-6 shadow-xl'>
                     <div className='mb-4 border-b pb-4'>
-                        <h3 className='text-lg font-semibold'>Overall Daily Attendance Report</h3>
+                        <h3 className='font-semibold text-lg'>Overall Daily Attendance Report</h3>
                     </div>
 
                     <div className='mb-6 flex justify-center'>
@@ -330,22 +339,32 @@ export default function AttendanceAbsentSmsPage(props: { searchParams: SearchPar
                         </div>
                     </div>
 
-                    <div className='grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 max-w-4xl mx-auto'>
+                    <div className='mx-auto grid max-w-4xl grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3'>
                         {/* Academic Year */}
                         <div className='flex flex-col gap-1.5'>
-                            <Label>Academic Year <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Academic Year <span className='text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 name='asmaY_Id'
                                 control={control}
                                 render={({ field }) => (
                                     <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
-                                        <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
                                         <SelectContent>
-                                            {initialLoading ? <SelectItem value='loading' disabled>Loading...</SelectItem> : 
+                                            {initialLoading ? (
+                                                <SelectItem value='loading' disabled>
+                                                    Loading...
+                                                </SelectItem>
+                                            ) : (
                                                 academicList.map((y: any) => (
-                                                    <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>{y.asmaY_Year}</SelectItem>
+                                                    <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>
+                                                        {y.asmaY_Year}
+                                                    </SelectItem>
                                                 ))
-                                            }
+                                            )}
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -362,11 +381,15 @@ export default function AttendanceAbsentSmsPage(props: { searchParams: SearchPar
                                     control={control}
                                     render={({ field }) => (
                                         <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
-                                            <SelectTrigger><SelectValue placeholder='Select Category' /></SelectTrigger>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='Select Category' />
+                                            </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="0">All</SelectItem>
+                                                <SelectItem value='0'>All</SelectItem>
                                                 {categoryDropdown.map((c: any) => (
-                                                    <SelectItem key={c.amC_Id} value={c.amC_Id.toString()}>{c.amC_Name}</SelectItem>
+                                                    <SelectItem key={c.amC_Id} value={c.amC_Id.toString()}>
+                                                        {c.amC_Name}
+                                                    </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
@@ -377,14 +400,23 @@ export default function AttendanceAbsentSmsPage(props: { searchParams: SearchPar
 
                         {/* Date */}
                         <div className='flex flex-col gap-1.5'>
-                            <Label>Date <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Date <span className='text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 name='from_date'
                                 control={control}
                                 render={({ field }) => (
-                                    <Popover open={openPopover === 'from_date'} onOpenChange={(open) => setOpenPopover(open ? 'from_date' : null)}>
+                                    <Popover
+                                        open={openPopover === 'from_date'}
+                                        onOpenChange={(open) => setOpenPopover(open ? 'from_date' : null)}>
                                         <PopoverTrigger asChild>
-                                            <Button variant='outline' className={cn('justify-start text-left font-normal', !field.value && 'text-muted-foreground')}>
+                                            <Button
+                                                variant='outline'
+                                                className={cn(
+                                                    'justify-start text-left font-normal',
+                                                    !field.value && 'text-muted-foreground'
+                                                )}>
                                                 <CalendarIcon className='mr-2 h-4 w-4' />
                                                 {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Pick a date'}
                                             </Button>
@@ -418,13 +450,25 @@ export default function AttendanceAbsentSmsPage(props: { searchParams: SearchPar
                         <Button type='button' variant='destructive' onClick={handleClear}>
                             <X className='mr-2 h-4 w-4' /> Cancel
                         </Button>
-                        <Button type='button' onClick={() => handleActionClick('sms')} disabled={studentTeacherList.length === 0} variant='secondary'>
+                        <Button
+                            type='button'
+                            onClick={() => handleActionClick('sms')}
+                            disabled={studentTeacherList.length === 0}
+                            variant='secondary'>
                             <Send className='mr-2 h-4 w-4' /> Send SMS
                         </Button>
-                        <Button type='button' onClick={() => handleActionClick('email')} disabled={studentTeacherList.length === 0} variant='secondary'>
+                        <Button
+                            type='button'
+                            onClick={() => handleActionClick('email')}
+                            disabled={studentTeacherList.length === 0}
+                            variant='secondary'>
                             <Mail className='mr-2 h-4 w-4' /> Send Email
                         </Button>
-                        <Button type='button' onClick={() => handleActionClick('notice')} disabled={studentTeacherList.length === 0} variant='secondary'>
+                        <Button
+                            type='button'
+                            onClick={() => handleActionClick('notice')}
+                            disabled={studentTeacherList.length === 0}
+                            variant='secondary'>
                             <Bell className='mr-2 h-4 w-4' /> Send Notice
                         </Button>
                     </div>
@@ -437,7 +481,7 @@ export default function AttendanceAbsentSmsPage(props: { searchParams: SearchPar
                         <div className='mb-4 flex items-center justify-between'>
                             <div>
                                 <span className='font-semibold'>Total Grid Records: </span>
-                                <span className='rounded-full bg-primary/10 px-2 py-1 text-sm text-primary'>{totalStudents}</span>
+                                <span className='rounded-full bg-primary/10 px-2 py-1 text-primary text-sm'>{totalStudents}</span>
                             </div>
                         </div>
                         <DataTable
@@ -456,7 +500,7 @@ export default function AttendanceAbsentSmsPage(props: { searchParams: SearchPar
                         <div className='mb-4 flex items-center justify-between'>
                             <div>
                                 <span className='font-semibold'>Total Absent Records: </span>
-                                <span className='rounded-full bg-primary/10 px-2 py-1 text-sm text-primary'>{totalAbsent}</span>
+                                <span className='rounded-full bg-primary/10 px-2 py-1 text-primary text-sm'>{totalAbsent}</span>
                             </div>
                         </div>
                         <DataTable
@@ -480,37 +524,39 @@ export default function AttendanceAbsentSmsPage(props: { searchParams: SearchPar
                     <DialogHeader>
                         <DialogTitle>Absent Student SMS - OTP</DialogTitle>
                     </DialogHeader>
-                    <div className='py-6 text-center space-y-6'>
+                    <div className='space-y-6 py-6 text-center'>
                         <div className='flex justify-center gap-4'>
                             {mobileOtpEnabled && (
                                 <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value="M" id="M" checked={otpType === 'M'} onClick={() => setOtpType('M')} />
-                                    <Label htmlFor="M">Mobile OTP</Label>
+                                    <RadioGroupItem value='M' id='M' checked={otpType === 'M'} onClick={() => setOtpType('M')} />
+                                    <Label htmlFor='M'>Mobile OTP</Label>
                                 </div>
                             )}
                             {emailOtpEnabled && (
                                 <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value="E" id="E" checked={otpType === 'E'} onClick={() => setOtpType('E')} />
-                                    <Label htmlFor="E">Email OTP</Label>
+                                    <RadioGroupItem value='E' id='E' checked={otpType === 'E'} onClick={() => setOtpType('E')} />
+                                    <Label htmlFor='E'>Email OTP</Label>
                                 </div>
                             )}
                         </div>
-                        
+
                         {otpType === 'M' ? (
                             <div>
-                                <h4 className='text-red-500 font-medium'>OTP will be Send To Authorised Mobile No!!</h4>
+                                <h4 className='font-medium text-red-500'>OTP will be Send To Authorised Mobile No!!</h4>
                                 <p className='mt-2'>Mobile Number: ******{mobileNoMasked}</p>
                             </div>
                         ) : (
                             <div>
-                                <h4 className='text-red-500 font-medium'>OTP will be Send To Authorised Email Id!!</h4>
+                                <h4 className='font-medium text-red-500'>OTP will be Send To Authorised Email Id!!</h4>
                                 <p className='mt-2'>Email Id: {emailIdMasked}******</p>
                             </div>
                         )}
-                        
-                        <div className='flex justify-center gap-4 mt-6'>
+
+                        <div className='mt-6 flex justify-center gap-4'>
                             <Button onClick={handleSendOtp}>SEND OTP</Button>
-                            <Button variant='outline' onClick={() => setShowOtpModal(false)}>Close</Button>
+                            <Button variant='outline' onClick={() => setShowOtpModal(false)}>
+                                Close
+                            </Button>
                         </div>
                     </div>
                 </DialogContent>
@@ -523,14 +569,14 @@ export default function AttendanceAbsentSmsPage(props: { searchParams: SearchPar
                         <DialogTitle>Absent Student {actionType?.toUpperCase()}</DialogTitle>
                     </DialogHeader>
                     <div className='py-4'>
-                        <div className='text-center mb-4'>
-                            <h4 className='text-red-500 font-medium'>Students List Which You Are Selected !!!</h4>
-                            <p className='mt-1 text-sm font-medium'>NOTE: {actionType?.toUpperCase()} Will Trigger For The Same</p>
+                        <div className='mb-4 text-center'>
+                            <h4 className='font-medium text-red-500'>Students List Which You Are Selected !!!</h4>
+                            <p className='mt-1 font-medium text-sm'>NOTE: {actionType?.toUpperCase()} Will Trigger For The Same</p>
                         </div>
 
-                        <div className='max-h-60 overflow-y-auto border rounded-md mb-6'>
-                            <table className='w-full text-sm text-center'>
-                                <thead className='bg-muted/50 sticky top-0'>
+                        <div className='mb-6 max-h-60 overflow-y-auto rounded-md border'>
+                            <table className='w-full text-center text-sm'>
+                                <thead className='sticky top-0 bg-muted/50'>
                                     <tr>
                                         <th className='p-2'>SL.NO.</th>
                                         <th className='p-2'>Class-Section</th>
@@ -550,7 +596,7 @@ export default function AttendanceAbsentSmsPage(props: { searchParams: SearchPar
                         </div>
 
                         {!otpVerified && (
-                            <div className='flex items-center justify-center gap-4 mb-6 p-4 bg-muted/30 rounded-lg'>
+                            <div className='mb-6 flex items-center justify-center gap-4 rounded-lg bg-muted/30 p-4'>
                                 <Label>Enter OTP:</Label>
                                 <Input
                                     type='password'
@@ -559,18 +605,27 @@ export default function AttendanceAbsentSmsPage(props: { searchParams: SearchPar
                                     onChange={(e) => setForgetEmailOTP(e.target.value)}
                                     className='max-w-[200px]'
                                 />
-                                <Button onClick={handleVerifyOtp} size='sm'>Submit</Button>
+                                <Button onClick={handleVerifyOtp} size='sm'>
+                                    Submit
+                                </Button>
                                 {resendOtpButton && (
-                                    <Button onClick={handleSendOtp} variant='outline' size='sm'>Resend OTP</Button>
+                                    <Button onClick={handleSendOtp} variant='outline' size='sm'>
+                                        Resend OTP
+                                    </Button>
                                 )}
                             </div>
                         )}
 
                         <DialogFooter className='sm:justify-center'>
-                            <Button onClick={executeAction} disabled={!otpVerified} isLoading={sendSms.isPending || sendEmail.isPending || sendNotice.isPending}>
+                            <Button
+                                onClick={executeAction}
+                                disabled={!otpVerified}
+                                isLoading={sendSms.isPending || sendEmail.isPending || sendNotice.isPending}>
                                 SEND
                             </Button>
-                            <Button variant='outline' onClick={() => setShowSmsModal(false)}>Close</Button>
+                            <Button variant='outline' onClick={() => setShowSmsModal(false)}>
+                                Close
+                            </Button>
                         </DialogFooter>
                     </div>
                 </DialogContent>

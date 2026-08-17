@@ -1,12 +1,9 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type {
     SalarySlipFilterRequest,
-    SalarySlipFilterResponse,
     SalarySlipGenerateRequest,
-    SalarySlipGenerateResponse,
     SalarySlipOnloadRequest,
-    SalarySlipOnloadResponse,
     SalarySlipResponse
 } from '@/types/hrms/reports/salary-slip-report';
 /**
@@ -14,10 +11,7 @@ import type {
  * POST /api/EmployeeSalarySlipGenerationFacade/GetAllDropdownAndDatatableDetailsNew
  * Request: { MI_Id: number, LogInUserId: number }
  */
-export async function getSalarySlipOnload(
-    MI_Id = 30,
-    LogInUserId = 0
-): Promise<ApiResponse<SalarySlipResponse>> {
+export async function getSalarySlipOnload(MI_Id = 30, LogInUserId = 0): Promise<ApiResponse<SalarySlipResponse>> {
     const requestBody: SalarySlipOnloadRequest = {
         MI_Id,
         LogInUserId
@@ -46,9 +40,7 @@ export async function getSalarySlipOnload(
  * Request: { MI_Id?: number, LogInUserId?: number, hreS_Year: string, hreS_Month: string, hrmdes_ids: string, hrmd_ids: string, hrmgt_ids: string }
  * Response: Returns employees in data field
  */
-export async function filterEmployeesByYearMonth(
-    requestBody: SalarySlipFilterRequest
-): Promise<ApiResponse<SalarySlipResponse>> {
+export async function filterEmployeesByYearMonth(requestBody: SalarySlipFilterRequest): Promise<ApiResponse<SalarySlipResponse>> {
     let url = '/api/ReportEmployeeSalarySlipGeneration/get_employee_list_by_leave_year_and_month';
     const params = new URLSearchParams();
     if (requestBody.page) params.append('page', requestBody.page.toString());
@@ -59,11 +51,7 @@ export async function filterEmployeesByYearMonth(
         url += `?${params.toString()}`;
     }
 
-    const response = await api.post<SalarySlipResponse>(
-        'hrms',
-        url,
-        requestBody
-    );
+    const response = await api.post<SalarySlipResponse>('hrms', url, requestBody);
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
@@ -84,9 +72,7 @@ export async function filterEmployeesByYearMonth(
  * Request: { MI_Id?: number, hreS_Year: string, hreS_Month: string, empid: number[], hrmdeS_IdList: number[], hrmD_IdList: number[], groupTypeIdList: number[] }
  * Note: Arrays should be empty [] when no values are selected, not [0]
  */
-export async function generateSalarySlip(
-    requestBody: SalarySlipGenerateRequest
-): Promise<ApiResponse<SalarySlipResponse>> {
+export async function generateSalarySlip(requestBody: SalarySlipGenerateRequest): Promise<ApiResponse<SalarySlipResponse>> {
     const response = await api.post<SalarySlipResponse>(
         'hrms',
         '/api/ReportEmployeeSalarySlipGeneration/generate_employee_salary_slip',
@@ -111,14 +97,8 @@ export async function generateSalarySlip(
  * Send Salary Slip via Email or SMS/WhatsApp
  * POST /api/EmployeeSalarySlipGeneration/SendEmailSMS
  */
-export async function sendSalarySlipEmailSMSWhatsApp(
-    requestBody: any
-): Promise<ApiResponse<any>> {
-    const response = await api.post<any>(
-        'hrms',
-        '/api/EmployeeSalarySlipGeneration/SendEmailSMSWhatsApp',
-        requestBody
-    );
+export async function sendSalarySlipEmailSMSWhatsApp(requestBody: any): Promise<ApiResponse<any>> {
+    const response = await api.post<any>('hrms', '/api/EmployeeSalarySlipGeneration/SendEmailSMSWhatsApp', requestBody);
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         return response as ApiResponse<any>;
     }

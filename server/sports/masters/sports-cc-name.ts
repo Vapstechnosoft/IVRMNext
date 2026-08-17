@@ -1,9 +1,9 @@
 'use server';
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
-import { revalidatePath } from 'next/cache';
 import type { ApiSearchparams } from '@/types';
-import { SportsCCNameMasterDataDTO, SportsCCNameEditDetailsDTO } from '@/types/sports/masters/sports-cc-name';
+import type { SportsCCNameEditDetailsDTO, SportsCCNameMasterDataDTO } from '@/types/sports/masters/sports-cc-name';
+import { revalidatePath } from 'next/cache';
 
 const BASE_URL = 'sports';
 
@@ -13,7 +13,8 @@ export async function getSportsCCNameDetails(searchParams?: ApiSearchparams) {
         params.search_query = String(params.search_query).trim();
         // If no columns selected, use default searchable columns
         if (!params.search_columns || params.search_columns === '') {
-            params.search_columns = 'groupName,SPCCMSCC_SportsCCName,SPCCMSCC_SportsCCDesc,SPCCMSCC_SGFlag,SPCCMSCC_NoOfMembers,SPCCMSCC_RecHighLowFlag';
+            params.search_columns =
+                'groupName,SPCCMSCC_SportsCCName,SPCCMSCC_SportsCCDesc,SPCCMSCC_SGFlag,SPCCMSCC_NoOfMembers,SPCCMSCC_RecHighLowFlag';
         }
     }
     const urlParams = getSearchParamsUrl(params);

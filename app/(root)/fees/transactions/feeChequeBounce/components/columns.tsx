@@ -1,10 +1,10 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
-import { format } from 'date-fns';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import type { ColumnDef } from '@tanstack/react-table';
+import { format } from 'date-fns';
+import { Trash2 } from 'lucide-react';
 
 export const feeChequeBounceColumns: ColumnDef<any>[] = [
     {
@@ -40,7 +40,8 @@ export const feeChequeBounceColumns: ColumnDef<any>[] = [
         accessorKey: 'is_Active',
         header: 'Status',
         cell: ({ row }) => (
-            <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${row.original.is_Active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+            <span
+                className={`inline-flex items-center rounded-full px-2 py-1 font-medium text-xs ${row.original.is_Active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                 {row.original.is_Active ? 'Active' : 'Inactive'}
             </span>
         )
@@ -62,8 +63,7 @@ function ActionButtons({ row }: { row: any }) {
                 size='icon'
                 onClick={() => openDeleteForm(row)}
                 className='h-8 w-8 text-destructive hover:bg-destructive/10'
-                title='Delete'
-            >
+                title='Delete'>
                 <Trash2 className='h-4 w-4' />
             </Button>
         </div>

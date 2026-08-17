@@ -45,7 +45,11 @@ function MasterClassCategoryPageContent({
                 {/* Entry Form Section */}
                 <CollapsibleSection
                     title={isEditFormOpen ? 'EDIT BOOKS CATEGORY' : 'MASTER BOOKS CATEGORY ENTRY'}
-                    description={isEditFormOpen ? 'Update the details of the selected books category' : 'Fill in the details below to create a new books category'}
+                    description={
+                        isEditFormOpen
+                            ? 'Update the details of the selected books category'
+                            : 'Fill in the details below to create a new books category'
+                    }
                     defaultOpen={true}
                     variant='outline'
                     size='md'
@@ -56,7 +60,7 @@ function MasterClassCategoryPageContent({
                                 <button
                                     type='button'
                                     onClick={closeEditForm}
-                                    className='absolute -top-[3.5rem] right-12 w-fit border p-2 shadow-md hover:bg-destructive/10 rounded-md bg-background flex items-center gap-1 text-xs'>
+                                    className='-top-[3.5rem] absolute right-12 flex w-fit items-center gap-1 rounded-md border bg-background p-2 text-xs shadow-md hover:bg-destructive/10'>
                                     <X className='h-4 w-4 text-destructive' /> Close
                                 </button>
                                 <UpdateMasterCategoryForm selectedRow={selectedRow} onSuccess={closeEditForm} />
@@ -97,9 +101,5 @@ function MasterClassCategoryPageContent({
 function FormSections() {
     const { isToggleFormOpen, selectedRow, closeToggleForm } = useFormContext<IMasterCategoryList>();
 
-    return (
-        <>
-            {isToggleFormOpen && selectedRow && <ToggleMasterCategoryForm rowData={selectedRow} onClose={closeToggleForm} />}
-        </>
-    );
+    return <>{isToggleFormOpen && selectedRow && <ToggleMasterCategoryForm rowData={selectedRow} onClose={closeToggleForm} />}</>;
 }

@@ -1,10 +1,10 @@
 'use client';
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useState } from 'react';
 
 import { useMasterSubject } from '@/hooks/library/useMasters';
 import { parentsubjectdropdowndata } from '@/hooks/library/useMasters';
@@ -142,11 +142,10 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                                     name='lmS_ParentId'
                                     control={control}
                                     render={({ field }) => (
-                                        <Select 
+                                        <Select
                                             key={resetKey}
-                                            onValueChange={(val) => field.onChange(val === 'none' ? undefined : Number(val))} 
-                                            value={field.value?.toString() || ''}
-                                        >
+                                            onValueChange={(val) => field.onChange(val === 'none' ? undefined : Number(val))}
+                                            value={field.value?.toString() || ''}>
                                             <SelectTrigger className='w-full'>
                                                 <SelectValue placeholder='Select Parent Subject' />
                                             </SelectTrigger>
@@ -161,7 +160,9 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                                                     </SelectItem>
                                                 ) : (
                                                     category?.data?.map((item: any) => (
-                                                        <SelectItem key={item.ismS_Id || Math.random()} value={item.ismS_Id?.toString() || ''}>
+                                                        <SelectItem
+                                                            key={item.ismS_Id || Math.random()}
+                                                            value={item.ismS_Id?.toString() || ''}>
                                                             {item.ismS_SubjectName}
                                                         </SelectItem>
                                                     ))
@@ -229,7 +230,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                     <Button
                         type='submit'
                         disabled={isSubmitting}
-                        className='order-1 w-fit bg-[#4251b1] hover:bg-[#35418e] text-white transition-all duration-200 hover:scale-105'
+                        className='order-1 w-fit bg-[#4251b1] text-white transition-all duration-200 hover:scale-105 hover:bg-[#35418e]'
                         isLoading={isSubmitting}
                         loadingText='Saving...'>
                         <div className='flex items-center'>
@@ -241,7 +242,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                         type='button'
                         onClick={handleReset}
                         disabled={isSubmitting}
-                        className='order-2 w-fit bg-[#ff5a30] hover:bg-[#e64d26] text-white transition-all duration-200 hover:scale-105'>
+                        className='order-2 w-fit bg-[#ff5a30] text-white transition-all duration-200 hover:scale-105 hover:bg-[#e64d26]'>
                         Reset
                     </Button>
                 </div>

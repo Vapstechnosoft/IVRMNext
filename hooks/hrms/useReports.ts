@@ -1,43 +1,22 @@
 'use client';
 
-import { useMutation, useQuery } from '@tanstack/react-query';
-import {
-    getLeaveStatusReport,
-    type LeaveStatusReportRequest
-} from '@/server/hrms/reports/leave-status-report';
-import {
-    getCumulativeSalaryReport,
-    getDepartmentsByGroupType,
-    getDesignationsByGroupAndDept,
-    getEmployeesByDeptAndDesignation,
-    getEmployeesByGroupTypeDeptAndDesignation,
-    getGroupTypes,
-    type CumulativeSalaryReportRequest
-} from '@/server/hrms/reports/cumulative-salary-report';
-import {
-    getEmployeesBankCashReport,
-    type BankCashReportRequest
-} from '@/server/hrms/reports/bank-cash-report';
-import {
-    getHeadWiseEmployeeDetails,
-    type HeadWiseReportRequest
-} from '@/server/hrms/reports/head-wise-report';
-import {
-    getDepartmentSalaryReport,
-    type DepartmentSalaryReportRequest
-} from '@/server/hrms/reports/department-salary-report';
-import {
-    getEmployeeAdvanceReportOnload,
-    searchEmployeeAdvanceReport
-} from '@/server/hrms/hrmsConfig/reports/advance-report';
+import { getEmployeeAdvanceReportOnload, searchEmployeeAdvanceReport } from '@/server/hrms/hrmsConfig/reports/advance-report';
+import { getBankCashReportOnload, searchBankCashReport } from '@/server/hrms/hrmsConfig/reports/bank-cash-report';
 import {
     getEmployeeContributionReportOnload,
     searchEmployeeContributionDetails
 } from '@/server/hrms/hrmsConfig/reports/employee-contribution-report';
+import { searchEmployeeProfileDetails } from '@/server/hrms/hrmsConfig/reports/employee-profile-report';
+import { getEmployeeStrengthReportOnload, searchEmployeeStrengthReport } from '@/server/hrms/hrmsConfig/reports/employee-strength-report';
+import { getESIReportOnload } from '@/server/hrms/hrmsConfig/reports/esi-report';
+import { getPFChallanReportOnload } from '@/server/hrms/hrmsConfig/reports/pf-challan-report';
+import { getPFForm3ABasicData, searchPFForm3AReport } from '@/server/hrms/hrmsConfig/reports/pf-form-3a-report';
 import {
-    getBankCashReportOnload,
-    searchBankCashReport
-} from '@/server/hrms/hrmsConfig/reports/bank-cash-report';
+    filterEmployeesByYearMonth,
+    generateSalarySlip,
+    getSalarySlipOnload,
+    sendSalarySlipEmailSMSWhatsApp
+} from '@/server/hrms/hrmsConfig/reports/salary-slip-report';
 import {
     getMasterDepartments,
     getMasterDesignations,
@@ -45,98 +24,81 @@ import {
     getMasterGroupTypes,
     getMasterMonths,
     getMasterPaymentModeList,
-    getMasterYears,
-    type MasterDropdown
+    getMasterYears
 } from '@/server/hrms/master';
+import { type BankCashReportRequest, getEmployeesBankCashReport } from '@/server/hrms/reports/bank-cash-report';
 import {
-    getEmployeeStrengthReportOnload,
-    searchEmployeeStrengthReport,
-} from '@/server/hrms/hrmsConfig/reports/employee-strength-report';
+    type CumulativeSalaryReportRequest,
+    getCumulativeSalaryReport,
+    getDepartmentsByGroupType,
+    getDesignationsByGroupAndDept,
+    getEmployeesByDeptAndDesignation,
+    getEmployeesByGroupTypeDeptAndDesignation,
+    getGroupTypes
+} from '@/server/hrms/reports/cumulative-salary-report';
+import { type DepartmentSalaryReportRequest, getDepartmentSalaryReport } from '@/server/hrms/reports/department-salary-report';
 import {
-    searchEmployeeProfileDetails,
-} from '@/server/hrms/hrmsConfig/reports/employee-profile-report';
-import type { EmployeeProfileReportSearchRequest } from '@/types/hrms/reports/employee-profile-report';
-import {
-    getEmployeesByFilter,
-    getEmployeeLetterDetails,
-    getEmployeeOfferAndExperienceReport
-} from '@/server/hrms/reports/employee-offer-letter';
-import {
-    getESIReportOnload,
-    searchESIReport
-} from '@/server/hrms/hrmsConfig/reports/esi-report';
-import {
-    getPFChallan,
-    getESIReport,
-    getPFForm10,
-    getPFForm5,
-    getPFForm6A,
-    type ESIReportRequest,
-    type PFForm10Request,
-    type PFForm5Request,
-    type PFChallanRequest,
-    type PFForm6ARequest,
-    getPFSummaryReport,
-    type PFSummaryReportRequest,
-    getVPFSummaryReport
-} from '@/server/hrms/reports/esi-pf-reports';
-import {
-    getPFChallanReportOnload,
-} from '@/server/hrms/hrmsConfig/reports/pf-challan-report';
-import {
-    getPFForm3ABasicData,
-    searchPFForm3AReport,
-} from '@/server/hrms/hrmsConfig/reports/pf-form-3a-report';
-import {
-    getSalarySlipOnload,
-    filterEmployeesByYearMonth,
-    generateSalarySlip,
-    sendSalarySlipEmailSMSWhatsApp
-} from '@/server/hrms/hrmsConfig/reports/salary-slip-report';
-import {
-    getYearWiseSalaryDetails,
-    getMonthWiseSalaryDetails,
-    type YearWiseSalaryResponse,
-    type MonthWiseSalaryResponse
-} from '@/server/hrms/reports/employee-salary-details';
-import type {
-    SalarySlipFilterRequest,
-    SalarySlipGenerateRequest
-} from '@/types/hrms/reports/salary-slip-report';
-import {
-    getEmployeeDetailsReportOnload,
-    searchEmployeeDetailsReport,
-    getEmployeeAndEmployeeType,
-    getLoginBasedDepartmentsByGroupType,
+    type EmployeeDetailsReportRequest,
     filterEmployeeDetailsReport,
-    type EmployeeDetailsReportRequest
+    getEmployeeAndEmployeeType,
+    getEmployeeDetailsReportOnload,
+    getLoginBasedDepartmentsByGroupType,
+    searchEmployeeDetailsReport
 } from '@/server/hrms/reports/employee-details-report';
 import {
-    getMonthEndReport,
-    type MonthEndReportRequest
-} from '@/server/hrms/reports/month-end-report';
+    getEmployeeLetterDetails,
+    getEmployeeOfferAndExperienceReport,
+    getEmployeesByFilter
+} from '@/server/hrms/reports/employee-offer-letter';
+import { getMonthWiseSalaryDetails, getYearWiseSalaryDetails } from '@/server/hrms/reports/employee-salary-details';
 import {
-    getLeaveReport,
-    type LeaveReportRequest
-} from '@/server/hrms/reports/leave-report';
+    type ESIReportRequest,
+    type PFChallanRequest,
+    type PFForm5Request,
+    type PFForm6ARequest,
+    type PFForm10Request,
+    type PFSummaryReportRequest,
+    getESIReport,
+    getPFChallan,
+    getPFForm5,
+    getPFForm6A,
+    getPFForm10,
+    getPFSummaryReport,
+    getVPFSummaryReport
+} from '@/server/hrms/reports/esi-pf-reports';
+import { type HeadWiseReportRequest, getHeadWiseEmployeeDetails } from '@/server/hrms/reports/head-wise-report';
+import { type LeaveReportRequest, getLeaveReport } from '@/server/hrms/reports/leave-report';
+import { type LeaveStatusReportRequest, getLeaveStatusReport } from '@/server/hrms/reports/leave-status-report';
+import { type MonthEndReportRequest, getMonthEndReport } from '@/server/hrms/reports/month-end-report';
+import type { EmployeeProfileReportSearchRequest } from '@/types/hrms/reports/employee-profile-report';
+import type { SalarySlipFilterRequest, SalarySlipGenerateRequest } from '@/types/hrms/reports/salary-slip-report';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export type { EmployeeDetailsReportRequest };
 
-import { toast } from 'sonner';
 import {
-    getGroupTypes as getMasterDropdownGroupTypes,
     getDepartmentsByGroupType as getMasterDropdownDepartments,
     getDesignationsByDepartment as getMasterDropdownDesignations,
     getEmployeesByDeptAndDesignation as getMasterDropdownEmployees,
-    getEmployees
+    getGroupTypes as getMasterDropdownGroupTypes
 } from '@/server/hrms/master-dropdown';
+import { toast } from 'sonner';
 
-import { getEmployeesLoanReport, type LoanReportRequest } from '@/server/hrms/reports/loan-report';
-import { getContributionReport, getContributionEmployees, type ContributionReportRequest, type ContributionEmployeesRequest } from '@/server/hrms/reports/contribution-report';
-import { getSalaryCertificateReport,getSalaryCertificateEmployees, type salaryCertificateRequest, type salaryCertificateEmployeesRequest } from '@/server/hrms/reports/salary-certificate';
-import { getPS7ReportData, getPS7ReportEmployees, type PS7ReportDataRequest } from '@/server/hrms/reports/PS7FromReportStJames';
-import { getPS8MonthWiseReportData, type PS8MonthWiseReportDataRequest } from '@/server/hrms/reports/PS8_MonthWiseReportStjames';
-
+import { type PS7ReportDataRequest, getPS7ReportData, getPS7ReportEmployees } from '@/server/hrms/reports/PS7FromReportStJames';
+import { type PS8MonthWiseReportDataRequest, getPS8MonthWiseReportData } from '@/server/hrms/reports/PS8_MonthWiseReportStjames';
+import {
+    type ContributionEmployeesRequest,
+    type ContributionReportRequest,
+    getContributionEmployees,
+    getContributionReport
+} from '@/server/hrms/reports/contribution-report';
+import { type LoanReportRequest, getEmployeesLoanReport } from '@/server/hrms/reports/loan-report';
+import {
+    getSalaryCertificateEmployees,
+    getSalaryCertificateReport,
+    type salaryCertificateEmployeesRequest,
+    type salaryCertificateRequest
+} from '@/server/hrms/reports/salary-certificate';
 
 export function useCumulativeSalaryReport() {
     return useMutation({
@@ -184,15 +146,17 @@ export function useReportEmployeesByDeptAndDesignation(deptIds: string, desigIds
 
 // Get EMployees by Group Type, Department and Designation
 
-export function useReportEmployeesByGroupTypeDeptAndDesignation(groupTypeIds: number[],
-    deptIds: number[],
-    desigIds: number[]) {
+export function useReportEmployeesByGroupTypeDeptAndDesignation(groupTypeIds: number[], deptIds: number[], desigIds: number[]) {
     return useQuery({
         queryKey: ['report-employees', groupTypeIds, deptIds, desigIds],
         queryFn: () => getEmployeesByGroupTypeDeptAndDesignation(groupTypeIds, deptIds, desigIds),
-        enabled: Array.isArray(groupTypeIds) && groupTypeIds.length > 0 &&
-            Array.isArray(deptIds) && deptIds.length > 0 &&
-            Array.isArray(desigIds) && desigIds.length > 0,
+        enabled:
+            Array.isArray(groupTypeIds) &&
+            groupTypeIds.length > 0 &&
+            Array.isArray(deptIds) &&
+            deptIds.length > 0 &&
+            Array.isArray(desigIds) &&
+            desigIds.length > 0,
         staleTime: 1000 * 60 * 5
     });
 }
@@ -336,7 +300,12 @@ export function useReportEmployees(designationId: number, deptId: number, groupT
 
 export function useEmployeeLetterDetails() {
     return useMutation({
-        mutationFn: ({ designationId, deptId, groupTypeId, employeeId }: { designationId: number, deptId: number, groupTypeId: number, employeeId: number }) =>
+        mutationFn: ({
+            designationId,
+            deptId,
+            groupTypeId,
+            employeeId
+        }: { designationId: number; deptId: number; groupTypeId: number; employeeId: number }) =>
             getEmployeeLetterDetails(designationId, deptId, groupTypeId, employeeId),
         onError: (error: Error) => {
             toast.error(error.message || 'Failed to fetch details');
@@ -568,8 +537,6 @@ export function useEmployeeAndEmployeeType() {
     });
 }
 
-
-
 /**
  * Hook for fetching Departments based on Group Type selection
  */
@@ -703,7 +670,6 @@ export function useMonthEndReport() {
     });
 }
 
-
 /**
  * Hook for Loan Report
  */
@@ -715,7 +681,6 @@ export function useLoanReport() {
         }
     });
 }
-
 
 /**
  * Hook for Contribution Report
@@ -741,8 +706,6 @@ export function useContributionEmployees() {
     });
 }
 
-
-
 /**
  * Hook for Salary Certificate Report
  */
@@ -765,12 +728,10 @@ export function useSalaryCertificateEmployees() {
         onError: (error: Error) => {
             toast.error(error.message || 'Failed to fetch the employess');
         }
-    }
-    );
+    });
 }
 
-
-/** 
+/**
  * Hook for get the Departements based on login (Group Type) EmployeeRetirementReport
  */
 
@@ -805,8 +766,7 @@ export function usePS7ReportData() {
         onError: (error: Error) => {
             toast.error(error.message || 'Failed to fetch the PS7 Report Data');
         }
-    }
-    );
+    });
 }
 
 /**
@@ -821,8 +781,6 @@ export function usePS8MonthWiseReportStJames() {
         }
     });
 }
-
-
 
 /**
  * Hook for PF Summary Report and PF Yearly Report

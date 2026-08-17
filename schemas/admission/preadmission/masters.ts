@@ -1,13 +1,11 @@
 import {
     createAlphanumericSchema,
-    createOptionalAlphaNumericSchemaNotOptional,
     createOptionalStringSchema,
     createRequiredAlphaNumericWithSpaceSchema,
     createStringOnlySchema,
     createStringSchema,
     createStringSchemaNotAllowNumbersOnly,
-    deleteIdSchema,
-    createCustomStringSchema
+    deleteIdSchema
 } from '@/schemas/validationSchemas';
 import { z } from 'zod';
 

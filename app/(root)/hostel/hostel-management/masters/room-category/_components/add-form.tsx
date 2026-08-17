@@ -1,19 +1,19 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
+import { useRoomCategory } from '@/hooks/hostel/useRoomCategory';
+import { RoomCategorySchema, type RoomCategorySchemaType } from '@/schemas/hostel/room-category.schema';
+import { saveRoomCategory } from '@/server/hostel/hostel-management/masters/room-category';
+import type { IFeeGroup, IHostel } from '@/types/hostel/hostel-management/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RefreshCw, Save } from 'lucide-react';
 import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { IFeeGroup, IHostel } from '@/types/hostel/hostel-management/masters';
-import { saveRoomCategory } from '@/server/hostel/hostel-management/masters/room-category';
-import { RoomCategorySchema, RoomCategorySchemaType } from '@/schemas/hostel/room-category.schema';
-import { useRoomCategory } from '@/hooks/hostel/useRoomCategory';
 
 interface AddRoomCategoryFormProps {
     onSuccess?: () => void;
@@ -23,13 +23,7 @@ interface AddRoomCategoryFormProps {
     className?: string;
 }
 
-export default function AddRoomCategoryForm({
-    onSuccess,
-    onCancel,
-    hostelList,
-    feeGroupList,
-    className = ''
-}: AddRoomCategoryFormProps) {
+export default function AddRoomCategoryForm({ onSuccess, onCancel, hostelList, feeGroupList, className = '' }: AddRoomCategoryFormProps) {
     const {
         register,
         handleSubmit,
@@ -51,8 +45,8 @@ export default function AddRoomCategoryForm({
             HLMRCA_Description: '',
             hlmrcA_ACFlg: false,
             hlmrcA_SharingFlg: false,
-            hlmrcA_ActiveFlag: true,
-        },
+            hlmrcA_ActiveFlag: true
+        }
     });
 
     const sharingFlag = watch('hlmrcA_SharingFlg');
@@ -92,7 +86,7 @@ export default function AddRoomCategoryForm({
             HLMRCA_Description: '',
             hlmrcA_ACFlg: false,
             hlmrcA_SharingFlg: false,
-            hlmrcA_ActiveFlag: true,
+            hlmrcA_ActiveFlag: true
         });
         toast.info('Form reset');
     };
@@ -107,12 +101,9 @@ export default function AddRoomCategoryForm({
                             <Label htmlFor='HLMH_Id'>
                                 Hostel Name <span className='ml-1 text-red-500'>*</span>
                             </Label>
-                            <Select
-                                onValueChange={(val) => setValue('HLMH_Id', Number(val))}
-                                defaultValue=''
-                            >
+                            <Select onValueChange={(val) => setValue('HLMH_Id', Number(val))} defaultValue=''>
                                 <SelectTrigger className={errors.HLMH_Id ? 'border-red-500' : ''}>
-                                    <SelectValue placeholder="--Select Hostel--" />
+                                    <SelectValue placeholder='--Select Hostel--' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {hostelList.map((hostel) => (
@@ -130,12 +121,9 @@ export default function AddRoomCategoryForm({
                             <Label htmlFor='FMG_Id'>
                                 Fee Group <span className='ml-1 text-red-500'>*</span>
                             </Label>
-                            <Select
-                                onValueChange={(val) => setValue('FMG_Id', Number(val))}
-                                defaultValue=''
-                            >
+                            <Select onValueChange={(val) => setValue('FMG_Id', Number(val))} defaultValue=''>
                                 <SelectTrigger className={errors.FMG_Id ? 'border-red-500' : ''}>
-                                    <SelectValue placeholder="--Select Fee Group--" />
+                                    <SelectValue placeholder='--Select Fee Group--' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {feeGroupList.map((group) => (
@@ -205,12 +193,8 @@ export default function AddRoomCategoryForm({
                                     control={useForm().control}
                                     render={({ field }) => (
                                         <>
-                                            <Checkbox
-                                                id="acFlag"
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                            />
-                                            <Label htmlFor="acFlag">Whether This Room Have AC?</Label>
+                                            <Checkbox id='acFlag' checked={field.value} onCheckedChange={field.onChange} />
+                                            <Label htmlFor='acFlag'>Whether This Room Have AC?</Label>
                                         </>
                                     )}
                                 />
@@ -221,12 +205,8 @@ export default function AddRoomCategoryForm({
                                     control={useForm().control}
                                     render={({ field }) => (
                                         <>
-                                            <Checkbox
-                                                id="shareFlag"
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                            />
-                                            <Label htmlFor="shareFlag">Whether This Room is Sharing?</Label>
+                                            <Checkbox id='shareFlag' checked={field.value} onCheckedChange={field.onChange} />
+                                            <Label htmlFor='shareFlag'>Whether This Room is Sharing?</Label>
                                         </>
                                     )}
                                 />

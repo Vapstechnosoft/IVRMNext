@@ -1,14 +1,14 @@
 'use client';
 
-import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
+import type React from 'react';
 
 const border = '1px solid black';
 const td = (extra?: React.CSSProperties): React.CSSProperties => ({
     border,
     padding: '3px 6px',
-    ...extra,
+    ...extra
 });
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -16,38 +16,40 @@ const td = (extra?: React.CSSProperties): React.CSSProperties => ({
    ──────────────────────────────────────────────────────────────────────────── */
 function StudentCard({ studentId, apiData }: { studentId: number; apiData: any }) {
     /* ── raw lists ── */
-    const students: any[]        = apiData?.getstudentdetails ?? [];
-    const subjectSummary: any[]  = apiData?.getstudentwisesubjectlist ?? [];  // totals: subjectObtainedMarks, subjectGrade
-    const rawMarks: any[]        = apiData?.getstudentmarksdetails ?? [];
-    const skills: any[]          = apiData?.getstudentwiseskillslist ?? [];
-    const activities: any[]      = apiData?.getstudentwiseactiviteslist ?? [];
-    const promotionRemarks: any[]= apiData?.getpromotionremarksdetails ?? [];
-    const terms: any[]           = apiData?.gettermdetails ?? [];
-    const institution: any       = apiData?.getinstitution?.[0] ?? {};
+    const students: any[] = apiData?.getstudentdetails ?? [];
+    const subjectSummary: any[] = apiData?.getstudentwisesubjectlist ?? []; // totals: subjectObtainedMarks, subjectGrade
+    const rawMarks: any[] = apiData?.getstudentmarksdetails ?? [];
+    const skills: any[] = apiData?.getstudentwiseskillslist ?? [];
+    const activities: any[] = apiData?.getstudentwiseactiviteslist ?? [];
+    const promotionRemarks: any[] = apiData?.getpromotionremarksdetails ?? [];
+    const terms: any[] = apiData?.gettermdetails ?? [];
+    const institution: any = apiData?.getinstitution?.[0] ?? {};
 
     /* ── groups from API, then append synthetic columns ── */
     const apiGroups: any[] = apiData?.getgroupdetails ?? [];
     // Deduplicate groups by empG_DistplayName (API typo — "Distplay")
     const seenGrp = new Set<string>();
-    const uniqueApiGroups = apiGroups.filter((g: any) => {
-        const name = g.empG_DistplayName ?? g.empG_GroupName ?? '';
-        if (!name || seenGrp.has(name)) return false;
-        seenGrp.add(name);
-        return true;
-    }).sort((a: any, b: any) => (a.empsG_Order ?? 0) - (b.empsG_Order ?? 0));
+    const uniqueApiGroups = apiGroups
+        .filter((g: any) => {
+            const name = g.empG_DistplayName ?? g.empG_GroupName ?? '';
+            if (!name || seenGrp.has(name)) return false;
+            seenGrp.add(name);
+            return true;
+        })
+        .sort((a: any, b: any) => (a.empsG_Order ?? 0) - (b.empsG_Order ?? 0));
 
     // Full column list matching legacy JS:
     // [...apiGroups, { Marks Obtained, 100 }, { Grade }]
     const columns = [
         ...uniqueApiGroups,
         { empG_DistplayName: 'Marks Obtained', empsG_MarksValue: 100 },
-        { empG_DistplayName: 'Grade',           empsG_MarksValue: '' },
+        { empG_DistplayName: 'Grade', empsG_MarksValue: '' }
     ];
 
     /* ── filter by student ── */
-    const stu    = students.find((s: any) => s.amsT_Id === studentId) ?? {};
-    const mks    = rawMarks.filter((m: any) => m.amsT_Id === studentId);
-    const promo  = promotionRemarks.find((p: any) => p.amsT_Id === studentId) ?? {};
+    const stu = students.find((s: any) => s.amsT_Id === studentId) ?? {};
+    const mks = rawMarks.filter((m: any) => m.amsT_Id === studentId);
+    const promo = promotionRemarks.find((p: any) => p.amsT_Id === studentId) ?? {};
     const stuSubjSummary = subjectSummary.filter((s: any) => s.amsT_Id === studentId);
 
     /* ── unique ordered subjects from summary ── */
@@ -61,7 +63,10 @@ function StudentCard({ studentId, apiData }: { studentId: number; apiData: any }
     const dedupedMarks: any[] = [];
     mks.forEach((m: any) => {
         const key = `${m.ismS_Id}_${m.emE_Id}`;
-        if (!seenMark.has(key)) { seenMark.add(key); dedupedMarks.push(m); }
+        if (!seenMark.has(key)) {
+            seenMark.add(key);
+            dedupedMarks.push(m);
+        }
     });
 
     /* ── helper: get cell value for a subject×column ── */
@@ -81,9 +86,7 @@ function StudentCard({ studentId, apiData }: { studentId: number; apiData: any }
         }
 
         // API group column → sum all deduped marks for this subject × group
-        const groupMarks = dedupedMarks.filter(
-            (m: any) => m.ismS_SubjectName === subjName && m.empsG_DisplayName === colName
-        );
+        const groupMarks = dedupedMarks.filter((m: any) => m.ismS_SubjectName === subjName && m.empsG_DisplayName === colName);
         if (!groupMarks.length) return '';
         const total = groupMarks.reduce((acc: number, m: any) => acc + (m.obtainedMarks ?? 0), 0);
         return <b>{total}</b>;
@@ -95,7 +98,10 @@ function StudentCard({ studentId, apiData }: { studentId: number; apiData: any }
     stuSkills.forEach((dd: any) => {
         const name = dd.ECS_SkillName ?? dd.eCS_SkillName ?? '';
         let entry = skillMainList.find((e) => e.name === name);
-        if (!entry) { entry = { name, area: dd.ECSA_SkillArea ?? '', scores: [] }; skillMainList.push(entry); }
+        if (!entry) {
+            entry = { name, area: dd.ECSA_SkillArea ?? '', scores: [] };
+            skillMainList.push(entry);
+        }
         entry.scores.push({ ecT_Id: dd.ECT_Id ?? dd.ecT_Id ?? 0, grade: dd.EMGD_Name ?? '' });
     });
 
@@ -105,7 +111,10 @@ function StudentCard({ studentId, apiData }: { studentId: number; apiData: any }
     stuActivities.forEach((dd: any) => {
         const area = dd.ECACTA_SkillArea ?? '';
         let entry = actMainList.find((e) => e.area === area);
-        if (!entry) { entry = { area, scores: [] }; actMainList.push(entry); }
+        if (!entry) {
+            entry = { area, scores: [] };
+            actMainList.push(entry);
+        }
         entry.scores.push({ ecT_Id: dd.ECT_Id ?? dd.ecT_Id ?? 0, grade: dd.EMGD_Name ?? '' });
     });
 
@@ -121,19 +130,28 @@ function StudentCard({ studentId, apiData }: { studentId: number; apiData: any }
                     <img src={imgname} style={{ width: '100%' }} alt='School Header' />
                 </div>
             )}
-            <br /><br />
+            <br />
+            <br />
 
             {/* STUDENT INFO */}
             <div style={{ fontSize: '13px' }}>
                 <div style={{ display: 'flex', marginBottom: '4px' }}>
-                    <span style={{ fontWeight: 'bold', width: '22%' }}><b>Class/Section/Roll No. :</b></span>
+                    <span style={{ fontWeight: 'bold', width: '22%' }}>
+                        <b>Class/Section/Roll No. :</b>
+                    </span>
                     <span style={{ borderBottom: border, fontWeight: 'bold' }}>
-                        <b>{stu.className ?? ''}/{stu.sectionName ?? ''}/{stu.admissionNo ?? ''}</b>
+                        <b>
+                            {stu.className ?? ''}/{stu.sectionName ?? ''}/{stu.admissionNo ?? ''}
+                        </b>
                     </span>
                 </div>
                 <div style={{ display: 'flex', marginBottom: '4px' }}>
-                    <span style={{ fontWeight: 'bold', width: '16%' }}><b>Student&apos;s Name :</b></span>
-                    <span style={{ borderBottom: border, fontWeight: 'bold' }}><b>{stu.studentName ?? ''}</b></span>
+                    <span style={{ fontWeight: 'bold', width: '16%' }}>
+                        <b>Student&apos;s Name :</b>
+                    </span>
+                    <span style={{ borderBottom: border, fontWeight: 'bold' }}>
+                        <b>{stu.studentName ?? ''}</b>
+                    </span>
                 </div>
                 <div style={{ display: 'flex', marginBottom: '4px' }}>
                     <b>Father&apos;s/Mother&apos;s/Guardian&apos;s Name :</b>&nbsp;
@@ -142,11 +160,14 @@ function StudentCard({ studentId, apiData }: { studentId: number; apiData: any }
                     </span>
                 </div>
                 <div style={{ display: 'flex', marginBottom: '4px' }}>
-                    <span style={{ fontWeight: 'bold', width: '14%' }}><b>Date Of Birth :</b></span>
-                    <span style={{ borderBottom: border, fontWeight: 'bold', width: '12%' }}><b>{stu.dob ?? ''}</b></span>
+                    <span style={{ fontWeight: 'bold', width: '14%' }}>
+                        <b>Date Of Birth :</b>
+                    </span>
+                    <span style={{ borderBottom: border, fontWeight: 'bold', width: '12%' }}>
+                        <b>{stu.dob ?? ''}</b>
+                    </span>
                 </div>
                 &nbsp;
-
                 {/* ── SCHOLASTIC MARKS TABLE ── */}
                 <div style={{ marginTop: '10px' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -164,11 +185,16 @@ function StudentCard({ studentId, apiData }: { studentId: number; apiData: any }
                                     <b>Subject Name</b>
                                 </th>
                                 {columns.map((col: any, i: number) => (
-                                    <th key={i} style={{ ...td({ textAlign: 'center', whiteSpace: 'pre-wrap' }), backgroundColor: '#c9eaf0' }}>
+                                    <th
+                                        key={i}
+                                        style={{ ...td({ textAlign: 'center', whiteSpace: 'pre-wrap' }), backgroundColor: '#c9eaf0' }}>
                                         <b>{col.empG_DistplayName}</b>
-                                        {col.empG_DistplayName !== 'Grade' && col.empsG_MarksValue
-                                            ? <><br /><b>({col.empsG_MarksValue})</b></>
-                                            : null}
+                                        {col.empG_DistplayName !== 'Grade' && col.empsG_MarksValue ? (
+                                            <>
+                                                <br />
+                                                <b>({col.empsG_MarksValue})</b>
+                                            </>
+                                        ) : null}
                                     </th>
                                 ))}
                             </tr>
@@ -190,7 +216,6 @@ function StudentCard({ studentId, apiData }: { studentId: number; apiData: any }
                     </table>
                 </div>
                 &nbsp;
-
                 {/* ── CO-SCHOLASTIC AREAS TABLE (only if data exists) ── */}
                 {skillMainList.length > 0 && (
                     <div style={{ marginTop: '10px' }}>
@@ -214,11 +239,17 @@ function StudentCard({ studentId, apiData }: { studentId: number; apiData: any }
                                 {skillMainList.map((skill, si) => (
                                     <tr key={si}>
                                         <td style={{ ...td({ textAlign: 'left', wordBreak: 'break-word' }), backgroundColor: '#c9eaf0' }}>
-                                            <b>{skill.name}-{skill.area}</b>
+                                            <b>
+                                                {skill.name}-{skill.area}
+                                            </b>
                                         </td>
                                         {terms.map((term: any, ti: number) => {
                                             const sc = skill.scores.find((s) => s.ecT_Id === (term.ecT_Id ?? 0));
-                                            return <td key={ti} style={td({ textAlign: 'center' })}><b>{sc?.grade ?? ''}</b></td>;
+                                            return (
+                                                <td key={ti} style={td({ textAlign: 'center' })}>
+                                                    <b>{sc?.grade ?? ''}</b>
+                                                </td>
+                                            );
                                         })}
                                     </tr>
                                 ))}
@@ -227,7 +258,6 @@ function StudentCard({ studentId, apiData }: { studentId: number; apiData: any }
                     </div>
                 )}
                 &nbsp;
-
                 {/* ── DISCIPLINE TABLE (only if data exists) ── */}
                 {actMainList.length > 0 && (
                     <div style={{ marginTop: '10px' }}>
@@ -255,7 +285,11 @@ function StudentCard({ studentId, apiData }: { studentId: number; apiData: any }
                                         </td>
                                         {terms.map((term: any, ti: number) => {
                                             const sc = act.scores.find((s) => s.ecT_Id === (term.ecT_Id ?? 0));
-                                            return <td key={ti} style={td({ textAlign: 'center' })}><b>{sc?.grade ?? ''}</b></td>;
+                                            return (
+                                                <td key={ti} style={td({ textAlign: 'center' })}>
+                                                    <b>{sc?.grade ?? ''}</b>
+                                                </td>
+                                            );
                                         })}
                                     </tr>
                                 ))}
@@ -263,7 +297,6 @@ function StudentCard({ studentId, apiData }: { studentId: number; apiData: any }
                         </table>
                     </div>
                 )}
-
                 {/* PROMOTED TO CLASS + REMARKS */}
                 {(promo.eprD_ClassPromoted || promo.eprD_Remarks) && (
                     <div style={{ marginTop: '10px' }}>
@@ -282,16 +315,32 @@ function StudentCard({ studentId, apiData }: { studentId: number; apiData: any }
                     </div>
                 )}
                 <br />
-
                 {/* SIGNATURES */}
-                <div style={{ marginTop: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', paddingTop: '40px' }}>
+                <div
+                    style={{
+                        marginTop: '40px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-end',
+                        paddingTop: '40px'
+                    }}>
                     <div style={{ width: '25%' }}>
-                        <div><b>Place : Vasai</b></div>
-                        <div><b>Date : {dateStr}</b></div>
+                        <div>
+                            <b>Place : Vasai</b>
+                        </div>
+                        <div>
+                            <b>Date : {dateStr}</b>
+                        </div>
                     </div>
-                    <div style={{ width: '25%', textAlign: 'center' }}><b>Signature of Class Teacher</b></div>
-                    <div style={{ width: '25%', textAlign: 'center' }}><b>Signature of Principal</b></div>
-                    <div style={{ width: '25%', textAlign: 'center' }}><b>Signature of Parents</b></div>
+                    <div style={{ width: '25%', textAlign: 'center' }}>
+                        <b>Signature of Class Teacher</b>
+                    </div>
+                    <div style={{ width: '25%', textAlign: 'center' }}>
+                        <b>Signature of Principal</b>
+                    </div>
+                    <div style={{ width: '25%', textAlign: 'center' }}>
+                        <b>Signature of Parents</b>
+                    </div>
                 </div>
             </div>
         </div>
@@ -300,13 +349,14 @@ function StudentCard({ studentId, apiData }: { studentId: number; apiData: any }
 
 /* ─── main export ─── */
 export default function NDS9ProgressCardView({ data }: { data: any }) {
-    const apiData  = data?.apiData;
-    const payload  = data?.payload;
+    const apiData = data?.apiData;
+    const payload = data?.payload;
     const students: any[] = apiData?.getstudentdetails ?? [];
 
-    const ids: number[] = Array.isArray(payload?.temp_AmstIds) && payload.temp_AmstIds.length > 0
-        ? payload.temp_AmstIds.map((s: any) => s.amsT_Id)
-        : students.map((s: any) => s.amsT_Id);
+    const ids: number[] =
+        Array.isArray(payload?.temp_AmstIds) && payload.temp_AmstIds.length > 0
+            ? payload.temp_AmstIds.map((s: any) => s.amsT_Id)
+            : students.map((s: any) => s.amsT_Id);
 
     if (!students.length) {
         return <p className='p-4 text-center text-muted-foreground'>No report data available.</p>;
@@ -330,8 +380,7 @@ export default function NDS9ProgressCardView({ data }: { data: any }) {
                     onClick={() => window.print()}
                     size='sm'
                     style={{ padding: '4px 12px', fontSize: '12px', width: 'auto' }}
-                    className='flex items-center gap-1'
-                >
+                    className='flex items-center gap-1'>
                     <Printer className='h-3 w-3' /> Print
                 </Button>
             </div>

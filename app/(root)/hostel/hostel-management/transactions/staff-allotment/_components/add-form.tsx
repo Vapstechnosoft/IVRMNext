@@ -1,19 +1,19 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { type StaffAllotmentSchema, staffAllotmentSchema } from '@/schemas/hostel/transactions/staff-allotment.schema';
+import { getRoomDetails, getStaffInfo, saveStaffAllotment } from '@/server/hostel/hostel-management/transactions/staff-allotment';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
-import { staffAllotmentSchema, type StaffAllotmentSchema } from '@/schemas/hostel/transactions/staff-allotment.schema';
-import { getStaffInfo, getRoomDetails, saveStaffAllotment } from '@/server/hostel/hostel-management/transactions/staff-allotment';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -48,7 +48,7 @@ export default function StaffAllotmentForm({ dropdowns, onSuccess }: AddFormProp
             HLHSTREQC_NonVegMessFlg: false,
             HLHSTREQC_ACRoomFlg: false,
             HLHSTREQC_SingleRoomFlg: false,
-            HLHSTALT_VacateFlg: false,
+            HLHSTALT_VacateFlg: false
         }
     });
 
@@ -93,14 +93,16 @@ export default function StaffAllotmentForm({ dropdowns, onSuccess }: AddFormProp
                 if (mounted) setLoadingStaff(false);
             }
         })();
-        return () => { mounted = false; };
+        return () => {
+            mounted = false;
+        };
     }, [selectedHostel, setValue]);
 
     // Update details when Staff Selected
     useEffect(() => {
         if (!selectedStaffId || staffList.length === 0) return;
 
-        const staff = staffList.find(s => s.HRME_Id === Number(selectedStaffId));
+        const staff = staffList.find((s) => s.HRME_Id === Number(selectedStaffId));
         if (staff) {
             setValue('HRMD_Id', staff.HRMD_Id);
             setValue('HRMDES_Id', staff.HRMDES_Id);
@@ -147,26 +149,24 @@ export default function StaffAllotmentForm({ dropdowns, onSuccess }: AddFormProp
     };
 
     return (
-        <div className="w-full rounded-2xl bg-white p-6 shadow-sm border">
+        <div className='w-full rounded-2xl border bg-white p-6 shadow-sm'>
             <FormProvider {...methods}>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                    <h3 className="text-lg font-semibold text-gray-800">Hostel Allotment For Staff</h3>
+                <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                    <h3 className='font-semibold text-gray-800 text-lg'>Hostel Allotment For Staff</h3>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
+                    <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                         {/* Hostel */}
                         <Controller
                             control={control}
-                            name="HLMH_Id"
+                            name='HLMH_Id'
                             render={({ field }) => (
-                                <div className="space-y-1">
-                                    <Label>Hostel <span className="text-red-500">*</span></Label>
-                                    <Select
-                                        value={String(field.value || '')}
-                                        onValueChange={(v) => field.onChange(Number(v))}
-                                    >
+                                <div className='space-y-1'>
+                                    <Label>
+                                        Hostel <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <Select value={String(field.value || '')} onValueChange={(v) => field.onChange(Number(v))}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Hostel" />
+                                            <SelectValue placeholder='Select Hostel' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {dropdowns.hostel_list?.map((h: any) => (
@@ -184,30 +184,26 @@ export default function StaffAllotmentForm({ dropdowns, onSuccess }: AddFormProp
                         {/* Allotment Date */}
                         <Controller
                             control={control}
-                            name="HLHSTALT_AllotmentDate"
+                            name='HLHSTALT_AllotmentDate'
                             render={({ field }) => (
-                                <div className="space-y-1">
-                                    <Label>Allotment Date <span className="text-red-500">*</span></Label>
+                                <div className='space-y-1'>
+                                    <Label>
+                                        Allotment Date <span className='text-red-500'>*</span>
+                                    </Label>
                                     <Popover>
                                         <PopoverTrigger asChild>
                                             <Button
-                                                variant={"outline"}
+                                                variant={'outline'}
                                                 className={cn(
-                                                    "w-full justify-start text-left font-normal",
-                                                    !field.value && "text-muted-foreground"
-                                                )}
-                                            >
-                                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                                {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                                    'w-full justify-start text-left font-normal',
+                                                    !field.value && 'text-muted-foreground'
+                                                )}>
+                                                <CalendarIcon className='mr-2 h-4 w-4' />
+                                                {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
                                             </Button>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0">
-                                            <Calendar
-                                                mode="single"
-                                                selected={field.value}
-                                                onSelect={field.onChange}
-                                                initialFocus
-                                            />
+                                        <PopoverContent className='w-auto p-0'>
+                                            <Calendar mode='single' selected={field.value} onSelect={field.onChange} initialFocus />
                                         </PopoverContent>
                                     </Popover>
                                     {errors.HLHSTALT_AllotmentDate && <FormError>{errors.HLHSTALT_AllotmentDate.message}</FormError>}
@@ -218,17 +214,18 @@ export default function StaffAllotmentForm({ dropdowns, onSuccess }: AddFormProp
                         {/* Staff */}
                         <Controller
                             control={control}
-                            name="HRME_Id"
+                            name='HRME_Id'
                             render={({ field }) => (
-                                <div className="space-y-1">
-                                    <Label>Employee Name <span className="text-red-500">*</span></Label>
+                                <div className='space-y-1'>
+                                    <Label>
+                                        Employee Name <span className='text-red-500'>*</span>
+                                    </Label>
                                     <Select
                                         value={String(field.value || '')}
                                         onValueChange={(v) => field.onChange(Number(v))}
-                                        disabled={!selectedHostel || loadingStaff}
-                                    >
+                                        disabled={!selectedHostel || loadingStaff}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder={loadingStaff ? "Loading..." : "Select Employee"} />
+                                            <SelectValue placeholder={loadingStaff ? 'Loading...' : 'Select Employee'} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {staffList.map((s: any) => (
@@ -246,14 +243,20 @@ export default function StaffAllotmentForm({ dropdowns, onSuccess }: AddFormProp
                         {/* Department (Readonly) */}
                         <Controller
                             control={control}
-                            name="HRMD_Id"
+                            name='HRMD_Id'
                             render={({ field }) => (
-                                <div className="space-y-1">
+                                <div className='space-y-1'>
                                     <Label>Department</Label>
                                     <Select value={String(field.value || '')} disabled>
-                                        <SelectTrigger className="bg-gray-50"><SelectValue placeholder="Department" /></SelectTrigger>
+                                        <SelectTrigger className='bg-gray-50'>
+                                            <SelectValue placeholder='Department' />
+                                        </SelectTrigger>
                                         <SelectContent>
-                                            {dropdowns.deptlist?.map((c: any) => <SelectItem key={c.hrmD_Id} value={String(c.hrmD_Id)}>{c.hrmD_DepartmentName}</SelectItem>)}
+                                            {dropdowns.deptlist?.map((c: any) => (
+                                                <SelectItem key={c.hrmD_Id} value={String(c.hrmD_Id)}>
+                                                    {c.hrmD_DepartmentName}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -263,14 +266,20 @@ export default function StaffAllotmentForm({ dropdowns, onSuccess }: AddFormProp
                         {/* Designation (Readonly) */}
                         <Controller
                             control={control}
-                            name="HRMDES_Id"
+                            name='HRMDES_Id'
                             render={({ field }) => (
-                                <div className="space-y-1">
+                                <div className='space-y-1'>
                                     <Label>Designation</Label>
                                     <Select value={String(field.value || '')} disabled>
-                                        <SelectTrigger className="bg-gray-50"><SelectValue placeholder="Designation" /></SelectTrigger>
+                                        <SelectTrigger className='bg-gray-50'>
+                                            <SelectValue placeholder='Designation' />
+                                        </SelectTrigger>
                                         <SelectContent>
-                                            {dropdowns.desglist?.map((c: any) => <SelectItem key={c.hrmdeS_Id} value={String(c.hrmdeS_Id)}>{c.hrmdeS_DesignationName}</SelectItem>)}
+                                            {dropdowns.desglist?.map((c: any) => (
+                                                <SelectItem key={c.hrmdeS_Id} value={String(c.hrmdeS_Id)}>
+                                                    {c.hrmdeS_DesignationName}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -280,14 +289,22 @@ export default function StaffAllotmentForm({ dropdowns, onSuccess }: AddFormProp
                         {/* Room Category */}
                         <Controller
                             control={control}
-                            name="HLMRCA_Id"
+                            name='HLMRCA_Id'
                             render={({ field }) => (
-                                <div className="space-y-1">
-                                    <Label>Room Category <span className="text-red-500">*</span></Label>
+                                <div className='space-y-1'>
+                                    <Label>
+                                        Room Category <span className='text-red-500'>*</span>
+                                    </Label>
                                     <Select value={String(field.value || '')} disabled>
-                                        <SelectTrigger className="bg-gray-50"><SelectValue placeholder="Room Category" /></SelectTrigger>
+                                        <SelectTrigger className='bg-gray-50'>
+                                            <SelectValue placeholder='Room Category' />
+                                        </SelectTrigger>
                                         <SelectContent>
-                                            {dropdowns.roomcatgry_list?.map((r: any) => <SelectItem key={r.hlmrcA_Id} value={String(r.hlmrcA_Id)}>{r.hlmrcA_RoomCategory}</SelectItem>)}
+                                            {dropdowns.roomcatgry_list?.map((r: any) => (
+                                                <SelectItem key={r.hlmrcA_Id} value={String(r.hlmrcA_Id)}>
+                                                    {r.hlmrcA_RoomCategory}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                     {errors.HLMRCA_Id && <FormError>{errors.HLMRCA_Id.message}</FormError>}
@@ -298,16 +315,15 @@ export default function StaffAllotmentForm({ dropdowns, onSuccess }: AddFormProp
                         {/* Room No */}
                         <Controller
                             control={control}
-                            name="HRMRM_Id"
+                            name='HRMRM_Id'
                             render={({ field }) => (
-                                <div className="space-y-1">
-                                    <Label>Room No <span className="text-red-500">*</span></Label>
-                                    <Select
-                                        value={String(field.value || '')}
-                                        onValueChange={(v) => field.onChange(Number(v))}
-                                    >
+                                <div className='space-y-1'>
+                                    <Label>
+                                        Room No <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <Select value={String(field.value || '')} onValueChange={(v) => field.onChange(Number(v))}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Room" />
+                                            <SelectValue placeholder='Select Room' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {dropdowns.room_list?.map((r: any) => (
@@ -325,64 +341,64 @@ export default function StaffAllotmentForm({ dropdowns, onSuccess }: AddFormProp
                         {/* No of Beds (Readonly) */}
                         <Controller
                             control={control}
-                            name="HLHSTALT_NoOfBeds"
+                            name='HLHSTALT_NoOfBeds'
                             render={({ field }) => (
-                                <div className="space-y-1">
+                                <div className='space-y-1'>
                                     <Label>No of Bed</Label>
-                                    <Input {...field} disabled className="bg-gray-50" />
+                                    <Input {...field} disabled className='bg-gray-50' />
                                 </div>
                             )}
                         />
                     </div>
 
                     {/* Flags */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-4 rounded-lg">
-                        <div className="space-y-2">
+                    <div className='grid grid-cols-1 gap-6 rounded-lg bg-gray-50 p-4 md:grid-cols-2'>
+                        <div className='space-y-2'>
                             <Label>Mess Type</Label>
-                            <div className="flex gap-4">
+                            <div className='flex gap-4'>
                                 <Controller
                                     control={control}
-                                    name="HLHSTREQC_VegMessFlg"
+                                    name='HLHSTREQC_VegMessFlg'
                                     render={({ field }) => (
-                                        <div className="flex items-center space-x-2">
+                                        <div className='flex items-center space-x-2'>
                                             <Checkbox checked={field.value} disabled />
-                                            <label className="text-sm font-medium leading-none">Veg</label>
+                                            <label className='font-medium text-sm leading-none'>Veg</label>
                                         </div>
                                     )}
                                 />
                                 <Controller
                                     control={control}
-                                    name="HLHSTREQC_NonVegMessFlg"
+                                    name='HLHSTREQC_NonVegMessFlg'
                                     render={({ field }) => (
-                                        <div className="flex items-center space-x-2">
+                                        <div className='flex items-center space-x-2'>
                                             <Checkbox checked={field.value} disabled />
-                                            <label className="text-sm font-medium leading-none">Non-Veg</label>
+                                            <label className='font-medium text-sm leading-none'>Non-Veg</label>
                                         </div>
                                     )}
                                 />
                             </div>
                         </div>
 
-                        <div className="space-y-2">
+                        <div className='space-y-2'>
                             <Label>Room Type</Label>
-                            <div className="flex gap-4">
+                            <div className='flex gap-4'>
                                 <Controller
                                     control={control}
-                                    name="HLHSTREQC_ACRoomFlg"
+                                    name='HLHSTREQC_ACRoomFlg'
                                     render={({ field }) => (
-                                        <div className="flex items-center space-x-2">
+                                        <div className='flex items-center space-x-2'>
                                             <Checkbox checked={field.value} disabled />
-                                            <label className="text-sm font-medium leading-none">AC</label>
+                                            <label className='font-medium text-sm leading-none'>AC</label>
                                         </div>
                                     )}
                                 />
                                 <Controller
                                     control={control}
-                                    name="HLHSTREQC_SingleRoomFlg"
+                                    name='HLHSTREQC_SingleRoomFlg'
                                     render={({ field }) => (
-                                        <div className="flex items-center space-x-2">
+                                        <div className='flex items-center space-x-2'>
                                             <Checkbox checked={field.value} disabled />
-                                            <label className="text-sm font-medium leading-none">Single</label>
+                                            <label className='font-medium text-sm leading-none'>Single</label>
                                         </div>
                                     )}
                                 />
@@ -391,21 +407,23 @@ export default function StaffAllotmentForm({ dropdowns, onSuccess }: AddFormProp
                     </div>
 
                     {/* Remarks */}
-                    <div className="space-y-1">
+                    <div className='space-y-1'>
                         <Label>Allot Remarks</Label>
                         <Controller
                             control={control}
-                            name="HLHSTALT_AllotRemarks"
-                            render={({ field }) => (
-                                <Textarea {...field} placeholder="Enter remarks" />
-                            )}
+                            name='HLHSTALT_AllotRemarks'
+                            render={({ field }) => <Textarea {...field} placeholder='Enter remarks' />}
                         />
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center justify-center gap-4 pt-4">
-                        <Button type="button" variant="outline" onClick={() => reset()}>Cancel</Button>
-                        <Button type="submit" disabled={isSubmitting}>Save</Button>
+                    <div className='flex items-center justify-center gap-4 pt-4'>
+                        <Button type='button' variant='outline' onClick={() => reset()}>
+                            Cancel
+                        </Button>
+                        <Button type='submit' disabled={isSubmitting}>
+                            Save
+                        </Button>
                     </div>
                 </form>
             </FormProvider>

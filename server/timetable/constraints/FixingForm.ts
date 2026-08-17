@@ -1,6 +1,6 @@
 'use server';
 
-import { api } from "@/lib/apiService";
+import { api } from '@/lib/apiService';
 
 //academic Year
 export async function getAcademicYearDropDropDown() {
@@ -9,14 +9,12 @@ export async function getAcademicYearDropDropDown() {
     return response.data;
 }
 
-
 //Category
 export async function getCategoryDropDown() {
     const url = '/TimeTableCommon/GetCategoryDetails';
     const response = await api.get<any[]>('timetable', url);
     return response.data;
 }
-
 
 //class
 export async function getClassDropdown() {
@@ -38,7 +36,6 @@ export async function getStaffDropDown() {
     const response = await api.get<any[]>('timetable', url);
     return response.data;
 }
-
 
 //subject
 export async function getSubjectDropDown() {

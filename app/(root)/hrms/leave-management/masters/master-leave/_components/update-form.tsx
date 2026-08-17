@@ -55,7 +55,7 @@ export default function UpdateMasterLeaveForm({ onSuccess, onCancel, className =
                 hrmL_LeaveType: String(freshData.hrmL_LeaveType || ''),
                 hrmL_LeaveDetails: freshData.hrmL_LeaveDetails || '',
                 hrmL_LeaveCreditFlg: !!freshData.hrmL_LeaveCreditFlg,
-                hrmL_LateDeductFlag: !!freshData.hrmL_LateDeductFlag,
+                hrmL_LateDeductFlag: !!freshData.hrmL_LateDeductFlag
                 // hrmL_ProbationNotApplicableFlg: !!freshData.hrmL_ProbationNotApplicableFlg,
                 // hrmL_LeaveApplyCriteria: String(freshData.hrmL_LeaveApplyCriteria || ''),
                 // hrmL_DaysForApplyCriteria: String(freshData.hrmL_DaysForApplyCriteria || ''),
@@ -125,11 +125,7 @@ export default function UpdateMasterLeaveForm({ onSuccess, onCancel, className =
                                     <label htmlFor='hrmL_LeaveType' className='mb-2 block font-medium text-sm'>
                                         Leave Type <span className='text-red-500'>*</span>
                                     </label>
-                                    <Select
-                                        value={field.value}
-                                        onValueChange={field.onChange}
-                                        key={`type-${row.id}-${field.value}`}
-                                    >
+                                    <Select value={field.value} onValueChange={field.onChange} key={`type-${row.id}-${field.value}`}>
                                         <SelectTrigger id='hrmL_LeaveType' className={errors.hrmL_LeaveType ? 'border-red-500' : ''}>
                                             <SelectValue placeholder='Select Leave Type' />
                                         </SelectTrigger>
@@ -166,7 +162,9 @@ export default function UpdateMasterLeaveForm({ onSuccess, onCancel, className =
                             <Controller
                                 name='hrmL_LeaveCreditFlg'
                                 control={control}
-                                render={({ field }) => <Checkbox id='hrmL_LeaveCreditFlg' checked={field.value} onCheckedChange={field.onChange} />}
+                                render={({ field }) => (
+                                    <Checkbox id='hrmL_LeaveCreditFlg' checked={field.value} onCheckedChange={field.onChange} />
+                                )}
                             />
                             <label htmlFor='hrmL_LeaveCreditFlg' className='font-medium text-sm'>
                                 Leave Credit
@@ -176,7 +174,9 @@ export default function UpdateMasterLeaveForm({ onSuccess, onCancel, className =
                             <Controller
                                 name='hrmL_LateDeductFlag'
                                 control={control}
-                                render={({ field }) => <Checkbox id='hrmL_LateDeductFlag' checked={field.value} onCheckedChange={field.onChange} />}
+                                render={({ field }) => (
+                                    <Checkbox id='hrmL_LateDeductFlag' checked={field.value} onCheckedChange={field.onChange} />
+                                )}
                             />
                             <label htmlFor='hrmL_LateDeductFlag' className='font-medium text-sm'>
                                 Late Deduct

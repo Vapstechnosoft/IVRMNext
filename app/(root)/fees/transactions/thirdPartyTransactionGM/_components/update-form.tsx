@@ -27,7 +27,10 @@ import {
 
 import { cn } from '@/lib/utils';
 import { thirdPartyTransactionSchema } from '@/schemas/fees/trasactions';
-import { ThirdPartyTrasactionfeeReceiptNoflg_GM, saveorUpdateThirdPartyTrasaction_GM } from '@/server/fees/trasactions/thirdpartyTransaction_GM';
+import {
+    ThirdPartyTrasactionfeeReceiptNoflg_GM,
+    saveorUpdateThirdPartyTrasaction_GM
+} from '@/server/fees/trasactions/thirdpartyTransaction_GM';
 import type { IFeeThirdPartyTransaction } from '@/types/fees/transactions/transactions';
 import type { z } from 'zod';
 
@@ -261,7 +264,9 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                             <Select
                                 disabled={!watchAcademicYearId}
                                 value={
-                                    (studentdata?.data?.findIndex((s) => s.amsT_FirstName === field.value && s.amsT_Id === watch('studentId')) ?? -1) !== -1
+                                    (studentdata?.data?.findIndex(
+                                        (s) => s.amsT_FirstName === field.value && s.amsT_Id === watch('studentId')
+                                    ) ?? -1) !== -1
                                         ? `std-${studentdata?.data?.findIndex((s) => s.amsT_FirstName === field.value && s.amsT_Id === watch('studentId'))}`
                                         : ''
                                 }

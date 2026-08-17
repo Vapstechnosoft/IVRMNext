@@ -30,7 +30,7 @@ export function ToggleGRNModal({ rowData, onClose }: ToggleGRNModalProps) {
     };
 
     return (
-        <AdaptiveDialog title='Toggle GRN Status' isOpen={true} onClose={onClose} size="md">
+        <AdaptiveDialog title='Toggle GRN Status' isOpen={true} onClose={onClose} size='md'>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <div className='space-y-3'>
@@ -48,7 +48,7 @@ export function ToggleGRNModal({ rowData, onClose }: ToggleGRNModalProps) {
                         type='submit'
                         isLoading={isSubmitting}
                         variant={isActive ? 'destructive' : 'default'}
-                        className={isActive ? 'bg-orange-500 hover:bg-orange-600 text-white' : ''}
+                        className={isActive ? 'bg-orange-500 text-white hover:bg-orange-600' : ''}
                         loadingText={isActive ? 'Deactivating...' : 'Activating...'}>
                         {isActive ? 'Deactivate' : 'Activate'}
                     </Button>

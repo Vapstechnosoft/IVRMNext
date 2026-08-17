@@ -2,7 +2,6 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { IInvMasterUserGroup } from '@/types/inventory/masters/inv-master-group';
 
 /**
  * Fetch User Group Grid Data
@@ -22,4 +21,3 @@ export async function saveMasterUserGroup(data: any) {
     const url = `/INV_MasterGroupFacade/savedetails`;
     return await api.post<any>('inventory', url, { data });
 }
-

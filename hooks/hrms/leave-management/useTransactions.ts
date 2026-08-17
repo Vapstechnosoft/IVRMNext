@@ -1,27 +1,91 @@
 'use client';
+import type { LeaveCreditDetail } from '@/app/(root)/hrms/leave-management/transaction/leave-credit-details/_components/columns';
+import type { LeaveCreditTransaction } from '@/app/(root)/hrms/leave-management/transaction/leave-credit-transaction/_components/columns';
+import type { LeaveCredit } from '@/app/(root)/hrms/leave-management/transaction/leave-transfer/_components/columns';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
-import { getLeaveCredit, addOrUpdateLeaveCredit, deleteLeaveCredit } from '@/server/hrms/leave-management/transactions/leave-credit';
-import { getLeaveCreditTransaction, addOrUpdateLeaveCreditTransaction, deleteLeaveCreditTransaction, getLeavetransm, getLeaveTransactionDepartments, getLeaveTransactionDesignation, getLeaveTransactionEmployee, getLeaveTransactionEmpLop, saveLeaveTransaction, deleteLeaveTransactionDetails } from '@/server/hrms/leave-management/transactions/leave-credit-transaction';
-import { getLeaveCreditDetails, addOrUpdateLeaveCreditDetails, deleteLeaveCreditDetails, getLeaveCode, getLeaveCreditDepartments, getLeaveCreditDesignation, getLeaveCreditGrade, getLeaveMaster, saveLeaveCreditDetails, getLeaveDetailsCreditMonth, getLeaveDetailsCF, getLeaveDetailsCFMonth, getLeaveDetailsEnCash, getLeaveNameDropdown, getCreditMonthDropdown } from '@/server/hrms/leave-management/transactions/leave-credit-details';
-import { getLeaveCreditDeduction, addOrUpdateLeaveCreditDeduction, deleteLeaveCreditDeduction } from '@/server/hrms/leave-management/transactions/leave-credit-deduction';
-import { getLeaveCreditAddition, addOrUpdateLeaveCreditAddition, deleteLeaveCreditAddition } from '@/server/hrms/leave-management/transactions/leave-credit-addition';
-import { getLeaveCarryForward, addOrUpdateLeaveCarryForward, deleteLeaveCarryForward } from '@/server/hrms/leave-management/transactions/leave-carryforward';
 import { getCompOffApproval, updateCompOffApprovalStatus } from '@/server/hrms/leave-management/transactions/comp-off-approval';
-import { getCompOffRequestData, submitCompOffRequest, cancelCompOffRequest } from '@/server/hrms/leave-management/transactions/comp-off-request';
-import { getLeaveTransferBasicData, getLeaveOB, getDepartments, getDesignation, saveLeaveTransferDetails, leaveCarryForward, deleteLeaveTransfer, getLeaveCreditAndBalanceGrid, updateLeaveStatusTab, leaveAdditionStatusTab, leaveCarryForwardStatusTab, deleteLeaveStatusById } from '@/server/hrms/leave-management/transactions/leave-transfer';
-import { getLeaveOB as getLeaveOpeningBalanceOB, getLeaveOpeningBalanceDepartments, getLeaveOpeningBalanceDesignation, getOBDetails, getEmployeOB, saveLeaveOpeningBalance, deleteLeaveOpeningBalance, getLeaveOpeningBalancePageDetails } from '@/server/hrms/leave-management/transactions/leave-opening-balance';
-import type { LeaveCredit } from '@/app/(root)/hrms/leave-management/transaction/leave-transfer/_components/columns';
+import {
+    cancelCompOffRequest,
+    getCompOffRequestData,
+    submitCompOffRequest
+} from '@/server/hrms/leave-management/transactions/comp-off-request';
+import {
+    addOrUpdateLeaveCarryForward,
+    deleteLeaveCarryForward,
+    getLeaveCarryForward
+} from '@/server/hrms/leave-management/transactions/leave-carryforward';
+import { addOrUpdateLeaveCredit, deleteLeaveCredit, getLeaveCredit } from '@/server/hrms/leave-management/transactions/leave-credit';
+import {
+    addOrUpdateLeaveCreditAddition,
+    deleteLeaveCreditAddition,
+    getLeaveCreditAddition
+} from '@/server/hrms/leave-management/transactions/leave-credit-addition';
+import {
+    addOrUpdateLeaveCreditDeduction,
+    deleteLeaveCreditDeduction,
+    getLeaveCreditDeduction
+} from '@/server/hrms/leave-management/transactions/leave-credit-deduction';
+import {
+    addOrUpdateLeaveCreditDetails,
+    deleteLeaveCreditDetails,
+    getCreditMonthDropdown,
+    getLeaveCode,
+    getLeaveCreditDepartments,
+    getLeaveCreditDesignation,
+    getLeaveCreditDetails,
+    getLeaveCreditGrade,
+    getLeaveDetailsCF,
+    getLeaveDetailsCFMonth,
+    getLeaveDetailsCreditMonth,
+    getLeaveDetailsEnCash,
+    getLeaveNameDropdown,
+    saveLeaveCreditDetails
+} from '@/server/hrms/leave-management/transactions/leave-credit-details';
+import {
+    addOrUpdateLeaveCreditTransaction,
+    deleteLeaveCreditTransaction,
+    deleteLeaveTransactionDetails,
+    getLeaveCreditTransaction,
+    getLeaveTransactionDepartments,
+    getLeaveTransactionDesignation,
+    getLeaveTransactionEmpLop,
+    getLeaveTransactionEmployee,
+    getLeavetransm,
+    saveLeaveTransaction
+} from '@/server/hrms/leave-management/transactions/leave-credit-transaction';
+import {
+    deleteLeaveOpeningBalance,
+    getEmployeOB,
+    getLeaveOpeningBalanceDepartments,
+    getLeaveOpeningBalanceDesignation,
+    getLeaveOB as getLeaveOpeningBalanceOB,
+    getLeaveOpeningBalancePageDetails,
+    getOBDetails,
+    saveLeaveOpeningBalance
+} from '@/server/hrms/leave-management/transactions/leave-opening-balance';
+import {
+    deleteLeaveStatusById,
+    deleteLeaveTransfer,
+    getDepartments,
+    getDesignation,
+    getLeaveCreditAndBalanceGrid,
+    getLeaveOB,
+    getLeaveTransferBasicData,
+    leaveAdditionStatusTab,
+    leaveCarryForward,
+    leaveCarryForwardStatusTab,
+    saveLeaveTransferDetails,
+    updateLeaveStatusTab
+} from '@/server/hrms/leave-management/transactions/leave-transfer';
+import type { LeaveCarryForward, LeaveCreditAddition, LeaveCreditDeduction } from '@/types/hrms/leave-management/leave-credit-types';
 import type {
-    UpdateLeaveStatusTabPayload,
+    DeleteLeaveStatusByIdRequest,
     LeaveAdditionStatusTabPayload,
     LeaveCarryForwardStatusTabPayload,
-    DeleteLeaveStatusByIdRequest
+    UpdateLeaveStatusTabPayload
 } from '@/types/hrms/leave-management/leave-transfer-new';
-import type { LeaveCreditTransaction } from '@/app/(root)/hrms/leave-management/transaction/leave-credit-transaction/_components/columns';
-import type { LeaveCreditDetail } from '@/app/(root)/hrms/leave-management/transaction/leave-credit-details/_components/columns';
-import type { LeaveCreditDeduction, LeaveCreditAddition, LeaveCarryForward } from '@/types/hrms/leave-management/leave-credit-types';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 // Leave Credit Hooks
 export const useLeaveCredit = () => {
@@ -137,17 +201,28 @@ export const useDeleteLeaveCreditTransaction = () => {
  * Hook to fetch leave transactions
  * POST /api/LeaveTransactionManualWrapperFacade/GetLeavetransm
  */
-export const useLeavetransm = (request?: {
-    MI_Id?: number;
-    EmpTypeIds?: number[];
-    DepartmentIds?: number[];
-    DesignationIds?: number[];
-    EmployeeIds?: number[];
-}, enabled: boolean = true) => {
+export const useLeavetransm = (
+    request?: {
+        MI_Id?: number;
+        EmpTypeIds?: number[];
+        DepartmentIds?: number[];
+        DesignationIds?: number[];
+        EmployeeIds?: number[];
+    },
+    enabled = true
+) => {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
-            queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_TRANSACTION, 'leavetransm', request?.MI_Id, request?.EmpTypeIds, request?.DepartmentIds, request?.DesignationIds, request?.EmployeeIds],
+            queryKey: [
+                HRMS_QUERY_KEYS.LEAVE_CREDIT_TRANSACTION,
+                'leavetransm',
+                request?.MI_Id,
+                request?.EmpTypeIds,
+                request?.DepartmentIds,
+                request?.DesignationIds,
+                request?.EmployeeIds
+            ],
             queryFn: async () => {
                 try {
                     const response = await getLeavetransm({
@@ -201,17 +276,28 @@ export const useLeavetransm = (request?: {
  * Hook to fetch departments for leave transaction
  * POST /api/LeaveTransactionManualWrapperFacade/GetDepartments
  */
-export const useLeaveTransactionDepartments = (request?: {
-    MI_Id?: number;
-    EmpTypeIds?: number[];
-    DepartmentIds?: number[];
-    DesignationIds?: number[];
-    EmployeeIds?: number[];
-}, enabled: boolean = true) => {
+export const useLeaveTransactionDepartments = (
+    request?: {
+        MI_Id?: number;
+        EmpTypeIds?: number[];
+        DepartmentIds?: number[];
+        DesignationIds?: number[];
+        EmployeeIds?: number[];
+    },
+    enabled = true
+) => {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
-            queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_TRANSACTION, 'departments', request?.MI_Id, request?.EmpTypeIds, request?.DepartmentIds, request?.DesignationIds, request?.EmployeeIds],
+            queryKey: [
+                HRMS_QUERY_KEYS.LEAVE_CREDIT_TRANSACTION,
+                'departments',
+                request?.MI_Id,
+                request?.EmpTypeIds,
+                request?.DepartmentIds,
+                request?.DesignationIds,
+                request?.EmployeeIds
+            ],
             queryFn: async () => {
                 try {
                     const response = await getLeaveTransactionDepartments({
@@ -227,16 +313,20 @@ export const useLeaveTransactionDepartments = (request?: {
                     // Extract and map department options from API response
                     const data = response.data;
                     // Map DepartmentTempDto to departmentOptions
-                    const departmentOptions = (data.DepartmentTempDto || []).map((item: any) => ({
-                        label: item.HRMD_DepartmentName || item.label || '',
-                        value: String(item.HRMD_Id || item.value || '')
-                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    const departmentOptions = (data.DepartmentTempDto || [])
+                        .map((item: any) => ({
+                            label: item.HRMD_DepartmentName || item.label || '',
+                            value: String(item.HRMD_Id || item.value || '')
+                        }))
+                        .filter((item: { label: string; value: string }) => item.label && item.value);
                     // Also check other possible locations
                     if (departmentOptions.length === 0 && data.departmentdropdownlist && Array.isArray(data.departmentdropdownlist)) {
-                        const mapped = data.departmentdropdownlist.map((item: any) => ({
-                            label: item.HRMD_DepartmentName || item.label || item.name || '',
-                            value: String(item.HRMD_Id || item.value || item.id || '')
-                        })).filter((item: { label: string; value: string }) => item.label && item.value);
+                        const mapped = data.departmentdropdownlist
+                            .map((item: any) => ({
+                                label: item.HRMD_DepartmentName || item.label || item.name || '',
+                                value: String(item.HRMD_Id || item.value || item.id || '')
+                            }))
+                            .filter((item: { label: string; value: string }) => item.label && item.value);
                         if (mapped.length > 0) {
                             departmentOptions.push(...mapped);
                         }
@@ -253,19 +343,23 @@ export const useLeaveTransactionDepartments = (request?: {
                     }
                     // Check departmentList or departments as fallback
                     if (departmentOptions.length === 0 && data.departmentList && Array.isArray(data.departmentList)) {
-                        const mapped = data.departmentList.map((item: any) => ({
-                            label: item.HRMD_DepartmentName || item.label || item.name || '',
-                            value: String(item.HRMD_Id || item.value || item.id || '')
-                        })).filter((item: { label: string; value: string }) => item.label && item.value);
+                        const mapped = data.departmentList
+                            .map((item: any) => ({
+                                label: item.HRMD_DepartmentName || item.label || item.name || '',
+                                value: String(item.HRMD_Id || item.value || item.id || '')
+                            }))
+                            .filter((item: { label: string; value: string }) => item.label && item.value);
                         if (mapped.length > 0) {
                             departmentOptions.push(...mapped);
                         }
                     }
                     if (departmentOptions.length === 0 && data.departments && Array.isArray(data.departments)) {
-                        const mapped = data.departments.map((item: any) => ({
-                            label: item.HRMD_DepartmentName || item.label || item.name || '',
-                            value: String(item.HRMD_Id || item.value || item.id || '')
-                        })).filter((item: { label: string; value: string }) => item.label && item.value);
+                        const mapped = data.departments
+                            .map((item: any) => ({
+                                label: item.HRMD_DepartmentName || item.label || item.name || '',
+                                value: String(item.HRMD_Id || item.value || item.id || '')
+                            }))
+                            .filter((item: { label: string; value: string }) => item.label && item.value);
                         if (mapped.length > 0) {
                             departmentOptions.push(...mapped);
                         }
@@ -296,17 +390,28 @@ export const useLeaveTransactionDepartments = (request?: {
  * Hook to fetch designations for leave transaction
  * POST /api/LeaveTransactionManualWrapperFacade/GetDesignation
  */
-export const useLeaveTransactionDesignation = (request?: {
-    MI_Id?: number;
-    EmpTypeIds?: number[];
-    DepartmentIds?: number[];
-    DesignationIds?: number[];
-    EmployeeIds?: number[];
-}, enabled: boolean = true) => {
+export const useLeaveTransactionDesignation = (
+    request?: {
+        MI_Id?: number;
+        EmpTypeIds?: number[];
+        DepartmentIds?: number[];
+        DesignationIds?: number[];
+        EmployeeIds?: number[];
+    },
+    enabled = true
+) => {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
-            queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_TRANSACTION, 'designation', request?.MI_Id, request?.EmpTypeIds, request?.DepartmentIds, request?.DesignationIds, request?.EmployeeIds],
+            queryKey: [
+                HRMS_QUERY_KEYS.LEAVE_CREDIT_TRANSACTION,
+                'designation',
+                request?.MI_Id,
+                request?.EmpTypeIds,
+                request?.DepartmentIds,
+                request?.DesignationIds,
+                request?.EmployeeIds
+            ],
             queryFn: async () => {
                 try {
                     const response = await getLeaveTransactionDesignation({
@@ -322,26 +427,32 @@ export const useLeaveTransactionDesignation = (request?: {
                     // Extract and map designation options from API response
                     const data = response.data;
                     // Map DesignationTempDto to designationOptions
-                    const designationOptions = (data.DesignationTempDto || []).map((item: any) => ({
-                        label: item.HRMDES_DesignationName || item.label || '',
-                        value: String(item.HRMDES_Id || item.value || '')
-                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    const designationOptions = (data.DesignationTempDto || [])
+                        .map((item: any) => ({
+                            label: item.HRMDES_DesignationName || item.label || '',
+                            value: String(item.HRMDES_Id || item.value || '')
+                        }))
+                        .filter((item: { label: string; value: string }) => item.label && item.value);
                     // Also check designationarray
                     if (designationOptions.length === 0 && data.designationarray && Array.isArray(data.designationarray)) {
-                        const mapped = data.designationarray.map((item: any) => ({
-                            label: item.HRMDES_DesignationName || item.label || item.name || '',
-                            value: String(item.HRMDES_Id || item.value || item.id || '')
-                        })).filter((item: { label: string; value: string }) => item.label && item.value);
+                        const mapped = data.designationarray
+                            .map((item: any) => ({
+                                label: item.HRMDES_DesignationName || item.label || item.name || '',
+                                value: String(item.HRMDES_Id || item.value || item.id || '')
+                            }))
+                            .filter((item: { label: string; value: string }) => item.label && item.value);
                         if (mapped.length > 0) {
                             designationOptions.push(...mapped);
                         }
                     }
                     // Also check designationdropdownlist as fallback
                     if (designationOptions.length === 0 && data.designationdropdownlist && Array.isArray(data.designationdropdownlist)) {
-                        const mapped = data.designationdropdownlist.map((item: any) => ({
-                            label: item.HRMDES_DesignationName || item.label || item.name || '',
-                            value: String(item.HRMDES_Id || item.value || item.id || '')
-                        })).filter((item: { label: string; value: string }) => item.label && item.value);
+                        const mapped = data.designationdropdownlist
+                            .map((item: any) => ({
+                                label: item.HRMDES_DesignationName || item.label || item.name || '',
+                                value: String(item.HRMDES_Id || item.value || item.id || '')
+                            }))
+                            .filter((item: { label: string; value: string }) => item.label && item.value);
                         if (mapped.length > 0) {
                             designationOptions.push(...mapped);
                         }
@@ -358,19 +469,23 @@ export const useLeaveTransactionDesignation = (request?: {
                     }
                     // Check designationList or designations as fallback
                     if (designationOptions.length === 0 && data.designationList && Array.isArray(data.designationList)) {
-                        const mapped = data.designationList.map((item: any) => ({
-                            label: item.HRMDES_DesignationName || item.label || item.name || '',
-                            value: String(item.HRMDES_Id || item.value || item.id || '')
-                        })).filter((item: { label: string; value: string }) => item.label && item.value);
+                        const mapped = data.designationList
+                            .map((item: any) => ({
+                                label: item.HRMDES_DesignationName || item.label || item.name || '',
+                                value: String(item.HRMDES_Id || item.value || item.id || '')
+                            }))
+                            .filter((item: { label: string; value: string }) => item.label && item.value);
                         if (mapped.length > 0) {
                             designationOptions.push(...mapped);
                         }
                     }
                     if (designationOptions.length === 0 && data.designations && Array.isArray(data.designations)) {
-                        const mapped = data.designations.map((item: any) => ({
-                            label: item.HRMDES_DesignationName || item.label || item.name || '',
-                            value: String(item.HRMDES_Id || item.value || item.id || '')
-                        })).filter((item: { label: string; value: string }) => item.label && item.value);
+                        const mapped = data.designations
+                            .map((item: any) => ({
+                                label: item.HRMDES_DesignationName || item.label || item.name || '',
+                                value: String(item.HRMDES_Id || item.value || item.id || '')
+                            }))
+                            .filter((item: { label: string; value: string }) => item.label && item.value);
                         if (mapped.length > 0) {
                             designationOptions.push(...mapped);
                         }
@@ -401,17 +516,28 @@ export const useLeaveTransactionDesignation = (request?: {
  * Hook to fetch employee LOP (Loss of Pay) for leave transaction
  * POST /api/LeaveTransactionManualWrapperFacade/GetEmpLop
  */
-export const useLeaveTransactionEmpLop = (request?: {
-    MI_Id?: number;
-    EmpTypeIds?: number[];
-    DepartmentIds?: number[];
-    DesignationIds?: number[];
-    EmployeeIds?: number[];
-}, enabled: boolean = true) => {
+export const useLeaveTransactionEmpLop = (
+    request?: {
+        MI_Id?: number;
+        EmpTypeIds?: number[];
+        DepartmentIds?: number[];
+        DesignationIds?: number[];
+        EmployeeIds?: number[];
+    },
+    enabled = true
+) => {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
-            queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_TRANSACTION, 'empLop', request?.MI_Id, request?.EmpTypeIds, request?.DepartmentIds, request?.DesignationIds, request?.EmployeeIds],
+            queryKey: [
+                HRMS_QUERY_KEYS.LEAVE_CREDIT_TRANSACTION,
+                'empLop',
+                request?.MI_Id,
+                request?.EmpTypeIds,
+                request?.DepartmentIds,
+                request?.DesignationIds,
+                request?.EmployeeIds
+            ],
             queryFn: async () => {
                 try {
                     const response = await getLeaveTransactionEmpLop({
@@ -445,7 +571,10 @@ export const useLeaveTransactionEmpLop = (request?: {
                     const lopOptions = lopList.map((item: any) => ({
                         id: item.HRME_Id || item.id || 0,
                         employeeCode: item.HRME_EmployeeCode || item.employeeCode || '',
-                        employeeName: `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() || item.employeeName || '',
+                        employeeName:
+                            `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() ||
+                            item.employeeName ||
+                            '',
                         departmentId: item.HRMD_Id || item.departmentId || 0,
                         departmentName: item.HRMD_DepartmentName || item.departmentName || '',
                         designationId: item.HRMDES_Id || item.designationId || 0,
@@ -481,17 +610,28 @@ export const useLeaveTransactionEmpLop = (request?: {
  * Hook to fetch employees for leave transaction
  * POST /api/LeaveTransactionManualWrapperFacade/GetEmployee
  */
-export const useLeaveTransactionEmployee = (request?: {
-    MI_Id?: number;
-    EmpTypeIds?: number[];
-    DepartmentIds?: number[];
-    DesignationIds?: number[];
-    EmployeeIds?: number[];
-}, enabled: boolean = true) => {
+export const useLeaveTransactionEmployee = (
+    request?: {
+        MI_Id?: number;
+        EmpTypeIds?: number[];
+        DepartmentIds?: number[];
+        DesignationIds?: number[];
+        EmployeeIds?: number[];
+    },
+    enabled = true
+) => {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
-            queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_TRANSACTION, 'employee', request?.MI_Id, request?.EmpTypeIds, request?.DepartmentIds, request?.DesignationIds, request?.EmployeeIds],
+            queryKey: [
+                HRMS_QUERY_KEYS.LEAVE_CREDIT_TRANSACTION,
+                'employee',
+                request?.MI_Id,
+                request?.EmpTypeIds,
+                request?.DepartmentIds,
+                request?.DesignationIds,
+                request?.EmployeeIds
+            ],
             queryFn: async () => {
                 try {
                     const response = await getLeaveTransactionEmployee({
@@ -517,10 +657,16 @@ export const useLeaveTransactionEmployee = (request?: {
                     } else if (Array.isArray(data)) {
                         employeeList = data;
                     }
-                    const employeeOptions = employeeList.map((item: any) => ({
-                        label: `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() || item.label || item.name || '',
-                        value: String(item.HRME_Id || item.value || item.id || '')
-                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    const employeeOptions = employeeList
+                        .map((item: any) => ({
+                            label:
+                                `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() ||
+                                item.label ||
+                                item.name ||
+                                '',
+                            value: String(item.HRME_Id || item.value || item.id || '')
+                        }))
+                        .filter((item: { label: string; value: string }) => item.label && item.value);
                     return {
                         success: true,
                         data: {
@@ -763,7 +909,7 @@ export const useDeleteLeaveCreditDetails = () => {
 /**
  * Hook to fetch leave code
  */
-export const useLeaveCode = (leavecode: number, enabled: boolean = true) => {
+export const useLeaveCode = (leavecode: number, enabled = true) => {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
@@ -816,7 +962,7 @@ export const useLeaveCreditAndBalanceGrid = (params?: any) => {
     return {
         ...useQuery({
             queryKey: ['LEAVE_CREDIT_AND_BALANCE_GRID', params],
-            queryFn: async () => getLeaveCreditAndBalanceGrid(params),
+            queryFn: async () => getLeaveCreditAndBalanceGrid(params)
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -886,7 +1032,7 @@ export const useDeleteLeaveStatusById = () => {
  * Hook to fetch departments for leave credit details based on selected employee types
  * This is typically called when employee types are selected to filter departments
  */
-export const useLeaveCreditDepartments = (request?: { MI_Id?: number; emptypes?: any[] }, enabled: boolean = true) => {
+export const useLeaveCreditDepartments = (request?: { MI_Id?: number; emptypes?: any[] }, enabled = true) => {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
@@ -903,16 +1049,20 @@ export const useLeaveCreditDepartments = (request?: { MI_Id?: number; emptypes?:
                     // Extract and map department options from API response
                     const data = response.data;
                     // Map DepartmentTempDto to departmentOptions
-                    const departmentOptions = (data.DepartmentTempDto || []).map((item: any) => ({
-                        label: item.HRMD_DepartmentName || item.label || '',
-                        value: String(item.HRMD_Id || item.value || '')
-                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    const departmentOptions = (data.DepartmentTempDto || [])
+                        .map((item: any) => ({
+                            label: item.HRMD_DepartmentName || item.label || '',
+                            value: String(item.HRMD_Id || item.value || '')
+                        }))
+                        .filter((item: { label: string; value: string }) => item.label && item.value);
                     // Also check other possible locations
                     if (departmentOptions.length === 0 && data.departmentdropdownlist && Array.isArray(data.departmentdropdownlist)) {
-                        const mapped = data.departmentdropdownlist.map((item: any) => ({
-                            label: item.HRMD_DepartmentName || item.label || item.name || '',
-                            value: String(item.HRMD_Id || item.value || item.id || '')
-                        })).filter((item: { label: string; value: string }) => item.label && item.value);
+                        const mapped = data.departmentdropdownlist
+                            .map((item: any) => ({
+                                label: item.HRMD_DepartmentName || item.label || item.name || '',
+                                value: String(item.HRMD_Id || item.value || item.id || '')
+                            }))
+                            .filter((item: { label: string; value: string }) => item.label && item.value);
                         if (mapped.length > 0) {
                             departmentOptions.push(...mapped);
                         }
@@ -953,7 +1103,7 @@ export const useLeaveCreditDepartments = (request?: { MI_Id?: number; emptypes?:
  * Hook to fetch designations for leave credit details based on selected employee types
  * This is typically called when employee types are selected to filter designations
  */
-export const useLeaveCreditDesignations = (request?: { MI_Id?: number; emptypes?: any[] }, enabled: boolean = true) => {
+export const useLeaveCreditDesignations = (request?: { MI_Id?: number; emptypes?: any[] }, enabled = true) => {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
@@ -970,26 +1120,32 @@ export const useLeaveCreditDesignations = (request?: { MI_Id?: number; emptypes?
                     // Extract and map designation options from API response
                     const data = response.data;
                     // Map DesignationTempDto to designationOptions
-                    const designationOptions = (data.DesignationTempDto || []).map((item: any) => ({
-                        label: item.HRMDES_DesignationName || item.label || '',
-                        value: String(item.HRMDES_Id || item.value || '')
-                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    const designationOptions = (data.DesignationTempDto || [])
+                        .map((item: any) => ({
+                            label: item.HRMDES_DesignationName || item.label || '',
+                            value: String(item.HRMDES_Id || item.value || '')
+                        }))
+                        .filter((item: { label: string; value: string }) => item.label && item.value);
                     // Also check designationarray
                     if (designationOptions.length === 0 && data.designationarray && Array.isArray(data.designationarray)) {
-                        const mapped = data.designationarray.map((item: any) => ({
-                            label: item.HRMDES_DesignationName || item.label || item.name || '',
-                            value: String(item.HRMDES_Id || item.value || item.id || '')
-                        })).filter((item: { label: string; value: string }) => item.label && item.value);
+                        const mapped = data.designationarray
+                            .map((item: any) => ({
+                                label: item.HRMDES_DesignationName || item.label || item.name || '',
+                                value: String(item.HRMDES_Id || item.value || item.id || '')
+                            }))
+                            .filter((item: { label: string; value: string }) => item.label && item.value);
                         if (mapped.length > 0) {
                             designationOptions.push(...mapped);
                         }
                     }
                     // Also check designationdropdownlist as fallback
                     if (designationOptions.length === 0 && data.designationdropdownlist && Array.isArray(data.designationdropdownlist)) {
-                        const mapped = data.designationdropdownlist.map((item: any) => ({
-                            label: item.HRMDES_DesignationName || item.label || item.name || '',
-                            value: String(item.HRMDES_Id || item.value || item.id || '')
-                        })).filter((item: { label: string; value: string }) => item.label && item.value);
+                        const mapped = data.designationdropdownlist
+                            .map((item: any) => ({
+                                label: item.HRMDES_DesignationName || item.label || item.name || '',
+                                value: String(item.HRMDES_Id || item.value || item.id || '')
+                            }))
+                            .filter((item: { label: string; value: string }) => item.label && item.value);
                         if (mapped.length > 0) {
                             designationOptions.push(...mapped);
                         }
@@ -1030,7 +1186,7 @@ export const useLeaveCreditDesignations = (request?: { MI_Id?: number; emptypes?
  * Hook to fetch grades for leave credit details based on selected employee types
  * This is typically called when employee types are selected to filter grades
  */
-export const useLeaveCreditGrades = (request?: { MI_Id?: number; emptypes?: any[] }, enabled: boolean = true) => {
+export const useLeaveCreditGrades = (request?: { MI_Id?: number; emptypes?: any[] }, enabled = true) => {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
@@ -1047,16 +1203,20 @@ export const useLeaveCreditGrades = (request?: { MI_Id?: number; emptypes?: any[
                     // Extract and map grade options from API response
                     const data = response.data;
                     // Map GradeTempDto to gradeOptions
-                    const gradeOptions = (data.GradeTempDto || []).map((item: any) => ({
-                        label: item.HRMG_GradeName || item.HRMG_GradeDisplayName || item.label || '',
-                        value: String(item.HRMG_Id || item.value || '')
-                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    const gradeOptions = (data.GradeTempDto || [])
+                        .map((item: any) => ({
+                            label: item.HRMG_GradeName || item.HRMG_GradeDisplayName || item.label || '',
+                            value: String(item.HRMG_Id || item.value || '')
+                        }))
+                        .filter((item: { label: string; value: string }) => item.label && item.value);
                     // Also check gradeList
                     if (gradeOptions.length === 0 && data.gradeList && Array.isArray(data.gradeList)) {
-                        const mapped = data.gradeList.map((item: any) => ({
-                            label: item.HRMG_GradeName || item.HRMG_GradeDisplayName || item.label || item.name || '',
-                            value: String(item.HRMG_Id || item.value || item.id || '')
-                        })).filter((item: { label: string; value: string }) => item.label && item.value);
+                        const mapped = data.gradeList
+                            .map((item: any) => ({
+                                label: item.HRMG_GradeName || item.HRMG_GradeDisplayName || item.label || item.name || '',
+                                value: String(item.HRMG_Id || item.value || item.id || '')
+                            }))
+                            .filter((item: { label: string; value: string }) => item.label && item.value);
                         if (mapped.length > 0) {
                             gradeOptions.push(...mapped);
                         }
@@ -1097,7 +1257,7 @@ export const useLeaveCreditGrades = (request?: { MI_Id?: number; emptypes?: any[
  * Hook to fetch leave details credit month data
  * This is typically called when HRMLDCM_Id or HRMLDCM_LCMonthCode is provided
  */
-export const useLeaveDetailsCreditMonth = (request?: { HRMLDCM_Id?: number; HRMLDCM_LCMonthCode?: string }, enabled: boolean = true) => {
+export const useLeaveDetailsCreditMonth = (request?: { HRMLDCM_Id?: number; HRMLDCM_LCMonthCode?: string }, enabled = true) => {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
@@ -1127,14 +1287,16 @@ export const useLeaveDetailsCreditMonth = (request?: { HRMLDCM_Id?: number; HRML
                         monthList = data;
                     }
                     // Map to month options format
-                    const monthOptions = monthList.map((item: any) => ({
-                        id: item.HRMLDCM_Id || item.id || 0,
-                        monthCode: item.HRMLDCM_LCMonthCode || item.monthCode || item.monthName || '',
-                        monthName: item.HRMLDCM_LCMonthCode || item.monthName || item.monthCode || '',
-                        monthId: item.monthId || item.id || 0,
-                        HRMLD_Id: item.HRMLD_Id || item.leaveDetailId || 0,
-                        HRML_Id: item.HRML_Id || item.leaveId || 0
-                    })).filter((item: { id: number; monthCode: string }) => item.id && item.monthCode);
+                    const monthOptions = monthList
+                        .map((item: any) => ({
+                            id: item.HRMLDCM_Id || item.id || 0,
+                            monthCode: item.HRMLDCM_LCMonthCode || item.monthCode || item.monthName || '',
+                            monthName: item.HRMLDCM_LCMonthCode || item.monthName || item.monthCode || '',
+                            monthId: item.monthId || item.id || 0,
+                            HRMLD_Id: item.HRMLD_Id || item.leaveDetailId || 0,
+                            HRML_Id: item.HRML_Id || item.leaveId || 0
+                        }))
+                        .filter((item: { id: number; monthCode: string }) => item.id && item.monthCode);
                     return {
                         success: true,
                         data: {
@@ -1162,7 +1324,7 @@ export const useLeaveDetailsCreditMonth = (request?: { HRMLDCM_Id?: number; HRML
  * Hook to fetch leave details CF (Carry Forward) data
  * This is typically called when HRMLDCF_Id or HRMLDCF_MaxLeaveAplFlg is provided
  */
-export const useLeaveDetailsCF = (request?: { HRMLDCF_Id?: number; HRMLDCF_MaxLeaveAplFlg?: boolean }, enabled: boolean = true) => {
+export const useLeaveDetailsCF = (request?: { HRMLDCF_Id?: number; HRMLDCF_MaxLeaveAplFlg?: boolean }, enabled = true) => {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
@@ -1228,7 +1390,7 @@ export const useLeaveDetailsCF = (request?: { HRMLDCF_Id?: number; HRMLDCF_MaxLe
  * Hook to fetch leave details CF Month (Carry Forward Month) data
  * This is typically called when HRMLDCFM_Id or HRMLDCFM_MonthId is provided
  */
-export const useLeaveDetailsCFMonth = (request?: { HRMLDCFM_Id?: number; HRMLDCFM_MonthId?: number }, enabled: boolean = true) => {
+export const useLeaveDetailsCFMonth = (request?: { HRMLDCFM_Id?: number; HRMLDCFM_MonthId?: number }, enabled = true) => {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
@@ -1294,20 +1456,23 @@ export const useLeaveDetailsCFMonth = (request?: { HRMLDCFM_Id?: number; HRMLDCF
  * Hook to fetch leave details EnCash (Encashment) data
  * This is typically called when encashment details are needed
  */
-export const useLeaveDetailsEnCash = (request?: {
-    HRMLDEC_Id?: number;
-    HRMLDEC_ServiceAplFlg?: boolean;
-    HRMLDEC_ServiceYear?: string;
-    HRMLDEC_ServiceMonth?: string;
-    HRMLDEC_ServiceDays?: string;
-    HRMLDEC_MaxLeaveFlg?: boolean;
-    HRMLDEC_MaxLeaves?: number;
-    HRMLDEC_MinLeaveFlg?: boolean;
-    HRMLDEC_MinLeaves?: number;
-    HRMLDEC_ScheduleFlg?: string;
-    HRMLDEC_ScheduleYear?: string;
-    HRMLDEC_ScheduleMonth?: string;
-}, enabled: boolean = true) => {
+export const useLeaveDetailsEnCash = (
+    request?: {
+        HRMLDEC_Id?: number;
+        HRMLDEC_ServiceAplFlg?: boolean;
+        HRMLDEC_ServiceYear?: string;
+        HRMLDEC_ServiceMonth?: string;
+        HRMLDEC_ServiceDays?: string;
+        HRMLDEC_MaxLeaveFlg?: boolean;
+        HRMLDEC_MaxLeaves?: number;
+        HRMLDEC_MinLeaveFlg?: boolean;
+        HRMLDEC_MinLeaves?: number;
+        HRMLDEC_ScheduleFlg?: string;
+        HRMLDEC_ScheduleYear?: string;
+        HRMLDEC_ScheduleMonth?: string;
+    },
+    enabled = true
+) => {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
@@ -1572,7 +1737,11 @@ export const useCompOffApproval = () => {
 export const useUpdateCompOffApprovalStatus = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: async ({ id, hrStatus, approverRemarks }: { id: number; hrStatus: 'Approved' | 'Rejected'; approverRemarks?: string }) =>
+        mutationFn: async ({
+            id,
+            hrStatus,
+            approverRemarks
+        }: { id: number; hrStatus: 'Approved' | 'Rejected'; approverRemarks?: string }) =>
             updateCompOffApprovalStatus(id, hrStatus, approverRemarks),
         onSuccess: (response) => {
             toast.success(response.message);
@@ -1642,30 +1811,40 @@ export const useLeaveTransferBasicData = (request?: { MI_Id?: number }) => {
                     // Extract and map dropdown options from API response
                     const data = response.data;
                     // Map GroupTypeTempDto to typeOptions
-                    const typeOptions = (data.GroupTypeTempDto || []).map((item: any) => ({
-                        label: item.HRMGT_EmployeeGroupType || item.label || '',
-                        value: String(item.HRMGT_Id || item.value || '')
-                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    const typeOptions = (data.GroupTypeTempDto || [])
+                        .map((item: any) => ({
+                            label: item.HRMGT_EmployeeGroupType || item.label || '',
+                            value: String(item.HRMGT_Id || item.value || '')
+                        }))
+                        .filter((item: { label: string; value: string }) => item.label && item.value);
                     // Map DepartmentTempDto to departmentOptions
-                    const departmentOptions = (data.DepartmentTempDto || []).map((item: any) => ({
-                        label: item.HRMD_DepartmentName || item.label || '',
-                        value: String(item.HRMD_Id || item.value || '')
-                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    const departmentOptions = (data.DepartmentTempDto || [])
+                        .map((item: any) => ({
+                            label: item.HRMD_DepartmentName || item.label || '',
+                            value: String(item.HRMD_Id || item.value || '')
+                        }))
+                        .filter((item: { label: string; value: string }) => item.label && item.value);
                     // Map DesignationTempDto to designationOptions
-                    const designationOptions = (data.DesignationTempDto || []).map((item: any) => ({
-                        label: item.HRMDES_DesignationName || item.label || '',
-                        value: String(item.HRMDES_Id || item.value || '')
-                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    const designationOptions = (data.DesignationTempDto || [])
+                        .map((item: any) => ({
+                            label: item.HRMDES_DesignationName || item.label || '',
+                            value: String(item.HRMDES_Id || item.value || '')
+                        }))
+                        .filter((item: { label: string; value: string }) => item.label && item.value);
                     // Map leavearrayyear to leaveYearOptions
-                    const leaveYearOptions = (data.leavearrayyear || []).map((item: any) => ({
-                        label: item.HRMLY_LeaveYear || item.label || '',
-                        value: String(item.HRMLY_Id || item.value || '')
-                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    const leaveYearOptions = (data.leavearrayyear || [])
+                        .map((item: any) => ({
+                            label: item.HRMLY_LeaveYear || item.label || '',
+                            value: String(item.HRMLY_Id || item.value || '')
+                        }))
+                        .filter((item: { label: string; value: string }) => item.label && item.value);
                     // Map master_eventlist to leaveNameOptions
-                    const leaveNameOptions = (data.master_eventlist || []).map((item: any) => ({
-                        label: item.HRML_LeaveName || item.label || '',
-                        value: String(item.HRML_Id || item.value || '')
-                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    const leaveNameOptions = (data.master_eventlist || [])
+                        .map((item: any) => ({
+                            label: item.HRML_LeaveName || item.label || '',
+                            value: String(item.HRML_Id || item.value || '')
+                        }))
+                        .filter((item: { label: string; value: string }) => item.label && item.value);
                     return {
                         success: true,
                         data: {
@@ -1745,7 +1924,7 @@ export const useLeaveOB = (request?: { MI_Id?: number }) => {
  * Hook to fetch departments based on selected employee types
  * This is typically called when employee types are selected to filter departments
  */
-export const useDepartments = (request?: { MI_Id?: number; emptypes?: any[] }, enabled: boolean = true) => {
+export const useDepartments = (request?: { MI_Id?: number; emptypes?: any[] }, enabled = true) => {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
@@ -1762,16 +1941,20 @@ export const useDepartments = (request?: { MI_Id?: number; emptypes?: any[] }, e
                     // Extract and map department options from API response
                     const data = response.data;
                     // Map DepartmentTempDto to departmentOptions
-                    const departmentOptions = (data.DepartmentTempDto || []).map((item: any) => ({
-                        label: item.HRMD_DepartmentName || item.label || '',
-                        value: String(item.HRMD_Id || item.value || '')
-                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    const departmentOptions = (data.DepartmentTempDto || [])
+                        .map((item: any) => ({
+                            label: item.HRMD_DepartmentName || item.label || '',
+                            value: String(item.HRMD_Id || item.value || '')
+                        }))
+                        .filter((item: { label: string; value: string }) => item.label && item.value);
                     // Also check other possible locations
                     if (departmentOptions.length === 0 && data.departmentdropdownlist && Array.isArray(data.departmentdropdownlist)) {
-                        const mapped = data.departmentdropdownlist.map((item: any) => ({
-                            label: item.HRMD_DepartmentName || item.label || item.name || '',
-                            value: String(item.HRMD_Id || item.value || item.id || '')
-                        })).filter((item: { label: string; value: string }) => item.label && item.value);
+                        const mapped = data.departmentdropdownlist
+                            .map((item: any) => ({
+                                label: item.HRMD_DepartmentName || item.label || item.name || '',
+                                value: String(item.HRMD_Id || item.value || item.id || '')
+                            }))
+                            .filter((item: { label: string; value: string }) => item.label && item.value);
                         if (mapped.length > 0) {
                             departmentOptions.push(...mapped);
                         }
@@ -1802,7 +1985,7 @@ export const useDepartments = (request?: { MI_Id?: number; emptypes?: any[] }, e
  * Hook to fetch designations based on selected employee types
  * This is typically called when employee types are selected to filter designations
  */
-export const useDesignations = (request?: { MI_Id?: number; emptypes?: any[] }, enabled: boolean = true) => {
+export const useDesignations = (request?: { MI_Id?: number; emptypes?: any[] }, enabled = true) => {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
@@ -1819,26 +2002,32 @@ export const useDesignations = (request?: { MI_Id?: number; emptypes?: any[] }, 
                     // Extract and map designation options from API response
                     const data = response.data;
                     // Map DesignationTempDto to designationOptions
-                    const designationOptions = (data.DesignationTempDto || []).map((item: any) => ({
-                        label: item.HRMDES_DesignationName || item.label || '',
-                        value: String(item.HRMDES_Id || item.value || '')
-                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    const designationOptions = (data.DesignationTempDto || [])
+                        .map((item: any) => ({
+                            label: item.HRMDES_DesignationName || item.label || '',
+                            value: String(item.HRMDES_Id || item.value || '')
+                        }))
+                        .filter((item: { label: string; value: string }) => item.label && item.value);
                     // Also check designationarray
                     if (designationOptions.length === 0 && data.designationarray && Array.isArray(data.designationarray)) {
-                        const mapped = data.designationarray.map((item: any) => ({
-                            label: item.HRMDES_DesignationName || item.label || item.name || '',
-                            value: String(item.HRMDES_Id || item.value || item.id || '')
-                        })).filter((item: { label: string; value: string }) => item.label && item.value);
+                        const mapped = data.designationarray
+                            .map((item: any) => ({
+                                label: item.HRMDES_DesignationName || item.label || item.name || '',
+                                value: String(item.HRMDES_Id || item.value || item.id || '')
+                            }))
+                            .filter((item: { label: string; value: string }) => item.label && item.value);
                         if (mapped.length > 0) {
                             designationOptions.push(...mapped);
                         }
                     }
                     // Also check designationdropdownlist as fallback
                     if (designationOptions.length === 0 && data.designationdropdownlist && Array.isArray(data.designationdropdownlist)) {
-                        const mapped = data.designationdropdownlist.map((item: any) => ({
-                            label: item.HRMDES_DesignationName || item.label || item.name || '',
-                            value: String(item.HRMDES_Id || item.value || item.id || '')
-                        })).filter((item: { label: string; value: string }) => item.label && item.value);
+                        const mapped = data.designationdropdownlist
+                            .map((item: any) => ({
+                                label: item.HRMDES_DesignationName || item.label || item.name || '',
+                                value: String(item.HRMDES_Id || item.value || item.id || '')
+                            }))
+                            .filter((item: { label: string; value: string }) => item.label && item.value);
                         if (mapped.length > 0) {
                             designationOptions.push(...mapped);
                         }
@@ -2015,7 +2204,7 @@ export const useDeleteLeaveTransfer = () => {
  * Hook to fetch leave opening balance data
  * POST /api/LeaveOpeningBalanceWrapperFacade/GetLeaveOB
  */
-export const useLeaveOpeningBalance = (request?: { MI_Id?: number }, enabled: boolean = true) => {
+export const useLeaveOpeningBalance = (request?: { MI_Id?: number }, enabled = true) => {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
@@ -2048,7 +2237,10 @@ export const useLeaveOpeningBalance = (request?: { MI_Id?: number }, enabled: bo
                         id: item.HREOBL_Id || item.id || 0,
                         employeeId: item.HRME_Id || item.employeeId || 0,
                         employeeCode: item.HRME_EmployeeCode || item.employeeCode || '',
-                        employeeName: `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() || item.employeeName || '',
+                        employeeName:
+                            `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() ||
+                            item.employeeName ||
+                            '',
                         leaveId: item.HRML_Id || item.leaveId || 0,
                         leaveName: item.HRML_LeaveName || item.leaveName || '',
                         leaveCode: item.HRML_LeaveCode || item.leaveCode || '',
@@ -2087,7 +2279,7 @@ export const useLeaveOpeningBalance = (request?: { MI_Id?: number }, enabled: bo
  * Hook to fetch departments for leave opening balance
  * POST /api/LeaveOpeningBalanceWrapperFacade/GetDepartments
  */
-export const useLeaveOpeningBalanceDepartments = (request?: { MI_Id?: number }, enabled: boolean = true) => {
+export const useLeaveOpeningBalanceDepartments = (request?: { MI_Id?: number }, enabled = true) => {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
@@ -2103,16 +2295,20 @@ export const useLeaveOpeningBalanceDepartments = (request?: { MI_Id?: number }, 
                     // Extract and map department options from API response
                     const data = response.data;
                     // Map DepartmentTempDto to departmentOptions
-                    const departmentOptions = (data.DepartmentTempDto || []).map((item: any) => ({
-                        label: item.HRMD_DepartmentName || item.label || '',
-                        value: String(item.HRMD_Id || item.value || '')
-                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    const departmentOptions = (data.DepartmentTempDto || [])
+                        .map((item: any) => ({
+                            label: item.HRMD_DepartmentName || item.label || '',
+                            value: String(item.HRMD_Id || item.value || '')
+                        }))
+                        .filter((item: { label: string; value: string }) => item.label && item.value);
                     // Also check other possible locations
                     if (departmentOptions.length === 0 && data.departmentdropdownlist && Array.isArray(data.departmentdropdownlist)) {
-                        const mapped = data.departmentdropdownlist.map((item: any) => ({
-                            label: item.HRMD_DepartmentName || item.label || item.name || '',
-                            value: String(item.HRMD_Id || item.value || item.id || '')
-                        })).filter((item: { label: string; value: string }) => item.label && item.value);
+                        const mapped = data.departmentdropdownlist
+                            .map((item: any) => ({
+                                label: item.HRMD_DepartmentName || item.label || item.name || '',
+                                value: String(item.HRMD_Id || item.value || item.id || '')
+                            }))
+                            .filter((item: { label: string; value: string }) => item.label && item.value);
                         if (mapped.length > 0) {
                             departmentOptions.push(...mapped);
                         }
@@ -2129,19 +2325,23 @@ export const useLeaveOpeningBalanceDepartments = (request?: { MI_Id?: number }, 
                     }
                     // Check departmentList or departments as fallback
                     if (departmentOptions.length === 0 && data.departmentList && Array.isArray(data.departmentList)) {
-                        const mapped = data.departmentList.map((item: any) => ({
-                            label: item.HRMD_DepartmentName || item.label || item.name || '',
-                            value: String(item.HRMD_Id || item.value || item.id || '')
-                        })).filter((item: { label: string; value: string }) => item.label && item.value);
+                        const mapped = data.departmentList
+                            .map((item: any) => ({
+                                label: item.HRMD_DepartmentName || item.label || item.name || '',
+                                value: String(item.HRMD_Id || item.value || item.id || '')
+                            }))
+                            .filter((item: { label: string; value: string }) => item.label && item.value);
                         if (mapped.length > 0) {
                             departmentOptions.push(...mapped);
                         }
                     }
                     if (departmentOptions.length === 0 && data.departments && Array.isArray(data.departments)) {
-                        const mapped = data.departments.map((item: any) => ({
-                            label: item.HRMD_DepartmentName || item.label || item.name || '',
-                            value: String(item.HRMD_Id || item.value || item.id || '')
-                        })).filter((item: { label: string; value: string }) => item.label && item.value);
+                        const mapped = data.departments
+                            .map((item: any) => ({
+                                label: item.HRMD_DepartmentName || item.label || item.name || '',
+                                value: String(item.HRMD_Id || item.value || item.id || '')
+                            }))
+                            .filter((item: { label: string; value: string }) => item.label && item.value);
                         if (mapped.length > 0) {
                             departmentOptions.push(...mapped);
                         }
@@ -2172,7 +2372,7 @@ export const useLeaveOpeningBalanceDepartments = (request?: { MI_Id?: number }, 
  * Hook to fetch designations for leave opening balance
  * POST /api/LeaveOpeningBalanceWrapperFacade/GetDesignation
  */
-export const useLeaveOpeningBalanceDesignation = (request?: { MI_Id?: number }, enabled: boolean = true) => {
+export const useLeaveOpeningBalanceDesignation = (request?: { MI_Id?: number }, enabled = true) => {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
@@ -2188,16 +2388,20 @@ export const useLeaveOpeningBalanceDesignation = (request?: { MI_Id?: number }, 
                     // Extract and map designation options from API response
                     const data = response.data;
                     // Map DesignationTempDto to designationOptions
-                    const designationOptions = (data.DesignationTempDto || []).map((item: any) => ({
-                        label: item.HRMDES_DesignationName || item.label || '',
-                        value: String(item.HRMDES_Id || item.value || '')
-                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    const designationOptions = (data.DesignationTempDto || [])
+                        .map((item: any) => ({
+                            label: item.HRMDES_DesignationName || item.label || '',
+                            value: String(item.HRMDES_Id || item.value || '')
+                        }))
+                        .filter((item: { label: string; value: string }) => item.label && item.value);
                     // Also check other possible locations
                     if (designationOptions.length === 0 && data.designationdropdownlist && Array.isArray(data.designationdropdownlist)) {
-                        const mapped = data.designationdropdownlist.map((item: any) => ({
-                            label: item.HRMDES_DesignationName || item.label || item.name || '',
-                            value: String(item.HRMDES_Id || item.value || item.id || '')
-                        })).filter((item: { label: string; value: string }) => item.label && item.value);
+                        const mapped = data.designationdropdownlist
+                            .map((item: any) => ({
+                                label: item.HRMDES_DesignationName || item.label || item.name || '',
+                                value: String(item.HRMDES_Id || item.value || item.id || '')
+                            }))
+                            .filter((item: { label: string; value: string }) => item.label && item.value);
                         if (mapped.length > 0) {
                             designationOptions.push(...mapped);
                         }
@@ -2214,19 +2418,23 @@ export const useLeaveOpeningBalanceDesignation = (request?: { MI_Id?: number }, 
                     }
                     // Check designationList or designations as fallback
                     if (designationOptions.length === 0 && data.designationList && Array.isArray(data.designationList)) {
-                        const mapped = data.designationList.map((item: any) => ({
-                            label: item.HRMDES_DesignationName || item.label || item.name || '',
-                            value: String(item.HRMDES_Id || item.value || item.id || '')
-                        })).filter((item: { label: string; value: string }) => item.label && item.value);
+                        const mapped = data.designationList
+                            .map((item: any) => ({
+                                label: item.HRMDES_DesignationName || item.label || item.name || '',
+                                value: String(item.HRMDES_Id || item.value || item.id || '')
+                            }))
+                            .filter((item: { label: string; value: string }) => item.label && item.value);
                         if (mapped.length > 0) {
                             designationOptions.push(...mapped);
                         }
                     }
                     if (designationOptions.length === 0 && data.designations && Array.isArray(data.designations)) {
-                        const mapped = data.designations.map((item: any) => ({
-                            label: item.HRMDES_DesignationName || item.label || item.name || '',
-                            value: String(item.HRMDES_Id || item.value || item.id || '')
-                        })).filter((item: { label: string; value: string }) => item.label && item.value);
+                        const mapped = data.designations
+                            .map((item: any) => ({
+                                label: item.HRMDES_DesignationName || item.label || item.name || '',
+                                value: String(item.HRMDES_Id || item.value || item.id || '')
+                            }))
+                            .filter((item: { label: string; value: string }) => item.label && item.value);
                         if (mapped.length > 0) {
                             designationOptions.push(...mapped);
                         }
@@ -2257,7 +2465,7 @@ export const useLeaveOpeningBalanceDesignation = (request?: { MI_Id?: number }, 
  * Hook to fetch OB (Opening Balance) details
  * POST /api/LeaveOpeningBalanceWrapperFacade/GetOBDetails
  */
-export const useOBDetails = (request?: { MI_Id?: number }, enabled: boolean = true) => {
+export const useOBDetails = (request?: { MI_Id?: number }, enabled = true) => {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
@@ -2290,7 +2498,10 @@ export const useOBDetails = (request?: { MI_Id?: number }, enabled: boolean = tr
                         id: item.HREOBL_Id || item.id || 0,
                         employeeId: item.HRME_Id || item.employeeId || 0,
                         employeeCode: item.HRME_EmployeeCode || item.employeeCode || '',
-                        employeeName: `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() || item.employeeName || '',
+                        employeeName:
+                            `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() ||
+                            item.employeeName ||
+                            '',
                         leaveId: item.HRML_Id || item.leaveId || 0,
                         leaveName: item.HRML_LeaveName || item.leaveName || '',
                         leaveCode: item.HRML_LeaveCode || item.leaveCode || '',
@@ -2329,11 +2540,18 @@ export const useOBDetails = (request?: { MI_Id?: number }, enabled: boolean = tr
  * Hook to fetch employee opening balance data
  * POST /api/LeaveOpeningBalanceWrapperFacade/GetEmployeOB
  */
-export const useEmployeOB = (request?: { MI_Id?: number; emptypes?: any[]; empdept?: any[]; empdesg?: any[] }, enabled: boolean = true) => {
+export const useEmployeOB = (request?: { MI_Id?: number; emptypes?: any[]; empdept?: any[]; empdesg?: any[] }, enabled = true) => {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
-            queryKey: [HRMS_QUERY_KEYS.LEAVE_OPENING_BALANCE, 'employee-ob', request?.MI_Id, request?.emptypes, request?.empdept, request?.empdesg],
+            queryKey: [
+                HRMS_QUERY_KEYS.LEAVE_OPENING_BALANCE,
+                'employee-ob',
+                request?.MI_Id,
+                request?.emptypes,
+                request?.empdept,
+                request?.empdesg
+            ],
             queryFn: async () => {
                 try {
                     const response = await getEmployeOB({
@@ -2365,7 +2583,10 @@ export const useEmployeOB = (request?: { MI_Id?: number; emptypes?: any[]; empde
                         id: item.HREOBL_Id || item.id || 0,
                         employeeId: item.HRME_Id || item.employeeId || 0,
                         employeeCode: item.HRME_EmployeeCode || item.employeeCode || '',
-                        employeeName: `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() || item.employeeName || '',
+                        employeeName:
+                            `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() ||
+                            item.employeeName ||
+                            '',
                         leaveId: item.HRML_Id || item.leaveId || 0,
                         leaveName: item.HRML_LeaveName || item.leaveName || '',
                         leaveCode: item.HRML_LeaveCode || item.leaveCode || '',
@@ -2381,18 +2602,24 @@ export const useEmployeOB = (request?: { MI_Id?: number; emptypes?: any[]; empde
                     }));
                     // Also extract filter dropdowns if available
                     const dataAny = data as any;
-                    const departmentOptions = (dataAny.DepartmentTempDto || []).map((item: any) => ({
-                        label: item.HRMD_DepartmentName || item.label || '',
-                        value: String(item.HRMD_Id || item.value || '')
-                    })).filter((item: { label: string; value: string }) => item.label && item.value);
-                    const designationOptions = (dataAny.DesignationTempDto || []).map((item: any) => ({
-                        label: item.HRMDES_DesignationName || item.label || '',
-                        value: String(item.HRMDES_Id || item.value || '')
-                    })).filter((item: { label: string; value: string }) => item.label && item.value);
-                    const groupTypeOptions = (dataAny.GroupTypeTempDto || []).map((item: any) => ({
-                        label: item.HRMGT_EmployeeGroupType || item.label || '',
-                        value: String(item.HRMGT_Id || item.value || '')
-                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    const departmentOptions = (dataAny.DepartmentTempDto || [])
+                        .map((item: any) => ({
+                            label: item.HRMD_DepartmentName || item.label || '',
+                            value: String(item.HRMD_Id || item.value || '')
+                        }))
+                        .filter((item: { label: string; value: string }) => item.label && item.value);
+                    const designationOptions = (dataAny.DesignationTempDto || [])
+                        .map((item: any) => ({
+                            label: item.HRMDES_DesignationName || item.label || '',
+                            value: String(item.HRMDES_Id || item.value || '')
+                        }))
+                        .filter((item: { label: string; value: string }) => item.label && item.value);
+                    const groupTypeOptions = (dataAny.GroupTypeTempDto || [])
+                        .map((item: any) => ({
+                            label: item.HRMGT_EmployeeGroupType || item.label || '',
+                            value: String(item.HRMGT_Id || item.value || '')
+                        }))
+                        .filter((item: { label: string; value: string }) => item.label && item.value);
                     return {
                         success: true,
                         data: {
@@ -2428,7 +2655,7 @@ export const useEmployeOB = (request?: { MI_Id?: number; emptypes?: any[]; empde
 export const useSaveLeaveOpeningBalance = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: async (data: { MI_Id?: number; HRME_Id?: number; HRMLY_Id?: number; temp_table_data?: any[];[key: string]: any }) => {
+        mutationFn: async (data: { MI_Id?: number; HRME_Id?: number; HRMLY_Id?: number; temp_table_data?: any[]; [key: string]: any }) => {
             try {
                 const response = await saveLeaveOpeningBalance({
                     MI_Id: data.MI_Id || HRMS_MI_ID,
@@ -2504,7 +2731,7 @@ export const useDeleteLeaveOpeningBalance = () => {
  * Hook to fetch page details for leave opening balance
  * POST /api/LeaveOpeningBalanceWrapperFacade/GetPageDetails
  */
-export const useLeaveOpeningBalancePageDetails = (request?: { Id?: number }, enabled: boolean = true) => {
+export const useLeaveOpeningBalancePageDetails = (request?: { Id?: number }, enabled = true) => {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
@@ -2531,24 +2758,29 @@ export const useLeaveOpeningBalancePageDetails = (request?: { Id?: number }, ena
                         pageDetails = data.GridviewDetails[0];
                     }
                     // Map to page details format
-                    const mappedPageDetails = pageDetails ? {
-                        id: pageDetails.HREOBL_Id || pageDetails.id || 0,
-                        employeeId: pageDetails.HRME_Id || pageDetails.employeeId || 0,
-                        employeeCode: pageDetails.HRME_EmployeeCode || pageDetails.employeeCode || '',
-                        employeeName: `${pageDetails.HRME_EmployeeFirstName || ''} ${pageDetails.HRME_EmployeeMiddleName || ''} ${pageDetails.HRME_EmployeeLastName || ''}`.trim() || pageDetails.employeeName || '',
-                        leaveId: pageDetails.HRML_Id || pageDetails.leaveId || 0,
-                        leaveName: pageDetails.HRML_LeaveName || pageDetails.leaveName || '',
-                        leaveCode: pageDetails.HRML_LeaveCode || pageDetails.leaveCode || '',
-                        leaveYearId: pageDetails.HRMLY_Id || pageDetails.leaveYearId || 0,
-                        leaveYear: pageDetails.HRMLY_LeaveYear || pageDetails.leaveYear || '',
-                        obDate: pageDetails.HREOBL_Date || pageDetails.obDate || '',
-                        obLeaves: pageDetails.HREOBL_OBLeaves || pageDetails.obLeaves || 0,
-                        leaveOBName: pageDetails.leave_ob_name || pageDetails.leaveOBName || '',
-                        departmentId: pageDetails.HRMD_Id || pageDetails.departmentId || 0,
-                        departmentName: pageDetails.HRMD_DepartmentName || pageDetails.departmentName || '',
-                        designationId: pageDetails.HRMDES_Id || pageDetails.designationId || 0,
-                        designationName: pageDetails.HRMDES_DesignationName || pageDetails.designationName || ''
-                    } : null;
+                    const mappedPageDetails = pageDetails
+                        ? {
+                              id: pageDetails.HREOBL_Id || pageDetails.id || 0,
+                              employeeId: pageDetails.HRME_Id || pageDetails.employeeId || 0,
+                              employeeCode: pageDetails.HRME_EmployeeCode || pageDetails.employeeCode || '',
+                              employeeName:
+                                  `${pageDetails.HRME_EmployeeFirstName || ''} ${pageDetails.HRME_EmployeeMiddleName || ''} ${pageDetails.HRME_EmployeeLastName || ''}`.trim() ||
+                                  pageDetails.employeeName ||
+                                  '',
+                              leaveId: pageDetails.HRML_Id || pageDetails.leaveId || 0,
+                              leaveName: pageDetails.HRML_LeaveName || pageDetails.leaveName || '',
+                              leaveCode: pageDetails.HRML_LeaveCode || pageDetails.leaveCode || '',
+                              leaveYearId: pageDetails.HRMLY_Id || pageDetails.leaveYearId || 0,
+                              leaveYear: pageDetails.HRMLY_LeaveYear || pageDetails.leaveYear || '',
+                              obDate: pageDetails.HREOBL_Date || pageDetails.obDate || '',
+                              obLeaves: pageDetails.HREOBL_OBLeaves || pageDetails.obLeaves || 0,
+                              leaveOBName: pageDetails.leave_ob_name || pageDetails.leaveOBName || '',
+                              departmentId: pageDetails.HRMD_Id || pageDetails.departmentId || 0,
+                              departmentName: pageDetails.HRMD_DepartmentName || pageDetails.departmentName || '',
+                              designationId: pageDetails.HRMDES_Id || pageDetails.designationId || 0,
+                              designationName: pageDetails.HRMDES_DesignationName || pageDetails.designationName || ''
+                          }
+                        : null;
                     return {
                         success: true,
                         data: {
@@ -2576,7 +2808,7 @@ export const useLeaveOpeningBalancePageDetails = (request?: { Id?: number }, ena
  * Hook to fetch leave names for dropdown
  * GET /api/LeaveCredit/get_leave_name_dropdown
  */
-export const useLeaveNameDropdown = (enabled: boolean = true) => {
+export const useLeaveNameDropdown = (enabled = true) => {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
@@ -2621,7 +2853,7 @@ export const useLeaveNameDropdown = (enabled: boolean = true) => {
  * Hook to fetch credit months for dropdown
  * GET /api/LeaveCredit/get_creditmonth_dropdown
  */
-export const useCreditMonthDropdown = (enabled: boolean = true) => {
+export const useCreditMonthDropdown = (enabled = true) => {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
@@ -2657,4 +2889,3 @@ export const useCreditMonthDropdown = (enabled: boolean = true) => {
         }
     };
 };
-

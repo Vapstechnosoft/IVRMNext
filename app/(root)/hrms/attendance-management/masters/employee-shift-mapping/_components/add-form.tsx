@@ -13,10 +13,10 @@ import {
     useShiftSettingMaster
 } from '@/hooks/hrms/attendance-management/useMasters';
 import {
-    useReportGroupTypes,
     useReportDepartments,
     useReportDesignations,
-    useReportEmployeesByGroupTypeDeptAndDesignation
+    useReportEmployeesByGroupTypeDeptAndDesignation,
+    useReportGroupTypes
 } from '@/hooks/hrms/useReports';
 import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
 import { addOrUpdateEmployeeShiftMapping } from '@/server/hrms/attendance-management/masters/employee-shift-mapping';
@@ -52,7 +52,6 @@ export default function AddEmployeeShiftMappingForm({ onSuccess, className = '' 
         const dataWithReportList = shiftMasterData.data as { report_list?: any[] };
         return dataWithReportList?.report_list || [];
     }, [shiftMasterData]);
-
 
     // Fetch holiday types
     const { data: holidayTypesData } = useEmployeeShiftMappingHolidayTypes();
@@ -104,9 +103,18 @@ export default function AddEmployeeShiftMappingForm({ onSuccess, className = '' 
     const watchedDesignation = watch('foest_Designation');
 
     // Mapped ID arrays for hook dependencies
-    const groupTypeIds = useMemo(() => (watchedGroupType ? watchedGroupType.split(', ').map(Number).filter(Boolean) : []), [watchedGroupType]);
-    const deptIds = useMemo(() => (watchedDepartment ? watchedDepartment.split(', ').map(Number).filter(Boolean) : []), [watchedDepartment]);
-    const desigIds = useMemo(() => (watchedDesignation ? watchedDesignation.split(', ').map(Number).filter(Boolean) : []), [watchedDesignation]);
+    const groupTypeIds = useMemo(
+        () => (watchedGroupType ? watchedGroupType.split(', ').map(Number).filter(Boolean) : []),
+        [watchedGroupType]
+    );
+    const deptIds = useMemo(
+        () => (watchedDepartment ? watchedDepartment.split(', ').map(Number).filter(Boolean) : []),
+        [watchedDepartment]
+    );
+    const desigIds = useMemo(
+        () => (watchedDesignation ? watchedDesignation.split(', ').map(Number).filter(Boolean) : []),
+        [watchedDesignation]
+    );
 
     // Fetch departments when group type is selected
     const { data: departmentsData } = useReportDepartments(groupTypeIds.toString());
@@ -115,11 +123,7 @@ export default function AddEmployeeShiftMappingForm({ onSuccess, className = '' 
     const { data: designationsData } = useReportDesignations(groupTypeIds.toString(), deptIds.toString());
 
     // Fetch employees when group types, departments, or designations are selected
-    const { data: employeesData } = useReportEmployeesByGroupTypeDeptAndDesignation(
-        groupTypeIds,
-        deptIds,
-        desigIds
-    );
+    const { data: employeesData } = useReportEmployeesByGroupTypeDeptAndDesignation(groupTypeIds, deptIds, desigIds);
 
     const selectedShiftName = watch('foest_ShiftName');
 
@@ -311,7 +315,6 @@ export default function AddEmployeeShiftMappingForm({ onSuccess, className = '' 
                 })
                 .filter((id): id is number => id !== null);
 
-
             // Get group type IDs from selected values (Type field - can be multiple)
             const groupTypeIds = (data.foest_GroupType ? data.foest_GroupType.split(', ') : [])
                 .map((idStr) => {
@@ -359,7 +362,7 @@ export default function AddEmployeeShiftMappingForm({ onSuccess, className = '' 
                 foesT_BlockAttendance: 'true',
                 foesT_FixTimings: 'true',
                 FOEST_BlockAttendance: 'true', // Dual casing for robustness
-                FOEST_FixTimings: 'true',    // Dual casing for robustness
+                FOEST_FixTimings: 'true', // Dual casing for robustness
                 foesT_Date: data.foest_ApplicableDate ? new Date(data.foest_ApplicableDate).toISOString() : new Date().toISOString(),
                 hrmE_Ids: employeeIds,
                 fohwdT_Ids: dayTypeIds
@@ -499,16 +502,16 @@ export default function AddEmployeeShiftMappingForm({ onSuccess, className = '' 
                                 name='foest_ShiftName'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select
-                                        value={field.value}
-                                        onValueChange={field.onChange}
-                                        disabled={shiftNames.length === 0}>
+                                    <Select value={field.value} onValueChange={field.onChange} disabled={shiftNames.length === 0}>
                                         <SelectTrigger id={shiftNameId} className={errors.foest_ShiftName ? 'border-red-500' : ''}>
                                             <SelectValue placeholder={shiftNames.length === 0 ? 'Loading...' : '--Select Shift Name--'} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {shiftNames
-                                                .filter((shift: { label: string; value: string; id?: number }) => shift.value && shift.value !== '')
+                                                .filter(
+                                                    (shift: { label: string; value: string; id?: number }) =>
+                                                        shift.value && shift.value !== ''
+                                                )
                                                 .map((shift: { label: string; value: string; id?: number }) => (
                                                     <SelectItem key={`shift-${shift.id || shift.value}`} value={shift.value}>
                                                         {shift.label}
@@ -525,7 +528,13 @@ export default function AddEmployeeShiftMappingForm({ onSuccess, className = '' 
                                 name='foest_ApplicableDate'
                                 control={control}
                                 render={({ field, fieldState }) => (
-                                    <DateField field={field} fieldState={fieldState} label='Applicable Date' fromDate={new Date()} required />
+                                    <DateField
+                                        field={field}
+                                        fieldState={fieldState}
+                                        label='Applicable Date'
+                                        fromDate={new Date()}
+                                        required
+                                    />
                                 )}
                             />
                         </div>

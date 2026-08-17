@@ -35,7 +35,11 @@ export default function MasterSubjectGroupUpdateForm({ initialData, onSuccess, c
     const [isLoading, setIsLoading] = useState(true);
 
     // Fetch group-specific subjects
-    const { data: groupSubjectsResponse, isLoading: loadingGroupSubjects, refetchAll: refetchDetails } = useMasterSubjectGroupDetails(initialData.emG_Id);
+    const {
+        data: groupSubjectsResponse,
+        isLoading: loadingGroupSubjects,
+        refetchAll: refetchDetails
+    } = useMasterSubjectGroupDetails(initialData.emG_Id);
 
     // Fetch all available subjects
     const { data: allSubjectsResponse, isLoading: loadingAllSubjects } = useMasterGetAllSubjectGroupDetails();
@@ -137,7 +141,13 @@ export default function MasterSubjectGroupUpdateForm({ initialData, onSuccess, c
         <form onSubmit={handleSubmit(onSubmit)} className={`space-y-6 ${className}`}>
             {/* Group Info */}
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                <InputText label='Group Name' required placeholder='Enter Group Name' {...register('emG_GroupName')} error={errors.emG_GroupName?.message} />
+                <InputText
+                    label='Group Name'
+                    required
+                    placeholder='Enter Group Name'
+                    {...register('emG_GroupName')}
+                    error={errors.emG_GroupName?.message}
+                />
                 <InputText
                     label='Total Subjects'
                     type='number'

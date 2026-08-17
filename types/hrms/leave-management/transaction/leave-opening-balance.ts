@@ -1,4 +1,3 @@
-
 export interface LeaveOpeningBalanceEntry {
     hreobL_Id: number;
     hrmE_Id: number;

@@ -12,9 +12,8 @@ export interface ExpirySettingsResponse {
 export async function getExpirySettings() {
     const url = '/expiry_settings/expiry_settings_list';
     const response = await api.get<any>('transport', url);
-    return response
+    return response;
 }
-
 
 export async function saveExpirySettings(data: any) {
     const url = '/expiry_settings/add_or_update_expiry_settings';

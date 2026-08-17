@@ -1,30 +1,18 @@
 'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { format } from "date-fns";
-import { CalendarIcon, Loader2, Search } from "lucide-react";
-import { toast } from "sonner";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import { CalendarIcon, Loader2, Search } from 'lucide-react';
+import { useForm } from 'react-hook-form';
 
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "@/components/ui/form";
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { cn } from "@/lib/utils";
-import { invVendorPaymentReportSchema, InvVendorPaymentReportFormValues } from "@/schemas/inventory/reports/inv-r-vendor-payment";
-import { IInvVendorPaymentReportPayload } from "@/types/inventory/reports/inv-r-vendor-payment";
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { cn } from '@/lib/utils';
+import { type InvVendorPaymentReportFormValues, invVendorPaymentReportSchema } from '@/schemas/inventory/reports/inv-r-vendor-payment';
+import type { IInvVendorPaymentReportPayload } from '@/types/inventory/reports/inv-r-vendor-payment';
 
 interface VendorPaymentReportFormProps {
     onReportGenerated: (payload: IInvVendorPaymentReportPayload | null) => void;
@@ -32,19 +20,18 @@ interface VendorPaymentReportFormProps {
 }
 
 export default function VendorPaymentReportForm({ onReportGenerated, isLoading = false }: VendorPaymentReportFormProps) {
-
     const form = useForm<InvVendorPaymentReportFormValues>({
         resolver: zodResolver(invVendorPaymentReportSchema),
         defaultValues: {
-            report_type: "Overall",
-        },
+            report_type: 'Overall'
+        }
     });
 
     function onSubmit(data: InvVendorPaymentReportFormValues) {
         const payload: IInvVendorPaymentReportPayload = {
-            Fromdate: format(data.from_date, "yyyy-MM-dd"),
-            Todate: format(data.to_date, "yyyy-MM-dd"),
-            reporttype: data.report_type,
+            Fromdate: format(data.from_date, 'yyyy-MM-dd'),
+            Todate: format(data.to_date, 'yyyy-MM-dd'),
+            reporttype: data.report_type
         };
 
         onReportGenerated(payload);
@@ -52,40 +39,32 @@ export default function VendorPaymentReportForm({ onReportGenerated, isLoading =
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 bg-card p-6 rounded-lg border shadow-sm">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6 rounded-lg border bg-card p-6 shadow-sm'>
+                <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4'>
                     <FormField
                         control={form.control}
-                        name="from_date"
+                        name='from_date'
                         render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                                <FormLabel>From Date <span className="text-destructive">*</span></FormLabel>
+                            <FormItem className='flex flex-col'>
+                                <FormLabel>
+                                    From Date <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <FormControl>
                                             <Button
-                                                variant={"outline"}
+                                                variant={'outline'}
                                                 className={cn(
-                                                    "w-full pl-3 text-left font-normal",
-                                                    !field.value && "text-muted-foreground"
-                                                )}
-                                            >
-                                                {field.value ? (
-                                                    format(field.value, "dd-MM-yyyy")
-                                                ) : (
-                                                    <span>Select date</span>
-                                                )}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                    'w-full pl-3 text-left font-normal',
+                                                    !field.value && 'text-muted-foreground'
+                                                )}>
+                                                {field.value ? format(field.value, 'dd-MM-yyyy') : <span>Select date</span>}
+                                                <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
                                             </Button>
                                         </FormControl>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar
-                                            mode="single"
-                                            selected={field.value}
-                                            onSelect={field.onChange}
-                                            initialFocus
-                                        />
+                                    <PopoverContent className='w-auto p-0' align='start'>
+                                        <Calendar mode='single' selected={field.value} onSelect={field.onChange} initialFocus />
                                     </PopoverContent>
                                 </Popover>
                                 <FormMessage />
@@ -95,36 +74,28 @@ export default function VendorPaymentReportForm({ onReportGenerated, isLoading =
 
                     <FormField
                         control={form.control}
-                        name="to_date"
+                        name='to_date'
                         render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                                <FormLabel>To Date <span className="text-destructive">*</span></FormLabel>
+                            <FormItem className='flex flex-col'>
+                                <FormLabel>
+                                    To Date <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <FormControl>
                                             <Button
-                                                variant={"outline"}
+                                                variant={'outline'}
                                                 className={cn(
-                                                    "w-full pl-3 text-left font-normal",
-                                                    !field.value && "text-muted-foreground"
-                                                )}
-                                            >
-                                                {field.value ? (
-                                                    format(field.value, "dd-MM-yyyy")
-                                                ) : (
-                                                    <span>Select date</span>
-                                                )}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                    'w-full pl-3 text-left font-normal',
+                                                    !field.value && 'text-muted-foreground'
+                                                )}>
+                                                {field.value ? format(field.value, 'dd-MM-yyyy') : <span>Select date</span>}
+                                                <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
                                             </Button>
                                         </FormControl>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar
-                                            mode="single"
-                                            selected={field.value}
-                                            onSelect={field.onChange}
-                                            initialFocus
-                                        />
+                                    <PopoverContent className='w-auto p-0' align='start'>
+                                        <Calendar mode='single' selected={field.value} onSelect={field.onChange} initialFocus />
                                     </PopoverContent>
                                 </Popover>
                                 <FormMessage />
@@ -133,34 +104,29 @@ export default function VendorPaymentReportForm({ onReportGenerated, isLoading =
                     />
                 </div>
 
-                <div className="flex justify-center">
+                <div className='flex justify-center'>
                     <FormField
                         control={form.control}
-                        name="report_type"
+                        name='report_type'
                         render={({ field }) => (
-                            <FormItem className="space-y-3">
-                                <FormLabel className="sr-only">Report Type</FormLabel>
+                            <FormItem className='space-y-3'>
+                                <FormLabel className='sr-only'>Report Type</FormLabel>
                                 <FormControl>
                                     <RadioGroup
                                         onValueChange={field.onChange}
                                         defaultValue={field.value}
-                                        className="flex space-x-4 bg-muted/50 p-2 rounded-md"
-                                    >
-                                        <FormItem className="flex items-center space-x-2 space-y-0">
+                                        className='flex space-x-4 rounded-md bg-muted/50 p-2'>
+                                        <FormItem className='flex items-center space-x-2 space-y-0'>
                                             <FormControl>
-                                                <RadioGroupItem value="Overall" />
+                                                <RadioGroupItem value='Overall' />
                                             </FormControl>
-                                            <FormLabel className="font-normal cursor-pointer">
-                                                Overall
-                                            </FormLabel>
+                                            <FormLabel className='cursor-pointer font-normal'>Overall</FormLabel>
                                         </FormItem>
-                                        <FormItem className="flex items-center space-x-2 space-y-0">
+                                        <FormItem className='flex items-center space-x-2 space-y-0'>
                                             <FormControl>
-                                                <RadioGroupItem value="Vendor" />
+                                                <RadioGroupItem value='Vendor' />
                                             </FormControl>
-                                            <FormLabel className="font-normal cursor-pointer">
-                                                Vendor
-                                            </FormLabel>
+                                            <FormLabel className='cursor-pointer font-normal'>Vendor</FormLabel>
                                         </FormItem>
                                     </RadioGroup>
                                 </FormControl>
@@ -170,33 +136,32 @@ export default function VendorPaymentReportForm({ onReportGenerated, isLoading =
                     />
                 </div>
 
-                <div className="flex justify-center gap-4">
-                    <Button type="submit" disabled={isLoading}>
+                <div className='flex justify-center gap-4'>
+                    <Button type='submit' disabled={isLoading}>
                         {isLoading ? (
                             <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                                 Generating...
                             </>
                         ) : (
                             <>
-                                <Search className="mr-2 h-4 w-4" />
+                                <Search className='mr-2 h-4 w-4' />
                                 Report
                             </>
                         )}
                     </Button>
                     <Button
-                        type="button"
-                        variant="outline"
+                        type='button'
+                        variant='outline'
                         onClick={() => {
                             form.reset({
-                                report_type: "Overall",
+                                report_type: 'Overall',
                                 from_date: undefined,
-                                to_date: undefined,
+                                to_date: undefined
                             });
                             onReportGenerated(null);
                         }}
-                        disabled={isLoading}
-                    >
+                        disabled={isLoading}>
                         Cancel
                     </Button>
                 </div>

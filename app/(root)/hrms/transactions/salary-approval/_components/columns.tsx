@@ -2,9 +2,10 @@
 
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import type { ColumnDef } from '@tanstack/react-table';
 import type { EmployeeDetail } from '@/types/hrms/salary-approval';
-import React, { useEffect, useState } from 'react';
+import type { ColumnDef } from '@tanstack/react-table';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 
 /* ============================================
    Types for Dynamic Columns
@@ -50,7 +51,7 @@ function AmountInputCell({
 
     return (
         <input
-            className={`w-[100px] rounded border border-gray-300 px-2 py-1 text-right text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${disabled ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white'}`}
+            className={`w-[100px] rounded border border-gray-300 px-2 py-1 text-right text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${disabled ? 'cursor-not-allowed bg-gray-100 text-gray-400' : 'bg-white'}`}
             placeholder={placeholder ?? '0.00'}
             value={local}
             onChange={handleChange}
@@ -129,7 +130,7 @@ export function getSalaryApprovalColumns({
                 const lastName = emp.hrmE_EmployeeLastName ?? emp.HRME_EmployeeLastName ?? '';
                 const fullName = `${firstName}${middleName ? ' ' + middleName : ''}${lastName ? ' ' + lastName : ''}`;
                 return <span className='font-semibold uppercase'>{fullName || 'UNDEFINED'}</span>;
-            },
+            }
             // size: 200
         },
         {
@@ -138,20 +139,19 @@ export function getSalaryApprovalColumns({
             cell: ({ row }) => <span>{row.original.hrmdeS_DesignationName || row.original.HRMDES_DesignationName}</span>,
             size: 350
         }
-
     ];
 
     // --- EARNINGS GROUP ---
     if (earningHeads.length > 0) {
         const earningGroup: ColumnDef<EmployeeDetail> = {
             id: 'earnings_group',
-            header: () => (
-                <div className='bg-green-600 text-center text-white py-1 font-bold text-xs rounded-t-sm'>EARNINGS</div>
-            ),
+            header: () => <div className='rounded-t-sm bg-green-600 py-1 text-center font-bold text-white text-xs'>EARNINGS</div>,
             columns: earningHeads.map((head) => ({
                 id: `earning_${head.headId}`,
                 header: () => (
-                    <div className='bg-green-600 text-center text-white py-1 font-semibold text-[10px]' style={{ borderLeft: '1px solid rgba(255,255,255,0.2)' }}>
+                    <div
+                        className='bg-green-600 py-1 text-center font-semibold text-[10px] text-white'
+                        style={{ borderLeft: '1px solid rgba(255,255,255,0.2)' }}>
                         {head.headName}
                     </div>
                 ),
@@ -160,7 +160,7 @@ export function getSalaryApprovalColumns({
                     const empId = emp.hrmE_Id ?? emp.HRME_Id;
                     const results = emp.earningResult || [];
                     const found = results.find((e: any) => e.HRMED_Id === head.headId);
-                    const val = found ? (found.HREED_Amount) : '';
+                    const val = found ? found.HREED_Amount : '';
                     const isSelected = selectedEmployees.includes(empId);
 
                     return (
@@ -172,7 +172,7 @@ export function getSalaryApprovalColumns({
                             />
                         </div>
                     );
-                },
+                }
                 // size: 250
             }))
         };
@@ -183,13 +183,13 @@ export function getSalaryApprovalColumns({
     if (deductionHeads.length > 0) {
         const deductionGroup: ColumnDef<EmployeeDetail> = {
             id: 'deductions_group',
-            header: () => (
-                <div className='bg-red-600 text-center text-white py-1 font-bold text-xs rounded-t-sm'>DEDUCTIONS</div>
-            ),
+            header: () => <div className='rounded-t-sm bg-red-600 py-1 text-center font-bold text-white text-xs'>DEDUCTIONS</div>,
             columns: deductionHeads.map((head) => ({
                 id: `deduction_${head.headId}`,
                 header: () => (
-                    <div className='bg-red-600 text-center text-white py-1 font-semibold text-[10px]' style={{ borderLeft: '1px solid rgba(255,255,255,0.2)' }}>
+                    <div
+                        className='bg-red-600 py-1 text-center font-semibold text-[10px] text-white'
+                        style={{ borderLeft: '1px solid rgba(255,255,255,0.2)' }}>
                         {head.headName}
                     </div>
                 ),
@@ -198,7 +198,7 @@ export function getSalaryApprovalColumns({
                     const empId = emp.hrmE_Id ?? emp.HRME_Id;
                     const results = emp.deductionResult || [];
                     const found = results.find((d: any) => d.HRMED_Id === head.headId);
-                    const val = found ? (found.HREED_Amount) : '';
+                    const val = found ? found.HREED_Amount : '';
                     const isSelected = selectedEmployees.includes(empId);
 
                     return (
@@ -222,7 +222,9 @@ export function getSalaryApprovalColumns({
         {
             accessorKey: 'hreS_WorkingDays',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Days' />,
-            cell: ({ row }) => <span className='text-center font-medium'>{row.original.hreS_WorkingDays ?? row.original.HRES_WorkingDays ?? 0}</span>,
+            cell: ({ row }) => (
+                <span className='text-center font-medium'>{row.original.hreS_WorkingDays ?? row.original.HRES_WorkingDays ?? 0}</span>
+            ),
             size: 60
         },
         {

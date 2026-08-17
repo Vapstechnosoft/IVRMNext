@@ -1,5 +1,3 @@
-
-
 //income- report
 
 export interface IPDAReportIncome {
@@ -31,4 +29,3 @@ export interface IPDAReportParams {
     From_Date: string;
     To_Date?: string;
 }
-

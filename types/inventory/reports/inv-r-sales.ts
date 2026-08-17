@@ -1,6 +1,5 @@
-
 export interface IInvRSalesLoadData {
-    // Initial load usually just gets sales numbers or similar if needed, 
+    // Initial load usually just gets sales numbers or similar if needed,
     // but in Angular loaddata() fetches get_salesno, but mainrdochange also fetches things.
     // We'll define types primarily.
     salesList?: IInvRSalesEntity[];

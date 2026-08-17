@@ -10,8 +10,8 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddEmployeeForm from './_components/add-form';
 import { employeeColumns } from './_components/columns';
-import UpdateEmployeeForm from './_components/update-form';
 import ToggleEmployeeForm from './_components/toggle-form';
+import UpdateEmployeeForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -145,9 +145,7 @@ function FormSections() {
             )}
 
             {/* Toggle Form */}
-            {isToggleFormOpen && selectedRow && (
-                <ToggleEmployeeForm rowData={selectedRow} onClose={closeToggleForm} />
-            )}
+            {isToggleFormOpen && selectedRow && <ToggleEmployeeForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

@@ -4,12 +4,12 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useMasterTimeSetting } from '@/hooks/hrms/attendance-management/useMasters';
+import type { IMasterTimeSetting } from '@/types/hrms/attendance-management/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import { HRMSCollapsibleSection } from '../_components/hrms-collapsible-section';
 import AddMasterTimeSettingForm from './_components/add-form';
 import { masterTimeSettingColumns } from './_components/columns';
-import type { IMasterTimeSetting } from '@/types/hrms/attendance-management/masters';
 import DeleteMasterTimeSettingForm from './_components/delete-form';
 import UpdateMasterTimeSettingForm from './_components/update-form';
 

@@ -1,48 +1,24 @@
 'use client';
 
-import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { toast } from 'sonner';
-import { 
-    Eye, 
-    Search, 
-    Trash2, 
-    X, 
-    Loader2, 
-    Download, 
-    RotateCcw, 
-    Upload, 
-    FileText, 
-    ArrowRight,
-    ChevronLeft,
-    ChevronRight
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/extension/field';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { uploadDocument } from '@/server/document_upload';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/extension/field';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
-    useMasterQuestionBankLoadData,
-    useMasterQuestionBankSubjects,
-    useMasterQuestionBankSave,
     useMasterQuestionBankDelete,
-    useMasterQuestionBankSearch
+    useMasterQuestionBankLoadData,
+    useMasterQuestionBankSave,
+    useMasterQuestionBankSearch,
+    useMasterQuestionBankSubjects
 } from '@/hooks/admission/preadmission/transactions/useMasterQuestionBank';
+import { uploadDocument } from '@/server/document_upload';
+import { ChevronLeft, ChevronRight, Download, Eye, FileText, Loader2, RotateCcw, Search, Trash2, Upload, X } from 'lucide-react';
+import type React from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 export default function MasterQuestionBankPage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -78,7 +54,7 @@ export default function MasterQuestionBankPage() {
     const [subjectId, setSubjectId] = useState<number | null>(null);
     const [examName, setExamName] = useState('');
     const [questionPaperName, setQuestionPaperName] = useState('');
-    
+
     // File State
     const [uploadedFilePath, setUploadedFilePath] = useState('');
     const [originalFileName, setOriginalFileName] = useState('');
@@ -96,7 +72,7 @@ export default function MasterQuestionBankPage() {
     const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<any[]>([]);
-    
+
     // Preview Modal States
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
     const [previewUrl, setPreviewUrl] = useState('');
@@ -296,7 +272,13 @@ export default function MasterQuestionBankPage() {
             const subject = (x.ismS_SubjectName || '').toLowerCase();
             const fileName = (x.lpprqpF_FileName || '').toLowerCase();
             const yearName = (x.asmaY_Year || '').toLowerCase();
-            return className.includes(term) || exam.includes(term) || subject.includes(term) || fileName.includes(term) || yearName.includes(term);
+            return (
+                className.includes(term) ||
+                exam.includes(term) ||
+                subject.includes(term) ||
+                fileName.includes(term) ||
+                yearName.includes(term)
+            );
         });
     }, [questionPapers, searchTerm]);
 
@@ -341,60 +323,58 @@ export default function MasterQuestionBankPage() {
 
     if (isLoadDataLoading) {
         return (
-            <div className="flex h-[80vh] flex-col items-center justify-center gap-4">
-                <Loader2 className="h-12 w-12 animate-spin text-indigo-600" />
-                <span className="text-lg font-medium text-gray-600 animate-pulse">
-                    Loading Master Question Bank Details...
-                </span>
+            <div className='flex h-[80vh] flex-col items-center justify-center gap-4'>
+                <Loader2 className='h-12 w-12 animate-spin text-indigo-600' />
+                <span className='animate-pulse font-medium text-gray-600 text-lg'>Loading Master Question Bank Details...</span>
             </div>
         );
     }
 
     return (
-        <div className="container mx-auto space-y-8 p-6 max-w-7xl animate-in fade-in duration-300">
+        <div className='fade-in container mx-auto max-w-7xl animate-in space-y-8 p-6 duration-300'>
             {/* Header Area */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b pb-5">
+            <div className='flex flex-col gap-4 border-b pb-5 md:flex-row md:items-center md:justify-between'>
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-slate-900">Master Question Bank</h1>
-                    <p className="text-muted-foreground mt-1">Manage and perform AI-powered search across class exam question papers.</p>
+                    <h1 className='font-bold text-3xl text-slate-900 tracking-tight'>Master Question Bank</h1>
+                    <p className='mt-1 text-muted-foreground'>Manage and perform AI-powered search across class exam question papers.</p>
                 </div>
-                <div className="flex gap-3">
-                    <Button 
+                <div className='flex gap-3'>
+                    <Button
                         onClick={() => {
                             setSearchQuery('');
                             setSearchResults([]);
                             setIsSearchModalOpen(true);
                         }}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md hover:shadow-lg transition-all"
-                    >
-                        <Search className="mr-2 h-4 w-4" />
+                        className='bg-indigo-600 text-white shadow-md transition-all hover:bg-indigo-700 hover:shadow-lg'>
+                        <Search className='mr-2 h-4 w-4' />
                         AI PDF Search
                     </Button>
                 </div>
             </div>
 
             {/* Form & Upload Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className='grid grid-cols-1 gap-8 lg:grid-cols-3'>
                 {/* Form inputs card */}
-                <div className="lg:col-span-2 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                    <h2 className="text-xl font-semibold text-slate-800 mb-6 flex items-center gap-2">
-                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 text-sm font-bold">1</span>
+                <div className='rounded-xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2'>
+                    <h2 className='mb-6 flex items-center gap-2 font-semibold text-slate-800 text-xl'>
+                        <span className='flex h-7 w-7 items-center justify-center rounded-full bg-indigo-50 font-bold text-indigo-600 text-sm'>
+                            1
+                        </span>
                         Enter Question Paper Information
                     </h2>
-                    
-                    <form onSubmit={handleSave} className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                    <form onSubmit={handleSave} className='space-y-6'>
+                        <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                             {/* Academic Year */}
-                            <div className="space-y-2">
-                                <Label className="text-sm font-semibold text-slate-700">
-                                    Academic Year <span className="text-red-500">*</span>
+                            <div className='space-y-2'>
+                                <Label className='font-semibold text-slate-700 text-sm'>
+                                    Academic Year <span className='text-red-500'>*</span>
                                 </Label>
-                                <Select 
-                                    value={academicYearId ? String(academicYearId) : undefined} 
-                                    onValueChange={(val) => setAcademicYearId(Number(val))}
-                                >
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select Academic Year" />
+                                <Select
+                                    value={academicYearId ? String(academicYearId) : undefined}
+                                    onValueChange={(val) => setAcademicYearId(Number(val))}>
+                                    <SelectTrigger className='w-full'>
+                                        <SelectValue placeholder='Select Academic Year' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {years.map((year: any) => (
@@ -407,16 +387,13 @@ export default function MasterQuestionBankPage() {
                             </div>
 
                             {/* Class */}
-                            <div className="space-y-2">
-                                <Label className="text-sm font-semibold text-slate-700">
-                                    Class <span className="text-red-500">*</span>
+                            <div className='space-y-2'>
+                                <Label className='font-semibold text-slate-700 text-sm'>
+                                    Class <span className='text-red-500'>*</span>
                                 </Label>
-                                <Select 
-                                    value={classId ? String(classId) : undefined} 
-                                    onValueChange={(val) => setClassId(Number(val))}
-                                >
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select Class" />
+                                <Select value={classId ? String(classId) : undefined} onValueChange={(val) => setClassId(Number(val))}>
+                                    <SelectTrigger className='w-full'>
+                                        <SelectValue placeholder='Select Class' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {classes.map((cls: any) => (
@@ -429,23 +406,22 @@ export default function MasterQuestionBankPage() {
                             </div>
 
                             {/* Subject */}
-                            <div className="space-y-2">
-                                <Label className="text-sm font-semibold text-slate-700">
-                                    Subject <span className="text-red-500">*</span>
+                            <div className='space-y-2'>
+                                <Label className='font-semibold text-slate-700 text-sm'>
+                                    Subject <span className='text-red-500'>*</span>
                                 </Label>
-                                <Select 
-                                    value={subjectId ? String(subjectId) : undefined} 
+                                <Select
+                                    value={subjectId ? String(subjectId) : undefined}
                                     onValueChange={(val) => setSubjectId(Number(val))}
-                                    disabled={!classId || !academicYearId || getSubjectsMutation.isPending}
-                                >
-                                    <SelectTrigger className="w-full">
+                                    disabled={!classId || !academicYearId || getSubjectsMutation.isPending}>
+                                    <SelectTrigger className='w-full'>
                                         {getSubjectsMutation.isPending ? (
-                                            <div className="flex items-center gap-2">
-                                                <Loader2 className="h-4 w-4 animate-spin text-indigo-600" />
+                                            <div className='flex items-center gap-2'>
+                                                <Loader2 className='h-4 w-4 animate-spin text-indigo-600' />
                                                 <span>Loading Subjects...</span>
                                             </div>
                                         ) : (
-                                            <SelectValue placeholder={classId ? "Select Subject" : "First choose academic year & class"} />
+                                            <SelectValue placeholder={classId ? 'Select Subject' : 'First choose academic year & class'} />
                                         )}
                                     </SelectTrigger>
                                     <SelectContent>
@@ -459,12 +435,12 @@ export default function MasterQuestionBankPage() {
                             </div>
 
                             {/* Exam Name */}
-                            <div className="space-y-2">
-                                <Label className="text-sm font-semibold text-slate-700">
-                                    Exam Name <span className="text-red-500">*</span>
+                            <div className='space-y-2'>
+                                <Label className='font-semibold text-slate-700 text-sm'>
+                                    Exam Name <span className='text-red-500'>*</span>
                                 </Label>
-                                <Input 
-                                    placeholder="Enter Exam Name (e.g. Mid Term, Final)" 
+                                <Input
+                                    placeholder='Enter Exam Name (e.g. Mid Term, Final)'
                                     value={examName}
                                     onChange={(e) => setExamName(e.target.value)}
                                     maxLength={200}
@@ -472,12 +448,12 @@ export default function MasterQuestionBankPage() {
                             </div>
 
                             {/* Question Paper Name */}
-                            <div className="md:col-span-2 space-y-2">
-                                <Label className="text-sm font-semibold text-slate-700">
-                                    Question Paper Name <span className="text-red-500">*</span>
+                            <div className='space-y-2 md:col-span-2'>
+                                <Label className='font-semibold text-slate-700 text-sm'>
+                                    Question Paper Name <span className='text-red-500'>*</span>
                                 </Label>
-                                <Input 
-                                    placeholder="Enter Question Paper Title" 
+                                <Input
+                                    placeholder='Enter Question Paper Title'
                                     value={questionPaperName}
                                     onChange={(e) => setQuestionPaperName(e.target.value)}
                                     maxLength={200}
@@ -485,23 +461,17 @@ export default function MasterQuestionBankPage() {
                             </div>
                         </div>
 
-                        <div className="flex justify-end gap-3 pt-4 border-t">
-                            <Button 
-                                type="button" 
-                                variant="outline" 
-                                onClick={handleReset}
-                                disabled={saveMutation.isPending}
-                            >
-                                <RotateCcw className="mr-2 h-4 w-4" /> Reset
+                        <div className='flex justify-end gap-3 border-t pt-4'>
+                            <Button type='button' variant='outline' onClick={handleReset} disabled={saveMutation.isPending}>
+                                <RotateCcw className='mr-2 h-4 w-4' /> Reset
                             </Button>
-                            <Button 
-                                type="submit" 
-                                className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                                disabled={saveMutation.isPending || isUploading}
-                            >
+                            <Button
+                                type='submit'
+                                className='bg-indigo-600 text-white hover:bg-indigo-700'
+                                disabled={saveMutation.isPending || isUploading}>
                                 {saveMutation.isPending ? (
                                     <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...
+                                        <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Saving...
                                     </>
                                 ) : (
                                     'Save Question Paper'
@@ -512,99 +482,94 @@ export default function MasterQuestionBankPage() {
                 </div>
 
                 {/* PDF File Upload Card */}
-                <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between">
+                <div className='flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-6 shadow-sm'>
                     <div>
-                        <h2 className="text-xl font-semibold text-slate-800 mb-6 flex items-center gap-2">
-                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 text-sm font-bold">2</span>
+                        <h2 className='mb-6 flex items-center gap-2 font-semibold text-slate-800 text-xl'>
+                            <span className='flex h-7 w-7 items-center justify-center rounded-full bg-indigo-50 font-bold text-indigo-600 text-sm'>
+                                2
+                            </span>
                             Upload PDF Document
                         </h2>
 
-                        <div className="space-y-4">
+                        <div className='space-y-4'>
                             {!uploadedFilePath ? (
-                                <div 
-                                    className={`border-2 border-dashed rounded-xl p-8 text-center flex flex-col items-center justify-center gap-3 transition-colors ${
-                                        isUploading ? 'border-indigo-300 bg-indigo-50/20' : 'border-slate-300 hover:border-indigo-400 bg-slate-50/50'
-                                    }`}
-                                >
-                                    <div className="rounded-full bg-indigo-50 p-4 text-indigo-600">
-                                        {isUploading ? (
-                                            <Loader2 className="h-8 w-8 animate-spin" />
-                                        ) : (
-                                            <Upload className="h-8 w-8" />
-                                        )}
+                                <div
+                                    className={`flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-8 text-center transition-colors ${
+                                        isUploading
+                                            ? 'border-indigo-300 bg-indigo-50/20'
+                                            : 'border-slate-300 bg-slate-50/50 hover:border-indigo-400'
+                                    }`}>
+                                    <div className='rounded-full bg-indigo-50 p-4 text-indigo-600'>
+                                        {isUploading ? <Loader2 className='h-8 w-8 animate-spin' /> : <Upload className='h-8 w-8' />}
                                     </div>
                                     <div>
-                                        <p className="font-medium text-slate-700">
+                                        <p className='font-medium text-slate-700'>
                                             {isUploading ? 'Uploading document...' : 'Upload Question Paper'}
                                         </p>
-                                        <p className="text-xs text-slate-500 mt-1">PDF format only (Max 5MB)</p>
+                                        <p className='mt-1 text-slate-500 text-xs'>PDF format only (Max 5MB)</p>
                                     </div>
-                                    
-                                    <input 
-                                        type="file" 
-                                        ref={fileInputRef} 
-                                        onChange={handleFileChange} 
-                                        accept=".pdf,application/pdf"
-                                        className="hidden" 
+
+                                    <input
+                                        type='file'
+                                        ref={fileInputRef}
+                                        onChange={handleFileChange}
+                                        accept='.pdf,application/pdf'
+                                        className='hidden'
                                         disabled={isUploading}
                                     />
-                                    <Button 
-                                        type="button" 
-                                        variant="outline" 
-                                        size="sm"
+                                    <Button
+                                        type='button'
+                                        variant='outline'
+                                        size='sm'
                                         onClick={() => fileInputRef.current?.click()}
                                         disabled={isUploading}
-                                        className="mt-2 border-indigo-200 text-indigo-700 hover:bg-indigo-50"
-                                    >
+                                        className='mt-2 border-indigo-200 text-indigo-700 hover:bg-indigo-50'>
                                         Choose File
                                     </Button>
                                 </div>
                             ) : (
-                                <div className="rounded-xl border border-emerald-100 bg-emerald-50/20 p-6 flex flex-col gap-4">
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div className="flex items-center gap-3">
-                                            <div className="rounded-lg bg-emerald-100 p-2.5 text-emerald-700">
-                                                <FileText className="h-6 w-6" />
+                                <div className='flex flex-col gap-4 rounded-xl border border-emerald-100 bg-emerald-50/20 p-6'>
+                                    <div className='flex items-start justify-between gap-3'>
+                                        <div className='flex items-center gap-3'>
+                                            <div className='rounded-lg bg-emerald-100 p-2.5 text-emerald-700'>
+                                                <FileText className='h-6 w-6' />
                                             </div>
-                                            <div className="min-w-0">
-                                                <p className="font-semibold text-slate-800 text-sm truncate max-w-[180px]">
+                                            <div className='min-w-0'>
+                                                <p className='max-w-[180px] truncate font-semibold text-slate-800 text-sm'>
                                                     {originalFileName || 'Uploaded Paper'}
                                                 </p>
-                                                <p className="text-xs text-emerald-600 font-medium">Successfully Uploaded</p>
+                                                <p className='font-medium text-emerald-600 text-xs'>Successfully Uploaded</p>
                                             </div>
                                         </div>
-                                        <Button 
-                                            variant="ghost" 
-                                            size="icon" 
-                                            className="h-8 w-8 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full"
+                                        <Button
+                                            variant='ghost'
+                                            size='icon'
+                                            className='h-8 w-8 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600'
                                             onClick={() => {
                                                 setUploadedFilePath('');
                                                 setOriginalFileName('');
                                                 if (fileInputRef.current) fileInputRef.current.value = '';
-                                            }}
-                                        >
-                                            <X className="h-4 w-4" />
+                                            }}>
+                                            <X className='h-4 w-4' />
                                         </Button>
                                     </div>
 
-                                    <div className="flex gap-2">
-                                        <Button 
-                                            type="button" 
-                                            variant="outline" 
-                                            size="sm" 
-                                            className="flex-1 text-slate-700 border-slate-200"
-                                            onClick={() => openPreview(uploadedFilePath, originalFileName)}
-                                        >
-                                            <Eye className="mr-1.5 h-3.5 w-3.5" /> Preview
+                                    <div className='flex gap-2'>
+                                        <Button
+                                            type='button'
+                                            variant='outline'
+                                            size='sm'
+                                            className='flex-1 border-slate-200 text-slate-700'
+                                            onClick={() => openPreview(uploadedFilePath, originalFileName)}>
+                                            <Eye className='mr-1.5 h-3.5 w-3.5' /> Preview
                                         </Button>
-                                        <Button 
-                                            type="button" 
-                                            variant="outline" 
-                                            size="sm"
-                                            className="flex-1 text-indigo-700 border-indigo-100 hover:bg-indigo-50"
-                                            onClick={() => handleDownload(uploadedFilePath, originalFileName)}
-                                        >
-                                            <Download className="mr-1.5 h-3.5 w-3.5" /> Download
+                                        <Button
+                                            type='button'
+                                            variant='outline'
+                                            size='sm'
+                                            className='flex-1 border-indigo-100 text-indigo-700 hover:bg-indigo-50'
+                                            onClick={() => handleDownload(uploadedFilePath, originalFileName)}>
+                                            <Download className='mr-1.5 h-3.5 w-3.5' /> Download
                                         </Button>
                                     </div>
                                 </div>
@@ -612,10 +577,12 @@ export default function MasterQuestionBankPage() {
                         </div>
                     </div>
 
-                    <div className="mt-8 rounded-xl bg-slate-50 p-4 border border-slate-100">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Instructions</h4>
-                        <ul className="text-xs text-slate-600 space-y-1 list-disc pl-4">
-                            <li>All fields marked with an asterisk (<span className="text-red-500">*</span>) are mandatory.</li>
+                    <div className='mt-8 rounded-xl border border-slate-100 bg-slate-50 p-4'>
+                        <h4 className='mb-2 font-bold text-slate-500 text-xs uppercase tracking-wider'>Instructions</h4>
+                        <ul className='list-disc space-y-1 pl-4 text-slate-600 text-xs'>
+                            <li>
+                                All fields marked with an asterisk (<span className='text-red-500'>*</span>) are mandatory.
+                            </li>
                             <li>Ensure the PDF size is smaller than 5MB before upload.</li>
                             <li>Use clean naming conventions for Exam Name and Paper Name to assist AI search indexing.</li>
                         </ul>
@@ -624,52 +591,51 @@ export default function MasterQuestionBankPage() {
             </div>
 
             {/* Question Papers Grid */}
-            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-                    <div className="flex items-center gap-3">
-                        <h2 className="text-xl font-bold text-slate-800">Uploaded Question Papers</h2>
-                        <Badge variant="secondary" className="bg-indigo-50 text-indigo-700 hover:bg-indigo-50 text-xs py-0.5 px-2.5">
+            <div className='rounded-xl border border-slate-200 bg-white p-6 shadow-sm'>
+                <div className='mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between'>
+                    <div className='flex items-center gap-3'>
+                        <h2 className='font-bold text-slate-800 text-xl'>Uploaded Question Papers</h2>
+                        <Badge variant='secondary' className='bg-indigo-50 px-2.5 py-0.5 text-indigo-700 text-xs hover:bg-indigo-50'>
                             Total: {filteredQuestionPapers.length}
                         </Badge>
                     </div>
-                    
+
                     {/* Search Grid Input */}
-                    <div className="relative w-full md:w-80">
-                        <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                    <div className='relative w-full md:w-80'>
+                        <Search className='absolute top-2.5 left-3 h-4 w-4 text-slate-400' />
                         <Input
-                            placeholder="Search papers, classes, subjects..."
+                            placeholder='Search papers, classes, subjects...'
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-9 h-9"
+                            className='h-9 pl-9'
                         />
                         {searchTerm && (
-                            <button 
-                                onClick={() => setSearchTerm('')} 
-                                className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
-                            >
-                                <X className="h-4 w-4" />
+                            <button
+                                onClick={() => setSearchTerm('')}
+                                className='absolute top-2.5 right-3 text-slate-400 hover:text-slate-600'>
+                                <X className='h-4 w-4' />
                             </button>
                         )}
                     </div>
                 </div>
 
-                <div className="rounded-lg border overflow-hidden">
+                <div className='overflow-hidden rounded-lg border'>
                     <Table>
-                        <TableHeader className="bg-slate-50/70">
+                        <TableHeader className='bg-slate-50/70'>
                             <TableRow>
-                                <TableHead className="w-16 text-center font-semibold text-slate-700">Sl.No</TableHead>
-                                <TableHead className="font-semibold text-slate-700">Academic Year</TableHead>
-                                <TableHead className="font-semibold text-slate-700">Class</TableHead>
-                                <TableHead className="font-semibold text-slate-700">Exam Name</TableHead>
-                                <TableHead className="font-semibold text-slate-700">Subject Name</TableHead>
-                                <TableHead className="font-semibold text-slate-700">Question Paper Name</TableHead>
-                                <TableHead className="w-32 text-center font-semibold text-slate-700">Actions</TableHead>
+                                <TableHead className='w-16 text-center font-semibold text-slate-700'>Sl.No</TableHead>
+                                <TableHead className='font-semibold text-slate-700'>Academic Year</TableHead>
+                                <TableHead className='font-semibold text-slate-700'>Class</TableHead>
+                                <TableHead className='font-semibold text-slate-700'>Exam Name</TableHead>
+                                <TableHead className='font-semibold text-slate-700'>Subject Name</TableHead>
+                                <TableHead className='font-semibold text-slate-700'>Question Paper Name</TableHead>
+                                <TableHead className='w-32 text-center font-semibold text-slate-700'>Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {paginatedQuestionPapers.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={7} className="h-32 text-center text-slate-500">
+                                    <TableCell colSpan={7} className='h-32 text-center text-slate-500'>
                                         No question papers found.
                                     </TableCell>
                                 </TableRow>
@@ -677,47 +643,44 @@ export default function MasterQuestionBankPage() {
                                 paginatedQuestionPapers.map((x: any, index: number) => {
                                     const slNo = (currentPage - 1) * itemsPerPage + index + 1;
                                     return (
-                                        <TableRow key={x.lpprqP_Id || index} className="hover:bg-slate-50/50 transition-colors">
-                                            <TableCell className="text-center font-medium text-slate-500">{slNo}</TableCell>
-                                            <TableCell className="font-medium text-slate-800">{x.asmaY_Year || '-'}</TableCell>
-                                            <TableCell className="text-slate-600">{x.asmcL_ClassName}</TableCell>
-                                            <TableCell className="text-slate-600">{x.lpprqP_ExamName}</TableCell>
-                                            <TableCell className="text-slate-600">{x.ismS_SubjectName}</TableCell>
-                                            <TableCell className="text-slate-600 max-w-[200px] truncate" title={x.lpprqpF_FileName}>
+                                        <TableRow key={x.lpprqP_Id || index} className='transition-colors hover:bg-slate-50/50'>
+                                            <TableCell className='text-center font-medium text-slate-500'>{slNo}</TableCell>
+                                            <TableCell className='font-medium text-slate-800'>{x.asmaY_Year || '-'}</TableCell>
+                                            <TableCell className='text-slate-600'>{x.asmcL_ClassName}</TableCell>
+                                            <TableCell className='text-slate-600'>{x.lpprqP_ExamName}</TableCell>
+                                            <TableCell className='text-slate-600'>{x.ismS_SubjectName}</TableCell>
+                                            <TableCell className='max-w-[200px] truncate text-slate-600' title={x.lpprqpF_FileName}>
                                                 {x.lpprqpF_FileName}
                                             </TableCell>
-                                            <TableCell className="text-center">
-                                                <div className="flex items-center justify-center gap-1.5">
+                                            <TableCell className='text-center'>
+                                                <div className='flex items-center justify-center gap-1.5'>
                                                     {x.lpprqpF_FilePath && (
                                                         <>
-                                                            <Button 
-                                                                variant="ghost" 
-                                                                size="icon" 
-                                                                className="h-8 w-8 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50"
+                                                            <Button
+                                                                variant='ghost'
+                                                                size='icon'
+                                                                className='h-8 w-8 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-800'
                                                                 onClick={() => openPreview(x.lpprqpF_FilePath, x.lpprqpF_FileName)}
-                                                                title="Preview PDF"
-                                                            >
-                                                                <Eye className="h-4 w-4" />
+                                                                title='Preview PDF'>
+                                                                <Eye className='h-4 w-4' />
                                                             </Button>
-                                                            <Button 
-                                                                variant="ghost" 
-                                                                size="icon" 
-                                                                className="h-8 w-8 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50"
+                                                            <Button
+                                                                variant='ghost'
+                                                                size='icon'
+                                                                className='h-8 w-8 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-800'
                                                                 onClick={() => handleDownload(x.lpprqpF_FilePath, x.lpprqpF_FileName)}
-                                                                title="Download PDF"
-                                                            >
-                                                                <Download className="h-4 w-4" />
+                                                                title='Download PDF'>
+                                                                <Download className='h-4 w-4' />
                                                             </Button>
                                                         </>
                                                     )}
-                                                    <Button 
-                                                        variant="ghost" 
-                                                        size="icon" 
-                                                        className="h-8 w-8 text-red-600 hover:text-red-800 hover:bg-red-50"
+                                                    <Button
+                                                        variant='ghost'
+                                                        size='icon'
+                                                        className='h-8 w-8 text-red-600 hover:bg-red-50 hover:text-red-800'
                                                         onClick={() => handleDelete(x)}
-                                                        title="Delete Record"
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
+                                                        title='Delete Record'>
+                                                        <Trash2 className='h-4 w-4' />
                                                     </Button>
                                                 </div>
                                             </TableCell>
@@ -731,49 +694,46 @@ export default function MasterQuestionBankPage() {
 
                 {/* Local Grid Pagination */}
                 {filteredQuestionPapers.length > itemsPerPage && (
-                    <div className="flex items-center justify-between mt-5 pt-4 border-t border-slate-100">
-                        <span className="text-sm text-slate-500">
-                            Showing <span className="font-semibold text-slate-800">{((currentPage - 1) * itemsPerPage) + 1}</span> to{' '}
-                            <span className="font-semibold text-slate-800">
+                    <div className='mt-5 flex items-center justify-between border-slate-100 border-t pt-4'>
+                        <span className='text-slate-500 text-sm'>
+                            Showing <span className='font-semibold text-slate-800'>{(currentPage - 1) * itemsPerPage + 1}</span> to{' '}
+                            <span className='font-semibold text-slate-800'>
                                 {Math.min(currentPage * itemsPerPage, filteredQuestionPapers.length)}
                             </span>{' '}
-                            of <span className="font-semibold text-slate-800">{filteredQuestionPapers.length}</span> question papers
+                            of <span className='font-semibold text-slate-800'>{filteredQuestionPapers.length}</span> question papers
                         </span>
-                        
-                        <div className="flex items-center gap-1.5">
+
+                        <div className='flex items-center gap-1.5'>
                             <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-8 w-8 rounded-md"
-                                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                                disabled={currentPage === 1}
-                            >
-                                <ChevronLeft className="h-4 w-4" />
+                                variant='outline'
+                                size='icon'
+                                className='h-8 w-8 rounded-md'
+                                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                                disabled={currentPage === 1}>
+                                <ChevronLeft className='h-4 w-4' />
                             </Button>
-                            
-                            <div className="flex items-center gap-1">
+
+                            <div className='flex items-center gap-1'>
                                 {Array.from({ length: totalPages }).map((_, i) => (
                                     <Button
                                         key={i}
                                         variant={currentPage === i + 1 ? 'default' : 'outline'}
-                                        className={`h-8 w-8 p-0 text-xs rounded-md ${
+                                        className={`h-8 w-8 rounded-md p-0 text-xs ${
                                             currentPage === i + 1 ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-slate-50'
                                         }`}
-                                        onClick={() => setCurrentPage(i + 1)}
-                                    >
+                                        onClick={() => setCurrentPage(i + 1)}>
                                         {i + 1}
                                     </Button>
                                 ))}
                             </div>
 
                             <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-8 w-8 rounded-md"
-                                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                                disabled={currentPage === totalPages}
-                            >
-                                <ChevronRight className="h-4 w-4" />
+                                variant='outline'
+                                size='icon'
+                                className='h-8 w-8 rounded-md'
+                                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                                disabled={currentPage === totalPages}>
+                                <ChevronRight className='h-4 w-4' />
                             </Button>
                         </div>
                     </div>
@@ -782,78 +742,77 @@ export default function MasterQuestionBankPage() {
 
             {/* AI Search Dialog */}
             <Dialog open={isSearchModalOpen} onOpenChange={setIsSearchModalOpen}>
-                <DialogContent className="max-w-4xl p-6 rounded-2xl">
-                    <DialogHeader className="border-b pb-4">
-                        <DialogTitle className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                            <Search className="h-6 w-6 text-indigo-600" />
+                <DialogContent className='max-w-4xl rounded-2xl p-6'>
+                    <DialogHeader className='border-b pb-4'>
+                        <DialogTitle className='flex items-center gap-2 font-bold text-2xl text-slate-900'>
+                            <Search className='h-6 w-6 text-indigo-600' />
                             Search Inside PDF Question Papers
                         </DialogTitle>
                     </DialogHeader>
 
-                    <div className="space-y-6 py-4">
+                    <div className='space-y-6 py-4'>
                         {/* Search Input Control */}
-                        <div className="flex gap-2">
-                            <div className="relative flex-1">
-                                <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                                <Input 
-                                    placeholder="Type any phrase or keyword to search inside PDFs (e.g. 'Algebra', 'Newtons Laws')..." 
+                        <div className='flex gap-2'>
+                            <div className='relative flex-1'>
+                                <Search className='absolute top-3 left-3 h-4 w-4 text-slate-400' />
+                                <Input
+                                    placeholder="Type any phrase or keyword to search inside PDFs (e.g. 'Algebra', 'Newtons Laws')..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && handleAISearch()}
-                                    className="pl-9 h-10 text-sm"
+                                    className='h-10 pl-9 text-sm'
                                 />
                                 {searchQuery && (
-                                    <button 
-                                        onClick={() => setSearchQuery('')} 
-                                        className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
-                                    >
-                                        <X className="h-4 w-4" />
+                                    <button
+                                        onClick={() => setSearchQuery('')}
+                                        className='absolute top-3 right-3 text-slate-400 hover:text-slate-600'>
+                                        <X className='h-4 w-4' />
                                     </button>
                                 )}
                             </div>
-                            <Button 
-                                onClick={handleAISearch} 
-                                className="bg-indigo-600 hover:bg-indigo-700 text-white h-10 px-6 font-semibold"
-                                disabled={searchMutation.isPending}
-                            >
-                                {searchMutation.isPending ? (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                    'Search'
-                                )}
+                            <Button
+                                onClick={handleAISearch}
+                                className='h-10 bg-indigo-600 px-6 font-semibold text-white hover:bg-indigo-700'
+                                disabled={searchMutation.isPending}>
+                                {searchMutation.isPending ? <Loader2 className='h-4 w-4 animate-spin' /> : 'Search'}
                             </Button>
                         </div>
 
                         {/* Search Results Display */}
-                        <div className="max-h-[50vh] overflow-y-auto space-y-4 pr-1">
+                        <div className='max-h-[50vh] space-y-4 overflow-y-auto pr-1'>
                             {searchMutation.isPending ? (
-                                <div className="flex flex-col items-center justify-center py-20 gap-3">
-                                    <Loader2 className="h-10 w-10 animate-spin text-indigo-600" />
-                                    <p className="text-sm font-medium text-slate-600">Searching and parsing documents, please wait...</p>
+                                <div className='flex flex-col items-center justify-center gap-3 py-20'>
+                                    <Loader2 className='h-10 w-10 animate-spin text-indigo-600' />
+                                    <p className='font-medium text-slate-600 text-sm'>Searching and parsing documents, please wait...</p>
                                 </div>
                             ) : searchResults.length === 0 ? (
-                                <div className="text-center py-16 border-2 border-dashed rounded-xl border-slate-200">
-                                    <FileText className="mx-auto h-12 w-12 text-slate-300" />
-                                    <p className="mt-3 text-sm font-semibold text-slate-700">No search results</p>
-                                    <p className="text-xs text-slate-500 mt-1">Enter a query above to start deep searching inside document text.</p>
+                                <div className='rounded-xl border-2 border-slate-200 border-dashed py-16 text-center'>
+                                    <FileText className='mx-auto h-12 w-12 text-slate-300' />
+                                    <p className='mt-3 font-semibold text-slate-700 text-sm'>No search results</p>
+                                    <p className='mt-1 text-slate-500 text-xs'>
+                                        Enter a query above to start deep searching inside document text.
+                                    </p>
                                 </div>
                             ) : (
-                                <div className="space-y-4">
+                                <div className='space-y-4'>
                                     {searchResults.map((result: any, idx: number) => (
-                                        <div 
-                                            key={idx} 
-                                            className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col md:flex-row justify-between gap-4 items-start"
-                                        >
-                                            <div className="space-y-3 flex-1 min-w-0">
-                                                <div className="flex flex-wrap items-center gap-2">
-                                                    <span className="font-bold text-slate-900 text-sm truncate max-w-[280px]" title={result.pdf_filename}>
+                                        <div
+                                            key={idx}
+                                            className='flex flex-col items-start justify-between gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md md:flex-row'>
+                                            <div className='min-w-0 flex-1 space-y-3'>
+                                                <div className='flex flex-wrap items-center gap-2'>
+                                                    <span
+                                                        className='max-w-[280px] truncate font-bold text-slate-900 text-sm'
+                                                        title={result.pdf_filename}>
                                                         {result.pdf_filename}
                                                     </span>
-                                                    <Badge variant="outline" className="bg-slate-50 text-slate-700 font-medium text-xs">
+                                                    <Badge variant='outline' className='bg-slate-50 font-medium text-slate-700 text-xs'>
                                                         Page: {result.page_num || result.page_no || '-'}
                                                     </Badge>
                                                     {result.ref_no && (
-                                                        <Badge variant="outline" className="bg-indigo-50/50 text-indigo-700 border-indigo-100 text-xs">
+                                                        <Badge
+                                                            variant='outline'
+                                                            className='border-indigo-100 bg-indigo-50/50 text-indigo-700 text-xs'>
                                                             Ref: {result.ref_no}
                                                         </Badge>
                                                     )}
@@ -861,31 +820,29 @@ export default function MasterQuestionBankPage() {
 
                                                 {/* Text context snippet */}
                                                 {(result.text || result.Text) && (
-                                                    <div 
-                                                        className="text-xs text-slate-600 bg-slate-50/80 p-3 rounded-lg border border-slate-100 font-mono leading-relaxed max-h-32 overflow-y-auto"
+                                                    <div
+                                                        className='max-h-32 overflow-y-auto rounded-lg border border-slate-100 bg-slate-50/80 p-3 font-mono text-slate-600 text-xs leading-relaxed'
                                                         dangerouslySetInnerHTML={{ __html: result.text || result.Text }}
                                                     />
                                                 )}
                                             </div>
 
-                                            <div className="flex gap-2 w-full md:w-auto shrink-0 justify-end">
+                                            <div className='flex w-full shrink-0 justify-end gap-2 md:w-auto'>
                                                 {result.file_path && (
                                                     <>
-                                                        <Button 
-                                                            variant="outline" 
-                                                            size="sm"
-                                                            className="text-slate-700 border-slate-200"
-                                                            onClick={() => openPreview(result.file_path, result.pdf_filename)}
-                                                        >
-                                                            <Eye className="mr-1 h-3.5 w-3.5" /> View
+                                                        <Button
+                                                            variant='outline'
+                                                            size='sm'
+                                                            className='border-slate-200 text-slate-700'
+                                                            onClick={() => openPreview(result.file_path, result.pdf_filename)}>
+                                                            <Eye className='mr-1 h-3.5 w-3.5' /> View
                                                         </Button>
-                                                        <Button 
-                                                            variant="outline" 
-                                                            size="sm"
-                                                            className="text-indigo-700 border-indigo-100 hover:bg-indigo-50"
-                                                            onClick={() => handleDownload(result.file_path, result.pdf_filename)}
-                                                        >
-                                                            <Download className="mr-1 h-3.5 w-3.5" /> Download
+                                                        <Button
+                                                            variant='outline'
+                                                            size='sm'
+                                                            className='border-indigo-100 text-indigo-700 hover:bg-indigo-50'
+                                                            onClick={() => handleDownload(result.file_path, result.pdf_filename)}>
+                                                            <Download className='mr-1 h-3.5 w-3.5' /> Download
                                                         </Button>
                                                     </>
                                                 )}
@@ -901,23 +858,15 @@ export default function MasterQuestionBankPage() {
 
             {/* General PDF Preview Dialog */}
             <Dialog open={isPreviewModalOpen} onOpenChange={setIsPreviewModalOpen}>
-                <DialogContent className="max-w-5xl p-4 rounded-2xl">
-                    <DialogHeader className="border-b pb-2 mb-2 flex flex-row items-center justify-between">
-                        <DialogTitle className="text-lg font-bold text-slate-900 truncate pr-8">
-                            Preview: {previewFileName}
-                        </DialogTitle>
+                <DialogContent className='max-w-5xl rounded-2xl p-4'>
+                    <DialogHeader className='mb-2 flex flex-row items-center justify-between border-b pb-2'>
+                        <DialogTitle className='truncate pr-8 font-bold text-lg text-slate-900'>Preview: {previewFileName}</DialogTitle>
                     </DialogHeader>
-                    <div className="w-full rounded-lg overflow-hidden border border-slate-200 bg-slate-100">
+                    <div className='w-full overflow-hidden rounded-lg border border-slate-200 bg-slate-100'>
                         {previewUrl ? (
-                            <iframe 
-                                src={`${previewUrl}#toolbar=0`} 
-                                className="w-full h-[75vh]" 
-                                title={previewFileName}
-                            />
+                            <iframe src={`${previewUrl}#toolbar=0`} className='h-[75vh] w-full' title={previewFileName} />
                         ) : (
-                            <div className="flex h-[50vh] items-center justify-center text-slate-500">
-                                PDF content cannot be previewed.
-                            </div>
+                            <div className='flex h-[50vh] items-center justify-center text-slate-500'>PDF content cannot be previewed.</div>
                         )}
                     </div>
                 </DialogContent>

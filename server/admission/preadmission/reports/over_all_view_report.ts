@@ -1,6 +1,6 @@
 'use server';
 
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 
 /**
  * Get initial details for Over All View Report (Academic Years, etc.)
@@ -9,7 +9,6 @@ import { api, type ApiResponse } from '@/lib/apiService';
 export const getOverAllViewReportInitialDetails = async (): Promise<ApiResponse<any>> => {
     return api.get('admission', '/Smartcarddetails/getinitialdata');
 };
-
 
 export async function getOverAllViewReportData(data: {
     ASMAY_Id: number;

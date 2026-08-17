@@ -1,17 +1,22 @@
 'use client';
+import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { AdaptiveDialog } from '@/components/ui/extension/adaptive-dialog';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useLeaveAppliedOrApprovalGrid, useApproveOrRejectLeaveStatus, useViewLeaveBalanceHistory, useApprovedLeave } from '@/hooks/hrms/leave-management/useLeaveApproval';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+    useApproveOrRejectLeaveStatus,
+    useApprovedLeave,
+    useLeaveAppliedOrApprovalGrid,
+    useViewLeaveBalanceHistory
+} from '@/hooks/hrms/leave-management/useLeaveApproval';
+import { cn } from '@/lib/utils';
+import { Check, Loader2, X } from 'lucide-react';
 import { use, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { type LeaveApprovalRow, getLeaveApprovalColumns } from './_components/columns';
 import { LeaveApprovalForm, type LeaveApprovalFormData } from './_components/leave-approval-form';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Check, Loader2, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function LeaveApprovalPage(props: { searchParams: SearchParams }) {
     const _searchParams = use(props.searchParams);
@@ -62,12 +67,7 @@ interface LeaveApprovalPageContentProps {
     };
 }
 
-function LeaveApprovalPageContent({
-    response,
-    isLoading,
-    error,
-    mockResponse
-}: LeaveApprovalPageContentProps) {
+function LeaveApprovalPageContent({ response, isLoading, error, mockResponse }: LeaveApprovalPageContentProps) {
     const { openEditForm } = useFormContext<LeaveApprovalRow>();
     const tableProps = useDataTableProps(mockResponse);
     const { refetchAll } = useLeaveAppliedOrApprovalGrid();
@@ -79,7 +79,7 @@ function LeaveApprovalPageContent({
     const [isProcessing, setIsProcessing] = useState(false);
 
     // Track final state of processed items to show correct remarks/status
-    const [finalProcessedData, setFinalProcessedData] = useState<Record<number, { status: string, remark: string }>>({});
+    const [finalProcessedData, setFinalProcessedData] = useState<Record<number, { status: string; remark: string }>>({});
     // Track recently processed IDs locally to ensure they show up even if API refetch is slow
     const [recentlyProcessedIds, setRecentlyProcessedIds] = useState<Set<number>>(new Set());
 
@@ -107,15 +107,11 @@ function LeaveApprovalPageContent({
     };
 
     const updateStagedStatus = (hrelaP_Id: number, status: string) => {
-        setStagedLeaves((prev) =>
-            prev.map((item) => (item.hrelaP_Id === hrelaP_Id ? { ...item, leaveStatus: status } : item))
-        );
+        setStagedLeaves((prev) => prev.map((item) => (item.hrelaP_Id === hrelaP_Id ? { ...item, leaveStatus: status } : item)));
     };
 
     const updateStagedRemark = (hrelaP_Id: number, remark: string) => {
-        setStagedLeaves((prev) =>
-            prev.map((item) => (item.hrelaP_Id === hrelaP_Id ? { ...item, remark } : item))
-        );
+        setStagedLeaves((prev) => prev.map((item) => (item.hrelaP_Id === hrelaP_Id ? { ...item, remark } : item)));
     };
 
     const handleSaveStaged = async () => {
@@ -126,21 +122,24 @@ function LeaveApprovalPageContent({
             // Group by employee if needed, but the current payload seems to be per employee.
             // If the API signature matches what's in the server-action, we might need to call it multiple times
             // or modify how we call it. Grouping by employee is safest.
-            const groupedByEmployee = stagedLeaves.reduce((acc, current) => {
-                const empId = current.hrmE_Id;
-                if (!acc[empId]) {
-                    acc[empId] = [];
-                }
-                acc[empId].push(current);
-                return acc;
-            }, {} as Record<number, LeaveApprovalRow[]>);
+            const groupedByEmployee = stagedLeaves.reduce(
+                (acc, current) => {
+                    const empId = current.hrmE_Id;
+                    if (!acc[empId]) {
+                        acc[empId] = [];
+                    }
+                    acc[empId].push(current);
+                    return acc;
+                },
+                {} as Record<number, LeaveApprovalRow[]>
+            );
 
             for (const empId in groupedByEmployee) {
                 const empLeaves = groupedByEmployee[empId];
                 const firstLeave = empLeaves[0];
 
-                const hasRejection = empLeaves.some(l => l.leaveStatus === 'Rejected');
-                const hasApproval = empLeaves.some(l => l.leaveStatus === 'Approved');
+                const hasRejection = empLeaves.some((l) => l.leaveStatus === 'Rejected');
+                const hasApproval = empLeaves.some((l) => l.leaveStatus === 'Approved');
                 const actionType = hasRejection && !hasApproval ? 'Reject' : 'Approve';
 
                 const payload = {
@@ -165,19 +164,19 @@ function LeaveApprovalPageContent({
             }
 
             // Track final state and IDs as processed
-            const processedIds = stagedLeaves.map(l => l.hrelaP_Id);
-            const finalStateUpdates: Record<number, { status: string, remark: string }> = {};
-            stagedLeaves.forEach(l => {
+            const processedIds = stagedLeaves.map((l) => l.hrelaP_Id);
+            const finalStateUpdates: Record<number, { status: string; remark: string }> = {};
+            stagedLeaves.forEach((l) => {
                 finalStateUpdates[l.hrelaP_Id] = {
                     status: l.leaveStatus,
                     remark: l.remark || (l.leaveStatus === 'Approved' ? 'Approved' : 'Rejected')
                 };
             });
 
-            setFinalProcessedData(prev => ({ ...prev, ...finalStateUpdates }));
-            setRecentlyProcessedIds(prev => {
+            setFinalProcessedData((prev) => ({ ...prev, ...finalStateUpdates }));
+            setRecentlyProcessedIds((prev) => {
                 const updated = new Set(prev);
-                processedIds.forEach(id => updated.add(id));
+                processedIds.forEach((id) => updated.add(id));
                 return updated;
             });
 
@@ -207,8 +206,7 @@ function LeaveApprovalPageContent({
         // Option 1: Combine mockResponse data that is processed
         const currentDataProcessed = (mockResponse.data || []).filter(
             (item: LeaveApprovalRow) =>
-                (item.leaveStatus !== 'Applied' && item.leaveStatus !== 'Pending') ||
-                recentlyProcessedIds.has(item.hrelaP_Id)
+                (item.leaveStatus !== 'Applied' && item.leaveStatus !== 'Pending') || recentlyProcessedIds.has(item.hrelaP_Id)
         );
 
         // Option 2: Add data from approvedResponse if available
@@ -227,7 +225,7 @@ function LeaveApprovalPageContent({
         }));
 
         // Merge and deduplicate
-        const combined = [...currentDataProcessed].map(item => {
+        const combined = [...currentDataProcessed].map((item) => {
             if (finalProcessedData[item.hrelaP_Id]) {
                 return {
                     ...item,
@@ -238,8 +236,8 @@ function LeaveApprovalPageContent({
             return item;
         });
 
-        approvedFromApi.forEach(item => {
-            if (!combined.find(p => p.hrelaP_Id === item.hrelaP_Id)) {
+        approvedFromApi.forEach((item) => {
+            if (!combined.find((p) => p.hrelaP_Id === item.hrelaP_Id)) {
                 // If we have local final data, use it for API items too (until API refresh is confirmed)
                 const localFinal = finalProcessedData[item.hrelaP_Id];
                 combined.push(localFinal ? { ...item, leaveStatus: localFinal.status, remark: localFinal.remark } : item);
@@ -252,8 +250,7 @@ function LeaveApprovalPageContent({
     const pendingLeaves = useMemo(() => {
         return (mockResponse.data || []).filter(
             (item: LeaveApprovalRow) =>
-                (item.leaveStatus === 'Applied' || item.leaveStatus === 'Pending') &&
-                !recentlyProcessedIds.has(item.hrelaP_Id)
+                (item.leaveStatus === 'Applied' || item.leaveStatus === 'Pending') && !recentlyProcessedIds.has(item.hrelaP_Id)
         );
     }, [mockResponse.data, recentlyProcessedIds]);
 
@@ -319,7 +316,7 @@ function LeaveApprovalPageContent({
                                                 <TableCell className='text-center'>
                                                     <select
                                                         className={cn(
-                                                            'rounded border bg-background px-2 py-1 text-sm font-medium',
+                                                            'rounded border bg-background px-2 py-1 font-medium text-sm',
                                                             item.leaveStatus === 'Approved'
                                                                 ? 'border-green-200 text-green-600'
                                                                 : 'border-red-200 text-red-600'
@@ -369,7 +366,7 @@ function LeaveApprovalPageContent({
                                                 <TableCell className='text-center'>
                                                     <span
                                                         className={cn(
-                                                            'inline-flex rounded-full px-2 py-1 text-xs font-semibold',
+                                                            'inline-flex rounded-full px-2 py-1 font-semibold text-xs',
                                                             item.leaveStatus === 'Approved'
                                                                 ? 'bg-green-100 text-green-700'
                                                                 : 'bg-red-100 text-red-700'
@@ -452,7 +449,7 @@ function BalanceHistoryContent({ hrmeId }: { hrmeId: number | null }) {
     }
 
     if (error) {
-        return <div className='p-8 text-center text-red-500 font-medium'>Error loading balance history</div>;
+        return <div className='p-8 text-center font-medium text-red-500'>Error loading balance history</div>;
     }
 
     const historyData = response?.data || [];

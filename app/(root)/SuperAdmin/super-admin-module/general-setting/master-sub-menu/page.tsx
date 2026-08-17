@@ -1,18 +1,5 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { tableSearchVariables } from '@/lib/data-table.config';
-import { deleteMasterSubMenu, getMasterSubMenuData } from '@/server/super-admin/super-admin-module/general-setting/master-sub-menu';
-import type { IMasterSubMenu } from '@/types/super-admin/super-admin-module/general-setting/master-sub-menu';
-import { Plus, X } from 'lucide-react';
-import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
-import React, { useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import AddMasterSubMenuForm from './_components/add-form';
-import { columns } from './_components/columns';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -21,9 +8,22 @@ import {
     AlertDialogDescription,
     AlertDialogFooter,
     AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+    AlertDialogTitle
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Spinner } from '@/components/ui/spinner';
+import { tableSearchVariables } from '@/lib/data-table.config';
+import { deleteMasterSubMenu, getMasterSubMenuData } from '@/server/super-admin/super-admin-module/general-setting/master-sub-menu';
+import type { IMasterSubMenu } from '@/types/super-admin/super-admin-module/general-setting/master-sub-menu';
+import { Plus, X } from 'lucide-react';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import AddMasterSubMenuForm from './_components/add-form';
+import { columns } from './_components/columns';
 
 export default function MasterSubMenuPage() {
     return (
@@ -40,26 +40,17 @@ function MasterSubMenuPageContent() {
     const [totalItems, setTotalItems] = useState(0);
 
     // Sync with URL params
-    const [page] = useQueryState(
-        tableSearchVariables.page,
-        parseAsInteger.withOptions({ shallow: false }).withDefault(1)
-    );
+    const [page] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
     const [pageSize] = useQueryState(
         tableSearchVariables.page_size,
         parseAsInteger.withOptions({ shallow: false, history: 'push' }).withDefault(10)
     );
-    const [sortBy] = useQueryState(
-        tableSearchVariables.sort_column,
-        parseAsString.withOptions({ shallow: false }).withDefault('')
-    );
+    const [sortBy] = useQueryState(tableSearchVariables.sort_column, parseAsString.withOptions({ shallow: false }).withDefault(''));
     const [sortDirection] = useQueryState(
         tableSearchVariables.sort_direction,
         parseAsString.withOptions({ shallow: false }).withDefault('')
     );
-    const [searchQuery] = useQueryState(
-        tableSearchVariables.search,
-        parseAsString.withOptions({ shallow: false }).withDefault('')
-    );
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
 
     const fetchData = () => {
         setIsLoading(true);
@@ -69,7 +60,7 @@ function MasterSubMenuPageContent() {
             sort_column: sortBy,
             sort_direction: sortDirection,
             search_query: searchQuery
-        }).then(res => {
+        }).then((res) => {
             if (res.success) {
                 setData(res.data || []);
                 setTotalItems(res.total || 0);
@@ -94,25 +85,14 @@ function MasterSubMenuPageContent() {
                     type='button'
                     onClick={openAddForm}
                     className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                    <Plus className='h-4 w-4 mr-2' />
+                    <Plus className='mr-2 h-4 w-4' />
                     Add Master Sub Menu
                 </Button>
             </div>
 
-            <CollapsibleSection
-                title='Master Sub Menu'
-                defaultOpen={true}
-                variant='default'
-                size='lg'
-                className='shadow-lg'
-            >
+            <CollapsibleSection title='Master Sub Menu' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                 <div className='p-4'>
-                    <GenericDataTable
-                        data={data}
-                        columns={columns}
-                        isLoading={isLoading}
-                        totalItems={totalItems}
-                    />
+                    <GenericDataTable data={data} columns={columns} isLoading={isLoading} totalItems={totalItems} />
                 </div>
             </CollapsibleSection>
 
@@ -174,8 +154,7 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
                         defaultOpen={true}
                         variant='outline'
                         size='lg'
-                        className='shadow-lg animate-in slide-in-from-top-2'
-                    >
+                        className='slide-in-from-top-2 animate-in shadow-lg'>
                         <div className='relative'>
                             <Button
                                 type='button'
@@ -198,8 +177,7 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
                         defaultOpen={true}
                         variant='outline'
                         size='lg'
-                        className='shadow-lg animate-in slide-in-from-top-2'
-                    >
+                        className='slide-in-from-top-2 animate-in shadow-lg'>
                         <div className='relative'>
                             <Button
                                 type='button'
@@ -226,8 +204,14 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={(e) => { e.preventDefault(); handleDelete(); }} disabled={isDeleting} className="bg-destructive hover:bg-destructive/90">
-                            {isDeleting ? <Spinner className="mr-2 h-4 w-4" /> : <X className="mr-2 h-4 w-4" />}
+                        <AlertDialogAction
+                            onClick={(e) => {
+                                e.preventDefault();
+                                handleDelete();
+                            }}
+                            disabled={isDeleting}
+                            className='bg-destructive hover:bg-destructive/90'>
+                            {isDeleting ? <Spinner className='mr-2 h-4 w-4' /> : <X className='mr-2 h-4 w-4' />}
                             Delete
                         </AlertDialogAction>
                     </AlertDialogFooter>

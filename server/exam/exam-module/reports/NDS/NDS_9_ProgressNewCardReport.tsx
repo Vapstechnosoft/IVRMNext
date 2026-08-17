@@ -1,27 +1,42 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import {
-    NDS9ReportPayload,
-    NDS9ReportResponse,
-    ClassListResponse,
-    SectionListResponse,
-    StudentListResponse,
-    NDS9ReportData,
-    NDS15ReportData,
-    NDS15ReportResponse
-} from '@/types/exam/NDS/NDS_9_ProgressNewCardReport';
+import type { NDS9ReportData, NDS9ReportPayload, NDS9ReportResponse, NDS15ReportData } from '@/types/exam/NDS/NDS_9_ProgressNewCardReport';
 
 function extractDataList(res: any): any[] {
     if (!res) return [];
     if (Array.isArray(res)) return res;
     if (Array.isArray(res.data) && res.data.length > 0) return res.data;
     if (res.data && typeof res.data === 'object') {
-        const arr = res.data.getclasslist || res.data.classlist || res.data.classList || res.data.fillclass || res.data.getsectionlist || res.data.sectionlist || res.data.sectionList || res.data.fillsection || res.data.getstudentdetails || res.data.studentlist || res.data.studentList || [];
+        const arr =
+            res.data.getclasslist ||
+            res.data.classlist ||
+            res.data.classList ||
+            res.data.fillclass ||
+            res.data.getsectionlist ||
+            res.data.sectionlist ||
+            res.data.sectionList ||
+            res.data.fillsection ||
+            res.data.getstudentdetails ||
+            res.data.studentlist ||
+            res.data.studentList ||
+            [];
         if (Array.isArray(arr) && arr.length > 0) return arr;
     }
     if (typeof res === 'object') {
-        const arr = res.getclasslist || res.classlist || res.classList || res.fillclass || res.getsectionlist || res.sectionlist || res.sectionList || res.fillsection || res.getstudentdetails || res.studentlist || res.studentList || [];
+        const arr =
+            res.getclasslist ||
+            res.classlist ||
+            res.classList ||
+            res.fillclass ||
+            res.getsectionlist ||
+            res.sectionlist ||
+            res.sectionList ||
+            res.fillsection ||
+            res.getstudentdetails ||
+            res.studentlist ||
+            res.studentList ||
+            [];
         if (Array.isArray(arr) && arr.length > 0) return arr;
     }
     if (Array.isArray(res.data)) return res.data;
@@ -109,7 +124,10 @@ export async function getStudents(asmay_id: number, asmcl_id: number, asms_id: n
 
     // 3. Try GET /exam_master_category/students_drop_down_by_year_class_section_list
     try {
-        const res3 = await api.get<any>('exam', `/exam_master_category/students_drop_down_by_year_class_section_list?ASMAY_Id=${asmay_id}&ASMCL_Id=${asmcl_id}&ASMS_Id=${asms_id}`);
+        const res3 = await api.get<any>(
+            'exam',
+            `/exam_master_category/students_drop_down_by_year_class_section_list?ASMAY_Id=${asmay_id}&ASMCL_Id=${asmcl_id}&ASMS_Id=${asms_id}`
+        );
         if (extractDataList(res3).length > 0) return res3;
     } catch (e) {
         console.warn('GET students failed:', e);

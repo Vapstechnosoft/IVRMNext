@@ -8,11 +8,16 @@ export async function getMasterHouses(searchParams?: ApiSearchparams) {
     // Map frontend column names to backend PascalCase DMO field names for sorting and searching
     const params = {
         ...searchParams,
-        sort_column: searchParams?.sort_column === 'spccmH_Id' ? 'SPCCMH_Id' : 
-                    searchParams?.sort_column === 'spccmH_HouseName' ? 'SPCCMH_HouseName' : 
-                    searchParams?.sort_column === 'spccmH_HouseDescription' ? 'SPCCMH_HouseDescription' :
-                    searchParams?.sort_column === 'spccmH_Flag' ? 'SPCCMH_Flag' :
-                    searchParams?.sort_column || '',
+        sort_column:
+            searchParams?.sort_column === 'spccmH_Id'
+                ? 'SPCCMH_Id'
+                : searchParams?.sort_column === 'spccmH_HouseName'
+                  ? 'SPCCMH_HouseName'
+                  : searchParams?.sort_column === 'spccmH_HouseDescription'
+                    ? 'SPCCMH_HouseDescription'
+                    : searchParams?.sort_column === 'spccmH_Flag'
+                      ? 'SPCCMH_Flag'
+                      : searchParams?.sort_column || '',
         search_columns: searchParams?.search_query ? 'SPCCMH_HouseName,SPCCMH_HouseDescription,SPCCMH_Flag' : ''
     };
 
@@ -20,7 +25,6 @@ export async function getMasterHouses(searchParams?: ApiSearchparams) {
     const url = `/SportsMasterHouse/getdetails?${urlParams}`;
     return await api.post<IMasterHouse[]>('sports', url, {});
 }
-
 
 export async function getMasterHouseDetails(id: number) {
     const url = `/SportsMasterHouse/editdata?SPCCMH_Id=${id}`;

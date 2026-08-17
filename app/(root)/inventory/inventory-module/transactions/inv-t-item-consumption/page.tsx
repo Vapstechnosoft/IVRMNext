@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Heading } from '@/components/layout/heading';
@@ -7,12 +6,8 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useInvTItemConsumption } from '@/hooks/inventory/transactions/use-inv-t-item-consumption';
-import {
-    invTItemConsumptionSchema,
-    type InvTItemConsumptionSchema,
-} from '@/schemas/inventory/transactions/inv-t-item-consumption';
 import type { InvTItemConsumption } from '@/types/inventory/transactions/inv-t-item-consumption';
-import { Plus, X, PackageMinus, PlusCircle, Pencil, List } from 'lucide-react';
+import { PackageMinus, Pencil, Plus, PlusCircle, X } from 'lucide-react';
 import { use } from 'react';
 import AddItemConsumptionForm from './_components/add-form';
 import { invTItemConsumptionColumns } from './_components/columns';
@@ -22,29 +17,17 @@ import { ViewStaffModal } from './_components/view-staff-modal';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import { tableSearchVariables } from '@/lib/data-table.config';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 
 export default function InvTItemConsumptionPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
 
     // Pagination & Search State synced with URL
-    const [currentPage] = useQueryState(
-        tableSearchVariables.page,
-        parseAsInteger.withOptions({ shallow: false }).withDefault(1)
-    );
-    const [pageSize] = useQueryState(
-        tableSearchVariables.page_size,
-        parseAsInteger.withOptions({ shallow: false }).withDefault(10)
-    );
-    const [searchQuery] = useQueryState(
-        tableSearchVariables.search,
-        parseAsString.withOptions({ shallow: false }).withDefault('')
-    );
-    const [sortColumn] = useQueryState(
-        tableSearchVariables.sort_column,
-        parseAsString.withOptions({ shallow: false }).withDefault('')
-    );
+    const [currentPage] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
+    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
+    const [sortColumn] = useQueryState(tableSearchVariables.sort_column, parseAsString.withOptions({ shallow: false }).withDefault(''));
     const [sortDirection] = useQueryState(
         tableSearchVariables.sort_direction,
         parseAsString.withOptions({ shallow: false }).withDefault('asc')
@@ -63,11 +46,7 @@ export default function InvTItemConsumptionPage(props: { searchParams: SearchPar
 
     return (
         <FormProvider<InvTItemConsumption>>
-            <InvTItemConsumptionPageContent
-                response={response}
-                isLoading={isLoading}
-                error={error}
-            />
+            <InvTItemConsumptionPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
@@ -111,15 +90,9 @@ function InvTItemConsumptionPageContent({
         <div className='min-h-screen'>
             <div className='container space-y-4 p-4'>
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <Heading
-                        title='Item Consumption Transaction'
-                        description='Manage item consumption records'
-                    />
-                    <Button
-                        type='button'
-                        onClick={openAddForm}
-                        className='w-fit shadow-md transition-all duration-200 hover:scale-105'>
-                        <Plus className='h-4 w-4 mr-2' />
+                    <Heading title='Item Consumption Transaction' description='Manage item consumption records' />
+                    <Button type='button' onClick={openAddForm} className='w-fit shadow-md transition-all duration-200 hover:scale-105'>
+                        <Plus className='mr-2 h-4 w-4' />
                         New Consumption
                     </Button>
                 </div>
@@ -154,7 +127,7 @@ function InvTItemConsumptionPageContent({
                             defaultOpen={true}
                             variant='outline'
                             size='md'
-                            className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6'
+                            className='slide-in-from-top-4 mb-6 animate-in shadow-md duration-300'
                             icon={<PlusCircle className='h-5 w-5' />}>
                             <div className='relative'>
                                 <Button
@@ -162,8 +135,8 @@ function InvTItemConsumptionPageContent({
                                     onClick={closeAddForm}
                                     variant='ghost'
                                     size='sm'
-                                    className='absolute top-[-3.5rem] right-12 w-fit border p-2 shadow-md hover:bg-destructive/10 text-destructive'>
-                                    <X className='h-4 w-4 mr-1' /> Close
+                                    className='absolute top-[-3.5rem] right-12 w-fit border p-2 text-destructive shadow-md hover:bg-destructive/10'>
+                                    <X className='mr-1 h-4 w-4' /> Close
                                 </Button>
                                 <AddItemConsumptionForm onSuccess={closeAddForm} />
                             </div>
@@ -178,7 +151,7 @@ function InvTItemConsumptionPageContent({
                             defaultOpen={true}
                             variant='outline'
                             size='md'
-                            className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6 border-primary/20'
+                            className='slide-in-from-top-4 mb-6 animate-in border-primary/20 shadow-md duration-300'
                             icon={<Pencil className='h-5 w-5' />}>
                             <div className='relative'>
                                 <Button
@@ -186,8 +159,8 @@ function InvTItemConsumptionPageContent({
                                     onClick={closeEditForm}
                                     variant='ghost'
                                     size='sm'
-                                    className='absolute top-[-3.5rem] right-12 w-fit border p-2 shadow-md hover:bg-destructive/10 text-destructive'>
-                                    <X className='h-4 w-4 mr-1' /> Close
+                                    className='absolute top-[-3.5rem] right-12 w-fit border p-2 text-destructive shadow-md hover:bg-destructive/10'>
+                                    <X className='mr-1 h-4 w-4' /> Close
                                 </Button>
                                 <AddItemConsumptionForm onSuccess={closeEditForm} initialData={selectedRow} />
                             </div>
@@ -195,9 +168,7 @@ function InvTItemConsumptionPageContent({
                     </div>
                 )}
 
-                {isToggleFormOpen && selectedRow && (
-                    <ToggleItemConsumptionModal rowData={selectedRow} onClose={closeToggleForm} />
-                )}
+                {isToggleFormOpen && selectedRow && <ToggleItemConsumptionModal rowData={selectedRow} onClose={closeToggleForm} />}
 
                 {isDetailsViewOpen && selectedRow && selectedRow.invmiC_Remarks === 'VIEW_ITEMS' && (
                     <ViewItemsModal rowData={selectedRow} onClose={closeDetailsView} />

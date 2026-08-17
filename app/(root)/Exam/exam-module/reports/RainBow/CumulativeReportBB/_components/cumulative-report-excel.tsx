@@ -160,10 +160,7 @@ export default function CumulativeReportExcel({ reportData, subjects, headerInfo
             });
 
             // Total columns
-            row.push(
-                isAbsent ? '' : (student.estmP_TotalMaxMarks ?? ''),
-                isAbsent ? '' : (student.estmP_TotalObtMarks ?? '')
-            );
+            row.push(isAbsent ? '' : (student.estmP_TotalMaxMarks ?? ''), isAbsent ? '' : (student.estmP_TotalObtMarks ?? ''));
 
             if (columnFlags.readmit) {
                 row.push(isAbsent || student.estmP_Percentage == null ? '' : `${Number(student.estmP_Percentage).toFixed(2)}%`);

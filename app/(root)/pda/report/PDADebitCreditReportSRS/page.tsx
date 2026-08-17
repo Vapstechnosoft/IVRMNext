@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
-import { useReactToPrint } from 'react-to-print';
+import type { IPDAReportItem, IPDAReportResponse, IPDAStudent } from '@/types/pda/report/debit-credit-report';
 import { format } from 'date-fns';
-import * as XLSX from 'xlsx';
 import { XCircle } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { useReactToPrint } from 'react-to-print';
+import * as XLSX from 'xlsx';
 import PDADebitCreditReportForm from './_components/PDADebitCreditReportForm';
 import PDADebitCreditReportGrid from './_components/PDADebitCreditReportGrid';
-import type { IPDAReportItem, IPDAStudent, IPDAReportResponse } from '@/types/pda/report/debit-credit-report';
 
 export default function PDADebitCreditReportSRSPage() {
     const [reportData, setReportData] = useState<IPDAReportResponse | null>(null);
@@ -50,8 +50,8 @@ export default function PDADebitCreditReportSRSPage() {
             reportData.type === 'All'
                 ? reportData.get_allreport
                 : reportData.type === 'CR'
-                    ? reportData.get_creditreport
-                    : reportData.get_debitreport
+                  ? reportData.get_creditreport
+                  : reportData.get_debitreport
         );
 
         if (!rows || rows.length === 0) return;
@@ -87,8 +87,7 @@ export default function PDADebitCreditReportSRSPage() {
     return (
         <div className='min-h-screen'>
             <div className='container space-y-6 p-4'>
-                <div className='space-y-1'>
-                </div>
+                <div className='space-y-1'></div>
 
                 <PDADebitCreditReportForm
                     onReportGenerated={handleReportGenerated}
@@ -99,7 +98,7 @@ export default function PDADebitCreditReportSRSPage() {
                 />
 
                 {rows.length > 0 && student && fromDate && toDate && (
-                    <div className='animate-in fade-in slide-in-from-bottom-4 duration-500'>
+                    <div className='fade-in slide-in-from-bottom-4 animate-in duration-500'>
                         <PDADebitCreditReportGrid
                             reportType={reportData!.type}
                             rows={rows}
@@ -112,9 +111,9 @@ export default function PDADebitCreditReportSRSPage() {
                 )}
 
                 {rows.length === 0 && hasSearched && (
-                    <div className='flex flex-col items-center justify-center p-20 bg-white rounded-xl border border-dashed border-gray-300 shadow-sm'>
-                        <XCircle className='h-12 w-12 text-muted-foreground/30 mb-4' />
-                        <p className='text-muted-foreground font-medium'>No records found for the selected criteria.</p>
+                    <div className='flex flex-col items-center justify-center rounded-xl border border-gray-300 border-dashed bg-white p-20 shadow-sm'>
+                        <XCircle className='mb-4 h-12 w-12 text-muted-foreground/30' />
+                        <p className='font-medium text-muted-foreground'>No records found for the selected criteria.</p>
                     </div>
                 )}
             </div>

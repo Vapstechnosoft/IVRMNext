@@ -1,18 +1,18 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Search, BarChart2 } from 'lucide-react';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useCountStatusReportData, useCountStatusReportInitialDetails } from '@/hooks/admission/preadmission/reports/useCountStatusReport';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { BarChart2, Search } from 'lucide-react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { toast } from 'sonner';
+import * as z from 'zod';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658'];
 
@@ -49,7 +49,7 @@ export default function CountStatusReport() {
 
                 if (countReportStatus.length > 0 || applicationStatus.length > 0) {
                     setAdmissionData(countReportStatus);
-                    
+
                     const mappedAppStatus = applicationStatus.map((item: any) => {
                         let statusName = '';
                         if (item.PASRAPS_ID === 787926) statusName = 'APP WAITING';
@@ -63,7 +63,7 @@ export default function CountStatusReport() {
                             data: item.data
                         };
                     });
-                    
+
                     setApplicationData(mappedAppStatus);
                     setShowGraphs(true);
                 } else {
@@ -91,45 +91,48 @@ export default function CountStatusReport() {
         { accessorKey: 'data', header: 'Count' }
     ];
 
-    const admissionChartData = admissionData.map(item => ({
+    const admissionChartData = admissionData.map((item) => ({
         name: item.PAMST_Status,
         value: item.Data_count
     }));
 
-    const applicationChartData = applicationData.map(item => ({
+    const applicationChartData = applicationData.map((item) => ({
         name: item.statusName,
         value: item.data
     }));
 
     return (
-        <div className="flex flex-col gap-4">
+        <div className='flex flex-col gap-4'>
             <Card>
                 <CardHeader>
                     <CardTitle>Status Count Report</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
+                            <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
                                 <FormField
                                     control={form.control}
-                                    name="ASMAY_Id"
+                                    name='ASMAY_Id'
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Academic Year <span className="text-red-500">*</span></FormLabel>
+                                            <FormLabel>
+                                                Academic Year <span className='text-red-500'>*</span>
+                                            </FormLabel>
                                             <Select onValueChange={field.onChange} value={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="Select Academic Year" />
+                                                        <SelectValue placeholder='Select Academic Year' />
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    <SelectItem value="0">ALL</SelectItem>
-                                                    {Array.isArray(initialDetails?.academicList) && initialDetails?.academicList?.map((item: any) => (
-                                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                            {item.asmaY_Year}
-                                                        </SelectItem>
-                                                    ))}
+                                                    <SelectItem value='0'>ALL</SelectItem>
+                                                    {Array.isArray(initialDetails?.academicList) &&
+                                                        initialDetails?.academicList?.map((item: any) => (
+                                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                                {item.asmaY_Year}
+                                                            </SelectItem>
+                                                        ))}
                                                 </SelectContent>
                                             </Select>
                                             <FormMessage />
@@ -138,14 +141,14 @@ export default function CountStatusReport() {
                                 />
                             </div>
 
-                            <div className="flex justify-center gap-2">
-                                <Button type="submit" disabled={isPending || isInitialLoading}>
-                                    <Search className="w-4 h-4 mr-2" />
+                            <div className='flex justify-center gap-2'>
+                                <Button type='submit' disabled={isPending || isInitialLoading}>
+                                    <Search className='mr-2 h-4 w-4' />
                                     Search
                                 </Button>
                                 {showGraphs && (
-                                    <Button type="button" variant="outline" onClick={() => setShowGraphs(!showGraphs)}>
-                                        <BarChart2 className="w-4 h-4 mr-2" />
+                                    <Button type='button' variant='outline' onClick={() => setShowGraphs(!showGraphs)}>
+                                        <BarChart2 className='mr-2 h-4 w-4' />
                                         View Graphs
                                     </Button>
                                 )}
@@ -160,25 +163,23 @@ export default function CountStatusReport() {
                     <CardHeader>
                         <CardTitle>Application Status Details</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-6">
-                        <GenericDataTable
-                            data={applicationData}
-                            columns={applicationColumns}
-                            isLoading={isPending}
-                        />
+                    <CardContent className='space-y-6'>
+                        <GenericDataTable data={applicationData} columns={applicationColumns} isLoading={isPending} />
 
                         {showGraphs && (
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                <div className="h-[300px]">
-                                    <h3 className="text-center text-sm font-semibold mb-4">Chart Representation Of Application Status Count</h3>
-                                    <ResponsiveContainer width="100%" height="100%">
+                            <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
+                                <div className='h-[300px]'>
+                                    <h3 className='mb-4 text-center font-semibold text-sm'>
+                                        Chart Representation Of Application Status Count
+                                    </h3>
+                                    <ResponsiveContainer width='100%' height='100%'>
                                         <BarChart data={applicationChartData}>
-                                            <CartesianGrid strokeDasharray="3 3" />
-                                            <XAxis dataKey="name" />
+                                            <CartesianGrid strokeDasharray='3 3' />
+                                            <XAxis dataKey='name' />
                                             <YAxis />
                                             <Tooltip />
                                             <Legend />
-                                            <Bar dataKey="value" fill="#8884d8" name="Count">
+                                            <Bar dataKey='value' fill='#8884d8' name='Count'>
                                                 {applicationChartData.map((entry, index) => (
                                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                                 ))}
@@ -186,21 +187,20 @@ export default function CountStatusReport() {
                                         </BarChart>
                                     </ResponsiveContainer>
                                 </div>
-                                <div className="h-[300px]">
-                                    <h3 className="text-center text-sm font-semibold mb-4">Application Status Distribution</h3>
-                                    <ResponsiveContainer width="100%" height="100%">
+                                <div className='h-[300px]'>
+                                    <h3 className='mb-4 text-center font-semibold text-sm'>Application Status Distribution</h3>
+                                    <ResponsiveContainer width='100%' height='100%'>
                                         <PieChart>
                                             <Pie
                                                 data={applicationChartData}
-                                                cx="50%"
-                                                cy="50%"
+                                                cx='50%'
+                                                cy='50%'
                                                 innerRadius={60}
                                                 outerRadius={100}
-                                                fill="#8884d8"
+                                                fill='#8884d8'
                                                 paddingAngle={5}
-                                                dataKey="value"
-                                                label
-                                            >
+                                                dataKey='value'
+                                                label>
                                                 {applicationChartData.map((entry, index) => (
                                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                                 ))}
@@ -221,25 +221,23 @@ export default function CountStatusReport() {
                     <CardHeader>
                         <CardTitle>Status Details</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-6">
-                        <GenericDataTable
-                            data={admissionData}
-                            columns={admissionColumns}
-                            isLoading={isPending}
-                        />
+                    <CardContent className='space-y-6'>
+                        <GenericDataTable data={admissionData} columns={admissionColumns} isLoading={isPending} />
 
                         {showGraphs && (
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                <div className="h-[300px]">
-                                    <h3 className="text-center text-sm font-semibold mb-4">Chart Representation Of Admission Status Count</h3>
-                                    <ResponsiveContainer width="100%" height="100%">
+                            <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
+                                <div className='h-[300px]'>
+                                    <h3 className='mb-4 text-center font-semibold text-sm'>
+                                        Chart Representation Of Admission Status Count
+                                    </h3>
+                                    <ResponsiveContainer width='100%' height='100%'>
                                         <BarChart data={admissionChartData}>
-                                            <CartesianGrid strokeDasharray="3 3" />
-                                            <XAxis dataKey="name" />
+                                            <CartesianGrid strokeDasharray='3 3' />
+                                            <XAxis dataKey='name' />
                                             <YAxis />
                                             <Tooltip />
                                             <Legend />
-                                            <Bar dataKey="value" fill="#82ca9d" name="Count">
+                                            <Bar dataKey='value' fill='#82ca9d' name='Count'>
                                                 {admissionChartData.map((entry, index) => (
                                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                                 ))}
@@ -247,21 +245,20 @@ export default function CountStatusReport() {
                                         </BarChart>
                                     </ResponsiveContainer>
                                 </div>
-                                <div className="h-[300px]">
-                                    <h3 className="text-center text-sm font-semibold mb-4">Admission Status Distribution</h3>
-                                    <ResponsiveContainer width="100%" height="100%">
+                                <div className='h-[300px]'>
+                                    <h3 className='mb-4 text-center font-semibold text-sm'>Admission Status Distribution</h3>
+                                    <ResponsiveContainer width='100%' height='100%'>
                                         <PieChart>
                                             <Pie
                                                 data={admissionChartData}
-                                                cx="50%"
-                                                cy="50%"
+                                                cx='50%'
+                                                cy='50%'
                                                 innerRadius={60}
                                                 outerRadius={100}
-                                                fill="#82ca9d"
+                                                fill='#82ca9d'
                                                 paddingAngle={5}
-                                                dataKey="value"
-                                                label
-                                            >
+                                                dataKey='value'
+                                                label>
                                                 {admissionChartData.map((entry, index) => (
                                                     <Cell key={`cell-${index}`} fill={COLORS[(index + 3) % COLORS.length]} />
                                                 ))}

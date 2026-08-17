@@ -1,17 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
+import type { IClass, IPromotionRemarksInitialData, ISection } from '@/types/staff-portal/promotion-remarks';
 import { Loader2 } from 'lucide-react';
-import type {
-    IPromotionRemarksInitialData,
-    IClass,
-    ISection
-} from '@/types/staff-portal/promotion-remarks';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 interface PromotionRemarksFilterProps {
     initialData?: IPromotionRemarksInitialData;
@@ -50,7 +46,9 @@ export default function PromotionRemarksFilter({
         try {
             const res = await getClasses({ ASMAY_Id: yearId });
             setClasses(res.getclass || []);
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            console.error(e);
+        }
     };
 
     const handleClassChange = async (value: string) => {
@@ -60,7 +58,9 @@ export default function PromotionRemarksFilter({
         try {
             const res = await getSections({ ASMAY_Id: Number(selectedYear), ASMCL_Id: Number(value) });
             setSections(res.getsection || []);
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            console.error(e);
+        }
     };
 
     const handleSearch = () => {
@@ -76,56 +76,77 @@ export default function PromotionRemarksFilter({
     };
 
     return (
-        <Card className="mb-6">
-            <CardHeader><CardTitle>Promotion Remarks Selection</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                        <Label>Academic Year <span className="text-red-500">*</span></Label>
-                        <Select value={selectedYear} onValueChange={(v) => { setSelectedYear(v); fetchClasses(Number(v)); }}>
+        <Card className='mb-6'>
+            <CardHeader>
+                <CardTitle>Promotion Remarks Selection</CardTitle>
+            </CardHeader>
+            <CardContent className='space-y-4'>
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+                    <div className='space-y-2'>
+                        <Label>
+                            Academic Year <span className='text-red-500'>*</span>
+                        </Label>
+                        <Select
+                            value={selectedYear}
+                            onValueChange={(v) => {
+                                setSelectedYear(v);
+                                fetchClasses(Number(v));
+                            }}>
                             <SelectTrigger>
-                                <SelectValue placeholder="Select Year" />
+                                <SelectValue placeholder='Select Year' />
                             </SelectTrigger>
                             <SelectContent>
-                                {initialData?.year_list?.map(y => (
-                                    <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>{y.asmaY_Year}</SelectItem>
+                                {initialData?.year_list?.map((y) => (
+                                    <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                        {y.asmaY_Year}
+                                    </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
                     </div>
-                    <div className="space-y-2">
-                        <Label>Class <span className="text-red-500">*</span></Label>
+                    <div className='space-y-2'>
+                        <Label>
+                            Class <span className='text-red-500'>*</span>
+                        </Label>
                         <Select value={selectedClass} onValueChange={handleClassChange}>
                             <SelectTrigger>
-                                <SelectValue placeholder="Select Class" />
+                                <SelectValue placeholder='Select Class' />
                             </SelectTrigger>
                             <SelectContent>
-                                {classes.map(c => (
-                                    <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>{c.asmcL_ClassName}</SelectItem>
+                                {classes.map((c) => (
+                                    <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
+                                        {c.asmcL_ClassName}
+                                    </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
                     </div>
-                    <div className="space-y-2">
-                        <Label>Section <span className="text-red-500">*</span></Label>
+                    <div className='space-y-2'>
+                        <Label>
+                            Section <span className='text-red-500'>*</span>
+                        </Label>
                         <Select value={selectedSection} onValueChange={setSelectedSection}>
                             <SelectTrigger>
-                                <SelectValue placeholder="Select Section" />
+                                <SelectValue placeholder='Select Section' />
                             </SelectTrigger>
                             <SelectContent>
-                                {sections.map(s => (
-                                    <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>{s.asmC_SectionName}</SelectItem>
+                                {sections.map((s) => (
+                                    <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
+                                        {s.asmC_SectionName}
+                                    </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
                     </div>
                 </div>
-                <div className="flex justify-center gap-4 pt-4">
+                <div className='flex justify-center gap-4 pt-4'>
                     <Button onClick={handleSearch} disabled={isLoading}>
-                        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                        {isLoading ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
                         Search
                     </Button>
-                    <Button variant="outline" onClick={onReset} className="text-red-500">Cancel</Button>
+                    <Button variant='outline' onClick={onReset} className='text-red-500'>
+                        Cancel
+                    </Button>
                 </div>
             </CardContent>
         </Card>

@@ -5,7 +5,7 @@ export async function fetchAdmissionAnalytics() {
         const response = await fetch('https://dashboard-backend-86hjhy0fy-sai-kumar-projects6.vercel.app/dashboard', {
             next: { revalidate: 0 },
             headers: {
-                'Accept': 'application/json'
+                Accept: 'application/json'
             }
         });
         if (!response.ok) {

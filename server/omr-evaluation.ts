@@ -4,7 +4,7 @@ export async function evaluateOmr(formData: FormData) {
     try {
         const response = await fetch('https://omrivrm.vercel.app/evaluate/pdf', {
             method: 'POST',
-            body: formData,
+            body: formData
         });
 
         if (!response.ok) {
@@ -14,7 +14,7 @@ export async function evaluateOmr(formData: FormData) {
 
         const buffer = await response.arrayBuffer();
 
-        // Return as base64 or similar if needed, but since we want a file, 
+        // Return as base64 or similar if needed, but since we want a file,
         // we'll return the arrayBuffer as a base64 string for the client to convert back to a blob
         return {
             success: true,
@@ -29,4 +29,3 @@ export async function evaluateOmr(formData: FormData) {
         };
     }
 }
-

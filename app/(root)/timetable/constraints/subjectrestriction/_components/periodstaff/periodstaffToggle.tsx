@@ -6,7 +6,7 @@ import { FormError } from '@/components/ui/extension/field';
 import { useSubjectRestrictionPeriodStaffGridData } from '@/hooks/timetable/constraints/subjectrestriction';
 import { masterDaySchema } from '@/schemas/timetable/masters';
 import { ToggleSubjectPeriodStaff } from '@/server/timetable/constraints/subjectrestriction';
-import { SubjectRestrictionPeriodStaffGridData } from '@/types/timetable/constraints/subjectRestrictions';
+import type { SubjectRestrictionPeriodStaffGridData } from '@/types/timetable/constraints/subjectRestrictions';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -63,7 +63,8 @@ export default function PeriodStaffToggle({ rowData, onClose }: ToggleSubjectPer
                         Are you sure you want to {isActive ? 'deactivate' : 'activate'}{' '}
                         <strong>
                             {rowData.staffName} ({rowData.ttmP_PeriodName})
-                        </strong>?
+                        </strong>
+                        ?
                     </p>
                     <FormError>{errors.ttmD_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>

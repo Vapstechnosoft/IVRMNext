@@ -1,7 +1,7 @@
 'use client';
 
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { FormProvider } from '@/components/ui/form/form-provider';
 import AddAutoMappingForm from './_components/add-form';
 
 export default function AutoMappingPage() {
@@ -21,8 +21,7 @@ function AutoMappingPageContent() {
                 defaultOpen={true}
                 variant='default'
                 size='lg'
-                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
-            >
+                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                 <AddAutoMappingForm />
             </CollapsibleSection>
         </div>

@@ -1,30 +1,30 @@
 'use client';
 
 import { format } from 'date-fns';
-import { RotateCcw, Printer, Loader2, Check, Search, X, Calendar as CalendarIcon } from 'lucide-react';
-import { useRef, useState, useEffect } from 'react';
+import { Calendar as CalendarIcon, Check, Loader2, Printer, Search, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Label } from '@/components/ui/extension/field';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Popover as PopoverRoot } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { Popover as PopoverRoot } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
 
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import {
-    useDanvantariBonafideLoadData,
-    useChangeYearDanvantariBonafide,
-    useChangeCourseDanvantariBonafide,
     useChangeBranchDanvantariBonafide,
+    useChangeCourseDanvantariBonafide,
     useChangeSemesterDanvantariBonafide,
-    useDanvantariBonafideSearchFilter,
-    useDanvantariBonafideReport
+    useChangeYearDanvantariBonafide,
+    useDanvantariBonafideLoadData,
+    useDanvantariBonafideReport,
+    useDanvantariBonafideSearchFilter
 } from '@/hooks/admission/preadmission/reports/useDanvantariBonafideCertificate';
 
 export default function DanvantariBonafideCertificatePage() {
@@ -171,7 +171,7 @@ export default function DanvantariBonafideCertificatePage() {
     /* -------------------- Actions -------------------- */
     const handleReport = async () => {
         const validationErrors: string[] = [];
-        
+
         if (!academicYearId) validationErrors.push('Please select Academic Year');
         if (reportType === 'I') {
             if (!courseId) validationErrors.push('Please select Course');
@@ -185,7 +185,7 @@ export default function DanvantariBonafideCertificatePage() {
         if (validationErrors.length > 0) {
             validationErrors.forEach((msg) => {
                 toast.error(msg.toLowerCase(), {
-                    id: msg,
+                    id: msg
                 });
             });
             return;
@@ -204,8 +204,8 @@ export default function DanvantariBonafideCertificatePage() {
 
         try {
             const res = (await reportMutation.mutateAsync(payload)) as any;
-            const data = (res?.data);
-            console.log("errrwrwrw", data);
+            const data = res?.data;
+            console.log('errrwrwrw', data);
             if (data?.getstudentlist?.length > 0) {
                 setReportData(data);
                 setShowReport(true);
@@ -240,20 +240,19 @@ export default function DanvantariBonafideCertificatePage() {
     });
 
     return (
-        <div className='min-h-screen p-4 space-y-6'>
+        <div className='min-h-screen space-y-6 p-4'>
             <CollapsibleSection
                 title='Bonafide Certificate Report'
                 description='Generate study and conduct certificates for Danvantari students'
                 defaultOpen={true}
                 variant='outline'
                 className='shadow-lg'>
-
                 <div className='space-y-6 bg-white p-6'>
                     {/* Top Filters */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         {/* Selection Type */}
-                        <div className='flex flex-col space-y-2 rounded-lg border p-4 bg-gray-50/50'>
-                            <Label className='text-xs font-bold text-gray-500 uppercase tracking-wider'>Selection Type</Label>
+                        <div className='flex flex-col space-y-2 rounded-lg border bg-gray-50/50 p-4'>
+                            <Label className='font-bold text-gray-500 text-xs uppercase tracking-wider'>Selection Type</Label>
                             <RadioGroup
                                 value={reportType}
                                 onValueChange={(v) => {
@@ -267,47 +266,56 @@ export default function DanvantariBonafideCertificatePage() {
                                 className='flex space-x-6'>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='A' id='sel-all' />
-                                    <Label htmlFor='sel-all' className='text-sm font-medium'>All</Label>
+                                    <Label htmlFor='sel-all' className='font-medium text-sm'>
+                                        All
+                                    </Label>
                                 </div>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='I' id='sel-ind' />
-                                    <Label htmlFor='sel-ind' className='text-sm font-medium'>Individual</Label>
+                                    <Label htmlFor='sel-ind' className='font-medium text-sm'>
+                                        Individual
+                                    </Label>
                                 </div>
                             </RadioGroup>
                         </div>
 
                         {/* Student Status */}
-                        <div className='flex flex-col space-y-2 rounded-lg border p-4 bg-gray-50/50'>
-                            <Label className='text-xs font-bold text-gray-500 uppercase tracking-wider'>Student Status</Label>
-                            <RadioGroup
-                                value={studentStatus}
-                                onValueChange={(v) => setStudentStatus(v as any)}
-                                className='flex space-x-6'>
+                        <div className='flex flex-col space-y-2 rounded-lg border bg-gray-50/50 p-4'>
+                            <Label className='font-bold text-gray-500 text-xs uppercase tracking-wider'>Student Status</Label>
+                            <RadioGroup value={studentStatus} onValueChange={(v) => setStudentStatus(v as any)} className='flex space-x-6'>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='S' id='st-studying' />
-                                    <Label htmlFor='st-studying' className='text-sm font-medium'>Studying</Label>
+                                    <Label htmlFor='st-studying' className='font-medium text-sm'>
+                                        Studying
+                                    </Label>
                                 </div>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='D' id='st-deactive' />
-                                    <Label htmlFor='st-deactive' className='text-sm font-medium'>Deactive</Label>
+                                    <Label htmlFor='st-deactive' className='font-medium text-sm'>
+                                        Deactive
+                                    </Label>
                                 </div>
                             </RadioGroup>
                         </div>
 
                         {/* Certificate Type */}
-                        <div className='flex flex-col space-y-2 rounded-lg border p-4 bg-gray-50/50'>
-                            <Label className='text-xs font-bold text-gray-500 uppercase tracking-wider'>Certificate For</Label>
+                        <div className='flex flex-col space-y-2 rounded-lg border bg-gray-50/50 p-4'>
+                            <Label className='font-bold text-gray-500 text-xs uppercase tracking-wider'>Certificate For</Label>
                             <RadioGroup
                                 value={certificateType}
                                 onValueChange={(v) => setCertificateType(v as any)}
                                 className='flex space-x-6'>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='1' id='cert-bonafide' />
-                                    <Label htmlFor='cert-bonafide' className='text-sm font-medium'>Bonafide</Label>
+                                    <Label htmlFor='cert-bonafide' className='font-medium text-sm'>
+                                        Bonafide
+                                    </Label>
                                 </div>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='0' id='cert-conduct' />
-                                    <Label htmlFor='cert-conduct' className='text-sm font-medium'>Conduct</Label>
+                                    <Label htmlFor='cert-conduct' className='font-medium text-sm'>
+                                        Conduct
+                                    </Label>
                                 </div>
                             </RadioGroup>
                         </div>
@@ -317,14 +325,18 @@ export default function DanvantariBonafideCertificatePage() {
                         {/* Left Column: Cascading Selects */}
                         <div className='space-y-4'>
                             <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
-                                <Label className='text-sm font-bold'>Academic Year:<span className='text-red-500'>*</span></Label>
+                                <Label className='font-bold text-sm'>
+                                    Academic Year:<span className='text-red-500'>*</span>
+                                </Label>
                                 <Select value={academicYearId?.toString()} onValueChange={(v) => handleYearChange(Number(v))}>
                                     <SelectTrigger className='h-9'>
                                         <SelectValue placeholder='Select Year' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {initialYearList.map((item: any) => (
-                                            <SelectItem key={item.asmaY_Id || item.ASMAY_Id} value={String(item.asmaY_Id ?? item.ASMAY_Id ?? '')}>
+                                            <SelectItem
+                                                key={item.asmaY_Id || item.ASMAY_Id}
+                                                value={String(item.asmaY_Id ?? item.ASMAY_Id ?? '')}>
                                                 {item.asmaY_Year || item.ASMAY_Year}
                                             </SelectItem>
                                         ))}
@@ -333,18 +345,21 @@ export default function DanvantariBonafideCertificatePage() {
                             </div>
 
                             <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
-                                <Label className='text-sm font-bold'>Course:<span className={reportType === 'I' ? 'text-red-500' : 'hidden'}>*</span></Label>
+                                <Label className='font-bold text-sm'>
+                                    Course:<span className={reportType === 'I' ? 'text-red-500' : 'hidden'}>*</span>
+                                </Label>
                                 <Select
                                     disabled={reportType === 'A'}
                                     value={courseId?.toString()}
-                                    onValueChange={(v) => handleCourseChange(Number(v))}
-                                >
+                                    onValueChange={(v) => handleCourseChange(Number(v))}>
                                     <SelectTrigger className='h-9'>
                                         <SelectValue placeholder='Select Course' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {courseList.map((item: any) => (
-                                            <SelectItem key={item.amcO_Id || item.AMCO_Id} value={String(item.amcO_Id ?? item.AMCO_Id ?? '')}>
+                                            <SelectItem
+                                                key={item.amcO_Id || item.AMCO_Id}
+                                                value={String(item.amcO_Id ?? item.AMCO_Id ?? '')}>
                                                 {item.amcO_CourseName || item.AMCO_CourseName}
                                             </SelectItem>
                                         ))}
@@ -353,12 +368,13 @@ export default function DanvantariBonafideCertificatePage() {
                             </div>
 
                             <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
-                                <Label className='text-sm font-bold'>Branch:<span className={reportType === 'I' ? 'text-red-500' : 'hidden'}>*</span></Label>
+                                <Label className='font-bold text-sm'>
+                                    Branch:<span className={reportType === 'I' ? 'text-red-500' : 'hidden'}>*</span>
+                                </Label>
                                 <Select
                                     disabled={reportType === 'A'}
                                     value={branchId?.toString()}
-                                    onValueChange={(v) => handleBranchChange(Number(v))}
-                                >
+                                    onValueChange={(v) => handleBranchChange(Number(v))}>
                                     <SelectTrigger className='h-9'>
                                         <SelectValue placeholder='Select Branch' />
                                     </SelectTrigger>
@@ -373,18 +389,21 @@ export default function DanvantariBonafideCertificatePage() {
                             </div>
 
                             <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
-                                <Label className='text-sm font-bold'>Semester:<span className={reportType === 'I' ? 'text-red-500' : 'hidden'}>*</span></Label>
+                                <Label className='font-bold text-sm'>
+                                    Semester:<span className={reportType === 'I' ? 'text-red-500' : 'hidden'}>*</span>
+                                </Label>
                                 <Select
                                     disabled={reportType === 'A'}
                                     value={semesterId?.toString()}
-                                    onValueChange={(v) => handleSemesterChange(Number(v))}
-                                >
+                                    onValueChange={(v) => handleSemesterChange(Number(v))}>
                                     <SelectTrigger className='h-9'>
                                         <SelectValue placeholder='Select Semester' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {semesterList.map((item: any) => (
-                                            <SelectItem key={item.amsE_Id || item.AMSE_Id} value={String(item.amsE_Id ?? item.AMSE_Id ?? '')}>
+                                            <SelectItem
+                                                key={item.amsE_Id || item.AMSE_Id}
+                                                value={String(item.amsE_Id ?? item.AMSE_Id ?? '')}>
                                                 {item.amsE_SEMName || item.AMSE_SEMName}
                                             </SelectItem>
                                         ))}
@@ -393,18 +412,21 @@ export default function DanvantariBonafideCertificatePage() {
                             </div>
 
                             <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
-                                <Label className='text-sm font-bold'>Section:<span className={reportType === 'I' ? 'text-red-500' : 'hidden'}>*</span></Label>
+                                <Label className='font-bold text-sm'>
+                                    Section:<span className={reportType === 'I' ? 'text-red-500' : 'hidden'}>*</span>
+                                </Label>
                                 <Select
                                     disabled={reportType === 'A'}
                                     value={sectionId?.toString()}
-                                    onValueChange={(v) => setSectionId(Number(v))}
-                                >
+                                    onValueChange={(v) => setSectionId(Number(v))}>
                                     <SelectTrigger className='h-9'>
                                         <SelectValue placeholder='Select Section' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {sectionList.map((item: any) => (
-                                            <SelectItem key={item.acmS_Id || item.ACMS_Id} value={String(item.acmS_Id ?? item.ACMS_Id ?? '')}>
+                                            <SelectItem
+                                                key={item.acmS_Id || item.ACMS_Id}
+                                                value={String(item.acmS_Id ?? item.ACMS_Id ?? '')}>
                                                 {item.acmS_SectionName || item.ACMS_SectionName}
                                             </SelectItem>
                                         ))}
@@ -416,23 +438,24 @@ export default function DanvantariBonafideCertificatePage() {
                         {/* Right Column: Other inputs */}
                         <div className='space-y-4'>
                             <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
-                                <Label className='text-sm font-bold'>Date:<span className='text-red-500'>*</span></Label>
+                                <Label className='font-bold text-sm'>
+                                    Date:<span className='text-red-500'>*</span>
+                                </Label>
                                 <PopoverRoot>
                                     <PopoverTrigger asChild>
                                         <Button
-                                            variant={"outline"}
+                                            variant={'outline'}
                                             className={cn(
-                                                "w-full justify-start text-left font-normal h-9",
-                                                !reportDate && "text-muted-foreground"
-                                            )}
-                                        >
-                                            <CalendarIcon className="mr-2 h-4 w-4" />
-                                            {reportDate ? format(reportDate, "PPP") : <span>Pick a date</span>}
+                                                'h-9 w-full justify-start text-left font-normal',
+                                                !reportDate && 'text-muted-foreground'
+                                            )}>
+                                            <CalendarIcon className='mr-2 h-4 w-4' />
+                                            {reportDate ? format(reportDate, 'PPP') : <span>Pick a date</span>}
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
+                                    <PopoverContent className='w-auto p-0' align='start'>
                                         <Calendar
-                                            mode="single"
+                                            mode='single'
                                             selected={reportDate}
                                             onSelect={(date) => date && setReportDate(date)}
                                             initialFocus
@@ -442,38 +465,41 @@ export default function DanvantariBonafideCertificatePage() {
                             </div>
 
                             <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
-                                <Label className='text-sm font-bold'>Student Name:<span className='text-red-500'>*</span></Label>
+                                <Label className='font-bold text-sm'>
+                                    Student Name:<span className='text-red-500'>*</span>
+                                </Label>
                                 <Popover open={studentOpen} onOpenChange={setStudentOpen}>
                                     <PopoverTrigger asChild>
                                         <Button
-                                            variant="outline"
-                                            role="combobox"
+                                            variant='outline'
+                                            role='combobox'
                                             className={cn(
-                                                "w-full justify-between h-9 bg-white border-input font-normal",
-                                                studentId === null && "text-muted-foreground"
-                                            )}
-                                        >
-                                            <span className="truncate pr-2">
+                                                'h-9 w-full justify-between border-input bg-white font-normal',
+                                                studentId === null && 'text-muted-foreground'
+                                            )}>
+                                            <span className='truncate pr-2'>
                                                 {studentId !== null
-                                                    ? (studentList.find((s: any) => (s.amcsT_Id ?? s.AMCST_Id) === studentId)?.studentname || studentList.find((s: any) => (s.amcsT_Id ?? s.AMCST_Id) === studentId)?.studentName || "Selected Student")
-                                                    : "Search Student (min 3 chars)"}
+                                                    ? studentList.find((s: any) => (s.amcsT_Id ?? s.AMCST_Id) === studentId)?.studentname ||
+                                                      studentList.find((s: any) => (s.amcsT_Id ?? s.AMCST_Id) === studentId)?.studentName ||
+                                                      'Selected Student'
+                                                    : 'Search Student (min 3 chars)'}
                                             </span>
-                                            <div className="flex items-center shrink-0">
+                                            <div className='flex shrink-0 items-center'>
                                                 {searchFilterMutation.isPending ? (
-                                                    <Loader2 className="h-4 w-4 animate-spin opacity-50" />
+                                                    <Loader2 className='h-4 w-4 animate-spin opacity-50' />
                                                 ) : (
                                                     <>
                                                         {studentId && (
                                                             <X
-                                                                className="h-4 w-4 mr-2 opacity-50 hover:opacity-100 transition-opacity cursor-pointer"
+                                                                className='mr-2 h-4 w-4 cursor-pointer opacity-50 transition-opacity hover:opacity-100'
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
                                                                     setStudentId(null);
-                                                                    setSearchTerm("");
+                                                                    setSearchTerm('');
                                                                 }}
                                                             />
                                                         )}
-                                                        <Search className="h-4 w-4 opacity-50" />
+                                                        <Search className='h-4 w-4 opacity-50' />
                                                     </>
                                                 )}
                                             </div>
@@ -482,20 +508,22 @@ export default function DanvantariBonafideCertificatePage() {
                                     <PopoverContent className='w-[450px] p-0 shadow-2xl' align='start'>
                                         <Command shouldFilter={false} className='w-full'>
                                             <CommandInput
-                                                placeholder="Type to search (min 3 chars)..."
+                                                placeholder='Type to search (min 3 chars)...'
                                                 value={searchTerm}
                                                 onValueChange={setSearchTerm}
                                             />
                                             <CommandList>
                                                 <CommandEmpty>
                                                     {searchFilterMutation.isPending ? (
-                                                        <div className="flex items-center justify-center p-4">
-                                                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                                        <div className='flex items-center justify-center p-4'>
+                                                            <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                                                             <span>Loading...</span>
                                                         </div>
-                                                    ) : "No student found."}
+                                                    ) : (
+                                                        'No student found.'
+                                                    )}
                                                 </CommandEmpty>
-                                                <CommandGroup className="max-h-64 overflow-y-auto">
+                                                <CommandGroup className='max-h-64 overflow-y-auto'>
                                                     {studentList.map((s: any, index: number) => (
                                                         <CommandItem
                                                             key={s.amcsT_Id ?? s.AMCST_Id ?? index}
@@ -503,14 +531,20 @@ export default function DanvantariBonafideCertificatePage() {
                                                             onSelect={() => {
                                                                 setStudentId(s.amcsT_Id ?? s.AMCST_Id);
                                                                 setStudentOpen(false);
-                                                                setSearchTerm("");
+                                                                setSearchTerm('');
                                                             }}
-                                                            className="flex items-center justify-between"
-                                                        >
-                                                            <div className="flex items-center">
-                                                                <Check className={cn('mr-2 h-4 w-4 text-indigo-600', studentId === (s.amcsT_Id ?? s.AMCST_Id) ? 'opacity-100' : 'opacity-0')} />
-                                                                <div className="flex flex-col">
-                                                                    <span className="font-medium">{s.studentname || s.studentName}</span>
+                                                            className='flex items-center justify-between'>
+                                                            <div className='flex items-center'>
+                                                                <Check
+                                                                    className={cn(
+                                                                        'mr-2 h-4 w-4 text-indigo-600',
+                                                                        studentId === (s.amcsT_Id ?? s.AMCST_Id)
+                                                                            ? 'opacity-100'
+                                                                            : 'opacity-0'
+                                                                    )}
+                                                                />
+                                                                <div className='flex flex-col'>
+                                                                    <span className='font-medium'>{s.studentname || s.studentName}</span>
                                                                     {/* <span className="text-[10px] text-muted-foreground">Adm: {s.admno || s.amsT_AdmNo}</span> */}
                                                                 </div>
                                                             </div>
@@ -524,9 +558,9 @@ export default function DanvantariBonafideCertificatePage() {
                             </div>
 
                             <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
-                                <Label className='text-sm font-bold'>Hall Ticket No:</Label>
+                                <Label className='font-bold text-sm'>Hall Ticket No:</Label>
                                 <input
-                                    type="text"
+                                    type='text'
                                     className='flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm outline-none focus:ring-2 focus:ring-indigo-200'
                                     placeholder='Enter Hall Ticket No'
                                     value={hallTicketNo}
@@ -547,26 +581,26 @@ export default function DanvantariBonafideCertificatePage() {
                         </div>
                     </div>
 
-                    <div className='flex flex-wrap justify-center gap-6 pt-8 border-t'>
+                    <div className='flex flex-wrap justify-center gap-6 border-t pt-8'>
                         <Button
                             size='lg'
                             onClick={handleReport}
                             disabled={reportMutation.isPending}
-                            className='w-40 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold'>
+                            className='w-40 rounded-xl bg-indigo-600 font-bold text-white hover:bg-indigo-700'>
                             {reportMutation.isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : 'REPORT'}
                         </Button>
                         <Button
                             size='lg'
-                            variant="outline"
+                            variant='outline'
                             onClick={handleReset}
-                            className='w-40 border-2 border-orange-200 text-orange-600 rounded-xl font-bold'>
+                            className='w-40 rounded-xl border-2 border-orange-200 font-bold text-orange-600'>
                             CANCEL
                         </Button>
                         <Button
                             size='lg'
                             onClick={handlePrint}
                             disabled={!showReport}
-                            className='w-40 bg-zinc-800 hover:bg-zinc-900 text-white rounded-xl font-bold'>
+                            className='w-40 rounded-xl bg-zinc-800 font-bold text-white hover:bg-zinc-900'>
                             <Printer className='mr-2 h-4 w-4' />
                             PRINT
                         </Button>
@@ -575,106 +609,311 @@ export default function DanvantariBonafideCertificatePage() {
             </CollapsibleSection>
 
             {/* Certificate Preview */}
-            {showReport && reportData && reportData.getstudentlist?.map((student: any, index: number) => (
-                <div key={index} className='mt-8 flex flex-col items-center bg-gray-50 p-4 md:p-8 rounded-2xl border-2 border-dashed border-indigo-200 overflow-auto'>
-                    <div ref={printRef} className='bg-white shadow-2xl w-[297mm] min-h-[210mm] p-0 printable-content'>
-
-                        {/* 1. BONAFIDE (STUDY) CERTIFICATE */}
-                        {certificateType === '1' && (
-                            <div className="certificate-page relative p-[10mm] flex flex-col" style={{ width: '297mm', height: '210mm', pageBreakAfter: 'always', margin: '0 auto' }}>
-                                <div className="border-2 border-black p-[8mm] h-full flex flex-col rounded-[15px]">
-
-                                    {/* Header */}
-                                    <div className="mb-8 border-b-2 border-black pb-6">
-                                        <div className="w-full">
-                                            <img
-                                                src={reportData.logo || "https://dcampusstrg.blob.core.windows.net/files/19/ISM_Attachments/2460aa04-2aee-4131-a407-25d84394aeb1.jpg"}
-                                                alt="Institution Logo"
-                                                className="w-full h-auto object-contain"
-                                            />
+            {showReport &&
+                reportData &&
+                reportData.getstudentlist?.map((student: any, index: number) => (
+                    <div
+                        key={index}
+                        className='mt-8 flex flex-col items-center overflow-auto rounded-2xl border-2 border-indigo-200 border-dashed bg-gray-50 p-4 md:p-8'>
+                        <div ref={printRef} className='printable-content min-h-[210mm] w-[297mm] bg-white p-0 shadow-2xl'>
+                            {/* 1. BONAFIDE (STUDY) CERTIFICATE */}
+                            {certificateType === '1' && (
+                                <div
+                                    className='certificate-page relative flex flex-col p-[10mm]'
+                                    style={{ width: '297mm', height: '210mm', pageBreakAfter: 'always', margin: '0 auto' }}>
+                                    <div className='flex h-full flex-col rounded-[15px] border-2 border-black p-[8mm]'>
+                                        {/* Header */}
+                                        <div className='mb-8 border-black border-b-2 pb-6'>
+                                            <div className='w-full'>
+                                                <img
+                                                    src={
+                                                        reportData.logo ||
+                                                        'https://dcampusstrg.blob.core.windows.net/files/19/ISM_Attachments/2460aa04-2aee-4131-a407-25d84394aeb1.jpg'
+                                                    }
+                                                    alt='Institution Logo'
+                                                    className='h-auto w-full object-contain'
+                                                />
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    {/* Title */}
-                                    <div className="text-center mb-6">
-                                        <h2 className="text-[#4f81bd] text-3xl font-black uppercase tracking-tight">BONAFIDE CERTIFICATE</h2>
-                                    </div>
-
-                                    {/* Stats Row */}
-                                    <div className="flex justify-between items-center text-[22px] font-serif px-4 mb-10">
-                                        <div><b>Admission NO.:</b> <b className="px-2" contentEditable suppressContentEditableWarning>{student.admno}</b></div>
-                                        <div><b>Date:</b> <b className="px-2">{format(reportDate, 'dd/MM/yyyy')}</b></div>
-                                    </div>
-
-                                    {/* Body Text */}
-                                    <div className="text-[18px] leading-[3] font-serif text-justify px-[7px]" style={{ fontFamily: "'Times New Roman', Times, serif" }}>
-                                        <p>
-                                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; This is to certify that Master/Kumari <strong className="border-b-2 border-black inline-block px-1 uppercase translate-y-1" suppressContentEditableWarning>{student.studentname || <span className="opacity-0">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>}</strong> S/o.D/o. <strong className="border-b-2 border-black inline-block px-1 translate-y-1" suppressContentEditableWarning>{student.fathername || <span className="opacity-0">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>}</strong> bearing H.T. No. <strong className="border-b-2 border-black inline-block min-w-[200px] px-1 translate-y-1" contentEditable suppressContentEditableWarning>{hallTicketNo || student.registrationno || <span className="opacity-0">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>}</strong> is a bonafide student of this institution, is studying in <strong className="border-b-2 border-black px-1 translate-y-1" contentEditable suppressContentEditableWarning>{student.coursename || <span className="opacity-0">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>}</strong> year <strong className="border-b-2 border-black px-1 translate-y-1" contentEditable suppressContentEditableWarning>{student.semestername || <span className="opacity-0">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>}</strong> semester of IV year B.Pharmacy degree course for the Academic Year <strong className="border-b-2 border-black px-1 translate-y-1" contentEditable suppressContentEditableWarning>{student.acadamicyear || <span className="opacity-0">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>}</strong> During the study period his/her character was found good. His/Her date of birth as per our record is <strong className="border-b-2 border-black px-1 translate-y-1" contentEditable suppressContentEditableWarning>{student.dob ? format(new Date(student.dob), 'dd/MM/yyyy') : <span className="opacity-0">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>}</strong> . This certificate is issued on the request of the candidate to obtain the <strong className="border-b-2 border-black inline-block min-w-[250px] px-1 translate-y-1 uppercase" contentEditable suppressContentEditableWarning>{conductText}</strong> .
-                                        </p>
-                                    </div>
-
-                                    {/* Footer */}
-                                    <div className="mt-auto flex justify-between items-end px-12 text-[22px] font-serif pb-16">
-                                        <div className="text-center">
-                                            <b className="block">Clerak</b>
+                                        {/* Title */}
+                                        <div className='mb-6 text-center'>
+                                            <h2 className='font-black text-3xl text-[#4f81bd] uppercase tracking-tight'>
+                                                BONAFIDE CERTIFICATE
+                                            </h2>
                                         </div>
-                                        <div className="text-center">
-                                            <b className="block text-[28px] uppercase">PRINCIPAL</b>
+
+                                        {/* Stats Row */}
+                                        <div className='mb-10 flex items-center justify-between px-4 font-serif text-[22px]'>
+                                            <div>
+                                                <b>Admission NO.:</b>{' '}
+                                                <b className='px-2' contentEditable suppressContentEditableWarning>
+                                                    {student.admno}
+                                                </b>
+                                            </div>
+                                            <div>
+                                                <b>Date:</b> <b className='px-2'>{format(reportDate, 'dd/MM/yyyy')}</b>
+                                            </div>
+                                        </div>
+
+                                        {/* Body Text */}
+                                        <div
+                                            className='px-[7px] text-justify font-serif text-[18px] leading-[3]'
+                                            style={{ fontFamily: "'Times New Roman', Times, serif" }}>
+                                            <p>
+                                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; This is to certify that Master/Kumari{' '}
+                                                <strong
+                                                    className='inline-block translate-y-1 border-black border-b-2 px-1 uppercase'
+                                                    suppressContentEditableWarning>
+                                                    {student.studentname || (
+                                                        <span className='opacity-0'>
+                                                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        </span>
+                                                    )}
+                                                </strong>{' '}
+                                                S/o.D/o.{' '}
+                                                <strong
+                                                    className='inline-block translate-y-1 border-black border-b-2 px-1'
+                                                    suppressContentEditableWarning>
+                                                    {student.fathername || (
+                                                        <span className='opacity-0'>
+                                                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        </span>
+                                                    )}
+                                                </strong>{' '}
+                                                bearing H.T. No.{' '}
+                                                <strong
+                                                    className='inline-block min-w-[200px] translate-y-1 border-black border-b-2 px-1'
+                                                    contentEditable
+                                                    suppressContentEditableWarning>
+                                                    {hallTicketNo || student.registrationno || (
+                                                        <span className='opacity-0'>
+                                                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        </span>
+                                                    )}
+                                                </strong>{' '}
+                                                is a bonafide student of this institution, is studying in{' '}
+                                                <strong
+                                                    className='translate-y-1 border-black border-b-2 px-1'
+                                                    contentEditable
+                                                    suppressContentEditableWarning>
+                                                    {student.coursename || (
+                                                        <span className='opacity-0'>
+                                                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        </span>
+                                                    )}
+                                                </strong>{' '}
+                                                year{' '}
+                                                <strong
+                                                    className='translate-y-1 border-black border-b-2 px-1'
+                                                    contentEditable
+                                                    suppressContentEditableWarning>
+                                                    {student.semestername || (
+                                                        <span className='opacity-0'>
+                                                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        </span>
+                                                    )}
+                                                </strong>{' '}
+                                                semester of IV year B.Pharmacy degree course for the Academic Year{' '}
+                                                <strong
+                                                    className='translate-y-1 border-black border-b-2 px-1'
+                                                    contentEditable
+                                                    suppressContentEditableWarning>
+                                                    {student.acadamicyear || (
+                                                        <span className='opacity-0'>
+                                                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        </span>
+                                                    )}
+                                                </strong>{' '}
+                                                During the study period his/her character was found good. His/Her date of birth as per our
+                                                record is{' '}
+                                                <strong
+                                                    className='translate-y-1 border-black border-b-2 px-1'
+                                                    contentEditable
+                                                    suppressContentEditableWarning>
+                                                    {student.dob ? (
+                                                        format(new Date(student.dob), 'dd/MM/yyyy')
+                                                    ) : (
+                                                        <span className='opacity-0'>
+                                                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        </span>
+                                                    )}
+                                                </strong>{' '}
+                                                . This certificate is issued on the request of the candidate to obtain the{' '}
+                                                <strong
+                                                    className='inline-block min-w-[250px] translate-y-1 border-black border-b-2 px-1 uppercase'
+                                                    contentEditable
+                                                    suppressContentEditableWarning>
+                                                    {conductText}
+                                                </strong>{' '}
+                                                .
+                                            </p>
+                                        </div>
+
+                                        {/* Footer */}
+                                        <div className='mt-auto flex items-end justify-between px-12 pb-16 font-serif text-[22px]'>
+                                            <div className='text-center'>
+                                                <b className='block'>Clerak</b>
+                                            </div>
+                                            <div className='text-center'>
+                                                <b className='block text-[28px] uppercase'>PRINCIPAL</b>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
 
-                        {/* 2. CONDUCT CERTIFICATE */}
-                        {certificateType === '0' && (
-                            <div className="certificate-page relative p-[10mm] flex flex-col" style={{ width: '297mm', height: '210mm', pageBreakAfter: 'always', margin: '0 auto' }}>
-                                <div className="border-2 border-black p-[8mm] h-full flex flex-col rounded-[15px]">
-
-                                    {/* Header */}
-                                    <div className="mb-8 border-b-2 border-black pb-6">
-                                        <div className="w-full">
-                                            <img
-                                                src={reportData.logo || "https://dcampusstrg.blob.core.windows.net/files/19/ISM_Attachments/2460aa04-2aee-4131-a407-25d84394aeb1.jpg"}
-                                                alt="Institution Logo"
-                                                className="w-full h-auto object-contain"
-                                            />
+                            {/* 2. CONDUCT CERTIFICATE */}
+                            {certificateType === '0' && (
+                                <div
+                                    className='certificate-page relative flex flex-col p-[10mm]'
+                                    style={{ width: '297mm', height: '210mm', pageBreakAfter: 'always', margin: '0 auto' }}>
+                                    <div className='flex h-full flex-col rounded-[15px] border-2 border-black p-[8mm]'>
+                                        {/* Header */}
+                                        <div className='mb-8 border-black border-b-2 pb-6'>
+                                            <div className='w-full'>
+                                                <img
+                                                    src={
+                                                        reportData.logo ||
+                                                        'https://dcampusstrg.blob.core.windows.net/files/19/ISM_Attachments/2460aa04-2aee-4131-a407-25d84394aeb1.jpg'
+                                                    }
+                                                    alt='Institution Logo'
+                                                    className='h-auto w-full object-contain'
+                                                />
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    {/* Title */}
-                                    <div className="text-center mb-6">
-                                        <h2 className="text-[#4f81bd] text-3xl font-black uppercase tracking-tight">BONAFIDE CERTIFICATE</h2>
-                                    </div>
-
-                                    {/* Stats Row */}
-                                    <div className="flex justify-between items-center text-[22px] font-serif px-4 mb-10">
-                                        <div><b>Admission NO.:</b> <b className="px-2" contentEditable suppressContentEditableWarning>{student.admno}</b></div>
-                                        <div><b>Date:</b> <b className="px-2">{format(reportDate, 'dd/MM/yyyy')}</b></div>
-                                    </div>
-
-                                    {/* Body Text */}
-                                    <div className="text-[18px] leading-[3] font-serif text-justify px-[7px]" style={{ fontFamily: "'Times New Roman', Times, serif" }}>
-                                        <p>
-                                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; This is to certify that Master/Kumari <strong className="border-b-2 border-black inline-block px-1 uppercase translate-y-1" contentEditable suppressContentEditableWarning>{student.studentname || <span className="opacity-0">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>}</strong> S/o.D/o. <strong className="border-b-2 border-black inline-block px-1 translate-y-1" contentEditable suppressContentEditableWarning>{student.fathername || <span className="opacity-0">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>}</strong> bearing H.T. No. <strong className="border-b-2 border-black inline-block min-w-[200px] px-1 translate-y-1" contentEditable suppressContentEditableWarning>{hallTicketNo || student.registrationno || <span className="opacity-0">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>}</strong> is a bonafide student of this institution, is studying in <strong className="border-b-2 border-black px-1 translate-y-1" contentEditable suppressContentEditableWarning>{student.coursename || <span className="opacity-0">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>}</strong> year <strong className="border-b-2 border-black px-1 translate-y-1" contentEditable suppressContentEditableWarning>{student.semestername || <span className="opacity-0">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>}</strong> semester of IV year B.Pharmacy degree course for the Academic Year <strong className="border-b-2 border-black px-1 translate-y-1" contentEditable suppressContentEditableWarning>{student.acadamicyear || <span className="opacity-0">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>}</strong> During the study period his/her character was found good. His/Her date of birth as per our record is <strong className="border-b-2 border-black px-1 translate-y-1" contentEditable suppressContentEditableWarning>{student.dob ? format(new Date(student.dob), 'dd/MM/yyyy') : <span className="opacity-0">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>}</strong> . This certificate is issued on the request of the candidate to obtain the <strong className="border-b-2 border-black inline-block min-w-[250px] px-1 translate-y-1 uppercase" contentEditable suppressContentEditableWarning>{conductText}</strong> .
-                                        </p>
-                                    </div>
-
-                                    {/* Footer */}
-                                    <div className="mt-auto flex justify-between items-end px-12 text-[22px] font-serif pb-16">
-                                        <div className="text-center">
-                                            <b className="block">Clerak</b>
+                                        {/* Title */}
+                                        <div className='mb-6 text-center'>
+                                            <h2 className='font-black text-3xl text-[#4f81bd] uppercase tracking-tight'>
+                                                BONAFIDE CERTIFICATE
+                                            </h2>
                                         </div>
-                                        <div className="text-center">
-                                            <b className="block text-[28px] uppercase">PRINCIPAL</b>
+
+                                        {/* Stats Row */}
+                                        <div className='mb-10 flex items-center justify-between px-4 font-serif text-[22px]'>
+                                            <div>
+                                                <b>Admission NO.:</b>{' '}
+                                                <b className='px-2' contentEditable suppressContentEditableWarning>
+                                                    {student.admno}
+                                                </b>
+                                            </div>
+                                            <div>
+                                                <b>Date:</b> <b className='px-2'>{format(reportDate, 'dd/MM/yyyy')}</b>
+                                            </div>
+                                        </div>
+
+                                        {/* Body Text */}
+                                        <div
+                                            className='px-[7px] text-justify font-serif text-[18px] leading-[3]'
+                                            style={{ fontFamily: "'Times New Roman', Times, serif" }}>
+                                            <p>
+                                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; This is to certify that Master/Kumari{' '}
+                                                <strong
+                                                    className='inline-block translate-y-1 border-black border-b-2 px-1 uppercase'
+                                                    contentEditable
+                                                    suppressContentEditableWarning>
+                                                    {student.studentname || (
+                                                        <span className='opacity-0'>
+                                                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        </span>
+                                                    )}
+                                                </strong>{' '}
+                                                S/o.D/o.{' '}
+                                                <strong
+                                                    className='inline-block translate-y-1 border-black border-b-2 px-1'
+                                                    contentEditable
+                                                    suppressContentEditableWarning>
+                                                    {student.fathername || (
+                                                        <span className='opacity-0'>
+                                                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        </span>
+                                                    )}
+                                                </strong>{' '}
+                                                bearing H.T. No.{' '}
+                                                <strong
+                                                    className='inline-block min-w-[200px] translate-y-1 border-black border-b-2 px-1'
+                                                    contentEditable
+                                                    suppressContentEditableWarning>
+                                                    {hallTicketNo || student.registrationno || (
+                                                        <span className='opacity-0'>
+                                                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        </span>
+                                                    )}
+                                                </strong>{' '}
+                                                is a bonafide student of this institution, is studying in{' '}
+                                                <strong
+                                                    className='translate-y-1 border-black border-b-2 px-1'
+                                                    contentEditable
+                                                    suppressContentEditableWarning>
+                                                    {student.coursename || (
+                                                        <span className='opacity-0'>
+                                                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        </span>
+                                                    )}
+                                                </strong>{' '}
+                                                year{' '}
+                                                <strong
+                                                    className='translate-y-1 border-black border-b-2 px-1'
+                                                    contentEditable
+                                                    suppressContentEditableWarning>
+                                                    {student.semestername || (
+                                                        <span className='opacity-0'>
+                                                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        </span>
+                                                    )}
+                                                </strong>{' '}
+                                                semester of IV year B.Pharmacy degree course for the Academic Year{' '}
+                                                <strong
+                                                    className='translate-y-1 border-black border-b-2 px-1'
+                                                    contentEditable
+                                                    suppressContentEditableWarning>
+                                                    {student.acadamicyear || (
+                                                        <span className='opacity-0'>
+                                                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        </span>
+                                                    )}
+                                                </strong>{' '}
+                                                During the study period his/her character was found good. His/Her date of birth as per our
+                                                record is{' '}
+                                                <strong
+                                                    className='translate-y-1 border-black border-b-2 px-1'
+                                                    contentEditable
+                                                    suppressContentEditableWarning>
+                                                    {student.dob ? (
+                                                        format(new Date(student.dob), 'dd/MM/yyyy')
+                                                    ) : (
+                                                        <span className='opacity-0'>
+                                                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        </span>
+                                                    )}
+                                                </strong>{' '}
+                                                . This certificate is issued on the request of the candidate to obtain the{' '}
+                                                <strong
+                                                    className='inline-block min-w-[250px] translate-y-1 border-black border-b-2 px-1 uppercase'
+                                                    contentEditable
+                                                    suppressContentEditableWarning>
+                                                    {conductText}
+                                                </strong>{' '}
+                                                .
+                                            </p>
+                                        </div>
+
+                                        {/* Footer */}
+                                        <div className='mt-auto flex items-end justify-between px-12 pb-16 font-serif text-[22px]'>
+                                            <div className='text-center'>
+                                                <b className='block'>Clerak</b>
+                                            </div>
+                                            <div className='text-center'>
+                                                <b className='block text-[28px] uppercase'>PRINCIPAL</b>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
-                </div>
-            ))}
+                ))}
 
             <style jsx global>{`
                 @media print {

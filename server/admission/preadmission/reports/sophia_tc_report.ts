@@ -1,9 +1,8 @@
 'use server';
 
-import { api } from "@/lib/apiService";
+import { api } from '@/lib/apiService';
 
-
-const BASE_URL = "/BBKVCustomReport";
+const BASE_URL = '/BBKVCustomReport';
 
 export async function getTCInitialData() {
     const url = `${BASE_URL}/getdetails`;
@@ -23,7 +22,6 @@ export async function onTCSectionChange(data: { ASMAY_Id: number; ASMCL_Id: numb
     const url = `${BASE_URL}/onchangesection?ASMAY_Id=${data.ASMAY_Id}&ASMCL_Id=${data.ASMCL_Id}&ASMS_Id=${data.ASMS_Id}`;
     return await api.post<any>('admission', url);
 }
-
 
 export async function getStudentNameRegNo(data: {
     admnoorname: string;
@@ -45,7 +43,6 @@ export async function getTCDetailsRecord(data: { ASMAY_Id: number; AMST_Id: numb
     const url = `${BASE_URL}/getTcdetails?tctemporper=${data.tctemporper}&ASMAY_Id=${data.ASMAY_Id}&AMST_Id=${data.AMST_Id}`;
     return await api.post<any>('admission', url);
 }
-
 
 export async function getTCReportDetails(data: {
     asmaY_Id: number;

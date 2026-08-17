@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
 import { format } from 'date-fns';
-import { type IAdmissionProcedureReport } from './columns';
+import React from 'react';
+import type { IAdmissionProcedureReport } from './columns';
 
 interface AdmissionProcedurePrintProps {
     data: IAdmissionProcedureReport[];
@@ -16,7 +16,7 @@ export const AdmissionProcedurePrint = React.forwardRef<HTMLDivElement, Admissio
         const reportData = Array.isArray(data) ? data : [];
 
         return (
-            <div ref={ref} className="print-preview-container p-5 bg-white text-black min-h-full w-full">
+            <div ref={ref} className='print-preview-container min-h-full w-full bg-white p-5 text-black'>
                 <style>
                     {`
                         @media print {
@@ -91,21 +91,24 @@ export const AdmissionProcedurePrint = React.forwardRef<HTMLDivElement, Admissio
                 </style>
 
                 <div className='header-section'>
-                    {logo && <img src={logo} alt="Logo" className="h-16 mx-auto mb-2 object-contain" />}
-                    <h2 style={{ margin: '5px 0 0', fontSize: '18px', fontWeight: 'bold', textDecoration: 'underline', textTransform: 'uppercase' }}>
+                    {logo && <img src={logo} alt='Logo' className='mx-auto mb-2 h-16 object-contain' />}
+                    <h2
+                        style={{
+                            margin: '5px 0 0',
+                            fontSize: '18px',
+                            fontWeight: 'bold',
+                            textDecoration: 'underline',
+                            textTransform: 'uppercase'
+                        }}>
                         ADMISSION PROCEDURE REPORT
                     </h2>
                     {academicYear && (
-                        <p style={{ margin: '5px 0 0', fontSize: '12px', fontWeight: 'semibold' }}>
-                            Academic Year: {academicYear}
-                        </p>
+                        <p style={{ margin: '5px 0 0', fontSize: '12px', fontWeight: 'semibold' }}>Academic Year: {academicYear}</p>
                     )}
                 </div>
 
                 {reportData.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '20px', border: '1px dashed #ccc' }}>
-                        No records found to display.
-                    </div>
+                    <div style={{ textAlign: 'center', padding: '20px', border: '1px dashed #ccc' }}>No records found to display.</div>
                 ) : (
                     <table>
                         <thead>
@@ -131,9 +134,7 @@ export const AdmissionProcedurePrint = React.forwardRef<HTMLDivElement, Admissio
                     </table>
                 )}
 
-                <div className='footer-section'>
-                    Printed on: {currentDate}
-                </div>
+                <div className='footer-section'>Printed on: {currentDate}</div>
             </div>
         );
     }

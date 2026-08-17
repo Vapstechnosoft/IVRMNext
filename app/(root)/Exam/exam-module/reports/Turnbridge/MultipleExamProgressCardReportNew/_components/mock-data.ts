@@ -19,7 +19,7 @@ export const mockReportData = {
                 { ISMS_Id: 102, ISMS_SubjectName: 'Mathematics', EYCES_AplResultFlg: true },
                 { ISMS_Id: 103, ISMS_SubjectName: 'Science', EYCES_AplResultFlg: true },
                 { ISMS_Id: 104, ISMS_SubjectName: 'Art & Craft', EYCES_AplResultFlg: false },
-                { ISMS_Id: 105, ISMS_SubjectName: 'Physical Education', EYCES_AplResultFlg: false },
+                { ISMS_Id: 105, ISMS_SubjectName: 'Physical Education', EYCES_AplResultFlg: false }
             ],
             marks: [
                 // English
@@ -46,7 +46,7 @@ export const mockReportData = {
                 { EME_Id: 1, ISMS_Id: 104, OBTAINEDMARKS: 0, GRADE: 'B', ExamConductFlag: 1 },
                 { EME_Id: 2, ISMS_Id: 104, OBTAINEDMARKS: 0, GRADE: 'A', ExamConductFlag: 1 },
                 { EME_Id: 150001, ISMS_Id: 104, OBTAINEDMARKS: 0, GRADE: 'A', ExamConductFlag: 1 },
-                { EME_Id: 150002, ISMS_Id: 104, OBTAINEDMARKS: 0, GRADE: 'A', ExamConductFlag: 1 },
+                { EME_Id: 150002, ISMS_Id: 104, OBTAINEDMARKS: 0, GRADE: 'A', ExamConductFlag: 1 }
             ]
         }
     ],
@@ -54,7 +54,7 @@ export const mockReportData = {
         { emE_Id: 1, emE_ExamName: 'Periodic Test 1', eyceS_MaxMarks: 100 },
         { emE_Id: 2, emE_ExamName: 'Periodic Test 2', eyceS_MaxMarks: 100 },
         { emE_Id: 150001, emE_ExamName: 'Total', eyceS_MaxMarks: 200 },
-        { emE_Id: 150002, emE_ExamName: 'Grade', eyceS_MaxMarks: '' },
+        { emE_Id: 150002, emE_ExamName: 'Grade', eyceS_MaxMarks: '' }
     ],
     work_attendence: [
         { AMST_Id: 1, June: 22, July: 25, August: 24, September: 20, October: 22, TotalWorkingDays: 113, Total_Percentage: 100 }

@@ -7,7 +7,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type FixingDaySubjectSchema, fixingDaySubjectSchema } from '@/schemas/timetable/constraints/fixing';
-import { getFixingClassSectionStaffsBySubject, saveFixingDaySubject, getFixingDaySubjectDetails } from '@/server/timetable/constraints/fixing';
+import {
+    getFixingClassSectionStaffsBySubject,
+    getFixingDaySubjectDetails,
+    saveFixingDaySubject
+} from '@/server/timetable/constraints/fixing';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Save } from 'lucide-react';
@@ -51,7 +55,14 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
         }
     });
 
-    const { setValue, watch, handleSubmit, formState: { isSubmitting }, control, reset, } = form;
+    const {
+        setValue,
+        watch,
+        handleSubmit,
+        formState: { isSubmitting },
+        control,
+        reset
+    } = form;
     const asmaY_Id = watch('asmaY_Id');
     const ttfdsU_SUbSelcFlag = watch('ttfdsU_SUbSelcFlag');
 
@@ -72,14 +83,18 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
 
                 const responseData = res?.data || res;
 
-                const editData = responseData?.fixing_day_subject ||
+                const editData =
+                    responseData?.fixing_day_subject ||
                     responseData?.fix_day_subject_edit ||
                     responseData?.data?.fix_day_subject_edit ||
-                    (Array.isArray(responseData) ? responseData : undefined) || responseData?.data;
+                    (Array.isArray(responseData) ? responseData : undefined) ||
+                    responseData?.data;
 
-                const subDetails = responseData?.fixing_day_subject_class_edit ||
+                const subDetails =
+                    responseData?.fixing_day_subject_class_edit ||
                     responseData?.fix_day_subject__classecedit ||
-                    responseData?.data?.fix_day_subject__classecedit || [];
+                    responseData?.data?.fix_day_subject__classecedit ||
+                    [];
 
                 if (!editData || !Array.isArray(editData) || editData.length === 0) return;
 
@@ -107,23 +122,34 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
                             const hid = sub.hrmE_Id || sub.HRME_Id;
 
                             // Lookup names if missing from sub object
-                            const clsName = sub.asmcL_ClassName || sub.ASMCL_ClassName ||
-                                masterData.classes.find(c => Number(c.asmcL_Id || c.ASMCL_Id) === Number(cid))?.asmcL_ClassName || '';
+                            const clsName =
+                                sub.asmcL_ClassName ||
+                                sub.ASMCL_ClassName ||
+                                masterData.classes.find((c) => Number(c.asmcL_Id || c.ASMCL_Id) === Number(cid))?.asmcL_ClassName ||
+                                '';
 
-                            const sectName = sub.asmC_SectionName || sub.ASMC_SectionName || sub.asmS_SectionName ||
-                                masterData.sections.find(s => Number(s.asmS_Id || s.ASMS_Id) === Number(sid))?.asmC_SectionName || '';
+                            const sectName =
+                                sub.asmC_SectionName ||
+                                sub.ASMC_SectionName ||
+                                sub.asmS_SectionName ||
+                                masterData.sections.find((s) => Number(s.asmS_Id || s.ASMS_Id) === Number(sid))?.asmC_SectionName ||
+                                '';
 
-                            const staffName = sub.staffName || sub.hrmE_EmployeeFirstName ||
-                                masterData.staff.find(s => Number(s.hrmE_Id || s.HRME_Id) === Number(hid))?.staffName || '';
+                            const staffName =
+                                sub.staffName ||
+                                sub.hrmE_EmployeeFirstName ||
+                                masterData.staff.find((s) => Number(s.hrmE_Id || s.HRME_Id) === Number(hid))?.staffName ||
+                                '';
 
-                            console.log("Sub object from API:", sub);
-                            const nopKey = Object.keys(sub).find(k =>
-                                k.toLowerCase().includes('period') ||
-                                k.toLowerCase() === 'nop' ||
-                                k.toLowerCase() === 'ttfdscc_noofperiods'
+                            console.log('Sub object from API:', sub);
+                            const nopKey = Object.keys(sub).find(
+                                (k) =>
+                                    k.toLowerCase().includes('period') ||
+                                    k.toLowerCase() === 'nop' ||
+                                    k.toLowerCase() === 'ttfdscc_noofperiods'
                             );
                             const nopValue = nopKey ? sub[nopKey] : 0;
-                            console.log("Resolved NOP property key:", nopKey, "value:", nopValue);
+                            console.log('Resolved NOP property key:', nopKey, 'value:', nopValue);
 
                             return {
                                 ttfdscC_Id: sub.ttfdscC_Id || sub.TTFDSCC_Id,
@@ -138,7 +164,6 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
                         })
                     );
                 }
-
             } catch (error) {
                 console.error('Error processing edit data:', error);
                 toast.error('Failed to load edit details');
@@ -146,11 +171,6 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
         };
         loadEditData();
     }, [selectedRow, reset, replace]);
-
-
-
-
-
 
     const handleAcademicYearChange = (yearId: number) => {
         setValue('asmaY_Id', yearId);
@@ -283,15 +303,21 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
                         name='asmaY_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Academic Year <span className='text-red-500'>*</span></FormLabel>
+                                <FormLabel>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => {
                                         field.onChange(Number(v));
-                                        handleAcademicYearChange(Number(v))
+                                        handleAcademicYearChange(Number(v));
                                     }}
                                     value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
                                     <SelectContent>
                                         {academicList?.map((item: any) => (
                                             <SelectItem key={item.asmaY_Id} value={item.asmaY_Id?.toString()}>
@@ -310,9 +336,18 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
                         name='ttmD_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Day <span className='text-red-500'>*</span></FormLabel>
-                                <Select key={field.value?.toString()} onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
+                                <FormLabel>
+                                    Day <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <Select
+                                    key={field.value?.toString()}
+                                    onValueChange={(v) => field.onChange(Number(v))}
+                                    value={field.value?.toString()}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
                                     <SelectContent>
                                         {dayList.map((item: any) => {
                                             const id = item.ttmD_Id ?? item.ttmd_id ?? item.TTMD_Id;
@@ -334,15 +369,21 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
                         name='ismS_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Subject <span className='text-red-500'>*</span></FormLabel>
+                                <FormLabel>
+                                    Subject <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString()}
                                     onValueChange={(v) => {
                                         field.onChange(Number(v));
-                                        handleSubjectChange(Number(v))
+                                        handleSubjectChange(Number(v));
                                     }}
                                     value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
                                     <SelectContent>
                                         {subjectList
                                             .filter((item: any) => item.ismS_Id || item.isms_id || item.ISMS_Id)
@@ -384,12 +425,16 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
                         <h4 className='font-semibold'>Add Class Details</h4>
                         <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-5'>
                             <div className='space-y-2'>
-                                <FormLabel>Class <span className='text-red-500'>*</span></FormLabel>
+                                <FormLabel>
+                                    Class <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={selectedClass?.toString()}
                                     onValueChange={(v) => handleClassChange(Number(v))}
                                     value={selectedClass?.toString()}>
-                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select' />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {isClassLoading ? (
                                             <SelectItem value='loading'>Loading...</SelectItem>
@@ -407,12 +452,16 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
                                 </Select>
                             </div>
                             <div className='space-y-2'>
-                                <FormLabel>Section <span className='text-red-500'>*</span></FormLabel>
+                                <FormLabel>
+                                    Section <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={selectedSection?.toString()}
                                     onValueChange={(v) => handleSectionChange(Number(v))}
                                     value={selectedSection?.toString()}>
-                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select' />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {sectionList.map((item: any) => {
                                             const id = item.asmS_Id ?? item.asms_id ?? item.ASMS_Id;
@@ -426,12 +475,16 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
                                 </Select>
                             </div>
                             <div className='space-y-2'>
-                                <FormLabel>Staff <span className='text-red-500'>*</span></FormLabel>
+                                <FormLabel>
+                                    Staff <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={selectedStaff?.toString()}
                                     onValueChange={(v) => setSelectedStaff(Number(v))}
                                     value={selectedStaff?.toString()}>
-                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select' />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {subStaffList.map((item: any) => {
                                             const id = item.hrmE_Id ?? item.hrme_id ?? item.HRME_Id;
@@ -445,7 +498,9 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
                                 </Select>
                             </div>
                             <div className='space-y-2'>
-                                <FormLabel>Periods <span className='text-red-500'>*</span></FormLabel>
+                                <FormLabel>
+                                    Periods <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Input
                                     type='number'
                                     value={nop}
@@ -456,11 +511,12 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
                                 />
                             </div>
                         </div>
-                        <Button type='button' onClick={addToGrid}>Add</Button>
+                        <Button type='button' onClick={addToGrid}>
+                            Add
+                        </Button>
 
                         {fields.length > 0 && <DataTable data={fields} columns={subColumns} totalItems={fields.length} />}
                     </div>
-
                 )}
 
                 <div className='flex justify-center gap-4 pt-4'>
@@ -475,4 +531,3 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
         </Form>
     );
 }
-

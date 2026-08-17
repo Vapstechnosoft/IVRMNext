@@ -122,7 +122,7 @@ export interface EmployeeProfileDetail {
     dob: string;
     aadharCardNumber: string;
     fatherName: string;
-    hrmE_Photo?:string;
+    hrmE_Photo?: string;
 }
 
 // Type exports
