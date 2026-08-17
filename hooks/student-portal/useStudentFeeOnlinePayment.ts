@@ -13,6 +13,7 @@ import type {
     RazorpayResponse,
     StudentInfo
 } from '@/server/student-portal/fee-online-payment';
+import { onlinepaymentdetails } from '@/server/student-portal/masters/fee_online_payment';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useOnlinePaymentDetails = (amstId?: number, configset?: string, selectedList?: GroupTermMapping[]) => {
@@ -131,5 +132,23 @@ export const useOnlineRazorpayPayment = () => {
             queryClient.invalidateQueries({
                 queryKey: [PORTAL_QUERY_KEYS.FEE_ONLINE_RAZORPAY_PAYMENT]
             })
+    };
+};
+
+
+export const useOnliePaymentDetails = (data?: any) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PORTAL_QUERY_KEYS.ONLINE_PAYMENT_DETAILS,],
+            queryFn: async () => onlinepaymentdetails(data),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [PORTAL_QUERY_KEYS.ONLINE_PAYMENT_DETAILS]
+            });
+        }
     };
 };

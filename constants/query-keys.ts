@@ -603,7 +603,8 @@ export const PORTAL_QUERY_KEYS = {
     GET_GROUPS_FOR_NOTICE_BOARD: 'get_groups_for_notice_board',
     GET_TERMS_FOR_NOTICE_BOARD: 'get_terms_for_notice_board',
     EXAM_STUDENT_REPORT_YEAR_DROP_DOWN: 'exam_student_report_year_drop_down',
-    EXAM_STUDENT_COMPLIANTS_YEAR_DROP_DOWN: 'exam_student_compliants_year_drop_down'
+    EXAM_STUDENT_COMPLIANTS_YEAR_DROP_DOWN: 'exam_student_compliants_year_drop_down',
+    ONLINE_PAYMENT_DETAILS:"online_payment_details"
 };
 
 export const STAFF_PORTAL_QUERY_KEYS = {
