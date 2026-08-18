@@ -1,14 +1,11 @@
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { DatePicker } from '@/components/ui/date-picker';
 import {
     Form,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
     Select,
     SelectContent,
@@ -16,24 +13,28 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useSRKVSSportsReport } from '@/hooks/sports/useSRKVSSportsReport';
 import {
-    type ISRKVSCategory,
-    type ISRKVSCompetitionLevel,
-    type ISRKVSMainEvent,
-    type ISRKVSMasterEvent,
-    type ISRKVSReportData,
-    type ISRKVSSubEvent,
-    type ISRKVSSubSubEvent,
-    type ISRKVSYear,
-    type SRKVSSportsReportFormSchema,
+    SRKVSSportsReportFormSchema,
     SRKVSSportsReportSchema,
+    ISRKVSReportData,
+    ISRKVSYear,
+    ISRKVSMasterEvent,
+    ISRKVSCompetitionLevel,
+    ISRKVSCategory,
+    ISRKVSMainEvent,
+    ISRKVSSubEvent,
+    ISRKVSSubSubEvent,
+    ISRKVSReportItem,
 } from '@/types/sports/reports/srkvs-sports-report';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { DatePicker } from '@/components/ui/date-picker';
 
 interface ReportFormProps {
     onReportGenerated: (data: ISRKVSReportData[]) => void;
@@ -252,11 +253,11 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4 rounded-md border bg-white p-4 shadow-sm'>
-                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-4 border rounded-md shadow-sm bg-white">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Academic Year */}
                     <div className="flex flex-col gap-2">
-                        <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Academic Year</Label>
+                        <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Academic Year</Label>
                         <Controller
                             control={control}
                             name="ASMAY_Id"
@@ -277,7 +278,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    {errors.ASMAY_Id && <span className='font-medium text-destructive text-xs'>{errors.ASMAY_Id.message}</span>}
+                                    {errors.ASMAY_Id && <span className="text-xs font-medium text-destructive">{errors.ASMAY_Id.message}</span>}
                                 </div>
                             )}
                         />
@@ -285,7 +286,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
 
                     {/* Event */}
                     <div className="flex flex-col gap-2">
-                        <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Event</Label>
+                        <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Event</Label>
                         <Controller
                             control={control}
                             name="SPCCME_Id"
@@ -306,14 +307,14 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    {errors.SPCCME_Id && <span className='font-medium text-destructive text-xs'>{errors.SPCCME_Id.message}</span>}
+                                    {errors.SPCCME_Id && <span className="text-xs font-medium text-destructive">{errors.SPCCME_Id.message}</span>}
                                 </div>
                             )}
                         />
                     </div>
 
                     <div className="flex flex-col gap-2">
-                        <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Result</Label>
+                        <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Result</Label>
                         <Controller
                             control={control}
                             name="Type"
@@ -338,7 +339,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                             <SelectItem value="Selection">Selection</SelectItem>
                                         </SelectContent>
                                     </Select>
-                                    {errors.Type && <span className='font-medium text-destructive text-xs'>{errors.Type.message}</span>}
+                                    {errors.Type && <span className="text-xs font-medium text-destructive">{errors.Type.message}</span>}
                                 </div>
                             )}
                         />
@@ -349,15 +350,15 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                         <>
                             {isMultiLevel ? (
                                 <div className="flex flex-col gap-2">
-                                    <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Competition Level</Label>
+                                    <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Competition Level</Label>
                                     <Controller
                                         control={control}
                                         name="selectedCompetitionLevels"
                                         render={({ field }) => (
                                             <div className="flex flex-col gap-1">
-                                                <ScrollArea className={`h-[150px] w-full rounded-md border p-2 ${errors.selectedCompetitionLevels ? 'border-destructive ring-destructive/20' : ''}`}>
+                                                <ScrollArea className={`h-[150px] w-full border rounded-md p-2 ${errors.selectedCompetitionLevels ? 'border-destructive ring-destructive/20' : ''}`}>
                                                     {competitionLevels.map((item) => (
-                                                        <div key={item.spccmcL_Id} className='mb-2 flex flex-row items-start space-x-3 space-y-0'>
+                                                        <div key={item.spccmcL_Id} className="flex flex-row items-start space-x-3 space-y-0 mb-2">
                                                             <Checkbox
                                                                 checked={field.value?.some(val => val.spccmcL_Id === item.spccmcL_Id)}
                                                                 onCheckedChange={(checked) => {
@@ -367,20 +368,20 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                                                         : field.onChange(current.filter(val => val.spccmcL_Id !== item.spccmcL_Id));
                                                                 }}
                                                             />
-                                                            <label className='font-normal text-sm'>
+                                                            <label className="text-sm font-normal">
                                                                 {item.spccmcL_CompitionLevel}
                                                             </label>
                                                         </div>
                                                     ))}
                                                 </ScrollArea>
-                                                {errors.selectedCompetitionLevels && <span className='font-medium text-destructive text-xs'>{errors.selectedCompetitionLevels.message}</span>}
+                                                {errors.selectedCompetitionLevels && <span className="text-xs font-medium text-destructive">{errors.selectedCompetitionLevels.message}</span>}
                                             </div>
                                         )}
                                     />
                                 </div>
                             ) : (
                                 <div className="flex flex-col gap-2">
-                                    <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Competition Level</Label>
+                                    <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Competition Level</Label>
                                     <Controller
                                         control={control}
                                         name="spccmcL_Id"
@@ -401,7 +402,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
-                                                {errors.spccmcL_Id && <span className='font-medium text-destructive text-xs'>{errors.spccmcL_Id.message}</span>}
+                                                {errors.spccmcL_Id && <span className="text-xs font-medium text-destructive">{errors.spccmcL_Id.message}</span>}
                                             </div>
                                         )}
                                     />
@@ -412,7 +413,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
 
                     {/* From Date */}
                     <div className="flex flex-col gap-2">
-                        <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Date</Label>
+                        <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Date</Label>
                         <Controller
                             control={control}
                             name="FromDate"
@@ -424,7 +425,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                         placeholder="Select Date"
                                         className={errors.FromDate ? 'border-destructive ring-destructive/20' : ''}
                                     />
-                                    {errors.FromDate && <span className='font-medium text-destructive text-xs'>{errors.FromDate.message}</span>}
+                                    {errors.FromDate && <span className="text-xs font-medium text-destructive">{errors.FromDate.message}</span>}
                                 </div>
                             )}
                         />
@@ -436,15 +437,15 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                         <>
                             {isMultiCategory ? (
                                 <div className="flex flex-col gap-2">
-                                    <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Competition Category</Label>
+                                    <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Competition Category</Label>
                                     <Controller
                                         control={control}
                                         name="selectedCategories"
                                         render={({ field }) => (
                                             <div className="flex flex-col gap-1">
-                                                <ScrollArea className={`h-[150px] w-full rounded-md border p-2 ${errors.selectedCategories ? 'border-destructive ring-destructive/20' : ''}`}>
+                                                <ScrollArea className={`h-[150px] w-full border rounded-md p-2 ${errors.selectedCategories ? 'border-destructive ring-destructive/20' : ''}`}>
                                                     {categories.map((item) => (
-                                                        <div key={item.spccmcC_Id} className='mb-2 flex flex-row items-start space-x-3 space-y-0'>
+                                                        <div key={item.spccmcC_Id} className="flex flex-row items-start space-x-3 space-y-0 mb-2">
                                                             <Checkbox
                                                                 checked={field.value?.some(val => val.spccmcC_Id === item.spccmcC_Id)}
                                                                 onCheckedChange={(checked) => {
@@ -454,20 +455,20 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                                                         : field.onChange(current.filter(val => val.spccmcC_Id !== item.spccmcC_Id));
                                                                 }}
                                                             />
-                                                            <label className='font-normal text-sm'>
+                                                            <label className="text-sm font-normal">
                                                                 {item.spccmcC_CompitionCategory}
                                                             </label>
                                                         </div>
                                                     ))}
                                                 </ScrollArea>
-                                                {errors.selectedCategories && <span className='font-medium text-destructive text-xs'>{errors.selectedCategories.message}</span>}
+                                                {errors.selectedCategories && <span className="text-xs font-medium text-destructive">{errors.selectedCategories.message}</span>}
                                             </div>
                                         )}
                                     />
                                 </div>
                             ) : (
                                 <div className="flex flex-col gap-2">
-                                    <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Competition Category</Label>
+                                    <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Competition Category</Label>
                                     <Controller
                                         control={control}
                                         name="spccmcC_Id"
@@ -488,7 +489,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
-                                                {errors.spccmcC_Id && <span className='font-medium text-destructive text-xs'>{errors.spccmcC_Id.message}</span>}
+                                                {errors.spccmcC_Id && <span className="text-xs font-medium text-destructive">{errors.spccmcC_Id.message}</span>}
                                             </div>
                                         )}
                                     />
@@ -499,14 +500,14 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
 
                     {/* Meet Year */}
                     <div className="flex flex-col gap-2">
-                        <Label className='font-semibold text-sm'>Meet Year</Label>
+                        <Label className="text-sm font-semibold">Meet Year</Label>
                         <Controller
                             control={control}
                             name="Meet_Year"
                             render={({ field }) => (
                                 <div className="flex flex-col gap-1">
                                     <Input placeholder="Enter Meet Year" {...field} className={errors.Meet_Year ? 'border-destructive ring-destructive/20' : ''} />
-                                    {errors.Meet_Year && <span className='font-medium text-destructive text-xs'>{errors.Meet_Year.message}</span>}
+                                    {errors.Meet_Year && <span className="text-xs font-medium text-destructive">{errors.Meet_Year.message}</span>}
                                 </div>
                             )}
                         />
@@ -517,7 +518,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                         <>
                             {/* Main Event */}
                             <div className="flex flex-col gap-2">
-                                <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Main Event</Label>
+                                <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Main Event</Label>
                                 <Controller
                                     control={control}
                                     name="spccmsccG_Id"
@@ -538,7 +539,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                                     ))}
                                                 </SelectContent>
                                             </Select>
-                                            {errors.spccmsccG_Id && <span className='font-medium text-destructive text-xs'>{errors.spccmsccG_Id.message}</span>}
+                                            {errors.spccmsccG_Id && <span className="text-xs font-medium text-destructive">{errors.spccmsccG_Id.message}</span>}
                                         </div>
                                     )}
                                 />
@@ -546,7 +547,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
 
                             {/* Sub Event */}
                             <div className="flex flex-col gap-2">
-                                <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Sub Event</Label>
+                                <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Sub Event</Label>
                                 <Controller
                                     control={control}
                                     name="spccmscC_Id"
@@ -567,7 +568,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                                     ))}
                                                 </SelectContent>
                                             </Select>
-                                            {errors.spccmscC_Id && <span className='font-medium text-destructive text-xs'>{errors.spccmscC_Id.message}</span>}
+                                            {errors.spccmscC_Id && <span className="text-xs font-medium text-destructive">{errors.spccmscC_Id.message}</span>}
                                         </div>
                                     )}
                                 />
@@ -577,15 +578,15 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                             {/* Multi for Indoor, Outdoor, Externals */}
                             {['Indoor', 'Outdoor', 'Externals'].includes(watchedType) && (
                                 <div className="flex flex-col gap-2">
-                                    <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Sub Sub Event</Label>
+                                    <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Sub Sub Event</Label>
                                     <Controller
                                         control={control}
                                         name="selectedSubSubEvents"
                                         render={({ field }) => (
                                             <div className="flex flex-col gap-1">
-                                                <ScrollArea className={`h-[150px] w-full rounded-md border p-2 ${errors.selectedSubSubEvents ? 'border-destructive ring-destructive/20' : ''}`}>
+                                                <ScrollArea className={`h-[150px] w-full border rounded-md p-2 ${errors.selectedSubSubEvents ? 'border-destructive ring-destructive/20' : ''}`}>
                                                     {subSubEvents.map((item) => (
-                                                        <div key={item.spccmsccG_Id} className='mb-2 flex flex-row items-start space-x-3 space-y-0'>
+                                                        <div key={item.spccmsccG_Id} className="flex flex-row items-start space-x-3 space-y-0 mb-2">
                                                             <Checkbox
                                                                 checked={field.value?.some(val => val.spccmsccG_Id === item.spccmsccG_Id)}
                                                                 onCheckedChange={(checked) => {
@@ -595,13 +596,13 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                                                         : field.onChange(current.filter(val => val.spccmsccG_Id !== item.spccmsccG_Id));
                                                                 }}
                                                             />
-                                                            <label className='font-normal text-sm'>
+                                                            <label className="text-sm font-normal">
                                                                 {item.spccmsccG_SportsCCGroupName}
                                                             </label>
                                                         </div>
                                                     ))}
                                                 </ScrollArea>
-                                                {errors.selectedSubSubEvents && <span className='font-medium text-destructive text-xs'>{errors.selectedSubSubEvents.message}</span>}
+                                                {errors.selectedSubSubEvents && <span className="text-xs font-medium text-destructive">{errors.selectedSubSubEvents.message}</span>}
                                             </div>
                                         )}
                                     />
@@ -611,7 +612,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                             {/* Single for Start, Team, Finish */}
                             {['Start', 'Team', 'Finish'].includes(watchedType) && (
                                 <div className="flex flex-col gap-2">
-                                    <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Sub Sub Event</Label>
+                                    <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Sub Sub Event</Label>
                                     <Controller
                                         control={control}
                                         name="spccmsccG_Idsub"
@@ -632,7 +633,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
-                                                {errors.spccmsccG_Idsub && <span className='font-medium text-destructive text-xs'>{errors.spccmsccG_Idsub.message}</span>}
+                                                {errors.spccmsccG_Idsub && <span className="text-xs font-medium text-destructive">{errors.spccmsccG_Idsub.message}</span>}
                                             </div>
                                         )}
                                     />
