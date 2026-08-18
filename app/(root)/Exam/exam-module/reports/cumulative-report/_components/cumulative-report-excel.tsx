@@ -103,7 +103,7 @@ export default function CumulativeReportExcel({ reportData, subjects, headerInfo
             mainHeaderRow.push('Class Rank');
             subHeaderRow.push('');
         }
-        if (!columnFlags.attendancedispaly) {
+        if (columnFlags.attendancedispaly) {
             mainHeaderRow.push('Class Held', 'Attendance');
             subHeaderRow.push('', '');
         }
@@ -177,7 +177,7 @@ export default function CumulativeReportExcel({ reportData, subjects, headerInfo
             if (columnFlags.classrank) {
                 row.push(isAbsent ? '' : (student.estmP_ClassRank ?? ''));
             }
-            if (!columnFlags.attendancedispaly) {
+            if (columnFlags.attendancedispaly) {
                 row.push(student.classheld ?? '', student.classatt ?? '');
             }
 

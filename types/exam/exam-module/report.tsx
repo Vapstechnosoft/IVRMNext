@@ -60,6 +60,8 @@ export interface IAcademicYearandClassandsection {
     emE_ExamName: string;
     amsT_Id: number;
     amsT_FirstName: string;
+    amsT_MiddleName?: string;
+    amsT_LastName?: string;
     studentName?: string;
     amsT_AdmNo?: string;
     emcA_Id: number;

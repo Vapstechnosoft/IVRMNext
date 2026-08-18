@@ -18,11 +18,12 @@ import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-import { Loader2, FileText, X } from 'lucide-react';
+import { Loader2, FileText, X, Printer } from 'lucide-react';
 
 type FormFields = z.infer<typeof vvehpc_examreportcardSchema.addOrUpdate> & {
     showRemarks: boolean;
     showRank: boolean;
+    showRankInSection: boolean;
 };
 
 export default function BBIIReportForm({
@@ -42,7 +43,8 @@ export default function BBIIReportForm({
             emE_Id: 0,
             studentList: [],
             showRemarks: true,
-            showRank: false
+            showRank: false,
+            showRankInSection: false
         }
     });
 
@@ -88,8 +90,10 @@ export default function BBIIReportForm({
         (async () => {
             try {
                 setLoadingClasses(true);
-                const { data } = await getClassDropDownByAcademicYearlist(selectedYear);
-                setClasses(Array.isArray(data) ? data : []);
+                const res: any = await getClassDropDownByAcademicYearlist(selectedYear);
+                const raw = res?.data ?? res;
+                const list = Array.isArray(raw) ? raw : (raw?.classlist || raw?.classList || raw?.data || []);
+                setClasses(Array.isArray(list) ? list : []);
                 setValue('asmcL_Id', 0);
                 setValue('asmS_Id', 0);
                 setValue('emE_Id', 0);
@@ -108,8 +112,10 @@ export default function BBIIReportForm({
         (async () => {
             try {
                 setLoadingSections(true);
-                const { data } = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass);
-                setSections(Array.isArray(data) ? data : []);
+                const res: any = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass);
+                const raw = res?.data ?? res;
+                const list = Array.isArray(raw) ? raw : (raw?.seclist || raw?.secList || raw?.sections || raw?.data || []);
+                setSections(Array.isArray(list) ? list : []);
                 setValue('asmS_Id', 0);
                 setValue('emE_Id', 0);
                 setValue('studentList', []);
@@ -127,8 +133,10 @@ export default function BBIIReportForm({
         (async () => {
             try {
                 setLoadingExams(true);
-                const { data } = await getExamsDropDownByAcademicYearandClassandSectionlist(selectedYear, selectedClass, selectedSection);
-                setExams(Array.isArray(data) ? data : []);
+                const res: any = await getExamsDropDownByAcademicYearandClassandSectionlist(selectedYear, selectedClass, selectedSection);
+                const raw = res?.data ?? res;
+                const list = Array.isArray(raw) ? raw : (raw?.exmstdlist || raw?.examlist || raw?.exams || raw?.data || []);
+                setExams(Array.isArray(list) ? list : []);
                 setValue('emE_Id', 0);
             } catch {
                 toast.error('Failed to load exams');
@@ -140,16 +148,18 @@ export default function BBIIReportForm({
         (async () => {
             try {
                 setLoadingStudents(true);
-                const res = await getStudentsDropDownByAcademicYearandClassandSectionlist(
+                const res: any = await getStudentsDropDownByAcademicYearandClassandSectionlist(
                     selectedYear,
                     selectedClass,
                     selectedSection
                 );
-                if (res && res.success && Array.isArray(res.data)) {
-                    const mapped = res.data.map((s: any) => ({
-                        amsT_Id: s.amsT_Id,
-                        amsT_FirstName: s.studentName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim(),
-                        amsT_AdmNo: s.amsT_AdmNo
+                const raw = res?.data ?? res;
+                const list = Array.isArray(raw) ? raw : (raw?.studentlist || raw?.studentlistdetails || raw?.students || raw?.data || []);
+                if (Array.isArray(list)) {
+                    const mapped = list.map((s: any) => ({
+                        amsT_Id: s.amsT_Id ?? s.AMST_Id,
+                        amsT_FirstName: s.studentName || `${s.amsT_FirstName || s.AMST_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim(),
+                        amsT_AdmNo: s.amsT_AdmNo || s.AMST_AdmNo
                     }));
                     setStudents(mapped);
                 }
@@ -161,7 +171,7 @@ export default function BBIIReportForm({
         })();
     }, [selectedYear, selectedClass, selectedSection, setValue]);
 
-    const onSubmit = async (data: FormFields) => {
+    const submitForm = async (data: FormFields, isPrint = false) => {
         if (!hasStudentsSelected) {
             toast.error('Please select at least one student');
             return;
@@ -171,6 +181,7 @@ export default function BBIIReportForm({
         const sectionName = sections.find(s => s.asmS_Id === data.asmS_Id)?.asmC_SectionName || '';
 
         const currentDateTime = new Date().toISOString();
+        const rankVal = data.showRankInSection ?? data.showRank ?? false;
         const payload: any = {
             asmaY_Id: data.asmaY_Id,
             asmcL_Id: data.asmcL_Id,
@@ -180,11 +191,42 @@ export default function BBIIReportForm({
             fromDate: currentDateTime,
             toDate: currentDateTime,
             selectedClassName: className,
-            selectedSectionName: sectionName
+            selectedSectionName: sectionName,
+            showRemarks: data.showRemarks,
+            showRank: rankVal,
+            showRankInSection: rankVal,
+            isPrint
         };
         if (onSuccess) {
             await onSuccess(payload);
         }
+    };
+
+    const onSubmit = async (data: FormFields) => {
+        await submitForm(data, false);
+    };
+
+    const handlePrintClick = () => {
+        handleSubmit((data) => submitForm(data, true))();
+    };
+
+    const handleCancel = () => {
+        reset({
+            asmaY_Id: 0,
+            asmcL_Id: 0,
+            asmS_Id: 0,
+            emE_Id: 0,
+            studentList: [],
+            showRemarks: true,
+            showRank: false,
+            showRankInSection: false
+        });
+        setClasses([]);
+        setSections([]);
+        setExams([]);
+        setStudents([]);
+        setAllStudentsSelected(false);
+        if (onReset) onReset();
     };
 
     const handleAllStudents = (checked: boolean) => {
@@ -349,7 +391,7 @@ export default function BBIIReportForm({
                                     render={({ field, fieldState }) => (
                                         <CustomMultiSelectBox
                                             options={students.map((s) => ({
-                                                label: `${s.amsT_FirstName}`,
+                                                label: s.amsT_AdmNo ? `${s.amsT_FirstName} : ${s.amsT_AdmNo}` : s.amsT_FirstName,
                                                 value: s.amsT_Id.toString()
                                             }))}
                                             onChange={handleStudentChange}
@@ -365,20 +407,67 @@ export default function BBIIReportForm({
                             </div>
                         </div>
 
+                        <div className='flex flex-col gap-3 sm:ml-32 pl-2'>
+                            <Controller
+                                control={control}
+                                name='showRemarks'
+                                render={({ field }) => (
+                                    <div className='flex items-center space-x-2'>
+                                        <Checkbox
+                                            id='showRemarks'
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                        <Label htmlFor='showRemarks' className='cursor-pointer font-medium text-sm'>
+                                            Show Remarks
+                                        </Label>
+                                    </div>
+                                )}
+                            />
+                            <Controller
+                                control={control}
+                                name='showRankInSection'
+                                render={({ field }) => (
+                                    <div className='flex items-center space-x-2'>
+                                        <Checkbox
+                                            id='showRankInSection'
+                                            checked={field.value}
+                                            onCheckedChange={(checked) => {
+                                                field.onChange(checked);
+                                                setValue('showRank', !!checked);
+                                            }}
+                                        />
+                                        <Label htmlFor='showRankInSection' className='cursor-pointer font-medium text-sm'>
+                                            Show Rank in Section
+                                        </Label>
+                                    </div>
+                                )}
+                            />
+                        </div>
                     </div>
                 </div>
 
                 <div className='flex justify-center gap-4 pt-4 border-t'>
-                    <Button type='submit' disabled={isSubmitting || !hasStudentsSelected} className='min-w-[140px]'>
+                    <Button type='submit' disabled={isSubmitting || !hasStudentsSelected} className='min-w-[120px]'>
                         {isSubmitting ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <FileText className='mr-2 h-4 w-4' />}
                         Report
                     </Button>
-                    <Button type='button' variant='outline' onClick={() => { reset(); if (onReset) onReset(); }} className='min-w-[100px]'>
+                    <Button type='button' variant='outline' onClick={handleCancel} className='min-w-[100px]'>
                         <X className='mr-2 h-4 w-4' />
                         Cancel
+                    </Button>
+                    <Button
+                        type='button'
+                        onClick={handlePrintClick}
+                        disabled={isSubmitting || !hasStudentsSelected}
+                        className='min-w-[120px] bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700'
+                    >
+                        <Printer className='mr-2 h-4 w-4' />
+                        Print
                     </Button>
                 </div>
             </form>
         </FormProvider>
     );
 }
+

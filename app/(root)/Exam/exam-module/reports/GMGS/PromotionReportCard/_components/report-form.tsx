@@ -66,11 +66,6 @@ export const ReportForm = ({ onReportGenerated, onReset, onLoading }: ReportForm
         }
     }, [isSubmitting, loading, onLoading]);
 
-    useEffect(() => {
-        // Clear the generated report if any selection changes
-        onReset();
-    }, [watchYear, watchClass, watchSection, watchSelectedStudents, onReset]);
-
     // Load Initial Data
     useEffect(() => {
         (async () => {
@@ -91,6 +86,7 @@ export const ReportForm = ({ onReportGenerated, onReset, onLoading }: ReportForm
     // Load Classes on Year Change
     useEffect(() => {
         if (watchYear) {
+            onReset();
             (async () => {
                 try {
                     setLoadingClasses(true);
@@ -111,11 +107,12 @@ export const ReportForm = ({ onReportGenerated, onReset, onLoading }: ReportForm
         } else {
             setClasses([]);
         }
-    }, [watchYear, setValue]);
+    }, [watchYear, setValue, onReset]);
 
     // Load Sections on Class Change
     useEffect(() => {
         if (watchYear && watchClass) {
+            onReset();
             (async () => {
                 try {
                     setLoadingSections(true);
@@ -138,11 +135,12 @@ export const ReportForm = ({ onReportGenerated, onReset, onLoading }: ReportForm
         } else {
             setSections([]);
         }
-    }, [watchYear, watchClass, setValue]);
+    }, [watchYear, watchClass, setValue, onReset]);
 
     // Load Students on Section Change
     useEffect(() => {
         if (watchYear && watchClass && watchSection) {
+            onReset();
             (async () => {
                 try {
                     setLoadingStudents(true);
@@ -169,7 +167,7 @@ export const ReportForm = ({ onReportGenerated, onReset, onLoading }: ReportForm
             setStudents([]);
             setValue('selectedStudents', []);
         }
-    }, [watchYear, watchClass, watchSection, setValue]);
+    }, [watchYear, watchClass, watchSection, setValue, onReset]);
 
     const onSubmit = async (data: GmvpsPromotionReportCardSchema) => {
         try {

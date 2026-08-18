@@ -411,59 +411,65 @@ export default function CumulativeReportGridView({
             </div>
 
             {/* Report Header */}
-            <div className='mt-6'>
-                <div className='mb-4 text-center'>
-                    <h3 className='text-blue-900 text-xl'>{headerInfo.mI_Name}</h3>
-                    <h5 className='mt-1 text-blue-800 text-lg'>CLASS WISE CUMULATIVE REPORT</h5>
-                    <div className='mt-2'>
-                        <strong>Academic Year :</strong> {headerInfo.yr}
+            <div className='mt-6 mb-4'>
+                <div className='text-center space-y-1'>
+                    <h3 className='text-xl md:text-2xl font-bold uppercase text-[#005ba4] tracking-wide'>
+                        {headerInfo.mI_Name}
+                    </h3>
+                    <h5 className='text-sm md:text-base font-bold uppercase text-[#005ba4] tracking-wider'>
+                        CLASS WISE CUMULATIVE REPORT
+                    </h5>
+                    <div className='text-xs md:text-sm font-semibold uppercase text-gray-800 pt-1'>
+                        ACADEMIC YEAR : {headerInfo.yr}
                     </div>
-                    <div className='-ml-12 md:-ml-16'>
-                        <strong>Class & Sec :</strong> {headerInfo.cla} - {headerInfo.sec}
+                    <div className='text-xs md:text-sm font-semibold uppercase text-gray-800'>
+                        CLASS & SEC : {headerInfo.cla} - {headerInfo.sec}
                     </div>
-                    <div className='ml-20 md:ml-24'>
-                        <strong>Exam :</strong> {headerInfo.exmmid}
+                    <div className='text-xs md:text-sm font-semibold uppercase text-gray-800'>
+                        EXAM : {headerInfo.exmmid}
                     </div>
                 </div>
 
-                {/* Table */}
-                <div className='overflow-x-auto border-2 border-blue-800'>
-                    <table className='w-full border-collapse'>
+                {/* Table with Sticky Student Column */}
+                <div className='overflow-x-auto border border-gray-300 shadow-sm rounded mt-4 relative'>
+                    <table className='w-full border-collapse text-sm'>
                         <thead>
-                            <tr className='bg-blue-800 text-white'>
-                                <th className='border border-blue-900 px-2 py-3'>Sl No</th>
-                                <th className='border border-blue-900 px-4 py-3 text-left'>Student Name</th>
-                                {columnFlags.rollno && <th className='border border-blue-900 px-3 py-3'>Roll No</th>}
-                                {columnFlags.admno && <th className='border border-blue-900 px-3 py-3'>Admission No</th>}
-                                {columnFlags.regno && <th className='border border-blue-900 px-3 py-3'>Registration No</th>}
+                            <tr className='bg-[#005ba4] text-white text-xs md:text-sm font-bold uppercase'>
+                                <th className='border border-white/20 px-3 py-2.5 whitespace-nowrap text-center'>Sl No</th>
+                                <th className='sticky left-0 bg-[#005ba4] z-10 border border-white/20 px-4 py-2.5 whitespace-nowrap text-left shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)]'>
+                                    Student Name
+                                </th>
+                                {columnFlags.admno && <th className='border border-white/20 px-3 py-2.5 whitespace-nowrap text-center'>Adm No</th>}
+                                {columnFlags.regno && <th className='border border-white/20 px-3 py-2.5 whitespace-nowrap text-center'>Reg No</th>}
+                                {columnFlags.rollno && <th className='border border-white/20 px-3 py-2.5 whitespace-nowrap text-center'>Roll No</th>}
 
                                 {columnFlags.applicable && subjects
                                     .filter((s) => s.eyceS_AplResultFlg)
                                     .map((subj) => (
-                                        <th key={subj.ismS_Id} className='border border-blue-900 px-3 py-3'>
+                                        <th key={subj.ismS_Id} className='border border-white/20 px-3 py-2.5 whitespace-nowrap text-center min-w-[76px]'>
                                             {getSubjectHeaderName(subj)}
                                         </th>
                                     ))}
+                                <th className='border border-white/20 px-3 py-2.5 whitespace-nowrap text-center'>TOTAL</th>
+                                <th className='border border-white/20 px-3 py-2.5 whitespace-nowrap text-center'>OBTAINED</th>
+                                {columnFlags.readmit && <th className='border border-white/20 px-3 py-2.5 whitespace-nowrap text-center'>Percentage</th>}
+                                {columnFlags.gradecolm && <th className='border border-white/20 px-3 py-2.5 whitespace-nowrap text-center'>Over All Grade</th>}
+                                {columnFlags.sectionrank && <th className='border border-white/20 px-3 py-2.5 whitespace-nowrap text-center'>SECTION RANK</th>}
+                                {columnFlags.classrank && <th className='border border-white/20 px-3 py-2.5 whitespace-nowrap text-center'>CLASS RANK</th>}
+                                {!columnFlags.attendancedispaly && (
+                                    <>
+                                        <th className='border border-white/20 px-3 py-2.5 whitespace-nowrap text-center'>CLASS HELD</th>
+                                        <th className='border border-white/20 px-3 py-2.5 whitespace-nowrap text-center'>ATTENDANCE</th>
+                                    </>
+                                )}
+                                {columnFlags.status && <th className='border border-white/20 px-3 py-2.5 whitespace-nowrap text-center'>STATUS</th>}
                                 {columnFlags.nonapplicable && subjects
                                     .filter((s) => !s.eyceS_AplResultFlg)
                                     .map((subj) => (
-                                        <th key={subj.ismS_Id} className='border border-blue-900 px-3 py-3'>
-                                            {subj.ismS_SubjectName} (M | G)
+                                        <th key={subj.ismS_Id} className='border border-white/20 px-3 py-2.5 whitespace-nowrap text-center min-w-[76px]'>
+                                            {(subj.ismS_SubjectName || '').toUpperCase()} (M | G)
                                         </th>
                                     ))}
-                                <th className='border border-blue-900 px-3 py-3'>Total</th>
-                                <th className='border border-blue-900 px-3 py-3'>Obtained</th>
-                                {columnFlags.readmit && <th className='border border-blue-900 px-3 py-3'>%</th>}
-                                {columnFlags.gradecolm && <th className='border border-blue-900 px-3 py-3'>Over All Grade</th>}
-                                {columnFlags.sectionrank && <th className='border border-blue-900 px-3 py-3'>Section Rank</th>}
-                                {columnFlags.classrank && <th className='border border-blue-900 px-3 py-3'>Class Rank</th>}
-                                {!columnFlags.attendancedispaly && (
-                                    <>
-                                        <th className='border border-blue-900 px-3 py-3'>Class Held</th>
-                                        <th className='border border-blue-900 px-3 py-3'>Attendance</th>
-                                    </>
-                                )}
-                                {columnFlags.status && <th className='border border-blue-900 px-3 py-3'>Status</th>}
                             </tr>
                         </thead>
                         <tbody>
@@ -471,81 +477,83 @@ export default function CumulativeReportGridView({
                                 const isAbsent = student.estmP_Result === 'AB';
 
                                 return (
-                                    <tr key={idx} className='hover:bg-gray-50'>
-                                        <td className='border border-gray-400 px-2 py-2 text-center'>{idx + 1}</td>
-                                        <td className='border border-gray-400 px-4 py-2 text-left'>{student.amsT_FirstName}</td>
+                                    <tr key={idx} className='hover:bg-blue-50/40 bg-white transition-colors'>
+                                        <td className='border border-gray-300 px-3 py-2 text-center font-medium'>{idx + 1}</td>
+                                        <td className='sticky left-0 bg-white z-10 border border-gray-300 px-4 py-2 text-left font-medium text-gray-900 whitespace-nowrap shadow-[2px_0_5px_-2px_rgba(0,0,0,0.15)]'>
+                                            {student.amsT_FirstName}
+                                        </td>
 
-                                        {columnFlags.rollno && (
-                                            <td className='border border-gray-400 px-3 py-2 text-center'>{student.amaY_RollNo ?? '-'}</td>
-                                        )}
                                         {columnFlags.admno && (
-                                            <td className='border border-gray-400 px-3 py-2 text-center'>{student.amsT_AdmNo ?? '-'}</td>
+                                            <td className='border border-gray-300 px-3 py-2 text-center'>{student.amsT_AdmNo ?? '-'}</td>
                                         )}
                                         {columnFlags.regno && (
-                                            <td className='border border-gray-400 px-3 py-2 text-center'>{student.amsT_RegistrationNo ?? '-'}</td>
+                                            <td className='border border-gray-300 px-3 py-2 text-center'>{student.amsT_RegistrationNo ?? '-'}</td>
+                                        )}
+                                        {columnFlags.rollno && (
+                                            <td className='border border-gray-300 px-3 py-2 text-center'>{student.amaY_RollNo ?? '-'}</td>
                                         )}
 
                                         {/* Applicable Subjects */}
                                         {columnFlags.applicable && subjects
                                             .filter((s) => s.eyceS_AplResultFlg)
                                             .map((subj) => (
-                                                <td key={subj.ismS_Id} className='border border-gray-400 py-2 text-center'>
+                                                <td key={subj.ismS_Id} className='border border-gray-300 px-3 py-2 text-center font-medium text-gray-900'>
                                                     {renderMarkCellContent(subj, student)}
                                                 </td>
                                             ))}
 
-                                        {/* Non-applicable Subjects */}
-                                        {columnFlags.nonapplicable && subjects
-                                            .filter((s) => !s.eyceS_AplResultFlg)
-                                            .map((subj) => (
-                                                <td key={subj.ismS_Id} className='border border-gray-400 py-2 text-center'>
-                                                    {renderMarkCellContent(subj, student)}
-                                                </td>
-                                            ))}
-
-                                        <td className='border border-gray-400 py-2 text-center'>
+                                        <td className='border border-gray-300 px-3 py-2 text-center font-medium text-gray-900'>
                                             {isAbsent ? '' : (student.estmP_TotalMaxMarks ?? '-')}
                                         </td>
-                                        <td className='border border-gray-400 py-2 text-center'>
+                                        <td className='border border-gray-300 px-3 py-2 text-center font-medium text-gray-900'>
                                             {isAbsent ? '' : (student.estmP_TotalObtMarks ?? '-')}
                                         </td>
                                         {columnFlags.readmit && (
-                                            <td className='border border-gray-400 py-2 text-center'>
+                                            <td className='border border-gray-300 px-3 py-2 text-center'>
                                                 {isAbsent
                                                     ? '-'
                                                     : student.estmP_Percentage
-                                                        ? `${Number(student.estmP_Percentage).toFixed(1)}%`
+                                                        ? `${student.estmP_Percentage}`
                                                         : '-'}
                                             </td>
                                         )}
                                         {columnFlags.gradecolm && (
-                                            <td className='border border-gray-400 py-2 text-center'>
+                                            <td className='border border-gray-300 px-3 py-2 text-center'>
                                                 {isAbsent ? '' : (student.estmP_TotalGrade ?? '-')}
                                             </td>
                                         )}
                                         {columnFlags.sectionrank && (
-                                            <td className='border border-gray-400 py-2 text-center font-semibold'>
-                                                {isAbsent || student.estmP_SectionRank === '0' ? '' : (student.estmP_SectionRank ?? '-')}
+                                            <td className='border border-gray-300 px-3 py-2 text-center font-semibold'>
+                                                {isAbsent || student.estmP_SectionRank === '0' || student.estmP_SectionRank === 0 ? '' : (student.estmP_SectionRank ?? '-')}
                                             </td>
                                         )}
                                         {columnFlags.classrank && (
-                                            <td className='border border-gray-400 py-2 text-center font-semibold'>
-                                                {isAbsent || student.estmP_ClassRank === '0' ? '' : (student.estmP_ClassRank ?? '-')}
+                                            <td className='border border-gray-300 px-3 py-2 text-center font-semibold'>
+                                                {isAbsent || student.estmP_ClassRank === '0' || student.estmP_ClassRank === 0 ? '' : (student.estmP_ClassRank ?? '-')}
                                             </td>
                                         )}
                                         {!columnFlags.attendancedispaly && (
                                             <>
-                                                <td className='border border-gray-400 py-2 text-center'>{student.classheld ?? '-'}</td>
-                                                <td className='border border-gray-400 py-2 text-center'>{student.classatt ?? '-'}</td>
+                                                <td className='border border-gray-300 px-3 py-2 text-center'>{student.classheld ?? '-'}</td>
+                                                <td className='border border-gray-300 px-3 py-2 text-center'>{student.classatt ?? '-'}</td>
                                             </>
                                         )}
                                         {columnFlags.status && (
-                                            <td className='border border-gray-400 py-2 text-center font-semibold'>
+                                            <td className='border border-gray-300 px-3 py-2 text-center font-semibold'>
                                                 <span className={student.estmP_Result === 'Pass' ? 'text-green-600' : 'text-red-600'}>
                                                     {student.estmP_Result ?? '-'}
                                                 </span>
                                             </td>
                                         )}
+
+                                        {/* Non-applicable Subjects */}
+                                        {columnFlags.nonapplicable && subjects
+                                            .filter((s) => !s.eyceS_AplResultFlg)
+                                            .map((subj) => (
+                                                <td key={subj.ismS_Id} className='border border-gray-300 px-3 py-2 text-center font-medium text-gray-900'>
+                                                    {renderMarkCellContent(subj, student)}
+                                                </td>
+                                            ))}
                                     </tr>
                                 );
                             })}

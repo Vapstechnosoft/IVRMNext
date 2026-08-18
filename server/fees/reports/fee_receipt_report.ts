@@ -28,7 +28,12 @@ export async function getFeeReceiptReportReceiptDropdown(data: any) {
 
 export async function getFeeReceiptLogo() {
     const url = '/FeesCommon/get-institution-logo';
-    return await api.get<any[]>('fees', url);
+    const response = await api.get<any[]>('fees', url).catch((err) => {
+        console.error('[server] getFeeReceiptLogo API error:', err);
+        return null;
+    });
+    console.log('[server] getFeeReceiptLogo API response:', response);
+    return response;
 }
 
 export async function getReceiptReportDetails(data: any) {

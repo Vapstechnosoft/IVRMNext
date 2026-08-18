@@ -806,7 +806,7 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                                         <tbody>
                                             <tr>
                                                 <th className='border border-gray-400 bg-[#BABABA] p-2 text-black w-32 text-left uppercase'>RESULT</th>
-                                                <th className='border border-gray-400 p-2 text-left font-bold uppercase'>{remarkObj.eprD_PromotionName || report.estmP_Result || '-'}</th>
+                                                <th className='border border-gray-400 p-2 text-left font-bold uppercase'>{remarkObj?.eprD_PromotionName || report?.estmP_Result || report?.overallResult || '-'}</th>
                                             </tr>
                                         </tbody>
                                     </table>
