@@ -256,7 +256,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                     {/* Academic Year */}
                     <div className="flex flex-col gap-2">
-                        <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Academic Year</Label>
+                        <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Academic Year</Label>
                         <Controller
                             control={control}
                             name="ASMAY_Id"
@@ -285,7 +285,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
 
                     {/* Event */}
                     <div className="flex flex-col gap-2">
-                        <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Event</Label>
+                        <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Event</Label>
                         <Controller
                             control={control}
                             name="SPCCME_Id"
@@ -313,7 +313,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                     </div>
 
                     <div className="flex flex-col gap-2">
-                        <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Result</Label>
+                        <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Result</Label>
                         <Controller
                             control={control}
                             name="Type"
@@ -349,7 +349,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                         <>
                             {isMultiLevel ? (
                                 <div className="flex flex-col gap-2">
-                                    <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Competition Level</Label>
+                                    <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Competition Level</Label>
                                     <Controller
                                         control={control}
                                         name="selectedCompetitionLevels"
@@ -380,7 +380,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                 </div>
                             ) : (
                                 <div className="flex flex-col gap-2">
-                                    <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Competition Level</Label>
+                                    <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Competition Level</Label>
                                     <Controller
                                         control={control}
                                         name="spccmcL_Id"
@@ -412,7 +412,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
 
                     {/* From Date */}
                     <div className="flex flex-col gap-2">
-                        <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Date</Label>
+                        <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Date</Label>
                         <Controller
                             control={control}
                             name="FromDate"
@@ -436,7 +436,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                         <>
                             {isMultiCategory ? (
                                 <div className="flex flex-col gap-2">
-                                    <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Competition Category</Label>
+                                    <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Competition Category</Label>
                                     <Controller
                                         control={control}
                                         name="selectedCategories"
@@ -467,7 +467,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                 </div>
                             ) : (
                                 <div className="flex flex-col gap-2">
-                                    <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Competition Category</Label>
+                                    <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Competition Category</Label>
                                     <Controller
                                         control={control}
                                         name="spccmcC_Id"
@@ -517,7 +517,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                         <>
                             {/* Main Event */}
                             <div className="flex flex-col gap-2">
-                                <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Main Event</Label>
+                                <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Main Event</Label>
                                 <Controller
                                     control={control}
                                     name="spccmsccG_Id"
@@ -546,7 +546,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
 
                             {/* Sub Event */}
                             <div className="flex flex-col gap-2">
-                                <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Sub Event</Label>
+                                <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Sub Event</Label>
                                 <Controller
                                     control={control}
                                     name="spccmscC_Id"
@@ -577,7 +577,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                             {/* Multi for Indoor, Outdoor, Externals */}
                             {['Indoor', 'Outdoor', 'Externals'].includes(watchedType) && (
                                 <div className="flex flex-col gap-2">
-                                    <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Sub Sub Event</Label>
+                                    <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Sub Sub Event</Label>
                                     <Controller
                                         control={control}
                                         name="selectedSubSubEvents"
@@ -611,7 +611,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                             {/* Single for Start, Team, Finish */}
                             {['Start', 'Team', 'Finish'].includes(watchedType) && (
                                 <div className="flex flex-col gap-2">
-                                    <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Sub Sub Event</Label>
+                                    <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Sub Sub Event</Label>
                                     <Controller
                                         control={control}
                                         name="spccmsccG_Idsub"
