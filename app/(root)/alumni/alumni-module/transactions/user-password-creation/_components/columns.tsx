@@ -62,10 +62,6 @@ export const userPasswordCreationColumns: ColumnDef<IStudent>[] = [
         accessorKey: 'asmc_sectionname',
         header: ({ column }) => <DataTableColumnHeader column={column} title='SECTION' className='font-bold text-black' />,
         cell: ({ row }) => <span>{row.original.asmc_sectionname || '-'}</span>
-    },
-    {
-        accessorKey: 'username',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='USER NAME' className='font-bold text-black' />,
-        cell: ({ row }) => <span className='font-mono text-sm text-primary'>{row.original.username || '-'}</span>
     }
+
 ];
