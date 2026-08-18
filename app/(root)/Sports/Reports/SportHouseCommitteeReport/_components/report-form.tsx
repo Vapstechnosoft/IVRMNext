@@ -97,7 +97,7 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
                         <div className='grid grid-cols-1 items-end gap-6 md:grid-cols-2 lg:grid-cols-3'>
                             {/* Academic Year */}
                             <div className="flex flex-col gap-2">
-                                <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Academic Year</Label>
+                                <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Academic Year</Label>
                                 <Controller
                                     control={control}
                                     name="asmaY_Id"
@@ -127,7 +127,7 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
 
                             {/* House Multi-select */}
                             <div className="flex flex-col gap-2">
-                                <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">House</Label>
+                                <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>House</Label>
                                 <Controller
                                     control={control}
                                     name="selectedhouselist"

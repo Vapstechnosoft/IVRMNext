@@ -185,7 +185,7 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
                         <div className='grid grid-cols-1 gap-8 md:grid-cols-3'>
                             {/* Academic Year */}
                             <div className="flex flex-col gap-2">
-                                <Label className="mr-1 font-bold text-muted-foreground text-sm uppercase tracking-wider after:ml-0.5 after:text-red-500 after:content-['*']">Academic Year</Label>
+                                <Label className='mr-1 font-bold text-muted-foreground text-sm uppercase tracking-wider after:ml-0.5 after:text-red-500 after:content-['*']'>Academic Year</Label>
                                 <Controller
                                     control={control}
                                     name="asmaY_Id"
@@ -216,7 +216,7 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
                             {/* Class Selection (CS Only) */}
                             {watchedType === 'CS' && (
                                 <div className="flex flex-col gap-2">
-                                    <Label className="mr-1 font-bold text-muted-foreground text-sm uppercase tracking-wider after:ml-0.5 after:text-red-500 after:content-['*']">Class</Label>
+                                    <Label className='mr-1 font-bold text-muted-foreground text-sm uppercase tracking-wider after:ml-0.5 after:text-red-500 after:content-['*']'>Class</Label>
                                     <Controller
                                         control={control}
                                         name="selectedClasslist"
@@ -274,7 +274,7 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
                             {/* Section Selection (CS Only) */}
                             {watchedType === 'CS' && (
                                 <div className="flex flex-col gap-2">
-                                    <Label className="mr-1 font-bold text-muted-foreground text-sm uppercase tracking-wider after:ml-0.5 after:text-red-500 after:content-['*']">Section</Label>
+                                    <Label className='mr-1 font-bold text-muted-foreground text-sm uppercase tracking-wider after:ml-0.5 after:text-red-500 after:content-['*']'>Section</Label>
                                     <Controller
                                         control={control}
                                         name="selectedSectionlist"

@@ -97,7 +97,7 @@ function FormFields({ details, control, watch, setValue, errors }: { details: an
     return (
         <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
             <div className='flex flex-col gap-2'>
-                <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Program Name</Label>
+                <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Program Name</Label>
                 <Controller
                     name='spccE_Id'
                     control={control}
@@ -133,7 +133,7 @@ function FormFields({ details, control, watch, setValue, errors }: { details: an
             </div>
 
             <div className='flex flex-col gap-2'>
-                <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Sponsor Name</Label>
+                <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Sponsor Name</Label>
                 <Controller
                     name='spccmsP_Id'
                     control={control}

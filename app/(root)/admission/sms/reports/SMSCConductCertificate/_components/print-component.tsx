@@ -21,7 +21,7 @@ export const PrintComponent = forwardRef<HTMLDivElement, PrintComponentProps>(({
     const today = new Date();
 
     const renderStudyCertificate = () => (
-        <div className="study-certificate-container border border-slate-200 bg-white p-[40px] font-['Times_New_Roman',_Times,_serif] text-[#1a1a1a] shadow-2xl">
+        <div className='study-certificate-container border border-slate-200 bg-white p-[40px] font-['Times_New_Roman',_Times,_serif] text-[#1a1a1a] shadow-2xl'>
             {/* Contact Info Header */}
             <div className='mb-6 flex justify-between border-slate-100 border-b pb-4 text-[14px] leading-relaxed'>
                 <div className="flex flex-col">
@@ -90,7 +90,7 @@ export const PrintComponent = forwardRef<HTMLDivElement, PrintComponentProps>(({
     );
 
     const renderConductCertificate = (copyType: 'Original' | 'Carbon') => (
-        <section className="conduct-copy relative mb-8 overflow-hidden rounded-[10px] border-2 border-slate-900 bg-white p-8 font-['Times_New_Roman',_serif]">
+        <section className='conduct-copy relative mb-8 overflow-hidden rounded-[10px] border-2 border-slate-900 bg-white p-8 font-['Times_New_Roman',_serif]'>
             {/* Watermark/Copy Indicator */}
             <div className='-rotate-12 pointer-events-none absolute top-5 right-5 z-0 select-none font-black text-[100px] opacity-[0.03]'>
                 {copyType.toUpperCase()}
