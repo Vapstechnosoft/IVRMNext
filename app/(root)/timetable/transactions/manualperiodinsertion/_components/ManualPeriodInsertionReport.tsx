@@ -4,18 +4,17 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useManualPeriodMasters, useManualPeriodInsertionReport, useSaveManualPeriodInsertion } from '@/hooks/timetable/useTransactions';
+import { useManualPeriodInsertionReport, useManualPeriodMasters, useSaveManualPeriodInsertion } from '@/hooks/timetable/useTransactions';
 import { cn } from '@/lib/utils';
-import { Book, Save, User, X, Loader2, CheckCircle } from 'lucide-react';
-import { toast } from 'sonner';
+import { Book, Save, User, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 interface ManualPeriodInsertionReportProps {
     data: any; // This matches the filter values from the form
 }
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
 
 const PERIODS = [
     'Period 1',
@@ -56,9 +55,7 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
     const actualReportData = reportData?.data || reportData || EMPTY_OBJ;
 
     // Always show all standard days so user can assign to any day
-    const gridDays = actualReportData?.gridweeks?.length 
-        ? actualReportData.gridweeks.map((d: any) => d.ttmD_DayName || d.dayName)
-        : DAYS;
+    const gridDays = actualReportData?.gridweeks?.length ? actualReportData.gridweeks.map((d: any) => d.ttmD_DayName || d.dayName) : DAYS;
 
     // Use periods from API or fallback
     const gridPeriods = actualReportData?.periodslst?.length
@@ -75,18 +72,27 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
                     const key = `${String(day).toLowerCase().trim()}-${String(period).toLowerCase().trim()}`;
                     const ismsIdVal = item.ismS_Id || item.isms_Id || item.isms_id || item.ISMS_Id;
                     const hrmeIdVal = item.hrmE_Id || item.hrme_Id || item.hrme_id || item.HRME_Id;
-                    
+
                     newCellData[key] = {
                         hrmE_Id: hrmeIdVal?.toString() || '',
                         ismS_Id: ismsIdVal?.toString() || '',
-                        staffName: item.staffName || item.hrmE_EmployeeFirstName || masters?.staff?.find(s => s.hrmE_Id === hrmeIdVal)?.staffName || '',
-                        subjectName: item.ismS_SubjectName || item.subjectName || item.ismS_SubjectName || masters?.subjects?.find(s => s.ismS_Id === ismsIdVal)?.ismS_SubjectName || ''
+                        staffName:
+                            item.staffName ||
+                            item.hrmE_EmployeeFirstName ||
+                            masters?.staff?.find((s) => s.hrmE_Id === hrmeIdVal)?.staffName ||
+                            '',
+                        subjectName:
+                            item.ismS_SubjectName ||
+                            item.subjectName ||
+                            item.ismS_SubjectName ||
+                            masters?.subjects?.find((s) => s.ismS_Id === ismsIdVal)?.ismS_SubjectName ||
+                            ''
                     };
                 }
             });
             setCellData(newCellData);
         } else {
-            setCellData(prev => Object.keys(prev).length === 0 ? prev : {});
+            setCellData((prev) => (Object.keys(prev).length === 0 ? prev : {}));
         }
     }, [actualReportData, masters]);
 
@@ -113,21 +119,17 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
             const periodName = key.substring(separatorIndex + 1).trim();
 
             const dayObj = actualReportData?.gridweeks?.find(
-                (d: any) =>
-                    (d.ttmD_DayName || d.ttmd_DayName || d.TTMD_DayName || d.dayName)
-                        ?.toLowerCase()
-                        .trim() === dayName
+                (d: any) => (d.ttmD_DayName || d.ttmd_DayName || d.TTMD_DayName || d.dayName)?.toLowerCase().trim() === dayName
             );
 
             const periodObj = actualReportData?.periodslst?.find(
                 (p: any) =>
-                    (p.ttmP_PeriodName || p.ttcP_PeriodName || p.TTMP_PeriodName || p.periodName)
-                        ?.toLowerCase()
-                        .trim() === periodName
+                    (p.ttmP_PeriodName || p.ttcP_PeriodName || p.TTMP_PeriodName || p.periodName)?.toLowerCase().trim() === periodName
             );
 
             const ttmD_Id = dayObj?.ttmD_Id || dayObj?.TTMD_Id || dayObj?.ttmd_id || dayObj?.ttmd_Id || dayObj?.dayid || null;
-            const ttmP_Id = periodObj?.ttmP_Id || periodObj?.TTMP_Id || periodObj?.ttmp_id || periodObj?.ttmp_Id || periodObj?.pedid || null;
+            const ttmP_Id =
+                periodObj?.ttmP_Id || periodObj?.TTMP_Id || periodObj?.ttmp_id || periodObj?.ttmp_Id || periodObj?.pedid || null;
 
             if (ttmD_Id && ttmP_Id) {
                 payloadTimeTable.push({
@@ -143,7 +145,7 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
             return;
         }
 
-        console.log("payload", payloadTimeTable)
+        console.log('payload', payloadTimeTable);
 
         const finalPayload = {
             ASMAY_Id: Number(data.asmaY_Id),
@@ -156,7 +158,7 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
         };
 
         console.log('Sending payload:', finalPayload);
-        alert("PAYLOAD GENERATED ON CLICK:\n\n" + JSON.stringify(finalPayload, null, 2));
+        alert('PAYLOAD GENERATED ON CLICK:\n\n' + JSON.stringify(finalPayload, null, 2));
 
         saveTimetable(finalPayload, {
             onSuccess: (res: any) => {
@@ -254,8 +256,8 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
                                                 isSelected
                                                     ? 'z-10 bg-purple-600 ring-2 ring-purple-400 ring-inset'
                                                     : isAssigned
-                                                        ? 'bg-purple-100 text-purple-900'
-                                                        : 'bg-white'
+                                                      ? 'bg-purple-100 text-purple-900'
+                                                      : 'bg-white'
                                             )}>
                                             {isBreak ? (
                                                 'Break'
@@ -356,4 +358,3 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
         </div>
     );
 }
-

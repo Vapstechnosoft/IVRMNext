@@ -1,18 +1,15 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Card, CardContent } from '@/components/ui/card';
+import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { MessageSquare, Mail, MessageCircle, Send, XCircle } from 'lucide-react';
+import { Send } from 'lucide-react';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { type IBirthdayFormValues, birthdayFormSchema } from './schema';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface BirthdayFormProps {
     initialData: any;
@@ -24,8 +21,15 @@ interface BirthdayFormProps {
     totalRecords?: number;
 }
 
-
-export default function BirthdayForm({ initialData, onTypeChange, onChannelChange, onSubmit, onCancel, isLoading, totalRecords = 0 }: BirthdayFormProps) {
+export default function BirthdayForm({
+    initialData,
+    onTypeChange,
+    onChannelChange,
+    onSubmit,
+    onCancel,
+    isLoading,
+    totalRecords = 0
+}: BirthdayFormProps) {
     const form = useForm<IBirthdayFormValues>({
         resolver: zodResolver(birthdayFormSchema),
         defaultValues: {
@@ -54,20 +58,20 @@ export default function BirthdayForm({ initialData, onTypeChange, onChannelChang
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8 animate-in fade-in slide-in-from-top-4 duration-500'>
-                <Card className="border shadow-sm rounded-b-3xl overflow-hidden bg-white border-t-4 border-t-orange-400 border-x-1 border-b-1">
-                    <CardContent className="p-8">
-                        <div className="flex flex-col md:flex-row items-center justify-center gap-12 py-8 border rounded-[2rem] bg-slate-50/50">
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm font-bold text-slate-700">Please Select Radio Button:</span>
-                                <span className="text-red-500 font-bold">*</span>
+            <form onSubmit={form.handleSubmit(onSubmit)} className='fade-in slide-in-from-top-4 animate-in space-y-8 duration-500'>
+                <Card className='overflow-hidden rounded-b-3xl border border-x-1 border-t-4 border-t-orange-400 border-b-1 bg-white shadow-sm'>
+                    <CardContent className='p-8'>
+                        <div className='flex flex-col items-center justify-center gap-12 rounded-[2rem] border bg-slate-50/50 py-8 md:flex-row'>
+                            <div className='flex items-center gap-2'>
+                                <span className='font-bold text-slate-700 text-sm'>Please Select Radio Button:</span>
+                                <span className='font-bold text-red-500'>*</span>
                             </div>
 
                             <FormField
                                 control={form.control}
                                 name='radioption'
                                 render={({ field }) => (
-                                    <FormItem className="space-y-0">
+                                    <FormItem className='space-y-0'>
                                         <FormControl>
                                             <RadioGroup
                                                 onValueChange={(val) => {
@@ -75,15 +79,17 @@ export default function BirthdayForm({ initialData, onTypeChange, onChannelChang
                                                     onTypeChange(val, form.getValues());
                                                 }}
                                                 value={field.value}
-                                                className='flex items-center gap-8'
-                                            >
+                                                className='flex items-center gap-8'>
                                                 {['student', 'Staff', 'Alumni'].map((cat) => (
-                                                    <div key={cat} className="flex items-center space-x-2 cursor-pointer group">
-                                                        <RadioGroupItem value={cat} id={`cat-${cat}`} className="h-5 w-5 text-primary border-slate-300" />
+                                                    <div key={cat} className='group flex cursor-pointer items-center space-x-2'>
+                                                        <RadioGroupItem
+                                                            value={cat}
+                                                            id={`cat-${cat}`}
+                                                            className='h-5 w-5 border-slate-300 text-primary'
+                                                        />
                                                         <label
                                                             htmlFor={`cat-${cat}`}
-                                                            className="text-sm font-bold text-slate-600 cursor-pointer group-hover:text-primary capitalize"
-                                                        >
+                                                            className='cursor-pointer font-bold text-slate-600 text-sm capitalize group-hover:text-primary'>
                                                             {cat === 'student' ? 'Student' : cat}
                                                         </label>
                                                     </div>
@@ -97,10 +103,10 @@ export default function BirthdayForm({ initialData, onTypeChange, onChannelChang
 
                         {/* Checkboxes Row - Only show when a radio button is selected */}
                         {radioption && (
-                            <div className="flex flex-col md:flex-row items-center justify-center gap-12 py-8 border rounded-[2rem] bg-slate-50/50 mt-6 animate-in zoom-in-95 fade-in duration-500 shadow-sm">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-sm font-bold text-slate-700">Please Select Check Box:</span>
-                                    <span className="text-red-500 font-bold">*</span>
+                            <div className='zoom-in-95 fade-in mt-6 flex animate-in flex-col items-center justify-center gap-12 rounded-[2rem] border bg-slate-50/50 py-8 shadow-sm duration-500 md:flex-row'>
+                                <div className='flex items-center gap-2'>
+                                    <span className='font-bold text-slate-700 text-sm'>Please Select Check Box:</span>
+                                    <span className='font-bold text-red-500'>*</span>
                                 </div>
 
                                 <div className='flex items-center gap-8'>
@@ -114,21 +120,20 @@ export default function BirthdayForm({ initialData, onTypeChange, onChannelChang
                                             control={form.control}
                                             name={channel.name as any}
                                             render={({ field }) => (
-                                                <div className="flex items-center space-x-3 cursor-pointer group">
+                                                <div className='group flex cursor-pointer items-center space-x-3'>
                                                     <input
-                                                        type="checkbox"
+                                                        type='checkbox'
                                                         id={`check-${channel.name}`}
                                                         checked={field.value}
                                                         onChange={(e) => field.onChange(e.target.checked)}
-                                                        className="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary cursor-pointer accent-primary"
+                                                        className='h-5 w-5 cursor-pointer rounded border-slate-300 text-primary accent-primary focus:ring-primary'
                                                     />
                                                     <label
                                                         htmlFor={`check-${channel.name}`}
                                                         className={cn(
-                                                            "text-sm font-bold cursor-pointer transition-colors uppercase tracking-wider",
-                                                            field.value ? "text-primary" : "text-slate-500 group-hover:text-primary"
-                                                        )}
-                                                    >
+                                                            'cursor-pointer font-bold text-sm uppercase tracking-wider transition-colors',
+                                                            field.value ? 'text-primary' : 'text-slate-500 group-hover:text-primary'
+                                                        )}>
                                                         {channel.label}
                                                     </label>
                                                 </div>
@@ -142,22 +147,26 @@ export default function BirthdayForm({ initialData, onTypeChange, onChannelChang
                         {/* Filtering Criteria - Removed as per request */}
 
                         {isAnySelected && (
-                            <div className='flex items-center justify-center gap-6 pt-10 mt-10 border-t border-slate-100 animate-in zoom-in-95 duration-300'>
+                            <div className='zoom-in-95 mt-10 flex animate-in items-center justify-center gap-6 border-slate-100 border-t pt-10 duration-300'>
                                 <Button
                                     type='submit'
                                     size='lg'
                                     disabled={isLoading || initialData == undefined || totalRecords === 0}
-                                    className='h-14 px-12 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20'
-                                >
-                                    {isLoading ? 'Sending...' : <><Send className='mr-3 h-4 w-4' /> Send Wishes</>}
+                                    className='h-14 rounded-xl px-12 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20'>
+                                    {isLoading ? (
+                                        'Sending...'
+                                    ) : (
+                                        <>
+                                            <Send className='mr-3 h-4 w-4' /> Send Wishes
+                                        </>
+                                    )}
                                 </Button>
                                 <Button
                                     type='button'
                                     variant='ghost'
                                     size='lg'
                                     onClick={onCancel}
-                                    className='h-14 px-10 rounded-xl font-black uppercase tracking-widest text-[10px] text-slate-400'
-                                >
+                                    className='h-14 rounded-xl px-10 font-black text-[10px] text-slate-400 uppercase tracking-widest'>
                                     Cancel
                                 </Button>
                             </div>

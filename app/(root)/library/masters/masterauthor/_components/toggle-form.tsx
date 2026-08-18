@@ -30,7 +30,10 @@ export default function ToggleMasterAuthorForm({ rowData, onClose }: toggleMaste
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterAuthorSchema.delete),
-        mode: 'onChange'
+        mode: 'onChange',
+        defaultValues: {
+            lmaU_Id: String(rowData.lmaU_Id)
+        }
     });
 
     function closeDialog() {

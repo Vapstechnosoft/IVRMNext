@@ -94,9 +94,7 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
     const [resetKey, setResetKey] = useState(0);
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
-        const submerchants = data.submerchantIds
-            ?.filter((item) => item.id.trim() !== '')
-            .map((item) => item.id) ?? [];
+        const submerchants = data.submerchantIds?.filter((item) => item.id.trim() !== '').map((item) => item.id) ?? [];
 
         const payload = {
             fpgD_Id: selectedRow.fpgD_Id,
@@ -106,11 +104,11 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
             fpgD_SaltKey: data.fpgD_SaltKey,
             fpgD_AuthorisationKey: data.fpgD_MerchantKey,
             fpgD_URL: data.fpgD_URL,
-            fpgD_SubMerchantId: submerchants.length > 0 ? submerchants[0] : "",
+            fpgD_SubMerchantId: submerchants.length > 0 ? submerchants[0] : '',
             impG_Id: data.impG_Id,
             fpgD_Image: data.fpgD_Image,
-            fpgD_PGName: "",
-            fmpG_PGName: "",
+            fpgD_PGName: '',
+            fmpG_PGName: '',
             fpgD_MobileActiveFlag: data.fpgD_MobileActiveFlag,
             fpgD_AccNo: data.fpgD_AccNo,
             submerchantIds: submerchants
@@ -149,14 +147,24 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
                     <label htmlFor='fpgD_MerchantId'>
                         Merchant Id <span className='text-red-500'>*</span>
                     </label>
-                    <InputText id='fpgD_MerchantId' placeholder='Enter Merchant Id' {...register('fpgD_MerchantId')} error={errors.fpgD_MerchantId?.message} />
+                    <InputText
+                        id='fpgD_MerchantId'
+                        placeholder='Enter Merchant Id'
+                        {...register('fpgD_MerchantId')}
+                        error={errors.fpgD_MerchantId?.message}
+                    />
                 </div>
 
                 <div className='flex flex-col gap-1.5'>
                     <label htmlFor='fpgD_SaltKey'>
                         Salt Key<span className='text-red-500'>*</span>
                     </label>
-                    <InputText id='fpgD_SaltKey' placeholder='Enter Salt Key' {...register('fpgD_SaltKey')} error={errors.fpgD_SaltKey?.message} />
+                    <InputText
+                        id='fpgD_SaltKey'
+                        placeholder='Enter Salt Key'
+                        {...register('fpgD_SaltKey')}
+                        error={errors.fpgD_SaltKey?.message}
+                    />
                 </div>
 
                 <div className='flex flex-col gap-1.5'>
@@ -410,7 +418,14 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
             </div>
 
             <div className='flex gap-3 border-t pt-4'>
-                <Button type='button' variant='outline' onClick={() => { reset(); setResetKey(prev => prev + 1); }} disabled={isSubmitting}>
+                <Button
+                    type='button'
+                    variant='outline'
+                    onClick={() => {
+                        reset();
+                        setResetKey((prev) => prev + 1);
+                    }}
+                    disabled={isSubmitting}>
                     Reset
                 </Button>
                 <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting} loadingText='Saving...'>

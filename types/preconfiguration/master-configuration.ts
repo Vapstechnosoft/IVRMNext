@@ -5,12 +5,12 @@ export interface IMasterConfiguration {
     asmaY_Id: number;
     amC_Id: number;
     amcoC_Id: number;
-    
+
     // Grid extra properties
     mO_Name?: string;
     mI_Name?: string;
     asmaY_Year?: string;
-    
+
     ispaC_ApplnDownladFlag?: number;
     ispaC_EnquiryApplFlag?: number;
     ispaC_EnqSMSFlag?: number;
@@ -21,7 +21,7 @@ export interface IMasterConfiguration {
     ispaC_DOBMaxAgeFlag?: number;
     ispaC_OralMarksFlag?: number;
     ispaC_NoofApplications?: number;
-    
+
     ispaC_ApplSMSFlag?: number;
     ispaC_ApplMailFlag?: number;
     ispaC_Healthapp?: number;
@@ -49,7 +49,7 @@ export interface IMasterConfiguration {
     ispaC_MarksEntry?: number;
     ispaC_AdmissionTransfer?: number;
     ispaC_FeePaymentFlag?: number;
-    
+
     ispaC_OralByMax_Marks?: number;
     ispaC_DefaultStatusFlag?: number;
     ispaC_OralTestBy?: number;

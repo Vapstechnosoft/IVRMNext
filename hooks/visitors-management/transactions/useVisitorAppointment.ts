@@ -1,7 +1,7 @@
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getVisitorAppointmentData, saveVisitorAppointment } from '@/server/visitors-management/transactions/visitor-appointment';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 export const useVisitorAppointment = () => {
@@ -15,7 +15,7 @@ export const useVisitorAppointment = () => {
                 throw new Error(response.message);
             }
             return response.data;
-        },
+        }
     });
 
     const saveMutation = useMutation({
@@ -30,7 +30,7 @@ export const useVisitorAppointment = () => {
         },
         onError: (error: any) => {
             toast.error(error.message || 'Failed to save appointment');
-        },
+        }
     });
 
     return {

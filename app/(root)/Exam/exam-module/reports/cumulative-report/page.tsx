@@ -47,7 +47,7 @@ export default function CumulativeReportPage() {
 
         try {
             const res = await getCumulativeReport(payload, setSearchParams);
-            console.log("cumulative res", res);
+            console.log('cumulative res', res);
             const institudtion_res = await getMasterInstitution();
             const { data: institudtion_data } = institudtion_res;
             setInstitution(institudtion_data);
@@ -267,8 +267,8 @@ export default function CumulativeReportPage() {
             }));
 
             const first = { ...savelist[0], ...institudtion_data };
-            const instNameFromPromise = Array.isArray(responseData.instname) && responseData.instname.length > 0 
-                ? responseData.instname[0].mI_Name 
+            const instNameFromPromise = Array.isArray(responseData.instname) && responseData.instname.length > 0
+                ? responseData.instname[0].mI_Name
                 : institudtion_data?.mI_Name;
 
             const header: Partial<IReportHeader> = {

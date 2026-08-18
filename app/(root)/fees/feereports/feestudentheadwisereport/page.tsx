@@ -14,7 +14,8 @@ import {
 import { getFeeStudentheadWiseReportforCBCS } from '@/server/fees/reports/headwiseReport';
 import type { IFeeStudentHeadWiseReport } from '@/types/fees/reports/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';

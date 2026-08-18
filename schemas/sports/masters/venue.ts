@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createCustomStringSchema, deleteIdSchema } from '../../validationSchemas';
+import { deleteIdSchema } from '../../validationSchemas';
 
 export const masterVenueSchema = {
     addOrUpdate: z.object({
@@ -14,10 +14,7 @@ export const masterVenueSchema = {
             .string({ message: 'Enter Description' })
             .min(1, 'Enter Description')
             .max(250, 'Description must not exceed 250 characters')
-            .refine(
-                (val) => !/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]{4,}/.test(val),
-                'Multiple continuous special characters are not allowed'
-            )
+            .refine((val) => !/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]{4,}/.test(val), 'Multiple continuous special characters are not allowed')
             .refine((val) => /[A-Za-z0-9]/.test(val), 'Description must contain some letters or numbers'),
         spccmeV_ActiveFlag: z.boolean().default(true)
     }),

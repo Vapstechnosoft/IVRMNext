@@ -23,12 +23,7 @@ export default function MasterVehicleTypePage(props: { searchParams: SearchParam
         <FormProvider<IMasterVehicleType>>
             <div className='min-h-screen'>
                 <div className='container space-y-4 p-1'>
-                    <MasterVehicleTypePageContent
-                        response={response}
-                        isLoading={isLoading}
-                        error={error}
-                        refetchAll={refetchAll}
-                    />
+                    <MasterVehicleTypePageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
                 </div>
             </div>
         </FormProvider>

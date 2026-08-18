@@ -8,7 +8,7 @@ import {
     AlertDialogDescription,
     AlertDialogFooter,
     AlertDialogHeader,
-    AlertDialogTitle,
+    AlertDialogTitle
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
@@ -44,12 +44,7 @@ const ActionCell = ({ row }: { row: any }) => {
     return (
         <>
             <div className='flex items-center justify-center gap-2'>
-                <Button
-                    variant='ghost'
-                    size='icon'
-                    className='h-8 w-8 text-primary'
-                    onClick={() => openEditForm(row.original)}
-                >
+                <Button variant='ghost' size='icon' className='h-8 w-8 text-primary' onClick={() => openEditForm(row.original)}>
                     <Pencil className='h-4 w-4' />
                 </Button>
                 <span className='text-gray-300'>|</span>
@@ -57,8 +52,7 @@ const ActionCell = ({ row }: { row: any }) => {
                     variant='ghost'
                     size='sm'
                     className={isActive ? 'text-destructive hover:text-destructive' : 'text-green-600 hover:text-green-700'}
-                    onClick={() => setOpen(true)}
-                >
+                    onClick={() => setOpen(true)}>
                     {action}
                 </Button>
             </div>
@@ -67,13 +61,13 @@ const ActionCell = ({ row }: { row: any }) => {
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Do you want to {action.toLowerCase()} this module?
-                        </AlertDialogDescription>
+                        <AlertDialogDescription>Do you want to {action.toLowerCase()} this module?</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleConfirm} className={isActive ? 'bg-destructive hover:bg-destructive/90' : 'bg-green-600 hover:bg-green-700'}>
+                        <AlertDialogAction
+                            onClick={handleConfirm}
+                            className={isActive ? 'bg-destructive hover:bg-destructive/90' : 'bg-green-600 hover:bg-green-700'}>
                             Yes, {action}
                         </AlertDialogAction>
                     </AlertDialogFooter>
@@ -88,19 +82,19 @@ export const columns: ColumnDef<IMasterModule>[] = [
         id: 'serialNumber',
         header: ({ column }) => <ColumnHeader column={column} title='SL.NO' />,
         cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
-        enableSorting: false,
+        enableSorting: false
     },
     {
         accessorKey: 'ivrmM_ModuleName',
-        header: ({ column }) => <ColumnHeader column={column} title='Module Name' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Module Name' />
     },
     {
         accessorKey: 'ivrmM_ModuleDesc',
-        header: ({ column }) => <ColumnHeader column={column} title='Description' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Description' />
     },
     {
         id: 'actions',
         header: 'Edit/Activate/Deactivate',
-        cell: ({ row }) => <ActionCell row={row} />,
-    },
+        cell: ({ row }) => <ActionCell row={row} />
+    }
 ];

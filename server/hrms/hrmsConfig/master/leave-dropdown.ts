@@ -31,7 +31,7 @@ export async function getLeaveDropdown() {
             message: res.message || 'Failed to fetch leave dropdown'
         };
     } catch (error: any) {
-        console.error("Error fetching leave dropdown", error);
+        console.error('Error fetching leave dropdown', error);
         return {
             success: false,
             data: [],

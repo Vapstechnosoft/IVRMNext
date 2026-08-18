@@ -1,7 +1,7 @@
 'use server';
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
-import {
+import type {
     IStudentEligibleReportClass,
     IStudentEligibleReportDetail,
     IStudentEligibleReportLoadData,
@@ -15,14 +15,14 @@ const API_URL = {
     GET_CLASS: 'SportStudentEligbleReport/get_class',
     GET_SECTION: 'SportStudentEligbleReport/get_section',
     GET_STUDENT: 'SportStudentEligbleReport/get_student',
-    SHOW_DETAILS: 'SportStudentEligbleReport/showdetails',
+    SHOW_DETAILS: 'SportStudentEligbleReport/showdetails'
 };
 
 export async function getStudentEligibleReportLoadData(): Promise<IStudentEligibleReportLoadData> {
     try {
         const response = await api.post<{ yearlist: any[] }>('sports', API_URL.GET_DETAILS, {});
         return {
-            yearlist: response.data?.yearlist || [],
+            yearlist: response.data?.yearlist || []
         };
     } catch (error) {
         console.error('Error fetching Student Eligible Report Load Data:', error);
@@ -42,7 +42,10 @@ export async function getClassesForStudentEligible(asmaY_Id: number): Promise<IS
 
 export async function getSectionsForStudentEligible(asmaY_Id: number, asmcL_Id: number): Promise<IStudentEligibleReportSection[]> {
     try {
-        const response = await api.post<{ sectionList: IStudentEligibleReportSection[] }>('sports', API_URL.GET_SECTION, { asmaY_Id, asmcL_Id });
+        const response = await api.post<{ sectionList: IStudentEligibleReportSection[] }>('sports', API_URL.GET_SECTION, {
+            asmaY_Id,
+            asmcL_Id
+        });
         return response.data?.sectionList || [];
     } catch (error) {
         console.error('Error fetching Sections:', error);
@@ -50,9 +53,17 @@ export async function getSectionsForStudentEligible(asmaY_Id: number, asmcL_Id: 
     }
 }
 
-export async function getStudentsForStudentEligible(asmaY_Id: number, asmcL_Id: number, asmS_Id: number): Promise<IStudentEligibleReportStudent[]> {
+export async function getStudentsForStudentEligible(
+    asmaY_Id: number,
+    asmcL_Id: number,
+    asmS_Id: number
+): Promise<IStudentEligibleReportStudent[]> {
     try {
-        const response = await api.post<{ studentList1: IStudentEligibleReportStudent[] }>('sports', API_URL.GET_STUDENT, { asmaY_Id, asmcL_Id, asmS_Id });
+        const response = await api.post<{ studentList1: IStudentEligibleReportStudent[] }>('sports', API_URL.GET_STUDENT, {
+            asmaY_Id,
+            asmcL_Id,
+            asmS_Id
+        });
         return response.data?.studentList1 || [];
     } catch (error) {
         console.error('Error fetching Students:', error);

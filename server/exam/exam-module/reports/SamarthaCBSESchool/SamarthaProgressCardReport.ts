@@ -19,7 +19,12 @@ export async function getSamarthaProgressCardReport(data: any) {
         };
         console.log('=== [ND6 API /nds_6_8_report] PAYLOAD ===', JSON.stringify(payload, null, 2));
         const response = await api.post<any>('exam', url, payload);
-        console.log('=== [ND6 API /nds_6_8_report] RESPONSE SUCCESS ===', response?.success, 'KEYS:', response?.data ? Object.keys(response.data) : 'no data');
+        console.log(
+            '=== [ND6 API /nds_6_8_report] RESPONSE SUCCESS ===',
+            response?.success,
+            'KEYS:',
+            response?.data ? Object.keys(response.data) : 'no data'
+        );
         return response;
     } catch (error) {
         console.error('getSamarthaProgressCardReport error:', error);

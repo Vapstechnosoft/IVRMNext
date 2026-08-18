@@ -1,14 +1,42 @@
 'use client';
 
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { RECRUITMENT_QUERY_KEYS } from '@/constants/query-keys';
-import { getCandidateDropDownDataByInstitution, getInstitutionByLogin, getMasterJobByIdData, getMasterGridData as getMasterJobGridData, saveOrUpdateJob, type saveOrUpdateJobPayload, toggleJobStatusData } from '@/server/hrms/recruitment/masters/masterJob';
+import {
+    getCandidateDropDownDataByInstitution,
+    getInstitutionByLogin,
+    getMasterJobByIdData,
+    getMasterGridData as getMasterJobGridData,
+    saveOrUpdateJob,
+    type saveOrUpdateJobPayload,
+    toggleJobStatusData
+} from '@/server/hrms/recruitment/masters/masterJob';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { getMasterLocation, getMasterLocationGridData, saveOrUpdateLocation, type saveOrUpdateLocationPayload, toggleLocationStatusData } from '@/server/hrms/recruitment/masters/masterLocation';
-import { getMasterPositionGridData, saveOrUpdatePosition, togglePositionStatusData, type saveOrUpdatePositionPayload } 
-from '@/server/hrms/recruitment/masters/masterPosition';
-import { getMasterPositionTypeGridData, saveOrUpdatePositionType, togglePositionTypeStatusData, type saveOrUpdatePositionTypePayload } from '@/server/hrms/recruitment/masters/masterPositionsTypes';
-import { getMasterPriorityGridData, saveOrUpdatePriority, togglePriorityStatusData, type saveOrUpdatePriorityPayload } from '@/server/hrms/recruitment/masters/masterPriority';
+import {
+    getMasterLocation,
+    getMasterLocationGridData,
+    saveOrUpdateLocation,
+    type saveOrUpdateLocationPayload,
+    toggleLocationStatusData
+} from '@/server/hrms/recruitment/masters/masterLocation';
+import {
+    getMasterPositionGridData,
+    saveOrUpdatePosition,
+    type saveOrUpdatePositionPayload,
+    togglePositionStatusData
+} from '@/server/hrms/recruitment/masters/masterPosition';
+import {
+    getMasterPositionTypeGridData,
+    saveOrUpdatePositionType,
+    type saveOrUpdatePositionTypePayload,
+    togglePositionTypeStatusData
+} from '@/server/hrms/recruitment/masters/masterPositionsTypes';
+import {
+    getMasterPriorityGridData,
+    saveOrUpdatePriority,
+    type saveOrUpdatePriorityPayload,
+    togglePriorityStatusData
+} from '@/server/hrms/recruitment/masters/masterPriority';
 
 // ---------------------- Login Based Instittution Hook -----------------
 
@@ -22,15 +50,14 @@ export function useGetInstitutionByLogin() {
 
 // ---------------------- Login Based Institution Candidate Dropdown Hook -----------------
 
-export function useGetCandidateDropDown(enabled: boolean = true) {
+export function useGetCandidateDropDown(enabled = true) {
     return useQuery({
         queryKey: [RECRUITMENT_QUERY_KEYS.CANDIDATE_DROPDOWN],
         queryFn: async () => getCandidateDropDownDataByInstitution(),
         staleTime: 0,
-        enabled: enabled,
+        enabled: enabled
     });
 }
-
 
 // -------------------------- Master Job HOOKS --------------------------
 export function useGetMasterJobGrid() {
@@ -50,7 +77,6 @@ export function useGetMasterJobGrid() {
 }
 
 export function useSaveOrUpdateJob() {
-
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (payload: saveOrUpdateJobPayload) => saveOrUpdateJob(payload),
@@ -90,7 +116,6 @@ export function useToggleJobStatus() {
     });
 }
 
-
 // -------------------------- Master Location HOOKS --------------------------
 
 export function useGetMasterLocationGrid(mi_id: number) {
@@ -110,7 +135,6 @@ export function useGetMasterLocationGrid(mi_id: number) {
         }
     };
 }
-
 
 export function useSaveOrUpdateLocation() {
     const queryClient = useQueryClient();
@@ -180,7 +204,6 @@ export function useTogglePositionStatus() {
     });
 }
 
-
 // -------------------------- Master Position Type HOOKS --------------------------
 
 export function useGetMasterPositionTypeGrid(mi_id: number) {
@@ -224,7 +247,6 @@ export function useTogglePositionTypeStatus() {
         }
     });
 }
-
 
 // -------------------------- Master Master Priority HOOKS --------------------------
 

@@ -53,11 +53,6 @@ export const daySubjectColumns: ColumnDef<TTDaySubjectGridData>[] = [
     {
         id: 'actions',
         header: 'Actions',
-        cell: ({ row }) => (
-            <ActionButtonsCell
-                row={row}
-                deleteFunc={deactivateFixingDaySubject}
-            />
-        )
+        cell: ({ row }) => <ActionButtonsCell row={row} deleteFunc={deactivateFixingDaySubject} />
     }
 ];

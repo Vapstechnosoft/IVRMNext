@@ -1,7 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { StudentAllotmentSchema } from '@/schemas/hostel/transactions/student-allotment.schema';
+import type { StudentAllotmentSchema } from '@/schemas/hostel/transactions/student-allotment.schema';
 import { revalidatePath } from 'next/cache';
 
 const URL_BASE = 'HostelAllotForStudent/';
@@ -33,7 +33,7 @@ export interface StudentAllotmentLoadData {
 
 export const getStudentAllotmentLoadData = async (ASMAY_Id?: number): Promise<ApiResponse<StudentAllotmentLoadData>> => {
     try {
-        let url = URL_BASE + 'loaddata/' + (ASMAY_Id || 0); // Assuming 0 or empty for default
+        const url = URL_BASE + 'loaddata/' + (ASMAY_Id || 0); // Assuming 0 or empty for default
         const response = await api.get<StudentAllotmentLoadData>('default', url);
         return response;
     } catch (error) {
@@ -90,7 +90,7 @@ export const getRoomDetails = async (HRMRM_Id: number): Promise<ApiResponse<any>
 export const saveStudentAllotment = async (data: StudentAllotmentSchema): Promise<ApiResponse<any>> => {
     try {
         const payload = {
-            ...data,
+            ...data
             // formatted dates if needed
         };
 

@@ -1,12 +1,7 @@
 'use client';
-
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { numberToWords } from '@/lib/utils';
-import { IFeeIncomeTaxReportResult } from '@/types/fees/reports/FeeIncomeTax_Report';
-import { Printer, X } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import type { IFeeIncomeTaxReportResult } from '@/types/fees/reports/FeeIncomeTax_Report';
+import { useState } from 'react';
 import FeeIncomeTaxForm from './components/feeIncomeTax_Form';
 import FeeIncomeTaxReport from './components/feeIncomeTax_report';
 
@@ -35,9 +30,7 @@ export default function FeeIncomeTaxReportPage() {
                 </CardContent>
             </Card>
 
-            {showReport && reportData.length > 0 && (
-                <FeeIncomeTaxReport data={reportData} onClose={handleCloseReport} />
-            )}
+            {showReport && reportData.length > 0 && <FeeIncomeTaxReport data={reportData} onClose={handleCloseReport} />}
         </div>
     );
 }

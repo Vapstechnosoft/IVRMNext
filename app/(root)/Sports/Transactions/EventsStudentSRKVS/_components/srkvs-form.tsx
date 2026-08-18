@@ -1,29 +1,30 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
-import { useForm, FormProvider } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useEventsStudentSRKVS } from '@/hooks/sports/useEventsStudentSRKVS';
-import { eventsStudentSRKVSSchema, EventsStudentSRKVSFormSchema, IStudentSRKVSValues } from '@/types/sports/events-student-srkvs';
 import { Button } from '@/components/ui/button';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { useEventsStudentSRKVS } from '@/hooks/sports/useEventsStudentSRKVS';
+import { type EventsStudentSRKVSFormSchema, type IStudentSRKVSValues, eventsStudentSRKVSSchema } from '@/types/sports/events-student-srkvs';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Search } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
 // import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from 'sonner';
-import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search } from 'lucide-react';
 
 interface EventsStudentSRKVSFormProps {
     onSuccess: () => void;
 }
 
 export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVSFormProps) {
-    const { dropdowns, fetchClassHouse, fetchSectionList, fetchSportsName, fetchSubSubEvents, fetchStudents, saveData } = useEventsStudentSRKVS();
+    const { dropdowns, fetchClassHouse, fetchSectionList, fetchSportsName, fetchSubSubEvents, fetchStudents, saveData } =
+        useEventsStudentSRKVS();
     const dropdownData = dropdowns.data;
 
     const [classList, setClassList] = useState<any[]>([]);
@@ -36,14 +37,12 @@ export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVS
     const [selectedStudentIds, setSelectedStudentIds] = useState<number[]>([]);
     const [studentSearch, setStudentSearch] = useState('');
 
-
-
     const form = useForm<EventsStudentSRKVSFormSchema>({
         resolver: zodResolver(eventsStudentSRKVSSchema),
         defaultValues: {
             spccmsccG_SCCFlag: 'Sports',
             selectedClasses: [],
-            selectedSections: [],
+            selectedSections: []
         }
     });
 
@@ -68,14 +67,15 @@ export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVS
         }
     }, [asmaY_Id]);
 
-
-
     // Fetch Sections on Class Change
     useEffect(() => {
         if (selectedClasses && selectedClasses.length > 0 && asmaY_Id) {
-            fetchSectionList.mutate({ ASMAY_Id: Number(asmaY_Id), classListArray: selectedClasses.map(Number) }, {
-                onSuccess: (data: any) => setSectionList(data)
-            });
+            fetchSectionList.mutate(
+                { ASMAY_Id: Number(asmaY_Id), classListArray: selectedClasses.map(Number) },
+                {
+                    onSuccess: (data: any) => setSectionList(data)
+                }
+            );
         } else {
             setSectionList([]);
         }
@@ -95,11 +95,14 @@ export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVS
     // 3. Sub Event Change -> Fetch Sub Sub Event & UOM
     useEffect(() => {
         if (spccmscC_Id && spccmsccG_Id) {
-            fetchSubSubEvents.mutate({ subEventId: Number(spccmscC_Id), groupId: Number(spccmsccG_Id) }, {
-                onSuccess: (data: any[]) => {
-                    setSubSubEventList(data);
+            fetchSubSubEvents.mutate(
+                { subEventId: Number(spccmscC_Id), groupId: Number(spccmsccG_Id) },
+                {
+                    onSuccess: (data: any[]) => {
+                        setSubSubEventList(data);
+                    }
                 }
-            });
+            );
         }
     }, [spccmscC_Id, spccmsccG_Id]);
 
@@ -128,7 +131,7 @@ export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVS
             ASMAY_Id: Number(formData.asmaY_Id),
             classListArray: formData.selectedClasses?.map(Number) || [],
             sectionListArray: formData.selectedSections?.map(Number) || [],
-            sportsName: "SRKVS"
+            sportsName: 'SRKVS'
         };
 
         fetchStudents.mutate(payload, {
@@ -147,22 +150,22 @@ export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVS
     // Filtered student list for display
     const filteredFetchedStudents = useMemo(() => {
         if (!studentSearch) return fetchedStudents;
-        return fetchedStudents.filter(s =>
-            s.studentName.toLowerCase().includes(studentSearch.toLowerCase()) ||
-            s.amsT_AdmNo.toLowerCase().includes(studentSearch.toLowerCase())
+        return fetchedStudents.filter(
+            (s) =>
+                s.studentName.toLowerCase().includes(studentSearch.toLowerCase()) ||
+                s.amsT_AdmNo.toLowerCase().includes(studentSearch.toLowerCase())
         );
     }, [fetchedStudents, studentSearch]);
 
-
     const onSubmit = (data: EventsStudentSRKVSFormSchema) => {
-        console.log("onSubmit triggered", data);
+        console.log('onSubmit triggered', data);
 
         if (selectedStudentIds.length === 0) {
             toast.warning('Please select at least one student to save.');
             return;
         }
 
-        const selectedStudents = fetchedStudents.filter(s => selectedStudentIds.includes(s.amsT_Id));
+        const selectedStudents = fetchedStudents.filter((s) => selectedStudentIds.includes(s.amsT_Id));
 
         const payload = {
             SPCCEST_Id: 0, // 0 for new record
@@ -177,9 +180,9 @@ export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVS
             SPCCEST_House_Class_Flag: 'Class',
             StartDate: data.spccE_StartDate, // Make sure this is YYYY-MM-DD
             EndDate: data.spccE_EndDate,
-            SPCCEST_Remarks: data.spccesT_Remarks || "",
-            SPCCEST_OldRecord: "", // Required by backend
-            StudentListArray: selectedStudents.map(s => s.amsT_Id),
+            SPCCEST_Remarks: data.spccesT_Remarks || '',
+            SPCCEST_OldRecord: '', // Required by backend
+            StudentListArray: selectedStudents.map((s) => s.amsT_Id),
             sendmail: false,
             sendsms: false
         };
@@ -193,23 +196,28 @@ export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVS
 
     return (
         <FormProvider {...form}>
-            <form className="space-y-6 p-4 border rounded-lg bg-card text-card-foreground shadow-sm">
-
+            <form className='space-y-6 rounded-lg border bg-card p-4 text-card-foreground shadow-sm'>
                 {/* 1. Filters Section */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                     <FormField
                         control={form.control}
-                        name="asmaY_Id"
+                        name='asmaY_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Academic Year <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>
+                                    Academic Year <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
                                     <FormControl>
-                                        <SelectTrigger><SelectValue placeholder="Select Year" /></SelectTrigger>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select Year' />
+                                        </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
                                         {dropdownData?.academicYear.map((item: any) => (
-                                            <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>{item.asmaY_Year}</SelectItem>
+                                            <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
+                                                {item.asmaY_Year}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -220,17 +228,23 @@ export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVS
 
                     <FormField
                         control={form.control}
-                        name="spccmE_Id"
+                        name='spccmE_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Event Name <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>
+                                    Event Name <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
                                     <FormControl>
-                                        <SelectTrigger><SelectValue placeholder="Select Event" /></SelectTrigger>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select Event' />
+                                        </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
                                         {dropdownData?.eventsList.map((item: any) => (
-                                            <SelectItem key={item.spccmE_Id} value={String(item.spccmE_Id)}>{item.spccmE_EventName}</SelectItem>
+                                            <SelectItem key={item.spccmE_Id} value={String(item.spccmE_Id)}>
+                                                {item.spccmE_EventName}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -241,17 +255,23 @@ export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVS
 
                     <FormField
                         control={form.control}
-                        name="spccmeV_Id"
+                        name='spccmeV_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Venue <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>
+                                    Venue <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
                                     <FormControl>
-                                        <SelectTrigger><SelectValue placeholder="Select Venue" /></SelectTrigger>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select Venue' />
+                                        </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
                                         {dropdownData?.venueList.map((item: any) => (
-                                            <SelectItem key={item.spccmeV_Id} value={String(item.spccmeV_Id)}>{item.spccmeV_EventVenue}</SelectItem>
+                                            <SelectItem key={item.spccmeV_Id} value={String(item.spccmeV_Id)}>
+                                                {item.spccmeV_EventVenue}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -262,17 +282,23 @@ export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVS
 
                     <FormField
                         control={form.control}
-                        name="spccmsccG_Id"
+                        name='spccmsccG_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Main Event <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>
+                                    Main Event <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
                                     <FormControl>
-                                        <SelectTrigger><SelectValue placeholder="Select Main Event" /></SelectTrigger>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select Main Event' />
+                                        </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
                                         {dropdownData?.groupList.map((item: any) => (
-                                            <SelectItem key={item.spccmsccG_Id} value={String(item.spccmsccG_Id)}>{item.spccmsccG_SportsCCGroupName}</SelectItem>
+                                            <SelectItem key={item.spccmsccG_Id} value={String(item.spccmsccG_Id)}>
+                                                {item.spccmsccG_SportsCCGroupName}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -283,17 +309,23 @@ export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVS
 
                     <FormField
                         control={form.control}
-                        name="spccmscC_Id"
+                        name='spccmscC_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Sub Event <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>
+                                    Sub Event <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
                                     <FormControl>
-                                        <SelectTrigger><SelectValue placeholder="Select Sub Event" /></SelectTrigger>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select Sub Event' />
+                                        </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
                                         {sportsList.map((item: any) => (
-                                            <SelectItem key={item.spccmscC_Id} value={String(item.spccmscC_Id)}>{item.spccmE_EventName || item.spccmscC_SportsCCName}</SelectItem>
+                                            <SelectItem key={item.spccmscC_Id} value={String(item.spccmscC_Id)}>
+                                                {item.spccmE_EventName || item.spccmscC_SportsCCName}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -304,17 +336,23 @@ export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVS
 
                     <FormField
                         control={form.control}
-                        name="spccmsccG_Idsub"
+                        name='spccmsccG_Idsub'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Sub sub Event <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>
+                                    Sub sub Event <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
                                     <FormControl>
-                                        <SelectTrigger><SelectValue placeholder="Select Sub sub Event" /></SelectTrigger>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select Sub sub Event' />
+                                        </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
                                         {subSubEventList.map((item: any) => (
-                                            <SelectItem key={item.spccmsccG_Id} value={String(item.spccmsccG_Id)}>{item.spccmsccG_SportsCCGroupName}</SelectItem>
+                                            <SelectItem key={item.spccmsccG_Id} value={String(item.spccmsccG_Id)}>
+                                                {item.spccmsccG_SportsCCGroupName}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -325,17 +363,23 @@ export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVS
 
                     <FormField
                         control={form.control}
-                        name="spccmcC_Id"
+                        name='spccmcC_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Competition Category <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>
+                                    Competition Category <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value ? String(field.value) : undefined}>
                                     <FormControl>
-                                        <SelectTrigger><SelectValue placeholder="Select Category" /></SelectTrigger>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select Category' />
+                                        </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
                                         {dropdownData?.categoryList?.map((item: any) => (
-                                            <SelectItem key={item.spccmcC_Id} value={String(item.spccmcC_Id)}>{item.spccmcC_CompitionCategory}</SelectItem>
+                                            <SelectItem key={item.spccmcC_Id} value={String(item.spccmcC_Id)}>
+                                                {item.spccmcC_CompitionCategory}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -345,17 +389,23 @@ export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVS
                     />
                     <FormField
                         control={form.control}
-                        name="spccmcL_Id"
+                        name='spccmcL_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Competition Level <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>
+                                    Competition Level <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
                                     <FormControl>
-                                        <SelectTrigger><SelectValue placeholder="Select Level" /></SelectTrigger>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select Level' />
+                                        </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
                                         {dropdownData?.competitionLevelList.map((item: any) => (
-                                            <SelectItem key={item.spccmcL_Id} value={String(item.spccmcL_Id)}>{item.spccmcL_CompitionLevel}</SelectItem>
+                                            <SelectItem key={item.spccmcL_Id} value={String(item.spccmcL_Id)}>
+                                                {item.spccmcL_CompitionLevel}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -364,21 +414,19 @@ export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVS
                         )}
                     />
 
-
-
                     <FormField
                         control={form.control}
-                        name="selectedClasses"
+                        name='selectedClasses'
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Class Name</FormLabel>
                                 <FormControl>
                                     <MultiSelect
-                                        options={classList.map(c => ({ label: c.asmcL_ClassName, value: String(c.asmcL_Id) }))}
+                                        options={classList.map((c) => ({ label: c.asmcL_ClassName, value: String(c.asmcL_Id) }))}
                                         defaultValue={field.value?.map(String) || []}
                                         onValueChange={(vals) => field.onChange(vals.map(Number))}
-                                        placeholder="Select Classes"
-                                        variant="secondary"
+                                        placeholder='Select Classes'
+                                        variant='secondary'
                                     />
                                 </FormControl>
                                 <FormMessage />
@@ -388,17 +436,17 @@ export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVS
 
                     <FormField
                         control={form.control}
-                        name="selectedSections"
+                        name='selectedSections'
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Section Name</FormLabel>
                                 <FormControl>
                                     <MultiSelect
-                                        options={sectionList.map(s => ({ label: s.asmC_SectionName, value: String(s.asmS_Id) }))}
+                                        options={sectionList.map((s) => ({ label: s.asmC_SectionName, value: String(s.asmS_Id) }))}
                                         defaultValue={field.value?.map(String) || []}
                                         onValueChange={(vals) => field.onChange(vals.map(Number))}
-                                        placeholder="Select Sections"
-                                        variant="secondary"
+                                        placeholder='Select Sections'
+                                        variant='secondary'
                                     />
                                 </FormControl>
                                 <FormMessage />
@@ -408,12 +456,14 @@ export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVS
 
                     <FormField
                         control={form.control}
-                        name="spccE_StartDate"
+                        name='spccE_StartDate'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Start Date <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>
+                                    Start Date <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <FormControl>
-                                    <Input type="date" {...field} />
+                                    <Input type='date' {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -421,12 +471,14 @@ export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVS
                     />
                     <FormField
                         control={form.control}
-                        name="spccE_EndDate"
+                        name='spccE_EndDate'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>End Date <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>
+                                    End Date <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <FormControl>
-                                    <Input type="date" {...field} />
+                                    <Input type='date' {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -435,17 +487,23 @@ export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVS
 
                     <FormField
                         control={form.control}
-                        name="spccmuoM_Id"
+                        name='spccmuoM_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>UOM <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>
+                                    UOM <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
                                     <FormControl>
-                                        <SelectTrigger><SelectValue placeholder="Select UOM" /></SelectTrigger>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select UOM' />
+                                        </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
                                         {dropdownData?.uomList.map((item: any) => (
-                                            <SelectItem key={item.spccmuoM_Id} value={String(item.spccmuoM_Id)}>{item.spccmuoM_UOMName}</SelectItem>
+                                            <SelectItem key={item.spccmuoM_Id} value={String(item.spccmuoM_Id)}>
+                                                {item.spccmuoM_UOMName}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -455,49 +513,56 @@ export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVS
                     />
                 </div>
 
-                <div className="flex justify-end">
-                    <Button type="button" onClick={handleFetchStudents} disabled={fetchStudents.isPending}>
+                <div className='flex justify-end'>
+                    <Button type='button' onClick={handleFetchStudents} disabled={fetchStudents.isPending}>
                         {fetchStudents.isPending ? 'Fetching...' : 'Get Student List'}
                     </Button>
                 </div>
 
                 {/* 2. Student Selection Area */}
-                <div className="grid grid-cols-1 gap-4 border p-4 rounded-md">
-                    <div className="flex justify-between items-center mb-2">
-                        <Label className="text-lg font-semibold">Select Students</Label>
-                        <div className="relative w-64">
-                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                            <Input placeholder="Search..." className="pl-8" value={studentSearch} onChange={e => setStudentSearch(e.target.value)} />
+                <div className='grid grid-cols-1 gap-4 rounded-md border p-4'>
+                    <div className='mb-2 flex items-center justify-between'>
+                        <Label className='font-semibold text-lg'>Select Students</Label>
+                        <div className='relative w-64'>
+                            <Search className='absolute top-2.5 left-2 h-4 w-4 text-muted-foreground' />
+                            <Input
+                                placeholder='Search...'
+                                className='pl-8'
+                                value={studentSearch}
+                                onChange={(e) => setStudentSearch(e.target.value)}
+                            />
                         </div>
                     </div>
 
-                    <ScrollArea className="h-[200px] border rounded-md p-2">
+                    <ScrollArea className='h-[200px] rounded-md border p-2'>
                         {fetchedStudents.length === 0 ? (
-                            <div className="flex items-center justify-center h-full text-muted-foreground">No students found. Use filters to fetch.</div>
+                            <div className='flex h-full items-center justify-center text-muted-foreground'>
+                                No students found. Use filters to fetch.
+                            </div>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                                <div className="col-span-full pb-2 border-b mb-2 flex items-center space-x-2">
+                            <div className='grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3'>
+                                <div className='col-span-full mb-2 flex items-center space-x-2 border-b pb-2'>
                                     <Checkbox
-                                        id="select-all-source"
+                                        id='select-all-source'
                                         checked={fetchedStudents.length > 0 && selectedStudentIds.length === fetchedStudents.length}
                                         onCheckedChange={(checked) => {
-                                            if (checked) setSelectedStudentIds(fetchedStudents.map(s => s.amsT_Id));
+                                            if (checked) setSelectedStudentIds(fetchedStudents.map((s) => s.amsT_Id));
                                             else setSelectedStudentIds([]);
                                         }}
                                     />
-                                    <Label htmlFor="select-all-source">Select All</Label>
+                                    <Label htmlFor='select-all-source'>Select All</Label>
                                 </div>
-                                {filteredFetchedStudents.map(student => (
-                                    <div key={student.amsT_Id} className="flex items-center space-x-2">
+                                {filteredFetchedStudents.map((student) => (
+                                    <div key={student.amsT_Id} className='flex items-center space-x-2'>
                                         <Checkbox
                                             id={`student-${student.amsT_Id}`}
                                             checked={selectedStudentIds.includes(student.amsT_Id)}
                                             onCheckedChange={(checked) => {
-                                                if (checked) setSelectedStudentIds(prev => [...prev, student.amsT_Id]);
-                                                else setSelectedStudentIds(prev => prev.filter(id => id !== student.amsT_Id));
+                                                if (checked) setSelectedStudentIds((prev) => [...prev, student.amsT_Id]);
+                                                else setSelectedStudentIds((prev) => prev.filter((id) => id !== student.amsT_Id));
                                             }}
                                         />
-                                        <Label htmlFor={`student-${student.amsT_Id}`} className="text-sm font-normal cursor-pointer">
+                                        <Label htmlFor={`student-${student.amsT_Id}`} className='cursor-pointer font-normal text-sm'>
                                             {student.studentName} ({student.amsT_AdmNo})
                                         </Label>
                                     </div>
@@ -508,15 +573,15 @@ export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVS
                 </div>
 
                 {/* 4. Filter Remarks (Form Level - if applicable) */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                     <FormField
                         control={form.control}
-                        name="spccesT_Remarks"
+                        name='spccesT_Remarks'
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Event Remarks (Optional)</FormLabel>
                                 <FormControl>
-                                    <Textarea {...field} placeholder="Enter Remarks..." />
+                                    <Textarea {...field} placeholder='Enter Remarks...' />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -524,13 +589,17 @@ export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVS
                     />
                 </div>
 
-                <div className="flex justify-center space-x-4 mt-8">
-                    <Button type="button" disabled={saveData.isPending} onClick={form.handleSubmit(onSubmit, (errors) => console.log("Form Errors:", errors))}>
+                <div className='mt-8 flex justify-center space-x-4'>
+                    <Button
+                        type='button'
+                        disabled={saveData.isPending}
+                        onClick={form.handleSubmit(onSubmit, (errors) => console.log('Form Errors:', errors))}>
                         {saveData.isPending ? 'Saving...' : 'Save'}
                     </Button>
-                    <Button type="button" variant="destructive" onClick={() => onSuccess()}>Cancel</Button>
+                    <Button type='button' variant='destructive' onClick={() => onSuccess()}>
+                        Cancel
+                    </Button>
                 </div>
-
             </form>
         </FormProvider>
     );

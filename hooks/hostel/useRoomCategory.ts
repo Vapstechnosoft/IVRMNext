@@ -1,8 +1,7 @@
 'use client';
-import { EXAM_QUERY_KEYS, HOSTEL_QUERY_KEYS } from '@/constants/query-keys';
+import { HOSTEL_QUERY_KEYS } from '@/constants/query-keys';
 import { getRoomCategoryDropdownList, getRoomCategoryList } from '@/server/hostel/hostel-management/masters/room-category';
 import { useQuery } from '@tanstack/react-query';
-
 
 export const useRoomCategory = (searchParams?: { [key: string]: string | string[] | undefined }) => {
     return {

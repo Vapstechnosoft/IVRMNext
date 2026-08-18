@@ -446,8 +446,6 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                         {errors.singlePeriodId && <span className='font-medium text-red-500 text-sm'>{errors.singlePeriodId.message}</span>}
                     </div>
                 )}
-
-
             </div>
 
             <div className='flex justify-center gap-4 pt-4'>

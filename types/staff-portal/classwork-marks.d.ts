@@ -1,4 +1,4 @@
-import { IAcademicYear, IClass, ISection, ISubject } from './classwork';
+import type { IAcademicYear } from './classwork';
 
 export interface IClassWorkMarksInitialData {
     yearlist: IAcademicYear[];

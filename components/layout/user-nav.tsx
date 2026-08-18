@@ -1,13 +1,7 @@
 'use client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 import { useSession } from 'next-auth/react';
 import type { Session } from 'next-auth';
@@ -29,13 +23,15 @@ export function UserNav({ session: initialSession }: { session: Session | null }
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant='ghost' className='group relative flex items-center gap-2 px-1 hover:bg-transparent transition-all duration-300'>
-                    <div className="relative">
+                <Button
+                    variant='ghost'
+                    className='group relative flex items-center gap-2 px-1 transition-all duration-300 hover:bg-transparent'>
+                    <div className='relative'>
                         <Avatar className='size-9 border-2 border-white shadow-sm ring-2 ring-orange-500/10'>
                             <AvatarImage src={session?.user_image ?? ''} alt={displayName} />
                             <AvatarFallback className="bg-orange-50 text-orange-600 font-bold">{initialLetter}</AvatarFallback>
                         </Avatar>
-                        <div className="absolute inset-0 rounded-full bg-orange-500/0 group-hover:bg-orange-500/10 blur-md transition-all duration-500" />
+                        <div className='absolute inset-0 rounded-full bg-orange-500/0 blur-md transition-all duration-500 group-hover:bg-orange-500/10' />
                     </div>
                     <div className="hidden md:flex flex-col items-start text-left gap-0.5">
                         <p className='text-[12px] font-black tracking-tight leading-none text-gray-800 uppercase'>{displayName}</p>
@@ -43,10 +39,13 @@ export function UserNav({ session: initialSession }: { session: Session | null }
                     </div>
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className='w-64 p-3 bg-white/80 backdrop-blur-2xl border-white/40 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.15)] rounded-2xl' align='end' forceMount>
-                <div className="relative p-4 rounded-xl bg-white/50 border border-white/60 mb-2 overflow-hidden shadow-[inset_0_1px_10px_rgba(255,255,255,0.7)] group/card">
-                    <div className="absolute top-0 right-0 p-3 opacity-10">
-                        <Avatar className='size-12 grayscale rotate-12 transition-transform duration-500 group-hover/card:rotate-0'>
+            <DropdownMenuContent
+                className='w-64 rounded-2xl border-white/40 bg-white/80 p-3 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.15)] backdrop-blur-2xl'
+                align='end'
+                forceMount>
+                <div className='group/card relative mb-2 overflow-hidden rounded-xl border border-white/60 bg-white/50 p-4 shadow-[inset_0_1px_10px_rgba(255,255,255,0.7)]'>
+                    <div className='absolute top-0 right-0 p-3 opacity-10'>
+                        <Avatar className='size-12 rotate-12 grayscale transition-transform duration-500 group-hover/card:rotate-0'>
                             <AvatarImage src={session?.user_image ?? ''} />
                         </Avatar>
                     </div>
@@ -65,7 +64,7 @@ export function UserNav({ session: initialSession }: { session: Session | null }
                         )}
                     </div>
                 </div>
-                <DropdownMenuSeparator className="bg-gray-100/50 my-2" />
+                <DropdownMenuSeparator className='my-2 bg-gray-100/50' />
                 <SignOut />
             </DropdownMenuContent>
         </DropdownMenu>

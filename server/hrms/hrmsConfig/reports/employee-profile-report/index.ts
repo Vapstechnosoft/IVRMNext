@@ -1,11 +1,8 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type {
     EmployeeDropdown,
     EmployeeProfileReportFilterRequest,
-    EmployeeProfileReportFilterResponse,
-    EmployeeProfileReportOnloadRequest,
-    EmployeeProfileReportOnloadResponse,
     EmployeeProfileReportResponse,
     EmployeeProfileReportSearchRequest,
     EmployeeProfileReportSearchResponse
@@ -16,15 +13,16 @@ import type {
  * Request: { MI_Id: number, LogInUserId: number }
  * Response: Returns dropdown data in groupTypedropdown, departmentdropdown, designationdropdown, employeedropdown fields
  */
-export async function getEmployeeProfileReportOnload(
-    MI_Id = 30,
-    LogInUserId = 0
-): Promise<ApiResponse<EmployeeProfileReportResponse>> {
+export async function getEmployeeProfileReportOnload(MI_Id = 30, LogInUserId = 0): Promise<ApiResponse<EmployeeProfileReportResponse>> {
     const requestBody = {
         MI_Id,
         LogInUserId
     };
-    const response = await api.post<EmployeeProfileReportResponse>('hrms', '/api/EmployeeProfileReportFacade/onloadgetdetailsNew', requestBody);
+    const response = await api.post<EmployeeProfileReportResponse>(
+        'hrms',
+        '/api/EmployeeProfileReportFacade/onloadgetdetailsNew',
+        requestBody
+    );
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
@@ -44,7 +42,9 @@ export async function getEmployeeProfileReportOnload(
  * Request: { MI_Id: number, LogInUserId: number, hrmgT_IdList: number[], hrmD_IdList: number[], hrmdeS_IdList: number[] }
  * Note: Arrays should be [0] when empty, not []
  */
-export async function filterEmployeesBySelection(request: EmployeeProfileReportFilterRequest): Promise<ApiResponse<{ employeedropdown?: EmployeeDropdown[] }>> {
+export async function filterEmployeesBySelection(
+    request: EmployeeProfileReportFilterRequest
+): Promise<ApiResponse<{ employeedropdown?: EmployeeDropdown[] }>> {
     const requestBody = {
         MI_Id: request.MI_Id,
         LogInUserId: request.LogInUserId,
@@ -75,7 +75,9 @@ export async function filterEmployeesBySelection(request: EmployeeProfileReportF
  * POST /api/ReportEmployeeProfile/report_employee_profile_report
  * Request: { hrmE_IdList: number[] }
  */
-export async function searchEmployeeProfileDetails(request: EmployeeProfileReportSearchRequest): Promise<ApiResponse<EmployeeProfileReportSearchResponse>> {
+export async function searchEmployeeProfileDetails(
+    request: EmployeeProfileReportSearchRequest
+): Promise<ApiResponse<EmployeeProfileReportSearchResponse>> {
     const requestBody = {
         hrmE_IdList: request.hrmE_IdList.length > 0 ? request.hrmE_IdList : [0]
     };

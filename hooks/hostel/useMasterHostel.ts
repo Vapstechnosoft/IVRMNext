@@ -1,9 +1,16 @@
 import { HOSTEL_QUERY_KEYS } from '@/constants/query-keys';
-import { getCountries, getEmployees, getFacilities, getHostelList, getHostelPhotos, getStates, getHostelDropdownList } from '@/server/hostel/hostel-management/masters/hostel';
+import {
+    getCountries,
+    getEmployees,
+    getFacilities,
+    getHostelDropdownList,
+    getHostelList,
+    getHostelPhotos,
+    getStates
+} from '@/server/hostel/hostel-management/masters/hostel';
 import { getMessList } from '@/server/hostel/hostel-management/masters/mess';
-import { ApiSearchparams } from '@/types';
+import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-
 
 export const useMasterHostel = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
@@ -28,7 +35,7 @@ export const useHostelDropdownList = () => {
         queryKey: ['hostel-dropdown'],
         queryFn: () => getHostelDropdownList(),
         select: (data) => data?.data || [],
-        staleTime: Infinity,
+        staleTime: Number.POSITIVE_INFINITY
     });
 };
 
@@ -56,7 +63,7 @@ export const useWardenDropdownList = () => {
     return {
         ...useQuery({
             queryKey: [HOSTEL_QUERY_KEYS.MASTER_EMPLOYEE_DROPDOWN_LIST],
-            queryFn: async () =>getEmployees(),
+            queryFn: async () => getEmployees(),
             staleTime: 300
         }),
 
@@ -74,7 +81,7 @@ export const useCountryDropdownList = () => {
     return {
         ...useQuery({
             queryKey: [HOSTEL_QUERY_KEYS.MASTER_COUNTRY_DROPDOWN_LIST],
-            queryFn: async () =>getCountries(),
+            queryFn: async () => getCountries(),
             staleTime: 300
         }),
 
@@ -86,14 +93,13 @@ export const useCountryDropdownList = () => {
     };
 };
 
-
 export const useStateDropdownList = (countryId: number) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [HOSTEL_QUERY_KEYS.MASTER_STATE_DROPDOWN_LIST],
-            queryFn: async () =>getStates(countryId),
+            queryFn: async () => getStates(countryId),
             staleTime: 300
         }),
 
@@ -111,7 +117,7 @@ export const useFacilityDropdownList = () => {
     return {
         ...useQuery({
             queryKey: [HOSTEL_QUERY_KEYS.MASTER_FACILITY_DROPDOWN_LIST],
-            queryFn: async () =>getFacilities(),
+            queryFn: async () => getFacilities(),
             staleTime: 300
         }),
 
@@ -129,7 +135,7 @@ export const usePhotoList = (hostelId: number) => {
     return {
         ...useQuery({
             queryKey: [HOSTEL_QUERY_KEYS.MASTER_PHOTO_LIST],
-            queryFn: async () =>getHostelPhotos(hostelId),
+            queryFn: async () => getHostelPhotos(hostelId),
             staleTime: 300
         }),
 
@@ -140,12 +146,3 @@ export const usePhotoList = (hostelId: number) => {
         }
     };
 };
-
-
-
-
-
-
-
-
-

@@ -350,7 +350,6 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                 name='asmaY_Id'
                                 rules={{ required: 'Academic Year is required', validate: (v) => v > 0 || 'Academic Year is required' }}
                                 render={({ field, fieldState }) => (
-
                                     <div>
                                         <Label>
                                             Academic Year <span className='text-red-500'>*</span>
@@ -390,8 +389,10 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                 <Controller
                                     name='emcA_Id'
                                     control={control}
-                                    rules={{ required: 'Category is required', validate: (v) => (v !== 0 && v !== undefined) || 'Category is required' }}
-
+                                    rules={{
+                                        required: 'Category is required',
+                                        validate: (v) => (v !== 0 && v !== undefined) || 'Category is required'
+                                    }}
                                     render={({ field, fieldState }) => (
                                         <div>
                                             <Label>
@@ -444,8 +445,10 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                     <Controller
                                         name='emG_Id'
                                         control={control}
-                                        rules={{ required: 'Subject Group is required', validate: (v) => v > 0 || 'Subject Group is required' }}
-
+                                        rules={{
+                                            required: 'Subject Group is required',
+                                            validate: (v) => v > 0 || 'Subject Group is required'
+                                        }}
                                         render={({ field, fieldState }) => (
                                             <div>
                                                 <Label>
@@ -484,7 +487,6 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                         name='ismS_Id'
                                         control={control}
                                         rules={{ required: 'Subject is required', validate: (v) => v > 0 || 'Subject is required' }}
-
                                         render={({ field, fieldState }) => (
                                             <div>
                                                 <Label>
@@ -528,7 +530,6 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                         name='asmcL_Id'
                                         control={control}
                                         rules={{ required: 'Class is required', validate: (v) => v > 0 || 'Class is required' }}
-
                                         render={({ field, fieldState }) => (
                                             <div>
                                                 <Label>
@@ -567,7 +568,6 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                         name='asmS_Id'
                                         control={control}
                                         rules={{ required: 'Section is required', validate: (v) => v > 0 || 'Section is required' }}
-
                                         render={({ field, fieldState }) => (
                                             <div>
                                                 <Label>

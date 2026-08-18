@@ -423,7 +423,7 @@ export interface SectionDropDownDataTT {
     asmC_SectionName: string;
     asmC_SectionCode: string;
     asmC_Order: number;
-    asmC_ActiveFlag: number;   // API returns 1/0 (not boolean)
+    asmC_ActiveFlag: number; // API returns 1/0 (not boolean)
     asmC_MaxCapacity: number;
     createdDate: string;
     updatedDate: string;

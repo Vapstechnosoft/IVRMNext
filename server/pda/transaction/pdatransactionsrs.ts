@@ -1,7 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type { 
+import type {
     IPDATransactionLoadData,
     IPDATransactionSaveRequest,
     IPDATransactionSearchRequest

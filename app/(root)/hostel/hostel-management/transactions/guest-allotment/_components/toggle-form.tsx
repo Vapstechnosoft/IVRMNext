@@ -4,9 +4,9 @@ import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { useGuestAllotments } from '@/hooks/hostel/hostel-management/useGuestAllotment';
 import { toggleGuestAllotment } from '@/server/hostel/hostel-management/transactions/guest-allotment';
-import type { GuestAllotmentColumn } from './columns';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import type { GuestAllotmentColumn } from './columns';
 
 interface ToggleGuestAllotmentFormProps {
     rowData: GuestAllotmentColumn;

@@ -25,20 +25,12 @@ export default function MultipleExamProgressCardReportNewPage() {
     };
 
     return (
-        <div className="flex flex-col gap-6 p-4">
+        <div className='flex flex-col gap-6 p-4'>
             {/* Filter Form */}
-            <AddForm 
-                onReportGenerated={handleReportGenerated} 
-                onReset={handleReset} 
-            />
+            <AddForm onReportGenerated={handleReportGenerated} onReset={handleReset} />
 
             {/* Generated Report View */}
-            {reportData && (
-                <ReportList 
-                    data={reportData} 
-                    params={reportParams} 
-                />
-            )}
+            {reportData && <ReportList data={reportData} params={reportParams} />}
         </div>
     );
 }

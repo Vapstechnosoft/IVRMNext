@@ -1,16 +1,11 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
-import {
-    getInitialData,
-    getClasses,
-    getSections,
-    getAttendanceReport
-} from '@/server/staff-portal/attendance-report';
+import { getAttendanceReport, getClasses, getInitialData, getSections } from '@/server/staff-portal/attendance-report';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 export const useAttendanceReport = () => {
     const initialDataQuery = useQuery({
         queryKey: ['attendance-report-initial'],
-        queryFn: getInitialData,
+        queryFn: getInitialData
     });
 
     const getClassesMutation = useMutation({
@@ -42,6 +37,6 @@ export const useAttendanceReport = () => {
         isLoadingInitial: initialDataQuery.isLoading,
         getClasses: getClassesMutation,
         getSections: getSectionsMutation,
-        getReport: getReportMutation,
+        getReport: getReportMutation
     };
 };

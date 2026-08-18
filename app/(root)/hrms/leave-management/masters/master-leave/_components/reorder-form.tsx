@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 export default function ReorderMasterLeaveForm() {
     const { data: response, refetchAll } = useMasterLeave();
     const { mutateAsync: updateOrder } = useUpdateMasterLeaveOrder();
-    
+
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [orderedItems, setOrderedItems] = useState<any[]>([]);
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -101,7 +101,9 @@ export default function ReorderMasterLeaveForm() {
                                             draggedIndex === index ? 'opacity-50' : 'hover:bg-muted'
                                         }`}>
                                         <GripVertical className='size-4' />
-                                        <div className='flex-1 font-medium text-sm'>{item.hrmL_LeaveName || item.leaveName || `Leave ${index + 1}`}</div>
+                                        <div className='flex-1 font-medium text-sm'>
+                                            {item.hrmL_LeaveName || item.leaveName || `Leave ${index + 1}`}
+                                        </div>
                                     </div>
                                 ))}
                             </div>

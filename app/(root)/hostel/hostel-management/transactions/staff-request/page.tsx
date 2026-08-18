@@ -1,12 +1,10 @@
 'use client';
 
+import { getStaffRequestLoadData, toggleStaffRequestStatus } from '@/server/hostel/hostel-management/transactions/staff-request-actions';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import StaffRequestForm from './_components/add-form';
 import StaffRequestList from './_components/list';
-import { Separator } from '@/components/ui/separator';
-import { toast } from 'sonner';
-import { getStaffRequestLoadData, toggleStaffRequestStatus } from '@/server/hostel/hostel-management/transactions/staff-request-actions';
-import { Heading } from '@/components/layout/heading';
 
 export default function StaffRequestPage() {
     const [listData, setListData] = useState<any[]>([]);
@@ -31,26 +29,25 @@ export default function StaffRequestPage() {
     const handleToggle = async (data: any) => {
         const res = await toggleStaffRequestStatus(data);
         if (res?.ret) {
-            toast.success("Status updated!");
+            toast.success('Status updated!');
             loadData();
         }
     };
 
     return (
-        <div className="flex-col min-h-screen bg-slate-50/50">
-            <div className="flex items-center justify-end px-8 py-2 text-[10px] text-gray-500 font-medium bg-gray-100/50 border-b">
+        <div className='min-h-screen flex-col bg-slate-50/50'>
+            <div className='flex items-center justify-end border-b bg-gray-100/50 px-8 py-2 font-medium text-[10px] text-gray-500'>
                 <span>Transaction &gt; StaffRequest</span>
             </div>
-            <div className="flex-1 space-y-6 p-8">
+            <div className='flex-1 space-y-6 p-8'>
                 <StaffRequestForm
-                    onSaveSuccess={() => { loadData(); setEditData(null); }}
+                    onSaveSuccess={() => {
+                        loadData();
+                        setEditData(null);
+                    }}
                     editData={editData}
                 />
-                <StaffRequestList
-                    data={listData}
-                    onEdit={handleEdit}
-                    onToggle={handleToggle}
-                />
+                <StaffRequestList data={listData} onEdit={handleEdit} onToggle={handleToggle} />
             </div>
         </div>
     );

@@ -30,7 +30,10 @@ export default function ToggleMasterLanguageForm({ rowData, onClose }: ToggleMas
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterLanguageSchema.delete),
-        mode: 'onChange'
+        mode: 'onChange',
+        defaultValues: {
+            lmL_Id: String(rowData.lmL_Id)
+        }
     });
 
     function closeDialog() {

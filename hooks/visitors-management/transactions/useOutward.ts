@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getOutwardData, saveOutwardData, deleteOutwardData } from '@/server/visitors-management/transactions/outward';
-import { OutwardSchema } from '@/schemas/visitors-management/transactions';
+import type { OutwardSchema } from '@/schemas/visitors-management/transactions';
+import { deleteOutwardData, getOutwardData, saveOutwardData } from '@/server/visitors-management/transactions/outward';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 export const useOutward = () => {
@@ -8,7 +8,7 @@ export const useOutward = () => {
 
     const { data, isLoading, refetch } = useQuery({
         queryKey: ['outwardData'],
-        queryFn: () => getOutwardData(),
+        queryFn: () => getOutwardData()
     });
 
     const mutation = useMutation({

@@ -1,4 +1,3 @@
-
 import type { studentMarksPublishSchema } from '@/schemas/exam/exam-module/marks-entry';
 // types/exam/exam-module/student-marks-publish.ts
 import type { z } from 'zod';
@@ -31,18 +30,17 @@ export interface IStudentMarksAPIResponse {
     estmP_Id?: number;
 
     // Optional: If the API returns additional student info
-    asmaY_Id?: number;                 // Academic Year ID
-    asmcL_Id?: number;                 // Class ID
-    asmS_Id?: number;                  // Section ID
-    emE_Id?: number;                   // Exam ID
+    asmaY_Id?: number; // Academic Year ID
+    asmcL_Id?: number; // Class ID
+    asmS_Id?: number; // Section ID
+    emE_Id?: number; // Exam ID
 }
 
 // For the table display with frontend state
 export interface IStudentDetailsWithState extends IStudentDetails {
-    checkedvalue: boolean;            // Always present in frontend
-    slNo: number;                     // Serial number for display
+    checkedvalue: boolean; // Always present in frontend
+    slNo: number; // Serial number for display
 }
-
 
 // Base types from schema
 export type StudentMarksPublishSearchForm = z.infer<typeof studentMarksPublishSchema.search>;
@@ -110,7 +108,7 @@ export interface IUpdateStatusResponse {
 
 export interface ICheckMarksResponse {
     exmstdlist?: any[]; // For EXAM type
-    editlist?: any[];   // For PROMOTION type
+    editlist?: any[]; // For PROMOTION type
     success: boolean;
     message?: string;
 }

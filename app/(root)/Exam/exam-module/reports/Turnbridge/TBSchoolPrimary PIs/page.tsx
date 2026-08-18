@@ -24,7 +24,7 @@ export default function TBSchoolPrimaryReportPage() {
             setReportType(type);
             const res = await getTBSchoolPrimaryReport(payload);
 
-            console.log(res, "response");
+            console.log(res, 'response');
 
             if (!res?.success || !res?.data) {
                 setIsReportVisible(false);
@@ -47,9 +47,9 @@ export default function TBSchoolPrimaryReportPage() {
     return (
         <div className='container mx-auto space-y-6 p-4'>
             <CollapsibleSection title='TBSchool Primary Report' defaultOpen>
-                <ProgressCardReportForm 
-                    onSuccess={handleReportSuccess} 
-                    onPrint={handlePrint} 
+                <ProgressCardReportForm
+                    onSuccess={handleReportSuccess}
+                    onPrint={handlePrint}
                     onReportTypeChange={(type) => setReportType(type)}
                 />
             </CollapsibleSection>
@@ -57,10 +57,7 @@ export default function TBSchoolPrimaryReportPage() {
             {isReportVisible && reportData && (
                 <CollapsibleSection title='TBSchool Primary Report Cards' defaultOpen>
                     <div ref={printRef}>
-                        <ProgressCardReport
-                            reportData={reportData}
-                            reportType={reportType}
-                        />
+                        <ProgressCardReport reportData={reportData} reportType={reportType} />
                     </div>
                 </CollapsibleSection>
             )}

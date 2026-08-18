@@ -288,12 +288,18 @@ export default function ExchangeClassTeacherForm({ isOpen, onClose }: ExchangeCl
                                                     </SelectItem>
                                                 ) : (
                                                     employeeDataA.data
-                                                        .filter((e: any) => !(selectedAcademicYearA === selectedAcademicYearB && e.hrmE_Id === selectedStaffB))
+                                                        .filter(
+                                                            (e: any) =>
+                                                                !(
+                                                                    selectedAcademicYearA === selectedAcademicYearB &&
+                                                                    e.hrmE_Id === selectedStaffB
+                                                                )
+                                                        )
                                                         .map((e: any) => (
-                                                        <SelectItem key={e.hrmE_Id} value={e.hrmE_Id.toString()}>
-                                                            {e.employee_name}
-                                                        </SelectItem>
-                                                    ))
+                                                            <SelectItem key={e.hrmE_Id} value={e.hrmE_Id.toString()}>
+                                                                {e.employee_name}
+                                                            </SelectItem>
+                                                        ))
                                                 )}
                                             </SelectContent>
                                         </Select>
@@ -389,12 +395,18 @@ export default function ExchangeClassTeacherForm({ isOpen, onClose }: ExchangeCl
                                                     </SelectItem>
                                                 ) : (
                                                     employeeDataB.data
-                                                        .filter((e: any) => !(selectedAcademicYearA === selectedAcademicYearB && e.hrmE_Id === selectedStaffA))
+                                                        .filter(
+                                                            (e: any) =>
+                                                                !(
+                                                                    selectedAcademicYearA === selectedAcademicYearB &&
+                                                                    e.hrmE_Id === selectedStaffA
+                                                                )
+                                                        )
                                                         .map((e: any) => (
-                                                        <SelectItem key={e.hrmE_Id} value={e.hrmE_Id.toString()}>
-                                                            {e.employee_name}
-                                                        </SelectItem>
-                                                    ))
+                                                            <SelectItem key={e.hrmE_Id} value={e.hrmE_Id.toString()}>
+                                                                {e.employee_name}
+                                                            </SelectItem>
+                                                        ))
                                                 )}
                                             </SelectContent>
                                         </Select>

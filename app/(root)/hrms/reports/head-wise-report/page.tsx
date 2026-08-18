@@ -1,33 +1,36 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import {
-    useReportDepartments,
-    useReportDesignations,
-    useReportGroupTypes,
-    useHeadWiseReport
-} from '@/hooks/hrms/useReports';
 import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
+import { useHeadWiseReport, useReportDepartments, useReportDesignations, useReportGroupTypes } from '@/hooks/hrms/useReports';
+import { exportToExcel } from '@/lib/export-to-file';
+import { getMasterInstitution } from '@/server/hrms/master-dropdown';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Download, Loader2, Printer, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { getMasterInstitution } from '@/server/hrms/master-dropdown';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { exportToExcel } from '@/lib/export-to-file';
 import { printHeadWiseReport } from './_components/print-head-wise-report';
 
 const MONTH_LIST = [
-    { id: 1, name: 'January' }, { id: 2, name: 'February' }, { id: 3, name: 'March' },
-    { id: 4, name: 'April' }, { id: 5, name: 'May' }, { id: 6, name: 'June' },
-    { id: 7, name: 'July' }, { id: 8, name: 'August' }, { id: 9, name: 'September' },
-    { id: 10, name: 'October' }, { id: 11, name: 'November' }, { id: 12, name: 'December' }
+    { id: 1, name: 'January' },
+    { id: 2, name: 'February' },
+    { id: 3, name: 'March' },
+    { id: 4, name: 'April' },
+    { id: 5, name: 'May' },
+    { id: 6, name: 'June' },
+    { id: 7, name: 'July' },
+    { id: 8, name: 'August' },
+    { id: 9, name: 'September' },
+    { id: 10, name: 'October' },
+    { id: 11, name: 'November' },
+    { id: 12, name: 'December' }
 ];
 
 const HeadWiseReportSchema = z.object({
@@ -80,8 +83,13 @@ export default function HeadWiseReportPage() {
     }, []);
 
     const { data: groupTypesData, isLoading: groupTypesLoading } = useReportGroupTypes();
-    const { data: departmentsData, isLoading: departmentsLoading } = useReportDepartments((Array.isArray(watchedGroupTypes) ? watchedGroupTypes : []).join(','));
-    const { data: designationsData, isLoading: designationsLoading } = useReportDesignations((Array.isArray(watchedGroupTypes) ? watchedGroupTypes : []).join(','), (Array.isArray(watchedDepartments) ? watchedDepartments : []).join(','));
+    const { data: departmentsData, isLoading: departmentsLoading } = useReportDepartments(
+        (Array.isArray(watchedGroupTypes) ? watchedGroupTypes : []).join(',')
+    );
+    const { data: designationsData, isLoading: designationsLoading } = useReportDesignations(
+        (Array.isArray(watchedGroupTypes) ? watchedGroupTypes : []).join(','),
+        (Array.isArray(watchedDepartments) ? watchedDepartments : []).join(',')
+    );
     const { data: yearsData, isLoading: yearsLoading } = useLeaveYearDropdown();
 
     const { mutate: generateReport, isPending: isSearching } = useHeadWiseReport();
@@ -89,25 +97,28 @@ export default function HeadWiseReportPage() {
     const onSearch = (data: FormFields) => {
         const selectedYearObj = (yearsData?.data || []).find((y: any) => y && String(y.hrmlY_Id ?? '') === String(data.year ?? ''));
         const yearStr = selectedYearObj?.hrmlY_LeaveYear || String(data.year ?? '0');
-        const monthName = MONTH_LIST.find(m => m && String(m.id ?? '') === String(data.month ?? ''))?.name || '';
+        const monthName = MONTH_LIST.find((m) => m && String(m.id ?? '') === String(data.month ?? ''))?.name || '';
 
-        generateReport({
-            hreS_Year: yearStr,
-            hreS_Month: monthName,
-            hrmd_ids: (data.department || []).map(Number),
-            hrmgt_ids: (data.groupType || []).map(Number),
-            hrmdes_ids: (data.designation || []).map(Number)
-        }, {
-            onSuccess: (res) => {
-                if (res.success && res.data) {
-                    setReportData(res.data);
-                    toast.success('Report generated successfully');
-                } else {
-                    toast.error(res.message || 'No data found');
-                    setReportData([]);
+        generateReport(
+            {
+                hreS_Year: yearStr,
+                hreS_Month: monthName,
+                hrmd_ids: (data.department || []).map(Number),
+                hrmgt_ids: (data.groupType || []).map(Number),
+                hrmdes_ids: (data.designation || []).map(Number)
+            },
+            {
+                onSuccess: (res) => {
+                    if (res.success && res.data) {
+                        setReportData(res.data);
+                        toast.success('Report generated successfully');
+                    } else {
+                        toast.error(res.message || 'No data found');
+                        setReportData([]);
+                    }
                 }
             }
-        });
+        );
     };
 
     const handleReset = () => {
@@ -121,7 +132,7 @@ export default function HeadWiseReportPage() {
             toast.error('No data to print');
             return;
         }
-        const monthName = MONTH_LIST.find(m => m && String(m.id ?? '') === String(watch('month') ?? ''))?.name || '';
+        const monthName = MONTH_LIST.find((m) => m && String(m.id ?? '') === String(watch('month') ?? ''))?.name || '';
         const selectedYearObj = (yearsData?.data || []).find((y: any) => y && String(y.hrmlY_Id ?? '') === String(watch('year') ?? ''));
         const yearStr = selectedYearObj?.hrmlY_LeaveYear || '';
 
@@ -178,17 +189,20 @@ export default function HeadWiseReportPage() {
         {
             accessorKey: 'totalEarning',
             header: 'Total Earning',
-            cell: ({ row }: any) => `₹${(row.original.totalEarning || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            cell: ({ row }: any) =>
+                `₹${(row.original.totalEarning || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
         },
         {
             accessorKey: 'totalDeduction',
             header: 'Total Deduction',
-            cell: ({ row }: any) => `₹${(row.original.totalDeduction || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            cell: ({ row }: any) =>
+                `₹${(row.original.totalDeduction || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
         },
         {
             accessorKey: 'netSalary',
             header: 'Net Salary',
-            cell: ({ row }: any) => `₹${(row.original.netSalary || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            cell: ({ row }: any) =>
+                `₹${(row.original.netSalary || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
         }
     ];
 
@@ -202,15 +216,17 @@ export default function HeadWiseReportPage() {
                 <form onSubmit={handleSubmit(onSearch)} className='space-y-6'>
                     <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
                         <div className='space-y-2'>
-                            <Label>Group Type <span className='text-destructive'>*</span></Label>
+                            <Label>
+                                Group Type <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 name='groupType'
                                 control={control}
                                 render={({ field }) => (
                                     <MultiSelect
-                                        options={(groupTypesData?.data || []).filter(Boolean).map((gt: any) => ({ 
-                                            label: String(gt.value || ''), 
-                                            value: String(gt.key ?? '') 
+                                        options={(groupTypesData?.data || []).filter(Boolean).map((gt: any) => ({
+                                            label: String(gt.value || ''),
+                                            value: String(gt.key ?? '')
                                         }))}
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
@@ -223,15 +239,17 @@ export default function HeadWiseReportPage() {
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>Department <span className='text-destructive'>*</span></Label>
+                            <Label>
+                                Department <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 name='department'
                                 control={control}
                                 render={({ field }) => (
                                     <MultiSelect
-                                        options={(departmentsData?.data || []).filter(Boolean).map((d: any) => ({ 
-                                            label: String(d.hrmD_DepartmentName || d.value || ''), 
-                                            value: String(d.hrmD_Id ?? d.key ?? '') 
+                                        options={(departmentsData?.data || []).filter(Boolean).map((d: any) => ({
+                                            label: String(d.hrmD_DepartmentName || d.value || ''),
+                                            value: String(d.hrmD_Id ?? d.key ?? '')
                                         }))}
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
@@ -244,15 +262,17 @@ export default function HeadWiseReportPage() {
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>Designation <span className='text-destructive'>*</span></Label>
+                            <Label>
+                                Designation <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 name='designation'
                                 control={control}
                                 render={({ field }) => (
                                     <MultiSelect
-                                        options={(designationsData?.data || []).filter(Boolean).map((d: any) => ({ 
-                                            label: String(d.hrmdeS_DesignationName || d.value || ''), 
-                                            value: String(d.hrmdeS_Id ?? d.key ?? '') 
+                                        options={(designationsData?.data || []).filter(Boolean).map((d: any) => ({
+                                            label: String(d.hrmdeS_DesignationName || d.value || ''),
+                                            value: String(d.hrmdeS_Id ?? d.key ?? '')
                                         }))}
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
@@ -265,7 +285,9 @@ export default function HeadWiseReportPage() {
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>Year <span className='text-destructive'>*</span></Label>
+                            <Label>
+                                Year <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 key={resetKey}
                                 name='year'
@@ -289,7 +311,9 @@ export default function HeadWiseReportPage() {
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>Month <span className='text-destructive'>*</span></Label>
+                            <Label>
+                                Month <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 key={resetKey}
                                 name='month'
@@ -340,17 +364,21 @@ export default function HeadWiseReportPage() {
                                 Print
                             </Button>
                         </div>
-                    }
-                >
+                    }>
                     <div className='space-y-4'>
                         {/* Institution Details Section */}
-                        <div className='text-center space-y-1 mb-6'>
+                        <div className='mb-6 space-y-1 text-center'>
                             <h3 className='font-bold text-xl uppercase'>{institution?.mI_Name}</h3>
                             <p className='text-muted-foreground'>
                                 {institution?.mI_Address1}, {institution?.ivrmmcT_Name} - {institution?.mI_Pincode}
                             </p>
-                            <p className='font-semibold decoration-1 underline-offset-4 decoration-primary/30'>
-                                HEAD WISE REPORT FOR {(MONTH_LIST.find(m => String(m.id ?? '') === String(watch('month') ?? ''))?.name || '').toUpperCase()} {(yearsData?.data || []).find((y: any) => y && String(y.hrmlY_Id ?? '') === String(watch('year') ?? ''))?.hrmlY_LeaveYear}
+                            <p className='font-semibold decoration-1 decoration-primary/30 underline-offset-4'>
+                                HEAD WISE REPORT FOR{' '}
+                                {(MONTH_LIST.find((m) => String(m.id ?? '') === String(watch('month') ?? ''))?.name || '').toUpperCase()}{' '}
+                                {
+                                    (yearsData?.data || []).find((y: any) => y && String(y.hrmlY_Id ?? '') === String(watch('year') ?? ''))
+                                        ?.hrmlY_LeaveYear
+                                }
                             </p>
                         </div>
 

@@ -1,18 +1,18 @@
 'use client';
 
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { InputText } from '@/components/ui/extension/input-text';
 import { Button } from '@/components/ui/button';
+import { InputText } from '@/components/ui/extension/input-text';
 import { useInvMasterTax } from '@/hooks/inventory/masters/use-inv-master-tax';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
 
 import { saveInvMasterTax } from '@/server/inventory/masters/inv-master-tax';
-import { toast } from 'sonner';
 import type { IInvMasterTax } from '@/types/inventory/masters/inv-master-tax';
 import { useEffect } from 'react';
+import { toast } from 'sonner';
 
 import { invMasterTaxSchema } from '@/schemas/inventory/masters/inv-master-tax';
-import { z } from 'zod';
+import type { z } from 'zod';
 
 interface UpdateInvMasterTaxFormProps {
     selectedRow: IInvMasterTax;
@@ -96,7 +96,14 @@ export default function UpdateInvMasterTaxForm({ selectedRow, onSuccess, onCance
             </div>
 
             <div className='flex justify-end gap-2 pt-4'>
-                <Button type='button' variant='outline' onClick={() => { reset(); onCancel?.(); }} disabled={isSubmitting}>
+                <Button
+                    type='button'
+                    variant='outline'
+                    onClick={() => {
+                        reset();
+                        onCancel?.();
+                    }}
+                    disabled={isSubmitting}>
                     Cancel
                 </Button>
                 <Button type='submit' disabled={isSubmitting}>

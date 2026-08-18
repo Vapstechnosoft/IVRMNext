@@ -2,11 +2,9 @@
 
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
-import { FormError } from '@/components/ui/extension/field';
-import type { MasterJob } from './columns';
 import { useToggleJobStatus } from '@/hooks/hrms/recruitment/masters/useMasters';
 import { toast } from 'sonner';
-import { useState } from 'react';
+import type { MasterJob } from './columns';
 
 interface ToggleMasterJobModalProps {
     rowData: MasterJob;
@@ -18,7 +16,6 @@ interface ToggleMasterJobModalProps {
 export default function ToggleMasterJobModal({ rowData, isOpen, onClose, onSuccess }: ToggleMasterJobModalProps) {
     const { mutateAsync: toggleMutation, isPending: isSubmitting } = useToggleJobStatus();
     const isActive = rowData.hrmJ_ActiveFlg;
-    
 
     const handleToggle = async () => {
         try {
@@ -48,11 +45,7 @@ export default function ToggleMasterJobModal({ rowData, isOpen, onClose, onSucce
                     <Button variant='secondary' onClick={onClose} type='button'>
                         Cancel
                     </Button>
-                    <Button 
-                        onClick={handleToggle}
-                        isLoading={isSubmitting} 
-                        variant={isActive ? 'destructive' : 'default'}
-                    >
+                    <Button onClick={handleToggle} isLoading={isSubmitting} variant={isActive ? 'destructive' : 'default'}>
                         {isActive ? 'Deactivate' : 'Activate'}
                     </Button>
                 </AdaptiveFooter>

@@ -1,17 +1,17 @@
 'use client';
- 
-import { useQuery } from '@tanstack/react-query';
-import { fetchUserGroupGridData, fetchMainGroupDropdownData } from '@/server/inventory/masters/user-group'; // Create this file
+
 import { INVENTORY_QUERY_KEYS } from '@/constants/query-keys';
-import { ApiSearchparams } from '@/types';
- 
+import { fetchMainGroupDropdownData, fetchUserGroupGridData } from '@/server/inventory/masters/user-group'; // Create this file
+import type { ApiSearchparams } from '@/types';
+import { useQuery } from '@tanstack/react-query';
+
 export const useInvMasterUserGroup = (searchParams?: ApiSearchparams) => {
     const query = useQuery({
         queryKey: [INVENTORY_QUERY_KEYS.INV_MASTER_GROUP, 'user-group', searchParams],
         queryFn: () => fetchUserGroupGridData(searchParams),
         staleTime: 0
     });
- 
+
     return {
         ...query,
         refetchAll: query.refetch

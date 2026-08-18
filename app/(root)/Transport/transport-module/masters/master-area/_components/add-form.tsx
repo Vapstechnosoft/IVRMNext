@@ -37,7 +37,7 @@ export default function AddMasterAreaForm({ onSuccess, className = '' }: AddMast
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            console.log("save area", data)
+            console.log('save area', data);
             const response = await saveMasterArea(data);
 
             if (response.success) {

@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getReportDetails } from '@/server/alumni/user-password-creation';
 import type { IClass, ISection, IYear } from '@/types/alumni/user-password-creation';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, RotateCcw, X } from 'lucide-react';
+import { Eye, RotateCcw } from 'lucide-react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { type UserPasswordCreationSchema, userPasswordCreationSchema } from './schema';

@@ -5,6 +5,7 @@ import type { ApiSearchparams } from '@/types';
 import type {
     ICasteDropdown,
     ICountryDropdown,
+    IDistrictDropdown,
     IGenderDropdown,
     IInitiatePaymentResponse,
     IPreadmissionClassDropdown,
@@ -13,9 +14,7 @@ import type {
     IReferenceDropdown,
     IReligionDropdown,
     ISourceDropdown,
-    IStateDropdown,
-    IMasterCategoryDropDown,
-    IDistrictDropdown
+    IStateDropdown
 } from '@/types/admission/preadmission/transactions';
 
 export async function getReligionDropdown() {

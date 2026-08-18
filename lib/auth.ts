@@ -103,7 +103,7 @@ export const authConfig: NextAuthConfig = {
     },
     cookies: {
         sessionToken: {
-            name: 'ivrm-session-1.0',
+            name: 'aivrm-session-1.0',
             options: {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',

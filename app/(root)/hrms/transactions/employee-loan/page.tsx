@@ -1,5 +1,4 @@
 'use client';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
@@ -53,12 +52,7 @@ export default function EmployeeLoanPage() {
 
     return (
         <FormProvider<EmployeeLoanItem>>
-            <EmployeeLoanPageContent
-                mastersData={mastersData}
-                gridData={gridData}
-                isLoading={isLoading}
-                refetch={refetchAll}
-            />
+            <EmployeeLoanPageContent mastersData={mastersData} gridData={gridData} isLoading={isLoading} refetch={refetchAll} />
         </FormProvider>
     );
 }

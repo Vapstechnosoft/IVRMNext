@@ -2,7 +2,6 @@
 
 import { Card, CardContent } from '@/components/ui/card';
 import { usePreadmissionStatusCountReport } from '@/hooks/admission/preadmission/useTransactions';
-import type { IPreadmissionStatusCountReport } from '@/types/admission/preadmission/transactions';
 import { ArrowRightLeft, BadgeIndianRupee, FileCheck, FileX, Loader2, UserCheck } from 'lucide-react';
 
 interface StatusCardProps {

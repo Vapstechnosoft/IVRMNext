@@ -1,5 +1,4 @@
 export interface MappedEventCoe {
-
     coee_Id: number;
     coeE_Id: number;
     asmaY_Id: number;
@@ -33,14 +32,13 @@ export interface MappedEventCoe {
     others_list?: {
         name: string;
         mobile: string;
-        email: string
+        email: string;
     }[];
     images_listCoe?: { COEEI_Images: string }[];
     videos_list?: { COEEV_Videos: string }[];
     alumni_list?: any[];
     edit_images_list?: { coeeI_Images: string }[];
 }
-
 
 export interface MasterCoeInitialData {
     yearlist: { asmaY_Id: number; asmaY_Year: string }[];

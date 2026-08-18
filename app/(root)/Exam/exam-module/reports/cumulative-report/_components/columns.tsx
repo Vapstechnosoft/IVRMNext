@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import type { ICumulativeReport, IMasterInstitution, Institution, IReportHeader, ISubject } from '@/types/exam/exam-module/report';
+import type { ICumulativeReport, IMasterInstitution, IReportHeader, ISubject, Institution } from '@/types/exam/exam-module/report';
 import { FileSpreadsheetIcon, Printer } from 'lucide-react';
 import { useState } from 'react';
 import * as XLSX from 'xlsx';
@@ -82,7 +82,7 @@ export default function CumulativeReportGridView({
 
         const applicableSubjects = columnFlags.applicable ? subjects.filter((s) => s.eyceS_AplResultFlg) : [];
         const nonApplicableSubjects = columnFlags.nonapplicable ? subjects.filter((s) => !s.eyceS_AplResultFlg) : [];
-        console.log('headerInfo: ', headerInfo)
+        console.log('headerInfo: ', headerInfo);
         // Title rows
         const titleRows = [
             [institution?.mI_Name || ''],
@@ -210,10 +210,7 @@ export default function CumulativeReportGridView({
             });
 
             // Total columns
-            row.push(
-                isAbsent ? '' : (student.estmP_TotalMaxMarks ?? ''),
-                isAbsent ? '' : (student.estmP_TotalObtMarks ?? '')
-            );
+            row.push(isAbsent ? '' : (student.estmP_TotalMaxMarks ?? ''), isAbsent ? '' : (student.estmP_TotalObtMarks ?? ''));
 
             if (columnFlags.readmit) {
                 row.push(isAbsent || student.estmP_Percentage == null ? '' : `${Number(student.estmP_Percentage).toFixed(2)}%`);
@@ -348,7 +345,7 @@ export default function CumulativeReportGridView({
         const mark = student.sub_list?.find((m) => m.ismS_Id === subj.ismS_Id);
         if (!mark) return '-';
         if (mark.estmpS_PassFailFlg === 'AB') {
-            return <span className='text-red-600 font-bold'>AB</span>;
+            return <span className='font-bold text-red-600'>AB</span>;
         }
 
         const showMarks = columnFlags.marksdisplay;

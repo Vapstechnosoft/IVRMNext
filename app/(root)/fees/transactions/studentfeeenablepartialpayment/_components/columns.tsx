@@ -51,13 +51,17 @@ export const studentFeeEnablePartialPaymentColumns: ColumnDef<IStudentFeeEnableP
     {
         accessorKey: 'fsepP_Remarks',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Remarks' className='font-bold text-black' />,
-        cell: ({ row }) => <div className='max-w-[300px] truncate' title={row.getValue('fsepP_Remarks')}>{row.getValue('fsepP_Remarks') || '-'}</div>,
+        cell: ({ row }) => (
+            <div className='max-w-[300px] truncate' title={row.getValue('fsepP_Remarks')}>
+                {row.getValue('fsepP_Remarks') || '-'}
+            </div>
+        ),
         enableSorting: true,
         enableHiding: true
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='font-bold text-black text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center font-bold text-black' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />

@@ -3,16 +3,16 @@
 import { Button } from '@/components/ui/button';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useMasterClassCategory } from '@/hooks/library/useMasters';
+import { masterClassCategorySchema } from '@/schemas/library/masters';
 import { addOrUpdateMasterClassCategory } from '@/server/library/masters/class-category';
 import type { IStaffList } from '@/types/library/masters/class-category';
-import { masterClassCategorySchema } from '@/schemas/library/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { Save } from 'lucide-react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z } from 'zod';
-import { useMasterClassCategory } from '@/hooks/library/useMasters';
+import type { z } from 'zod';
 
 type FormSchema = z.infer<typeof masterClassCategorySchema.addOrUpdate>;
 
@@ -70,13 +70,10 @@ export default function AddMasterClassCategoryForm({ onSuccess, staffList }: Add
                     name='ivrmuL_Id'
                     render={({ field }) => (
                         <div className='flex flex-col gap-1.5'>
-                            <label className='text-sm font-medium'>
+                            <label className='font-medium text-sm'>
                                 Staff Name <span className='text-red-500'>*</span>
                             </label>
-                            <Select
-                                value={field.value?.toString()}
-                                onValueChange={(value) => field.onChange(Number(value))}
-                                searchable>
+                            <Select value={field.value?.toString()} onValueChange={(value) => field.onChange(Number(value))} searchable>
                                 <SelectTrigger className={form.formState.errors.ivrmuL_Id ? 'border-red-500' : ''}>
                                     <SelectValue placeholder='--Select Staff--' />
                                 </SelectTrigger>
@@ -89,7 +86,7 @@ export default function AddMasterClassCategoryForm({ onSuccess, staffList }: Add
                                 </SelectContent>
                             </Select>
                             {form.formState.errors.ivrmuL_Id && (
-                                <span className='text-sm text-red-500'>{form.formState.errors.ivrmuL_Id.message}</span>
+                                <span className='text-red-500 text-sm'>{form.formState.errors.ivrmuL_Id.message}</span>
                             )}
                         </div>
                     )}

@@ -1,15 +1,14 @@
 'use client';
 
-import { eventSponsorSchema } from '@/schemas/sports/transactions/events-sponsor';
-import { useEventsSponsor } from '@/hooks/sports/useEventsSponsor';
-import type { IEventSponsorMapping } from '@/types/sports/transactions/events-sponsor';
+import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Controller, useForm } from 'react-hook-form';
-import { Loader2 } from 'lucide-react';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Button } from '@/components/ui/button';
+import { useEventsSponsor } from '@/hooks/sports/useEventsSponsor';
+import { eventSponsorSchema } from '@/schemas/sports/transactions/events-sponsor';
+import type { IEventSponsorMapping } from '@/types/sports/transactions/events-sponsor';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 interface AddEventSponsorMappingFormProps {
@@ -87,7 +86,7 @@ function FormFields({ details, control, watch, setValue, errors }: { details: an
     return (
         <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
             <div className='flex flex-col gap-2'>
-                <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Program Name</Label>
+                <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Program Name</Label>
                 <Controller
                     name='spccE_Id'
                     control={control}
@@ -102,7 +101,7 @@ function FormFields({ details, control, watch, setValue, errors }: { details: an
                                 value={field.value && watch('spccpM_Name') ? `${field.value}::${watch('spccpM_Name')}` : undefined}>
                                 <SelectTrigger
                                     className={
-                                        errors.spccE_Id ? 'border-destructive ring-destructive/20' : 'hover:border-primary/50 transition-colors'
+                                        errors.spccE_Id ? 'border-destructive ring-destructive/20' : 'transition-colors hover:border-primary/50'
                                     }>
                                     <SelectValue placeholder='Select Program' />
                                 </SelectTrigger>
@@ -116,14 +115,14 @@ function FormFields({ details, control, watch, setValue, errors }: { details: an
                                     ))}
                                 </SelectContent>
                             </Select>
-                            {errors.spccE_Id && <span className='text-xs font-medium text-destructive'>{errors.spccE_Id.message}</span>}
+                            {errors.spccE_Id && <span className='font-medium text-destructive text-xs'>{errors.spccE_Id.message}</span>}
                         </div>
                     )}
                 />
             </div>
 
             <div className='flex flex-col gap-2'>
-                <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Sponsor Name</Label>
+                <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Sponsor Name</Label>
                 <Controller
                     name='spccmsP_Id'
                     control={control}
@@ -132,7 +131,7 @@ function FormFields({ details, control, watch, setValue, errors }: { details: an
                             <Select onValueChange={(val) => field.onChange(Number.parseInt(val))} value={field.value?.toString()}>
                                 <SelectTrigger
                                     className={
-                                        errors.spccmsP_Id ? 'border-destructive ring-destructive/20' : 'hover:border-primary/50 transition-colors'
+                                        errors.spccmsP_Id ? 'border-destructive ring-destructive/20' : 'transition-colors hover:border-primary/50'
                                     }>
                                     <SelectValue placeholder='Select Sponsor' />
                                 </SelectTrigger>
@@ -144,7 +143,7 @@ function FormFields({ details, control, watch, setValue, errors }: { details: an
                                     ))}
                                 </SelectContent>
                             </Select>
-                            {errors.spccmsP_Id && <span className='text-xs font-medium text-destructive'>{errors.spccmsP_Id.message}</span>}
+                            {errors.spccmsP_Id && <span className='font-medium text-destructive text-xs'>{errors.spccmsP_Id.message}</span>}
                         </div>
                     )}
                 />

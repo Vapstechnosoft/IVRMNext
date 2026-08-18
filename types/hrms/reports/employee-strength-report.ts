@@ -1,5 +1,3 @@
-import type { ApiResponse } from '@/lib/apiService';
-
 /**
  * Request interface for Employee Strength Report onload
  */
@@ -115,4 +113,3 @@ export interface EmployeeStrengthReportSearchResponse {
     totalWorkingEmployees?: number;
     [key: string]: any;
 }
-

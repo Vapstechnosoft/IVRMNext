@@ -1,13 +1,8 @@
 'use server';
 
-import { auth } from '@/lib/auth';
 import { api } from '@/lib/apiService';
-import type {
-    ILibTransactionReportGridData,
-    ILibTransactionReportInitialData,
-    ILibTransactionReportRequest,
-    ILibTransactionReportYearListData
-} from '@/types/library/reports/lib-transaction-report';
+import { auth } from '@/lib/auth';
+import type { ILibTransactionReportInitialData, ILibTransactionReportRequest } from '@/types/library/reports/lib-transaction-report';
 
 const FACADE = 'LibTransactionReport';
 
@@ -61,8 +56,13 @@ export async function getLibTransactionReportSearch(data: ILibTransactionReportR
     const responseData = response.data || response;
 
     return {
-        alldata: extractList(responseData.alldata || responseData.reportlist || responseData.griddata || responseData.statuslist || (Array.isArray(responseData) ? responseData : [])),
+        alldata: extractList(
+            responseData.alldata ||
+                responseData.reportlist ||
+                responseData.griddata ||
+                responseData.statuslist ||
+                (Array.isArray(responseData) ? responseData : [])
+        ),
         classlist: extractList(responseData.classlist || [])
     };
 }
-

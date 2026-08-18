@@ -7,7 +7,6 @@ import { toast } from 'sonner';
 import ProgressCardReportForm from './_components/add-form';
 import ProgressCardReport from './_components/progress-card-report';
 
-
 export default function TBSchoolPrimaryReportPage() {
     const [reportData, setReportData] = useState<any>(null);
     const [reportType, setReportType] = useState<string>('REPORT');
@@ -24,38 +23,38 @@ export default function TBSchoolPrimaryReportPage() {
         try {
             setReportType(type);
 
-            console.log("====================================");
-            console.log("REPORT TYPE :", type);
-            console.log("REQUEST PAYLOAD :", payload);
-            console.log("====================================");
+            console.log('====================================');
+            console.log('REPORT TYPE :', type);
+            console.log('REQUEST PAYLOAD :', payload);
+            console.log('====================================');
 
             const res = await getTBSchoolPrimaryReport(payload);
 
-            console.log("FULL RESPONSE :", res);
-            console.log("SUCCESS :", res?.success);
-            console.log("DATA :", res?.data);
-            console.log("getstudentdetails :", res?.data?.getstudentdetails);
-            console.log("Student Count :", res?.data?.getstudentdetails?.length);
+            console.log('FULL RESPONSE :', res);
+            console.log('SUCCESS :', res?.success);
+            console.log('DATA :', res?.data);
+            console.log('getstudentdetails :', res?.data?.getstudentdetails);
+            console.log('Student Count :', res?.data?.getstudentdetails?.length);
 
             if (!res?.success || !res?.data) {
-                console.error("API returned no data");
+                console.error('API returned no data');
                 setIsReportVisible(false);
-                toast.error("No data found for the selected criteria");
+                toast.error('No data found for the selected criteria');
                 return;
             }
 
             setReportData(res.data);
             setIsReportVisible(true);
 
-            console.log("Report Data Stored :", res.data);
-            console.log("Report Visible :", true);
+            console.log('Report Data Stored :', res.data);
+            console.log('Report Visible :', true);
 
-            toast.success("Report generated successfully!");
+            toast.success('Report generated successfully!');
         } catch (e: any) {
-            console.error("ERROR OCCURRED");
+            console.error('ERROR OCCURRED');
             console.error(e);
 
-            toast.error(e?.message || "Error generating report");
+            toast.error(e?.message || 'Error generating report');
             setIsReportVisible(false);
         }
     };
@@ -74,10 +73,7 @@ export default function TBSchoolPrimaryReportPage() {
             {isReportVisible && reportData && (
                 <CollapsibleSection title='TBSchool Primary Report Cards' defaultOpen>
                     <div ref={printRef}>
-                        <ProgressCardReport
-                            reportData={reportData}
-                            reportType={reportType}
-                        />
+                        <ProgressCardReport reportData={reportData} reportType={reportType} />
                     </div>
                 </CollapsibleSection>
             )}

@@ -10,9 +10,9 @@ import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import {
     getClassDropDownByAcademicYearlist,
     getExamsDropDownByAcademicYearandClassandSectionlist,
+    getGradeList,
     getSectionsDropDownByAcademicYearandClasslist,
-    getStudentsDropDownByAcademicYearandClassandSectionlist,
-    getGradeList
+    getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/tbschoolprimary';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
@@ -121,7 +121,9 @@ export default function ProgressCardReportForm({
                 console.error('Grade load error:', err);
             }
         })();
-        return () => { isMounted = false; };
+        return () => {
+            isMounted = false;
+        };
     }, []);
 
     useEffect(() => {
@@ -139,10 +141,12 @@ export default function ProgressCardReportForm({
                         { asmcL_Id: 11, asmcL_ClassName: 'Class 6' }
                     ];
                 }
-                const formatted = (rawClasses || []).map((c: any) => ({
-                    asmcL_Id: Number(c.asmcL_Id ?? c.ASMCL_Id ?? c.asmcL_id ?? c.ASMCL_ID ?? c.id ?? 0),
-                    asmcL_ClassName: String(c.asmcL_ClassName ?? c.ASMCL_ClassName ?? c.className ?? c.classname ?? '')
-                })).filter((c: any) => c.asmcL_Id > 0 || c.asmcL_ClassName.length > 0);
+                const formatted = (rawClasses || [])
+                    .map((c: any) => ({
+                        asmcL_Id: Number(c.asmcL_Id ?? c.ASMCL_Id ?? c.asmcL_id ?? c.ASMCL_ID ?? c.id ?? 0),
+                        asmcL_ClassName: String(c.asmcL_ClassName ?? c.ASMCL_ClassName ?? c.className ?? c.classname ?? '')
+                    }))
+                    .filter((c: any) => c.asmcL_Id > 0 || c.asmcL_ClassName.length > 0);
 
                 if (isMounted) {
                     setClasses(formatted);
@@ -161,7 +165,9 @@ export default function ProgressCardReportForm({
                 if (isMounted) setLoadingClasses(false);
             }
         })();
-        return () => { isMounted = false; };
+        return () => {
+            isMounted = false;
+        };
     }, [selectedYear, setValue]);
 
     useEffect(() => {
@@ -179,10 +185,20 @@ export default function ProgressCardReportForm({
                         { asmS_Id: 2, asmC_SectionName: 'B' }
                     ];
                 }
-                const formatted = (rawSections || []).map((s: any) => ({
-                    asmS_Id: Number(s.asmS_Id ?? s.ASMS_Id ?? s.asmS_id ?? s.ASMS_ID ?? s.id ?? 0),
-                    asmC_SectionName: String(s.asmC_SectionName ?? s.ASMC_SectionName ?? s.asmS_SectionName ?? s.ASMS_SectionName ?? s.sectionName ?? s.sectionname ?? '')
-                })).filter((s: any) => s.asmS_Id > 0 || s.asmC_SectionName.length > 0);
+                const formatted = (rawSections || [])
+                    .map((s: any) => ({
+                        asmS_Id: Number(s.asmS_Id ?? s.ASMS_Id ?? s.asmS_id ?? s.ASMS_ID ?? s.id ?? 0),
+                        asmC_SectionName: String(
+                            s.asmC_SectionName ??
+                                s.ASMC_SectionName ??
+                                s.asmS_SectionName ??
+                                s.ASMS_SectionName ??
+                                s.sectionName ??
+                                s.sectionname ??
+                                ''
+                        )
+                    }))
+                    .filter((s: any) => s.asmS_Id > 0 || s.asmC_SectionName.length > 0);
 
                 if (isMounted) {
                     setSections(formatted);
@@ -200,7 +216,9 @@ export default function ProgressCardReportForm({
                 if (isMounted) setLoadingSections(false);
             }
         })();
-        return () => { isMounted = false; };
+        return () => {
+            isMounted = false;
+        };
     }, [selectedYear, selectedClass, setValue]);
 
     useEffect(() => {
@@ -217,28 +235,66 @@ export default function ProgressCardReportForm({
                     getStudentsDropDownByAcademicYearandClassandSectionlist(selectedYear, selectedClass, selectedSection)
                 ]);
 
-                let rawExams = extractArray(resExams, ['examlist', 'getexamlist', 'examList', 'getexam', 'get_Exam', 'getExam', 'getexamdetails', 'examdetails', 'exams']);
-                let rawStudents = extractArray(resStudents, ['studentlist', 'getstudentlist', 'studentList', 'getstudentdetails', 'studentdetails', 'get_studentdetails', 'students']);
+                const rawExams = extractArray(resExams, [
+                    'examlist',
+                    'getexamlist',
+                    'examList',
+                    'getexam',
+                    'get_Exam',
+                    'getExam',
+                    'getexamdetails',
+                    'examdetails',
+                    'exams'
+                ]);
+                const rawStudents = extractArray(resStudents, [
+                    'studentlist',
+                    'getstudentlist',
+                    'studentList',
+                    'getstudentdetails',
+                    'studentdetails',
+                    'get_studentdetails',
+                    'students'
+                ]);
 
-                const formattedExams = (rawExams || []).map((e: any) => {
-                    const id = Number(e.emE_Id ?? e.EME_Id ?? e.emE_id ?? e.EME_ID ?? e.id ?? e.ID ?? 0);
-                    const name = String(e.emE_ExamName ?? e.EME_ExamName ?? e.emE_ExamCode ?? e.EME_ExamCode ?? e.examName ?? e.examname ?? e.name ?? e.label ?? '');
-                    return {
-                        emE_Id: id,
-                        emE_ExamName: name || `Exam ${id}`
-                    };
-                }).filter((e: any) => e.emE_Id > 0 || e.emE_ExamName.length > 0);
+                const formattedExams = (rawExams || [])
+                    .map((e: any) => {
+                        const id = Number(e.emE_Id ?? e.EME_Id ?? e.emE_id ?? e.EME_ID ?? e.id ?? e.ID ?? 0);
+                        const name = String(
+                            e.emE_ExamName ??
+                                e.EME_ExamName ??
+                                e.emE_ExamCode ??
+                                e.EME_ExamCode ??
+                                e.examName ??
+                                e.examname ??
+                                e.name ??
+                                e.label ??
+                                ''
+                        );
+                        return {
+                            emE_Id: id,
+                            emE_ExamName: name || `Exam ${id}`
+                        };
+                    })
+                    .filter((e: any) => e.emE_Id > 0 || e.emE_ExamName.length > 0);
 
-                const mappedStudents = (rawStudents || []).map((s: any) => {
-                    const id = Number(s.amsT_Id ?? s.AMST_Id ?? s.amsT_id ?? s.AMST_ID ?? s.id ?? s.ID ?? 0);
-                    const admNo = s.amsT_AdmNo ?? s.AMST_AdmNo ?? s.admNo ?? s.admno ?? s.AMST_Admno ?? '';
-                    const name = s.studentName || s.studentname || s.student_Name || (s.amsT_FirstName || s.AMST_FirstName ? `${s.amsT_FirstName || s.AMST_FirstName || ''} ${s.amsT_MiddleName || s.AMST_MiddleName || ''} ${s.amsT_LastName || s.AMST_LastName || ''}`.trim() : '');
-                    return {
-                        amsT_Id: id,
-                        amsT_AdmNo: admNo,
-                        studentName: name || `Student ${id}`
-                    };
-                }).filter((s: any) => s.amsT_Id > 0);
+                const mappedStudents = (rawStudents || [])
+                    .map((s: any) => {
+                        const id = Number(s.amsT_Id ?? s.AMST_Id ?? s.amsT_id ?? s.AMST_ID ?? s.id ?? s.ID ?? 0);
+                        const admNo = s.amsT_AdmNo ?? s.AMST_AdmNo ?? s.admNo ?? s.admno ?? s.AMST_Admno ?? '';
+                        const name =
+                            s.studentName ||
+                            s.studentname ||
+                            s.student_Name ||
+                            (s.amsT_FirstName || s.AMST_FirstName
+                                ? `${s.amsT_FirstName || s.AMST_FirstName || ''} ${s.amsT_MiddleName || s.AMST_MiddleName || ''} ${s.amsT_LastName || s.AMST_LastName || ''}`.trim()
+                                : '');
+                        return {
+                            amsT_Id: id,
+                            amsT_AdmNo: admNo,
+                            studentName: name || `Student ${id}`
+                        };
+                    })
+                    .filter((s: any) => s.amsT_Id > 0);
 
                 if (isMounted) {
                     setExams(formattedExams);
@@ -257,7 +313,9 @@ export default function ProgressCardReportForm({
                 }
             }
         })();
-        return () => { isMounted = false; };
+        return () => {
+            isMounted = false;
+        };
     }, [selectedYear, selectedClass, selectedSection, setValue]);
 
     const onSubmit = async (data: FormFields) => {
@@ -305,14 +363,26 @@ export default function ProgressCardReportForm({
                 try {
                     setLoadingStudents(true);
                     // Fetch ALL students without exam filter (pass undefined for examIds)
-                    const resStudents = await getStudentsDropDownByAcademicYearandClassandSectionlist(selectedYear, selectedClass, selectedSection);
-                    let rawStudents = extractArray(resStudents, ['studentlist', 'getstudentlist', 'studentList', 'getstudentdetails', 'studentdetails']);
-                    const mappedStudents = (rawStudents || []).map((s: any, idx: number) => {
-                        const id = Number(s.amsT_Id ?? s.AMST_Id ?? (selectedClass * 100 + selectedSection * 10 + idx + 1));
-                        const admNo = s.amsT_AdmNo ?? s.AMST_AdmNo ?? `ADM${selectedClass}0${idx + 1}`;
-                        const name = s.studentName || s.studentname || `Student ${idx + 1}`;
-                        return { amsT_Id: id, amsT_AdmNo: admNo, studentName: name };
-                    }).filter((s: any) => s.amsT_Id > 0);
+                    const resStudents = await getStudentsDropDownByAcademicYearandClassandSectionlist(
+                        selectedYear,
+                        selectedClass,
+                        selectedSection
+                    );
+                    const rawStudents = extractArray(resStudents, [
+                        'studentlist',
+                        'getstudentlist',
+                        'studentList',
+                        'getstudentdetails',
+                        'studentdetails'
+                    ]);
+                    const mappedStudents = (rawStudents || [])
+                        .map((s: any, idx: number) => {
+                            const id = Number(s.amsT_Id ?? s.AMST_Id ?? selectedClass * 100 + selectedSection * 10 + idx + 1);
+                            const admNo = s.amsT_AdmNo ?? s.AMST_AdmNo ?? `ADM${selectedClass}0${idx + 1}`;
+                            const name = s.studentName || s.studentname || `Student ${idx + 1}`;
+                            return { amsT_Id: id, amsT_AdmNo: admNo, studentName: name };
+                        })
+                        .filter((s: any) => s.amsT_Id > 0);
 
                     setStudents(mappedStudents);
                     setValue('studentList', [...mappedStudents], { shouldValidate: true });
@@ -362,14 +432,27 @@ export default function ProgressCardReportForm({
             try {
                 setLoadingStudents(true);
                 const selectedExamIds = selected.map((e) => e.emE_Id);
-                const resStudents = await getStudentsDropDownByAcademicYearandClassandSectionlist(selectedYear, selectedClass, selectedSection, selectedExamIds);
-                let rawStudents = extractArray(resStudents, ['studentlist', 'getstudentlist', 'studentList', 'getstudentdetails', 'studentdetails']);
-                const mappedStudents = (rawStudents || []).map((s: any, idx: number) => {
-                    const id = Number(s.amsT_Id ?? s.AMST_Id ?? (selectedClass * 100 + selectedSection * 10 + idx + 1));
-                    const admNo = s.amsT_AdmNo ?? s.AMST_AdmNo ?? `ADM${selectedClass}0${idx + 1}`;
-                    const name = s.studentName || s.studentname || `Student ${idx + 1}`;
-                    return { amsT_Id: id, amsT_AdmNo: admNo, studentName: name };
-                }).filter((s: any) => s.amsT_Id > 0);
+                const resStudents = await getStudentsDropDownByAcademicYearandClassandSectionlist(
+                    selectedYear,
+                    selectedClass,
+                    selectedSection,
+                    selectedExamIds
+                );
+                const rawStudents = extractArray(resStudents, [
+                    'studentlist',
+                    'getstudentlist',
+                    'studentList',
+                    'getstudentdetails',
+                    'studentdetails'
+                ]);
+                const mappedStudents = (rawStudents || [])
+                    .map((s: any, idx: number) => {
+                        const id = Number(s.amsT_Id ?? s.AMST_Id ?? selectedClass * 100 + selectedSection * 10 + idx + 1);
+                        const admNo = s.amsT_AdmNo ?? s.AMST_AdmNo ?? `ADM${selectedClass}0${idx + 1}`;
+                        const name = s.studentName || s.studentname || `Student ${idx + 1}`;
+                        return { amsT_Id: id, amsT_AdmNo: admNo, studentName: name };
+                    })
+                    .filter((s: any) => s.amsT_Id > 0);
 
                 setStudents(mappedStudents);
 
@@ -572,33 +655,33 @@ export default function ProgressCardReportForm({
                                     control={control}
                                     name='reporttype'
                                     render={({ field }) => (
-                                        <div className='flex items-center justify-center p-4 border rounded-md'>
+                                        <div className='flex items-center justify-center rounded-md border p-4'>
                                             <div className='flex items-center space-x-6'>
-                                                <label className='flex items-center space-x-2 cursor-pointer'>
+                                                <label className='flex cursor-pointer items-center space-x-2'>
                                                     <input
-                                                        type="radio"
-                                                        value="REPORT"
+                                                        type='radio'
+                                                        value='REPORT'
                                                         checked={field.value === 'REPORT'}
                                                         onChange={() => {
                                                             field.onChange('REPORT');
                                                             if (onReportTypeChange) onReportTypeChange('REPORT');
                                                         }}
-                                                        className="form-radio h-4 w-4 text-blue-600"
+                                                        className='form-radio h-4 w-4 text-blue-600'
                                                     />
-                                                    <span className='font-medium text-sm text-gray-700'>REPORT</span>
+                                                    <span className='font-medium text-gray-700 text-sm'>REPORT</span>
                                                 </label>
-                                                <label className='flex items-center space-x-2 cursor-pointer'>
+                                                <label className='flex cursor-pointer items-center space-x-2'>
                                                     <input
-                                                        type="radio"
-                                                        value="TEMPLATE"
+                                                        type='radio'
+                                                        value='TEMPLATE'
                                                         checked={field.value === 'TEMPLATE'}
                                                         onChange={() => {
                                                             field.onChange('TEMPLATE');
                                                             if (onReportTypeChange) onReportTypeChange('TEMPLATE');
                                                         }}
-                                                        className="form-radio h-4 w-4 text-blue-600"
+                                                        className='form-radio h-4 w-4 text-blue-600'
                                                     />
-                                                    <span className='font-medium text-sm text-gray-700'>TEMPLATE</span>
+                                                    <span className='font-medium text-gray-700 text-sm'>TEMPLATE</span>
                                                 </label>
                                             </div>
                                         </div>
@@ -625,14 +708,11 @@ export default function ProgressCardReportForm({
                                     setStudents([]);
                                     setExams([]);
                                 }}
-                                className='min-w-[100px] bg-orange-500 hover:bg-orange-600 text-white'>
+                                className='min-w-[100px] bg-orange-500 text-white hover:bg-orange-600'>
                                 Cancel
                             </Button>
                             {onPrint && (
-                                <Button
-                                    type='button'
-                                    onClick={onPrint}
-                                    className='min-w-[100px] bg-blue-600 hover:bg-blue-700 text-white'>
+                                <Button type='button' onClick={onPrint} className='min-w-[100px] bg-blue-600 text-white hover:bg-blue-700'>
                                     Print
                                 </Button>
                             )}

@@ -1,8 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getBankCopyReportInitialData, getBankCopyReport, getBankCopyReportDetails } from "@/server/pettycash/report/BankCopyReport";
-import { IBankCopyReportParams } from "@/types/pettycash/report/BankCopyReport";
-import { TIMETABLE_QUERY_KEYS } from "@/constants/Timetable-query-keys";
-import { PETTYCASH_QUERY_KEYS } from "@/constants/pettycashandassettracking-query-keys";
+import { PETTYCASH_QUERY_KEYS } from '@/constants/pettycashandassettracking-query-keys';
+import { getBankCopyReport, getBankCopyReportDetails, getBankCopyReportInitialData } from '@/server/pettycash/report/BankCopyReport';
+import type { IBankCopyReportParams } from '@/types/pettycash/report/BankCopyReport';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useBankCopyReportInitialData = () => {
     const queryClient = useQueryClient();
@@ -24,12 +23,12 @@ export const useBankCopyReportInitialData = () => {
 
 export const useBankCopyReportMutation = () => {
     return useMutation({
-        mutationFn: (data: IBankCopyReportParams) => getBankCopyReport(data),
+        mutationFn: (data: IBankCopyReportParams) => getBankCopyReport(data)
     });
 };
 
 export const useBankCopyReportDetailsMutation = () => {
     return useMutation({
-        mutationFn: (data: any) => getBankCopyReportDetails(data),
+        mutationFn: (data: any) => getBankCopyReportDetails(data)
     });
 };

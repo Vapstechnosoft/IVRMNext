@@ -1,10 +1,10 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
-import { OutwardTransactionData } from '@/types/visitors-management/transactions';
 import { Button } from '@/components/ui/button';
-import { ArrowUpDown, Edit, Trash2 } from 'lucide-react';
 import { useOutward } from '@/hooks/visitors-management/transactions/useOutward';
+import type { OutwardTransactionData } from '@/types/visitors-management/transactions';
+import type { ColumnDef } from '@tanstack/react-table';
+import { ArrowUpDown, Edit, Trash2 } from 'lucide-react';
 
 interface ColumnProps {
     onEdit: (data: OutwardTransactionData) => void;
@@ -15,24 +15,24 @@ export const getColumns = ({ onEdit }: ColumnProps): ColumnDef<OutwardTransactio
         accessorKey: 'foouT_Discription',
         header: ({ column }) => {
             return (
-                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+                <Button variant='ghost' onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
                     Description
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                    <ArrowUpDown className='ml-2 h-4 w-4' />
                 </Button>
             );
-        },
+        }
     },
     {
         accessorKey: 'foouT_From',
-        header: 'From',
+        header: 'From'
     },
     {
         accessorKey: 'foouT_To',
-        header: 'To',
+        header: 'To'
     },
     {
         accessorKey: 'foouT_Address',
-        header: 'Address',
+        header: 'Address'
     },
     {
         accessorKey: 'foouT_DateTime',
@@ -44,11 +44,11 @@ export const getColumns = ({ onEdit }: ColumnProps): ColumnDef<OutwardTransactio
     },
     {
         accessorKey: 'foouT_OutwardNo',
-        header: 'Outward No',
+        header: 'Outward No'
     },
     {
         accessorKey: 'foouT_PhoneNo',
-        header: 'Phone No',
+        header: 'Phone No'
     },
     // {
     //     accessorKey: 'foouT_EmailId',
@@ -56,11 +56,11 @@ export const getColumns = ({ onEdit }: ColumnProps): ColumnDef<OutwardTransactio
     // },
     {
         accessorKey: 'hrmE_EmployeeFirstName',
-        header: 'Dispatched By',
+        header: 'Dispatched By'
     },
     {
         accessorKey: 'foouT_DispatchedThrough',
-        header: 'Via',
+        header: 'Via'
     },
     {
         id: 'actions',
@@ -69,15 +69,15 @@ export const getColumns = ({ onEdit }: ColumnProps): ColumnDef<OutwardTransactio
             const { deleteOutward } = useOutward();
 
             return (
-                <div className="flex gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => onEdit(record)}>
-                        <Edit className="h-4 w-4" />
+                <div className='flex gap-2'>
+                    <Button variant='ghost' size='icon' onClick={() => onEdit(record)}>
+                        <Edit className='h-4 w-4' />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => deleteOutward(record.foouT_Id)}>
-                        <Trash2 className="h-4 w-4" />
+                    <Button variant='ghost' size='icon' onClick={() => deleteOutward(record.foouT_Id)}>
+                        <Trash2 className='h-4 w-4' />
                     </Button>
                 </div>
             );
-        },
-    },
+        }
+    }
 ];

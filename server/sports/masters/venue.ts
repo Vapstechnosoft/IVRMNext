@@ -7,7 +7,7 @@ import type { IMasterEventVenue } from '@/types/sports/masters/venue';
 export async function getMasterVenues(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     // The user specified /api/MasterEventVenue/getDetails but the common pattern in this project seems to be /api/MasterEventVenue/getDetails
-    // However, the previous code had /MasterEventVenue/loadgrid/1. 
+    // However, the previous code had /MasterEventVenue/loadgrid/1.
     // The user request says: /api/MasterEventVenue/getDetails
     const url = `/MasterEventVenue/getDetails?${urlParams}`;
     return await api.post<IMasterEventVenue[]>('sports', url, {});

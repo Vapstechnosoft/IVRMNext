@@ -1,27 +1,27 @@
 'use client';
 
 import { format } from 'date-fns';
-import { Loader2, Printer, RotateCcw, FileText, Download, Search } from 'lucide-react';
-import { useRef, useState, useMemo } from 'react';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import { Download, FileText, Loader2, Printer, RotateCcw, Search } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/extension/field';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 import {
-    useTCInitialData,
-    useTCYearChange,
     useTCClassChange,
+    useTCGetReport,
+    useTCInitialData,
     useTCSectionChange,
-    useTCGetReport
+    useTCYearChange
 } from '@/hooks/admission/preadmission/reports/useSophiaTCReport';
 
 export default function SophiaTransferCertificateNew() {
@@ -63,9 +63,7 @@ export default function SophiaTransferCertificateNew() {
 
     const filteredStudents = useMemo(() => {
         if (!searchchkbx) return getstudentlist;
-        return getstudentlist.filter(s =>
-            (s.studentname || s.studentName || '').toLowerCase().includes(searchchkbx.toLowerCase())
-        );
+        return getstudentlist.filter((s) => (s.studentname || s.studentName || '').toLowerCase().includes(searchchkbx.toLowerCase()));
     }, [getstudentlist, searchchkbx]);
 
     /* -------------------- Handlers -------------------- */
@@ -79,7 +77,7 @@ export default function SophiaTransferCertificateNew() {
         try {
             const res = await yearChangeMutation.mutateAsync(id);
             const responseData = res?.data || res;
-            const list = Array.isArray(responseData) ? responseData : (responseData?.getclassdetails || []);
+            const list = Array.isArray(responseData) ? responseData : responseData?.getclassdetails || [];
             setGetclassdetails(Array.isArray(list) ? list : []);
         } catch (e) {
             toast.error('Failed to load classes');
@@ -96,7 +94,9 @@ export default function SophiaTransferCertificateNew() {
         try {
             const res = await classChangeMutation.mutateAsync({ asmayId: asmaY_Id, asmclId: id });
             const responseData = res?.data || res;
-            const list = Array.isArray(responseData) ? responseData : (responseData?.getSectiondetails || responseData?.getsectiondetails || []);
+            const list = Array.isArray(responseData)
+                ? responseData
+                : responseData?.getSectiondetails || responseData?.getsectiondetails || [];
             setGetSectiondetails(Array.isArray(list) ? list : []);
         } catch (e) {
             toast.error('Failed to load sections');
@@ -111,7 +111,7 @@ export default function SophiaTransferCertificateNew() {
         try {
             const res = await sectionChangeMutation.mutateAsync({ asmayId: asmaY_Id, asmclId: asmcL_Id, asmsId: id });
             const responseData = res?.data || res;
-            const list = Array.isArray(responseData) ? responseData : (responseData?.getstudentdetails || []);
+            const list = Array.isArray(responseData) ? responseData : responseData?.getstudentdetails || [];
             const normalizedList = (Array.isArray(list) ? list : []).map((s: any) => ({
                 ...s,
                 amsT_Id: s.amsT_Id || s.AMST_Id || s.amst_id,
@@ -125,7 +125,7 @@ export default function SophiaTransferCertificateNew() {
 
     const OnClickAll = (checked: boolean) => {
         if (checked) {
-            setSelectedStudentIds(filteredStudents.map(s => s.amsT_Id));
+            setSelectedStudentIds(filteredStudents.map((s) => s.amsT_Id));
         } else {
             setSelectedStudentIds([]);
         }
@@ -133,9 +133,9 @@ export default function SophiaTransferCertificateNew() {
 
     const individual = (id: number, checked: boolean) => {
         if (checked) {
-            setSelectedStudentIds(prev => [...prev, id]);
+            setSelectedStudentIds((prev) => [...prev, id]);
         } else {
-            setSelectedStudentIds(prev => prev.filter(sid => sid !== id));
+            setSelectedStudentIds((prev) => prev.filter((sid) => sid !== id));
         }
     };
 
@@ -149,13 +149,13 @@ export default function SophiaTransferCertificateNew() {
             return;
         }
 
-        const selectedStudents = getstudentlist.filter(s => selectedStudentIds.includes(s.amsT_Id));
+        const selectedStudents = getstudentlist.filter((s) => selectedStudentIds.includes(s.amsT_Id));
 
         const payload = {
             asmaY_Id: asmaY_Id,
             asmcL_Id: asmcL_Id,
             asmS_Id: asmS_Id,
-            studentTempList: selectedStudents.map(s => ({
+            studentTempList: selectedStudents.map((s) => ({
                 amsT_Id: s.amsT_Id,
                 studentName: s.studentname
             }))
@@ -282,7 +282,7 @@ export default function SophiaTransferCertificateNew() {
                     scale: 3,
                     useCORS: true,
                     logging: false,
-                    backgroundColor: '#ffffff',
+                    backgroundColor: '#ffffff'
                 });
 
                 const imgData = canvas.toDataURL('image/png');
@@ -306,22 +306,23 @@ export default function SophiaTransferCertificateNew() {
     const years = (initialDataResponse?.data as any)?.accyear || (initialDataResponse as any)?.accyear || [];
 
     return (
-        <div className='min-h-screen p-4 space-y-6 bg-gray-50/50'>
+        <div className='min-h-screen space-y-6 bg-gray-50/50 p-4'>
             <CollapsibleSection
                 title='Transfer Certificate Report'
                 description='Generate Transfer Certificates for Sophia High School'
                 defaultOpen={true}
                 variant='outline'
                 className='shadow-lg'>
-
-                <div className='bg-white p-6 rounded-xl'>
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
+                <div className='rounded-xl bg-white p-6'>
+                    <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
                         {/* Left Side: Dropdowns */}
                         <div className='space-y-6'>
                             <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
-                                <Label className='text-sm font-bold text-gray-700'>Academic Year:<strong style={{ color: 'red' }}>*</strong></Label>
+                                <Label className='font-bold text-gray-700 text-sm'>
+                                    Academic Year:<strong style={{ color: 'red' }}>*</strong>
+                                </Label>
                                 <Select value={asmaY_Id?.toString()} onValueChange={onchangeyear}>
-                                    <SelectTrigger className='h-10 shadow-sm border-gray-300'>
+                                    <SelectTrigger className='h-10 border-gray-300 shadow-sm'>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -335,9 +336,11 @@ export default function SophiaTransferCertificateNew() {
                             </div>
 
                             <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
-                                <Label className='text-sm font-bold text-gray-700'>Class:<strong style={{ color: 'red' }}>*</strong></Label>
+                                <Label className='font-bold text-gray-700 text-sm'>
+                                    Class:<strong style={{ color: 'red' }}>*</strong>
+                                </Label>
                                 <Select value={asmcL_Id?.toString()} onValueChange={onchangeclass} disabled={!asmaY_Id}>
-                                    <SelectTrigger className='h-10 shadow-sm border-gray-300'>
+                                    <SelectTrigger className='h-10 border-gray-300 shadow-sm'>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -351,9 +354,11 @@ export default function SophiaTransferCertificateNew() {
                             </div>
 
                             <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
-                                <Label className='text-sm font-bold text-gray-700'>Section:<strong style={{ color: 'red' }}>*</strong></Label>
+                                <Label className='font-bold text-gray-700 text-sm'>
+                                    Section:<strong style={{ color: 'red' }}>*</strong>
+                                </Label>
                                 <Select value={asmS_Id?.toString()} onValueChange={onchangesection} disabled={!asmcL_Id}>
-                                    <SelectTrigger className='h-10 shadow-sm border-gray-300'>
+                                    <SelectTrigger className='h-10 border-gray-300 shadow-sm'>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -375,28 +380,34 @@ export default function SophiaTransferCertificateNew() {
                                     checked={filteredStudents.length > 0 && selectedStudentIds.length === filteredStudents.length}
                                     onCheckedChange={(checked) => OnClickAll(checked as boolean)}
                                 />
-                                <Label htmlFor='selectAll' className='text-sm font-bold cursor-pointer text-gray-700'>Student:<strong style={{ color: 'red' }}>*</strong></Label>
+                                <Label htmlFor='selectAll' className='cursor-pointer font-bold text-gray-700 text-sm'>
+                                    Student:<strong style={{ color: 'red' }}>*</strong>
+                                </Label>
                             </div>
                             <div className='relative'>
-                                <Search className='absolute left-2 top-2.5 h-4 w-4 text-muted-foreground' />
+                                <Search className='absolute top-2.5 left-2 h-4 w-4 text-muted-foreground' />
                                 <Input
                                     placeholder='search here...'
                                     value={searchchkbx}
                                     onChange={(e) => setSearchchkbx(e.target.value)}
-                                    className='h-9 pl-8 text-xs border-gray-300'
+                                    className='h-9 border-gray-300 pl-8 text-xs'
                                 />
                             </div>
-                            <ScrollArea className='h-[160px] w-full rounded-lg border border-gray-200 p-4 bg-gray-50/50'>
+                            <ScrollArea className='h-[160px] w-full rounded-lg border border-gray-200 bg-gray-50/50 p-4'>
                                 {filteredStudents.length > 0 ? (
-                                    <div className='grid grid-cols-1 sm:grid-cols-2 gap-2'>
+                                    <div className='grid grid-cols-1 gap-2 sm:grid-cols-2'>
                                         {filteredStudents.map((s: any, index: number) => (
-                                            <div key={s.amsT_Id || index} className='flex items-center space-x-2 p-1.5 hover:bg-white hover:shadow-sm rounded-md transition-all'>
+                                            <div
+                                                key={s.amsT_Id || index}
+                                                className='flex items-center space-x-2 rounded-md p-1.5 transition-all hover:bg-white hover:shadow-sm'>
                                                 <Checkbox
                                                     id={`std-${s.amsT_Id}`}
                                                     checked={selectedStudentIds.includes(s.amsT_Id)}
                                                     onCheckedChange={(checked) => individual(s.amsT_Id, checked as boolean)}
                                                 />
-                                                <Label htmlFor={`std-${s.amsT_Id}`} className='text-xs truncate cursor-pointer font-medium text-gray-600'>
+                                                <Label
+                                                    htmlFor={`std-${s.amsT_Id}`}
+                                                    className='cursor-pointer truncate font-medium text-gray-600 text-xs'>
                                                     {s.studentname}
                                                 </Label>
                                             </div>
@@ -412,20 +423,39 @@ export default function SophiaTransferCertificateNew() {
                     </div>
 
                     {/* Actions */}
-                    <div className='flex flex-wrap justify-center gap-4 pt-8 mt-8 border-t border-gray-100'>
-                        <Button size='sm' onClick={GetReport} disabled={reportMutation.isPending} className='min-w-32 bg-[#3f51b5] hover:bg-[#303f9f] text-white shadow-md rounded-full uppercase font-bold tracking-wider'>
-                            {reportMutation.isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <FileText className='mr-2 h-4 w-4' />}
+                    <div className='mt-8 flex flex-wrap justify-center gap-4 border-gray-100 border-t pt-8'>
+                        <Button
+                            size='sm'
+                            onClick={GetReport}
+                            disabled={reportMutation.isPending}
+                            className='min-w-32 rounded-full bg-[#3f51b5] font-bold text-white uppercase tracking-wider shadow-md hover:bg-[#303f9f]'>
+                            {reportMutation.isPending ? (
+                                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                            ) : (
+                                <FileText className='mr-2 h-4 w-4' />
+                            )}
                             REPORT
                         </Button>
-                        <Button size='sm' onClick={Clearid} className='min-w-32 bg-[#ff5722] hover:bg-[#f4511e] text-white shadow-md rounded-full uppercase font-bold tracking-wider'>
+                        <Button
+                            size='sm'
+                            onClick={Clearid}
+                            className='min-w-32 rounded-full bg-[#ff5722] font-bold text-white uppercase tracking-wider shadow-md hover:bg-[#f4511e]'>
                             <RotateCcw className='mr-2 h-4 w-4' />
                             CANCEL
                         </Button>
-                        <Button size='sm' onClick={printToCart} disabled={!showReport} className='min-w-32 bg-[#2196f3] hover:bg-[#1976d2] text-white shadow-md disabled:bg-gray-200 disabled:text-gray-400 rounded-full uppercase font-bold tracking-wider'>
+                        <Button
+                            size='sm'
+                            onClick={printToCart}
+                            disabled={!showReport}
+                            className='min-w-32 rounded-full bg-[#2196f3] font-bold text-white uppercase tracking-wider shadow-md hover:bg-[#1976d2] disabled:bg-gray-200 disabled:text-gray-400'>
                             <Printer className='mr-2 h-4 w-4' />
                             PRINT
                         </Button>
-                        <Button size='sm' onClick={downloadAsPDF} disabled={!showReport} className='min-w-32 bg-[#ff9800] hover:bg-[#f57c00] text-white shadow-md disabled:bg-gray-200 disabled:text-gray-400 rounded-full uppercase font-bold tracking-wider'>
+                        <Button
+                            size='sm'
+                            onClick={downloadAsPDF}
+                            disabled={!showReport}
+                            className='min-w-32 rounded-full bg-[#ff9800] font-bold text-white uppercase tracking-wider shadow-md hover:bg-[#f57c00] disabled:bg-gray-200 disabled:text-gray-400'>
                             <Download className='mr-2 h-4 w-4' />
                             DOWNLOAD PDF
                         </Button>
@@ -435,27 +465,39 @@ export default function SophiaTransferCertificateNew() {
 
             {/* Certificate Preview Section */}
             {showReport && getstudentreports.length > 0 && (
-                <div className='mt-8 flex flex-col items-center bg-gray-200 p-4 md:p-12 rounded-3xl border-4 border-double border-indigo-200 overflow-auto'>
-                    <div ref={printRef} id="JSHSTC" className='bg-white shadow-2xl w-[176mm] text-black font-serif'>
+                <div className='mt-8 flex flex-col items-center overflow-auto rounded-3xl border-4 border-indigo-200 border-double bg-gray-200 p-4 md:p-12'>
+                    <div ref={printRef} id='JSHSTC' className='w-[176mm] bg-white font-serif text-black shadow-2xl'>
                         {getstudentreports.map((report: any, index: number) => (
-                            <div key={index} className="pagelayout p-[5mm] w-[176mm] min-h-[250mm] flex flex-col relative" style={{ pageBreakBefore: index > 0 ? 'always' : 'avoid' }}>
+                            <div
+                                key={index}
+                                className='pagelayout relative flex min-h-[250mm] w-[176mm] flex-col p-[5mm]'
+                                style={{ pageBreakBefore: index > 0 ? 'always' : 'avoid' }}>
                                 <div style={{ marginTop: '120px' }}>
-                                    <h1 className="text-center">
-                                        <span style={{ borderBottom: '2px solid black', paddingBottom: '2px', fontSize: '24px', display: 'inline-block', fontWeight: 'bold' }}>
+                                    <h1 className='text-center'>
+                                        <span
+                                            style={{
+                                                borderBottom: '2px solid black',
+                                                paddingBottom: '2px',
+                                                fontSize: '24px',
+                                                display: 'inline-block',
+                                                fontWeight: 'bold'
+                                            }}>
                                             TRANSFER CERTIFICATE
                                         </span>
                                     </h1>
 
                                     <br />
                                     {/* Admission + Sl.No */}
-                                    <table className="table-custom w-full" style={{ fontSize: '15px' }}>
+                                    <table className='table-custom w-full' style={{ fontSize: '15px' }}>
                                         <tbody>
                                             <tr>
-                                                <td className="text-left">
-                                                    <span className="font-bold">Admission Number:</span> {report.amst_admno || report.amsT_AdmNo}
+                                                <td className='text-left'>
+                                                    <span className='font-bold'>Admission Number:</span>{' '}
+                                                    {report.amst_admno || report.amsT_AdmNo}
                                                 </td>
-                                                <td className="text-right">
-                                                    <span className="font-bold">Sl. No:</span> {getSlNo(report.astc_tcno || report.astC_TCNO)}
+                                                <td className='text-right'>
+                                                    <span className='font-bold'>Sl. No:</span>{' '}
+                                                    {getSlNo(report.astc_tcno || report.astC_TCNO)}
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -463,115 +505,149 @@ export default function SophiaTransferCertificateNew() {
                                     <hr style={{ border: 'none', borderTop: '2px solid black', margin: '2px 0 10px 0' }} />
 
                                     {/* TC Details */}
-                                    <table className="table-custom details-table w-full" style={{ marginTop: '-4px', fontSize: '15px', lineHeight: '1.6' }}>
+                                    <table
+                                        className='table-custom details-table w-full'
+                                        style={{ marginTop: '-4px', fontSize: '15px', lineHeight: '1.6' }}>
                                         <tbody>
                                             <tr>
-                                                <td width="22">1.</td>
-                                                <td className="label-col">Name of Pupil</td>
-                                                <td className="colon-col">:</td>
-                                                <td className="value-col uppercase">{report.studentname}</td>
+                                                <td width='22'>1.</td>
+                                                <td className='label-col'>Name of Pupil</td>
+                                                <td className='colon-col'>:</td>
+                                                <td className='value-col uppercase'>{report.studentname}</td>
                                             </tr>
                                             <tr>
-                                                <td width="22">2.</td>
-                                                <td className="label-col">Father&apos;s Name</td>
-                                                <td className="colon-col">:</td>
-                                                <td className="value-col">{report.amst_fathername || report.amsT_FatherName}</td>
+                                                <td width='22'>2.</td>
+                                                <td className='label-col'>Father&apos;s Name</td>
+                                                <td className='colon-col'>:</td>
+                                                <td className='value-col'>{report.amst_fathername || report.amsT_FatherName}</td>
                                             </tr>
                                             <tr>
-                                                <td width="22">3.</td>
-                                                <td className="label-col">Mother&apos;s Name</td>
-                                                <td className="colon-col">:</td>
-                                                <td className="value-col">{report.amst_mothername || report.amsT_MotherName}</td>
+                                                <td width='22'>3.</td>
+                                                <td className='label-col'>Mother&apos;s Name</td>
+                                                <td className='colon-col'>:</td>
+                                                <td className='value-col'>{report.amst_mothername || report.amsT_MotherName}</td>
                                             </tr>
                                             <tr>
-                                                <td width="22">4.</td>
-                                                <td className="label-col">Religion/Caste</td>
-                                                <td className="colon-col">:</td>
-                                                <td className="value-col">
+                                                <td width='22'>4.</td>
+                                                <td className='label-col'>Religion/Caste</td>
+                                                <td className='colon-col'>:</td>
+                                                <td className='value-col'>
                                                     {capitalizeFirst(report.religion)} / {capitalizeFirst(report.caste)}
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <td width="22">5.</td>
-                                                <td className="label-col">Nationality</td>
-                                                <td className="colon-col">:</td>
-                                                <td className="value-col">{report.nationality}</td>
+                                                <td width='22'>5.</td>
+                                                <td className='label-col'>Nationality</td>
+                                                <td className='colon-col'>:</td>
+                                                <td className='value-col'>{report.nationality}</td>
                                             </tr>
                                             <tr>
-                                                <td width="22">6.</td>
-                                                <td className="label-col">Date of Birth</td>
-                                                <td className="colon-col">:</td>
-                                                <td className="value-col">{report.amst_dob || report.amsT_DOB ? format(new Date(report.amst_dob || report.amsT_DOB), 'dd-MMM-yyyy') : ''}</td>
+                                                <td width='22'>6.</td>
+                                                <td className='label-col'>Date of Birth</td>
+                                                <td className='colon-col'>:</td>
+                                                <td className='value-col'>
+                                                    {report.amst_dob || report.amsT_DOB
+                                                        ? format(new Date(report.amst_dob || report.amsT_DOB), 'dd-MMM-yyyy')
+                                                        : ''}
+                                                </td>
                                             </tr>
                                             <tr>
-                                                <td width="22">7.</td>
-                                                <td className="label-col">School Last Attended</td>
-                                                <td className="colon-col">:</td>
-                                                <td className="value-col">N/A</td>
+                                                <td width='22'>7.</td>
+                                                <td className='label-col'>School Last Attended</td>
+                                                <td className='colon-col'>:</td>
+                                                <td className='value-col'>N/A</td>
                                             </tr>
                                             <tr>
-                                                <td width="22">8.</td>
-                                                <td className="label-col">Date Of Admission</td>
-                                                <td className="colon-col">:</td>
-                                                <td className="value-col">{report.amst_date || report.amsT_Date ? format(new Date(report.amst_date || report.amsT_Date), 'dd-MMM-yyyy') : ''}</td>
+                                                <td width='22'>8.</td>
+                                                <td className='label-col'>Date Of Admission</td>
+                                                <td className='colon-col'>:</td>
+                                                <td className='value-col'>
+                                                    {report.amst_date || report.amsT_Date
+                                                        ? format(new Date(report.amst_date || report.amsT_Date), 'dd-MMM-yyyy')
+                                                        : ''}
+                                                </td>
                                             </tr>
                                             <tr>
-                                                <td width="22">9.</td>
-                                                <td className="label-col">Conduct</td>
-                                                <td className="colon-col">:</td>
-                                                <td className="value-col" contentEditable="true" suppressContentEditableWarning={true}>Good</td>
+                                                <td width='22'>9.</td>
+                                                <td className='label-col'>Conduct</td>
+                                                <td className='colon-col'>:</td>
+                                                <td className='value-col' contentEditable='true' suppressContentEditableWarning={true}>
+                                                    Good
+                                                </td>
                                             </tr>
                                             <tr>
-                                                <td width="22">10.</td>
-                                                <td className="label-col">Date Of Leaving</td>
-                                                <td className="colon-col">:</td>
-                                                <td className="value-col" contentEditable="true" suppressContentEditableWarning={true}>{report.tcdatess ? format(new Date(report.tcdatess), 'dd-MMM-yyyy') : ''}</td>
+                                                <td width='22'>10.</td>
+                                                <td className='label-col'>Date Of Leaving</td>
+                                                <td className='colon-col'>:</td>
+                                                <td className='value-col' contentEditable='true' suppressContentEditableWarning={true}>
+                                                    {report.tcdatess ? format(new Date(report.tcdatess), 'dd-MMM-yyyy') : ''}
+                                                </td>
                                             </tr>
                                             <tr>
-                                                <td width="22">11.</td>
-                                                <td className="label-col">Studying In</td>
-                                                <td className="colon-col">:</td>
-                                                <td className="value-col">{report.Last_Class_Studied} {report.asmc_sectionname || report.asmC_SectionName}</td>
+                                                <td width='22'>11.</td>
+                                                <td className='label-col'>Studying In</td>
+                                                <td className='colon-col'>:</td>
+                                                <td className='value-col'>
+                                                    {report.Last_Class_Studied} {report.asmc_sectionname || report.asmC_SectionName}
+                                                </td>
                                             </tr>
-                                            {(report.astc_remarks || report.astC_Remarks) && (report.astc_remarks || report.astC_Remarks).trim() !== '' && (
-                                                <tr>
-                                                    <td width="22">12.</td>
-                                                    <td className="label-col">Remarks</td>
-                                                    <td className="colon-col">:</td>
-                                                    <td className="value-col" contentEditable="true" suppressContentEditableWarning={true}>{report.astc_remarks || report.astC_Remarks}</td>
-                                                </tr>
-                                            )}
+                                            {(report.astc_remarks || report.astC_Remarks) &&
+                                                (report.astc_remarks || report.astC_Remarks).trim() !== '' && (
+                                                    <tr>
+                                                        <td width='22'>12.</td>
+                                                        <td className='label-col'>Remarks</td>
+                                                        <td className='colon-col'>:</td>
+                                                        <td
+                                                            className='value-col'
+                                                            contentEditable='true'
+                                                            suppressContentEditableWarning={true}>
+                                                            {report.astc_remarks || report.astC_Remarks}
+                                                        </td>
+                                                    </tr>
+                                                )}
                                         </tbody>
                                     </table>
 
-                                    <hr className="hr-thick" style={{ borderTop: '1px solid black', margin: '20px 0' }} />
+                                    <hr className='hr-thick' style={{ borderTop: '1px solid black', margin: '20px 0' }} />
 
                                     {/* Footer Info */}
                                     <div style={{ lineHeight: '1.2', fontSize: '15px' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
                                             <div>
-                                                <span className="font-bold">PEN No.</span>&nbsp;&nbsp;&nbsp;&nbsp; :
+                                                <span className='font-bold'>PEN No.</span>&nbsp;&nbsp;&nbsp;&nbsp; :
                                                 <span> {report.amst_pen_no || report.AMST_PENNo || ''}</span>
                                             </div>
                                             <div>
-                                                <span className="font-bold">SATS No.</span>&nbsp;&nbsp;&nbsp;&nbsp; :
+                                                <span className='font-bold'>SATS No.</span>&nbsp;&nbsp;&nbsp;&nbsp; :
                                                 <span> {report.govtno || ''}</span>
                                             </div>
                                         </div>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '30px' }}>
                                             <div>
-                                                <span className="font-bold">APAAR No.</span>&nbsp;&nbsp;&nbsp;&nbsp; :
+                                                <span className='font-bold'>APAAR No.</span>&nbsp;&nbsp;&nbsp;&nbsp; :
                                                 <span> {report.amst_apaar_id || report.AMST_APAARId || ''}</span>
                                             </div>
                                         </div>
-                                        <div className="certified-text" style={{ margin: '30px 0', fontFamily: '"Times New Roman", Times, serif', marginTop: '-15px' }}>
+                                        <div
+                                            className='certified-text'
+                                            style={{ margin: '30px 0', fontFamily: '"Times New Roman", Times, serif', marginTop: '-15px' }}>
                                             Certified that the above mentioned information is in accordance with the school register.
                                         </div>
 
                                         <div style={{ marginTop: '50px', fontFamily: '"Times New Roman", Times, serif' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', marginRight: '72px' }}>
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    marginTop: '10px',
+                                                    marginRight: '72px'
+                                                }}>
                                                 <div style={{ fontSize: '18px' }}>Date: {format(ddate, 'dd-MMM-yyyy')}</div>
-                                                <div><strong style={{ marginRight: '30px', fontSize: '18px', fontWeight: 'bold' }}>PRINCIPAL</strong></div>
+                                                <div>
+                                                    <strong style={{ marginRight: '30px', fontSize: '18px', fontWeight: 'bold' }}>
+                                                        PRINCIPAL
+                                                    </strong>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

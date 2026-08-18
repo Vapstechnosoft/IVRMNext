@@ -4,17 +4,17 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { PageHeader } from '@/components/ui/layout/page-header';
+import { SectionCard } from '@/components/ui/layout/section-card';
+import { tableSearchVariables } from '@/lib/data-table.config';
 import { getMasterRoleTypes } from '@/server/super-admin/super-admin-module/general-setting/master-role-type';
 import type { IMasterRoleType } from '@/types/super-admin/super-admin-module/general-setting/master-role-type';
 import { Plus, X } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
 import { parseAsInteger, useQueryState } from 'nuqs';
-import { tableSearchVariables } from '@/lib/data-table.config';
+import React, { useEffect, useState } from 'react';
 import AddMasterRoleTypeForm from './_components/add-form';
 import { masterRoleTypeColumns } from './_components/columns';
 import { PageProvider } from './_components/page-context';
-import { PageHeader } from '@/components/ui/layout/page-header';
-import { SectionCard } from '@/components/ui/layout/section-card';
 
 export default function MasterRoleTypePage() {
     return (
@@ -30,14 +30,8 @@ function MasterRoleTypePageContent() {
     const [isLoading, setIsLoading] = useState(true);
 
     // Pagination State
-    const [page] = useQueryState(
-        tableSearchVariables.page,
-        parseAsInteger.withOptions({ shallow: false }).withDefault(1)
-    );
-    const [pageSize] = useQueryState(
-        tableSearchVariables.page_size,
-        parseAsInteger.withOptions({ shallow: false }).withDefault(10)
-    );
+    const [page] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
+    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
     const [totalItems, setTotalItems] = useState(0);
 
     const fetchData = React.useCallback(async () => {
@@ -68,10 +62,9 @@ function MasterRoleTypePageContent() {
         <PageProvider refreshData={fetchData}>
             <div className='container mx-auto space-y-8 p-6'>
                 <PageHeader
-                    title="Master Role Types"
-                    highlightWord="Types"
-                    description="Configure and manage the various role categories available within the institution."
-                >
+                    title='Master Role Types'
+                    highlightWord='Types'
+                    description='Configure and manage the various role categories available within the institution.'>
                     <Button
                         type='button'
                         onClick={openAddForm}
@@ -82,12 +75,7 @@ function MasterRoleTypePageContent() {
                 </PageHeader>
 
                 <SectionCard>
-                    <CollapsibleSection
-                        title='Master Role Types List'
-                        defaultOpen={true}
-                        variant='default'
-                        size='lg'
-                    >
+                    <CollapsibleSection title='Master Role Types List' defaultOpen={true} variant='default' size='lg'>
                         <div className='p-4'>
                             <GenericDataTable
                                 data={data}
@@ -126,8 +114,7 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
                     defaultOpen={true}
                     variant='outline'
                     size='lg'
-                    className='shadow-lg animate-in slide-in-from-top-2'
-                >
+                    className='slide-in-from-top-2 animate-in shadow-lg'>
                     <div className='relative'>
                         <Button
                             type='button'

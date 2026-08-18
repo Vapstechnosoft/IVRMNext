@@ -56,10 +56,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
     const allSubjectList = getstudentwisesubjectlist.length > 0 ? getstudentwisesubjectlist : getstudentwisesubjectlistnew;
 
     // Extend exam details with 'Final Average' like Angular controller does
-    const extendedExamDetails = [
-        ...getexamdetails,
-        { empG_GroupName: "Final Average", empsG_Order: 10001, empG_DistplayName: "FI" }
-    ];
+    const extendedExamDetails = [...getexamdetails, { empG_GroupName: 'Final Average', empsG_Order: 10001, empG_DistplayName: 'FI' }];
 
     // Build distinct subjects
     const subjectMap = new Map();
@@ -108,7 +105,10 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
         const houseName = stu.spccmH_HouseName ?? stu.SPCCMH_HouseName;
         const shortHouseName = houseName
-            ? houseName.split(' ').map((word: string) => word.charAt(0).toUpperCase()).join('')
+            ? houseName
+                  .split(' ')
+                  .map((word: string) => word.charAt(0).toUpperCase())
+                  .join('')
             : '';
 
         return {
@@ -143,8 +143,8 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                 }
                 `}
             </style>
-            <div className='mb-6 flex items-center justify-between no-print'>
-                <h2 className='text-lg font-semibold'>Consolidated Report</h2>
+            <div className='no-print mb-6 flex items-center justify-between'>
+                <h2 className='font-semibold text-lg'>Consolidated Report</h2>
                 <div className='flex gap-2'>
                     <Button variant='outline' onClick={() => handlePrint()} className='gap-2'>
                         <Printer className='h-4 w-4' /> Print
@@ -156,40 +156,42 @@ export const ReportList = ({ data, params }: ReportListProps) => {
             </div>
 
             <div className='overflow-x-auto overflow-y-auto' style={{ maxHeight: '80vh' }}>
-                <div ref={printRef} className='p-4 min-w-[1200px] bg-white'>
-                    <div className="text-center mb-4">
-                        <h5 className="font-bold text-xl uppercase">CONSOLIDATED FINAL REPORT</h5>
+                <div ref={printRef} className='min-w-[1200px] bg-white p-4'>
+                    <div className='mb-4 text-center'>
+                        <h5 className='font-bold text-xl uppercase'>CONSOLIDATED FINAL REPORT</h5>
                     </div>
 
-                    <div className="flex justify-between uppercase mb-4 font-bold text-sm">
-                        <div>CLASS & SEC : {asmcL_ClassName}-{asmC_SectionName}</div>
+                    <div className='mb-4 flex justify-between font-bold text-sm uppercase'>
+                        <div>
+                            CLASS & SEC : {asmcL_ClassName}-{asmC_SectionName}
+                        </div>
                         <div>ACADEMIC YEAR : {asmaY_Year}</div>
                     </div>
 
-                    <table id="report-table" className="report-table w-full border-collapse border border-black text-sm">
+                    <table id='report-table' className='report-table w-full border-collapse border border-black text-sm'>
                         <thead>
                             <tr>
-                                <th className="vertical-text h-[120px] w-12">Roll No</th>
-                                <th className="w-48">NAME</th>
-                                <th className="vertical-text">Reg.No.</th>
-                                <th className="vertical-text">House</th>
-                                <th className="vertical-text">Term</th>
+                                <th className='vertical-text h-[120px] w-12'>Roll No</th>
+                                <th className='w-48'>NAME</th>
+                                <th className='vertical-text'>Reg.No.</th>
+                                <th className='vertical-text'>House</th>
+                                <th className='vertical-text'>Term</th>
                                 {subjectsWithResultFlag.map((sub: any, idx: number) => (
-                                    <th key={`h-true-${idx}`} className="vertical-text">
+                                    <th key={`h-true-${idx}`} className='vertical-text'>
                                         {cleanLabel(sub.subjectname || sub.ismS_SubjectName || sub.ISMS_SubjectName)}
                                     </th>
                                 ))}
                                 {subjectsWithoutResultFlag.map((sub: any, idx: number) => (
-                                    <th key={`h-false-${idx}`} className="vertical-text">
+                                    <th key={`h-false-${idx}`} className='vertical-text'>
                                         {cleanLabel(sub.subjectname || sub.ISMS_SubjectName || sub.ismS_SubjectName)}
                                     </th>
                                 ))}
-                                <th className="vertical-text">Total</th>
-                                <th className="vertical-text">Grand Total</th>
-                                <th className="vertical-text">Percentage</th>
-                                <th className="vertical-text">Rank</th>
-                                <th className="vertical-text">Attendance</th>
-                                <th className="min-w-[150px]">Remarks</th>
+                                <th className='vertical-text'>Total</th>
+                                <th className='vertical-text'>Grand Total</th>
+                                <th className='vertical-text'>Percentage</th>
+                                <th className='vertical-text'>Rank</th>
+                                <th className='vertical-text'>Attendance</th>
+                                <th className='min-w-[150px]'>Remarks</th>
                             </tr>
                         </thead>
 
@@ -200,39 +202,66 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                         <tr key={gIdx}>
                                             {gIdx === 0 && (
                                                 <>
-                                                    <td rowSpan={extendedExamDetails.length} className="text-center font-bold">{stu.rollno}</td>
-                                                    <td rowSpan={extendedExamDetails.length} className="px-2 text-left font-bold">{stu.studentname}</td>
-                                                    <td rowSpan={extendedExamDetails.length} className="text-center font-bold vertical-text">{stu.regno}</td>
-                                                    <td rowSpan={extendedExamDetails.length} className="text-center font-bold">{stu.shortHouseName}</td>
+                                                    <td rowSpan={extendedExamDetails.length} className='text-center font-bold'>
+                                                        {stu.rollno}
+                                                    </td>
+                                                    <td rowSpan={extendedExamDetails.length} className='px-2 text-left font-bold'>
+                                                        {stu.studentname}
+                                                    </td>
+                                                    <td
+                                                        rowSpan={extendedExamDetails.length}
+                                                        className='vertical-text text-center font-bold'>
+                                                        {stu.regno}
+                                                    </td>
+                                                    <td rowSpan={extendedExamDetails.length} className='text-center font-bold'>
+                                                        {stu.shortHouseName}
+                                                    </td>
                                                 </>
                                             )}
-                                            <td className="text-center font-bold">{grp.empG_DistplayName}</td>
+                                            <td className='text-center font-bold'>{grp.empG_DistplayName}</td>
 
                                             {/* Subjects With Result Flag */}
                                             {subjectsWithResultFlag.map((sub: any, idx: number) => {
                                                 const mId = String(sub.subid ?? sub.ismS_Id ?? sub.ISMS_Id);
-                                                const subName = (sub.subjectname || sub.ismS_SubjectName || sub.ISMS_SubjectName)?.toLowerCase().trim();
+                                                const subName = (sub.subjectname || sub.ismS_SubjectName || sub.ISMS_SubjectName)
+                                                    ?.toLowerCase()
+                                                    .trim();
                                                 const gName = grp.empG_GroupName?.toLowerCase().trim();
 
                                                 const getMarkGroupName = (m: any) => {
-                                                    const name = m.empsG_GroupName || m.EMPSG_GroupName || m.empG_GroupName || m.EMPG_GroupName || m.groupname || m.GROUPNAME || m.mGroup || m.MGroup || m.emE_ExamName || m.EME_ExamName;
+                                                    const name =
+                                                        m.empsG_GroupName ||
+                                                        m.EMPSG_GroupName ||
+                                                        m.empG_GroupName ||
+                                                        m.EMPG_GroupName ||
+                                                        m.groupname ||
+                                                        m.GROUPNAME ||
+                                                        m.mGroup ||
+                                                        m.MGroup ||
+                                                        m.emE_ExamName ||
+                                                        m.EME_ExamName;
                                                     return name?.toLowerCase().trim();
                                                 };
 
-                                                const subjectMarks = stu.marks?.filter((m: any) => {
-                                                    const mSubId = String(m.ismS_Id ?? m.ISMS_Id);
-                                                    const mSubName = (m.ismS_SubjectName ?? m.ISMS_SubjectName)?.toLowerCase().trim();
-                                                    return mSubId === mId && mSubName === subName;
-                                                }) || [];
+                                                const subjectMarks =
+                                                    stu.marks?.filter((m: any) => {
+                                                        const mSubId = String(m.ismS_Id ?? m.ISMS_Id);
+                                                        const mSubName = (m.ismS_SubjectName ?? m.ISMS_SubjectName)?.toLowerCase().trim();
+                                                        return mSubId === mId && mSubName === subName;
+                                                    }) || [];
 
                                                 let mark = subjectMarks.find((m: any) => getMarkGroupName(m) === gName);
-                                                if (!mark && subjectMarks.length > 0 && !subjectMarks.some((m: any) => getMarkGroupName(m))) {
+                                                if (
+                                                    !mark &&
+                                                    subjectMarks.length > 0 &&
+                                                    !subjectMarks.some((m: any) => getMarkGroupName(m))
+                                                ) {
                                                     mark = subjectMarks[gIdx];
                                                 }
 
                                                 const obtMarks = mark?.estmppsG_GroupObtMarks ?? mark?.ESTMPPSG_GroupObtMarks;
                                                 return (
-                                                    <td key={`m-true-${idx}`} className="text-center font-bold">
+                                                    <td key={`m-true-${idx}`} className='text-center font-bold'>
                                                         {mark ? (obtMarks !== 0 ? (obtMarks ?? '') : 'AB') : ''}
                                                     </td>
                                                 );
@@ -241,22 +270,39 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                             {/* Subjects Without Result Flag */}
                                             {subjectsWithoutResultFlag.map((sub: any, idx: number) => {
                                                 const mId = String(sub.subid ?? sub.ismS_Id ?? sub.ISMS_Id);
-                                                const subName = (sub.subjectname || sub.ismS_SubjectName || sub.ISMS_SubjectName)?.toLowerCase().trim();
+                                                const subName = (sub.subjectname || sub.ismS_SubjectName || sub.ISMS_SubjectName)
+                                                    ?.toLowerCase()
+                                                    .trim();
                                                 const gName = grp.empG_GroupName?.toLowerCase().trim();
 
                                                 const getMarkGroupName = (m: any) => {
-                                                    const name = m.empsG_GroupName || m.EMPSG_GroupName || m.empG_GroupName || m.EMPG_GroupName || m.groupname || m.GROUPNAME || m.mGroup || m.MGroup || m.emE_ExamName || m.EME_ExamName;
+                                                    const name =
+                                                        m.empsG_GroupName ||
+                                                        m.EMPSG_GroupName ||
+                                                        m.empG_GroupName ||
+                                                        m.EMPG_GroupName ||
+                                                        m.groupname ||
+                                                        m.GROUPNAME ||
+                                                        m.mGroup ||
+                                                        m.MGroup ||
+                                                        m.emE_ExamName ||
+                                                        m.EME_ExamName;
                                                     return name?.toLowerCase().trim();
                                                 };
 
-                                                const subjectMarks = stu.marks?.filter((m: any) => {
-                                                    const mSubId = String(m.ismS_Id ?? m.ISMS_Id);
-                                                    const mSubName = (m.ismS_SubjectName ?? m.ISMS_SubjectName)?.toLowerCase().trim();
-                                                    return mSubId === mId && mSubName === subName;
-                                                }) || [];
+                                                const subjectMarks =
+                                                    stu.marks?.filter((m: any) => {
+                                                        const mSubId = String(m.ismS_Id ?? m.ISMS_Id);
+                                                        const mSubName = (m.ismS_SubjectName ?? m.ISMS_SubjectName)?.toLowerCase().trim();
+                                                        return mSubId === mId && mSubName === subName;
+                                                    }) || [];
 
                                                 let mark = subjectMarks.find((m: any) => getMarkGroupName(m) === gName);
-                                                if (!mark && subjectMarks.length > 0 && !subjectMarks.some((m: any) => getMarkGroupName(m))) {
+                                                if (
+                                                    !mark &&
+                                                    subjectMarks.length > 0 &&
+                                                    !subjectMarks.some((m: any) => getMarkGroupName(m))
+                                                ) {
                                                     mark = subjectMarks[gIdx];
                                                 }
 
@@ -276,26 +322,45 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                         displayValue = obtMarks;
                                                     }
                                                 }
-                                                return <td key={`m-false-${idx}`} className="text-center font-bold">{displayValue}</td>;
+                                                return (
+                                                    <td key={`m-false-${idx}`} className='text-center font-bold'>
+                                                        {displayValue}
+                                                    </td>
+                                                );
                                             })}
 
                                             {/* Totals */}
-                                            <td className="text-center font-bold">
-                                                {stu.markstotal?.find((mt: any) => (mt.GROUPNAME || mt.groupname)?.toLowerCase() === grp.empG_GroupName?.toLowerCase())?.TOTALOBTAINEDMARKS ?? ''}
+                                            <td className='text-center font-bold'>
+                                                {stu.markstotal?.find(
+                                                    (mt: any) =>
+                                                        (mt.GROUPNAME || mt.groupname)?.toLowerCase() === grp.empG_GroupName?.toLowerCase()
+                                                )?.TOTALOBTAINEDMARKS ?? ''}
                                             </td>
-                                            <td className="text-center font-bold">
-                                                {stu.markstotal?.find((mt: any) => (mt.GROUPNAME || mt.groupname)?.toLowerCase() === grp.empG_GroupName?.toLowerCase())?.GRANDTOTALOBRAINEDMARKS ?? ''}
+                                            <td className='text-center font-bold'>
+                                                {stu.markstotal?.find(
+                                                    (mt: any) =>
+                                                        (mt.GROUPNAME || mt.groupname)?.toLowerCase() === grp.empG_GroupName?.toLowerCase()
+                                                )?.GRANDTOTALOBRAINEDMARKS ?? ''}
                                             </td>
-                                            <td className="text-center font-bold">
-                                                {stu.markstotal?.find((mt: any) => (mt.GROUPNAME || mt.groupname)?.toLowerCase() === grp.empG_GroupName?.toLowerCase())?.PERCENTAGEOBTAINED ?? ''}
+                                            <td className='text-center font-bold'>
+                                                {stu.markstotal?.find(
+                                                    (mt: any) =>
+                                                        (mt.GROUPNAME || mt.groupname)?.toLowerCase() === grp.empG_GroupName?.toLowerCase()
+                                                )?.PERCENTAGEOBTAINED ?? ''}
                                             </td>
-                                            <td className="text-center font-bold">
-                                                {stu.markstotal?.find((mt: any) => (mt.GROUPNAME || mt.groupname)?.toLowerCase() === grp.empG_GroupName?.toLowerCase())?.POSITION ?? ''}
+                                            <td className='text-center font-bold'>
+                                                {stu.markstotal?.find(
+                                                    (mt: any) =>
+                                                        (mt.GROUPNAME || mt.groupname)?.toLowerCase() === grp.empG_GroupName?.toLowerCase()
+                                                )?.POSITION ?? ''}
                                             </td>
-                                            <td className="text-center font-bold">
-                                                {stu.attendance?.find((at: any) => (at.GROUPNAME || at.groupname)?.toLowerCase() === grp.empG_GroupName?.toLowerCase())?.PERCENTAGEOBTAINED ?? ''}
+                                            <td className='text-center font-bold'>
+                                                {stu.attendance?.find(
+                                                    (at: any) =>
+                                                        (at.GROUPNAME || at.groupname)?.toLowerCase() === grp.empG_GroupName?.toLowerCase()
+                                                )?.PERCENTAGEOBTAINED ?? ''}
                                             </td>
-                                            <td className="text-center font-bold">&nbsp;</td>
+                                            <td className='text-center font-bold'>&nbsp;</td>
                                         </tr>
                                     ))}
                                 </React.Fragment>

@@ -78,7 +78,7 @@ function MasterDepartmentPageContent({
                         noDataTitle='No Departments Found'
                         noDataDescription='Get started by creating your first department'
                         errorTitle='Error Loading Departments'
-                      //  searchPlaceholder='Search by Department Name or Code...'
+                        //  searchPlaceholder='Search by Department Name or Code...'
                     />
                 </CollapsibleSection>
 

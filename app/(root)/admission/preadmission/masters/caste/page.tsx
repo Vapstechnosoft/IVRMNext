@@ -1,10 +1,4 @@
 'use client';
-import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useMasterCaste } from '@/hooks/admission/preadmission/useMasters';
-import type { IMasterCasteList } from '@/types/admission/preadmission/masters';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -15,8 +9,14 @@ import {
     AlertDialogHeader,
     AlertDialogTitle
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Spinner } from '@/components/ui/spinner';
+import { useMasterCaste } from '@/hooks/admission/preadmission/useMasters';
 import { deleteMasterCaste } from '@/server/admission/preadmission/masters/caste';
+import type { IMasterCasteList } from '@/types/admission/preadmission/masters';
 import { Plus, Trash2, X } from 'lucide-react';
 import { use, useState } from 'react';
 import { toast } from 'sonner';
@@ -51,10 +51,12 @@ function MasterCastePageContent({
     onRefresh: () => void;
 }) {
     const { openAddForm } = useFormContext<IMasterCasteList>();
-    const transformedResponse = response ? {
-        ...response,
-        data: response.data?.casteList || response.data || []
-    } : response;
+    const transformedResponse = response
+        ? {
+              ...response,
+              data: response.data?.casteList || response.data || []
+          }
+        : response;
     const tableProps = useDataTableProps(transformedResponse);
 
     return (
@@ -77,7 +79,7 @@ function MasterCastePageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <div className='flex justify-end mb-2'>
+                    <div className='mb-2 flex justify-end'>
                         <ViewDetailsDialog />
                     </div>
                     <GenericDataTable<IMasterCasteList>
@@ -204,8 +206,8 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
                         <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                         <AlertDialogDescription>
                             This action cannot be undone. This will permanently delete the caste{' '}
-                            <span className='font-bold text-foreground'>"{selectedRow?.imC_CasteName}"</span> and remove it
-                            from our servers.
+                            <span className='font-bold text-foreground'>"{selectedRow?.imC_CasteName}"</span> and remove it from our
+                            servers.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

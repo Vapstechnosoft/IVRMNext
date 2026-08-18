@@ -1,8 +1,8 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { IMasterClassYearlyList } from '@/types/exam/exam-module/masters';
-import { IAcademicYearandClassandsection } from '@/types/exam/exam-module/report';
+import type { IMasterClassYearlyList } from '@/types/exam/exam-module/masters';
+import type { IAcademicYearandClassandsection } from '@/types/exam/exam-module/report';
 
 /**
  * Get Academic Year Dropdown
@@ -18,11 +18,35 @@ function extractDataList(res: any): any[] {
     if (Array.isArray(res)) return res;
     if (Array.isArray(res.data)) return res.data;
     if (res.data && typeof res.data === 'object') {
-        const arr = res.data.classlist || res.data.classList || res.data.getclasslist || res.data.fillclass || res.data.sectionlist || res.data.sectionList || res.data.getsectionlist || res.data.fillsection || res.data.studentlist || res.data.studentList || res.data.getstudentdetails || [];
+        const arr =
+            res.data.classlist ||
+            res.data.classList ||
+            res.data.getclasslist ||
+            res.data.fillclass ||
+            res.data.sectionlist ||
+            res.data.sectionList ||
+            res.data.getsectionlist ||
+            res.data.fillsection ||
+            res.data.studentlist ||
+            res.data.studentList ||
+            res.data.getstudentdetails ||
+            [];
         if (Array.isArray(arr)) return arr;
     }
     if (typeof res === 'object') {
-        const arr = res.classlist || res.classList || res.getclasslist || res.fillclass || res.sectionlist || res.sectionList || res.getsectionlist || res.fillsection || res.studentlist || res.studentList || res.getstudentdetails || [];
+        const arr =
+            res.classlist ||
+            res.classList ||
+            res.getclasslist ||
+            res.fillclass ||
+            res.sectionlist ||
+            res.sectionList ||
+            res.getsectionlist ||
+            res.fillsection ||
+            res.studentlist ||
+            res.studentList ||
+            res.getstudentdetails ||
+            [];
         if (Array.isArray(arr)) return arr;
     }
     return [];

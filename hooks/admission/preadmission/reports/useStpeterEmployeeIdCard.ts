@@ -1,14 +1,14 @@
 'use client';
 
-import { useMutation, useQuery } from '@tanstack/react-query';
 import { ADMISSION_QUERY_KEYS } from '@/constants/query-keys';
 import {
-    getStpeterEmployeeIdCardLoadData,
+    filterStpeterEmployees,
     getStpeterDepts,
     getStpeterDesig,
-    filterStpeterEmployees,
-    getStpeterEmployeeDetails
+    getStpeterEmployeeDetails,
+    getStpeterEmployeeIdCardLoadData
 } from '@/server/admission/preadmission/reports/stpeter_employee_id_card';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const useStpeterEmployeeIdCardLoadData = () => {
     return useQuery({

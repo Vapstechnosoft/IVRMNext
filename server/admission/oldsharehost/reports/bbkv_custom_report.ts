@@ -7,7 +7,6 @@ export async function getBBKVCustomReportInitialDetails() {
     return await api.get<any>('admission', url);
 }
 
-
 export async function getBBKVCustomReportStudents(data: {
     admnoorname: string;
     ASMAY_Id: number;
@@ -26,7 +25,6 @@ export async function getBBKVCustomReportStudentDetails(data: {
     const url = `/BBKVCustomReport/stdnamechange?ASMAY_Id=${data.ASMAY_Id}&AMST_Id=${data.AMST_Id}`;
     return await api.post<any>('admission', url, data);
 }
-
 
 export async function getBBKVCustomReportTCDetails(data: {
     ASMAY_Id: number;

@@ -224,8 +224,8 @@ export interface IMasterReligionCategoryMappingList {
 }
 
 export interface IMasterPayrollStandardList {
-    hrC_Id: number ;
-    hrC_PFMaxAmt: number ;
+    hrC_Id: number;
+    hrC_PFMaxAmt: number;
     hrC_FPFPer: number;
     hrC_EPFPer: number;
     hrC_AsPerEmpFlag: boolean;

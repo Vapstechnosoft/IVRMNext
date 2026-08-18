@@ -2,18 +2,11 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import { ChevronLeft, ChevronRight, Eye, FileSpreadsheet, Printer, Search } from 'lucide-react';
-import { useState, useMemo } from 'react';
-import type { IHomeWorkReport } from '@/types/upload/reports/homework-upload-report';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { exportToExcel, exportToPdf } from '@/lib/export-to-file';
+import type { IHomeWorkReport } from '@/types/upload/reports/homework-upload-report';
+import { ChevronLeft, ChevronRight, Eye, FileSpreadsheet, Printer, Search } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 interface HomeWorkReportTableProps {
     data: IHomeWorkReport[];
@@ -26,18 +19,11 @@ export function HomeWorkReportTable({ data, onViewAttachment }: HomeWorkReportTa
     const itemsPerPage = 10;
 
     const filteredData = useMemo(() => {
-        return data.filter((item) =>
-            Object.values(item).some(
-                (val) => val && val.toString().toLowerCase().includes(search.toLowerCase())
-            )
-        );
+        return data.filter((item) => Object.values(item).some((val) => val && val.toString().toLowerCase().includes(search.toLowerCase())));
     }, [data, search]);
 
     const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-    const paginatedData = filteredData.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
+    const paginatedData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     const handlePrint = () => {
         const printWindow = window.open('', '_blank');
@@ -71,7 +57,9 @@ export function HomeWorkReportTable({ data, onViewAttachment }: HomeWorkReportTa
                             </tr>
                         </thead>
                         <tbody>
-                            ${filteredData.map((item, index) => `
+                            ${filteredData
+                                .map(
+                                    (item, index) => `
                                 <tr>
                                     <td>${index + 1}</td>
                                     <td style="text-align: left;">${item.Topic}</td>
@@ -82,7 +70,9 @@ export function HomeWorkReportTable({ data, onViewAttachment }: HomeWorkReportTa
                                     <td>${new Date(item.UploadDate).toLocaleDateString('en-GB')}</td>
                                     <td>${item.EmployeeName || item.UserName || 'N/A'}</td>
                                 </tr>
-                            `).join('')}
+                            `
+                                )
+                                .join('')}
                         </tbody>
                     </table>
                     <div class="footer">
@@ -121,16 +111,12 @@ export function HomeWorkReportTable({ data, onViewAttachment }: HomeWorkReportTa
             by: item.EmployeeName || item.UserName || 'N/A'
         }));
 
-        exportToExcel(
-            'HomeWork_Upload_Report',
-            JSON.stringify(columns),
-            JSON.stringify(content)
-        );
+        exportToExcel('HomeWork_Upload_Report', JSON.stringify(columns), JSON.stringify(content));
     };
-    
+
     const handleExportPdf = () => {
         const columns = ['SL.NO', 'Topic', 'Class', 'Section', 'Subject', 'File Name', 'Date', 'By'];
-        
+
         const content = filteredData.map((item, index) => [
             index + 1,
             item.Topic,
@@ -146,105 +132,136 @@ export function HomeWorkReportTable({ data, onViewAttachment }: HomeWorkReportTa
     };
 
     return (
-        <div className="space-y-4">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Total Grid Records:</span>
-                        <span className="px-3 py-1 bg-primary text-white rounded-full text-xs font-bold shadow-sm">
-                            {data.length}
+        <div className='space-y-4'>
+            <div className='flex flex-col items-center justify-between gap-4 md:flex-row'>
+                <div className='flex items-center gap-4'>
+                    <div className='flex items-center gap-2'>
+                        <span className='font-medium text-[11px] text-muted-foreground text-sm uppercase tracking-wider'>
+                            Total Grid Records:
                         </span>
+                        <span className='rounded-full bg-primary px-3 py-1 font-bold text-white text-xs shadow-sm'>{data.length}</span>
                     </div>
                     {search && (
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Total Records Searched:</span>
-                            <span className="px-3 py-1 bg-amber-500 text-white rounded-full text-xs font-bold shadow-sm">
+                        <div className='flex items-center gap-2'>
+                            <span className='font-medium text-[11px] text-muted-foreground text-sm uppercase tracking-wider'>
+                                Total Records Searched:
+                            </span>
+                            <span className='rounded-full bg-amber-500 px-3 py-1 font-bold text-white text-xs shadow-sm'>
                                 {filteredData.length}
                             </span>
                         </div>
                     )}
                 </div>
-                <div className="flex flex-1 max-w-sm relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <div className='relative flex max-w-sm flex-1'>
+                    <Search className='-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground' />
                     <Input
-                        placeholder="Search records..."
+                        placeholder='Search records...'
                         value={search}
                         onChange={(e) => {
                             setSearch(e.target.value);
                             setCurrentPage(1);
                         }}
-                        className="pl-9 h-9 rounded-full bg-slate-50 border-slate-200 focus:bg-white transition-all"
+                        className='h-9 rounded-full border-slate-200 bg-slate-50 pl-9 transition-all focus:bg-white'
                     />
                 </div>
-                <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={handleExportExcel} className="flex items-center gap-2 rounded-full px-4 hover:bg-green-50 hover:text-green-600 hover:border-green-200 transition-colors">
-                        <FileSpreadsheet className="h-4 w-4" /> Export to Excel
+                <div className='flex gap-2'>
+                    <Button
+                        variant='outline'
+                        size='sm'
+                        onClick={handleExportExcel}
+                        className='flex items-center gap-2 rounded-full px-4 transition-colors hover:border-green-200 hover:bg-green-50 hover:text-green-600'>
+                        <FileSpreadsheet className='h-4 w-4' /> Export to Excel
                     </Button>
-                    <Button variant="outline" size="sm" onClick={handleExportPdf} className="flex items-center gap-2 rounded-full px-4 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors">
-                        <FileSpreadsheet className="h-4 w-4" /> Export to PDF
+                    <Button
+                        variant='outline'
+                        size='sm'
+                        onClick={handleExportPdf}
+                        className='flex items-center gap-2 rounded-full px-4 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600'>
+                        <FileSpreadsheet className='h-4 w-4' /> Export to PDF
                     </Button>
-                    <Button variant="outline" size="sm" onClick={handlePrint} className="flex items-center gap-2 rounded-full px-4 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-colors">
-                        <Printer className="h-4 w-4" /> Print
+                    <Button
+                        variant='outline'
+                        size='sm'
+                        onClick={handlePrint}
+                        className='flex items-center gap-2 rounded-full px-4 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600'>
+                        <Printer className='h-4 w-4' /> Print
                     </Button>
                 </div>
             </div>
 
-            <div className="rounded-xl border overflow-hidden bg-white shadow-sm">
+            <div className='overflow-hidden rounded-xl border bg-white shadow-sm'>
                 <Table>
-                    <TableHeader className="bg-slate-900 hover:bg-slate-900 border-none">
-                        <TableRow className="hover:bg-transparent border-none">
-                            <TableHead className="text-white h-12 uppercase text-[11px] font-bold tracking-widest text-center">SL.NO</TableHead>
-                            <TableHead className="text-white h-12 uppercase text-[11px] font-bold tracking-widest">Topic</TableHead>
-                            <TableHead className="text-white h-12 uppercase text-[11px] font-bold tracking-widest text-center">Class</TableHead>
-                            <TableHead className="text-white h-12 uppercase text-[11px] font-bold tracking-widest text-center">Section</TableHead>
-                            <TableHead className="text-white h-12 uppercase text-[11px] font-bold tracking-widest text-center">Subject</TableHead>
-                            <TableHead className="text-white h-12 uppercase text-[11px] font-bold tracking-widest text-center">File Name</TableHead>
-                            <TableHead className="text-white h-12 uppercase text-[11px] font-bold tracking-widest text-center">Upload Date</TableHead>
-                            <TableHead className="text-white h-12 uppercase text-[11px] font-bold tracking-widest text-center">Upload By</TableHead>
-                            <TableHead className="text-white h-12 uppercase text-[11px] font-bold tracking-widest text-center">View</TableHead>
+                    <TableHeader className='border-none bg-slate-900 hover:bg-slate-900'>
+                        <TableRow className='border-none hover:bg-transparent'>
+                            <TableHead className='h-12 text-center font-bold text-[11px] text-white uppercase tracking-widest'>
+                                SL.NO
+                            </TableHead>
+                            <TableHead className='h-12 font-bold text-[11px] text-white uppercase tracking-widest'>Topic</TableHead>
+                            <TableHead className='h-12 text-center font-bold text-[11px] text-white uppercase tracking-widest'>
+                                Class
+                            </TableHead>
+                            <TableHead className='h-12 text-center font-bold text-[11px] text-white uppercase tracking-widest'>
+                                Section
+                            </TableHead>
+                            <TableHead className='h-12 text-center font-bold text-[11px] text-white uppercase tracking-widest'>
+                                Subject
+                            </TableHead>
+                            <TableHead className='h-12 text-center font-bold text-[11px] text-white uppercase tracking-widest'>
+                                File Name
+                            </TableHead>
+                            <TableHead className='h-12 text-center font-bold text-[11px] text-white uppercase tracking-widest'>
+                                Upload Date
+                            </TableHead>
+                            <TableHead className='h-12 text-center font-bold text-[11px] text-white uppercase tracking-widest'>
+                                Upload By
+                            </TableHead>
+                            <TableHead className='h-12 text-center font-bold text-[11px] text-white uppercase tracking-widest'>
+                                View
+                            </TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {paginatedData.map((item, index) => (
-                            <TableRow key={index} className="hover:bg-slate-50 transition-colors">
-                                <TableCell className="text-center font-medium text-slate-500">{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
-                                <TableCell className="font-semibold text-slate-700">{item.Topic}</TableCell>
-                                <TableCell className="text-center">{item.ClassName}</TableCell>
-                                <TableCell className="text-center">{item.SectionName}</TableCell>
-                                <TableCell className="text-center text-primary font-medium">{item.SubjectName}</TableCell>
-                                <TableCell className="text-center text-slate-500 truncate max-w-[150px]" title={item.FileName || ''}>
+                            <TableRow key={index} className='transition-colors hover:bg-slate-50'>
+                                <TableCell className='text-center font-medium text-slate-500'>
+                                    {(currentPage - 1) * itemsPerPage + index + 1}
+                                </TableCell>
+                                <TableCell className='font-semibold text-slate-700'>{item.Topic}</TableCell>
+                                <TableCell className='text-center'>{item.ClassName}</TableCell>
+                                <TableCell className='text-center'>{item.SectionName}</TableCell>
+                                <TableCell className='text-center font-medium text-primary'>{item.SubjectName}</TableCell>
+                                <TableCell className='max-w-[150px] truncate text-center text-slate-500' title={item.FileName || ''}>
                                     {item.FileName || '--'}
                                 </TableCell>
-                                <TableCell className="text-center font-medium">
+                                <TableCell className='text-center font-medium'>
                                     {new Date(item.UploadDate).toLocaleDateString('en-GB')}
                                 </TableCell>
-                                <TableCell className="text-center italic text-slate-600">
+                                <TableCell className='text-center text-slate-600 italic'>
                                     {item.EmployeeName || item.UserName || 'N/A'}
                                 </TableCell>
-                                <TableCell className="text-center">
+                                <TableCell className='text-center'>
                                     {item.FileName || item.Filepath ? (
                                         <Button
-                                            variant="ghost"
-                                            size="sm"
+                                            variant='ghost'
+                                            size='sm'
                                             onClick={() => onViewAttachment(item)}
-                                            className="text-primary hover:text-primary hover:bg-primary/10 flex items-center gap-1 mx-auto transition-all"
-                                        >
-                                            <Eye className="h-4 w-4" /> View
+                                            className='mx-auto flex items-center gap-1 text-primary transition-all hover:bg-primary/10 hover:text-primary'>
+                                            <Eye className='h-4 w-4' /> View
                                         </Button>
                                     ) : (
-                                        <span className="text-muted-foreground text-[11px] font-medium opacity-50">--</span>
+                                        <span className='font-medium text-[11px] text-muted-foreground opacity-50'>--</span>
                                     )}
                                 </TableCell>
                             </TableRow>
                         ))}
                         {filteredData.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={9} className="h-40 text-center">
-                                    <div className="flex flex-col items-center justify-center space-y-3">
-                                        <div className="p-4 bg-slate-50 rounded-full">
-                                            <Search className="h-8 w-8 text-slate-300" />
+                                <TableCell colSpan={9} className='h-40 text-center'>
+                                    <div className='flex flex-col items-center justify-center space-y-3'>
+                                        <div className='rounded-full bg-slate-50 p-4'>
+                                            <Search className='h-8 w-8 text-slate-300' />
                                         </div>
-                                        <div className="text-lg font-semibold text-slate-400">No records found matching your search.</div>
+                                        <div className='font-semibold text-lg text-slate-400'>No records found matching your search.</div>
                                     </div>
                                 </TableCell>
                             </TableRow>
@@ -254,29 +271,27 @@ export function HomeWorkReportTable({ data, onViewAttachment }: HomeWorkReportTa
             </div>
 
             {totalPages > 1 && (
-                <div className="flex items-center justify-center space-x-2 mt-6">
+                <div className='mt-6 flex items-center justify-center space-x-2'>
                     <Button
-                        variant="outline"
-                        size="sm"
+                        variant='outline'
+                        size='sm'
                         onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                         disabled={currentPage === 1}
-                        className="rounded-full shadow-sm hover:shadow transition-all"
-                    >
-                        <ChevronLeft className="h-4 w-4 mr-1" /> Previous
+                        className='rounded-full shadow-sm transition-all hover:shadow'>
+                        <ChevronLeft className='mr-1 h-4 w-4' /> Previous
                     </Button>
-                    <div className="flex items-center gap-1">
-                        <span className="text-sm font-medium px-3 py-1 bg-slate-100 rounded-full">
+                    <div className='flex items-center gap-1'>
+                        <span className='rounded-full bg-slate-100 px-3 py-1 font-medium text-sm'>
                             Page {currentPage} of {totalPages}
                         </span>
                     </div>
                     <Button
-                        variant="outline"
-                        size="sm"
+                        variant='outline'
+                        size='sm'
                         onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                         disabled={currentPage === totalPages}
-                        className="rounded-full shadow-sm hover:shadow transition-all"
-                    >
-                        Next <ChevronRight className="h-4 w-4 ml-1" />
+                        className='rounded-full shadow-sm transition-all hover:shadow'>
+                        Next <ChevronRight className='ml-1 h-4 w-4' />
                     </Button>
                 </div>
             )}

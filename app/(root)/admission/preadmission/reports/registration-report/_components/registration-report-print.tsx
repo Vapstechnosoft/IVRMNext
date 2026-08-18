@@ -9,22 +9,21 @@ interface RegistrationReportPrintProps {
     institutionName?: string;
 }
 
-export const RegistrationReportPrint = React.forwardRef<HTMLDivElement, RegistrationReportPrintProps>(
-    ({ data, institutionName }, ref) => {
-        const currentDate = format(new Date(), 'dd/MM/yyyy');
+export const RegistrationReportPrint = React.forwardRef<HTMLDivElement, RegistrationReportPrintProps>(({ data, institutionName }, ref) => {
+    const currentDate = format(new Date(), 'dd/MM/yyyy');
 
-        const formatDate = (dateStr: string | null | undefined) => {
-            if (!dateStr) return '-';
-            const date = new Date(dateStr);
-            return isValid(date) ? format(date, 'dd/MM/yyyy') : dateStr;
-        };
+    const formatDate = (dateStr: string | null | undefined) => {
+        if (!dateStr) return '-';
+        const date = new Date(dateStr);
+        return isValid(date) ? format(date, 'dd/MM/yyyy') : dateStr;
+    };
 
-        const reportData = Array.isArray(data) ? data : [];
+    const reportData = Array.isArray(data) ? data : [];
 
-        return (
-            <div ref={ref} className="print-preview-container p-5 bg-white text-black min-h-full w-full">
-                <style>
-                    {`
+    return (
+        <div ref={ref} className='print-preview-container min-h-full w-full bg-white p-5 text-black'>
+            <style>
+                {`
                         @media print {
                             @page {
                                 margin: 0;
@@ -82,54 +81,45 @@ export const RegistrationReportPrint = React.forwardRef<HTMLDivElement, Registra
                             }
                         }
                     `}
-                </style>
+            </style>
 
-                <div className='header-section'>
-                    <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>
-                        {institutionName}
-                    </h1>
-                    <h2 style={{ margin: '5px 0 0', fontSize: '18px', fontWeight: 'bold', textDecoration: 'underline' }}>
-                        REGISTRATION REPORT
-                    </h2>
-                </div>
-
-                {reportData.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '20px', border: '1px dashed #ccc' }}>
-                        No records found to display.
-                    </div>
-                ) : (
-                    <table>
-                        <thead>
-                            <tr style={{ backgroundColor: '#f3f4f6' }}>
-                                <th style={{ width: '50px', textAlign: 'center' }}>SL.No</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th style={{ width: '100px', textAlign: 'center' }}>Mobile No</th>
-                                <th style={{ width: '90px', textAlign: 'center' }}>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {reportData.map((row, index) => (
-                                <tr key={index}>
-                                    <td style={{ textAlign: 'center' }}>{index + 1}</td>
-                                    <td>{row.name || '-'}</td>
-                                    <td>{row.email_Id || '-'}</td>
-                                    <td style={{ textAlign: 'center' }}>{row.mob_No || '-'}</td>
-                                    <td style={{ textAlign: 'center' }}>
-                                        {formatDate(row.created_Date)}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                )}
-
-                <div className='footer-section'>
-                    Printed on: {currentDate}
-                </div>
+            <div className='header-section'>
+                <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>{institutionName}</h1>
+                <h2 style={{ margin: '5px 0 0', fontSize: '18px', fontWeight: 'bold', textDecoration: 'underline' }}>
+                    REGISTRATION REPORT
+                </h2>
             </div>
-        );
-    }
-);
+
+            {reportData.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '20px', border: '1px dashed #ccc' }}>No records found to display.</div>
+            ) : (
+                <table>
+                    <thead>
+                        <tr style={{ backgroundColor: '#f3f4f6' }}>
+                            <th style={{ width: '50px', textAlign: 'center' }}>SL.No</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th style={{ width: '100px', textAlign: 'center' }}>Mobile No</th>
+                            <th style={{ width: '90px', textAlign: 'center' }}>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {reportData.map((row, index) => (
+                            <tr key={index}>
+                                <td style={{ textAlign: 'center' }}>{index + 1}</td>
+                                <td>{row.name || '-'}</td>
+                                <td>{row.email_Id || '-'}</td>
+                                <td style={{ textAlign: 'center' }}>{row.mob_No || '-'}</td>
+                                <td style={{ textAlign: 'center' }}>{formatDate(row.created_Date)}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            )}
+
+            <div className='footer-section'>Printed on: {currentDate}</div>
+        </div>
+    );
+});
 
 RegistrationReportPrint.displayName = 'RegistrationReportPrint';

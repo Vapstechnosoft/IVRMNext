@@ -11,17 +11,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { type IHomeWork, homeWorkSchema } from '@/schemas/upload/transactions/ivrm-homework.schema';
+import { uploadDocument } from '@/server/fees/trasactions/waived_off';
 import {
-    fetchInitialData,
     fetchClasses,
+    fetchInitialData,
     fetchSections,
     fetchSubjects,
     saveHomeWork
 } from '@/server/upload/transactions/ivrm-homework/server-action';
-import { uploadDocument } from '@/server/fees/trasactions/waived_off';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon, Eye, Loader2, Minus, Plus, Save, Upload, X } from 'lucide-react';
+import { CalendarIcon, Eye, Loader2, Minus, Plus, Save, Upload } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -230,7 +230,7 @@ export default function AddHomeWorkForm({ onSuccess }: AddHomeWorkFormProps) {
         return (
             <div className='flex items-center justify-center p-12'>
                 <Loader2 className='h-8 w-8 animate-spin text-blue-600' />
-                <span className='ml-3 text-lg font-medium'>Loading form details...</span>
+                <span className='ml-3 font-medium text-lg'>Loading form details...</span>
             </div>
         );
     }
@@ -243,12 +243,18 @@ export default function AddHomeWorkForm({ onSuccess }: AddHomeWorkFormProps) {
                     name='asmaY_Id'
                     render={({ field, fieldState }) => (
                         <div>
-                            <Label className='font-bold'>Academic Year <span className='text-red-500'>*</span></Label>
+                            <Label className='font-bold'>
+                                Academic Year <span className='text-red-500'>*</span>
+                            </Label>
                             <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                <SelectTrigger><SelectValue placeholder='Select Year' /></SelectTrigger>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Year' />
+                                </SelectTrigger>
                                 <SelectContent>
                                     {years.map((year: any) => (
-                                        <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>{year.asmaY_Year}</SelectItem>
+                                        <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
+                                            {year.asmaY_Year}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -262,12 +268,18 @@ export default function AddHomeWorkForm({ onSuccess }: AddHomeWorkFormProps) {
                     name='asmcL_Id'
                     render={({ field, fieldState }) => (
                         <div>
-                            <Label className='font-bold'>Class <span className='text-red-500'>*</span></Label>
+                            <Label className='font-bold'>
+                                Class <span className='text-red-500'>*</span>
+                            </Label>
                             <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                <SelectTrigger><SelectValue placeholder='Select Class' /></SelectTrigger>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Class' />
+                                </SelectTrigger>
                                 <SelectContent>
                                     {classes.map((cls: any) => (
-                                        <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>{cls.asmcL_ClassName}</SelectItem>
+                                        <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>
+                                            {cls.asmcL_ClassName}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -281,7 +293,9 @@ export default function AddHomeWorkForm({ onSuccess }: AddHomeWorkFormProps) {
                     control={control}
                     render={({ field, fieldState }) => (
                         <div className='grow space-y-2'>
-                            <Label className='font-bold'>Section <span className='text-red-500'>*</span></Label>
+                            <Label className='font-bold'>
+                                Section <span className='text-red-500'>*</span>
+                            </Label>
                             <CustomMultiSelectBox
                                 options={sections.map((s) => ({ label: s.asmC_SectionName, value: s.asmS_Id.toString() }))}
                                 value={field.value?.map((v: any) => v.asmS_Id.toString()) || []}
@@ -298,12 +312,18 @@ export default function AddHomeWorkForm({ onSuccess }: AddHomeWorkFormProps) {
                     name='ismS_Id'
                     render={({ field, fieldState }) => (
                         <div>
-                            <Label className='font-bold'>Subject <span className='text-red-500'>*</span></Label>
+                            <Label className='font-bold'>
+                                Subject <span className='text-red-500'>*</span>
+                            </Label>
                             <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                <SelectTrigger><SelectValue placeholder='Select Subject' /></SelectTrigger>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Subject' />
+                                </SelectTrigger>
                                 <SelectContent>
                                     {subjects.map((sub: any) => (
-                                        <SelectItem key={sub.ismS_Id} value={sub.ismS_Id.toString()}>{sub.ismS_SubjectName}</SelectItem>
+                                        <SelectItem key={sub.ismS_Id} value={sub.ismS_Id.toString()}>
+                                            {sub.ismS_SubjectName}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -317,7 +337,9 @@ export default function AddHomeWorkForm({ onSuccess }: AddHomeWorkFormProps) {
                     name='ihW_Topic'
                     render={({ field, fieldState }) => (
                         <div>
-                            <Label className='font-bold'>Topic <span className='text-red-500'>*</span></Label>
+                            <Label className='font-bold'>
+                                Topic <span className='text-red-500'>*</span>
+                            </Label>
                             <Input {...field} value={field.value ?? ''} placeholder='Enter Topic' maxLength={50} />
                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                         </div>
@@ -329,16 +351,24 @@ export default function AddHomeWorkForm({ onSuccess }: AddHomeWorkFormProps) {
                     name='ihW_Date'
                     render={({ field, fieldState }) => (
                         <div className='flex flex-col'>
-                            <Label className='font-bold'>H.W Date <span className='text-red-500'>*</span></Label>
+                            <Label className='font-bold'>
+                                H.W Date <span className='text-red-500'>*</span>
+                            </Label>
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <Button variant='outline' className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
+                                    <Button
+                                        variant='outline'
+                                        className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
                                         <CalendarIcon className='mr-2 h-4 w-4 opacity-50' />
                                         {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className='w-auto p-0' align='start'>
-                                    <Calendar mode='single' selected={field.value} onSelect={field.onChange} initialFocus
+                                    <Calendar
+                                        mode='single'
+                                        selected={field.value}
+                                        onSelect={field.onChange}
+                                        initialFocus
                                         disabled={(date) => {
                                             const today = new Date();
                                             today.setHours(0, 0, 0, 0);
@@ -374,7 +404,7 @@ export default function AddHomeWorkForm({ onSuccess }: AddHomeWorkFormProps) {
             </div>
 
             <div className='space-y-4 rounded-md border p-4'>
-                <h3 className='font-semibold text-lg text-blue-700'>Attachments</h3>
+                <h3 className='font-semibold text-blue-700 text-lg'>Attachments</h3>
                 <div className='overflow-x-auto'>
                     <table className='w-full table-auto border-collapse border text-sm'>
                         <thead className='bg-blue-50'>
@@ -393,7 +423,9 @@ export default function AddHomeWorkForm({ onSuccess }: AddHomeWorkFormProps) {
                                     <td className='border p-2'>
                                         <div className='flex justify-center'>
                                             <input
-                                                ref={(el) => { fileInputRefs.current[index] = el; }}
+                                                ref={(el) => {
+                                                    fileInputRefs.current[index] = el;
+                                                }}
                                                 type='file'
                                                 className='hidden'
                                                 onChange={(e) => handleFileUpload(e, index)}
@@ -407,7 +439,11 @@ export default function AddHomeWorkForm({ onSuccess }: AddHomeWorkFormProps) {
                                                 disabled={item.isUploading}
                                             >
                                                 {/* @ts-ignore */}
-                                                {item.isUploading ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Upload className='mr-2 h-4 w-4 text-blue-600' />}
+                                                {item.isUploading ? (
+                                                    <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                                                ) : (
+                                                    <Upload className='mr-2 h-4 w-4 text-blue-600' />
+                                                )}
                                                 Choose File
                                             </Button>
                                         </div>
@@ -420,16 +456,36 @@ export default function AddHomeWorkForm({ onSuccess }: AddHomeWorkFormProps) {
                                             type='button'
                                             variant='ghost'
                                             size='sm'
-                                            onClick={() => { const val = getValues(`ihW_FilePath_Array.${index}.ihW_FilePath`); if (val) window.open(val, '_blank'); }}
-                                            disabled={!item.ihW_FilePath}
-                                        >
+                                            onClick={() => {
+                                                const val = getValues(`ihW_FilePath_Array.${index}.ihW_FilePath`);
+                                                if (val) window.open(val, '_blank');
+                                            }}
+                                            disabled={!item.ihW_FilePath}>
                                             <Eye className='h-4 w-4 text-blue-600' />
                                         </Button>
                                     </td>
                                     <td className='border p-2 text-center'>
                                         <div className='flex justify-center gap-1'>
-                                            {fileFields.length > 1 && <Button type='button' size='icon' variant='destructive' className='h-8 w-8' onClick={() => removeFile(index)}><Minus className='h-4 w-4' /></Button>}
-                                            {index === fileFields.length - 1 && <Button type='button' size='icon' variant='outline' className='h-8 w-8 text-blue-600' onClick={() => appendFile({ ihW_FilePath: '', fileName: '' })}><Plus className='h-4 w-4' /></Button>}
+                                            {fileFields.length > 1 && (
+                                                <Button
+                                                    type='button'
+                                                    size='icon'
+                                                    variant='destructive'
+                                                    className='h-8 w-8'
+                                                    onClick={() => removeFile(index)}>
+                                                    <Minus className='h-4 w-4' />
+                                                </Button>
+                                            )}
+                                            {index === fileFields.length - 1 && (
+                                                <Button
+                                                    type='button'
+                                                    size='icon'
+                                                    variant='outline'
+                                                    className='h-8 w-8 text-blue-600'
+                                                    onClick={() => appendFile({ ihW_FilePath: '', fileName: '' })}>
+                                                    <Plus className='h-4 w-4' />
+                                                </Button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -437,17 +493,21 @@ export default function AddHomeWorkForm({ onSuccess }: AddHomeWorkFormProps) {
                         </tbody>
                     </table>
                 </div>
-                <p className='text-xs text-blue-600 italic'>Accepted Formats: jpg, jpeg, png, doc, ppt, excel, mp3, mp4, wmv, pdf (Max 20MB)</p>
+                <p className='text-blue-600 text-xs italic'>
+                    Accepted Formats: jpg, jpeg, png, doc, ppt, excel, mp3, mp4, wmv, pdf (Max 20MB)
+                </p>
             </div>
 
             <div className='flex items-center space-x-2'>
                 <Checkbox id='add-checklink' checked={showUrlSection} onCheckedChange={(c) => setShowUrlSection(c as boolean)} />
-                <Label htmlFor='add-checklink' className='font-bold'>If URL</Label>
+                <Label htmlFor='add-checklink' className='font-bold'>
+                    If URL
+                </Label>
             </div>
 
             {showUrlSection && (
                 <div className='space-y-4 rounded-md border p-4'>
-                    <h3 className='font-semibold text-lg text-blue-700'>URL Details</h3>
+                    <h3 className='font-semibold text-blue-700 text-lg'>URL Details</h3>
                     <div className='overflow-x-auto'>
                         <table className='w-full table-auto border-collapse border text-sm'>
                             <thead className='bg-blue-50'>
@@ -470,12 +530,40 @@ export default function AddHomeWorkForm({ onSuccess }: AddHomeWorkFormProps) {
                                             />
                                         </td>
                                         <td className='border p-2 text-center'>
-                                            <Button type='button' variant='ghost' size='sm' onClick={() => { const val = getValues(`ihW_Attachment_Array.${index}.ihW_FilePath`); if (val) window.open(val, '_blank'); }} disabled={!item.ihW_FilePath}><Eye className='h-4 w-4 text-blue-600' /></Button>
+                                            <Button
+                                                type='button'
+                                                variant='ghost'
+                                                size='sm'
+                                                onClick={() => {
+                                                    const val = getValues(`ihW_Attachment_Array.${index}.ihW_FilePath`);
+                                                    if (val) window.open(val, '_blank');
+                                                }}
+                                                disabled={!item.ihW_FilePath}>
+                                                <Eye className='h-4 w-4 text-blue-600' />
+                                            </Button>
                                         </td>
                                         <td className='border p-2 text-center'>
                                             <div className='flex justify-center gap-1'>
-                                                {index === urlFields.length - 1 && <Button type='button' size='icon' variant='outline' className='h-8 w-8 text-blue-600' onClick={() => appendUrl({ ihW_FilePath: '', fileName: '' })}><Plus className='h-4 w-4' /></Button>}
-                                                {urlFields.length > 1 && <Button type='button' size='icon' variant='destructive' className='h-8 w-8' onClick={() => removeUrl(index)}><Minus className='h-4 w-4' /></Button>}
+                                                {index === urlFields.length - 1 && (
+                                                    <Button
+                                                        type='button'
+                                                        size='icon'
+                                                        variant='outline'
+                                                        className='h-8 w-8 text-blue-600'
+                                                        onClick={() => appendUrl({ ihW_FilePath: '', fileName: '' })}>
+                                                        <Plus className='h-4 w-4' />
+                                                    </Button>
+                                                )}
+                                                {urlFields.length > 1 && (
+                                                    <Button
+                                                        type='button'
+                                                        size='icon'
+                                                        variant='destructive'
+                                                        className='h-8 w-8'
+                                                        onClick={() => removeUrl(index)}>
+                                                        <Minus className='h-4 w-4' />
+                                                    </Button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
@@ -487,9 +575,17 @@ export default function AddHomeWorkForm({ onSuccess }: AddHomeWorkFormProps) {
             )}
 
             <div className='flex justify-center gap-4 pt-4'>
-                <Button type='button' variant='outline' size='lg' onClick={() => reset()}>Reset</Button>
+                <Button type='button' variant='outline' size='lg' onClick={() => reset()}>
+                    Reset
+                </Button>
                 <Button type='submit' className='bg-blue-600 hover:bg-blue-700' size='lg' isLoading={isSubmitting}>
-                    {isSubmitting ? 'Saving...' : <><Save className='h-4 w-4 mr-2' /> Save HomeWork</>}
+                    {isSubmitting ? (
+                        'Saving...'
+                    ) : (
+                        <>
+                            <Save className='mr-2 h-4 w-4' /> Save HomeWork
+                        </>
+                    )}
                 </Button>
             </div>
         </form>

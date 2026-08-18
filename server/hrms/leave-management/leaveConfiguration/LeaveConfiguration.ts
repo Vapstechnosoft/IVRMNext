@@ -1,6 +1,6 @@
 'use server';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type {
     LeaveConfigurationData,
     LeaveConfigurationGetResponse,
@@ -73,7 +73,7 @@ export async function saveLeaveConfiguration(data: LeaveConfigurationSaveRequest
     const requestBody = {
         hrlpC_Id: data.hrlpC_Id || 0,
         mI_Id: data.mI_Id || HRMS_MI_ID,
-        hrlpC_SpOrGenFlg: data.hrlpC_SpOrGenFlg || "G",
+        hrlpC_SpOrGenFlg: data.hrlpC_SpOrGenFlg || 'G',
         hrlpC_PunchGAPTime: data.hrlpC_PunchGAPTime,
         hrlpC_AbsentFlag: data.hrlpC_AbsentFlag,
         hrlpC_LateInEarlyOutFlag: data.hrlpC_LateInEarlyOutFlag,

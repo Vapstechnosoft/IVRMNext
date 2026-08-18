@@ -1,20 +1,17 @@
 'use server';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { api, type ApiResponse, getSearchParamsUrl } from '@/lib/apiService';
+import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type {
     LeaveTransactionManualApiData,
-    LeaveTransactionManualSaveRequest,
-    LeaveTransactionManualDeleteRequest
+    LeaveTransactionManualDeleteRequest,
+    LeaveTransactionManualSaveRequest
 } from '@/types/hrms/leave-management/leave-transaction-manual';
 
 /**
  * Get leave transaction manual list with pagination
  * GET /api/LeaveTransactionManual/get_onload_leave_transaction_list
  */
-export async function getLeaveTransactionManualList(
-    searchParams?: ApiSearchparams
-): Promise<ApiResponse<LeaveTransactionManualApiData[]>> {
+export async function getLeaveTransactionManualList(searchParams?: ApiSearchparams): Promise<ApiResponse<LeaveTransactionManualApiData[]>> {
     // Build URL with pagination parameters
     const baseUrl = '/api/LeaveTransactionManual/get_onload_leave_transaction_list';
     const queryParams = getSearchParamsUrl(searchParams);
@@ -105,9 +102,7 @@ export async function saveLeaveTransactionManual(
  * Delete leave transaction manual
  * DELETE /api/LeaveTransactionManual/delete_leave_transaction/{hreltd_id}/{hrelt_id}
  */
-export async function deleteLeaveTransactionManual(
-    request: LeaveTransactionManualDeleteRequest
-): Promise<ApiResponse<any>> {
+export async function deleteLeaveTransactionManual(request: LeaveTransactionManualDeleteRequest): Promise<ApiResponse<any>> {
     const hreltdId = Number(request.HRELTD_Id || 0);
     const hreltId = Number(request.HRELT_Id || 0);
 

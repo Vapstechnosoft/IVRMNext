@@ -1,13 +1,13 @@
 'use server';
 
-import { api, getSearchParamsUrl, type ApiResponse } from '@/lib/apiService';
-import { IEventsMappingData, IEventsMappingDropdowns, EventsMappingFormSchema } from "@/types/sports/events-mapping";
+import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
+import type { EventsMappingFormSchema, IEventsMappingData, IEventsMappingDropdowns } from '@/types/sports/events-mapping';
 
 export async function getEventsMappingDropdowns(): Promise<IEventsMappingDropdowns> {
     const url = '/EventVenueMapping/getDetails';
     const response = await api.get<any>('sports', url);
     const data = response.data as any;
-    
+
     return {
         academicYear: data.academicYear || [],
         eventsList: data.eventsList || [],
@@ -30,10 +30,10 @@ export async function getEventsMappingList(params: any): Promise<ApiResponse<IEv
 
     if (response.success && response.data) {
         const data = response.data as any;
-        // In the user's C# snippet, the paginated list is actually sent in 'eventmappingList' 
+        // In the user's C# snippet, the paginated list is actually sent in 'eventmappingList'
         // due to a typo in their code (should have been 'list' but they sent 'eventmappingList')
         const records = data.eventmappingList || data.list || [];
-        
+
         return {
             success: true,
             message: response.message || 'Data fetched successfully',

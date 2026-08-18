@@ -1,17 +1,16 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-    getWrittenTestScheduleDetails,
-    saveWrittenTestSchedule,
     deleteWrittenTestSchedule,
-    getWrittenTestSelectedRowDetails,
     deleteWrittenTestScheduleStudentData,
+    getWrittenTestScheduleDetails,
+    getWrittenTestSelectedRowDetails,
     getWrittenTestStudentDetails,
-    getWrittenTestRemainStudentDetails
+    saveWrittenTestSchedule
 } from '@/server/admission/preadmission/transactions/written_test_schedule';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 const QUERY_KEY = 'writtenTestSchedule';
 
-export const useWrittenTestScheduleDetails = (classId: number = 0) => {
+export const useWrittenTestScheduleDetails = (classId = 0) => {
     const queryClient = useQueryClient();
     return {
         ...useQuery({

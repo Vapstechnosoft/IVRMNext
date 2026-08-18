@@ -34,7 +34,6 @@ export async function getContributionReport(data: ContributionReportRequest) {
     }
 }
 
-
 /**
  * Contribution Employees Request
  */

@@ -6,7 +6,7 @@ import { FormError } from '@/components/ui/extension/field';
 import { useSubjectRestrictionDayPeriodGridData } from '@/hooks/timetable/constraints/subjectrestriction';
 import { masterDaySchema } from '@/schemas/timetable/masters';
 import { ToggleSubjectDayPeriod } from '@/server/timetable/constraints/subjectrestriction';
-import { SubjectRestrictionDayPeriodGridData } from '@/types/timetable/constraints/subjectRestrictions';
+import type { SubjectRestrictionDayPeriodGridData } from '@/types/timetable/constraints/subjectRestrictions';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -63,7 +63,8 @@ export default function DayPeriodToggle({ rowData, onClose }: ToggleSubjectDayPe
                         Are you sure you want to {isActive ? 'deactivate' : 'activate'}{' '}
                         <strong>
                             {rowData.staffName} - {rowData.ismS_SubjectName} ({rowData.ttmD_DayName}, {rowData.ttmP_PeriodName})
-                        </strong>?
+                        </strong>
+                        ?
                     </p>
                     <FormError>{errors.ttmD_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>

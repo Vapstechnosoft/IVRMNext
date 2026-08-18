@@ -18,8 +18,7 @@ export const useSophiaStudentParticularsLoadData = () => {
 
 export const useSophiaStudentParticularsStudentList = () => {
     return useMutation({
-        mutationFn: (data: { ASMAY_Id: number; ASMCL_Id: number; ASMC_Id: number }) =>
-            getSophiaStudentParticularsStudentList(data)
+        mutationFn: (data: { ASMAY_Id: number; ASMCL_Id: number; ASMC_Id: number }) => getSophiaStudentParticularsStudentList(data)
     });
 };
 

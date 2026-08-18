@@ -69,11 +69,7 @@ export default function PromotionReportTBSchoolPage() {
             {isReportVisible && reportData && (
                 <CollapsibleSection title='TunBridge Report Cards' defaultOpen>
                     <div ref={printRef}>
-                        <ProgressCardReport
-                            reportData={reportData}
-                            onPrint={handlePrint}
-                            reportType={reportType}
-                        />
+                        <ProgressCardReport reportData={reportData} onPrint={handlePrint} reportType={reportType} />
                     </div>
                 </CollapsibleSection>
             )}

@@ -1,11 +1,11 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { 
-    getStatusInitialData, 
-    searchStatusData, 
-    saveStatusData,
+import {
     forgotOTPForEmailval,
+    getStatusInitialData,
+    saveStatusData,
+    searchStatusData,
     verifyEmailOtpgen
 } from '@/server/admission/preadmission/transactions/status';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useStatusInitialData = () => {
     return useQuery({
@@ -17,7 +17,7 @@ export const useStatusInitialData = () => {
 
 export const useSearchStatusData = () => {
     return useMutation({
-        mutationFn: async (data: any) => searchStatusData(data),
+        mutationFn: async (data: any) => searchStatusData(data)
     });
 };
 
@@ -33,12 +33,12 @@ export const useSaveStatusData = () => {
 
 export const useForgotOTP = () => {
     return useMutation({
-        mutationFn: async (data: any) => forgotOTPForEmailval(data),
+        mutationFn: async (data: any) => forgotOTPForEmailval(data)
     });
 };
 
 export const useVerifyOTP = () => {
     return useMutation({
-        mutationFn: async (data: any) => verifyEmailOtpgen(data),
+        mutationFn: async (data: any) => verifyEmailOtpgen(data)
     });
 };

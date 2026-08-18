@@ -1,7 +1,7 @@
 'use server';
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
-import { IMasterRoleType } from '@/types/super-admin/super-admin-module/general-setting/master-role-type';
+import type { IMasterRoleType } from '@/types/super-admin/super-admin-module/general-setting/master-role-type';
 import { revalidatePath } from 'next/cache';
 
 export async function getMasterRoleTypes(searchParams: any) {
@@ -31,7 +31,7 @@ export async function getMasterRoleTypes(searchParams: any) {
             };
         }
     } catch (error) {
-        console.error("Error fetching master role types", error);
+        console.error('Error fetching master role types', error);
     }
     return { success: false, data: [], total: 0, page: 0, page_size: 0 };
 }
@@ -48,10 +48,10 @@ export async function saveMasterRoleType(data: any) {
 
     try {
         const promises = roleIds.map((roleId: number, index: number) => {
-            // For Edit case: 
+            // For Edit case:
             // If data.id exists, use it for the first role in the list to update the existing record.
             // For subsequent roles (multi-select additions), use 0 to create new records.
-            const idToUse = (data.id && index === 0) ? data.id : 0;
+            const idToUse = data.id && index === 0 ? data.id : 0;
 
             const payload = {
                 createdDate: new Date().toISOString(),
@@ -60,7 +60,7 @@ export async function saveMasterRoleType(data: any) {
                 ivrmrT_Role: data.roleType,
                 ivrmR_Id: roleId,
                 ivrmrT_RoleFlag: data.institutionType || 'S', // Default 'S'
-                flag: "" // Default to empty string as per request body template
+                flag: '' // Default to empty string as per request body template
             };
             return api.post<any>('sadmin', url, payload);
         });
@@ -68,16 +68,15 @@ export async function saveMasterRoleType(data: any) {
         const results = await Promise.all(promises);
 
         // check if any failed
-        const failure = results.find(r => !r.success);
+        const failure = results.find((r) => !r.success);
         if (failure) {
             return { success: false, message: failure.message || 'Failed to save some records' };
         }
 
         revalidatePath('/SuperAdmin/super-admin-module/general-setting/master-role-type');
         return { success: true, message: results[0]?.message || 'Saved Successfully' };
-
     } catch (error) {
-        console.error("Error saving master role type", error);
+        console.error('Error saving master role type', error);
         return { success: false, message: 'An unexpected error occurred' };
     }
 }
@@ -104,7 +103,7 @@ export async function getMasterRoleTypeById(id: number) {
         }
         return { success: false, message: response.message || 'No data found' };
     } catch (error) {
-        console.error("Error fetching master role type details", error);
+        console.error('Error fetching master role type details', error);
         return { success: false, message: 'An unexpected error occurred' };
     }
 }
@@ -118,7 +117,7 @@ export async function activateDeactivateMasterRoleType(id: number) {
         }
         return { success: false, message: response.message || 'Failed to update' };
     } catch (error: any) {
-        console.error("Error updating master role type status", error);
+        console.error('Error updating master role type status', error);
         return { success: false, message: error?.message || 'An unexpected error occurred during activation/deactivation' };
     }
 }
@@ -131,7 +130,7 @@ export async function getRoleNameDropdown() {
             return { success: true, data: response.data.roledata || [] };
         }
     } catch (error) {
-        console.error("Error fetching role name dropdown", error);
+        console.error('Error fetching role name dropdown', error);
     }
     return { success: false, data: [] };
 }

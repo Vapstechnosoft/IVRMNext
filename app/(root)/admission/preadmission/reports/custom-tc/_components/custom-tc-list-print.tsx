@@ -28,7 +28,10 @@ export const CustomTcListPrint = React.forwardRef<HTMLDivElement, CustomTcListPr
         }
 
         return (
-            <div ref={ref} className="custom-tc-list-print" style={{ padding: '15mm', background: 'white', color: 'black', minHeight: '100%', width: '100%' }}>
+            <div
+                ref={ref}
+                className='custom-tc-list-print'
+                style={{ padding: '15mm', background: 'white', color: 'black', minHeight: '100%', width: '100%' }}>
                 <style
                     dangerouslySetInnerHTML={{
                         __html: `
@@ -65,15 +68,13 @@ export const CustomTcListPrint = React.forwardRef<HTMLDivElement, CustomTcListPr
                 />
                 <div className='print-list-wrapper'>
                     <div style={{ textAlign: 'center', marginBottom: '25px', borderBottom: '2px solid black', paddingBottom: '12px' }}>
-                        <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0', textTransform: 'uppercase' }}>
-                            {institutionName}
-                        </h1>
+                        <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0', textTransform: 'uppercase' }}>{institutionName}</h1>
                         <h2 style={{ fontSize: '18px', fontWeight: 'bold', textDecoration: 'underline', marginTop: '10px' }}>
                             LIST OF STUDENTS WITH ISSUED TRANSFER CERTIFICATES {academicYear ? `(${academicYear})` : ''}
                         </h2>
                     </div>
 
-                    <table className="list-table">
+                    <table className='list-table'>
                         <thead>
                             <tr>
                                 <th style={{ width: '40px', textAlign: 'center' }}>SL</th>
@@ -99,7 +100,7 @@ export const CustomTcListPrint = React.forwardRef<HTMLDivElement, CustomTcListPr
                             ))}
                         </tbody>
                     </table>
-                    
+
                     <div style={{ marginTop: '20px', fontSize: '9px', opacity: 0.8, textAlign: 'right', fontStyle: 'italic' }}>
                         Report Generated on {currentDate} | VAPS TECHNOSOFT PVT. LTD.
                     </div>

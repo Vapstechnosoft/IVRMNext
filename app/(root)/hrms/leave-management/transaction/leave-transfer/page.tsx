@@ -5,14 +5,14 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDeleteLeaveStatusById, useLeaveCreditAndBalanceGrid } from '@/hooks/hrms/leave-management/useTransactions';
-import { useReportDepartments, useReportDesignations, useReportGroupTypes, usePeriodLeaveReportEmployees } from '@/hooks/hrms/useReports';
 import { useLeaveDropdown, useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
+import { usePeriodLeaveReportEmployees, useReportDepartments, useReportDesignations, useReportGroupTypes } from '@/hooks/hrms/useReports';
 import { Plus, X } from 'lucide-react';
+import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { use, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { type LeaveCreditBalanceGridItem, getLeaveTransferColumns } from './_components/columns';
 import { LeaveTransferForm, type LeaveTransferFormData } from './_components/leave-transfer-form';
-import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function LeaveTransferPage(props: { searchParams: SearchParams }) {
     const _searchParams = use(props.searchParams);
@@ -27,13 +27,16 @@ export default function LeaveTransferPage(props: { searchParams: SearchParams })
     });
 
     // Normalize params for useLeaveCreditAndBalanceGrid
-    const normalizedParams = useMemo(() => ({
-        page: params.page,
-        page_size: params.page_size,
-        search_query: params.search_query || '',
-        sort_column: params.sort_column || '',
-        sort_direction: (params.sort_direction as 'asc' | 'desc') || 'asc'
-    }), [params]);
+    const normalizedParams = useMemo(
+        () => ({
+            page: params.page,
+            page_size: params.page_size,
+            search_query: params.search_query || '',
+            sort_column: params.sort_column || '',
+            sort_direction: (params.sort_direction as 'asc' | 'desc') || 'asc'
+        }),
+        [params]
+    );
 
     const { data: response, isLoading, error } = useLeaveCreditAndBalanceGrid(normalizedParams);
     return (
@@ -51,7 +54,6 @@ function LeaveTransferPageContent({
     isLoading: boolean;
     error: any;
 }) {
-
     const { openAddForm } = useFormContext<LeaveCreditBalanceGridItem>();
     const { openEditForm, openDeleteForm } = useFormContext<LeaveCreditBalanceGridItem>();
     const tableProps = useDataTableProps(response);
@@ -136,13 +138,13 @@ function FormSections() {
 
     const filteredEmployeeIds = useMemo(() => {
         if (!employeesData || !Array.isArray(employeesData)) return null;
-        return employeesData.map((e: any) => Number(e.HRME_Id || e.hrmE_Id)).filter(id => id);
+        return employeesData.map((e: any) => Number(e.HRME_Id || e.hrmE_Id)).filter((id) => id);
     }, [employeesData]);
 
     // --- Leave Data Hooks ---
     const { data: yearsData } = useLeaveYearDropdown();
     const { data: leavesData } = useLeaveDropdown();
-    console.log("leavesData", leavesData)
+    console.log('leavesData', leavesData);
 
     const leaveYears = useMemo(() => {
         return (yearsData?.data || []).map((y: any) => ({
@@ -160,24 +162,30 @@ function FormSections() {
 
     // --- Mapped Data ---
     const types = useMemo(() => {
-        return (groupTypesData?.data || []).map((item: any) => ({
-            id: Number(item.key || item.hrmgT_Id || item.id),
-            name: item.value || item.hrmgT_EmployeeGroupType || item.name || ''
-        })).filter((i: any) => i.id);
+        return (groupTypesData?.data || [])
+            .map((item: any) => ({
+                id: Number(item.key || item.hrmgT_Id || item.id),
+                name: item.value || item.hrmgT_EmployeeGroupType || item.name || ''
+            }))
+            .filter((i: any) => i.id);
     }, [groupTypesData]);
 
     const departments = useMemo(() => {
-        return (departmentsData?.data || []).map((item: any) => ({
-            id: Number(item.hrmD_Id || item.hrmd_id || item.key || item.id),
-            name: item.hrmD_DepartmentName || item.hrmd_departmentName || item.value || item.name || ''
-        })).filter((i: any) => i.id);
+        return (departmentsData?.data || [])
+            .map((item: any) => ({
+                id: Number(item.hrmD_Id || item.hrmd_id || item.key || item.id),
+                name: item.hrmD_DepartmentName || item.hrmd_departmentName || item.value || item.name || ''
+            }))
+            .filter((i: any) => i.id);
     }, [departmentsData]);
 
     const designations = useMemo(() => {
-        return (designationsData?.data || []).map((item: any) => ({
-            id: Number(item.hrmdeS_Id || item.hrmdes_id || item.key || item.id),
-            name: item.hrmdeS_DesignationName || item.hrmdes_designationName || item.value || item.name || ''
-        })).filter((i: any) => i.id);
+        return (designationsData?.data || [])
+            .map((item: any) => ({
+                id: Number(item.hrmdeS_Id || item.hrmdes_id || item.key || item.id),
+                name: item.hrmdeS_DesignationName || item.hrmdes_designationName || item.value || item.name || ''
+            }))
+            .filter((i: any) => i.id);
     }, [designationsData]);
 
     const handleFilterChange = (type: 'types' | 'departments' | 'designations', values: number[]) => {
@@ -194,18 +202,20 @@ function FormSections() {
     };
 
     // handleFormSubmit is no longer used by child, passed as dummy
-    const handleFormSubmit = (_formData: LeaveTransferFormData) => {
-    };
+    const handleFormSubmit = (_formData: LeaveTransferFormData) => {};
 
     const handleDelete = () => {
         if (selectedRow) {
-            deleteLeaveStatus.mutate({ hrels_id: selectedRow.hrelS_Id }, {
-                onSuccess: () => {
-                    toast.success('Leave transfer deleted successfully');
-                    refetchAll();
-                    closeDeleteForm();
+            deleteLeaveStatus.mutate(
+                { hrels_id: selectedRow.hrelS_Id },
+                {
+                    onSuccess: () => {
+                        toast.success('Leave transfer deleted successfully');
+                        refetchAll();
+                        closeDeleteForm();
+                    }
                 }
-            });
+            );
         }
     };
     return (

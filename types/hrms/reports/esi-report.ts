@@ -1,5 +1,3 @@
-import type { ApiResponse } from '@/lib/apiService';
-
 /**
  * Request interface for ESI Report onload
  */
@@ -139,4 +137,3 @@ export interface ESIReportSearchResponse {
     employeeDetails?: any[];
     [key: string]: any;
 }
-

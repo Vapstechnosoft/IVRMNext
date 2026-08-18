@@ -1,7 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { IEmployeePunchSaveRequest } from '@/types/hrms/attendance-management/masters';
+import type { IEmployeePunchSaveRequest } from '@/types/hrms/attendance-management/masters';
 
 /**
  * Save employee punch logs
@@ -9,11 +9,7 @@ import { IEmployeePunchSaveRequest } from '@/types/hrms/attendance-management/ma
  */
 export async function saveEmployeePunch(data: IEmployeePunchSaveRequest) {
     try {
-        const response = await api.post<any>(
-            'hrmsfrontoffice',
-            '/api/Employee_Add_logs_Manual/save_employee_punch',
-            data
-        );
+        const response = await api.post<any>('hrmsfrontoffice', '/api/Employee_Add_logs_Manual/save_employee_punch', data);
         if (response.success) {
             return {
                 success: true,
@@ -58,10 +54,7 @@ export async function getEmployeePunchDetails(foep_punchDate: string, hrme_id: n
  */
 export async function togglePunchDetail(foepd_id: number) {
     try {
-        const response = await api.put<any>(
-            'hrmsfrontoffice',
-            `/api/Employee_Add_logs_Manual/toggle_employee_punch_details/${foepd_id}`
-        );
+        const response = await api.put<any>('hrmsfrontoffice', `/api/Employee_Add_logs_Manual/toggle_employee_punch_details/${foepd_id}`);
         return response;
     } catch (error: any) {
         return {

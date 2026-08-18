@@ -6,15 +6,15 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { usebifurcationAcademicYear } from '@/hooks/timetable/constraints/bifurcationconstraints';
 import { usePeriodStaffGridData } from '@/hooks/timetable/constraints/fixingData';
-import { getdetailsAllFixing, getFixingPeriodStaffDetails } from '@/server/timetable/constraints/fixing';
+import { getFixingPeriodStaffDetails, getdetailsAllFixing } from '@/server/timetable/constraints/fixing';
 import { Plus, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { periodStaffColumns } from './periodstaffColumns';
-import PeriodStaffAddForm from './periodstaffAddForm';
-import PeriodStaffUpdate from './periodstaffUpdate';
-import PeriodStaffToggle from './periodstaffToggle';
 import { FixingViewModal } from '../fixing-view-modal';
+import PeriodStaffAddForm from './periodstaffAddForm';
+import { periodStaffColumns } from './periodstaffColumns';
+import PeriodStaffToggle from './periodstaffToggle';
+import PeriodStaffUpdate from './periodstaffUpdate';
 
 interface PeriodStaffTabProps {
     initialData: any;
@@ -76,7 +76,7 @@ function PeriodStaffTabContent({ initialData, searchParams }: PeriodStaffTabProp
     const academicList = (academicData as any)?.data || [];
 
     const { data: gridResponse, isLoading: isGridLoading, refetchAll } = usePeriodStaffGridData(searchParams);
-    console.log()
+    console.log();
 
     const gridData = (gridResponse as any)?.data || [];
     const totalItems = (gridResponse as any)?.total || gridData.length;
@@ -179,42 +179,42 @@ function PeriodStaffTabContent({ initialData, searchParams }: PeriodStaffTabProp
                 <div ref={isAddFormOpen ? addFormRef : editFormRef}>
                     <CollapsibleSection
                         title={isEditFormOpen ? 'Edit Period Staff Constraint' : 'Add New Period Staff Constraint'}
-                    defaultOpen={true}
-                    variant='outline'
-                    size='md'
-                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                    <div className='relative'>
-                        <Button
-                            type='button'
-                            onClick={isEditFormOpen ? closeEditForm : closeAddForm}
-                            variant='ghost'
-                            size='sm'
-                            className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                            <X className='h-4 w-4 text-destructive' /> Close
-                        </Button>
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={isEditFormOpen ? closeEditForm : closeAddForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
 
-                        {isAddFormOpen && (
-                            <PeriodStaffAddForm
-                                academicList={academicList}
-                                periodList={periodList}
-                                staffList={staffList}
-                                onSuccess={onFormSuccess}
-                                onCancel={closeAddForm}
-                            />
-                        )}
+                            {isAddFormOpen && (
+                                <PeriodStaffAddForm
+                                    academicList={academicList}
+                                    periodList={periodList}
+                                    staffList={staffList}
+                                    onSuccess={onFormSuccess}
+                                    onCancel={closeAddForm}
+                                />
+                            )}
 
-                        {isEditFormOpen && selectedRow && (
-                            <PeriodStaffUpdate
-                                academicList={academicList}
-                                periodList={periodList}
-                                staffList={staffList}
-                                selectedRow={selectedRow}
-                                onSuccess={onFormSuccess}
-                                onCancel={closeEditForm}
-                            />
-                        )}
-                    </div>
-                </CollapsibleSection>
+                            {isEditFormOpen && selectedRow && (
+                                <PeriodStaffUpdate
+                                    academicList={academicList}
+                                    periodList={periodList}
+                                    staffList={staffList}
+                                    selectedRow={selectedRow}
+                                    onSuccess={onFormSuccess}
+                                    onCancel={closeEditForm}
+                                />
+                            )}
+                        </div>
+                    </CollapsibleSection>
                 </div>
             )}
 

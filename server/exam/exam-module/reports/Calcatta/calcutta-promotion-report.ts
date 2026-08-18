@@ -3,7 +3,6 @@
 import { api } from '@/lib/apiService';
 import { ensureArray } from '@/lib/utils';
 
-
 /**
  * Fetches the term details for the dropdown based on section selection
  */
@@ -508,8 +507,8 @@ export async function getMultipleExamCumulativeReportCalcutta(data: any) {
     const res = await api.post<any>('exam', url, data);
     const response = res?.data || res || {};
 
-    console.log("=== CALCUTTA CUMULATIVE REPORT API RESPONSE === :", response);
-    console.log("Response Keys:", Object.keys(response));
+    console.log('=== CALCUTTA CUMULATIVE REPORT API RESPONSE === :', response);
+    console.log('Response Keys:', Object.keys(response));
 
     // 1. Get raw arrays from response (supporting both casings and unwrapping $values wrapper)
     const getinstitution = ensureArray(response.getinstitution || response.getInstitution);
@@ -519,22 +518,20 @@ export async function getMultipleExamCumulativeReportCalcutta(data: any) {
     const getsubjectslist = ensureArray(response.getsubjectslist || response.getSubjectsList);
     const getstudentlist = ensureArray(response.getstudentlist || response.getStudentList);
     const gettermdetails = ensureArray(response.gettermdetails || response.getTermDetails);
-    const getsubjectwisetotaldetails = ensureArray(
-        response.getsubjectwisetotaldetails || response.getSubjectWiseTotalDetails
-    );
+    const getsubjectwisetotaldetails = ensureArray(response.getsubjectwisetotaldetails || response.getSubjectWiseTotalDetails);
 
-    console.log("getinstitution count:", getinstitution.length);
-    console.log("getcumulativereportdetails count:", getcumulativereportdetails.length);
-    console.log("getsubjectslist count:", getsubjectslist.length);
-    console.log("getstudentlist count:", getstudentlist.length);
-    console.log("gettermdetails count:", gettermdetails.length);
-    console.log("getsubjectwisetotaldetails count:", getsubjectwisetotaldetails.length);
+    console.log('getinstitution count:', getinstitution.length);
+    console.log('getcumulativereportdetails count:', getcumulativereportdetails.length);
+    console.log('getsubjectslist count:', getsubjectslist.length);
+    console.log('getstudentlist count:', getstudentlist.length);
+    console.log('gettermdetails count:', gettermdetails.length);
+    console.log('getsubjectwisetotaldetails count:', getsubjectwisetotaldetails.length);
 
     if (getsubjectslist.length > 0) {
-        console.log("First item in getsubjectslist:", JSON.stringify(getsubjectslist[0]));
+        console.log('First item in getsubjectslist:', JSON.stringify(getsubjectslist[0]));
     }
     if (gettermdetails.length > 0) {
-        console.log("First item in gettermdetails:", JSON.stringify(gettermdetails[0]));
+        console.log('First item in gettermdetails:', JSON.stringify(gettermdetails[0]));
     }
 
     // 2. Normalize fields of getinstitution
@@ -638,7 +635,6 @@ export async function getMultipleExamCumulativeReportCalcutta(data: any) {
         AMST_AdmNo: stu.AMST_AdmNo ?? stu.amst_AdmNo ?? stu.amsT_AdmNo ?? '',
         ATTENDANCEPERCENTAGE: stu.ATTENDANCEPERCENTAGE ?? stu.attendancepercentage ?? 0
     }));
-
 
     // 9. Map marks and totals to students
     const studentListWithMarks = normalizedStudentList.map((stu: any) => {

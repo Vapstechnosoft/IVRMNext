@@ -4,15 +4,14 @@ import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { pcIndentSchema, type PcIndentFormValues } from '@/schemas/pettycash/transaction/pcIndent';
+import { useDepartmentName } from '@/hooks/pettycash/transaction/pcREQUISITION';
+import { type PcIndentFormValues, pcIndentSchema } from '@/schemas/pettycash/transaction/pcIndent';
 import { saveIndent } from '@/server/pettycash/transaction/pcIndent';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 import { useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { useDepartmentName } from '@/hooks/pettycash/transaction/pcREQUISITION';
-import { useSession } from 'next-auth/react';
 
 interface AddPcIndentFormProps {
     onSuccess?: () => void;
@@ -23,12 +22,7 @@ export default function AddPcIndentForm({ onSuccess, className = '' }: AddPcInde
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const { data: session } = useSession();
 
-    const mi_id =
-        (session as any)?.mi_id ||
-        (session as any)?.mi_Id ||
-        (session as any)?.user?.mi_Id ||
-        (session as any)?.user?.mi_id ||
-        0;
+    const mi_id = (session as any)?.mi_id || (session as any)?.mi_Id || (session as any)?.user?.mi_Id || (session as any)?.user?.mi_id || 0;
 
     const {
         handleSubmit,
@@ -46,7 +40,7 @@ export default function AddPcIndentForm({ onSuccess, className = '' }: AddPcInde
     });
 
     const { data: departmentRes, isLoading: isLoadingDept } = useDepartmentName({ id: mi_id, enabled: true });
-    const departments = Array.isArray(departmentRes) ? departmentRes : (departmentRes as any)?.data ?? [];
+    const departments = Array.isArray(departmentRes) ? departmentRes : ((departmentRes as any)?.data ?? []);
 
     const onSubmit: SubmitHandler<PcIndentFormValues> = async (data) => {
         try {
@@ -67,7 +61,7 @@ export default function AddPcIndentForm({ onSuccess, className = '' }: AddPcInde
                 toast.error(response.message || 'Failed to save indent');
             }
         } catch (error: any) {
-            console.error("Save Error:", error);
+            console.error('Save Error:', error);
             toast.error(error.message || 'An error occurred during save');
         }
     };
@@ -79,11 +73,9 @@ export default function AddPcIndentForm({ onSuccess, className = '' }: AddPcInde
                     setHasSubmitted(true);
                     handleSubmit(onSubmit)(e);
                 }}
-                className='space-y-6'
-            >
+                className='space-y-6'>
                 <div className='rounded-xl border bg-card p-6 shadow-sm'>
                     <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-
                         {/* Organization */}
                         <div className='space-y-2'>
                             <Label>Organization *</Label>
@@ -94,8 +86,7 @@ export default function AddPcIndentForm({ onSuccess, className = '' }: AddPcInde
                                     <Select
                                         onValueChange={(val) => field.onChange(Number(val))}
                                         value={field.value ? field.value.toString() : ''}
-                                        disabled={isLoadingDept}
-                                    >
+                                        disabled={isLoadingDept}>
                                         <SelectTrigger className={hasSubmitted && errors.mdept_Id ? 'border-destructive' : ''}>
                                             <SelectValue placeholder={isLoadingDept ? 'Loading...' : 'Select Department'} />
                                         </SelectTrigger>
@@ -126,9 +117,7 @@ export default function AddPcIndentForm({ onSuccess, className = '' }: AddPcInde
                                     />
                                 )}
                             />
-                            {hasSubmitted && errors.pcindT_FromDate && (
-                                <FormError>{errors.pcindT_FromDate.message as string}</FormError>
-                            )}
+                            {hasSubmitted && errors.pcindT_FromDate && <FormError>{errors.pcindT_FromDate.message as string}</FormError>}
                         </div>
 
                         {/* To Date */}
@@ -145,15 +134,12 @@ export default function AddPcIndentForm({ onSuccess, className = '' }: AddPcInde
                                     />
                                 )}
                             />
-                            {hasSubmitted && errors.pcindT_ToDate && (
-                                <FormError>{errors.pcindT_ToDate.message as string}</FormError>
-                            )}
+                            {hasSubmitted && errors.pcindT_ToDate && <FormError>{errors.pcindT_ToDate.message as string}</FormError>}
                         </div>
-
                     </div>
 
                     {/* Buttons */}
-                    <div className='flex items-center justify-end gap-3 pt-4 border-t mt-6'>
+                    <div className='mt-6 flex items-center justify-end gap-3 border-t pt-4'>
                         <Button
                             type='button'
                             variant='outline'
@@ -161,8 +147,7 @@ export default function AddPcIndentForm({ onSuccess, className = '' }: AddPcInde
                                 reset();
                                 setHasSubmitted(false);
                             }}
-                            disabled={isSubmitting}
-                        >
+                            disabled={isSubmitting}>
                             Reset
                         </Button>
 

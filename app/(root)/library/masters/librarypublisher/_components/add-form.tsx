@@ -90,6 +90,15 @@ export default function AddMasterPublisherForm({ onSuccess, className = '' }: Ad
                             label='Mobile No'
                             id='lmP_MobileNo'
                             placeholder='10-digit mobile number'
+                            maxLength={10}
+                            onKeyDown={(e) => {
+                                if (e.key.length === 1 && !/^[0-9]$/.test(e.key) && !e.ctrlKey && !e.metaKey) {
+                                    e.preventDefault();
+                                }
+                            }}
+                            onInput={(e: React.FormEvent<HTMLInputElement>) => {
+                                e.currentTarget.value = e.currentTarget.value.replace(/\D/g, '').slice(0, 10);
+                            }}
                             {...register('lmP_MobileNo')}
                             error={errors.lmP_MobileNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'

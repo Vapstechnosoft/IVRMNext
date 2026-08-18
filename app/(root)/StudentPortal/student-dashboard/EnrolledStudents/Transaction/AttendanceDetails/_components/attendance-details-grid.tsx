@@ -1,7 +1,7 @@
 'use client';
 
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { attendanceColumns, AttendanceRecord } from './columns';
+import { type AttendanceRecord, attendanceColumns } from './columns';
 
 interface AttendanceDetailsGridProps {
     data: AttendanceRecord[];

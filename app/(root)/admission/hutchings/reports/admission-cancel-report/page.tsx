@@ -1,28 +1,28 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Printer, FileSpreadsheet, X } from 'lucide-react';
-import { useReactToPrint } from 'react-to-print';
 import { format } from 'date-fns';
+import { FileSpreadsheet, Printer, X } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useReactToPrint } from 'react-to-print';
 import * as XLSX from 'xlsx';
+import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 
 import {
-    useAdmissionCancelReportInitialDetails,
-    useAdmissionCancelReportByYearMutation
+    useAdmissionCancelReportByYearMutation,
+    useAdmissionCancelReportInitialDetails
 } from '@/hooks/admission/hutchings/useAdmissionCancelReport';
 
 const formSchema = z.object({
-    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMAY_Id: z.string().min(1, 'Academic Year is required')
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -34,7 +34,7 @@ export default function AdmissionCancelReport() {
 
     // Fetch initial details (Academic Years)
     const { data: initialDetails, isLoading: isInitialLoading } = useAdmissionCancelReportInitialDetails();
-    
+
     const academicYears: any[] = (initialDetails as any)?.allAcademicYear || [];
 
     const fetchReportMutation = useAdmissionCancelReportByYearMutation();
@@ -42,8 +42,8 @@ export default function AdmissionCancelReport() {
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            ASMAY_Id: '',
-        },
+            ASMAY_Id: ''
+        }
     });
 
     const onSubmit = (data: FormValues) => {
@@ -80,7 +80,7 @@ export default function AdmissionCancelReport() {
 
     const handlePrint = useReactToPrint({
         contentRef: printRef,
-        documentTitle: 'Admission_Cancel_Report',
+        documentTitle: 'Admission_Cancel_Report'
     });
 
     const handleExcelExport = () => {
@@ -92,13 +92,13 @@ export default function AdmissionCancelReport() {
         const excelData = (Array.isArray(reportData) ? reportData : []).map((item, index) => ({
             'Sl.No': index + 1,
             'Student Name': item.studentname,
-            'Admno': item.amsT_AdmNo,
-            'Class': item.asmcL_ClassName,
-            'Section': item.asmC_SectionName,
-            'Date': item.aacA_ACDate ? format(new Date(item.aacA_ACDate), 'dd-MM-yyyy') : '',
-            'Reason': item.aacA_ACReason,
+            Admno: item.amsT_AdmNo,
+            Class: item.asmcL_ClassName,
+            Section: item.asmC_SectionName,
+            Date: item.aacA_ACDate ? format(new Date(item.aacA_ACDate), 'dd-MM-yyyy') : '',
+            Reason: item.aacA_ACReason,
             'Cancelled Fee': item.aacA_CancellationFee,
-            'Refund Amount': item.aacA_ToRefundAmount,
+            'Refund Amount': item.aacA_ToRefundAmount
         }));
 
         const worksheet = XLSX.utils.json_to_sheet(excelData);
@@ -110,7 +110,7 @@ export default function AdmissionCancelReport() {
     const columns = [
         {
             header: 'Sl.No',
-            cell: (info: any) => info.row.index + 1,
+            cell: (info: any) => info.row.index + 1
         },
         { accessorKey: 'asmaY_Year', header: 'Year' },
         { accessorKey: 'studentname', header: 'Student Name' },
@@ -120,34 +120,33 @@ export default function AdmissionCancelReport() {
         {
             accessorKey: 'aacA_ACDate',
             header: 'Date',
-            cell: (info: any) => info.getValue() ? format(new Date(info.getValue()), 'dd-MM-yyyy') : '',
+            cell: (info: any) => (info.getValue() ? format(new Date(info.getValue()), 'dd-MM-yyyy') : '')
         },
         { accessorKey: 'aacA_ACReason', header: 'Reason' },
         { accessorKey: 'aacA_CancellationFee', header: 'Cancelled Fee' },
-        { accessorKey: 'aacA_ToRefundAmount', header: 'Refund Amount' },
+        { accessorKey: 'aacA_ToRefundAmount', header: 'Refund Amount' }
     ];
 
     return (
-        <div className="min-h-screen p-4 space-y-6">
+        <div className='min-h-screen space-y-6 p-4'>
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
                     <CollapsibleSection
-                        title="Student Cancel Or Withdraw Report"
-                        description="View students who have cancelled or withdrawn their admission"
+                        title='Student Cancel Or Withdraw Report'
+                        description='View students who have cancelled or withdrawn their admission'
                         defaultOpen={true}
-                        variant="outline"
-                        className="shadow-lg"
-                    >
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6 bg-white">
+                        variant='outline'
+                        className='shadow-lg'>
+                        <div className='grid grid-cols-1 gap-8 bg-white p-6 md:grid-cols-2'>
                             <FormField
                                 control={form.control}
-                                name="ASMAY_Id"
+                                name='ASMAY_Id'
                                 render={({ field }) => (
-                                    <FormItem className="grid grid-cols-[120px_1fr] items-center gap-4">
-                                        <FormLabel className="text-sm font-bold m-0 pt-2 text-right">
-                                            Academic Year:<span className="text-red-500">*</span>
+                                    <FormItem className='grid grid-cols-[120px_1fr] items-center gap-4'>
+                                        <FormLabel className='m-0 pt-2 text-right font-bold text-sm'>
+                                            Academic Year:<span className='text-red-500'>*</span>
                                         </FormLabel>
-                                        <div className="space-y-1">
+                                        <div className='space-y-1'>
                                             <Select
                                                 onValueChange={(val) => {
                                                     field.onChange(val);
@@ -155,11 +154,10 @@ export default function AdmissionCancelReport() {
                                                     form.handleSubmit(onSubmit)();
                                                 }}
                                                 value={field.value}
-                                                disabled={isInitialLoading}
-                                            >
+                                                disabled={isInitialLoading}>
                                                 <FormControl>
-                                                    <SelectTrigger className="h-8">
-                                                        <SelectValue placeholder="--Select Year--" />
+                                                    <SelectTrigger className='h-8'>
+                                                        <SelectValue placeholder='--Select Year--' />
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
@@ -176,29 +174,26 @@ export default function AdmissionCancelReport() {
                                 )}
                             />
 
-                            <div className="flex flex-wrap items-center justify-center gap-4">
+                            <div className='flex flex-wrap items-center justify-center gap-4'>
                                 <Button
-                                    type="button"
+                                    type='button'
                                     onClick={handleClear}
-                                    className="bg-red-500 hover:bg-red-600 text-white min-w-[100px]"
-                                >
-                                    <X className="mr-2 h-4 w-4" /> Cancel
+                                    className='min-w-[100px] bg-red-500 text-white hover:bg-red-600'>
+                                    <X className='mr-2 h-4 w-4' /> Cancel
                                 </Button>
                                 <Button
-                                    type="button"
+                                    type='button'
                                     onClick={handleExcelExport}
                                     disabled={reportData.length === 0}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white min-w-[100px]"
-                                >
-                                    <FileSpreadsheet className="mr-2 h-4 w-4" /> Export To Excel
+                                    className='min-w-[100px] bg-blue-600 text-white hover:bg-blue-700'>
+                                    <FileSpreadsheet className='mr-2 h-4 w-4' /> Export To Excel
                                 </Button>
                                 <Button
-                                    type="button"
+                                    type='button'
                                     onClick={handlePrint}
                                     disabled={reportData.length === 0}
-                                    className="bg-gray-200 hover:bg-gray-300 text-gray-800 min-w-[100px]"
-                                >
-                                    <Printer className="mr-2 h-4 w-4" /> Print
+                                    className='min-w-[100px] bg-gray-200 text-gray-800 hover:bg-gray-300'>
+                                    <Printer className='mr-2 h-4 w-4' /> Print
                                 </Button>
                             </div>
                         </div>
@@ -210,10 +205,9 @@ export default function AdmissionCancelReport() {
                 <CollapsibleSection
                     title="STUDENT'S CANCEL OR WITH DRAW REPORT DETAILS"
                     defaultOpen={true}
-                    variant="outline"
-                    className="shadow-lg"
-                >
-                    <div className="p-4 bg-white">
+                    variant='outline'
+                    className='shadow-lg'>
+                    <div className='bg-white p-4'>
                         <GenericDataTable
                             data={reportData}
                             columns={columns}
@@ -226,39 +220,39 @@ export default function AdmissionCancelReport() {
             )}
 
             {/* Print Layout */}
-            <div className="hidden">
-                <div ref={printRef} className="p-8">
-                    <div className="text-center mb-6">
-                        <h2 className="text-xl font-bold mb-2">Admission Cancelled Report : {selectedYearName}</h2>
+            <div className='hidden'>
+                <div ref={printRef} className='p-8'>
+                    <div className='mb-6 text-center'>
+                        <h2 className='mb-2 font-bold text-xl'>Admission Cancelled Report : {selectedYearName}</h2>
                     </div>
-                    <table className="w-full border-collapse border border-gray-300 mt-4 text-sm">
+                    <table className='mt-4 w-full border-collapse border border-gray-300 text-sm'>
                         <thead>
-                            <tr className="bg-gray-100">
-                                <th className="border border-gray-300 p-2 text-center">Sl.No</th>
-                                <th className="border border-gray-300 p-2 text-left">Student Name</th>
-                                <th className="border border-gray-300 p-2 text-left">Admno</th>
-                                <th className="border border-gray-300 p-2 text-center">Class</th>
-                                <th className="border border-gray-300 p-2 text-left">Section</th>
-                                <th className="border border-gray-300 p-2 text-center">Date</th>
-                                <th className="border border-gray-300 p-2 text-left">Reason</th>
-                                <th className="border border-gray-300 p-2 text-right">Cancelled Fee</th>
-                                <th className="border border-gray-300 p-2 text-right">Refund Amount</th>
+                            <tr className='bg-gray-100'>
+                                <th className='border border-gray-300 p-2 text-center'>Sl.No</th>
+                                <th className='border border-gray-300 p-2 text-left'>Student Name</th>
+                                <th className='border border-gray-300 p-2 text-left'>Admno</th>
+                                <th className='border border-gray-300 p-2 text-center'>Class</th>
+                                <th className='border border-gray-300 p-2 text-left'>Section</th>
+                                <th className='border border-gray-300 p-2 text-center'>Date</th>
+                                <th className='border border-gray-300 p-2 text-left'>Reason</th>
+                                <th className='border border-gray-300 p-2 text-right'>Cancelled Fee</th>
+                                <th className='border border-gray-300 p-2 text-right'>Refund Amount</th>
                             </tr>
                         </thead>
                         <tbody>
                             {(Array.isArray(reportData) ? reportData : []).map((item, index) => (
                                 <tr key={index}>
-                                    <td className="border border-gray-300 p-2 text-center">{index + 1}</td>
-                                    <td className="border border-gray-300 p-2 text-left">{item.studentname}</td>
-                                    <td className="border border-gray-300 p-2 text-left">{item.amsT_AdmNo}</td>
-                                    <td className="border border-gray-300 p-2 text-center">{item.asmcL_ClassName}</td>
-                                    <td className="border border-gray-300 p-2 text-left">{item.asmC_SectionName}</td>
-                                    <td className="border border-gray-300 p-2 text-center">
+                                    <td className='border border-gray-300 p-2 text-center'>{index + 1}</td>
+                                    <td className='border border-gray-300 p-2 text-left'>{item.studentname}</td>
+                                    <td className='border border-gray-300 p-2 text-left'>{item.amsT_AdmNo}</td>
+                                    <td className='border border-gray-300 p-2 text-center'>{item.asmcL_ClassName}</td>
+                                    <td className='border border-gray-300 p-2 text-left'>{item.asmC_SectionName}</td>
+                                    <td className='border border-gray-300 p-2 text-center'>
                                         {item.aacA_ACDate ? format(new Date(item.aacA_ACDate), 'dd-MM-yyyy') : ''}
                                     </td>
-                                    <td className="border border-gray-300 p-2 text-left">{item.aacA_ACReason}</td>
-                                    <td className="border border-gray-300 p-2 text-right">{item.aacA_CancellationFee}</td>
-                                    <td className="border border-gray-300 p-2 text-right">{item.aacA_ToRefundAmount}</td>
+                                    <td className='border border-gray-300 p-2 text-left'>{item.aacA_ACReason}</td>
+                                    <td className='border border-gray-300 p-2 text-right'>{item.aacA_CancellationFee}</td>
+                                    <td className='border border-gray-300 p-2 text-right'>{item.aacA_ToRefundAmount}</td>
                                 </tr>
                             ))}
                         </tbody>

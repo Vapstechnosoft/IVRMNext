@@ -233,7 +233,6 @@ export const studentApplicationFormUpdateSchema = {
         pasR_Id: z.number().int().optional(), // Made optional for add operation
         pasR_RegistrationNo: z.string().optional(),
 
-
         // Student Details
         pasR_FirstName: createStringOnlySchema('First Name', 1, 100),
         pasR_MiddleName: createStringOnlySchema('Middle Name', 1, 100),

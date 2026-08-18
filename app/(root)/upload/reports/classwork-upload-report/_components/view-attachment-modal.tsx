@@ -51,11 +51,7 @@ export const ViewAttachmentModal = ({ isOpen, onClose, attachments }: ViewAttach
                                         <TableCell>{att.icwatT_FileName}</TableCell>
                                         <TableCell className='text-center'>
                                             {att.icW_Attachment !== 'HyperLink' && (
-                                                <Button
-                                                    variant='ghost'
-                                                    size='icon'
-                                                    onClick={() => handlePreview(att.icwatT_Attachment)}
-                                                >
+                                                <Button variant='ghost' size='icon' onClick={() => handlePreview(att.icwatT_Attachment)}>
                                                     <Eye className='h-4 w-4' />
                                                 </Button>
                                             )}

@@ -129,7 +129,7 @@ export const ReportForm = ({ onReportGenerated, onReset, onPrint }: ReportFormPr
                     Number(watchClass),
                     Number(watchSection)
                 );
-                
+
                 const list = Array.isArray(response?.data) ? response.data : [];
                 setStudents(list);
                 setValue('AMST_Id', '');
@@ -151,7 +151,7 @@ export const ReportForm = ({ onReportGenerated, onReset, onPrint }: ReportFormPr
                 AMST_Id: Number(data.AMST_Id),
                 ASMAY_Id: Number(data.ASMAY_Id),
                 ASMCL_Id: Number(data.ASMCL_Id),
-                ASMS_Id: Number(data.ASMS_Id),
+                ASMS_Id: Number(data.ASMS_Id)
             };
 
             console.log('HHS01 Report payload:', payload);
@@ -165,7 +165,14 @@ export const ReportForm = ({ onReportGenerated, onReset, onPrint }: ReportFormPr
             const selectedSection = sections.find((s: any) => String(s.asmS_Id) === data.ASMS_Id);
             const selectedSectionName = selectedSection?.asmC_SectionName || '';
 
-            if (response && (response.success !== false) && ((response as any).stu_details || (response as any).fillterms || (response as any).data?.stu_details || (response as any).data?.studentDetails)) {
+            if (
+                response &&
+                response.success !== false &&
+                ((response as any).stu_details ||
+                    (response as any).fillterms ||
+                    (response as any).data?.stu_details ||
+                    (response as any).data?.studentDetails)
+            ) {
                 const reportData = (response as any).data || response;
                 onReportGenerated(reportData, selectedYearName, selectedClassName, selectedSectionName, data.re_opendate || null);
                 toast.success('Report card data fetched successfully');
@@ -310,12 +317,17 @@ export const ReportForm = ({ onReportGenerated, onReset, onPrint }: ReportFormPr
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {students.map((student: any) => {
-                                                    const studentName = student.studentname || student.studentName || student.amsT_FirstName || `${student.amsT_FirstName ?? ''} ${student.amsT_MiddleName ?? ''} ${student.amsT_LastName ?? ''}`.trim();
+                                                    const studentName =
+                                                        student.studentname ||
+                                                        student.studentName ||
+                                                        student.amsT_FirstName ||
+                                                        `${student.amsT_FirstName ?? ''} ${student.amsT_MiddleName ?? ''} ${student.amsT_LastName ?? ''}`.trim();
                                                     return (
-                                                    <SelectItem key={student.amsT_Id} value={String(student.amsT_Id)}>
-                                                        {studentName}
-                                                    </SelectItem>
-                                                )})}
+                                                        <SelectItem key={student.amsT_Id} value={String(student.amsT_Id)}>
+                                                            {studentName}
+                                                        </SelectItem>
+                                                    );
+                                                })}
                                             </SelectContent>
                                         </Select>
                                         {fieldState.error && <FormError>{fieldState.error.message}</FormError>}

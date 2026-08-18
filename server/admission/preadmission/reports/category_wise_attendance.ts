@@ -1,6 +1,6 @@
 'use server';
 
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import { format } from 'date-fns';
 
@@ -26,4 +26,3 @@ export const getCategoryWiseAttendanceReport = async (
         categorylistarray: categoryIds.map((id) => ({ amC_Id: id }))
     });
 };
-

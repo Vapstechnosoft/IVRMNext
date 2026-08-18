@@ -20,10 +20,7 @@ export interface YearRow {
     [key: string]: any;
 }
 
-export const getEmployeeYearlyReportColumns = (
-    dynamicMonths: string[] = [],
-    modes: string[] = []
-): ColumnDef<YearRow>[] => {
+export const getEmployeeYearlyReportColumns = (dynamicMonths: string[] = [], modes: string[] = []): ColumnDef<YearRow>[] => {
     const columns: ColumnDef<YearRow>[] = [
         {
             id: 'select',
@@ -86,8 +83,6 @@ export const getEmployeeYearlyReportColumns = (
             enableHiding: true
         });
     });
-
-
 
     if (modes.includes('Total working Day')) {
         columns.push({

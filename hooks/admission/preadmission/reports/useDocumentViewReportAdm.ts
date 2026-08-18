@@ -1,12 +1,12 @@
 'use client';
 
-import { useMutation, useQuery } from '@tanstack/react-query';
 import { PREADMISSION_QUERY_KEYS } from '@/constants/query-keys';
 import {
+    getDocumentViewReportData,
     getDocumentViewReportInitialDetails,
-    getDocumentViewReportStudents,
-    getDocumentViewReportData
+    getDocumentViewReportStudents
 } from '@/server/admission/preadmission/reports/document_view_report_adm';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const useDocumentViewReportInitialDetails = () => {
     return useQuery({

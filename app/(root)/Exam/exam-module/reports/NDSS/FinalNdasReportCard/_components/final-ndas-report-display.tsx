@@ -476,7 +476,7 @@ export default function FinalNdasReportDisplay({ data, date, onPrint }: Props) {
                                     <h3 className="text-[16px] font-bold">Additional Subjects</h3>
                                 </div>
 
-                                <table className="nds-table">
+                                <table className='nds-table'>
                                     <thead>
                                         <tr>
                                             <th className="w-[180px] bg-white border border-black"></th>

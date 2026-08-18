@@ -2,35 +2,37 @@ import { z } from 'zod';
 import { deleteIdSchema } from '../validationSchemas';
 
 export const masterEventCoeSchema = {
-    addOrUpdate: z.object({
-        masterevent: z.string().min(1, 'Master Event Name is required'),
-        masterDescription: z.string().min(1, 'Master Description is required'),
-        smsContent: z.string().optional(),
-        smsparameter: z.string().optional(),
-        emailSubject: z.string().min(1, 'Email Subject is required'),
-        emailHeader: z.string().min(1, 'Email Header is required'),
-        emailMessage: z.string().optional(),
-        eemailParamter: z.string().optional(),
-        emailFooter: z.string().min(1, 'Email Footer is required'),
-        type: z.enum(['mc', 'dc']).default('mc'),
-    }).superRefine((data, ctx) => {
-        if (data.type === 'mc') {
-            if (!data.smsContent) {
-                ctx.addIssue({
-                    code: z.ZodIssueCode.custom,
-                    message: "SMS Content is required",
-                    path: ["smsContent"]
-                });
+    addOrUpdate: z
+        .object({
+            masterevent: z.string().min(1, 'Master Event Name is required'),
+            masterDescription: z.string().min(1, 'Master Description is required'),
+            smsContent: z.string().optional(),
+            smsparameter: z.string().optional(),
+            emailSubject: z.string().min(1, 'Email Subject is required'),
+            emailHeader: z.string().min(1, 'Email Header is required'),
+            emailMessage: z.string().optional(),
+            eemailParamter: z.string().optional(),
+            emailFooter: z.string().min(1, 'Email Footer is required'),
+            type: z.enum(['mc', 'dc']).default('mc')
+        })
+        .superRefine((data, ctx) => {
+            if (data.type === 'mc') {
+                if (!data.smsContent) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: 'SMS Content is required',
+                        path: ['smsContent']
+                    });
+                }
+                if (!data.emailMessage) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: 'Email Message is required',
+                        path: ['emailMessage']
+                    });
+                }
             }
-            if (!data.emailMessage) {
-                ctx.addIssue({
-                    code: z.ZodIssueCode.custom,
-                    message: "Email Message is required",
-                    path: ["emailMessage"]
-                });
-            }
-        }
-    }),
+        }),
     delete: z.object({
         coemE_Id: deleteIdSchema('coemE_Id')
     })
@@ -58,26 +60,38 @@ export const mappingEventCoeSchema = {
         classes: z.array(z.number()).optional(),
         staffTypes: z.array(z.number()).optional(),
         alumniYear: z.number().optional(),
-        others: z.array(z.object({
-            name: z.string().optional(),
-            mobile: z.string().optional(),
-            email: z.string().optional()
-        })).optional(),
-        uploads: z.array(z.object({
-            name: z.string().optional(),
-            fileKey: z.string().optional(), // For storing the file path/url after upload
-            // We might need to handle the actual File object separately in the form component state if not directly in z.infer
-        })).optional(),
-        videos: z.array(z.object({
-            name: z.string().optional(),
-            url: z.string().optional(), // Or fileKey if it's an uploaded video
-        })).optional(),
+        others: z
+            .array(
+                z.object({
+                    name: z.string().optional(),
+                    mobile: z.string().optional(),
+                    email: z.string().optional()
+                })
+            )
+            .optional(),
+        uploads: z
+            .array(
+                z.object({
+                    name: z.string().optional(),
+                    fileKey: z.string().optional() // For storing the file path/url after upload
+                    // We might need to handle the actual File object separately in the form component state if not directly in z.infer
+                })
+            )
+            .optional(),
+        videos: z
+            .array(
+                z.object({
+                    name: z.string().optional(),
+                    url: z.string().optional() // Or fileKey if it's an uploaded video
+                })
+            )
+            .optional(),
         smsMessage: z.string().optional(), // Read-only from master event usually, but payload includes it
         mailSubject: z.string().optional(),
         mailHeader: z.string().optional(),
         mailFooter: z.string().optional(),
         mailMessage: z.string().optional(),
-        mailTemplate: z.string().optional(),
+        mailTemplate: z.string().optional()
     })
 };
 

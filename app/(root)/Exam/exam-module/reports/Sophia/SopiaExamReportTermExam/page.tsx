@@ -1,10 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { useState } from 'react';
 import SopiaExamReportTermExamForm from './_components/report-form';
 import SopiaExamReportTermExamView from './_components/report-list';
-
 
 export default function SopiaExamReportTermExamPage() {
     const [reportData, setReportData] = useState<any>(null);

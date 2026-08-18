@@ -1,15 +1,15 @@
 'use client';
 
-import React, { use } from 'react';
-import { useForm, FormProvider } from 'react-hook-form';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useEventsStudentMapping } from '@/hooks/sports/useEventsStudentMapping';
+import React, { use } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
 import { eventsStudentMappingColumns } from './_components/columns';
 import EventsStudentMappingForm from './_components/mapping-form';
 
-import { IEventsStudentMappingData } from '@/types/sports/events-student-mapping';
 import { Button } from '@/components/ui/button';
+import type { IEventsStudentMappingData } from '@/types/sports/events-student-mapping';
 import { Plus, X } from 'lucide-react';
 
 export default function EventsStudentMappingPage(props: { searchParams: Promise<any> }) {
@@ -18,11 +18,11 @@ export default function EventsStudentMappingPage(props: { searchParams: Promise<
 
     return (
         <FormProvider {...useForm()}>
-            <EventsStudentMappingPageContent 
-                response={loadData.data} 
-                isLoading={loadData.isPending || loadData.isFetching} 
-                error={loadData.error} 
-                refetchAll={refetchAll} 
+            <EventsStudentMappingPageContent
+                response={loadData.data}
+                isLoading={loadData.isPending || loadData.isFetching}
+                error={loadData.error}
+                refetchAll={refetchAll}
             />
         </FormProvider>
     );

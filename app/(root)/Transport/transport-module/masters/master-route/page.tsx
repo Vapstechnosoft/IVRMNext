@@ -23,12 +23,7 @@ export default function MasterRoutePage(props: { searchParams: SearchParams }) {
         <FormProvider<IMasterRoute>>
             <div className='min-h-screen'>
                 <div className='container space-y-4 p-1'>
-                    <MasterRoutePageContent
-                        response={response}
-                        isLoading={isLoading}
-                        error={error}
-                        refetchAll={refetchAll}
-                    />
+                    <MasterRoutePageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
                 </div>
             </div>
         </FormProvider>
@@ -149,9 +144,7 @@ function FormSections() {
                 </div>
             )}
 
-            {isToggleFormOpen && selectedRow && (
-                <ToggleRouteForm rowData={selectedRow} onClose={closeToggleForm} />
-            )}
+            {isToggleFormOpen && selectedRow && <ToggleRouteForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

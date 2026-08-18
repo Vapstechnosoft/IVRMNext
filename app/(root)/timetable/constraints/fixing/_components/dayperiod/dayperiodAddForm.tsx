@@ -267,7 +267,9 @@ export default function DayPeriodAddForm({ academicList, categoryList, dayList, 
                         name='asmcL_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Class <span className='text-red-500'>*</span></FormLabel>
+                                <FormLabel>
+                                    Class <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => handleClassChange(Number(v))}
@@ -295,7 +297,9 @@ export default function DayPeriodAddForm({ academicList, categoryList, dayList, 
                         name='asmS_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Section <span className='text-red-500'>*</span></FormLabel>
+                                <FormLabel>
+                                    Section <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => handleSectionChange(Number(v))}
@@ -325,7 +329,9 @@ export default function DayPeriodAddForm({ academicList, categoryList, dayList, 
                         name='hrmE_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Staff <span className='text-red-500'>*</span></FormLabel>
+                                <FormLabel>
+                                    Staff <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => handleStaffChange(Number(v))}
@@ -353,7 +359,9 @@ export default function DayPeriodAddForm({ academicList, categoryList, dayList, 
                         name='ismS_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Subject <span className='text-red-500'>*</span></FormLabel>
+                                <FormLabel>
+                                    Subject <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => field.onChange(Number(v))}
@@ -381,7 +389,9 @@ export default function DayPeriodAddForm({ academicList, categoryList, dayList, 
                         name='ttmD_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Day <span className='text-red-500'>*</span></FormLabel>
+                                <FormLabel>
+                                    Day <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => field.onChange(Number(v))}
@@ -409,7 +419,9 @@ export default function DayPeriodAddForm({ academicList, categoryList, dayList, 
                         name='ttmP_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Period <span className='text-red-500'>*</span></FormLabel>
+                                <FormLabel>
+                                    Period <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => field.onChange(Number(v))}
@@ -445,4 +457,3 @@ export default function DayPeriodAddForm({ academicList, categoryList, dayList, 
         </Form>
     );
 }
-

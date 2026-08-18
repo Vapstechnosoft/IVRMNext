@@ -1,9 +1,9 @@
 'use client';
 
-import { Control, Controller, FieldValues, Path } from 'react-hook-form';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { TimePicker } from './time-picker';
 import { cn } from '@/lib/utils';
+import { type Control, Controller, type FieldValues, type Path } from 'react-hook-form';
+import { TimePicker } from './time-picker';
 
 interface FormTimePickerProps<T extends FieldValues> {
     control: Control<T>;
@@ -31,10 +31,10 @@ export function FormTimePicker<T extends FieldValues>({
             control={control}
             name={name}
             render={({ field, fieldState: { error: fieldError } }) => (
-                <div className={cn("group flex flex-col gap-2", className)}>
+                <div className={cn('group flex flex-col gap-2', className)}>
                     {label && (
-                        <Label htmlFor={name} className={cn(fieldError && "text-red-500")}>
-                            {label} {required && <span className="ml-1 text-red-500">*</span>}
+                        <Label htmlFor={name} className={cn(fieldError && 'text-red-500')}>
+                            {label} {required && <span className='ml-1 text-red-500'>*</span>}
                         </Label>
                     )}
                     <TimePicker
@@ -42,13 +42,9 @@ export function FormTimePicker<T extends FieldValues>({
                         onChange={field.onChange}
                         disabled={disabled}
                         min={min}
-                        className={cn(
-                            fieldError && "border-red-500 focus:border-red-500 focus:ring-red-500"
-                        )}
+                        className={cn(fieldError && 'border-red-500 focus:border-red-500 focus:ring-red-500')}
                     />
-                    {(fieldError?.message || error) && (
-                        <FormError>{fieldError?.message || error}</FormError>
-                    )}
+                    {(fieldError?.message || error) && <FormError>{fieldError?.message || error}</FormError>}
                 </div>
             )}
         />

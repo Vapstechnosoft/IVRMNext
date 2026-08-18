@@ -4,14 +4,6 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
 import { HomeWorkUploadedList, useHomeWork } from '@/hooks/upload/transactions/useHomeWork';
 import type { IHomeWorkDetails } from '@/types/upload/reports/homework-upload-report';
 import { Plus, X } from 'lucide-react';
@@ -21,8 +13,6 @@ import AddHomeWorkForm from './_components/add-form';
 import { homeWorkColumns } from './_components/columns';
 import ToggleHomeWorkForm from './_components/toggle-form';
 import UpdateHomeWorkForm from './_components/update-form';
-
-
 
 import { viewHomeWorkAttachments } from '@/server/upload/transactions/ivrm-homework/server-action';
 import AttachmentViewModal from './_components/attachment-view-modal';
@@ -92,12 +82,12 @@ function HomeWorkContent({
     const { openAddForm } = useFormContext<IHomeWorkDetails>();
 
     const tableProps = useDataTableProps(data);
-    
+
     // Legacy support: Parse stringified JSON if present in homeworkgridlist
     const processedGrid = useMemo(() => {
         let grid = tableProps.data;
         const gridSource = data?.data?.homeworkgridlist || academicYears?.[0]?.homeworkgridlist || initialData?.homeworkgridlist;
-        
+
         if (gridSource?.[0]?.IVRM_ClassHomeworkGrid_List) {
             try {
                 grid = JSON.parse(gridSource[0].IVRM_ClassHomeworkGrid_List);
@@ -123,8 +113,8 @@ function HomeWorkContent({
                     <Button
                         type='button'
                         onClick={openAddForm}
-                        className='w-fit bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='h-4 w-4 mr-2' />
+                        className='w-fit bg-blue-600 text-white shadow-md transition-all duration-200 hover:scale-105 hover:bg-blue-700 hover:shadow-lg'>
+                        <Plus className='mr-2 h-4 w-4' />
                         Add HomeWork
                     </Button>
                 </div>
@@ -135,11 +125,11 @@ function HomeWorkContent({
                     defaultOpen={true}
                     variant='default'
                     size='lg'
-                    className='shadow-lg border-blue-100 transition-shadow duration-300 hover:shadow-xl'>
+                    className='border-blue-100 shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <div className='mb-2 flex items-center justify-between'>
                         <div className='flex items-center gap-2'>
-                            <span className='text-sm font-bold text-gray-700'>Total Grid Records :</span>
-                            <span className='flex h-6 w-fit min-w-6 items-center justify-center rounded-full bg-blue-600 px-2 text-xs font-bold text-white shadow-sm'>
+                            <span className='font-bold text-gray-700 text-sm'>Total Grid Records :</span>
+                            <span className='flex h-6 w-fit min-w-6 items-center justify-center rounded-full bg-blue-600 px-2 font-bold text-white text-xs shadow-sm'>
                                 {Array.isArray(processedGrid) ? processedGrid.length : 0}
                             </span>
                         </div>
@@ -239,15 +229,15 @@ function FormSections({
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='slide-in-from-top-4 animate-in shadow-lg border-blue-200 duration-300'>
+                        className='slide-in-from-top-4 animate-in border-blue-200 shadow-lg duration-300'>
                         <div className='relative'>
                             <Button
                                 type='button'
                                 onClick={closeAddForm}
                                 variant='ghost'
                                 size='sm'
-                                className='top-[-3.7rem] absolute right-12 w-fit border border-red-200 text-red-600 hover:bg-red-50 p-2 shadow-sm'>
-                                <X className='h-4 w-4 mr-1' /> Close
+                                className='absolute top-[-3.7rem] right-12 w-fit border border-red-200 p-2 text-red-600 shadow-sm hover:bg-red-50'>
+                                <X className='mr-1 h-4 w-4' /> Close
                             </Button>
                             <AddHomeWorkForm
                                 onSuccess={() => {
@@ -276,8 +266,8 @@ function FormSections({
                                 onClick={closeEditForm}
                                 variant='ghost'
                                 size='sm'
-                                className='top-[-3.7rem] absolute right-12 w-fit border border-red-200 text-red-600 hover:bg-red-50 p-2 shadow-sm'>
-                                <X className='h-4 w-4 mr-1' /> Close
+                                className='absolute top-[-3.7rem] right-12 w-fit border border-red-200 p-2 text-red-600 shadow-sm hover:bg-red-50'>
+                                <X className='mr-1 h-4 w-4' /> Close
                             </Button>
                             <UpdateHomeWorkForm
                                 selectedRow={selectedRow as any}
@@ -314,11 +304,7 @@ function FormSections({
 
             {/* Marks Entry Modal */}
             {isMarksEntryOpen && selectedRow && (
-                <MarksEntryModal
-                    isOpen={isMarksEntryOpen}
-                    onClose={closeMarksEntry}
-                    selectedRow={selectedRow as any}
-                />
+                <MarksEntryModal isOpen={isMarksEntryOpen} onClose={closeMarksEntry} selectedRow={selectedRow as any} />
             )}
         </>
     );

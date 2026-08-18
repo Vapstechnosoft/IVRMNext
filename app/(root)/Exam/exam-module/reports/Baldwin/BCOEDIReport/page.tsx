@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import BCOEDIReportForm from './_components/add-form';
 import { getExamReportCard } from '@/server/exam/exam-module/reports/cumulative-report';
+import { useState } from 'react';
 import { toast } from 'sonner';
+import BCOEDIReportForm from './_components/add-form';
 
-import { Loader2 } from 'lucide-react';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Loader2 } from 'lucide-react';
 import BCOEDIReportView from './_components/report-view';
 
 export default function BCOEDIReportPage() {
@@ -28,7 +28,7 @@ export default function BCOEDIReportPage() {
             setReportData([]);
             setIsReportVisible(false);
             const res = await getExamReportCard(payload);
-            console.log("response", res);
+            console.log('response', res);
 
             const apiData = res?.data;
             const flatRows: any[] = apiData?.list || (Array.isArray(apiData) ? apiData : []);
@@ -38,7 +38,8 @@ export default function BCOEDIReportPage() {
                 const studentMap = new Map<number, any>();
 
                 flatRows.forEach((row: any) => {
-                    const studentId = row.amsT_Id ?? row.AMST_Id ?? row.AMST_ID ?? row.amst_Id ?? row.student_id ?? row.studentId ?? row.StudentId;
+                    const studentId =
+                        row.amsT_Id ?? row.AMST_Id ?? row.AMST_ID ?? row.amst_Id ?? row.student_id ?? row.studentId ?? row.StudentId;
                     if (!studentId) return;
 
                     if (!studentMap.has(studentId)) {
@@ -108,8 +109,18 @@ export default function BCOEDIReportPage() {
                 });
 
                 const grade_details = apiData?.grade_details || (res as any).grade_details || [];
-                const stud_work_attendence = apiData?.stud_work_attendence || apiData?.work_attendence || (res as any).stud_work_attendence || (res as any).work_attendence || [];
-                const stud_present_attendence = apiData?.stud_present_attendence || apiData?.present_attendence || (res as any).stud_present_attendence || (res as any).present_attendence || [];
+                const stud_work_attendence =
+                    apiData?.stud_work_attendence ||
+                    apiData?.work_attendence ||
+                    (res as any).stud_work_attendence ||
+                    (res as any).work_attendence ||
+                    [];
+                const stud_present_attendence =
+                    apiData?.stud_present_attendence ||
+                    apiData?.present_attendence ||
+                    (res as any).stud_present_attendence ||
+                    (res as any).present_attendence ||
+                    [];
                 const clstchname = apiData?.clstchname || (res as any).clstchname || [];
 
                 setReportData(Array.from(studentMap.values()));
@@ -135,23 +146,20 @@ export default function BCOEDIReportPage() {
     };
 
     return (
-        <div className="flex flex-col gap-6 p-4">
-            <CollapsibleSection title="BCOEDI Report Criteria" defaultOpen>
-                <BCOEDIReportForm
-                    onSuccess={handleFormSuccess}
-                    onReset={() => window.location.reload()}
-                />
+        <div className='flex flex-col gap-6 p-4'>
+            <CollapsibleSection title='BCOEDI Report Criteria' defaultOpen>
+                <BCOEDIReportForm onSuccess={handleFormSuccess} onReset={() => window.location.reload()} />
             </CollapsibleSection>
 
             {isLoading && (
-                <div className="flex flex-col items-center justify-center p-12 gap-4">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="text-muted-foreground animate-pulse">Generating BCOEDI Reports...</p>
+                <div className='flex flex-col items-center justify-center gap-4 p-12'>
+                    <Loader2 className='h-8 w-8 animate-spin text-primary' />
+                    <p className='animate-pulse text-muted-foreground'>Generating BCOEDI Reports...</p>
                 </div>
             )}
 
             {isReportVisible && !isLoading && (
-                <CollapsibleSection title="Report Preview" defaultOpen>
+                <CollapsibleSection title='Report Preview' defaultOpen>
                     <BCOEDIReportView
                         reportData={reportData}
                         gradeRemarks={gradeRemarks}

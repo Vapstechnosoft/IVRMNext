@@ -39,7 +39,8 @@ export default function DeleteMasterYearlyGroupForm({
             const response = await deleteYearlyGroupMapping(fyghM_Id);
 
             if (response?.success) {
-                toast.success(`${rowData.fmG_GroupName} deleted successfully`);
+                // toast.success(`${rowData.fmG_GroupName} deleted successfully`);
+                toast.success('Record Deleted Successfully');
                 await refetchAll();
                 onSuccess?.();
                 closeDialog();
@@ -55,7 +56,7 @@ export default function DeleteMasterYearlyGroupForm({
     };
 
     return (
-        <AdaptiveDialog title={'Delete Online Payment Head Group Mapping'} isOpen={true} onClose={closeDialog}>
+        <AdaptiveDialog title={'Delete Yearly Group Mapping'} isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit} className='space-y-6'>
                 <AdaptiveBody className='flex flex-col gap-5 '>
                     <Label>

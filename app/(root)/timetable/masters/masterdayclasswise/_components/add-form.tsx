@@ -294,9 +294,7 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
                                     field.onChange(value ? Number(value) : '');
                                 }}
                                 value={field.value?.toString() || undefined}>
-                                <SelectTrigger className={cn(
-                                    !field.value ? "text-gray-400" : "text-black"
-                                )}>
+                                <SelectTrigger className={cn(!field.value ? 'text-gray-400' : 'text-black')}>
                                     <SelectValue placeholder='Select Academic Year' />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -336,9 +334,7 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
                                     field.onChange(value ? Number(value) : '');
                                 }}
                                 value={field.value?.toString() || undefined}>
-                                <SelectTrigger className={cn(
-                                    !field.value ? "text-gray-400" : "text-black"
-                                )}>
+                                <SelectTrigger className={cn(!field.value ? 'text-gray-400' : 'text-black')}>
                                     <SelectValue placeholder='Select Category' />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -457,7 +453,7 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
                                         : 'border-gray-300 hover:border-primary/40'
                                 )}>
                                 {day_ids.length === (daySearch.trim() ? filteredDayIds.length : Masterdaydata.data.length) &&
-                                    day_ids.length > 0 ? (
+                                day_ids.length > 0 ? (
                                     <CheckSquare className='h-4 w-4 text-primary' />
                                 ) : (
                                     <Square className='h-4 w-4 text-gray-400' />

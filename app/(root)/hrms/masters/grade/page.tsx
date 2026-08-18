@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useMasterGradeDropdownList } from '@/hooks/exam/exammodule/usemasters';
+import { useMasterGrade } from '@/hooks/hrms/useMasters';
 import type { IMasterGradeList } from '@/types/hrms/hrms-config/master';
 import { Plus, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -13,7 +13,6 @@ import { columns } from './_components/columns';
 import ReorderGradeForm from './_components/reorder-form';
 import ToggleMasterGradeForm from './_components/toggle-form';
 import UpdateGradeForm from './_components/update-form';
-import { useMasterGrade } from '@/hooks/hrms/useMasters';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 

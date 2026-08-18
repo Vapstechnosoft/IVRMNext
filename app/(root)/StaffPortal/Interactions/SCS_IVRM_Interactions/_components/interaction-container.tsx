@@ -1,15 +1,15 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent } from '@/components/ui/card';
-import { InboxTab } from '@/app/(root)/StaffPortal/Interactions/SCS_IVRM_Interactions/_components/inbox-tab';
 import { ComposeTab } from '@/app/(root)/StaffPortal/Interactions/SCS_IVRM_Interactions/_components/compose-tab';
 import { FeedbackModal } from '@/app/(root)/StaffPortal/Interactions/SCS_IVRM_Interactions/_components/feedback-modal';
+import { InboxTab } from '@/app/(root)/StaffPortal/Interactions/SCS_IVRM_Interactions/_components/inbox-tab';
+import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { getInitialInteractions, loadFeedbackQuestions } from '@/server/staff-portal/interactions';
-import type { IInteractionsInitialData, IFeedbackQuestion, IFeedbackOption } from '@/types/staff-portal/interactions';
-import { toast } from 'sonner';
+import type { IFeedbackOption, IFeedbackQuestion, IInteractionsInitialData } from '@/types/staff-portal/interactions';
 import { Loader2 } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 interface InteractionContainerProps {
     initialData: IInteractionsInitialData;
@@ -47,7 +47,7 @@ export function InteractionContainer({ initialData }: InteractionContainerProps)
             try {
                 const response = await loadFeedbackQuestions('Interaction');
                 if (response.success && response.data && response.data.feedbackquestion?.length > 0) {
-                    const mappedQuestions = response.data.feedbackquestion.map(q => ({
+                    const mappedQuestions = response.data.feedbackquestion.map((q) => ({
                         ...q,
                         feedbackoptiondata: (response.data as any).feedbackoption.filter((o: any) => o.fmqE_Id === q.fmqE_Id)
                     }));
@@ -70,29 +70,24 @@ export function InteractionContainer({ initialData }: InteractionContainerProps)
     };
 
     return (
-        <Card className="overflow-hidden border-none bg-background/50 shadow-xl backdrop-blur-sm">
-            <CardContent className="p-0">
-                <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-
-                    <div className="p-6">
+        <Card className='overflow-hidden border-none bg-background/50 shadow-xl backdrop-blur-sm'>
+            <CardContent className='p-0'>
+                <Tabs value={activeTab} onValueChange={onTabChange} className='w-full'>
+                    <div className='p-6'>
                         {isLoading && (
-                            <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/20 backdrop-blur-[1px]">
-                                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            <div className='absolute inset-0 z-50 flex items-center justify-center bg-background/20 backdrop-blur-[1px]'>
+                                <Loader2 className='h-8 w-8 animate-spin text-primary' />
                             </div>
                         )}
 
-                        <TabsContent value="inbox" className="mt-0 outline-none">
-                            <InboxTab
-                                data={interactionsData}
-                                onRefresh={refreshData}
-                                roleFlg={roleFlg}
-                            />
+                        <TabsContent value='inbox' className='mt-0 outline-none'>
+                            <InboxTab data={interactionsData} onRefresh={refreshData} roleFlg={roleFlg} />
                         </TabsContent>
 
-                        <TabsContent value="group" className="mt-0 outline-none">
+                        <TabsContent value='group' className='mt-0 outline-none'>
                             <ComposeTab
                                 data={interactionsData}
-                                mode="Group"
+                                mode='Group'
                                 onCancel={() => setActiveTab('inbox')}
                                 onSuccess={() => {
                                     setActiveTab('inbox');
@@ -101,10 +96,10 @@ export function InteractionContainer({ initialData }: InteractionContainerProps)
                             />
                         </TabsContent>
 
-                        <TabsContent value="individual" className="mt-0 outline-none">
+                        <TabsContent value='individual' className='mt-0 outline-none'>
                             <ComposeTab
                                 data={interactionsData}
-                                mode="Individual"
+                                mode='Individual'
                                 onCancel={() => setActiveTab('inbox')}
                                 onSuccess={() => {
                                     setActiveTab('inbox');
