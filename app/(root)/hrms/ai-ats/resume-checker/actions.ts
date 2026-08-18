@@ -174,7 +174,7 @@ async function extractMinExperienceFromJD(jdText: string): Promise<number> {
                     content: jdText
                 }
             ],
-            model: 'llama-3.1-8b-instant',
+            model: 'openai/gpt-oss-120b',
             temperature: 0.1,
             max_tokens: 5
         });
@@ -217,7 +217,7 @@ async function extractEducationRequirementFromJD(jdText: string): Promise<string
                     content: jdText.substring(0, 3000)
                 }
             ],
-            model: 'llama-3.1-8b-instant',
+            model: 'openai/gpt-oss-120b',
             temperature: 0.1,
             max_tokens: 30
         });
@@ -252,7 +252,7 @@ async function extractCandidateEducation(resumeText: string): Promise<string | n
                     content: resumeText.substring(0, 4000)
                 }
             ],
-            model: 'llama-3.1-8b-instant',
+            model: 'openai/gpt-oss-120b',
             temperature: 0.0,
             max_tokens: 30
         });
@@ -292,7 +292,7 @@ async function extractRequiredSkillsFromJD(jdText: string): Promise<{ technical:
                     content: jdText
                 }
             ],
-            model: 'llama-3.1-8b-instant',
+            model: 'openai/gpt-oss-120b',
             response_format: { type: 'json_object' },
             temperature: 0.0
         });
@@ -328,7 +328,7 @@ async function extractCandidateSkillsFromResume(resumeText: string): Promise<{ t
                     content: resumeText.substring(0, 4000)
                 }
             ],
-            model: 'llama-3.1-8b-instant',
+            model: 'openai/gpt-oss-120b',
             response_format: { type: 'json_object' },
             temperature: 0.0
         });
@@ -431,7 +431,7 @@ async function checkEducationMatch(candidateEdu: string, requiredEdu: string): P
                     content: `Candidate Education: ${candidateEdu}\nRequired Education: ${requiredEdu}`
                 }
             ],
-            model: 'llama-3.1-8b-instant',
+            model: 'openai/gpt-oss-120b',
             temperature: 0.1,
             max_tokens: 5
         });
@@ -462,7 +462,7 @@ async function extractCandidateFallback(resumeText: string): Promise<any> {
                     content: resumeText.substring(0, 4000)
                 }
             ],
-            model: 'llama-3.1-8b-instant',
+            model: 'openai/gpt-oss-120b',
             response_format: { type: 'json_object' },
             temperature: 0.0
         });
@@ -799,14 +799,14 @@ export async function analyzeResume(formData: FormData) {
                             content: summaryPrompt
                         }
                     ],
-                    model: 'llama-3.1-8b-instant',
+                    model: 'openai/gpt-oss-120b',
                     temperature: 0.7,
                     max_tokens: 1024
                 });
 
                 data.report = {
                     text: reportResponse.choices[0]?.message?.content || 'Summary generation failed.',
-                    model: 'llama-3.1-8b-local-fallback',
+                    model: 'openai/gpt-oss-120b',
                     success: true
                 };
             } catch (err) {

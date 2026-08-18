@@ -58,7 +58,7 @@ export async function chatGPT(data: ChatgptDTO): Promise<ChatgptDTO> {
             body: JSON.stringify({
                 messages: [{ role: 'user', content: data.message }],
                 max_tokens: maxTokens,
-                model: 'llama-3.1-8b-instant',
+                model: 'openai/gpt-oss-120b',
                 temperature: temperature
             })
         });
