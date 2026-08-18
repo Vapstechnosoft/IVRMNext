@@ -158,9 +158,12 @@ export const ReportView = ({ data, params }: ReportViewProps) => {
                             {/* Header */}
                             <div className="flex justify-center mb-6">
                                 <img
-                                    src={institution.mI_Logo || "/images/NDSLogoexam.jpg"}
-                                    className="header-logo"
-                                    alt="School Logo"
+                                    src={institution?.mI_Logo || institution?.MI_Logo || institution?.mI_Logo_Path || institution?.mI_LogoPath || institution?.logo || "/assets/logo1.png"}
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).src = '/assets/logo1.png';
+                                    }}
+                                    className="header-logo max-h-24 object-contain"
+                                    alt={institution?.mI_Name || "School Logo"}
                                 />
                             </div>
 

@@ -6,9 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useBookIssueInitialData, useIssueBook } from '@/hooks/library/useBookIssue';
+import { useBookIssueInitialData, useIssueBook, useStudentsByClassSection } from '@/hooks/library/useBookIssue';
 import { Loader2, Save, XCircle } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 export const IssueForm = ({ onSuccess }: { onSuccess?: () => void }) => {
@@ -38,6 +38,32 @@ export const IssueForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         }
     });
 
+    const asmayId = watch('academicYear');
+    const asmclId = watch('class');
+    const asmsId = watch('section');
+    
+    const { mutate: fetchStudents } = useStudentsByClassSection();
+    const [dynamicStudents, setDynamicStudents] = useState<any[]>([]);
+
+    useEffect(() => {
+        if (asmayId && asmclId && asmsId) {
+            fetchStudents({
+                ASMAY_Id: parseInt(asmayId),
+                ASMCL_Id: parseInt(asmclId),
+                ASMS_Id: parseInt(asmsId)
+            }, {
+                onSuccess: (res: any) => {
+                    const students = res?.studentlist || res?.students || res?.data?.students || [];
+                    setDynamicStudents(students);
+                }
+            });
+        } else {
+            setDynamicStudents([]);
+        }
+    }, [asmayId, asmclId, asmsId, fetchStudents]);
+
+    const studentsToDisplay = dynamicStudents.length > 0 ? dynamicStudents : (initialData?.studentlist || initialData?.students || []);
+
     const onSubmit = (data: any) => {
         // Handle issue submit logic here
         console.log('Issue Book Form Data:', data);
@@ -56,15 +82,15 @@ export const IssueForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                             control={control}
                             name='libraryName'
                             render={({ field }) => (
-                                <Select onValueChange={field.onChange} value={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value || undefined}>
                                     <SelectTrigger className='flex-1 h-8 text-xs'>
                                         <SelectValue placeholder='Library' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value='Library'>Library</SelectItem>
-                                        {Array.isArray(initialData?.liblist) &&
-                                            initialData?.liblist?.map((item: any) => (
-                                                <SelectItem key={item.lmA_Id} value={item.lmA_Id.toString()}>{item.lmA_LibraryName}</SelectItem>
+                                        {Array.isArray(initialData?.msterliblist || initialData?.liblist) &&
+                                            (initialData?.msterliblist || initialData?.liblist)?.map((item: any) => (
+                                                <SelectItem key={item.lmaL_Id || item.lmA_Id} value={(item.lmaL_Id || item.lmA_Id).toString()}>{item.lmaL_LibraryName || item.lmA_LibraryName}</SelectItem>
                                             ))}
                                     </SelectContent>
                                 </Select>
@@ -123,7 +149,7 @@ export const IssueForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                         <div className='flex items-center gap-4'>
                             <Label className='min-w-[120px]'>Academic Year:<span className='text-red-500'>*</span></Label>
                             <Controller control={control} name='academicYear' render={({ field }) => (
-                                <Select onValueChange={field.onChange} value={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value || undefined}>
                                     <SelectTrigger className='flex-1 h-8 text-xs'><SelectValue placeholder='Select Year' /></SelectTrigger>
                                     <SelectContent>
                                         {Array.isArray(initialData?.yearlist) && initialData?.yearlist?.map((item: any) => (
@@ -136,7 +162,7 @@ export const IssueForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                         <div className='flex items-center gap-4'>
                             <Label className='min-w-[120px]'>Class:<span className='text-red-500'>*</span></Label>
                             <Controller control={control} name='class' render={({ field }) => (
-                                <Select onValueChange={field.onChange} value={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value || undefined}>
                                     <SelectTrigger className='flex-1 h-8 text-xs'><SelectValue placeholder='Select Class' /></SelectTrigger>
                                     <SelectContent>
                                         {Array.isArray(initialData?.classlist) && initialData?.classlist?.map((item: any) => (
@@ -149,7 +175,7 @@ export const IssueForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                         <div className='flex items-center gap-4'>
                             <Label className='min-w-[120px]'>Section:<span className='text-red-500'>*</span></Label>
                             <Controller control={control} name='section' render={({ field }) => (
-                                <Select onValueChange={field.onChange} value={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value || undefined}>
                                     <SelectTrigger className='flex-1 h-8 text-xs'><SelectValue placeholder='Select Section' /></SelectTrigger>
                                     <SelectContent>
                                         {Array.isArray(initialData?.sectionlist) && initialData?.sectionlist?.map((item: any) => (
@@ -172,10 +198,10 @@ export const IssueForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                         <div className='flex items-center gap-4'>
                             <Label className='min-w-[120px]'>Book Title:<span className='text-red-500'>*</span></Label>
                             <Controller control={control} name='bookTitle' render={({ field }) => (
-                                <Select onValueChange={field.onChange} value={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value || undefined}>
                                     <SelectTrigger className='flex-1 h-8 text-xs'><SelectValue placeholder='Select or search Book in the list...' /></SelectTrigger>
                                     <SelectContent>
-                                        {Array.isArray(initialData?.avilbooktitle) && initialData?.avilbooktitle?.map((item: any) => (
+                                        {Array.isArray(initialData?.booktitle || initialData?.avilbooktitle) && (initialData?.booktitle || initialData?.avilbooktitle)?.map((item: any) => (
                                             <SelectItem key={item.lmB_Id} value={item.lmB_Id.toString()}>{item.lmB_BookTitle}</SelectItem>
                                         ))}
                                     </SelectContent>
@@ -185,10 +211,10 @@ export const IssueForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                         <div className='flex items-center gap-4'>
                             <Label className='min-w-[120px]'>Student Name:<span className='text-red-500'>*</span></Label>
                             <Controller control={control} name='studentName' render={({ field }) => (
-                                <Select onValueChange={field.onChange} value={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value || undefined}>
                                     <SelectTrigger className='flex-1 h-8 text-xs'><SelectValue placeholder='Select or search Student Name...' /></SelectTrigger>
                                     <SelectContent>
-                                        {Array.isArray(initialData?.studentlist) && initialData?.studentlist?.map((item: any) => (
+                                        {Array.isArray(studentsToDisplay) && studentsToDisplay?.map((item: any) => (
                                             <SelectItem key={item.amsT_Id} value={item.amsT_Id.toString()}>{item.amsT_FirstName}</SelectItem>
                                         ))}
                                     </SelectContent>

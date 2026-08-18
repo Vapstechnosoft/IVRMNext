@@ -8,8 +8,7 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { nds9ReportSchema, type NDS9ReportSchema } from '@/schemas/exam/exam-module/NDS_9_ProgressNewCardReport';
-import { getClassDropDownByAcademicYearlist, getSectionsDropDownByAcademicYearandClasslist, getStudentsDropDownByAcademicYearandClassandSectionlist } from '@/server/exam/exam-module/reports/cumulative-report';
-import { getNDS9Report } from '@/server/exam/exam-module/reports/NDS/NDS_9_ProgressNewCardReport';
+import { getClasses, getSections, getStudents, getNDS9Report } from '@/server/exam/exam-module/reports/NDS/NDS_9_ProgressNewCardReport';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -49,21 +48,45 @@ export const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
     const watchClass = useWatch({ control, name: 'ASMCL_Id' });
     const watchSection = useWatch({ control, name: 'ASMS_Id' });
 
+    // Helper to safely extract list data from API responses
+    const extractList = (res: any) => {
+        if (!res) return [];
+        if (Array.isArray(res)) return res;
+        if (Array.isArray(res.data) && res.data.length > 0) return res.data;
+        if (res.data && typeof res.data === 'object') {
+            const list = res.data.getclasslist || res.data.fillclass || res.data.classlist || res.data.classList || res.data.yearlist || res.data.getsectionlist || res.data.fillsection || res.data.sectionlist || res.data.getstudentdetails || res.data.studentlist || res.data.studentList;
+            if (Array.isArray(list)) return list;
+        }
+        if (typeof res === 'object') {
+            const list = res.getclasslist || res.fillclass || res.classlist || res.classList || res.yearlist || res.getsectionlist || res.fillsection || res.sectionlist || res.getstudentdetails || res.studentlist || res.studentList;
+            if (Array.isArray(list)) return list;
+        }
+        if (Array.isArray(res.data)) return res.data;
+        return [];
+    };
+
     // Load Classes
     useEffect(() => {
-        if (!watchYear) return;
+        if (!watchYear) {
+            setClasses([]);
+            return;
+        }
         (async () => {
             try {
                 setLoadingClasses(true);
-                const response = await getClassDropDownByAcademicYearlist(Number(watchYear));
-                if (response?.success) {
-                    setClasses(response.data || []);
-                }
+                const response = await getClasses(Number(watchYear));
+                const rawList = extractList(response);
+                const mapped = rawList.map((cls: any) => ({
+                    asmcL_Id: Number(cls.asmcL_Id ?? cls.ASMCL_Id ?? cls.asmcL_ID ?? cls.id),
+                    asmcL_ClassName: String(cls.asmcL_ClassName || cls.ASMCL_ClassName || cls.className || cls.classname || cls.name || '')
+                }));
+                setClasses(mapped);
                 setValue('ASMCL_Id', '');
                 setValue('ASMS_Id', '');
                 setValue('selectedStudents', []);
                 setAllStudentsSelected(false);
-            } catch {
+            } catch (err) {
+                console.error('Error loading classes:', err);
                 toast.error('Failed to load classes');
             } finally {
                 setLoadingClasses(false);
@@ -73,18 +96,25 @@ export const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
 
     // Load Sections
     useEffect(() => {
-        if (!watchYear || !watchClass) return;
+        if (!watchYear || !watchClass) {
+            setSections([]);
+            return;
+        }
         (async () => {
             try {
                 setLoadingSections(true);
-                const response = await getSectionsDropDownByAcademicYearandClasslist(Number(watchYear), Number(watchClass));
-                if (response?.success) {
-                    setSections(response.data || []);
-                }
+                const response = await getSections(Number(watchYear), Number(watchClass));
+                const rawList = extractList(response);
+                const mapped = rawList.map((sec: any) => ({
+                    asmS_Id: Number(sec.asmS_Id ?? sec.ASMS_Id ?? sec.asms_Id ?? sec.id),
+                    asmC_SectionName: String(sec.asmC_SectionName || sec.ASMC_SectionName || sec.asmS_SectionName || sec.ASMS_SectionName || sec.sectionName || sec.name || '')
+                }));
+                setSections(mapped);
                 setValue('ASMS_Id', '');
                 setValue('selectedStudents', []);
                 setAllStudentsSelected(false);
-            } catch {
+            } catch (err) {
+                console.error('Error loading sections:', err);
                 toast.error('Failed to load sections');
             } finally {
                 setLoadingSections(false);
@@ -94,21 +124,24 @@ export const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
 
     // Load Students
     useEffect(() => {
-        if (!watchYear || !watchClass || !watchSection) return;
+        if (!watchYear || !watchClass || !watchSection) {
+            setStudents([]);
+            return;
+        }
         (async () => {
             try {
                 setLoadingStudents(true);
-                const response = await getStudentsDropDownByAcademicYearandClassandSectionlist(Number(watchYear), Number(watchClass), Number(watchSection));
-                if (response?.success && response.data) {
-                    const mapped = response.data.map((s: any) => ({
-                        amsT_Id: s.amsT_Id,
-                        studentname: s.studentname || s.studentName || `${s.amsT_FirstName ?? ''} ${s.amsT_MiddleName ?? ''} ${s.amsT_LastName ?? ''}`.trim()
-                    }));
-                    setStudents(mapped);
-                }
+                const response = await getStudents(Number(watchYear), Number(watchClass), Number(watchSection));
+                const rawList = extractList(response);
+                const mapped = rawList.map((s: any) => ({
+                    amsT_Id: Number(s.amsT_Id ?? s.AMST_Id ?? s.id),
+                    studentname: String(s.studentname || s.studentName || `${s.amsT_FirstName || s.AMST_FirstName || ''} ${s.amsT_MiddleName || s.AMST_MiddleName || ''} ${s.amsT_LastName || s.AMST_LastName || ''}`.trim())
+                }));
+                setStudents(mapped);
                 setValue('selectedStudents', []);
                 setAllStudentsSelected(false);
-            } catch {
+            } catch (err) {
+                console.error('Error loading students:', err);
                 toast.error('Failed to load students');
             } finally {
                 setLoadingStudents(false);
@@ -184,9 +217,15 @@ export const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
                                         <Select onValueChange={field.onChange} value={field.value}>
                                             <SelectTrigger><SelectValue placeholder='Select Academic Year' /></SelectTrigger>
                                             <SelectContent>
-                                                {academicYears.map((y: any) => (
-                                                    <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>{y.asmaY_Year}</SelectItem>
-                                                ))}
+                                                {academicYears.map((y: any) => {
+                                                    const id = y.asmaY_Id ?? y.ASMAY_Id;
+                                                    const name = y.asmaY_Year ?? y.ASMAY_Year;
+                                                    return (
+                                                        <SelectItem key={id} value={String(id)}>
+                                                            {name}
+                                                        </SelectItem>
+                                                    );
+                                                })}
                                             </SelectContent>
                                         </Select>
                                         {fieldState.error && <FormError>{fieldState.error.message}</FormError>}

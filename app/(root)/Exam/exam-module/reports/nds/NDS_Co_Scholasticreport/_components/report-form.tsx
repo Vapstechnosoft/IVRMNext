@@ -104,9 +104,10 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                         Number(watchYear),
                         Number(watchClass)
                     );
-                    if (response?.success && Array.isArray(response.data)) {
-                        setSections(response.data);
-                    }
+                    const secData = response?.data || response;
+                    const rawList = Array.isArray(secData) ? secData : (secData?.sectionList || secData?.sectionlist || secData?.getsectionlist || secData?.fillsection || []);
+                    const secList = Array.isArray(rawList) ? rawList : [];
+                    setSections(secList);
                 } catch (err) {
                     console.error(err);
                     toast.error('Failed to load sections');

@@ -189,7 +189,7 @@ const Select = ({ children, searchable = true, onOpenChange, ...props }: SelectP
 
     return (
         <SelectSearchContext.Provider value={contextValue}>
-            <SelectPrimitive.Root value={normalizedValue} {...restProps} onOpenChange={handleOpenChange}>
+            <SelectPrimitive.Root key={normalizedValue !== undefined && normalizedValue !== null ? String(normalizedValue) : '__empty_select__'} value={normalizedValue} {...restProps} onOpenChange={handleOpenChange}>
                 {children}
             </SelectPrimitive.Root>
         </SelectSearchContext.Provider>

@@ -8,16 +8,22 @@ import { Separator } from '@/components/ui/separator';
 export default function NDSItoVIIIReportCardPage() {
     const [reportData, setReportData] = useState<any>(null);
     const [academicYear, setAcademicYear] = useState<string>('');
+    const [className, setClassName] = useState<string>('');
+    const [sectionName, setSectionName] = useState<string>('');
     const listRef = useRef<HTMLDivElement>(null);
 
-    const handleReportGenerated = (data: any, year: string) => {
+    const handleReportGenerated = (data: any, year: string, clsName?: string, secName?: string) => {
         setReportData(data);
         setAcademicYear(year);
+        setClassName(clsName || '');
+        setSectionName(secName || '');
     };
 
     const handleReset = () => {
         setReportData(null);
         setAcademicYear('');
+        setClassName('');
+        setSectionName('');
     };
 
     // Auto-scroll to report when generated
@@ -40,7 +46,7 @@ export default function NDSItoVIIIReportCardPage() {
                 <div ref={listRef} className="transition-all duration-500">
                     {reportData && (
                         <section className="animate-in slide-in-from-bottom-4 duration-500">
-                            <ReportList data={reportData} academicYear={academicYear} />
+                            <ReportList data={reportData} academicYear={academicYear} className={className} sectionName={sectionName} />
                         </section>
                     )}
                 </div>

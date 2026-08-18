@@ -198,15 +198,18 @@ export const ReportView = ({ data, params }: ReportViewProps) => {
                             {/* Section 1: Profile */}
                             <section className="pagelayout">
                                 <div className="text-center mb-6">
-                                    {getinstitution?.[0]?.mI_Logo ? (
-                                        <div className="flex flex-col items-center gap-2">
-                                            <img src={getinstitution[0].mI_Logo} className="h-20" alt="Institution Logo" />
-                                            <h2 className="text-2xl font-bold uppercase">{getinstitution[0].mI_Name}</h2>
-                                            <p className="text-sm">{getinstitution[0].mI_Address1}, {getinstitution[0].ivrmmcT_Name} - {getinstitution[0].mI_Pincode}</p>
-                                        </div>
-                                    ) : (
-                                        <img src="/images/NDSLogoexam.jpg" className="w-full" alt="Header" />
-                                    )}
+                                    <div className="flex flex-col items-center gap-2">
+                                        <img
+                                            src={getinstitution?.[0]?.mI_Logo || getinstitution?.[0]?.MI_Logo || getinstitution?.[0]?.mI_Logo_Path || getinstitution?.[0]?.mI_LogoPath || "/assets/logo1.png"}
+                                            onError={(e) => {
+                                                (e.target as HTMLImageElement).src = '/assets/logo1.png';
+                                            }}
+                                            className="h-20 max-h-24 object-contain"
+                                            alt={getinstitution?.[0]?.mI_Name || "Institution Logo"}
+                                        />
+                                        {getinstitution?.[0]?.mI_Name && <h2 className="text-2xl font-bold uppercase">{getinstitution[0].mI_Name}</h2>}
+                                        {getinstitution?.[0]?.mI_Address1 && <p className="text-sm">{getinstitution[0].mI_Address1}, {getinstitution[0].ivrmmcT_Name} - {getinstitution[0].mI_Pincode}</p>}
+                                    </div>
                                 </div>
                                 <div className="flex justify-center my-10">
                                     <div className="border border-black w-32 h-32 flex items-center justify-center overflow-hidden">
