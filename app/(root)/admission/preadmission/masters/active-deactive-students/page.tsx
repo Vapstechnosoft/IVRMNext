@@ -24,6 +24,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 import { getActiveDeactiveColumns } from './_components/columns';
+import Swal from 'sweetalert2';
 
 type FormFields = z.infer<typeof masterActiveDeactiveStudentSchema>;
 
@@ -97,28 +98,9 @@ export default function MasterActiveDeactiveStudentPage(props: {
         data: StudentListData,
         isLoading: StudentListLoading,
         isError: StudentListError
-    } = useMasterStudentList(amst_sol, academicYearId, classId, sectionId, undefined);
+    } = useMasterStudentList(amst_sol, academicYearId, classId, sectionId, apiSearchParams);
 
     const students = StudentListData?.data || [];
-
-    const searchQuery = apiSearchParams?.search_query?.toLowerCase() || '';
-    const filteredStudents = useMemo(() => {
-        if (!searchQuery) return students;
-        return students.filter((student: Student) => {
-            return (
-                student.student_name?.toLowerCase().includes(searchQuery) ||
-                student.registration_no?.toLowerCase().includes(searchQuery) ||
-                student.admission_no?.toLowerCase().includes(searchQuery) ||
-                student.student_id?.toString().includes(searchQuery)
-            );
-        });
-    }, [students, searchQuery]);
-
-    const page = apiSearchParams?.page || 1;
-    const pageSize = apiSearchParams?.page_size || 10;
-    const paginatedStudents = useMemo(() => {
-        return filteredStudents.slice((page - 1) * pageSize, page * pageSize);
-    }, [filteredStudents, page, pageSize]);
 
     const handleAcademicYearChange = (value: string) => {
         const numValue = Number(value);
@@ -225,10 +207,19 @@ export default function MasterActiveDeactiveStudentPage(props: {
         try {
             const response = await ActiveDeactive(payload);
             if (response.success) {
-                toast.success(amst_sol === 'S' ? 'Record Deactivated Successfully' : 'Record Activated Successfully');
-                handleClear();
+                Swal.fire({
+                    title: 'Success',
+                    text: 'Saved successfully',
+                    icon: 'success'
+                }).then(() => {
+                    handleClear();
+                });
             } else {
-                toast.error('Record Not Activated/Deactivated Successfully');
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Not saved successfully',
+                    icon: 'error'
+                });
             }
         } catch (error: any) {
             toast.error(error.message || 'Failed to update students');
@@ -236,8 +227,8 @@ export default function MasterActiveDeactiveStudentPage(props: {
     };
 
     const tableProps = {
-        data: paginatedStudents,
-        totalItems: filteredStudents.length,
+        data: students,
+        totalItems: (StudentListData as any)?.total || 0,
         success: StudentListData?.success ?? true,
         errorMessage: StudentListData?.message,
         enableRowSelection: true,
