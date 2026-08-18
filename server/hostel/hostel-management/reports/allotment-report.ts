@@ -1,7 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { AllotmentReportSchema } from '@/schemas/hostel/reports/allotment-report.schema';
+import type { AllotmentReportSchema } from '@/schemas/hostel/reports/allotment-report.schema';
 
 const URL_BASE = 'CLGStudentRequestReport/';
 const SERVICE_NAME = 'hostel';

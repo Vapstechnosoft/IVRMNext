@@ -24,11 +24,7 @@ export default function MasterAcademicYearPage() {
 }
 
 function MasterAcademicYearPageContentWrapper() {
-    const {
-        data: academicYearResponse,
-        isLoading: isLoadingAcademicYear,
-        error: academicYearError
-    } = usePreAdmissionAcademicYear();
+    const { data: academicYearResponse, isLoading: isLoadingAcademicYear, error: academicYearError } = usePreAdmissionAcademicYear();
 
     return (
         <FormProvider<IMasterAcademicYearMasterList>>
@@ -50,10 +46,9 @@ function MasterAcademicYearPageContent({
 
     // The API returns: { success, data: list, total: totalRecords, page, page_size }
     const nestedData = response?.data;
-    const tableData: IMasterAcademicYearMasterList[] =
-        Array.isArray(nestedData)
-            ? nestedData
-            : (nestedData?.paginatedList ?? nestedData?.academicList ?? []);
+    const tableData: IMasterAcademicYearMasterList[] = Array.isArray(nestedData)
+        ? nestedData
+        : (nestedData?.paginatedList ?? nestedData?.academicList ?? []);
     const totalItems: number = response?.total ?? nestedData?.totalRecords ?? nestedData?.total ?? tableData.length;
     const institutionList: IInstitutionItem[] = nestedData?.institutionList ?? response?.institutionList ?? [];
 

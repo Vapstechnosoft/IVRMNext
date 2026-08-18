@@ -1,10 +1,10 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-import { fetchInvMasterGroupData } from '@/server/inventory/masters/inv-master-group';
 import { INVENTORY_QUERY_KEYS } from '@/constants/query-keys';
+import { fetchInvMasterGroupData } from '@/server/inventory/masters/inv-master-group';
+import { useQuery } from '@tanstack/react-query';
 
-import { ApiSearchparams } from '@/types';
+import type { ApiSearchparams } from '@/types';
 
 export const useInvMasterGroup = (searchParams?: ApiSearchparams) => {
     const query = useQuery({

@@ -48,12 +48,14 @@ export interface ReligionCategoryMappingDetail {
 export interface ReligionCategoryMappingResponse {
     success?: boolean;
     message?: string;
-    data?: ReligionCategoryMappingDetail[] | {
-        mapping?: ReligionCategoryMappingDetail[];
-        religion_list?: ReligionItem[];
-        caste_list?: CasteItem[];
-        get_masterlist?: ReligionCategoryMappingDetail[];
-    };
+    data?:
+        | ReligionCategoryMappingDetail[]
+        | {
+              mapping?: ReligionCategoryMappingDetail[];
+              religion_list?: ReligionItem[];
+              caste_list?: CasteItem[];
+              get_masterlist?: ReligionCategoryMappingDetail[];
+          };
     get_masterlist?: ReligionCategoryMappingDetail[];
     IRCC_Id?: number;
     MI_Id?: number;

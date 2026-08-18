@@ -23,13 +23,12 @@ import {
     User,
     X
 } from 'lucide-react';
-import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
+import { QRCodeSVG } from 'qrcode.react'; // Added import here
 import { useEffect, useState, useTransition } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-import { QRCodeSVG } from 'qrcode.react'; // Added import here
 
 type FormFields = z.infer<typeof loginSchema>;
 
@@ -137,21 +136,20 @@ export default function SigninForm() {
                                     <span>ABOUT VAPS</span>
                                 </div> */}
                                 <a
-                                    href="https://www.google.com/search?q=About+VAPS+Technosoft+company+in+Bangalore"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                    href='https://www.google.com/search?q=About+VAPS+Technosoft+company+in+Bangalore'
+                                    target='_blank'
+                                    rel='noopener noreferrer'
                                     className='about-badge'
-                                    title="Click to learn about VAPS"
-                                    style={{ textDecoration: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}
-                                >
+                                    title='Click to learn about VAPS'
+                                    style={{ textDecoration: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}>
                                     <Sparkles size={14} />
                                     <span>ABOUT VAPS</span>
                                 </a>
                                 <h2 className='about-heading'>Ai-Vidyalaya Resource Management</h2>
                                 <p className='about-text'>
-                                    VAPS Technosoft is an ISO 9001 established software development company based in Bangalore specialized in{' '}
-                                    <strong>Ai-Vidyalaya Resource Management Software</strong> for educational Institutions &amp; universities ranging
-                                    from Kinder Garden to Post Graduation.
+                                    VAPS Technosoft is an ISO 9001 established software development company based in Bangalore specialized
+                                    in <strong>Ai-Vidyalaya Resource Management Software</strong> for educational Institutions &amp;
+                                    universities ranging from Kinder Garden to Post Graduation.
                                 </p>
 
                                 <div className='about-highlights'>
@@ -177,8 +175,8 @@ export default function SigninForm() {
                                     <h3 className='mv-title'>ABOUT VAPS MISSION - ARE YOU UP TO DATE?</h3>
                                 </div>
                                 <p className='mv-body'>
-                                    To facilitate customers to achieve their goals by providing innovative, best-in-class consulting, IT solutions
-                                    and services.
+                                    To facilitate customers to achieve their goals by providing innovative, best-in-class consulting, IT
+                                    solutions and services.
                                 </p>
                             </div>
 
@@ -189,9 +187,11 @@ export default function SigninForm() {
                                     </div>
                                     <h3 className='mv-title'>VAPS VISION &amp; VALUES</h3>
                                 </div>
-                                <p className="mv-body">
-                                    <strong>Vision:</strong> VAPS (V -Versatile in Vision,A - Avant Garde in Thinking,P -Prolific in Work,S -Service is our Motto) <br />
-                                    <strong>Values:</strong> To facilitate Customers to grow with us in making high-end technologies available even to common man.
+                                <p className='mv-body'>
+                                    <strong>Vision:</strong> VAPS (V -Versatile in Vision,A - Avant Garde in Thinking,P -Prolific in Work,S
+                                    -Service is our Motto) <br />
+                                    <strong>Values:</strong> To facilitate Customers to grow with us in making high-end technologies
+                                    available even to common man.
                                 </p>
                             </div>
                         </div>
@@ -325,8 +325,7 @@ export default function SigninForm() {
                             target='_blank'
                             rel='noopener noreferrer'
                             className='technoveda-subscribe-btn'
-                            style={{ textDecoration: 'none' }}
-                        >
+                            style={{ textDecoration: 'none' }}>
                             <span>Subscribe Here</span>
                             <Send size={16} />
                         </a>
@@ -341,11 +340,7 @@ export default function SigninForm() {
                             title='Click or scan to visit https://vapstechnoveda.com/subscriber'>
                             <div className='qr-card'>
                                 {/* Replaced the hardcoded component with the dynamic qrcode.react one */}
-                                <QRCodeSVG
-                                    value="https://vapstechnoveda.com/subscriber"
-                                    className='qr-code-svg'
-                                    fgColor="#1e293b"
-                                />
+                                <QRCodeSVG value='https://vapstechnoveda.com/subscriber' className='qr-code-svg' fgColor='#1e293b' />
                                 <span className='qr-caption'>Scan here to subscribe now</span>
                             </div>
                         </a>
@@ -416,7 +411,7 @@ export default function SigninForm() {
 
                         {subscribeSuccess ? (
                             <div className='subscribe-success-box'>
-                                <CheckCircle2 size={48} className='text-emerald-500 animate-bounce' />
+                                <CheckCircle2 size={48} className='animate-bounce text-emerald-500' />
                                 <h4>Subscription Confirmed!</h4>
                                 <p>You have successfully subscribed to Technoveda quarterly newsletter.</p>
                             </div>
@@ -433,7 +428,7 @@ export default function SigninForm() {
                                     />
                                     <Mail size={18} className='input-icon' />
                                 </div>
-                                <button type='submit' className='btn-modal-primary w-full mt-4'>
+                                <button type='submit' className='btn-modal-primary mt-4 w-full'>
                                     <span>Subscribe Now</span>
                                     <Send size={16} />
                                 </button>
@@ -499,17 +494,8 @@ function PhoneMockup() {
                             <span className='chart-tag'>+12.4%</span>
                         </div>
                         <svg className='chart-svg' viewBox='0 0 200 60'>
-                            <path
-                                d='M0,45 Q30,10 60,35 T120,20 T180,30 L200,10 L200,60 L0,60 Z'
-                                fill='url(#phoneGrad)'
-                                opacity='0.35'
-                            />
-                            <path
-                                d='M0,45 Q30,10 60,35 T120,20 T180,30 L200,10'
-                                fill='none'
-                                stroke='#ff7a18'
-                                strokeWidth='3'
-                            />
+                            <path d='M0,45 Q30,10 60,35 T120,20 T180,30 L200,10 L200,60 L0,60 Z' fill='url(#phoneGrad)' opacity='0.35' />
+                            <path d='M0,45 Q30,10 60,35 T120,20 T180,30 L200,10' fill='none' stroke='#ff7a18' strokeWidth='3' />
                             <defs>
                                 <linearGradient id='phoneGrad' x1='0' y1='0' x2='0' y2='1'>
                                     <stop offset='0%' stopColor='#ff7a18' />

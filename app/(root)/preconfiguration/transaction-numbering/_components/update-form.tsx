@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -9,12 +10,11 @@ import { cn } from '@/lib/utils';
 import { transactionnumberingSchema } from '@/schemas/admission/preadmission/academic-year';
 import { addOrUpdateTransactionNumbering, deleteRollnoconfig } from '@/server/preconfiguration/transaction-numbering';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { RotateCcw, Save, Plus, Trash2 } from 'lucide-react';
+import { Plus, RotateCcw, Save, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Controller, useForm, useFieldArray } from 'react-hook-form';
+import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-import { Checkbox } from '@/components/ui/checkbox';
 
 type FormFields = z.infer<typeof transactionnumberingSchema>;
 
@@ -66,7 +66,11 @@ export default function UpdateTransactionNumberingForm({
         }
     });
 
-    const { fields: rollConfigFields, append, remove } = useFieldArray({
+    const {
+        fields: rollConfigFields,
+        append,
+        remove
+    } = useFieldArray({
         control,
         name: 'rollNumberingconfig'
     });
@@ -83,19 +87,24 @@ export default function UpdateTransactionNumberingForm({
                 prefix_type: (numberingType === 'Voucher' ? selectedRow.imN_PrefixFinYearCode : selectedRow.imN_PrefixAcadYearCode)
                     ? 'academic'
                     : selectedRow.imN_PrefixParticular
-                        ? 'particulars'
-                        : 'academic',
+                      ? 'particulars'
+                      : 'academic',
                 prefix_particulars: selectedRow.imN_PrefixParticular || '',
                 prefix_numeric_width: selectedRow.imN_WidthNumeric ? Number(selectedRow.imN_WidthNumeric) : 0,
                 suffix_type: (numberingType === 'Voucher' ? selectedRow.imN_SuffixFinYearCode : selectedRow.imN_SuffixAcadYearCode)
                     ? 'academic'
                     : selectedRow.imN_SuffixParticular
-                        ? 'particulars'
-                        : 'academic',
+                      ? 'particulars'
+                      : 'academic',
                 suffix_particulars: selectedRow.imN_SuffixParticular || '',
                 suffix_starting_from: selectedRow.imN_StartingNo ? Number(selectedRow.imN_StartingNo) : 0,
                 prefix_with_zero: selectedRow.imN_ZeroPrefixFlag === 'Y' || selectedRow.imN_ZeroPrefixFlag === 'Yes' ? 'yes' : 'no',
-                restart_frequency: selectedRow.imN_RestartNumFlag === 'Y' || selectedRow.imN_RestartNumFlag === 'Yearly' ? 'yearly' : (selectedRow.imN_RestartNumFlag === 'M' || selectedRow.imN_RestartNumFlag === 'Monthly' ? 'monthly' : 'never'),
+                restart_frequency:
+                    selectedRow.imN_RestartNumFlag === 'Y' || selectedRow.imN_RestartNumFlag === 'Yearly'
+                        ? 'yearly'
+                        : selectedRow.imN_RestartNumFlag === 'M' || selectedRow.imN_RestartNumFlag === 'Monthly'
+                          ? 'monthly'
+                          : 'never',
                 transaction_name: selectedRow.irN_TransactionName || '',
                 restart_acad_year: !!selectedRow.irN_RestartAcadYear,
                 restart_fin_year: !!selectedRow.irN_RestartFinYear,
@@ -143,7 +152,7 @@ export default function UpdateTransactionNumberingForm({
                 imN_ZeroPrefixFlag: data.prefix_with_zero === 'yes' ? 'Y' : 'N',
                 imN_PrefixParticular: data.prefix_type === 'particulars' ? data.prefix_particulars || '' : '',
                 imN_SuffixParticular: data.suffix_type === 'particulars' ? data.suffix_particulars || '' : '',
-                imN_RestartNumFlag: data.restart_frequency === 'yearly' ? 'Y' : (data.restart_frequency === 'monthly' ? 'M' : 'N'),
+                imN_RestartNumFlag: data.restart_frequency === 'yearly' ? 'Y' : data.restart_frequency === 'monthly' ? 'M' : 'N',
                 imN_Flag: numberingType,
 
                 // Defaults for Master
@@ -179,7 +188,7 @@ export default function UpdateTransactionNumberingForm({
                     rollNumberingconfig: data.rollNumberingconfig?.map((item, index) => ({
                         ivrmarnC_Field: item.ivrmarnC_Field,
                         ivrmarnC_AscDscOrder: item.ivrmarnC_AscDscOrder,
-                        ivrmarnC_Order: item.ivrmarnC_Order || (index + 1),
+                        ivrmarnC_Order: item.ivrmarnC_Order || index + 1,
                         ivrmarnC_Id: item.ivrmarnC_Id || 0
                     }))
                 };
@@ -207,19 +216,24 @@ export default function UpdateTransactionNumberingForm({
                 prefix_type: (numberingType === 'Voucher' ? selectedRow.imN_PrefixFinYearCode : selectedRow.imN_PrefixAcadYearCode)
                     ? 'academic'
                     : selectedRow.imN_PrefixParticular
-                        ? 'particulars'
-                        : 'academic',
+                      ? 'particulars'
+                      : 'academic',
                 prefix_particulars: selectedRow.imN_PrefixParticular || '',
                 prefix_numeric_width: selectedRow.imN_WidthNumeric ? Number(selectedRow.imN_WidthNumeric) : 0,
                 suffix_type: (numberingType === 'Voucher' ? selectedRow.imN_SuffixFinYearCode : selectedRow.imN_SuffixAcadYearCode)
                     ? 'academic'
                     : selectedRow.imN_SuffixParticular
-                        ? 'particulars'
-                        : 'academic',
+                      ? 'particulars'
+                      : 'academic',
                 suffix_particulars: selectedRow.imN_SuffixParticular || '',
                 suffix_starting_from: selectedRow.imN_StartingNo ? Number(selectedRow.imN_StartingNo) : 0,
                 prefix_with_zero: selectedRow.imN_ZeroPrefixFlag === 'Y' || selectedRow.imN_ZeroPrefixFlag === 'Yes' ? 'yes' : 'no',
-                restart_frequency: selectedRow.imN_RestartNumFlag === 'Y' || selectedRow.imN_RestartNumFlag === 'Yearly' ? 'yearly' : (selectedRow.imN_RestartNumFlag === 'M' || selectedRow.imN_RestartNumFlag === 'Monthly' ? 'monthly' : 'never'),
+                restart_frequency:
+                    selectedRow.imN_RestartNumFlag === 'Y' || selectedRow.imN_RestartNumFlag === 'Yearly'
+                        ? 'yearly'
+                        : selectedRow.imN_RestartNumFlag === 'M' || selectedRow.imN_RestartNumFlag === 'Monthly'
+                          ? 'monthly'
+                          : 'never',
                 transaction_name: selectedRow.irN_TransactionName || '',
                 restart_acad_year: !!selectedRow.irN_RestartAcadYear,
                 restart_fin_year: !!selectedRow.irN_RestartFinYear,
@@ -248,7 +262,6 @@ export default function UpdateTransactionNumberingForm({
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className={cn('space-y-8 rounded-lg border bg-white p-6 shadow-sm', className)}>
-
             {/* conditional fields for Receipt */}
             {numberingType === 'Receipt' && (
                 <div className='rounded-md border bg-muted/20 p-4'>
@@ -256,9 +269,7 @@ export default function UpdateTransactionNumberingForm({
                     <Controller
                         name='transaction_name'
                         control={control}
-                        render={({ field }) => (
-                            <Input {...field} id='transaction_name_update' placeholder='e.g. Fee Receipt' />
-                        )}
+                        render={({ field }) => <Input {...field} id='transaction_name_update' placeholder='e.g. Fee Receipt' />}
                     />
                 </div>
             )}
@@ -271,9 +282,7 @@ export default function UpdateTransactionNumberingForm({
                         <Controller
                             name='voucher_name'
                             control={control}
-                            render={({ field }) => (
-                                <Input {...field} id='voucher_name_update' placeholder='e.g. Payment Voucher' />
-                            )}
+                            render={({ field }) => <Input {...field} id='voucher_name_update' placeholder='e.g. Payment Voucher' />}
                         />
                     </div>
                     <div>
@@ -281,9 +290,7 @@ export default function UpdateTransactionNumberingForm({
                         <Controller
                             name='voucher_type'
                             control={control}
-                            render={({ field }) => (
-                                <Input {...field} id='voucher_type_update' placeholder='e.g. PV' />
-                            )}
+                            render={({ field }) => <Input {...field} id='voucher_type_update' placeholder='e.g. PV' />}
                         />
                     </div>
                 </div>
@@ -291,7 +298,9 @@ export default function UpdateTransactionNumberingForm({
 
             {/* === AUTO / MANUAL SELECTION === */}
             <div className='flex items-start gap-8 rounded-md border bg-muted/20 p-4'>
-                <Label className='font-medium text-primary mt-1'>Please Select Radio Button <span className="text-red-500">*</span></Label>
+                <Label className='mt-1 font-medium text-primary'>
+                    Please Select Radio Button <span className='text-red-500'>*</span>
+                </Label>
                 <Controller
                     name='auto_manual_flag'
                     control={control}
@@ -317,12 +326,14 @@ export default function UpdateTransactionNumberingForm({
             {/* === MANUAL SETTINGS === */}
             {autoManualFlag === 'Manual' && (
                 <div className='flex items-start gap-8 rounded-md border bg-muted/20 p-4'>
-                    <Label className='font-medium text-primary mt-1'>Prevent Duplicate: <span className="text-red-500">*</span></Label>
+                    <Label className='mt-1 font-medium text-primary'>
+                        Prevent Duplicate: <span className='text-red-500'>*</span>
+                    </Label>
                     <Controller
                         name='duplicates_flag'
                         control={control}
                         render={({ field }) => (
-                            <div className="flex flex-col gap-1">
+                            <div className='flex flex-col gap-1'>
                                 <RadioGroup onValueChange={field.onChange} value={field.value ?? ''} className='flex gap-6'>
                                     <div className='flex items-center space-x-2'>
                                         <RadioGroupItem value='Yes' id={`dup_yes_${numberingType}_update`} />
@@ -361,13 +372,17 @@ export default function UpdateTransactionNumberingForm({
                                         <RadioGroup onValueChange={field.onChange} value={field.value ?? ''} className='flex gap-6'>
                                             <div className='flex items-center space-x-2'>
                                                 <RadioGroupItem value='academic' id={`prefix-academic-${numberingType}-update`} />
-                                                <Label htmlFor={`prefix-academic-${numberingType}-update`} className='cursor-pointer font-normal'>
+                                                <Label
+                                                    htmlFor={`prefix-academic-${numberingType}-update`}
+                                                    className='cursor-pointer font-normal'>
                                                     {numberingType === 'Voucher' ? 'Financial Year Code' : 'Academic Year Code'}
                                                 </Label>
                                             </div>
                                             <div className='flex items-center space-x-2'>
                                                 <RadioGroupItem value='particulars' id={`prefix-particulars-${numberingType}-update`} />
-                                                <Label htmlFor={`prefix-particulars-${numberingType}-update`} className='cursor-pointer font-normal'>
+                                                <Label
+                                                    htmlFor={`prefix-particulars-${numberingType}-update`}
+                                                    className='cursor-pointer font-normal'>
                                                     Particulars
                                                 </Label>
                                             </div>
@@ -383,7 +398,12 @@ export default function UpdateTransactionNumberingForm({
                                         name='prefix_particulars'
                                         control={control}
                                         render={({ field }) => (
-                                            <Input {...field} id={`prefix_particulars_${numberingType}_update`} placeholder='e.g., INV, REG' className='w-full' />
+                                            <Input
+                                                {...field}
+                                                id={`prefix_particulars_${numberingType}_update`}
+                                                placeholder='e.g., INV, REG'
+                                                className='w-full'
+                                            />
                                         )}
                                     />
                                     {errors.prefix_particulars && <FormError>{errors.prefix_particulars.message}</FormError>}
@@ -425,13 +445,17 @@ export default function UpdateTransactionNumberingForm({
                                         <RadioGroup onValueChange={field.onChange} value={field.value ?? ''} className='flex gap-6'>
                                             <div className='flex items-center space-x-2'>
                                                 <RadioGroupItem value='academic' id={`suffix-academic-${numberingType}-update`} />
-                                                <Label htmlFor={`suffix-academic-${numberingType}-update`} className='cursor-pointer font-normal'>
+                                                <Label
+                                                    htmlFor={`suffix-academic-${numberingType}-update`}
+                                                    className='cursor-pointer font-normal'>
                                                     {numberingType === 'Voucher' ? 'Financial Year Code' : 'Academic Year Code'}
                                                 </Label>
                                             </div>
                                             <div className='flex items-center space-x-2'>
                                                 <RadioGroupItem value='particulars' id={`suffix-particulars-${numberingType}-update`} />
-                                                <Label htmlFor={`suffix-particulars-${numberingType}-update`} className='cursor-pointer font-normal'>
+                                                <Label
+                                                    htmlFor={`suffix-particulars-${numberingType}-update`}
+                                                    className='cursor-pointer font-normal'>
                                                     Particulars
                                                 </Label>
                                             </div>
@@ -447,7 +471,12 @@ export default function UpdateTransactionNumberingForm({
                                         name='suffix_particulars'
                                         control={control}
                                         render={({ field }) => (
-                                            <Input {...field} id={`suffix_particulars_${numberingType}_update`} placeholder='e.g., FY, SEM' className='w-full' />
+                                            <Input
+                                                {...field}
+                                                id={`suffix_particulars_${numberingType}_update`}
+                                                placeholder='e.g., FY, SEM'
+                                                className='w-full'
+                                            />
                                         )}
                                     />
                                     {errors.suffix_particulars && <FormError>{errors.suffix_particulars.message}</FormError>}
@@ -486,13 +515,17 @@ export default function UpdateTransactionNumberingForm({
                                     <RadioGroup onValueChange={field.onChange} value={field.value ?? ''} className='flex gap-6'>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='yes' id={`prefix-zero-yes-${numberingType}-update`} />
-                                            <Label htmlFor={`prefix-zero-yes-${numberingType}-update`} className='cursor-pointer font-normal'>
+                                            <Label
+                                                htmlFor={`prefix-zero-yes-${numberingType}-update`}
+                                                className='cursor-pointer font-normal'>
                                                 Yes
                                             </Label>
                                         </div>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='no' id={`prefix-zero-no-${numberingType}-update`} />
-                                            <Label htmlFor={`prefix-zero-no-${numberingType}-update`} className='cursor-pointer font-normal'>
+                                            <Label
+                                                htmlFor={`prefix-zero-no-${numberingType}-update`}
+                                                className='cursor-pointer font-normal'>
                                                 No
                                             </Label>
                                         </div>
@@ -511,19 +544,25 @@ export default function UpdateTransactionNumberingForm({
                                         <RadioGroup onValueChange={field.onChange} value={field.value ?? ''} className='flex gap-6'>
                                             <div className='flex items-center space-x-2'>
                                                 <RadioGroupItem value='never' id={`restart-never-${numberingType}-update`} />
-                                                <Label htmlFor={`restart-never-${numberingType}-update`} className='cursor-pointer font-normal'>
+                                                <Label
+                                                    htmlFor={`restart-never-${numberingType}-update`}
+                                                    className='cursor-pointer font-normal'>
                                                     Never
                                                 </Label>
                                             </div>
                                             <div className='flex items-center space-x-2'>
                                                 <RadioGroupItem value='yearly' id={`restart-yearly-${numberingType}-update`} />
-                                                <Label htmlFor={`restart-yearly-${numberingType}-update`} className='cursor-pointer font-normal'>
+                                                <Label
+                                                    htmlFor={`restart-yearly-${numberingType}-update`}
+                                                    className='cursor-pointer font-normal'>
                                                     Yearly
                                                 </Label>
                                             </div>
                                             <div className='flex items-center space-x-2'>
                                                 <RadioGroupItem value='monthly' id={`restart-monthly-${numberingType}-update`} />
-                                                <Label htmlFor={`restart-monthly-${numberingType}-update`} className='cursor-pointer font-normal'>
+                                                <Label
+                                                    htmlFor={`restart-monthly-${numberingType}-update`}
+                                                    className='cursor-pointer font-normal'>
                                                     Monthly
                                                 </Label>
                                             </div>
@@ -538,7 +577,11 @@ export default function UpdateTransactionNumberingForm({
                                             control={control}
                                             render={({ field }) => (
                                                 <div className='flex items-center space-x-2'>
-                                                    <Checkbox id='restart_acad_year_u' checked={!!field.value} onCheckedChange={field.onChange} />
+                                                    <Checkbox
+                                                        id='restart_acad_year_u'
+                                                        checked={!!field.value}
+                                                        onCheckedChange={field.onChange}
+                                                    />
                                                     <Label htmlFor='restart_acad_year_u'>Academic Year</Label>
                                                 </div>
                                             )}
@@ -548,7 +591,11 @@ export default function UpdateTransactionNumberingForm({
                                             control={control}
                                             render={({ field }) => (
                                                 <div className='flex items-center space-x-2'>
-                                                    <Checkbox id='restart_fin_year_u' checked={!!field.value} onCheckedChange={field.onChange} />
+                                                    <Checkbox
+                                                        id='restart_fin_year_u'
+                                                        checked={!!field.value}
+                                                        onCheckedChange={field.onChange}
+                                                    />
                                                     <Label htmlFor='restart_fin_year_u'>Financial Year</Label>
                                                 </div>
                                             )}
@@ -558,7 +605,11 @@ export default function UpdateTransactionNumberingForm({
                                             control={control}
                                             render={({ field }) => (
                                                 <div className='flex items-center space-x-2'>
-                                                    <Checkbox id='restart_cal_year_u' checked={!!field.value} onCheckedChange={field.onChange} />
+                                                    <Checkbox
+                                                        id='restart_cal_year_u'
+                                                        checked={!!field.value}
+                                                        onCheckedChange={field.onChange}
+                                                    />
                                                     <Label htmlFor='restart_cal_year_u'>Calendar Year</Label>
                                                 </div>
                                             )}
@@ -573,19 +624,30 @@ export default function UpdateTransactionNumberingForm({
 
             {/* === ROLL NUMBERING CONFIG === */}
             {numberingType === 'RollNumber' && (
-                <div className='rounded-md border bg-muted/20 p-4 mt-6'>
-                    <div className='flex justify-between items-center mb-3'>
+                <div className='mt-6 rounded-md border bg-muted/20 p-4'>
+                    <div className='mb-3 flex items-center justify-between'>
                         <h3 className='font-medium text-primary'>Roll Numbering Configuration</h3>
-                        <Button type="button" size="sm" variant="outline" onClick={() => append({ ivrmarnC_Field: 'AMST_FirstName', ivrmarnC_AscDscOrder: 'ASC', ivrmarnC_Order: rollConfigFields.length + 1, ivrmarnC_Id: 0 })}>
-                            <Plus className="w-4 h-4 mr-1" /> Add Rule
+                        <Button
+                            type='button'
+                            size='sm'
+                            variant='outline'
+                            onClick={() =>
+                                append({
+                                    ivrmarnC_Field: 'AMST_FirstName',
+                                    ivrmarnC_AscDscOrder: 'ASC',
+                                    ivrmarnC_Order: rollConfigFields.length + 1,
+                                    ivrmarnC_Id: 0
+                                })
+                            }>
+                            <Plus className='mr-1 h-4 w-4' /> Add Rule
                         </Button>
                     </div>
 
                     <div className='space-y-3'>
                         {rollConfigFields.map((field, index) => (
-                            <div key={field.id} className='flex items-center gap-4 bg-white p-2 border rounded-md shadow-sm'>
+                            <div key={field.id} className='flex items-center gap-4 rounded-md border bg-white p-2 shadow-sm'>
                                 <div className='flex-1'>
-                                    <Label className='text-xs text-muted-foreground'>Field to sort</Label>
+                                    <Label className='text-muted-foreground text-xs'>Field to sort</Label>
                                     <Controller
                                         name={`rollNumberingconfig.${index}.ivrmarnC_Field`}
                                         control={control}
@@ -593,18 +655,17 @@ export default function UpdateTransactionNumberingForm({
                                             <select
                                                 {...inputField}
                                                 value={inputField.value ?? ''}
-                                                className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
-                                            >
-                                                <option value="AMST_FirstName">First Name</option>
-                                                <option value="AMST_AdmNo">Admission Number</option>
-                                                <option value="AMST_RegistrationNo">Registration Number</option>
-                                                <option value="AMST_Date">Date</option>
+                                                className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'>
+                                                <option value='AMST_FirstName'>First Name</option>
+                                                <option value='AMST_AdmNo'>Admission Number</option>
+                                                <option value='AMST_RegistrationNo'>Registration Number</option>
+                                                <option value='AMST_Date'>Date</option>
                                             </select>
                                         )}
                                     />
                                 </div>
                                 <div className='flex-1'>
-                                    <Label className='text-xs text-muted-foreground'>Order</Label>
+                                    <Label className='text-muted-foreground text-xs'>Order</Label>
                                     <Controller
                                         name={`rollNumberingconfig.${index}.ivrmarnC_AscDscOrder`}
                                         control={control}
@@ -612,24 +673,27 @@ export default function UpdateTransactionNumberingForm({
                                             <select
                                                 {...inputField}
                                                 value={inputField.value ?? ''}
-                                                className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
-                                            >
-                                                <option value="ASC">Ascending (ASC)</option>
-                                                <option value="DESC">Descending (DESC)</option>
+                                                className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'>
+                                                <option value='ASC'>Ascending (ASC)</option>
+                                                <option value='DESC'>Descending (DESC)</option>
                                             </select>
                                         )}
                                     />
                                 </div>
                                 <div className='flex items-end'>
                                     <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        className='text-destructive mb-0.5'
+                                        type='button'
+                                        variant='ghost'
+                                        size='icon'
+                                        className='mb-0.5 text-destructive'
                                         disabled={isDeleting}
-                                        onClick={() => handleDeleteRollConfig(index, control._formValues.rollNumberingconfig?.[index]?.ivrmarnC_Id || 0)}
-                                    >
-                                        <Trash2 className="w-4 h-4" />
+                                        onClick={() =>
+                                            handleDeleteRollConfig(
+                                                index,
+                                                control._formValues.rollNumberingconfig?.[index]?.ivrmarnC_Id || 0
+                                            )
+                                        }>
+                                        <Trash2 className='h-4 w-4' />
                                     </Button>
                                 </div>
                             </div>
@@ -639,7 +703,7 @@ export default function UpdateTransactionNumberingForm({
             )}
 
             {/* === ACTION BUTTONS === */}
-            <div className='flex justify-start gap-3 border-t pt-6 mt-6'>
+            <div className='mt-6 flex justify-start gap-3 border-t pt-6'>
                 <Button type='button' className='w-fit' variant='outline' onClick={handleReset} disabled={isSubmitting || isDeleting}>
                     <RotateCcw className='mr-2 h-4 w-4' />
                     Reset

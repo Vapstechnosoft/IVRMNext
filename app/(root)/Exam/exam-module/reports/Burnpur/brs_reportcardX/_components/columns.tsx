@@ -56,11 +56,7 @@ export const getBrsReportCardIXColumns = (subjects: ISubject[]): ColumnDef<IExam
         .forEach((subj) => {
             cols.push({
                 id: `subject_${subj.ismS_Id}`,
-                header: () => (
-                    <div className='break-words text-center font-bold text-xs uppercase'>
-                        {subj.ismS_SubjectName}
-                    </div>
-                ),
+                header: () => <div className='break-words text-center font-bold text-xs uppercase'>{subj.ismS_SubjectName}</div>,
                 cell: ({ row }) => renderBrsIXCell(row.original, subj)
             });
         });
@@ -92,9 +88,7 @@ export const getBrsReportCardIXColumns = (subjects: ISubject[]): ColumnDef<IExam
                 header: ({ column }) => <DataTableColumnHeader column={column} title='%' />,
                 cell: ({ row }) => (
                     <div className='text-center'>
-                        {row.original.estmP_Result === 'AB'
-                            ? '-'
-                            : `${row.getValue('estmP_Percentage') ?? '-'}%`}
+                        {row.original.estmP_Result === 'AB' ? '-' : `${row.getValue('estmP_Percentage') ?? '-'}%`}
                     </div>
                 )
             },
@@ -114,8 +108,9 @@ export const getBrsReportCardIXColumns = (subjects: ISubject[]): ColumnDef<IExam
                     const result = row.getValue('estmP_Result') as string;
                     return (
                         <div
-                            className={`text-center font-semibold ${result === 'Pass' ? 'text-green-600' : result === 'Fail' ? 'text-red-600' : ''
-                                }`}>
+                            className={`text-center font-semibold ${
+                                result === 'Pass' ? 'text-green-600' : result === 'Fail' ? 'text-red-600' : ''
+                            }`}>
                             {result ?? '-'}
                         </div>
                     );
@@ -141,9 +136,7 @@ function renderBrsIXCell(row: IExamReportCard, subj: ISubject) {
     return (
         <div className='space-y-0 text-center leading-tight'>
             <div className='font-medium'>{showMarks ? (mark.estmpS_ObtainedMarks ?? '-') : '-'}</div>
-            {showGrade && (
-                <div className='text-blue-700 text-xs'>{mark.estmpS_ObtainedGrade ?? '-'}</div>
-            )}
+            {showGrade && <div className='text-blue-700 text-xs'>{mark.estmpS_ObtainedGrade ?? '-'}</div>}
         </div>
     );
 }

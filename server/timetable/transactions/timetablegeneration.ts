@@ -16,10 +16,7 @@ export async function getCategory(data?: any) {
 }
 
 export async function getGenerationMasters() {
-    const [yearsResponse, categoriesResponse] = await Promise.all([
-        getAcademicYear(),
-        getCategory()
-    ]);
+    const [yearsResponse, categoriesResponse] = await Promise.all([getAcademicYear(), getCategory()]);
 
     return {
         years: (yearsResponse.data || []) as AcademicYear[],

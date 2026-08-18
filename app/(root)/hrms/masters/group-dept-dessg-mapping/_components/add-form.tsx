@@ -106,11 +106,14 @@ export default function AddGroupDeptDessgMappingForm({ onSuccess, className = ''
                             <Label htmlFor='hrmgT_Id'>
                                 Group Type <span className='text-destructive'>*</span>
                             </Label>
-                                <Controller
+                            <Controller
                                 name='hrmgT_Id'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select key={field.value ? 'has-value' : 'empty'} value={field.value?.toString() || ''} onValueChange={(value) => field.onChange(value)}>
+                                    <Select
+                                        key={field.value ? 'has-value' : 'empty'}
+                                        value={field.value?.toString() || ''}
+                                        onValueChange={(value) => field.onChange(value)}>
                                         <SelectTrigger id='hrmgT_Id' className='transition-colors focus:ring-2 focus:ring-primary/20'>
                                             <SelectValue placeholder='Select group type' />
                                         </SelectTrigger>
@@ -144,7 +147,10 @@ export default function AddGroupDeptDessgMappingForm({ onSuccess, className = ''
                                 name='hrmD_Id'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select key={field.value ? 'has-value' : 'empty'} value={field.value?.toString() || ''} onValueChange={(value) => field.onChange(value)}>
+                                    <Select
+                                        key={field.value ? 'has-value' : 'empty'}
+                                        value={field.value?.toString() || ''}
+                                        onValueChange={(value) => field.onChange(value)}>
                                         <SelectTrigger id='hrmD_Id' className='transition-colors focus:ring-2 focus:ring-primary/20'>
                                             <SelectValue placeholder='Select department' />
                                         </SelectTrigger>

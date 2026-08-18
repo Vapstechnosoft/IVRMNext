@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { Printer } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React, { useMemo } from 'react';
 
 interface ReportListProps {
     data: any;
@@ -13,13 +13,7 @@ interface ReportListProps {
     reOpenDate: Date | null;
 }
 
-export const ReportList = ({
-    data,
-    academicYearName,
-    classNameVal,
-    sectionNameVal,
-    reOpenDate
-}: ReportListProps) => {
+export const ReportList = ({ data, academicYearName, classNameVal, sectionNameVal, reOpenDate }: ReportListProps) => {
     const stuDetails = data?.studentDetails?.[0] || data?.stu_details?.[0] || {};
     const stuname = stuDetails.stuname || '';
     const asmcL_ClassName = stuDetails.asmcL_ClassName || classNameVal || '';
@@ -136,9 +130,10 @@ export const ReportList = ({
     };
 
     return (
-        <div className="w-full space-y-4">
-            <style dangerouslySetInnerHTML={{
-                __html: `
+        <div className='w-full space-y-4'>
+            <style
+                dangerouslySetInnerHTML={{
+                    __html: `
                 @media print {
                     @page {
                         size: A4 portrait;
@@ -180,92 +175,113 @@ export const ReportList = ({
                 .table-print { width: 100%; border-collapse: collapse; font-size: 11px; }
                 .table-bordered th, .table-bordered td { border: 1px solid #ddd; padding: 4px; font-size: 11px; }
                 `
-            }} />
+                }}
+            />
 
-            <div className="flex justify-end no-print">
-                <Button onClick={handlePrint} className="bg-primary text-white">
-                    <Printer className="mr-2 h-4 w-4" /> Print Report
+            <div className='no-print flex justify-end'>
+                <Button onClick={handlePrint} className='bg-primary text-white'>
+                    <Printer className='mr-2 h-4 w-4' /> Print Report
                 </Button>
             </div>
 
-            <div className="printable-area bg-white text-black p-4 md:p-8 rounded-lg shadow-sm border border-gray-200 print:border-none print:shadow-none">
-
+            <div className='printable-area rounded-lg border border-gray-200 bg-white p-4 text-black shadow-sm md:p-8 print:border-none print:shadow-none'>
                 {/* SINGLE PAGE CONTAINER */}
-                <div className="w-full mx-auto max-w-4xl flex flex-col gap-3">
-                    
+                <div className='mx-auto flex w-full max-w-4xl flex-col gap-3'>
                     {/* Header */}
-                    <div className="report-title-section text-center relative space-y-1">
-                        <div className="header text-center">
-                            <h1 style={{ fontFamily: "'Monotype Corsiva', 'Apple Chancery', cursive, serif", fontSize: '32px', fontWeight: 'bold', color: '#1a365d', lineHeight: '1.1' }}>Hutchings High School & Junior College</h1>
-                            <h4 style={{ fontSize: '13px', fontStyle: 'italic', color: '#555' }}>(Affiliated to the Council for the Indian School Certificate Examination, New Delhi)</h4>
+                    <div className='report-title-section relative space-y-1 text-center'>
+                        <div className='header text-center'>
+                            <h1
+                                style={{
+                                    fontFamily: "'Monotype Corsiva', 'Apple Chancery', cursive, serif",
+                                    fontSize: '32px',
+                                    fontWeight: 'bold',
+                                    color: '#1a365d',
+                                    lineHeight: '1.1'
+                                }}>
+                                Hutchings High School & Junior College
+                            </h1>
+                            <h4 style={{ fontSize: '13px', fontStyle: 'italic', color: '#555' }}>
+                                (Affiliated to the Council for the Indian School Certificate Examination, New Delhi)
+                            </h4>
                         </div>
-                        <div className="flex justify-center relative z-10 my-1">
+                        <div className='relative z-10 my-1 flex justify-center'>
                             <img
-                                src="/images/Clients/Hutchings/ProgressReports/hhlogo.png"
-                                className="report-logo h-[70px] w-auto object-contain"
-                                alt="Hutchings Logo"
+                                src='/images/Clients/Hutchings/ProgressReports/hhlogo.png'
+                                className='report-logo h-[70px] w-auto object-contain'
+                                alt='Hutchings Logo'
                                 onError={(e) => {
                                     e.currentTarget.src = '/assets/tunbridge_logo.png';
                                 }}
                             />
                         </div>
-                        <div className="text-gray-800 text-xs font-medium">
+                        <div className='font-medium text-gray-800 text-xs'>
                             7, Phayre Road, Pune - 411 040. Tel.: 020-26352764 | website : www.hutchingsschoolpune.in
                         </div>
                     </div>
 
-                    <div className="text-center mt-2">
-                        <h2 className="text-base font-bold uppercase tracking-wide">REPORT CARD - STANDARD {asmcL_ClassName} ({asmaY_Year})</h2>
+                    <div className='mt-2 text-center'>
+                        <h2 className='font-bold text-base uppercase tracking-wide'>
+                            REPORT CARD - STANDARD {asmcL_ClassName} ({asmaY_Year})
+                        </h2>
                     </div>
 
                     {/* Student Info & Photo Row */}
-                    <div className="flex flex-row justify-between items-start gap-4">
-                        <div className="flex-1 w-full">
-                            <table className="table-print table-bordered w-full">
+                    <div className='flex flex-row items-start justify-between gap-4'>
+                        <div className='w-full flex-1'>
+                            <table className='table-print table-bordered w-full'>
                                 <tbody>
                                     <tr>
-                                        <td className="font-semibold w-[15%]">Student Name</td>
-                                        <td className="w-[35%] font-bold">{stuname}</td>
-                                        <td className="font-semibold w-[15%]">Roll No</td>
-                                        <td className="w-[35%] font-bold">{amaY_RollNo}</td>
+                                        <td className='w-[15%] font-semibold'>Student Name</td>
+                                        <td className='w-[35%] font-bold'>{stuname}</td>
+                                        <td className='w-[15%] font-semibold'>Roll No</td>
+                                        <td className='w-[35%] font-bold'>{amaY_RollNo}</td>
                                     </tr>
                                     <tr>
-                                        <td className="font-semibold">Standard</td>
-                                        <td className="font-bold">{asmcL_ClassName}</td>
-                                        <td className="font-semibold">Division</td>
-                                        <td className="font-bold">{asmC_SectionName}</td>
+                                        <td className='font-semibold'>Standard</td>
+                                        <td className='font-bold'>{asmcL_ClassName}</td>
+                                        <td className='font-semibold'>Division</td>
+                                        <td className='font-bold'>{asmC_SectionName}</td>
                                     </tr>
                                     <tr>
-                                        <td className="font-semibold">Date of Birth</td>
-                                        <td className="font-bold">{formatDateVal(amsT_DOB)}</td>
-                                        <td className="font-semibold">Reg. No</td>
-                                        <td className="font-bold">{amsT_RegistrationNo}</td>
+                                        <td className='font-semibold'>Date of Birth</td>
+                                        <td className='font-bold'>{formatDateVal(amsT_DOB)}</td>
+                                        <td className='font-semibold'>Reg. No</td>
+                                        <td className='font-bold'>{amsT_RegistrationNo}</td>
                                     </tr>
                                     <tr>
-                                        <td className="font-semibold">Guardian's Name</td>
-                                        <td className="font-bold">{amsT_FatherName}</td>
-                                        <td className="font-semibold">Email Id</td>
-                                        <td className="font-bold">{amsT_EmailId}</td>
+                                        <td className='font-semibold'>Guardian's Name</td>
+                                        <td className='font-bold'>{amsT_FatherName}</td>
+                                        <td className='font-semibold'>Email Id</td>
+                                        <td className='font-bold'>{amsT_EmailId}</td>
                                     </tr>
                                     <tr>
-                                        <td className="font-semibold">Address</td>
-                                        <td colSpan={3} className="font-medium text-[10px]">
-                                            {[amsT_PerStreet, amsT_PerArea, amsT_PerCity, ivrmmS_Name, ivrmmC_CountryName, amsT_PerPincode ? `Pincode-${amsT_PerPincode}` : ''].filter(Boolean).join(', ')}
+                                        <td className='font-semibold'>Address</td>
+                                        <td colSpan={3} className='font-medium text-[10px]'>
+                                            {[
+                                                amsT_PerStreet,
+                                                amsT_PerArea,
+                                                amsT_PerCity,
+                                                ivrmmS_Name,
+                                                ivrmmC_CountryName,
+                                                amsT_PerPincode ? `Pincode-${amsT_PerPincode}` : ''
+                                            ]
+                                                .filter(Boolean)
+                                                .join(', ')}
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
-                        
-                        <div className="flex-shrink-0">
+
+                        <div className='flex-shrink-0'>
                             {amsT_Photoname ? (
                                 <img
                                     src={amsT_Photoname}
-                                    alt="Student"
-                                    className="report-student-photo w-[110px] h-[120px] border border-gray-300 object-cover bg-white"
+                                    alt='Student'
+                                    className='report-student-photo h-[120px] w-[110px] border border-gray-300 bg-white object-cover'
                                 />
                             ) : (
-                                <div className="report-student-photo w-[110px] h-[120px] border border-dashed border-gray-300 flex items-center justify-center text-gray-400 bg-gray-50 text-[10px]">
+                                <div className='report-student-photo flex h-[120px] w-[110px] items-center justify-center border border-gray-300 border-dashed bg-gray-50 text-[10px] text-gray-400'>
                                     No Photo
                                 </div>
                             )}
@@ -273,147 +289,232 @@ export const ReportList = ({
                     </div>
 
                     {/* Academic Record */}
-                    <div className="mt-2">
-                        <div className="text-center mb-2">
-                            <h3 className="section-header text-sm font-bold border-b-2 border-gray-800 inline-block px-4">ACADEMIC RECORD</h3>
+                    <div className='mt-2'>
+                        <div className='mb-2 text-center'>
+                            <h3 className='section-header inline-block border-gray-800 border-b-2 px-4 font-bold text-sm'>
+                                ACADEMIC RECORD
+                            </h3>
                         </div>
 
-                        <table className="table-print table-bordered w-full">
+                        <table className='table-print table-bordered w-full'>
                             <thead>
-                                <tr className="bg-gray-50">
-                                    <th colSpan={2} className="text-center"><b>SUBJECT</b></th>
+                                <tr className='bg-gray-50'>
+                                    <th colSpan={2} className='text-center'>
+                                        <b>SUBJECT</b>
+                                    </th>
                                     {exam_list.map((role: any, idx: number) => (
-                                        <th key={idx} className="text-center whitespace-nowrap">
-                                            <b>{role.emE_ExamName} <br /> ({role.maxmarks})</b>
+                                        <th key={idx} className='whitespace-nowrap text-center'>
+                                            <b>
+                                                {role.emE_ExamName} <br /> ({role.maxmarks})
+                                            </b>
                                         </th>
                                     ))}
                                 </tr>
                             </thead>
                             {/* Render Subjects with flag=true */}
                             <tbody>
-                                {subject_list.filter((s: any) => s.flag === true || s.flag === 'true').map((subj: any, sIdx: number) => (
-                                    <React.Fragment key={sIdx}>
-                                        <tr>
-                                            <td rowSpan={(subj.subsubjects?.length || 0) + 2} colSpan={(subj.subsubjects?.length === 0) ? 2 : 1} className="align-middle font-bold">
-                                                {subj.subjectname}
-                                            </td>
-                                        </tr>
-                                        {subj.subsubjects?.map((ssubj: any, ssIdx: number) => (
-                                            <tr key={ssIdx}>
-                                                {ssubj.EMSS_Id !== '0' && <td className="font-semibold text-[10px]">{ssubj.SubSbuject}</td>}
+                                {subject_list
+                                    .filter((s: any) => s.flag === true || s.flag === 'true')
+                                    .map((subj: any, sIdx: number) => (
+                                        <React.Fragment key={sIdx}>
+                                            <tr>
+                                                <td
+                                                    rowSpan={(subj.subsubjects?.length || 0) + 2}
+                                                    colSpan={subj.subsubjects?.length === 0 ? 2 : 1}
+                                                    className='align-middle font-bold'>
+                                                    {subj.subjectname}
+                                                </td>
+                                            </tr>
+                                            {subj.subsubjects?.map((ssubj: any, ssIdx: number) => (
+                                                <tr key={ssIdx}>
+                                                    {ssubj.EMSS_Id !== '0' && (
+                                                        <td className='font-semibold text-[10px]'>{ssubj.SubSbuject}</td>
+                                                    )}
+                                                    {exam_list.map((y: any, eIdx: number) => {
+                                                        const marks = exm_sub_mrks_list.find(
+                                                            (m: any) =>
+                                                                m.emeid === y.emE_Id &&
+                                                                m.subid === subj.ISMS_Id &&
+                                                                m.ssubj === ssubj.EMSS_Id
+                                                        );
+                                                        return (
+                                                            <td key={eIdx} className='text-center'>
+                                                                {marks &&
+                                                                    (marks.PassFailFlg === 'AB' ||
+                                                                    marks.PassFailFlg === 'M' ||
+                                                                    marks.PassFailFlg === 'L' ? (
+                                                                        <span>
+                                                                            {marks.PassFailFlg}({marks.obtainmarks})
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span>{marks.obtainmarks}</span>
+                                                                    ))}
+                                                            </td>
+                                                        );
+                                                    })}
+                                                </tr>
+                                            ))}
+                                            <tr>
+                                                {subj.subsubjects?.length > 0 && <td className='font-bold text-[10px]'>Total</td>}
                                                 {exam_list.map((y: any, eIdx: number) => {
-                                                    const marks = exm_sub_mrks_list.find((m: any) => m.emeid === y.emE_Id && m.subid === subj.ISMS_Id && m.ssubj === ssubj.EMSS_Id);
+                                                    const marks = exm_sub_mrks_list.find(
+                                                        (m: any) =>
+                                                            m.emeid === y.emE_Id &&
+                                                            m.subid === subj.ISMS_Id &&
+                                                            (!m.ssubj || m.ssubj === '') &&
+                                                            (!m.SubsubjectName || m.SubsubjectName === '')
+                                                    );
                                                     return (
-                                                        <td key={eIdx} className="text-center">
-                                                            {marks && (
-                                                                (marks.PassFailFlg === 'AB' || marks.PassFailFlg === 'M' || marks.PassFailFlg === 'L') ?
-                                                                    <span>{marks.PassFailFlg}({marks.obtainmarks})</span> :
+                                                        <td key={eIdx} className='text-center font-bold'>
+                                                            {marks &&
+                                                                (marks.PassFailFlg === 'AB' ||
+                                                                marks.PassFailFlg === 'M' ||
+                                                                marks.PassFailFlg === 'L' ? (
+                                                                    <span>
+                                                                        {marks.PassFailFlg}({marks.obtainmarks})
+                                                                    </span>
+                                                                ) : (
                                                                     <span>{marks.obtainmarks}</span>
-                                                            )}
+                                                                ))}
                                                         </td>
                                                     );
                                                 })}
                                             </tr>
-                                        ))}
-                                        <tr>
-                                            {subj.subsubjects?.length > 0 && <td className="font-bold text-[10px]">Total</td>}
-                                            {exam_list.map((y: any, eIdx: number) => {
-                                                const marks = exm_sub_mrks_list.find((m: any) => m.emeid === y.emE_Id && m.subid === subj.ISMS_Id && (!m.ssubj || m.ssubj === '') && (!m.SubsubjectName || m.SubsubjectName === ''));
-                                                return (
-                                                    <td key={eIdx} className="text-center font-bold">
-                                                        {marks && (
-                                                            (marks.PassFailFlg === 'AB' || marks.PassFailFlg === 'M' || marks.PassFailFlg === 'L') ?
-                                                                <span>{marks.PassFailFlg}({marks.obtainmarks})</span> :
-                                                                <span>{marks.obtainmarks}</span>
-                                                        )}
-                                                    </td>
-                                                );
-                                            })}
-                                        </tr>
-                                    </React.Fragment>
-                                ))}
+                                        </React.Fragment>
+                                    ))}
                             </tbody>
                             {/* Render Subjects with flag=false */}
                             <tbody>
-                                {subject_list.filter((s: any) => s.flag === false || s.flag === 'false').map((subj: any, sIdx: number) => (
-                                    <React.Fragment key={sIdx}>
-                                        <tr>
-                                            <td rowSpan={(subj.subsubjects?.length || 0) + 2} colSpan={(subj.subsubjects?.length === 0) ? 2 : 1} className="align-middle font-bold">
-                                                {subj.subjectname}
-                                            </td>
-                                        </tr>
-                                        {subj.subsubjects?.map((ssubj: any, ssIdx: number) => (
-                                            <tr key={ssIdx}>
-                                                <td className="font-semibold text-[10px]">{ssubj.SubSbuject}</td>
+                                {subject_list
+                                    .filter((s: any) => s.flag === false || s.flag === 'false')
+                                    .map((subj: any, sIdx: number) => (
+                                        <React.Fragment key={sIdx}>
+                                            <tr>
+                                                <td
+                                                    rowSpan={(subj.subsubjects?.length || 0) + 2}
+                                                    colSpan={subj.subsubjects?.length === 0 ? 2 : 1}
+                                                    className='align-middle font-bold'>
+                                                    {subj.subjectname}
+                                                </td>
+                                            </tr>
+                                            {subj.subsubjects?.map((ssubj: any, ssIdx: number) => (
+                                                <tr key={ssIdx}>
+                                                    <td className='font-semibold text-[10px]'>{ssubj.SubSbuject}</td>
+                                                    {exam_list.map((y: any, eIdx: number) => {
+                                                        const marks = exm_sub_mrks_list.find(
+                                                            (m: any) =>
+                                                                m.emeid === y.emE_Id &&
+                                                                m.subid === subj.ISMS_Id &&
+                                                                m.ssubj === ssubj.EMSS_Id
+                                                        );
+                                                        return (
+                                                            <td key={eIdx} className='text-center'>
+                                                                {marks &&
+                                                                    (marks.PassFailFlg === 'AB' ||
+                                                                    marks.PassFailFlg === 'M' ||
+                                                                    marks.PassFailFlg === 'L' ? (
+                                                                        <span>{marks.PassFailFlg}</span>
+                                                                    ) : (
+                                                                        <span>{marks.ObtainedGrade}</span>
+                                                                    ))}
+                                                            </td>
+                                                        );
+                                                    })}
+                                                </tr>
+                                            ))}
+                                            <tr>
+                                                {subj.subsubjects?.length > 0 && <td></td>}
                                                 {exam_list.map((y: any, eIdx: number) => {
-                                                    const marks = exm_sub_mrks_list.find((m: any) => m.emeid === y.emE_Id && m.subid === subj.ISMS_Id && m.ssubj === ssubj.EMSS_Id);
+                                                    const marks = exm_sub_mrks_list.find(
+                                                        (m: any) =>
+                                                            m.emeid === y.emE_Id &&
+                                                            m.subid === subj.ISMS_Id &&
+                                                            (!m.ssubj || m.ssubj === '') &&
+                                                            (!m.SubsubjectName || m.SubsubjectName === '')
+                                                    );
                                                     return (
-                                                        <td key={eIdx} className="text-center">
+                                                        <td key={eIdx} className='text-center font-bold'>
                                                             {marks && (
-                                                                (marks.PassFailFlg === 'AB' || marks.PassFailFlg === 'M' || marks.PassFailFlg === 'L') ?
-                                                                    <span>{marks.PassFailFlg}</span> :
-                                                                    <span>{marks.ObtainedGrade}</span>
+                                                                <>
+                                                                    {marks.PassFailFlg !== 'AB' &&
+                                                                        marks.PassFailFlg !== 'M' &&
+                                                                        marks.PassFailFlg !== 'L' &&
+                                                                        marks.Marksdispaly === '1' && <span>{marks.obtainmarks}</span>}
+                                                                    {marks.PassFailFlg !== 'AB' &&
+                                                                        marks.PassFailFlg !== 'M' &&
+                                                                        marks.PassFailFlg !== 'L' &&
+                                                                        marks.Gradedisplay === '1' && <span>{marks.ObtainedGrade}</span>}
+                                                                    {(marks.PassFailFlg === 'AB' ||
+                                                                        marks.PassFailFlg === 'M' ||
+                                                                        marks.PassFailFlg === 'L') && <span>{marks.PassFailFlg}</span>}
+                                                                </>
                                                             )}
                                                         </td>
                                                     );
                                                 })}
                                             </tr>
-                                        ))}
-                                        <tr>
-                                            {subj.subsubjects?.length > 0 && <td></td>}
-                                            {exam_list.map((y: any, eIdx: number) => {
-                                                const marks = exm_sub_mrks_list.find((m: any) => m.emeid === y.emE_Id && m.subid === subj.ISMS_Id && (!m.ssubj || m.ssubj === '') && (!m.SubsubjectName || m.SubsubjectName === ''));
-                                                return (
-                                                    <td key={eIdx} className="text-center font-bold">
-                                                        {marks && (
-                                                            <>
-                                                                {(marks.PassFailFlg !== 'AB' && marks.PassFailFlg !== 'M' && marks.PassFailFlg !== 'L' && marks.Marksdispaly === '1') && <span>{marks.obtainmarks}</span>}
-                                                                {(marks.PassFailFlg !== 'AB' && marks.PassFailFlg !== 'M' && marks.PassFailFlg !== 'L' && marks.Gradedisplay === '1') && <span>{marks.ObtainedGrade}</span>}
-                                                                {(marks.PassFailFlg === 'AB' || marks.PassFailFlg === 'M' || marks.PassFailFlg === 'L') && <span>{marks.PassFailFlg}</span>}
-                                                            </>
-                                                        )}
-                                                    </td>
-                                                );
-                                            })}
-                                        </tr>
-                                    </React.Fragment>
-                                ))}
+                                        </React.Fragment>
+                                    ))}
                             </tbody>
                             <tfoot>
-                                <tr className="bg-gray-50">
-                                    <td colSpan={2} className="font-bold">Total / %</td>
+                                <tr className='bg-gray-50'>
+                                    <td colSpan={2} className='font-bold'>
+                                        Total / %
+                                    </td>
                                     {exam_list.map((key: any, eIdx: number) => {
                                         const mm = exmtpr.find((m: any) => m.emE_Id === key.emE_Id);
-                                        return <td key={eIdx} className="text-center"><b>{mm?.estmP_TotalObtMarks} / {mm?.estmP_Percentage}%</b></td>;
+                                        return (
+                                            <td key={eIdx} className='text-center'>
+                                                <b>
+                                                    {mm?.estmP_TotalObtMarks} / {mm?.estmP_Percentage}%
+                                                </b>
+                                            </td>
+                                        );
                                     })}
                                 </tr>
-                                <tr className="bg-gray-50">
-                                    <td colSpan={2} className="font-bold">Rank / Grade</td>
+                                <tr className='bg-gray-50'>
+                                    <td colSpan={2} className='font-bold'>
+                                        Rank / Grade
+                                    </td>
                                     {exam_list.map((key: any, eIdx: number) => {
                                         const mm = exmtpr.find((m: any) => m.emE_Id === key.emE_Id && m.emE_FinalExamFlag === 0);
                                         const mg = exmtpr.find((m: any) => m.emE_Id === key.emE_Id);
-                                        return <td key={eIdx} className="text-center"><b>{mm?.estmP_SectionRank || '-'} / {mg?.estmP_TotalGrade || '-'}</b></td>;
+                                        return (
+                                            <td key={eIdx} className='text-center'>
+                                                <b>
+                                                    {mm?.estmP_SectionRank || '-'} / {mg?.estmP_TotalGrade || '-'}
+                                                </b>
+                                            </td>
+                                        );
                                     })}
                                 </tr>
                                 <tr>
-                                    <td colSpan={2} className="font-bold h-8 align-bottom">Teacher's Sign</td>
-                                    {exam_list.map((_: any, eIdx: number) => <td key={eIdx}></td>)}
+                                    <td colSpan={2} className='h-8 align-bottom font-bold'>
+                                        Teacher's Sign
+                                    </td>
+                                    {exam_list.map((_: any, eIdx: number) => (
+                                        <td key={eIdx}></td>
+                                    ))}
                                 </tr>
                                 <tr>
-                                    <td colSpan={2} className="font-bold h-8 align-bottom">Parent's/Guardian's Sign</td>
-                                    {exam_list.map((_: any, eIdx: number) => <td key={eIdx}></td>)}
+                                    <td colSpan={2} className='h-8 align-bottom font-bold'>
+                                        Parent's/Guardian's Sign
+                                    </td>
+                                    {exam_list.map((_: any, eIdx: number) => (
+                                        <td key={eIdx}></td>
+                                    ))}
                                 </tr>
                             </tfoot>
                         </table>
 
                         {/* Remarks Section */}
                         {examwiseremarks.length > 0 && (
-                            <div className="flex flex-row flex-wrap gap-2 mt-2 remarks-section">
+                            <div className='remarks-section mt-2 flex flex-row flex-wrap gap-2'>
                                 {examwiseremarks.map((remarks: any, rIdx: number) => (
-                                    <div key={rIdx} className="flex-1 min-w-[200px] border border-gray-300 p-2 text-[10px]">
-                                        <div className="font-bold mb-1 uppercase text-gray-700">{remarks.emE_ExamName} Remarks:</div>
-                                        <div className="font-semibold text-blue-900 italic mb-3">{remarks.emeR_Remarks || 'None'}</div>
-                                        <div className="text-right font-bold pt-2 border-t border-gray-200">Principal's Sign</div>
+                                    <div key={rIdx} className='min-w-[200px] flex-1 border border-gray-300 p-2 text-[10px]'>
+                                        <div className='mb-1 font-bold text-gray-700 uppercase'>{remarks.emE_ExamName} Remarks:</div>
+                                        <div className='mb-3 font-semibold text-blue-900 italic'>{remarks.emeR_Remarks || 'None'}</div>
+                                        <div className='border-gray-200 border-t pt-2 text-right font-bold'>Principal's Sign</div>
                                     </div>
                                 ))}
                             </div>
@@ -421,58 +522,75 @@ export const ReportList = ({
                     </div>
 
                     {/* Footer Row: Attendance & Grades */}
-                    <div className="flex flex-row justify-between items-start gap-4 mt-1">
-                        <div className="w-2/5">
-                            <div className="text-center mb-1">
-                                <h3 className="section-header text-sm font-bold border-b-2 border-gray-800 inline-block px-4">ATTENDANCE</h3>
+                    <div className='mt-1 flex flex-row items-start justify-between gap-4'>
+                        <div className='w-2/5'>
+                            <div className='mb-1 text-center'>
+                                <h3 className='section-header inline-block border-gray-800 border-b-2 px-4 font-bold text-sm'>
+                                    ATTENDANCE
+                                </h3>
                             </div>
-                            <table className="table-print table-bordered">
+                            <table className='table-print table-bordered'>
                                 <thead>
-                                    <tr className="bg-gray-50">
-                                        <th className="text-center"><b>HALF YEARLY</b></th>
-                                        <th className="text-center"><b>FINAL</b></th>
+                                    <tr className='bg-gray-50'>
+                                        <th className='text-center'>
+                                            <b>HALF YEARLY</b>
+                                        </th>
+                                        <th className='text-center'>
+                                            <b>FINAL</b>
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td>Working Days: <b>{halfyearattworking}</b></td>
-                                        <td>Working Days: <b>{fullyearattworking}</b></td>
+                                        <td>
+                                            Working Days: <b>{halfyearattworking}</b>
+                                        </td>
+                                        <td>
+                                            Working Days: <b>{fullyearattworking}</b>
+                                        </td>
                                     </tr>
                                     <tr>
-                                        <td>Days Present: <b>{halfyearattpresent}</b></td>
-                                        <td>Days Present: <b>{fullyearattpresent}</b></td>
+                                        <td>
+                                            Days Present: <b>{halfyearattpresent}</b>
+                                        </td>
+                                        <td>
+                                            Days Present: <b>{fullyearattpresent}</b>
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
-                        <div className="w-3/5">
-                            <div className="text-center mb-1">
-                                <h3 className="section-header text-sm font-bold border-b-2 border-gray-800 inline-block px-4">GRADES</h3>
+                        <div className='w-3/5'>
+                            <div className='mb-1 text-center'>
+                                <h3 className='section-header inline-block border-gray-800 border-b-2 px-4 font-bold text-sm'>GRADES</h3>
                             </div>
-                            <table className="table-print table-bordered">
+                            <table className='table-print table-bordered'>
                                 <tbody>
-                                    {grade_detailslist.reduce((result: any[], value: any, index: number, array: any[]) => {
-                                        if (index % 2 === 0) result.push(array.slice(index, index + 2));
-                                        return result;
-                                    }, []).map((pair: any[], pIdx: number) => (
-                                        <tr key={pIdx}>
-                                            {pair.map((gg: any, gIdx: number) => (
-                                                <React.Fragment key={gIdx}>
-                                                    <td className="font-bold text-center w-[15%]">{gg.emgD_Name}</td>
-                                                    <td className="text-[9px] uppercase font-semibold text-center w-[25%]">{gg.emgD_Remarks}</td>
-                                                    <td className="text-center text-[10px] w-[10%]">{gg.emgD_From}-{gg.emgD_To}</td>
-                                                </React.Fragment>
-                                            ))}
-                                            {pair.length === 1 && (
-                                                <td colSpan={3}></td>
-                                            )}
-                                        </tr>
-                                    ))}
+                                    {grade_detailslist
+                                        .reduce((result: any[], value: any, index: number, array: any[]) => {
+                                            if (index % 2 === 0) result.push(array.slice(index, index + 2));
+                                            return result;
+                                        }, [])
+                                        .map((pair: any[], pIdx: number) => (
+                                            <tr key={pIdx}>
+                                                {pair.map((gg: any, gIdx: number) => (
+                                                    <React.Fragment key={gIdx}>
+                                                        <td className='w-[15%] text-center font-bold'>{gg.emgD_Name}</td>
+                                                        <td className='w-[25%] text-center font-semibold text-[9px] uppercase'>
+                                                            {gg.emgD_Remarks}
+                                                        </td>
+                                                        <td className='w-[10%] text-center text-[10px]'>
+                                                            {gg.emgD_From}-{gg.emgD_To}
+                                                        </td>
+                                                    </React.Fragment>
+                                                ))}
+                                                {pair.length === 1 && <td colSpan={3}></td>}
+                                            </tr>
+                                        ))}
                                 </tbody>
                             </table>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>

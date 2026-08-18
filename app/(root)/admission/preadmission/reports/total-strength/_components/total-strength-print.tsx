@@ -16,7 +16,10 @@ interface TotalStrengthPrintProps {
 }
 
 export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrengthPrintProps>(
-    ({ groupedData, totalGrand, totalBoysGrand, totalGirlsGrand, academicYearName, schoolName, schoolAddress, schoolPhone, logoUrl }, ref) => {
+    (
+        { groupedData, totalGrand, totalBoysGrand, totalGirlsGrand, academicYearName, schoolName, schoolAddress, schoolPhone, logoUrl },
+        ref
+    ) => {
         const currentDate = format(new Date(), 'dd/MM/yyyy');
 
         const calculateClassBoysTotal = (key: string) => {
@@ -35,7 +38,7 @@ export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrength
         };
 
         return (
-            <div ref={ref} className='print-preview-container bg-white text-black min-h-full w-full'>
+            <div ref={ref} className='print-preview-container min-h-full w-full bg-white text-black'>
                 <style>
                     {`
                         @media print {
@@ -109,10 +112,17 @@ export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrength
                             <td className='no-border'>
                                 {/* Header */}
                                 <div className='header-section'>
-                                    <div className='flex items-center justify-center gap-4 mb-4'>
-                                        {logoUrl && <img src={logoUrl} alt="Logo" style={{ width: '100%', height: 'auto', objectFit: 'contain' }} className="w-full" />}
+                                    <div className='mb-4 flex items-center justify-center gap-4'>
+                                        {logoUrl && (
+                                            <img
+                                                src={logoUrl}
+                                                alt='Logo'
+                                                style={{ width: '100%', height: 'auto', objectFit: 'contain' }}
+                                                className='w-full'
+                                            />
+                                        )}
                                     </div>
-                                    <h2 className='text-md font-bold inline-block px-4 py-1 uppercase'>
+                                    <h2 className='inline-block px-4 py-1 font-bold text-md uppercase'>
                                         Total Strength Report {academicYearName ? `FOR ${academicYearName}` : ''}
                                     </h2>
                                 </div>
@@ -130,7 +140,7 @@ export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrength
                                             <th className='text-left'>Class</th>
                                             <th className='text-left'>Section</th>
                                             <th>Boys</th>
-                                            <th className='text-right w-24'>Total</th>
+                                            <th className='w-24 text-right'>Total</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -159,7 +169,9 @@ export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrength
                                                 </Fragment>
                                             ))}
                                         <tr className='bg-gray-200 font-bold uppercase'>
-                                            <td colSpan={3} className='text-right'>Grand Total</td>
+                                            <td colSpan={3} className='text-right'>
+                                                Grand Total
+                                            </td>
                                             <td>{totalBoysGrand ?? ''}</td>
                                             <td>{totalGirlsGrand ?? ''}</td>
                                             <td className='text-right'>{totalGrand}</td>
@@ -187,4 +199,3 @@ export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrength
 );
 
 TotalStrengthPrint.displayName = 'TotalStrengthPrint';
-

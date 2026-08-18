@@ -2,11 +2,7 @@
 
 import { api } from '@/lib/apiService';
 import { auth } from '@/lib/auth';
-import type {
-    IBookArrivalReportInitialData,
-    IBookArrivalReportRequest,
-    IBookArrivalReportResponse
-} from '@/types/library/reports/book-arrival-report';
+import type { IBookArrivalReportInitialData, IBookArrivalReportRequest } from '@/types/library/reports/book-arrival-report';
 
 const FACADE = 'BookArrivalReport';
 

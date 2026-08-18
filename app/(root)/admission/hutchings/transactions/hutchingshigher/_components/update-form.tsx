@@ -11,9 +11,9 @@ import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import 'react-phone-input-2/lib/style.css';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useAcademicYearMasterConfiguration } from '@/hooks/admission/preadmission/useConfigurations';
 import {
     useActivePreadmissionDetails,
@@ -162,10 +162,15 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 if (
                     normalized === '' ||
                     normalized === null ||
-                    (normalized === 0 && !['pasR_TransportReqdFlag', 'pasR_ConState', 'pasR_PerState', 'caste_Id', 'religion_Id', 'asmcL_Id'].includes(key)) ||
+                    (normalized === 0 &&
+                        !['pasR_TransportReqdFlag', 'pasR_ConState', 'pasR_PerState', 'caste_Id', 'religion_Id', 'asmcL_Id'].includes(
+                            key
+                        )) ||
                     normalized === '0'
                 ) {
-                    if (!['pasR_TransportReqdFlag', 'pasR_ConState', 'pasR_PerState', 'caste_Id', 'religion_Id', 'asmcL_Id'].includes(key)) {
+                    if (
+                        !['pasR_TransportReqdFlag', 'pasR_ConState', 'pasR_PerState', 'caste_Id', 'religion_Id', 'asmcL_Id'].includes(key)
+                    ) {
                         normalized = undefined;
                     }
                 }
@@ -802,8 +807,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         refetchDropdowns();
     };
 
-
-
     const handleSourceSelection = (selectedValues: string[]) => {
         const selectedSources = selectedValues.map((value) => {
             return { pamS_Id: value.toString(), pamS_SourceName: '' };
@@ -1351,8 +1354,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         currentStep === step.id
                                                             ? 'border-blue-600 bg-blue-600 text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                                ? 'border-green-500 bg-green-500 text-white'
-                                                                : 'border-gray-300 bg-white text-gray-400'
+                                                              ? 'border-green-500 bg-green-500 text-white'
+                                                              : 'border-gray-300 bg-white text-gray-400'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-5 w-5' />
@@ -1401,8 +1404,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         currentStep === step.id
                                                             ? 'border-secondary bg-secondary text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                                ? 'border-green-500 bg-green-500 text-white'
-                                                                : 'border-gray-300 bg-white text-gray-500'
+                                                              ? 'border-green-500 bg-green-500 text-white'
+                                                              : 'border-gray-300 bg-white text-gray-500'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-6 w-6' />
@@ -1446,65 +1449,75 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                 {currentStep === 1 && (
                                     <div className='space-y-6'>
                                         {/* Legacy Header Section */}
-                                        <div className='mb-6 flex flex-wrap items-center gap-6 border-b border-blue-200 pb-4 text-blue-800'>
+                                        <div className='mb-6 flex flex-wrap items-center gap-6 border-blue-200 border-b pb-4 text-blue-800'>
                                             <h2 className='font-bold text-lg uppercase tracking-wide'>
                                                 Hutchings Junior College Admission Form
                                             </h2>
                                             <div className='flex items-center gap-2'>
-                                                <Checkbox id='createUser' className='border-blue-800 data-[state=checked]:bg-blue-800 data-[state=checked]:text-white' />
-                                                <Label htmlFor='createUser' className='font-bold cursor-pointer'>Create User</Label>
+                                                <Checkbox
+                                                    id='createUser'
+                                                    className='border-blue-800 data-[state=checked]:bg-blue-800 data-[state=checked]:text-white'
+                                                />
+                                                <Label htmlFor='createUser' className='cursor-pointer font-bold'>
+                                                    Create User
+                                                </Label>
                                             </div>
                                             <div className='flex items-center gap-2'>
-                                                <Checkbox id='applicationNo' className='border-blue-800 data-[state=checked]:bg-blue-800 data-[state=checked]:text-white' />
-                                                <Label htmlFor='applicationNo' className='font-bold cursor-pointer'>Application No.</Label>
+                                                <Checkbox
+                                                    id='applicationNo'
+                                                    className='border-blue-800 data-[state=checked]:bg-blue-800 data-[state=checked]:text-white'
+                                                />
+                                                <Label htmlFor='applicationNo' className='cursor-pointer font-bold'>
+                                                    Application No.
+                                                </Label>
                                             </div>
                                             <div className='w-48'>
-                                                <InputText 
+                                                <InputText
                                                     id='pasR_RegistrationNo'
-                                                    placeholder='Enter Application.No' 
+                                                    placeholder='Enter Application.No'
                                                     {...register('pasR_RegistrationNo')}
-                                                    className='border-blue-200' 
+                                                    className='border-blue-200'
                                                     disabled
                                                 />
                                             </div>
                                         </div>
 
-                                        <div className='flex flex-col lg:flex-row gap-8'>
+                                        <div className='flex flex-col gap-8 lg:flex-row'>
                                             {/* Left Column */}
                                             <div className='flex flex-1 flex-col gap-4'>
                                                 {/* Name of the Child */}
-                                                <div className='flex flex-col sm:flex-row gap-4'>
-                                                    <Label className='w-full sm:w-1/3 pt-3 sm:text-right text-sm font-medium'>
+                                                <div className='flex flex-col gap-4 sm:flex-row'>
+                                                    <Label className='w-full pt-3 font-medium text-sm sm:w-1/3 sm:text-right'>
                                                         Name of the Child:<span className='text-red-500'>*</span>
                                                     </Label>
-                                                    <div className='flex w-full sm:w-2/3 flex-col gap-2'>
-                                                        <InputText 
-                                                            id='pasR_FirstName' 
-                                                            placeholder='FIRST NAME' 
-                                                            {...register('pasR_FirstName')} 
-                                                            error={errors.pasR_FirstName?.message} 
+                                                    <div className='flex w-full flex-col gap-2 sm:w-2/3'>
+                                                        <InputText
+                                                            id='pasR_FirstName'
+                                                            placeholder='FIRST NAME'
+                                                            {...register('pasR_FirstName')}
+                                                            error={errors.pasR_FirstName?.message}
                                                         />
-                                                        <InputText 
-                                                            id='pasR_MiddleName' 
-                                                            placeholder='MIDDLE NAME' 
-                                                            {...register('pasR_MiddleName')} 
-                                                            error={errors.pasR_MiddleName?.message} 
+                                                        <InputText
+                                                            id='pasR_MiddleName'
+                                                            placeholder='MIDDLE NAME'
+                                                            {...register('pasR_MiddleName')}
+                                                            error={errors.pasR_MiddleName?.message}
                                                         />
-                                                        <InputText 
-                                                            id='pasR_LastName' 
-                                                            placeholder='SURNAME' 
-                                                            {...register('pasR_LastName')} 
-                                                            error={errors.pasR_LastName?.message} 
+                                                        <InputText
+                                                            id='pasR_LastName'
+                                                            placeholder='SURNAME'
+                                                            {...register('pasR_LastName')}
+                                                            error={errors.pasR_LastName?.message}
                                                         />
                                                     </div>
                                                 </div>
 
                                                 {/* Mobile Number */}
-                                                <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
-                                                    <Label className='w-full sm:w-1/3 sm:text-right text-sm font-medium'>
+                                                <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
+                                                    <Label className='w-full font-medium text-sm sm:w-1/3 sm:text-right'>
                                                         Mobile Number:<span className='text-red-500'>*</span>
                                                     </Label>
-                                                    <div className='w-full sm:w-2/3 flex flex-col gap-1.5'>
+                                                    <div className='flex w-full flex-col gap-1.5 sm:w-2/3'>
                                                         <Controller
                                                             name='pasR_MobileNo'
                                                             control={control}
@@ -1556,26 +1569,26 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                 </div>
 
                                                 {/* Place of Birth */}
-                                                <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
-                                                    <Label className='w-full sm:w-1/3 sm:text-right text-sm font-medium'>
+                                                <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
+                                                    <Label className='w-full font-medium text-sm sm:w-1/3 sm:text-right'>
                                                         Place of Birth:
                                                     </Label>
                                                     <div className='w-full sm:w-2/3'>
-                                                        <InputText 
-                                                            id='pasR_BirthPlace' 
+                                                        <InputText
+                                                            id='pasR_BirthPlace'
                                                             placeholder='Enter birth place'
-                                                            {...register('pasR_BirthPlace')} 
-                                                            error={errors.pasR_BirthPlace?.message} 
+                                                            {...register('pasR_BirthPlace')}
+                                                            error={errors.pasR_BirthPlace?.message}
                                                         />
                                                     </div>
                                                 </div>
 
                                                 {/* Religion */}
-                                                <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
-                                                    <Label className='w-full sm:w-1/3 sm:text-right text-sm font-medium'>
+                                                <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
+                                                    <Label className='w-full font-medium text-sm sm:w-1/3 sm:text-right'>
                                                         Religion:<span className='text-red-500'>*</span>
                                                     </Label>
-                                                    <div className='w-full sm:w-2/3 flex flex-col gap-1.5'>
+                                                    <div className='flex w-full flex-col gap-1.5 sm:w-2/3'>
                                                         <Controller
                                                             name='religion_Id'
                                                             control={control}
@@ -1591,12 +1604,18 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     </SelectTrigger>
                                                                     <SelectContent>
                                                                         {religionLoading ? (
-                                                                            <SelectItem value='loading' disabled>Loading...</SelectItem>
+                                                                            <SelectItem value='loading' disabled>
+                                                                                Loading...
+                                                                            </SelectItem>
                                                                         ) : religionError ? (
-                                                                            <SelectItem value='error' disabled>Error loading</SelectItem>
+                                                                            <SelectItem value='error' disabled>
+                                                                                Error loading
+                                                                            </SelectItem>
                                                                         ) : (
                                                                             religion?.data?.map((item) => (
-                                                                                <SelectItem key={item.ivrmmR_Id} value={item.ivrmmR_Id.toString()}>
+                                                                                <SelectItem
+                                                                                    key={item.ivrmmR_Id}
+                                                                                    value={item.ivrmmR_Id.toString()}>
                                                                                     {item.ivrmmR_Name}
                                                                                 </SelectItem>
                                                                             ))
@@ -1610,11 +1629,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                 </div>
 
                                                 {/* Caste */}
-                                                <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
-                                                    <Label className='w-full sm:w-1/3 sm:text-right text-sm font-medium'>
-                                                        Caste:
-                                                    </Label>
-                                                    <div className='w-full sm:w-2/3 flex flex-col gap-1.5'>
+                                                <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
+                                                    <Label className='w-full font-medium text-sm sm:w-1/3 sm:text-right'>Caste:</Label>
+                                                    <div className='flex w-full flex-col gap-1.5 sm:w-2/3'>
                                                         <Controller
                                                             name='caste_Id'
                                                             control={control}
@@ -1629,10 +1646,14 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     </SelectTrigger>
                                                                     <SelectContent>
                                                                         {casteLoading ? (
-                                                                            <SelectItem value='loading' disabled>Loading...</SelectItem>
+                                                                            <SelectItem value='loading' disabled>
+                                                                                Loading...
+                                                                            </SelectItem>
                                                                         ) : (
                                                                             caste?.data?.map((item) => (
-                                                                                <SelectItem key={item.imC_Id} value={item.imC_Id.toString()}>
+                                                                                <SelectItem
+                                                                                    key={item.imC_Id}
+                                                                                    value={item.imC_Id.toString()}>
                                                                                     {item.imC_CasteName}
                                                                                 </SelectItem>
                                                                             ))
@@ -1646,16 +1667,16 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                 </div>
 
                                                 {/* Co-curricular Activities */}
-                                                <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
-                                                    <Label className='w-full sm:w-1/3 sm:text-right text-sm font-medium'>
+                                                <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
+                                                    <Label className='w-full font-medium text-sm sm:w-1/3 sm:text-right'>
                                                         Co-curricular Activities:<span className='text-red-500'>*</span>
                                                     </Label>
                                                     <div className='w-full sm:w-2/3'>
-                                                        <InputText 
-                                                            id='pasR_ExtraActivity' 
+                                                        <InputText
+                                                            id='pasR_ExtraActivity'
                                                             placeholder='Enter activities'
-                                                            {...register('pasR_ExtraActivity')} 
-                                                            error={errors.pasR_ExtraActivity?.message} 
+                                                            {...register('pasR_ExtraActivity')}
+                                                            error={errors.pasR_ExtraActivity?.message}
                                                         />
                                                     </div>
                                                 </div>
@@ -1664,11 +1685,11 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                             {/* Middle Column */}
                                             <div className='flex flex-1 flex-col gap-4'>
                                                 {/* Date Of Birth */}
-                                                <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
-                                                    <Label className='w-full sm:w-1/3 sm:text-right text-sm font-medium'>
+                                                <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
+                                                    <Label className='w-full font-medium text-sm sm:w-1/3 sm:text-right'>
                                                         Date Of Birth:<span className='text-red-500'>*</span>
                                                     </Label>
-                                                    <div className='w-full sm:w-2/3 flex flex-col gap-1.5'>
+                                                    <div className='flex w-full flex-col gap-1.5 sm:w-2/3'>
                                                         <Controller
                                                             name='pasR_DOB'
                                                             control={control}
@@ -1718,11 +1739,11 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                 </div>
 
                                                 {/* Applying For (Class) */}
-                                                <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
-                                                    <Label className='w-full sm:w-1/3 sm:text-right text-sm font-medium'>
+                                                <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
+                                                    <Label className='w-full font-medium text-sm sm:w-1/3 sm:text-right'>
                                                         Applying For:<span className='text-red-500'>*</span>
                                                     </Label>
-                                                    <div className='w-full sm:w-2/3 flex flex-col gap-1.5'>
+                                                    <div className='flex w-full flex-col gap-1.5 sm:w-2/3'>
                                                         <Controller
                                                             name='asmcL_Id'
                                                             control={control}
@@ -1742,9 +1763,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     <SelectTrigger className={cn('w-full', error && 'border-red-500')}>
                                                                         <SelectValue
                                                                             placeholder={
-                                                                                isClassDisabled
-                                                                                    ? 'Select DOB first'
-                                                                                    : 'Select a class'
+                                                                                isClassDisabled ? 'Select DOB first' : 'Select a class'
                                                                             }
                                                                         />
                                                                     </SelectTrigger>
@@ -1771,28 +1790,28 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                 </div>
 
                                                 {/* Email-Id */}
-                                                <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
-                                                    <Label className='w-full sm:w-1/3 sm:text-right text-sm font-medium'>
+                                                <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
+                                                    <Label className='w-full font-medium text-sm sm:w-1/3 sm:text-right'>
                                                         Email-Id:<span className='text-red-500'>*</span>
                                                     </Label>
                                                     <div className='w-full sm:w-2/3'>
-                                                        <InputText 
-                                                            id='pasR_emailId' 
+                                                        <InputText
+                                                            id='pasR_emailId'
                                                             placeholder='Enter email'
-                                                            {...register('pasR_emailId')} 
-                                                            error={errors.pasR_emailId?.message} 
+                                                            {...register('pasR_emailId')}
+                                                            error={errors.pasR_emailId?.message}
                                                         />
                                                     </div>
                                                 </div>
 
                                                 {/* Academic Year */}
-                                                <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
-                                                    <Label className='w-full sm:w-1/3 sm:text-right text-sm font-medium'>
+                                                <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
+                                                    <Label className='w-full font-medium text-sm sm:w-1/3 sm:text-right'>
                                                         Academic Year:<span className='text-red-500'>*</span>
                                                     </Label>
                                                     <div className='w-full sm:w-2/3'>
-                                                        <InputText 
-                                                            id='academic_year' 
+                                                        <InputText
+                                                            id='academic_year'
                                                             defaultValue={activePreadmission?.data?.asmaY_Year}
                                                             className='font-semibold'
                                                             disabled
@@ -1801,27 +1820,35 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                 </div>
 
                                                 {/* Nationality */}
-                                                <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
-                                                    <Label className='w-full sm:w-1/3 sm:text-right text-sm font-medium'>
+                                                <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
+                                                    <Label className='w-full font-medium text-sm sm:w-1/3 sm:text-right'>
                                                         Nationality:<span className='text-red-500'>*</span>
                                                     </Label>
-                                                    <div className='w-full sm:w-2/3 flex flex-col gap-1.5'>
+                                                    <div className='flex w-full flex-col gap-1.5 sm:w-2/3'>
                                                         <Controller
                                                             name='pasR_Nationality'
                                                             control={control}
                                                             render={({ field }) => (
-                                                                <Select onValueChange={(value) => field.onChange(value)} value={field.value || ''}>
+                                                                <Select
+                                                                    onValueChange={(value) => field.onChange(value)}
+                                                                    value={field.value || ''}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select nationality' />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
                                                                         {countryLoading ? (
-                                                                            <SelectItem value='loading' disabled>Loading...</SelectItem>
+                                                                            <SelectItem value='loading' disabled>
+                                                                                Loading...
+                                                                            </SelectItem>
                                                                         ) : countryError ? (
-                                                                            <SelectItem value='error' disabled>Error loading</SelectItem>
+                                                                            <SelectItem value='error' disabled>
+                                                                                Error loading
+                                                                            </SelectItem>
                                                                         ) : (
                                                                             country?.data?.map((item) => (
-                                                                                <SelectItem key={item.ivrmmC_Id} value={item.ivrmmC_Id.toString()}>
+                                                                                <SelectItem
+                                                                                    key={item.ivrmmC_Id}
+                                                                                    value={item.ivrmmC_Id.toString()}>
                                                                                     {item.ivrmmC_CountryName}
                                                                                 </SelectItem>
                                                                             ))
@@ -1830,38 +1857,43 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 </Select>
                                                             )}
                                                         />
-                                                        {errors.pasR_Nationality && <FormError>{errors.pasR_Nationality.message}</FormError>}
+                                                        {errors.pasR_Nationality && (
+                                                            <FormError>{errors.pasR_Nationality.message}</FormError>
+                                                        )}
                                                     </div>
                                                 </div>
 
                                                 {/* Mother Tongue */}
-                                                <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
-                                                    <Label className='w-full sm:w-1/3 sm:text-right text-sm font-medium'>
+                                                <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
+                                                    <Label className='w-full font-medium text-sm sm:w-1/3 sm:text-right'>
                                                         Mother Tongue:<span className='text-red-500'>*</span>
                                                     </Label>
                                                     <div className='w-full sm:w-2/3'>
-                                                        <InputText 
-                                                            id='pasR_MotherTongue' 
+                                                        <InputText
+                                                            id='pasR_MotherTongue'
                                                             placeholder='Enter mother tongue'
-                                                            {...register('pasR_MotherTongue')} 
-                                                            error={errors.pasR_MotherTongue?.message} 
+                                                            {...register('pasR_MotherTongue')}
+                                                            error={errors.pasR_MotherTongue?.message}
                                                         />
                                                     </div>
                                                 </div>
 
                                                 {/* Gender */}
-                                                <div className='flex flex-col sm:flex-row sm:items-center gap-4'>
-                                                    <Label className='w-full sm:w-1/3 sm:text-right text-sm font-medium'>
+                                                <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
+                                                    <Label className='w-full font-medium text-sm sm:w-1/3 sm:text-right'>
                                                         Gender:<span className='text-red-500'>*</span>
                                                     </Label>
-                                                    <div className='w-full sm:w-2/3 flex flex-col gap-1.5'>
+                                                    <div className='flex w-full flex-col gap-1.5 sm:w-2/3'>
                                                         <Controller
                                                             name='pasR_Sex'
                                                             control={control}
                                                             render={({ field }) => {
-                                                                const normalizedValue = gender?.data?.find(
-                                                                    (g) => g.ivrmmG_GenderName.toUpperCase() === field.value?.toString().toUpperCase()
-                                                                )?.ivrmmG_GenderName || field.value?.toString();
+                                                                const normalizedValue =
+                                                                    gender?.data?.find(
+                                                                        (g) =>
+                                                                            g.ivrmmG_GenderName.toUpperCase() ===
+                                                                            field.value?.toString().toUpperCase()
+                                                                    )?.ivrmmG_GenderName || field.value?.toString();
                                                                 return (
                                                                     <Select
                                                                         onValueChange={(value) => field.onChange(value)}
@@ -1871,10 +1903,14 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                         </SelectTrigger>
                                                                         <SelectContent>
                                                                             {genderLoading ? (
-                                                                                <SelectItem value='loading' disabled>Loading...</SelectItem>
+                                                                                <SelectItem value='loading' disabled>
+                                                                                    Loading...
+                                                                                </SelectItem>
                                                                             ) : (
                                                                                 gender?.data?.map((item) => (
-                                                                                    <SelectItem key={item.ivrmmG_Id} value={item.ivrmmG_GenderName}>
+                                                                                    <SelectItem
+                                                                                        key={item.ivrmmG_Id}
+                                                                                        value={item.ivrmmG_GenderName}>
                                                                                         {item.ivrmmG_GenderName}
                                                                                     </SelectItem>
                                                                                 ))
@@ -1890,8 +1926,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                             </div>
 
                                             {/* Right Column / Photo */}
-                                            <div className='w-full lg:w-48 shrink-0'>
-                                                <div className='rounded-sm border border-gray-300 p-2 text-center text-sm font-medium bg-gray-50 mb-2'>
+                                            <div className='w-full shrink-0 lg:w-48'>
+                                                <div className='mb-2 rounded-sm border border-gray-300 bg-gray-50 p-2 text-center font-medium text-sm'>
                                                     Upload Student Photo
                                                 </div>
                                                 {/* Hidden input used for edit/replace of existing photo */}
@@ -1926,17 +1962,46 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         )}>
                                                         {studentPhoto?.isUploading ? (
                                                             <div className='flex flex-col items-center gap-2 p-4'>
-                                                                <svg className='h-8 w-8 animate-spin text-primary' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                                                    <circle className='opacity-25' cx='12' cy='12' r='10' strokeWidth='4' stroke='currentColor' />
-                                                                    <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z' />
+                                                                <svg
+                                                                    className='h-8 w-8 animate-spin text-primary'
+                                                                    fill='none'
+                                                                    stroke='currentColor'
+                                                                    viewBox='0 0 24 24'>
+                                                                    <circle
+                                                                        className='opacity-25'
+                                                                        cx='12'
+                                                                        cy='12'
+                                                                        r='10'
+                                                                        strokeWidth='4'
+                                                                        stroke='currentColor'
+                                                                    />
+                                                                    <path
+                                                                        className='opacity-75'
+                                                                        fill='currentColor'
+                                                                        d='M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z'
+                                                                    />
                                                                 </svg>
                                                                 <span className='font-medium text-primary text-xs'>Uploading...</span>
                                                             </div>
                                                         ) : (
                                                             <div className='flex flex-col items-center gap-2 p-4 text-gray-500'>
-                                                                <svg className='h-8 w-8' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                                                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={1.5} d='M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z' />
-                                                                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={1.5} d='M15 13a3 3 0 11-6 0 3 3 0 016 0z' />
+                                                                <svg
+                                                                    className='h-8 w-8'
+                                                                    fill='none'
+                                                                    stroke='currentColor'
+                                                                    viewBox='0 0 24 24'>
+                                                                    <path
+                                                                        strokeLinecap='round'
+                                                                        strokeLinejoin='round'
+                                                                        strokeWidth={1.5}
+                                                                        d='M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z'
+                                                                    />
+                                                                    <path
+                                                                        strokeLinecap='round'
+                                                                        strokeLinejoin='round'
+                                                                        strokeWidth={1.5}
+                                                                        d='M15 13a3 3 0 11-6 0 3 3 0 016 0z'
+                                                                    />
                                                                 </svg>
                                                                 <span className='text-xs'>Click to browse</span>
                                                             </div>
@@ -1947,14 +2012,14 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         <img
                                                             src={studentPhoto.pasR_Student_Pic_Path}
                                                             alt='Student'
-                                                            className='h-[160px] w-full object-cover rounded-sm'
+                                                            className='h-[160px] w-full rounded-sm object-cover'
                                                         />
-                                                        <div className='flex gap-2 w-full'>
+                                                        <div className='flex w-full gap-2'>
                                                             <Button
                                                                 type='button'
                                                                 variant='outline'
                                                                 size='sm'
-                                                                className='flex-1 h-8 px-2'
+                                                                className='h-8 flex-1 px-2'
                                                                 onClick={() => handleImagePreview(studentPhoto.pasR_Student_Pic_Path)}>
                                                                 <Eye className='h-4 w-4' />
                                                             </Button>
@@ -1962,7 +2027,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 type='button'
                                                                 variant='destructive'
                                                                 size='sm'
-                                                                className='flex-1 h-8 px-2'
+                                                                className='h-8 flex-1 px-2'
                                                                 disabled={isSubmitting}
                                                                 onClick={handleStudentPhotoDelete}>
                                                                 <Trash className='h-4 w-4' />
@@ -1977,8 +2042,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                         </div>
 
                                         {/* Additional Fields Section */}
-                                        <div className='mt-8 pt-6 border-t border-gray-200'>
-                                            <h3 className='mb-6 font-bold text-lg text-gray-800'>Additional Information</h3>
+                                        <div className='mt-8 border-gray-200 border-t pt-6'>
+                                            <h3 className='mb-6 font-bold text-gray-800 text-lg'>Additional Information</h3>
                                             <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                 <div className='flex flex-col gap-1.5'>
                                                     <Controller
@@ -2214,15 +2279,15 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             rules={
                                                                 conZipLength
                                                                     ? {
-                                                                        minLength: {
-                                                                            value: conZipLength,
-                                                                            message: `Pin code must be ${conZipLength} digits`
-                                                                        },
-                                                                        maxLength: {
-                                                                            value: conZipLength,
-                                                                            message: `Pin code must be ${conZipLength} digits`
-                                                                        }
-                                                                    }
+                                                                          minLength: {
+                                                                              value: conZipLength,
+                                                                              message: `Pin code must be ${conZipLength} digits`
+                                                                          },
+                                                                          maxLength: {
+                                                                              value: conZipLength,
+                                                                              message: `Pin code must be ${conZipLength} digits`
+                                                                          }
+                                                                      }
                                                                     : undefined
                                                             }
                                                             render={({ field }) => (
@@ -2397,15 +2462,15 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             rules={
                                                                 perZipLength
                                                                     ? {
-                                                                        minLength: {
-                                                                            value: perZipLength,
-                                                                            message: `Pin code must be ${perZipLength} digits`
-                                                                        },
-                                                                        maxLength: {
-                                                                            value: perZipLength,
-                                                                            message: `Pin code must be ${perZipLength} digits`
-                                                                        }
-                                                                    }
+                                                                          minLength: {
+                                                                              value: perZipLength,
+                                                                              message: `Pin code must be ${perZipLength} digits`
+                                                                          },
+                                                                          maxLength: {
+                                                                              value: perZipLength,
+                                                                              message: `Pin code must be ${perZipLength} digits`
+                                                                          }
+                                                                      }
                                                                     : undefined
                                                             }
                                                             render={({ field }) => (
@@ -2753,9 +2818,10 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     />
                                                                     {phoneExpectedInfo.pasR_FatherMobleNo?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_FatherMobleNo.expected} digits for ${phoneExpectedInfo.pasR_FatherMobleNo.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_FatherMobleNo.expected} digits for ${
+                                                                                phoneExpectedInfo.pasR_FatherMobleNo.name ??
                                                                                 'selected country'
-                                                                                }`}
+                                                                            }`}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -3100,9 +3166,10 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     />
                                                                     {phoneExpectedInfo.pasR_MotherMobleNo?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MotherMobleNo.expected} digits for ${phoneExpectedInfo.pasR_MotherMobleNo.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MotherMobleNo.expected} digits for ${
+                                                                                phoneExpectedInfo.pasR_MotherMobleNo.name ??
                                                                                 'selected country'
-                                                                                }`}
+                                                                            }`}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -3207,9 +3274,10 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     />
                                                                     {phoneExpectedInfo.pasR_AltContactNo?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_AltContactNo.expected} digits for ${phoneExpectedInfo.pasR_AltContactNo.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_AltContactNo.expected} digits for ${
+                                                                                phoneExpectedInfo.pasR_AltContactNo.name ??
                                                                                 'selected country'
-                                                                                }`}
+                                                                            }`}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -3448,9 +3516,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                                     className='w-fit'
                                                                                     onClick={() => {
                                                                                         const path = uploadedDoc.document_Path;
-                                                                                        if (
-                                                                                            path.match(/\.(jpg|jpeg|png|gif|webp)$/i)
-                                                                                        ) {
+                                                                                        if (path.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
                                                                                             handleImagePreview(path);
                                                                                         } else {
                                                                                             window.open(path, '_blank');
@@ -3981,8 +4047,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                             classes={ineligibleClasses}
                             cutOffDate={
                                 masterConfig?.data &&
-                                    masterConfig.data.ispaC_ApplCutOffDateFlag === 1 &&
-                                    masterConfig.data.asmaY_Cut_Of_Date
+                                masterConfig.data.ispaC_ApplCutOffDateFlag === 1 &&
+                                masterConfig.data.asmaY_Cut_Of_Date
                                     ? new Date(masterConfig.data.asmaY_Cut_Of_Date)
                                     : new Date()
                             }
@@ -3996,18 +4062,10 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                         <DialogTitle>Image Preview</DialogTitle>
                     </DialogHeader>
                     <div className='flex items-center justify-center p-4'>
-                        {previewImage && (
-                            <img
-                                src={previewImage}
-                                alt='Preview'
-                                className='max-h-[70vh] w-auto rounded-lg shadow-lg'
-                            />
-                        )}
+                        {previewImage && <img src={previewImage} alt='Preview' className='max-h-[70vh] w-auto rounded-lg shadow-lg' />}
                     </div>
                 </DialogContent>
             </Dialog>
         </>
     );
 }
-
-

@@ -1,7 +1,7 @@
 'use server';
 
+import type { ApiResponse } from '@/lib/apiService';
 import { getTBSReportSchool } from './TBSReportSchool';
-import { type ApiResponse } from '@/lib/apiService';
 
 /**
  * Server Action for Turnbridge IX to X Report Card

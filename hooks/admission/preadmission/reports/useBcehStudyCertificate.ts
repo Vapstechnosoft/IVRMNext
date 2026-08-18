@@ -1,9 +1,9 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { 
-    getStudyCertificateLoadData, 
-    getStudyCertificateSearchFilter, 
-    getBcehStudyCertDetails 
+import {
+    getBcehStudyCertDetails,
+    getStudyCertificateLoadData,
+    getStudyCertificateSearchFilter
 } from '@/server/admission/preadmission/reports/study_certificate';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const useBcehStudyCertLoadData = () => {
     return useQuery({

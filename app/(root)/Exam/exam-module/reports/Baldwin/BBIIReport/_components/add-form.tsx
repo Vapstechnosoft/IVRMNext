@@ -9,16 +9,16 @@ import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { vvehpc_examreportcardSchema } from '@/schemas/exam/exam-module/reports';
 import {
     getClassDropDownByAcademicYearlist,
-    getSectionsDropDownByAcademicYearandClasslist,
     getExamsDropDownByAcademicYearandClassandSectionlist,
-    getStudentsDropDownByAcademicYearandClassandSectionlist,
+    getSectionsDropDownByAcademicYearandClasslist,
+    getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/cumulative-report';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { FileText, Loader2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-import { Loader2, FileText, X } from 'lucide-react';
 
 type FormFields = z.infer<typeof vvehpc_examreportcardSchema.addOrUpdate> & {
     showRemarks: boolean;
@@ -140,15 +140,12 @@ export default function BBIIReportForm({
         (async () => {
             try {
                 setLoadingStudents(true);
-                const res = await getStudentsDropDownByAcademicYearandClassandSectionlist(
-                    selectedYear,
-                    selectedClass,
-                    selectedSection
-                );
+                const res = await getStudentsDropDownByAcademicYearandClassandSectionlist(selectedYear, selectedClass, selectedSection);
                 if (res && res.success && Array.isArray(res.data)) {
                     const mapped = res.data.map((s: any) => ({
                         amsT_Id: s.amsT_Id,
-                        amsT_FirstName: s.studentName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim(),
+                        amsT_FirstName:
+                            s.studentName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim(),
                         amsT_AdmNo: s.amsT_AdmNo
                     }));
                     setStudents(mapped);
@@ -167,8 +164,8 @@ export default function BBIIReportForm({
             return;
         }
 
-        const className = classes.find(c => c.asmcL_Id === data.asmcL_Id)?.asmcL_ClassName || '';
-        const sectionName = sections.find(s => s.asmS_Id === data.asmS_Id)?.asmC_SectionName || '';
+        const className = classes.find((c) => c.asmcL_Id === data.asmcL_Id)?.asmcL_ClassName || '';
+        const sectionName = sections.find((s) => s.asmS_Id === data.asmS_Id)?.asmC_SectionName || '';
 
         const currentDateTime = new Date().toISOString();
         const payload: any = {
@@ -189,7 +186,11 @@ export default function BBIIReportForm({
 
     const handleAllStudents = (checked: boolean) => {
         if (checked && students.length) {
-            setValue('studentList', students.map(s => ({ amsT_Id: s.amsT_Id })), { shouldValidate: true });
+            setValue(
+                'studentList',
+                students.map((s) => ({ amsT_Id: s.amsT_Id })),
+                { shouldValidate: true }
+            );
             setAllStudentsSelected(true);
         } else {
             setValue('studentList', [], { shouldValidate: true });
@@ -198,7 +199,7 @@ export default function BBIIReportForm({
     };
 
     const handleStudentChange = (selectedValues: string[]) => {
-        const selected = selectedValues.map(v => ({ amsT_Id: Number(v) }));
+        const selected = selectedValues.map((v) => ({ amsT_Id: Number(v) }));
         setValue('studentList', selected, { shouldValidate: true });
         setAllStudentsSelected(selected.length === students.length && students.length > 0);
     };
@@ -225,12 +226,16 @@ export default function BBIIReportForm({
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {academicYearLoading ? (
-                                                    <SelectItem value='0' disabled>Loading...</SelectItem>
-                                                ) : academicYears.map((y) => (
-                                                    <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                        {y.asmaY_Year}
+                                                    <SelectItem value='0' disabled>
+                                                        Loading...
                                                     </SelectItem>
-                                                ))}
+                                                ) : (
+                                                    academicYears.map((y) => (
+                                                        <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                                            {y.asmaY_Year}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                         {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -257,12 +262,16 @@ export default function BBIIReportForm({
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {loadingClasses ? (
-                                                    <SelectItem value='0' disabled>Loading...</SelectItem>
-                                                ) : classes.map((c) => (
-                                                    <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
-                                                        {c.asmcL_ClassName}
+                                                    <SelectItem value='0' disabled>
+                                                        Loading...
                                                     </SelectItem>
-                                                ))}
+                                                ) : (
+                                                    classes.map((c) => (
+                                                        <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
+                                                            {c.asmcL_ClassName}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                         {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -289,12 +298,16 @@ export default function BBIIReportForm({
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {loadingSections ? (
-                                                    <SelectItem value='0' disabled>Loading...</SelectItem>
-                                                ) : sections.map((s) => (
-                                                    <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
-                                                        {s.asmC_SectionName}
+                                                    <SelectItem value='0' disabled>
+                                                        Loading...
                                                     </SelectItem>
-                                                ))}
+                                                ) : (
+                                                    sections.map((s) => (
+                                                        <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
+                                                            {s.asmC_SectionName}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                         {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -321,12 +334,16 @@ export default function BBIIReportForm({
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {loadingExams ? (
-                                                    <SelectItem value='0' disabled>Loading...</SelectItem>
-                                                ) : exams.map((e) => (
-                                                    <SelectItem key={e.emE_Id} value={String(e.emE_Id)}>
-                                                        {e.emE_ExamName}
+                                                    <SelectItem value='0' disabled>
+                                                        Loading...
                                                     </SelectItem>
-                                                ))}
+                                                ) : (
+                                                    exams.map((e) => (
+                                                        <SelectItem key={e.emE_Id} value={String(e.emE_Id)}>
+                                                            {e.emE_ExamName}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                         {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -338,7 +355,7 @@ export default function BBIIReportForm({
 
                     <div className='space-y-6'>
                         <div className='flex flex-col gap-2 sm:flex-row sm:items-start'>
-                            <Label className='flex items-center gap-2 font-medium text-sm sm:w-32 pt-2'>
+                            <Label className='flex items-center gap-2 pt-2 font-medium text-sm sm:w-32'>
                                 <Checkbox checked={allStudentsSelected} onCheckedChange={handleAllStudents} />
                                 Student <span className='text-red-500'>*</span>
                             </Label>
@@ -364,16 +381,22 @@ export default function BBIIReportForm({
                                 />
                             </div>
                         </div>
-
                     </div>
                 </div>
 
-                <div className='flex justify-center gap-4 pt-4 border-t'>
+                <div className='flex justify-center gap-4 border-t pt-4'>
                     <Button type='submit' disabled={isSubmitting || !hasStudentsSelected} className='min-w-[140px]'>
                         {isSubmitting ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <FileText className='mr-2 h-4 w-4' />}
                         Report
                     </Button>
-                    <Button type='button' variant='outline' onClick={() => { reset(); if (onReset) onReset(); }} className='min-w-[100px]'>
+                    <Button
+                        type='button'
+                        variant='outline'
+                        onClick={() => {
+                            reset();
+                            if (onReset) onReset();
+                        }}
+                        className='min-w-[100px]'>
                         <X className='mr-2 h-4 w-4' />
                         Cancel
                     </Button>

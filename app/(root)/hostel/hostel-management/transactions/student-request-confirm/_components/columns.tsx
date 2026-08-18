@@ -1,10 +1,9 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
-import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
+import type { ColumnDef } from '@tanstack/react-table';
+import { format } from 'date-fns';
 
 export const studentRequestConfirmColumns = (onApprove: (data: any) => void): ColumnDef<any>[] => [
     {
@@ -20,23 +19,23 @@ export const studentRequestConfirmColumns = (onApprove: (data: any) => void): Co
     },
     {
         accessorKey: 'studentName',
-        header: ({ column }) => <ColumnHeader column={column} title='Student Name' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Student Name' />
     },
     {
         accessorKey: 'AMCO_CourseName',
-        header: ({ column }) => <ColumnHeader column={column} title='Course' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Course' />
     },
     {
         accessorKey: 'AMCST_RegistrationNo',
-        header: ({ column }) => <ColumnHeader column={column} title='Registration No' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Registration No' />
     },
     {
         accessorKey: 'HLMH_Name',
-        header: ({ column }) => <ColumnHeader column={column} title='Hostel' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Hostel' />
     },
     {
         accessorKey: 'HLMRCA_RoomCategory',
-        header: ({ column }) => <ColumnHeader column={column} title='Room Category' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Room Category' />
     },
     {
         accessorKey: 'HLHSREQ_RequestDate',
@@ -44,36 +43,30 @@ export const studentRequestConfirmColumns = (onApprove: (data: any) => void): Co
         cell: ({ row }) => {
             const date = row.original.HLHSREQ_RequestDate;
             return date ? format(new Date(date), 'dd/MM/yyyy') : '';
-        },
+        }
     },
     {
         accessorKey: 'HLHSREQ_BookingStatus',
         header: ({ column }) => <ColumnHeader column={column} title='Status' />,
         cell: ({ row }) => {
             const status = row.original.HLHSREQ_BookingStatus;
-            return (
-                <div className="font-semibold text-xs">
-                    {status}
-                </div>
-            );
+            return <div className='font-semibold text-xs'>{status}</div>;
         }
     },
     {
         id: 'actions',
         header: ({ column }) => <ColumnHeader column={column} title='Action' className='text-center' />,
-        cell: ({ row }) => (
+        cell: ({ row }) =>
             row.original.HLHSREQ_BookingStatus === 'Waiting' && (
-                <div className="text-center">
-                    <Button 
-                        variant="link" 
-                        size="sm" 
+                <div className='text-center'>
+                    <Button
+                        variant='link'
+                        size='sm'
                         onClick={() => onApprove(row.original)}
-                        className="text-blue-600 font-bold hover:underline"
-                    >
+                        className='font-bold text-blue-600 hover:underline'>
                         Process
                     </Button>
                 </div>
             )
-        )
     }
 ];

@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import StaffApprovalForm from './_components/process-form';
-import StaffApprovalList from './_components/list';
-import { Separator } from '@/components/ui/separator';
 import { Heading } from '@/components/layout/heading';
+import { Separator } from '@/components/ui/separator';
 import { getStaffApprovalLoadData } from '@/server/hostel/hostel-management/transactions/staff-request-actions';
+import { useEffect, useState } from 'react';
+import StaffApprovalList from './_components/list';
+import StaffApprovalForm from './_components/process-form';
 
 export default function StaffApprovalPage() {
     const [pendingList, setPendingList] = useState<any[]>([]);
@@ -28,26 +28,19 @@ export default function StaffApprovalPage() {
     }
 
     return (
-        <div className="flex-col">
-            <div className="flex-1 space-y-4 p-8 pt-6">
-                <Heading
-                    title="Staff Approval List"
-                    description="Approve or Reject staff hostel applications."
-                />
+        <div className='flex-col'>
+            <div className='flex-1 space-y-4 p-8 pt-6'>
+                <Heading title='Staff Approval List' description='Approve or Reject staff hostel applications.' />
                 <Separator />
 
                 {processData && (
                     <>
-                        <StaffApprovalForm
-                            processData={processData}
-                            rooms={rooms}
-                            onSaveSuccess={loadData}
-                        />
+                        <StaffApprovalForm processData={processData} rooms={rooms} onSaveSuccess={loadData} />
                         <Separator />
                     </>
                 )}
 
-                <Heading title="Pending Requests" description="" />
+                <Heading title='Pending Requests' description='' />
                 <StaffApprovalList
                     data={pendingList}
                     onProcess={(data) => {
@@ -57,11 +50,8 @@ export default function StaffApprovalPage() {
                 />
 
                 <Separator />
-                <Heading title="Processed Requests" description="" />
-                <StaffApprovalList
-                    data={approvedList}
-                    onProcess={() => { }}
-                />
+                <Heading title='Processed Requests' description='' />
+                <StaffApprovalList data={approvedList} onProcess={() => {}} />
             </div>
         </div>
     );

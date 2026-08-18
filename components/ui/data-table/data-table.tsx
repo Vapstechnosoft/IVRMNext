@@ -100,8 +100,7 @@ function DataTableInner<TData, TValue>(
     const currentSorting = sortBy ? [{ id: sortBy, desc: order === 'desc' }] : [];
 
     const onSortingChange = (updaterOrValue: any) => {
-        const newSortingState =
-            typeof updaterOrValue === 'function' ? updaterOrValue(currentSorting) : updaterOrValue;
+        const newSortingState = typeof updaterOrValue === 'function' ? updaterOrValue(currentSorting) : updaterOrValue;
 
         const hasChanged = JSON.stringify(newSortingState) !== JSON.stringify(currentSorting);
         if (!hasChanged) {
@@ -266,10 +265,10 @@ function DataTableInner<TData, TValue>(
                         style={
                             scrollable
                                 ? {
-                                    maxHeight: maxHeight,
-                                    overflowY: 'auto',
-                                    position: 'relative'
-                                }
+                                      maxHeight: maxHeight,
+                                      overflowY: 'auto',
+                                      position: 'relative'
+                                  }
                                 : undefined
                         }>
                         <Table>

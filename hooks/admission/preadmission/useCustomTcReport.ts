@@ -1,17 +1,17 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
 import {
-    getCustomTcInitialData,
-    getCustomTcStudentList,
     getCustomTcChangeClass,
     getCustomTcChangeSection,
+    getCustomTcDetails,
+    getCustomTcInitialData,
+    getCustomTcStudentList,
     getCustomTcStudentNameChange,
-    onCustomTcTempPerChange,
-    getCustomTcDetails
+    onCustomTcTempPerChange
 } from '@/server/admission/preadmission/reports/custom_tc_report';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const customTcKeys = {
     all: ['custom-tc-report'] as const,
-    initial: () => [...customTcKeys.all, 'initial'] as const,
+    initial: () => [...customTcKeys.all, 'initial'] as const
 };
 
 /**
@@ -21,7 +21,7 @@ export const useCustomTcInitialData = () => {
     return useQuery({
         queryKey: customTcKeys.initial(),
         queryFn: () => getCustomTcInitialData(),
-        staleTime: 1000 * 60 * 5, // 5 minutes
+        staleTime: 1000 * 60 * 5 // 5 minutes
     });
 };
 
@@ -30,19 +30,19 @@ export const useCustomTcInitialData = () => {
  */
 export const useCustomTcStudentList = () => {
     return useMutation({
-        mutationFn: getCustomTcStudentList,
+        mutationFn: getCustomTcStudentList
     });
 };
 
 export const useCustomTcChangeClass = () => {
     return useMutation({
-        mutationFn: getCustomTcChangeClass,
+        mutationFn: getCustomTcChangeClass
     });
 };
 
 export const useCustomTcChangeSection = () => {
     return useMutation({
-        mutationFn: getCustomTcChangeSection,
+        mutationFn: getCustomTcChangeSection
     });
 };
 
@@ -51,7 +51,7 @@ export const useCustomTcChangeSection = () => {
  */
 export const useCustomTcStudentNameChange = () => {
     return useMutation({
-        mutationFn: getCustomTcStudentNameChange,
+        mutationFn: getCustomTcStudentNameChange
     });
 };
 
@@ -60,7 +60,7 @@ export const useCustomTcStudentNameChange = () => {
  */
 export const useCustomTcTempPerChange = () => {
     return useMutation({
-        mutationFn: onCustomTcTempPerChange,
+        mutationFn: onCustomTcTempPerChange
     });
 };
 
@@ -69,6 +69,6 @@ export const useCustomTcTempPerChange = () => {
  */
 export const useCustomTcReportDetails = () => {
     return useMutation({
-        mutationFn: getCustomTcDetails,
+        mutationFn: getCustomTcDetails
     });
 };

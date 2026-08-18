@@ -49,11 +49,6 @@ export const periodStaffColumns: ColumnDef<TTPeriodStaffGridData>[] = [
     {
         id: 'actions',
         header: 'Actions',
-        cell: ({ row }) => (
-            <ActionButtonsCell
-                row={row}
-                deleteFunc={deactivateFixingPeriodStaff}
-            />
-        )
+        cell: ({ row }) => <ActionButtonsCell row={row} deleteFunc={deactivateFixingPeriodStaff} />
     }
 ];

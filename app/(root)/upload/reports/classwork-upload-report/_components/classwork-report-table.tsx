@@ -2,18 +2,11 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import { ChevronLeft, ChevronRight, Eye, FileSpreadsheet, Printer, Search } from 'lucide-react';
-import { useState, useMemo } from 'react';
-import type { IClassWorkReport } from '@/types/upload/reports/classwork-upload-report';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { exportToExcel, exportToPdf } from '@/lib/export-to-file';
+import type { IClassWorkReport } from '@/types/upload/reports/classwork-upload-report';
+import { ChevronLeft, ChevronRight, Eye, FileSpreadsheet, Printer, Search } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 interface ClassWorkReportTableProps {
     data: IClassWorkReport[];
@@ -26,18 +19,11 @@ export function ClassWorkReportTable({ data, onViewAttachment }: ClassWorkReport
     const itemsPerPage = 10;
 
     const filteredData = useMemo(() => {
-        return data.filter((item) =>
-            Object.values(item).some(
-                (val) => val && val.toString().toLowerCase().includes(search.toLowerCase())
-            )
-        );
+        return data.filter((item) => Object.values(item).some((val) => val && val.toString().toLowerCase().includes(search.toLowerCase())));
     }, [data, search]);
 
     const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-    const paginatedData = filteredData.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
+    const paginatedData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     const handlePrint = () => {
         const printWindow = window.open('', '_blank');
@@ -74,7 +60,9 @@ export function ClassWorkReportTable({ data, onViewAttachment }: ClassWorkReport
                             </tr>
                         </thead>
                         <tbody>
-                            ${filteredData.map((item, index) => `
+                            ${filteredData
+                                .map(
+                                    (item, index) => `
                                 <tr>
                                     <td>${index + 1}</td>
                                     <td style="text-align: left; font-weight: 600;">${item.Topic}</td>
@@ -85,7 +73,9 @@ export function ClassWorkReportTable({ data, onViewAttachment }: ClassWorkReport
                                     <td>${new Date(item.UploadDate).toLocaleDateString('en-GB')}</td>
                                     <td>${item.EmployeeName || item.UserName || 'N/A'}</td>
                                 </tr>
-                            `).join('')}
+                            `
+                                )
+                                .join('')}
                         </tbody>
                     </table>
                     <div class="footer">
@@ -127,16 +117,12 @@ export function ClassWorkReportTable({ data, onViewAttachment }: ClassWorkReport
             by: item.EmployeeName || item.UserName || 'N/A'
         }));
 
-        exportToExcel(
-            'ClassWork_Upload_Report',
-            JSON.stringify(columns),
-            JSON.stringify(content)
-        );
+        exportToExcel('ClassWork_Upload_Report', JSON.stringify(columns), JSON.stringify(content));
     };
 
     const handleExportPdf = () => {
         const columns = ['SL.NO', 'Topic', 'Class', 'Section', 'Subject', 'File Name', 'Date', 'By'];
-        
+
         const content = filteredData.map((item, index) => [
             index + 1,
             item.Topic,
@@ -152,146 +138,186 @@ export function ClassWorkReportTable({ data, onViewAttachment }: ClassWorkReport
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-6 bg-slate-50/50 p-4 rounded-2xl border border-slate-100 shadow-inner">
-                <div className="flex items-center gap-6">
-                    <div className="flex flex-col gap-0.5">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Global Records</span>
-                        <div className="flex items-center gap-2">
-                            <span className="text-2xl font-black text-slate-800 leading-none">{data.length}</span>
-                            <span className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold rounded-full uppercase tracking-tighter shadow-sm border border-primary/20">Total</span>
+        <div className='space-y-6'>
+            <div className='flex flex-col items-center justify-between gap-6 rounded-2xl border border-slate-100 bg-slate-50/50 p-4 shadow-inner md:flex-row'>
+                <div className='flex items-center gap-6'>
+                    <div className='flex flex-col gap-0.5'>
+                        <span className='font-black text-[10px] text-slate-400 uppercase tracking-widest'>Global Records</span>
+                        <div className='flex items-center gap-2'>
+                            <span className='font-black text-2xl text-slate-800 leading-none'>{data.length}</span>
+                            <span className='rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 font-bold text-[10px] text-primary uppercase tracking-tighter shadow-sm'>
+                                Total
+                            </span>
                         </div>
                     </div>
-                    
+
                     {search && (
-                        <div className="flex flex-col gap-0.5 animate-in slide-in-from-left duration-300">
-                            <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest">Search Results</span>
-                            <div className="flex items-center gap-2">
-                                <span className="text-2xl font-black text-amber-500 leading-none">{filteredData.length}</span>
-                                <span className="px-2 py-0.5 bg-amber-100 text-amber-600 text-[10px] font-bold rounded-full uppercase tracking-tighter shadow-sm border border-amber-200">Found</span>
+                        <div className='slide-in-from-left flex animate-in flex-col gap-0.5 duration-300'>
+                            <span className='font-black text-[10px] text-amber-400 uppercase tracking-widest'>Search Results</span>
+                            <div className='flex items-center gap-2'>
+                                <span className='font-black text-2xl text-amber-500 leading-none'>{filteredData.length}</span>
+                                <span className='rounded-full border border-amber-200 bg-amber-100 px-2 py-0.5 font-bold text-[10px] text-amber-600 uppercase tracking-tighter shadow-sm'>
+                                    Found
+                                </span>
                             </div>
                         </div>
                     )}
                 </div>
 
-                <div className="flex flex-1 max-w-sm relative group">
-                    <div className="absolute inset-0 bg-primary/5 rounded-full blur opacity-0 group-focus-within:opacity-100 transition-opacity" />
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-primary transition-colors" />
+                <div className='group relative flex max-w-sm flex-1'>
+                    <div className='absolute inset-0 rounded-full bg-primary/5 opacity-0 blur transition-opacity group-focus-within:opacity-100' />
+                    <Search className='-translate-y-1/2 absolute top-1/2 left-4 h-4 w-4 text-slate-400 transition-colors group-focus-within:text-primary' />
                     <Input
-                        placeholder="Search records across all columns..."
+                        placeholder='Search records across all columns...'
                         value={search}
                         onChange={(e) => {
                             setSearch(e.target.value);
                             setCurrentPage(1);
                         }}
-                        className="pl-11 h-11 rounded-full bg-white border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-slate-400 font-medium"
+                        className='h-11 rounded-full border-slate-200 bg-white pl-11 font-medium transition-all placeholder:text-slate-400 focus:border-primary focus:ring-4 focus:ring-primary/10'
                     />
                 </div>
 
-                <div className="flex gap-3">
-                    <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={handleExportExcel} 
-                        className="h-11 rounded-full px-5 border-slate-200 hover:bg-green-50 hover:text-green-600 hover:border-green-200 transition-all active:scale-95 shadow-sm font-bold uppercase text-[11px] tracking-widest flex items-center gap-2"
-                    >
-                        <FileSpreadsheet className="h-4 w-4" /> Export Excel
+                <div className='flex gap-3'>
+                    <Button
+                        variant='outline'
+                        size='sm'
+                        onClick={handleExportExcel}
+                        className='flex h-11 items-center gap-2 rounded-full border-slate-200 px-5 font-bold text-[11px] uppercase tracking-widest shadow-sm transition-all hover:border-green-200 hover:bg-green-50 hover:text-green-600 active:scale-95'>
+                        <FileSpreadsheet className='h-4 w-4' /> Export Excel
                     </Button>
-                    <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={handleExportPdf} 
-                        className="h-11 rounded-full px-5 border-slate-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all active:scale-95 shadow-sm font-bold uppercase text-[11px] tracking-widest flex items-center gap-2"
-                    >
-                        <FileSpreadsheet className="h-4 w-4" /> Export PDF
+                    <Button
+                        variant='outline'
+                        size='sm'
+                        onClick={handleExportPdf}
+                        className='flex h-11 items-center gap-2 rounded-full border-slate-200 px-5 font-bold text-[11px] uppercase tracking-widest shadow-sm transition-all hover:border-red-200 hover:bg-red-50 hover:text-red-600 active:scale-95'>
+                        <FileSpreadsheet className='h-4 w-4' /> Export PDF
                     </Button>
-                    <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={handlePrint} 
-                        className="h-11 rounded-full px-5 border-slate-200 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-all active:scale-95 shadow-sm font-bold uppercase text-[11px] tracking-widest flex items-center gap-2"
-                    >
-                        <Printer className="h-4 w-4" /> Print Report
+                    <Button
+                        variant='outline'
+                        size='sm'
+                        onClick={handlePrint}
+                        className='flex h-11 items-center gap-2 rounded-full border-slate-200 px-5 font-bold text-[11px] uppercase tracking-widest shadow-sm transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 active:scale-95'>
+                        <Printer className='h-4 w-4' /> Print Report
                     </Button>
                 </div>
             </div>
 
-            <div className="rounded-3xl border border-slate-100 overflow-hidden bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-500">
-                <div className="overflow-x-auto">
+            <div className='fade-in zoom-in-95 animate-in overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-2xl duration-500'>
+                <div className='overflow-x-auto'>
                     <Table>
-                        <TableHeader className="bg-slate-900 border-none">
-                            <TableRow className="hover:bg-transparent border-none">
-                                <TableHead className="text-white h-14 uppercase text-[10px] font-black tracking-widest text-center px-4">SL.NO</TableHead>
-                                <TableHead className="text-white h-14 uppercase text-[10px] font-black tracking-widest">Topic Details</TableHead>
-                                <TableHead className="text-white h-14 uppercase text-[10px] font-black tracking-widest text-center">Class / Section</TableHead>
-                                <TableHead className="text-white h-14 uppercase text-[10px] font-black tracking-widest text-center">Subject</TableHead>
-                                <TableHead className="text-white h-14 uppercase text-[10px] font-black tracking-widest text-center">File Metadata</TableHead>
-                                <TableHead className="text-white h-14 uppercase text-[10px] font-black tracking-widest text-center">Upload Timeline</TableHead>
-                                <TableHead className="text-white h-14 uppercase text-[10px] font-black tracking-widest text-center">Uploader Info</TableHead>
-                                <TableHead className="text-white h-14 uppercase text-[10px] font-black tracking-widest text-center px-4">Action</TableHead>
+                        <TableHeader className='border-none bg-slate-900'>
+                            <TableRow className='border-none hover:bg-transparent'>
+                                <TableHead className='h-14 px-4 text-center font-black text-[10px] text-white uppercase tracking-widest'>
+                                    SL.NO
+                                </TableHead>
+                                <TableHead className='h-14 font-black text-[10px] text-white uppercase tracking-widest'>
+                                    Topic Details
+                                </TableHead>
+                                <TableHead className='h-14 text-center font-black text-[10px] text-white uppercase tracking-widest'>
+                                    Class / Section
+                                </TableHead>
+                                <TableHead className='h-14 text-center font-black text-[10px] text-white uppercase tracking-widest'>
+                                    Subject
+                                </TableHead>
+                                <TableHead className='h-14 text-center font-black text-[10px] text-white uppercase tracking-widest'>
+                                    File Metadata
+                                </TableHead>
+                                <TableHead className='h-14 text-center font-black text-[10px] text-white uppercase tracking-widest'>
+                                    Upload Timeline
+                                </TableHead>
+                                <TableHead className='h-14 text-center font-black text-[10px] text-white uppercase tracking-widest'>
+                                    Uploader Info
+                                </TableHead>
+                                <TableHead className='h-14 px-4 text-center font-black text-[10px] text-white uppercase tracking-widest'>
+                                    Action
+                                </TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {paginatedData.map((item, index) => (
-                                <TableRow key={index} className="hover:bg-slate-50/80 transition-all group border-slate-50">
-                                    <TableCell className="text-center font-black text-slate-400 text-xs">
+                                <TableRow key={index} className='group border-slate-50 transition-all hover:bg-slate-50/80'>
+                                    <TableCell className='text-center font-black text-slate-400 text-xs'>
                                         {(currentPage - 1) * itemsPerPage + index + 1}
                                     </TableCell>
-                                    <TableCell className="py-5">
-                                        <div className="flex flex-col gap-0.5">
-                                            <span className="font-black text-slate-800 text-sm leading-tight tracking-tight group-hover:text-primary transition-colors">{item.Topic}</span>
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Topic Title</span>
+                                    <TableCell className='py-5'>
+                                        <div className='flex flex-col gap-0.5'>
+                                            <span className='font-black text-slate-800 text-sm leading-tight tracking-tight transition-colors group-hover:text-primary'>
+                                                {item.Topic}
+                                            </span>
+                                            <span className='font-bold text-[10px] text-slate-400 uppercase tracking-tighter'>
+                                                Topic Title
+                                            </span>
                                         </div>
                                     </TableCell>
-                                    <TableCell className="text-center">
-                                        <div className="inline-flex flex-col items-center">
-                                            <span className="px-3 py-1 bg-slate-100 rounded-full text-xs font-black text-slate-700">{item.ClassName}</span>
-                                            <span className="text-[10px] font-black text-slate-400 mt-1 uppercase tracking-widest">{item.SectionName}</span>
+                                    <TableCell className='text-center'>
+                                        <div className='inline-flex flex-col items-center'>
+                                            <span className='rounded-full bg-slate-100 px-3 py-1 font-black text-slate-700 text-xs'>
+                                                {item.ClassName}
+                                            </span>
+                                            <span className='mt-1 font-black text-[10px] text-slate-400 uppercase tracking-widest'>
+                                                {item.SectionName}
+                                            </span>
                                         </div>
                                     </TableCell>
-                                    <TableCell className="text-center">
-                                        <span className="text-xs font-bold text-primary px-3 py-1 bg-primary/5 rounded-lg border border-primary/10 tracking-tight">{item.SubjectName}</span>
+                                    <TableCell className='text-center'>
+                                        <span className='rounded-lg border border-primary/10 bg-primary/5 px-3 py-1 font-bold text-primary text-xs tracking-tight'>
+                                            {item.SubjectName}
+                                        </span>
                                     </TableCell>
-                                    <TableCell className="text-center">
-                                        <div className="flex flex-col items-center gap-1">
-                                            <span className="text-xs font-semibold text-slate-500 truncate max-w-[120px] italic" title={item.FileName || 'No File'}>
+                                    <TableCell className='text-center'>
+                                        <div className='flex flex-col items-center gap-1'>
+                                            <span
+                                                className='max-w-[120px] truncate font-semibold text-slate-500 text-xs italic'
+                                                title={item.FileName || 'No File'}>
                                                 {item.FileName || 'N/A'}
                                             </span>
                                             {item.FileName && (
-                                                <span className="text-[9px] font-black bg-slate-200 text-slate-600 px-1.5 rounded uppercase tracking-tighter">System File</span>
+                                                <span className='rounded bg-slate-200 px-1.5 font-black text-[9px] text-slate-600 uppercase tracking-tighter'>
+                                                    System File
+                                                </span>
                                             )}
                                         </div>
                                     </TableCell>
-                                    <TableCell className="text-center">
-                                        <div className="flex flex-col items-center">
-                                            <span className="text-xs font-black text-slate-700">{new Date(item.UploadDate).toLocaleDateString('en-GB')}</span>
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{new Date(item.UploadDate).toLocaleDateString('en-GB', { weekday: 'short' })}</span>
+                                    <TableCell className='text-center'>
+                                        <div className='flex flex-col items-center'>
+                                            <span className='font-black text-slate-700 text-xs'>
+                                                {new Date(item.UploadDate).toLocaleDateString('en-GB')}
+                                            </span>
+                                            <span className='font-bold text-[10px] text-slate-400 uppercase tracking-widest'>
+                                                {new Date(item.UploadDate).toLocaleDateString('en-GB', { weekday: 'short' })}
+                                            </span>
                                         </div>
                                     </TableCell>
-                                    <TableCell className="text-center">
-                                        <div className="flex items-center justify-center gap-2">
-                                            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-500 uppercase border border-slate-200 shadow-sm">
+                                    <TableCell className='text-center'>
+                                        <div className='flex items-center justify-center gap-2'>
+                                            <div className='flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-slate-100 font-black text-[10px] text-slate-500 uppercase shadow-sm'>
                                                 {(item.EmployeeName || item.UserName || 'U').charAt(0)}
                                             </div>
-                                            <div className="flex flex-col items-start text-left">
-                                                <span className="text-xs font-black text-slate-700 leading-none">{item.EmployeeName || item.UserName || 'N/A'}</span>
-                                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter mt-1">{item.EmployeeName ? 'Staff' : 'User'}</span>
+                                            <div className='flex flex-col items-start text-left'>
+                                                <span className='font-black text-slate-700 text-xs leading-none'>
+                                                    {item.EmployeeName || item.UserName || 'N/A'}
+                                                </span>
+                                                <span className='mt-1 font-bold text-[9px] text-slate-400 uppercase tracking-tighter'>
+                                                    {item.EmployeeName ? 'Staff' : 'User'}
+                                                </span>
                                             </div>
                                         </div>
                                     </TableCell>
-                                    <TableCell className="text-center px-4">
+                                    <TableCell className='px-4 text-center'>
                                         {item.FileName || item.Filepath ? (
                                             <Button
-                                                variant="ghost"
-                                                size="sm"
+                                                variant='ghost'
+                                                size='sm'
                                                 onClick={() => onViewAttachment(item)}
-                                                className="h-9 w-20 rounded-full text-primary font-black uppercase text-[10px] tracking-widest hover:bg-primary hover:text-white transition-all shadow-sm hover:shadow-md active:scale-95"
-                                            >
-                                                <Eye className="h-3.5 w-3.5 mr-1" /> View
+                                                className='h-9 w-20 rounded-full font-black text-[10px] text-primary uppercase tracking-widest shadow-sm transition-all hover:bg-primary hover:text-white hover:shadow-md active:scale-95'>
+                                                <Eye className='mr-1 h-3.5 w-3.5' /> View
                                             </Button>
                                         ) : (
-                                            <div className="h-9 flex items-center justify-center">
-                                                <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest opacity-40 italic">No Media</span>
+                                            <div className='flex h-9 items-center justify-center'>
+                                                <span className='font-black text-[10px] text-slate-300 uppercase italic tracking-widest opacity-40'>
+                                                    No Media
+                                                </span>
                                             </div>
                                         )}
                                     </TableCell>
@@ -299,21 +325,26 @@ export function ClassWorkReportTable({ data, onViewAttachment }: ClassWorkReport
                             ))}
                             {filteredData.length === 0 && (
                                 <TableRow>
-                                    <TableCell colSpan={8} className="h-80 text-center">
-                                        <div className="flex flex-col items-center justify-center space-y-6">
-                                            <div className="relative">
-                                                <div className="absolute inset-0 bg-slate-100 rounded-full scale-150 blur-2xl opacity-50" />
-                                                <div className="relative p-8 bg-white rounded-full shadow-2xl border border-slate-50">
-                                                    <Search className="h-16 w-16 text-slate-200" />
+                                    <TableCell colSpan={8} className='h-80 text-center'>
+                                        <div className='flex flex-col items-center justify-center space-y-6'>
+                                            <div className='relative'>
+                                                <div className='absolute inset-0 scale-150 rounded-full bg-slate-100 opacity-50 blur-2xl' />
+                                                <div className='relative rounded-full border border-slate-50 bg-white p-8 shadow-2xl'>
+                                                    <Search className='h-16 w-16 text-slate-200' />
                                                 </div>
                                             </div>
-                                            <div className="space-y-2">
-                                                <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight">No matching records</h3>
-                                                <p className="text-slate-400 font-medium max-w-[300px] mx-auto text-sm leading-relaxed">
+                                            <div className='space-y-2'>
+                                                <h3 className='font-black text-2xl text-slate-800 uppercase tracking-tight'>
+                                                    No matching records
+                                                </h3>
+                                                <p className='mx-auto max-w-[300px] font-medium text-slate-400 text-sm leading-relaxed'>
                                                     We couldn't find any classwork records matching your current search criteria.
                                                 </p>
                                             </div>
-                                            <Button variant="outline" onClick={() => setSearch('')} className="rounded-full h-11 px-8 border-slate-200 font-black uppercase text-[11px] tracking-widest hover:bg-slate-50 active:scale-95 transition-all">
+                                            <Button
+                                                variant='outline'
+                                                onClick={() => setSearch('')}
+                                                className='h-11 rounded-full border-slate-200 px-8 font-black text-[11px] uppercase tracking-widest transition-all hover:bg-slate-50 active:scale-95'>
                                                 Clear Search
                                             </Button>
                                         </div>
@@ -326,31 +357,29 @@ export function ClassWorkReportTable({ data, onViewAttachment }: ClassWorkReport
             </div>
 
             {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-4 mt-8 animate-in slide-in-from-bottom duration-500">
+                <div className='slide-in-from-bottom mt-8 flex animate-in items-center justify-center gap-4 duration-500'>
                     <Button
-                        variant="ghost"
-                        size="sm"
+                        variant='ghost'
+                        size='sm'
                         onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                         disabled={currentPage === 1}
-                        className="h-11 px-6 rounded-full font-black uppercase text-[11px] tracking-widest transition-all hover:bg-slate-100 disabled:opacity-30 flex items-center gap-2 border border-slate-100"
-                    >
-                        <ChevronLeft className="h-4 w-4" /> Previous
+                        className='flex h-11 items-center gap-2 rounded-full border border-slate-100 px-6 font-black text-[11px] uppercase tracking-widest transition-all hover:bg-slate-100 disabled:opacity-30'>
+                        <ChevronLeft className='h-4 w-4' /> Previous
                     </Button>
-                    
-                    <div className="flex items-center bg-white border border-slate-100 rounded-full px-6 h-11 shadow-sm">
-                        <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest mr-2">Page</span>
-                        <span className="text-sm font-black text-primary bg-primary/10 px-3 py-1 rounded-full">{currentPage}</span>
-                        <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-2">of {totalPages}</span>
+
+                    <div className='flex h-11 items-center rounded-full border border-slate-100 bg-white px-6 shadow-sm'>
+                        <span className='mr-2 font-black text-[11px] text-slate-400 uppercase tracking-widest'>Page</span>
+                        <span className='rounded-full bg-primary/10 px-3 py-1 font-black text-primary text-sm'>{currentPage}</span>
+                        <span className='ml-2 font-black text-[11px] text-slate-400 uppercase tracking-widest'>of {totalPages}</span>
                     </div>
 
                     <Button
-                        variant="ghost"
-                        size="sm"
+                        variant='ghost'
+                        size='sm'
                         onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                         disabled={currentPage === totalPages}
-                        className="h-11 px-6 rounded-full font-black uppercase text-[11px] tracking-widest transition-all hover:bg-slate-100 disabled:opacity-30 flex items-center gap-2 border border-slate-100"
-                    >
-                        Next <ChevronRight className="h-4 w-4" />
+                        className='flex h-11 items-center gap-2 rounded-full border border-slate-100 px-6 font-black text-[11px] uppercase tracking-widest transition-all hover:bg-slate-100 disabled:opacity-30'>
+                        Next <ChevronRight className='h-4 w-4' />
                     </Button>
                 </div>
             )}

@@ -5,12 +5,12 @@ import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/ex
 import { FormError } from '@/components/ui/extension/field';
 import { useMasterFacility } from '@/hooks/hostel/useMasterFacility';
 import { masterFacilityDeleteSchema } from '@/schemas/hostel/masters';
-import { IMasterFacility } from '@/schemas/hostel/masters';
+import type { IMasterFacility } from '@/schemas/hostel/masters';
+import { toggleMasterFacility } from '@/server/hostel/hostel-management/masters/facility';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-import { toggleMasterFacility } from '@/server/hostel/hostel-management/masters/facility';
 
 type FormFields = z.infer<typeof masterFacilityDeleteSchema>;
 

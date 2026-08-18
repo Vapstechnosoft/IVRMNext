@@ -11,11 +11,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { useClassdropdowndatafee, useSectiondropdowndatafee, useacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
 import {
     useBusRoutingForNoticeBoardQuery,
+    useFeeGroupsForNoticeBoardQuery,
+    useFeeTermsForNoticeBoardQuery,
     useNoticeBoardDepartments,
     useNoticeBoardDesignations,
-    useNoticeBoardEmployees,
-    useFeeGroupsForNoticeBoardQuery,
-    useFeeTermsForNoticeBoardQuery
+    useNoticeBoardEmployees
 } from '@/hooks/upload/transactions/use-notice-board';
 import { cn } from '@/lib/utils';
 import { noticeBoardSchema } from '@/schemas/upload/transactions/notice-board.schema';
@@ -129,7 +129,6 @@ export default function AddUploadNoticeBoardForm({ onSuccess }: AddNoticeBoardFo
     const { data: gorupdata, isLoading: grouploading } = useFeeGroupsForNoticeBoardQuery();
 
     const { data: termdata, isLoading: termloading } = useFeeTermsForNoticeBoardQuery();
-
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
         const file = e.target.files?.[0];

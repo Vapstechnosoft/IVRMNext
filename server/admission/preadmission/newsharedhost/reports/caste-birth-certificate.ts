@@ -6,7 +6,6 @@ export async function getCasteBirthCertificateInitialData() {
     return await api.get<any>('admission', '/StudyCertificate/get_loaddata');
 }
 
-
 export async function searchCasteBirthStudent(data: {
     searchfilter: string;
     ASMAY_Id: number;
@@ -42,4 +41,3 @@ export async function generateCasteBirthQRCode(data: {
 }) {
     return await api.post<any>('admission', '/QRcodeStudentCertificate/QRCODECertificates', data);
 }
-

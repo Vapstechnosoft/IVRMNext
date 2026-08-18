@@ -3,22 +3,22 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
+import { DatePicker } from '@/components/ui/date-picker';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DatePicker } from '@/components/ui/date-picker';
 import { finalNdasReportCardSchema } from '@/schemas/exam/exam-module/reports';
 
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
-import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
-import { toast } from 'sonner';
-import type { z } from 'zod';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import {
     getClassDropDownByAcademicYearlist,
     getSectionsDropDownByAcademicYearandClasslist,
     getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/cumulative-report';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useState } from 'react';
+import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
+import { toast } from 'sonner';
+import type { z } from 'zod';
 
 type FormFields = z.infer<typeof finalNdasReportCardSchema>;
 
@@ -131,13 +131,18 @@ export default function FinalNdasReportForm({
                     Number(selectedSection)
                 );
                 const valid = Array.isArray(data) ? data : [];
-                setStudents(valid.map((s: any) => ({
-                    amsT_Id: s.amsT_Id,
-                    studentname: s.studentName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
-                })));
-                
+                setStudents(
+                    valid.map((s: any) => ({
+                        amsT_Id: s.amsT_Id,
+                        studentname: s.studentName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
+                    }))
+                );
+
                 // Select all by default as per requirement
-                setValue('selectedStudents', valid.map((s: any) => s.amsT_Id.toString()));
+                setValue(
+                    'selectedStudents',
+                    valid.map((s: any) => s.amsT_Id.toString())
+                );
                 setAllStudentsSelected(true);
             } catch {
                 toast.error('Failed to load students');
@@ -162,7 +167,11 @@ export default function FinalNdasReportForm({
 
     const handleAllStudents = (checked: boolean) => {
         if (checked && students.length) {
-            setValue('selectedStudents', students.map((s) => s.amsT_Id.toString()), { shouldValidate: true });
+            setValue(
+                'selectedStudents',
+                students.map((s) => s.amsT_Id.toString()),
+                { shouldValidate: true }
+            );
             setAllStudentsSelected(true);
         } else {
             setValue('selectedStudents', [], { shouldValidate: true });
@@ -190,10 +199,7 @@ export default function FinalNdasReportForm({
                                         Academic Year <span className='text-red-500'>*</span>
                                     </Label>
                                     <div className='flex-1'>
-                                        <Select
-                                            key={field.value}
-                                            onValueChange={field.onChange}
-                                            value={field.value || undefined}>
+                                        <Select key={field.value} onValueChange={field.onChange} value={field.value || undefined}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder={academicYearLoading ? 'Loading...' : 'Select Academic Year'} />
                                             </SelectTrigger>

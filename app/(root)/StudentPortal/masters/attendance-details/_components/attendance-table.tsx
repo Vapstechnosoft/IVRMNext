@@ -28,21 +28,11 @@ export function AttendanceTable({ data }: AttendanceTableProps) {
                         <TableRow>
                             {data.map((_, index) => (
                                 <Fragment key={index}>
-                                    <TableHead className='border bg-muted/50 text-center'>
-                                        CLASS HELD
-                                    </TableHead>
-                                    <TableHead className='border bg-muted/50 text-center'>
-                                        TOTAL PRESENT
-                                    </TableHead>
-                                    <TableHead className='border bg-muted/50 text-center'>
-                                        ABSENT COUNT
-                                    </TableHead>
-                                    <TableHead className='border bg-muted/50 text-center'>
-                                        PERCENTAGE
-                                    </TableHead>
-                                    <TableHead className='border bg-muted/50 text-center'>
-                                        ACTION
-                                    </TableHead>
+                                    <TableHead className='border bg-muted/50 text-center'>CLASS HELD</TableHead>
+                                    <TableHead className='border bg-muted/50 text-center'>TOTAL PRESENT</TableHead>
+                                    <TableHead className='border bg-muted/50 text-center'>ABSENT COUNT</TableHead>
+                                    <TableHead className='border bg-muted/50 text-center'>PERCENTAGE</TableHead>
+                                    <TableHead className='border bg-muted/50 text-center'>ACTION</TableHead>
                                 </Fragment>
                             ))}
                         </TableRow>
@@ -51,21 +41,11 @@ export function AttendanceTable({ data }: AttendanceTableProps) {
                         <TableRow>
                             {data.map((item, index) => (
                                 <Fragment key={index}>
-                                    <TableCell className='border'>
-                                        {item.class_held}
-                                    </TableCell>
-                                    <TableCell className='border'>
-                                        {item.total_present}
-                                    </TableCell>
-                                    <TableCell className='border'>
-                                        {item.absent_count}
-                                    </TableCell>
-                                    <TableCell className='border'>
-                                        {item.score}
-                                    </TableCell>
-                                    <TableCell className='border'>
-                                        {item.absent_dates || '-'}
-                                    </TableCell>
+                                    <TableCell className='border'>{item.class_held}</TableCell>
+                                    <TableCell className='border'>{item.total_present}</TableCell>
+                                    <TableCell className='border'>{item.absent_count}</TableCell>
+                                    <TableCell className='border'>{item.score}</TableCell>
+                                    <TableCell className='border'>{item.absent_dates || '-'}</TableCell>
                                 </Fragment>
                             ))}
                         </TableRow>

@@ -1,18 +1,20 @@
 'use client';
 
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { SophiaSmartcardReportSchema, type SophiaSmartcardReportFields } from '@/schemas/admission/preadmission/reports/sophia-smartcard-report';
 import { Button } from '@/components/ui/button';
+import { FormError } from '@/components/ui/extension/field';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Label } from '@/components/ui/label';
-import { FormError } from '@/components/ui/extension/field';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSophiaSmartcardReport } from '@/hooks/admission/preadmission/reports/useSophiaSmartcardReport';
-import { toast } from 'sonner';
-import { Check, ClipboardList, RotateCcw, Download, Printer } from 'lucide-react';
+import {
+    type SophiaSmartcardReportFields,
+    SophiaSmartcardReportSchema
+} from '@/schemas/admission/preadmission/reports/sophia-smartcard-report';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { ClipboardList, Download, Printer, RotateCcw } from 'lucide-react';
+import React from 'react';
+import { useForm } from 'react-hook-form';
 
 interface FilterFormProps {
     onSubmit: (data: SophiaSmartcardReportFields) => void;
@@ -52,7 +54,7 @@ export const FilterForm = ({ onSubmit, onReset, onExport, onPrint, hasData, hasS
             SPCCMH_Id: 0,
             Admnoallind: 'Regular'
         });
-        setResetKey(prev => prev + 1);
+        setResetKey((prev) => prev + 1);
         onReset();
     };
 
@@ -64,19 +66,21 @@ export const FilterForm = ({ onSubmit, onReset, onExport, onPrint, hasData, hasS
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
-                <div key={resetKey} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <form onSubmit={form.handleSubmit(handleFormSubmit)} className='space-y-6'>
+                <div key={resetKey} className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4'>
                     {/* Academic Year */}
                     <FormField
                         control={form.control}
-                        name="ASMAY_Id"
+                        name='ASMAY_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <Label className="font-bold uppercase tracking-wider text-xs">Academic Year <span className="text-red-500">*</span></Label>
-                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString() || "0"}>
+                                <Label className='font-bold text-xs uppercase tracking-wider'>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </Label>
+                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString() || '0'}>
                                     <FormControl>
-                                        <SelectTrigger className="border-slate-300">
-                                            <SelectValue placeholder="---Select---" />
+                                        <SelectTrigger className='border-slate-300'>
+                                            <SelectValue placeholder='---Select---' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
@@ -95,14 +99,16 @@ export const FilterForm = ({ onSubmit, onReset, onExport, onPrint, hasData, hasS
                     {/* Class */}
                     <FormField
                         control={form.control}
-                        name="ASMCL_Id"
+                        name='ASMCL_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <Label className="font-bold uppercase tracking-wider text-xs">Class <span className="text-red-500">*</span></Label>
-                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString() || "0"}>
+                                <Label className='font-bold text-xs uppercase tracking-wider'>
+                                    Class <span className='text-red-500'>*</span>
+                                </Label>
+                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString() || '0'}>
                                     <FormControl>
-                                        <SelectTrigger className="border-slate-300">
-                                            <SelectValue placeholder="---Select---" />
+                                        <SelectTrigger className='border-slate-300'>
+                                            <SelectValue placeholder='---Select---' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
@@ -121,14 +127,16 @@ export const FilterForm = ({ onSubmit, onReset, onExport, onPrint, hasData, hasS
                     {/* Section */}
                     <FormField
                         control={form.control}
-                        name="ASMS_Id"
+                        name='ASMS_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <Label className="font-bold uppercase tracking-wider text-xs">Section <span className="text-red-500">*</span></Label>
-                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString() || "0"}>
+                                <Label className='font-bold text-xs uppercase tracking-wider'>
+                                    Section <span className='text-red-500'>*</span>
+                                </Label>
+                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString() || '0'}>
                                     <FormControl>
-                                        <SelectTrigger className="border-slate-300">
-                                            <SelectValue placeholder="---Select---" />
+                                        <SelectTrigger className='border-slate-300'>
+                                            <SelectValue placeholder='---Select---' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
@@ -172,29 +180,29 @@ export const FilterForm = ({ onSubmit, onReset, onExport, onPrint, hasData, hasS
                     /> */}
                 </div>
 
-                <div className="flex flex-col items-center justify-center p-4 bg-slate-50 border rounded-lg space-y-3">
+                <div className='flex flex-col items-center justify-center space-y-3 rounded-lg border bg-slate-50 p-4'>
                     <FormField
                         control={form.control}
-                        name="Admnoallind"
+                        name='Admnoallind'
                         render={({ field }) => (
-                            <FormItem className="space-y-3">
+                            <FormItem className='space-y-3'>
                                 <FormControl>
-                                    <RadioGroup
-                                        onValueChange={field.onChange}
-                                        defaultValue={field.value}
-                                        className="flex gap-8"
-                                    >
-                                        <FormItem className="flex items-center space-x-2 space-y-0">
+                                    <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className='flex gap-8'>
+                                        <FormItem className='flex items-center space-x-2 space-y-0'>
                                             <FormControl>
-                                                <RadioGroupItem value="Regular" id="regular" />
+                                                <RadioGroupItem value='Regular' id='regular' />
                                             </FormControl>
-                                            <Label htmlFor="regular" className="cursor-pointer font-semibold text-slate-700">Regular</Label>
+                                            <Label htmlFor='regular' className='cursor-pointer font-semibold text-slate-700'>
+                                                Regular
+                                            </Label>
                                         </FormItem>
-                                        <FormItem className="flex items-center space-x-2 space-y-0">
+                                        <FormItem className='flex items-center space-x-2 space-y-0'>
                                             <FormControl>
-                                                <RadioGroupItem value="New" id="new" />
+                                                <RadioGroupItem value='New' id='new' />
                                             </FormControl>
-                                            <Label htmlFor="new" className="cursor-pointer font-semibold text-slate-700">New</Label>
+                                            <Label htmlFor='new' className='cursor-pointer font-semibold text-slate-700'>
+                                                New
+                                            </Label>
                                         </FormItem>
                                     </RadioGroup>
                                 </FormControl>
@@ -203,40 +211,38 @@ export const FilterForm = ({ onSubmit, onReset, onExport, onPrint, hasData, hasS
                     />
                 </div>
 
-                <div className="flex flex-wrap gap-4 items-center justify-center pt-4">
+                <div className='flex flex-wrap items-center justify-center gap-4 pt-4'>
                     <Button
-                        type="submit"
-                        className="w-fit px-6 bg-[#3c8dbc] hover:bg-[#367fa9] text-white rounded-none font-bold uppercase"
-                        disabled={reportMutation.isPending}
-                    >
-                        {reportMutation.isPending ? 'Generating...' : (
-                            <span className="flex items-center gap-2">
-                                <ClipboardList className="w-4 h-4" /> Report
+                        type='submit'
+                        className='w-fit rounded-none bg-[#3c8dbc] px-6 font-bold text-white uppercase hover:bg-[#367fa9]'
+                        disabled={reportMutation.isPending}>
+                        {reportMutation.isPending ? (
+                            'Generating...'
+                        ) : (
+                            <span className='flex items-center gap-2'>
+                                <ClipboardList className='h-4 w-4' /> Report
                             </span>
                         )}
                     </Button>
                     <Button
-                        type="button"
+                        type='button'
                         onClick={handleReset}
-                        className="w-fit px-6 bg-[#dd4b39] hover:bg-[#c23321] text-white rounded-none font-bold uppercase"
-                    >
-                        <RotateCcw className="w-4 h-4 mr-2" /> Cancel
+                        className='w-fit rounded-none bg-[#dd4b39] px-6 font-bold text-white uppercase hover:bg-[#c23321]'>
+                        <RotateCcw className='mr-2 h-4 w-4' /> Cancel
                     </Button>
                     <Button
-                        type="button"
+                        type='button'
                         onClick={onExport}
                         disabled={!hasData}
-                        className="w-fit px-6 bg-[#337ab7] hover:bg-[#286090] text-white rounded-none font-bold uppercase"
-                    >
-                        <Download className="w-4 h-4 mr-2" /> Export to Excel
+                        className='w-fit rounded-none bg-[#337ab7] px-6 font-bold text-white uppercase hover:bg-[#286090]'>
+                        <Download className='mr-2 h-4 w-4' /> Export to Excel
                     </Button>
                     <Button
-                        type="button"
+                        type='button'
                         onClick={onPrint}
                         disabled={!hasSelectedData}
-                        className="w-fit px-6 bg-[#f0ad4e] hover:bg-[#ec971f] text-white rounded-none font-bold uppercase"
-                    >
-                        <Printer className="w-4 h-4 mr-2" /> Print
+                        className='w-fit rounded-none bg-[#f0ad4e] px-6 font-bold text-white uppercase hover:bg-[#ec971f]'>
+                        <Printer className='mr-2 h-4 w-4' /> Print
                     </Button>
                 </div>
             </form>

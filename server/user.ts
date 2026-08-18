@@ -1,14 +1,9 @@
 'use server';
-
-import { api } from '@/lib/apiService';
 import { signIn } from '@/lib/auth';
 import type { loginSchema } from '@/schemas/admission/preadmission/masters';
-import type { UserResponseData } from '@/types';
 import { AuthError } from 'next-auth';
 import { revalidatePath } from 'next/cache';
 import type { z } from 'zod';
-
-
 
 interface LoginSceham {
     values: z.infer<typeof loginSchema>;

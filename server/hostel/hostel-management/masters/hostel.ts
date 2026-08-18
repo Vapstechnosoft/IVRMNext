@@ -1,7 +1,7 @@
 'use server';
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
-import { ApiSearchparams } from '@/types';
+import type { ApiSearchparams } from '@/types';
 
 // --- Types ---
 
@@ -133,4 +133,3 @@ export async function deleteHostel(id: number) {
 export async function getHostelDropdownList() {
     return await api.get<any>('hostel', '/MasterHostel/get_hostel_dropdown_list');
 }
-

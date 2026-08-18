@@ -82,8 +82,9 @@ export default function ReorderCourseForm() {
                                         onDragStart={() => handleDragStart(index)}
                                         onDragOver={(e) => handleDragOver(e, index)}
                                         onDragEnd={handleDragEnd}
-                                        className={`flex cursor-move items-center gap-3 rounded-md bg-muted/50 p-3 transition-all ${draggedIndex === index ? 'opacity-50' : 'hover:bg-muted'
-                                            }`}>
+                                        className={`flex cursor-move items-center gap-3 rounded-md bg-muted/50 p-3 transition-all ${
+                                            draggedIndex === index ? 'opacity-50' : 'hover:bg-muted'
+                                        }`}>
                                         <GripVertical className='size-4' />
                                         <div className='flex-1 font-medium text-sm'>{item.hrmC_QulaificationName}</div>
                                     </div>

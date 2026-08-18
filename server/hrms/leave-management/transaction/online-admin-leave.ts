@@ -1,11 +1,10 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type {
-    OnlineAdminLeaveApplication,
-    OnlineAdminLeaveBalance,
     EmployeeDropDown,
-    SaveAdminEmployeeLeaveApplicationRequest,
-    EmployeeLeaveResponse
+    EmployeeLeaveResponse,
+    OnlineAdminLeaveApplication,
+    SaveAdminEmployeeLeaveApplicationRequest
 } from '@/types/hrms/leave-management/online-admin-leave';
 
 /**
@@ -24,9 +23,8 @@ export async function getEmployeesDropDown(): Promise<ApiResponse<EmployeeDropDo
         });
 
         // Some APIs might return data without a success field, treat as success if data exists
-        const isSuccess = response.success === true ||
-            String(response.success) === 'true' ||
-            (Array.isArray(response.data) && response.data.length > 0);
+        const isSuccess =
+            response.success === true || String(response.success) === 'true' || (Array.isArray(response.data) && response.data.length > 0);
 
         return {
             success: isSuccess,

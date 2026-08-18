@@ -1,7 +1,11 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { ISavePrivilegesApiRequestDTO, ISearchPagesApiRequestDTO, ISearchPagesPayload } from '@/types/super-admin/super-admin-module/general-setting/privileges';
+import type {
+    ISavePrivilegesApiRequestDTO,
+    ISearchPagesApiRequestDTO,
+    ISearchPagesPayload
+} from '@/types/super-admin/super-admin-module/general-setting/privileges';
 import { revalidatePath } from 'next/cache';
 
 const FACADE = 'MasterRolePreviledgeFacade';
@@ -23,7 +27,7 @@ export async function getRoleDropdown() {
             };
         }
     } catch (error) {
-        console.error("Error fetching role dropdown", error);
+        console.error('Error fetching role dropdown', error);
     }
     return { success: false, roles: [] };
 }
@@ -45,7 +49,7 @@ export async function getModuleDropdown() {
             };
         }
     } catch (error) {
-        console.error("Error fetching module dropdown", error);
+        console.error('Error fetching module dropdown', error);
     }
     return { success: false, modules: [] };
 }
@@ -62,7 +66,8 @@ export async function searchPages(payload: ISearchPagesPayload) {
 
         if (resData && response.success !== false) {
             const enq = resData.enq || resData.ENQ || resData.Enq || [];
-            const previosgriddata = resData.previosgriddata || resData.PREVIOSGRIDDATA || resData.Previosgriddata || resData.previousgriddata || [];
+            const previosgriddata =
+                resData.previosgriddata || resData.PREVIOSGRIDDATA || resData.Previosgriddata || resData.previousgriddata || [];
 
             const pages = enq.map((p: any) => ({
                 ivrmmP_Id: p.IVRMMP_Id ?? p.ivrmmP_Id ?? p.id,
@@ -89,8 +94,13 @@ export async function searchPages(payload: ISearchPagesPayload) {
         }
         return { success: false, pages: [], savedPrivileges: [], message: response?.message || 'Failed to search pages' };
     } catch (error: any) {
-        console.error("Error searching pages", error);
-        return { success: false, pages: [], savedPrivileges: [], message: typeof error === 'string' ? error : error?.message || 'Search failed' };
+        console.error('Error searching pages', error);
+        return {
+            success: false,
+            pages: [],
+            savedPrivileges: [],
+            message: typeof error === 'string' ? error : error?.message || 'Search failed'
+        };
     }
 }
 
@@ -119,14 +129,19 @@ export async function savePrivileges(payload: { roleId: number; secondgrid: any[
         };
 
         const response = await api.post<any>('sadmin', url, requestBody);
-        const isSuccess = response.success || response.returnval === true || response.returnval === 'true' || response.returnval === 'Save' || response.returnval === 'Update';
+        const isSuccess =
+            response.success ||
+            response.returnval === true ||
+            response.returnval === 'true' ||
+            response.returnval === 'Save' ||
+            response.returnval === 'Update';
         if (isSuccess) {
             revalidatePath('/SuperAdmin/super-admin-module/general-setting/privileges');
             return { success: true, message: response.message || response.returnval || 'Saved successfully.' };
         }
         return { success: false, message: response.message || 'Failed to save.' };
     } catch (error: any) {
-        console.error("Error saving privileges", error);
+        console.error('Error saving privileges', error);
         return { success: false, message: typeof error === 'string' ? error : error?.message || 'An unexpected error occurred.' };
     }
 }
@@ -135,14 +150,15 @@ export async function deletePrivilege(id: number) {
     const url = `${FACADE}/delete_master_priviledge/${id}`;
     try {
         const response = await api.delete<any>('sadmin', url);
-        const isSuccess = response.success || response.returnval === true || response.returnval === 'true' || response.returnval === 'Delete';
+        const isSuccess =
+            response.success || response.returnval === true || response.returnval === 'true' || response.returnval === 'Delete';
         if (isSuccess) {
             revalidatePath('/SuperAdmin/super-admin-module/general-setting/privileges');
             return { success: true, message: response.message || 'Deleted successfully.' };
         }
         return { success: false, message: response.message || 'Failed to delete.' };
     } catch (error) {
-        console.error("Error deleting privilege", error);
+        console.error('Error deleting privilege', error);
         return { success: false, message: 'An unexpected error occurred.' };
     }
 }
@@ -170,8 +186,7 @@ export async function getRolePrivilegesList(searchParams: any) {
             };
         }
     } catch (error) {
-        console.error("Error fetching role privileges list", error);
+        console.error('Error fetching role privileges list', error);
     }
     return { success: false, data: [], total: 0, page: 0, page_size: 10 };
 }
-

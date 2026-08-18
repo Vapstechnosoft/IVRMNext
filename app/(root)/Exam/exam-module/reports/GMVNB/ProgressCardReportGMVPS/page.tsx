@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { Loader2 } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ReportForm } from './_components/report-form';
 import { ReportList } from './_components/report-list';
-import { Loader2 } from 'lucide-react';
 
 export default function ProgressCardReportGMVPSPage() {
     const [reportData, setReportData] = useState<any>(null);
@@ -12,11 +12,7 @@ export default function ProgressCardReportGMVPSPage() {
     const [isLoading, setIsLoading] = useState(false);
     const listRef = useRef<HTMLDivElement>(null);
 
-    const handleReportGenerated = (
-        data: any,
-        year: string,
-        gDate?: Date
-    ) => {
+    const handleReportGenerated = (data: any, year: string, gDate?: Date) => {
         setReportData(data);
         setAcademicYear(year);
         setGeneratedDate(gDate);
@@ -38,26 +34,24 @@ export default function ProgressCardReportGMVPSPage() {
     }, [reportData]);
 
     return (
-        <div className="container mx-auto py-8 space-y-8 animate-in fade-in duration-700">
-            <div className="grid grid-cols-1 gap-8">
-                <section className="transition-all duration-500">
+        <div className='fade-in container mx-auto animate-in space-y-8 py-8 duration-700'>
+            <div className='grid grid-cols-1 gap-8'>
+                <section className='transition-all duration-500'>
                     <ReportForm onReportGenerated={handleReportGenerated} onReset={handleReset} onLoading={setIsLoading} />
                 </section>
 
-                <div ref={listRef} className="transition-all duration-500 relative min-h-[200px]">
+                <div ref={listRef} className='relative min-h-[200px] transition-all duration-500'>
                     {isLoading ? (
-                        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/50 backdrop-blur-sm pt-12">
-                            <Loader2 className="h-10 w-10 animate-spin text-sky-800 mb-4" />
-                            <p className="text-sm text-sky-800 font-medium animate-pulse">Generating Report...</p>
+                        <div className='absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/50 pt-12 backdrop-blur-sm'>
+                            <Loader2 className='mb-4 h-10 w-10 animate-spin text-sky-800' />
+                            <p className='animate-pulse font-medium text-sky-800 text-sm'>Generating Report...</p>
                         </div>
-                    ) : reportData && (
-                        <section className="animate-in slide-in-from-bottom-4 duration-500">
-                            <ReportList
-                                data={reportData}
-                                academicYear={academicYear}
-                                generatedDate={generatedDate}
-                            />
-                        </section>
+                    ) : (
+                        reportData && (
+                            <section className='slide-in-from-bottom-4 animate-in duration-500'>
+                                <ReportList data={reportData} academicYear={academicYear} generatedDate={generatedDate} />
+                            </section>
+                        )
                     )}
                 </div>
             </div>

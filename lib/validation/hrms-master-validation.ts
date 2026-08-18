@@ -786,7 +786,7 @@ export const MASTER_LEAVE_VALIDATION = {
             message: VALIDATION_MESSAGES.NUMERIC_ONLY('Days for Apply Criteria')
         },
         validate: (value: string) => {
-            const numValue = parseInt(value, 10);
+            const numValue = Number.parseInt(value, 10);
             if (isNaN(numValue) || numValue <= 0) {
                 return 'Days for Apply Criteria must be a positive integer';
             }
@@ -808,7 +808,7 @@ export const MASTER_LEAVE_VALIDATION = {
             message: VALIDATION_MESSAGES.NUMERIC_ONLY('Max Days For Apply')
         },
         validate: (value: string) => {
-            const numValue = parseInt(value, 10);
+            const numValue = Number.parseInt(value, 10);
             if (isNaN(numValue) || numValue <= 0) {
                 return 'Max Days For Apply must be a positive integer';
             }
@@ -903,7 +903,7 @@ export const MASTER_LEAVE_LIST_VALIDATION = {
             message: VALIDATION_MESSAGES.NUMERIC_ONLY('Days for Apply Criteria')
         },
         validate: (value: string) => {
-            const numValue = parseInt(value, 10);
+            const numValue = Number.parseInt(value, 10);
             if (isNaN(numValue) || numValue <= 0) {
                 return 'Days for Apply Criteria must be a positive integer';
             }
@@ -926,7 +926,7 @@ export const MASTER_LEAVE_LIST_VALIDATION = {
         },
         validate: (value: string) => {
             if (!value) return true; // Optional field
-            const numValue = parseInt(value, 10);
+            const numValue = Number.parseInt(value, 10);
             if (isNaN(numValue) || numValue <= 0) {
                 return 'Max Days For Apply must be a positive integer';
             }
@@ -1014,7 +1014,7 @@ export const LEAVE_AUTHORIZATION_VALIDATION = {
         },
         validate: (value: string | number) => {
             if (!value) return VALIDATION_MESSAGES.REQUIRED('Order of Approval');
-            const numValue = typeof value === 'number' ? value : parseInt(String(value), 10);
+            const numValue = typeof value === 'number' ? value : Number.parseInt(String(value), 10);
             if (isNaN(numValue) || numValue <= 0) {
                 return 'Order of Approval must be a positive integer';
             }
@@ -1025,7 +1025,7 @@ export const LEAVE_AUTHORIZATION_VALIDATION = {
         required: VALIDATION_MESSAGES.REQUIRED('Approval Person'),
         validate: (value: string) => {
             if (!value || value.trim() === '') {
-                return 'Approval Person is required. Must select or enter a valid person\'s name';
+                return "Approval Person is required. Must select or enter a valid person's name";
             }
             return true;
         }
@@ -1233,7 +1233,11 @@ export const PROFESSIONAL_TAX_VALIDATION = {
             if (Number.isNaN(numValue) || numValue <= 0) {
                 return VALIDATION_MESSAGES.POSITIVE_NUMBER('Amount From');
             }
-            const amountTo = formValues.HRMPT_AmountTo ? (typeof formValues.HRMPT_AmountTo === 'string' ? Number.parseFloat(formValues.HRMPT_AmountTo) : formValues.HRMPT_AmountTo) : null;
+            const amountTo = formValues.HRMPT_AmountTo
+                ? typeof formValues.HRMPT_AmountTo === 'string'
+                    ? Number.parseFloat(formValues.HRMPT_AmountTo)
+                    : formValues.HRMPT_AmountTo
+                : null;
             if (amountTo !== null && numValue >= amountTo) {
                 return 'Amount From must be less than Amount To';
             }
@@ -1255,7 +1259,11 @@ export const PROFESSIONAL_TAX_VALIDATION = {
             if (Number.isNaN(numValue) || numValue <= 0) {
                 return VALIDATION_MESSAGES.POSITIVE_NUMBER('Amount To');
             }
-            const amountFrom = formValues.HRMPT_AmountFrom ? (typeof formValues.HRMPT_AmountFrom === 'string' ? Number.parseFloat(formValues.HRMPT_AmountFrom) : formValues.HRMPT_AmountFrom) : null;
+            const amountFrom = formValues.HRMPT_AmountFrom
+                ? typeof formValues.HRMPT_AmountFrom === 'string'
+                    ? Number.parseFloat(formValues.HRMPT_AmountFrom)
+                    : formValues.HRMPT_AmountFrom
+                : null;
             if (amountFrom !== null && numValue <= amountFrom) {
                 return 'Amount To must be greater than Amount From';
             }
@@ -1649,7 +1657,11 @@ export const PAYROLL_STANDARD_VALIDATION = {
         },
         validate: (value: string | number, formValues: any) => {
             const numValue = typeof value === 'string' ? Number.parseInt(value, 10) : value;
-            const fromDay = formValues.HRMPS_FromDay ? (typeof formValues.HRMPS_FromDay === 'string' ? Number.parseInt(formValues.HRMPS_FromDay, 10) : formValues.HRMPS_FromDay) : null;
+            const fromDay = formValues.HRMPS_FromDay
+                ? typeof formValues.HRMPS_FromDay === 'string'
+                    ? Number.parseInt(formValues.HRMPS_FromDay, 10)
+                    : formValues.HRMPS_FromDay
+                : null;
             if (fromDay !== null && numValue < fromDay) {
                 return 'To Day must be greater than or equal to From Day';
             }

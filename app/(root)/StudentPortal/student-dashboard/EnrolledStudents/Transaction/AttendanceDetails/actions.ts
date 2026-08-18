@@ -1,7 +1,5 @@
 'use server';
 
-import { api } from '@/lib/apiService';
-
 export interface AttendanceLoadData {
     attyearlist: {
         asmaY_Id: number;

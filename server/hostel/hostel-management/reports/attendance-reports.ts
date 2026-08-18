@@ -38,7 +38,7 @@ export async function getGatepassReport(values: any) {
             frmdate: format(values.fromDate, 'yyyy-MM-dd'),
             todate: format(values.toDate, 'yyyy-MM-dd')
         };
-        
+
         try {
             const res = await api.post('hostel', '/Hostel_Student_Gatepass_Report/getreport', payload);
             if (res.data) return res.data;
@@ -89,4 +89,3 @@ export async function getInOutReport(values: any) {
     }
     return null;
 }
-

@@ -6,7 +6,7 @@ import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMasterSubject, parentsubjectdropdowndata } from '@/hooks/library/useMasters';
+import { parentsubjectdropdowndata, useMasterSubject } from '@/hooks/library/useMasters';
 import { masterSubjectSchema } from '@/schemas/library/masters';
 import { addOrUpdateMasterSubject } from '@/server/library/masters/master_subject';
 import type { IMasterSubjectList } from '@/types/library/masters/masters';
@@ -67,7 +67,6 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                 lmS_ActiveFlg: row.lmS_ActiveFlg
             };
 
-
             const response: any = await addOrUpdateMasterSubject(payload);
 
             if (response.success) {
@@ -107,11 +106,10 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                                     name='lmS_ParentId'
                                     control={control}
                                     render={({ field }) => (
-                                        <Select 
+                                        <Select
                                             key={resetKey}
-                                            onValueChange={(val) => field.onChange(Number(val))} 
-                                            value={field.value?.toString() || undefined}
-                                        >
+                                            onValueChange={(val) => field.onChange(Number(val))}
+                                            value={field.value?.toString() || undefined}>
                                             <SelectTrigger className='w-full'>
                                                 <SelectValue placeholder='Select Parent Subject' />
                                             </SelectTrigger>
@@ -126,7 +124,9 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                                                     </SelectItem>
                                                 ) : (
                                                     parentData?.data?.map((item: any) => (
-                                                        <SelectItem key={item.ismS_Id || Math.random()} value={item.ismS_Id?.toString() || ''}>
+                                                        <SelectItem
+                                                            key={item.ismS_Id || Math.random()}
+                                                            value={item.ismS_Id?.toString() || ''}>
                                                             {item.ismS_SubjectName}
                                                         </SelectItem>
                                                     ))
@@ -184,7 +184,7 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                     <Button
                         type='submit'
                         disabled={isSubmitting}
-                        className='order-1 w-fit bg-[#4251b1] hover:bg-[#35418e] text-white transition-all duration-200 hover:scale-105'
+                        className='order-1 w-fit bg-[#4251b1] text-white transition-all duration-200 hover:scale-105 hover:bg-[#35418e]'
                         isLoading={isSubmitting}
                         loadingText='Saving...'>
                         <div className='flex items-center'>
@@ -196,7 +196,7 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                         type='button'
                         onClick={handleReset}
                         disabled={isSubmitting}
-                        className='order-2 w-fit bg-[#ff5a30] hover:bg-[#e64d26] text-white transition-all duration-200 hover:scale-105'>
+                        className='order-2 w-fit bg-[#ff5a30] text-white transition-all duration-200 hover:scale-105 hover:bg-[#e64d26]'>
                         Reset
                     </Button>
                 </div>

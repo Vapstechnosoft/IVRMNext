@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { usePageMapping } from './mapping-context';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { getAvailablePages } from '@/server/super-admin/super-admin-module/general-setting/page-mapping';
-import { useQueryState, parseAsInteger, parseAsString } from 'nuqs';
-import { tableSearchVariables } from '@/lib/data-table.config';
-import type { IPageMappingData } from '@/types/super-admin/super-admin-module/general-setting/page-mapping';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ColumnDef } from '@tanstack/react-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { tableSearchVariables } from '@/lib/data-table.config';
+import { getAvailablePages } from '@/server/super-admin/super-admin-module/general-setting/page-mapping';
+import type { IPageMappingData } from '@/types/super-admin/super-admin-module/general-setting/page-mapping';
+import type { ColumnDef } from '@tanstack/react-table';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { usePageMapping } from './mapping-context';
 
 export default function AvailableGrid() {
     const { selectedModuleId, addToCart, cartPages, removeFromCart } = usePageMapping();
@@ -119,15 +119,8 @@ export default function AvailableGrid() {
             </div>
 
             <div className='flex-1 overflow-auto p-2'>
-                <GenericDataTable
-                    data={data}
-                    columns={columns}
-                    isLoading={isLoading}
-                    isPaginationRequired={true}
-                    totalItems={totalItems}
-                />
+                <GenericDataTable data={data} columns={columns} isLoading={isLoading} isPaginationRequired={true} totalItems={totalItems} />
             </div>
         </div>
     );
 }
-

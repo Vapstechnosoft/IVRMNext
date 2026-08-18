@@ -42,7 +42,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
             emgR_Id: gradeData.emgR_Id,
             mI_Id: gradeData.mI_Id ?? 0,
             emgR_GradeName: gradeData.emgR_GradeName ?? '',
-            emgR_MarksPerFlag: (gradeData.emgR_MarksPerFlag?.toUpperCase() === 'P' ? 'P' : 'M'),
+            emgR_MarksPerFlag: gradeData.emgR_MarksPerFlag?.toUpperCase() === 'P' ? 'P' : 'M',
             emgR_ActiveFlag: gradeData.emgR_ActiveFlag ?? true,
             grade_list: []
         }
@@ -73,20 +73,20 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                 if (result?.data) {
                     const data = Array.isArray(result.data)
                         ? result.data.map((g: any) => ({
-                            emgD_Id: Number(g.emgD_Id ?? 0),
-                            emgR_Id: Number(g.emgR_Id ?? 0),
-                            emgD_Name: g.emgD_Name || '',
-                            emgD_From: Number(g.emgD_From ?? null),
-                            emgD_To: Number(g.emgD_To ?? null),
-                            emgD_GradePoints: Number(g.emgD_GradePoints ?? null),
-                            emgD_Remarks: g.emgD_Remarks || '',
-                            emgD_ActiveFlag: g.emgD_ActiveFlag ?? true,
-                            emgR_MarksPerFlag: g.emgR_MarksPerFlag
-                        }))
+                              emgD_Id: Number(g.emgD_Id ?? 0),
+                              emgR_Id: Number(g.emgR_Id ?? 0),
+                              emgD_Name: g.emgD_Name || '',
+                              emgD_From: Number(g.emgD_From ?? null),
+                              emgD_To: Number(g.emgD_To ?? null),
+                              emgD_GradePoints: Number(g.emgD_GradePoints ?? null),
+                              emgD_Remarks: g.emgD_Remarks || '',
+                              emgD_ActiveFlag: g.emgD_ActiveFlag ?? true,
+                              emgR_MarksPerFlag: g.emgR_MarksPerFlag
+                          }))
                         : [];
 
                     const rawFlag = (result.data as any)?.[0]?.emgR_MarksPerFlag ?? gradeData.emgR_MarksPerFlag;
-                    const marksPerFlag = (rawFlag?.toUpperCase() === 'P' ? 'P' : 'M');
+                    const marksPerFlag = rawFlag?.toUpperCase() === 'P' ? 'P' : 'M';
 
                     reset(
                         {
@@ -214,20 +214,20 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
             if (result?.data) {
                 const restoredRows = Array.isArray(result.data)
                     ? result.data.map((g: any) => ({
-                        emgD_Id: Number(g.emgD_Id ?? 0),
-                        emgR_Id: Number(g.emgR_Id ?? 0),
-                        emgD_Name: g.emgD_Name || '',
-                        emgD_From: Number(g.emgD_From ?? null),
-                        emgD_To: Number(g.emgD_To ?? null),
-                        emgD_GradePoints: Number(g.emgD_GradePoints ?? null),
-                        emgD_Remarks: g.emgD_Remarks || '',
-                        emgD_ActiveFlag: g.emgD_ActiveFlag ?? true,
-                        emgR_MarksPerFlag: g.emgR_MarksPerFlag
-                    }))
+                          emgD_Id: Number(g.emgD_Id ?? 0),
+                          emgR_Id: Number(g.emgR_Id ?? 0),
+                          emgD_Name: g.emgD_Name || '',
+                          emgD_From: Number(g.emgD_From ?? null),
+                          emgD_To: Number(g.emgD_To ?? null),
+                          emgD_GradePoints: Number(g.emgD_GradePoints ?? null),
+                          emgD_Remarks: g.emgD_Remarks || '',
+                          emgD_ActiveFlag: g.emgD_ActiveFlag ?? true,
+                          emgR_MarksPerFlag: g.emgR_MarksPerFlag
+                      }))
                     : [];
 
                 const rawFlag = (result.data as any)?.[0]?.emgR_MarksPerFlag ?? gradeData.emgR_MarksPerFlag;
-                const marksPerFlag = (rawFlag?.toUpperCase() === 'P' ? 'P' : 'M');
+                const marksPerFlag = rawFlag?.toUpperCase() === 'P' ? 'P' : 'M';
 
                 reset({
                     emgR_Id: gradeData.emgR_Id,
@@ -271,7 +271,13 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
         <form onSubmit={handleSubmit(onSubmit)} className={`space-y-6 ${className}`} noValidate>
             {/* Grade Info */}
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                <InputText label='Grade Name' required placeholder='Enter Grade Name' {...register('emgR_GradeName')} error={errors.emgR_GradeName?.message} />
+                <InputText
+                    label='Grade Name'
+                    required
+                    placeholder='Enter Grade Name'
+                    {...register('emgR_GradeName')}
+                    error={errors.emgR_GradeName?.message}
+                />
                 <div>
                     <Label>
                         Marks/Percentage <span className='text-red-500'>*</span>

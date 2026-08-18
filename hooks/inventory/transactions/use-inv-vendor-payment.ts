@@ -1,16 +1,16 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-    getInvVendorPaymentGRNDetails,
-    saveInvVendorPayment,
     deactivateInvVendorPayment,
-    getInvVendorPaymentModelDetails,
+    getGRNDetail,
+    getGRNList,
     getInvGRNItemDetails,
-    loadVendorPayments,
+    getInvVendorPaymentGRNDetails,
+    getInvVendorPaymentModelDetails,
     getPaymentModes,
     getSuppliers,
-    getGRNList,
-    getGRNDetail
+    loadVendorPayments,
+    saveInvVendorPayment
 } from '@/server/inventory/transactions/inv-vendor-payment';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 export const useInvVendorPayment = (searchParams?: any) => {
@@ -18,23 +18,24 @@ export const useInvVendorPayment = (searchParams?: any) => {
 
     const vendorPaymentsQuery = useQuery({
         queryKey: ['inv-vendor-payments-list', searchParams],
-        queryFn: () => loadVendorPayments(searchParams),
+        queryFn: () => loadVendorPayments(searchParams)
     });
 
     const paymentModesQuery = useQuery({
         queryKey: ['inv-payment-modes', searchParams],
         queryFn: () => getPaymentModes(searchParams),
-        staleTime: 5 * 60 * 1000, // cache for 5 mins
+        staleTime: 5 * 60 * 1000 // cache for 5 mins
     });
 
     const suppliersQuery = useQuery({
         queryKey: ['inv-suppliers-list', searchParams],
         queryFn: () => getSuppliers(searchParams),
-        staleTime: 5 * 60 * 1000,
+        staleTime: 5 * 60 * 1000
     });
 
     const getGRNDetailsMutation = useMutation({
-        mutationFn: ({ invmS_Id, invmgrN_Id }: { invmS_Id: number, invmgrN_Id?: number }) => getInvVendorPaymentGRNDetails(invmS_Id, invmgrN_Id)
+        mutationFn: ({ invmS_Id, invmgrN_Id }: { invmS_Id: number; invmgrN_Id?: number }) =>
+            getInvVendorPaymentGRNDetails(invmS_Id, invmgrN_Id)
     });
 
     const getGRNListMutation = useMutation({
@@ -42,7 +43,7 @@ export const useInvVendorPayment = (searchParams?: any) => {
     });
 
     const getGRNDetailMutation = useMutation({
-        mutationFn: ({ invmS_Id, invmgrN_Id }: { invmS_Id: number, invmgrN_Id: number }) => getGRNDetail(invmS_Id, invmgrN_Id)
+        mutationFn: ({ invmS_Id, invmgrN_Id }: { invmS_Id: number; invmgrN_Id: number }) => getGRNDetail(invmS_Id, invmgrN_Id)
     });
 
     const saveMutation = useMutation({

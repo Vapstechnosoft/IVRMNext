@@ -1,7 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { IInstitutionSubscription } from '@/types/super-admin/super-admin-module/institution/institution-subscription';
+import type { IInstitutionSubscription } from '@/types/super-admin/super-admin-module/institution/institution-subscription';
 
 export interface CountryDropdown {
     ivrmmC_Id: number;

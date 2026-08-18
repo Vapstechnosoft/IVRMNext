@@ -311,4 +311,3 @@ export interface DeleteLeaveTransactionResponse {
     page?: number | null;
     page_size?: number | null;
 }
-

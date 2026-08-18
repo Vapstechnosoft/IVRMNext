@@ -1,12 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type {
-    AcademicYear,
-    Class,
-    Section,
-    Subject
-} from '@/types/timetable/Transaction/staffperiodtransfer';
+import type { AcademicYear, Class, Subject } from '@/types/timetable/Transaction/staffperiodtransfer';
 import { revalidatePath } from 'next/cache';
 
 export async function getAcademicYearData() {
@@ -42,10 +37,12 @@ export async function getStaffPeriodTransferMasters() {
     ]);
 
     const staffData = staff.data || [];
-    const mappedStaff = staffData.map((s: any) => ({
-        hrmE_Id: s.hrmE_Id || s.HRME_Id,
-        staffNamelst: s.staffNamelst || (s.firstName ? `${s.firstName} ${s.middleName || ''} ${s.lastName || ''}`.trim() : '') || ''
-    })).filter((s: any) => s.staffNamelst !== '');
+    const mappedStaff = staffData
+        .map((s: any) => ({
+            hrmE_Id: s.hrmE_Id || s.HRME_Id,
+            staffNamelst: s.staffNamelst || (s.firstName ? `${s.firstName} ${s.middleName || ''} ${s.lastName || ''}`.trim() : '') || ''
+        }))
+        .filter((s: any) => s.staffNamelst !== '');
 
     return {
         years: years.data || [],

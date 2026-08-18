@@ -2,7 +2,7 @@
 
 import { api } from '@/lib/apiService';
 import { auth } from '@/lib/auth';
-import { IPDADebitCreditReportParams } from '@/types/pettycash/report/PDADebitCreditReport';
+import type { IPDADebitCreditReportParams } from '@/types/pettycash/report/PDADebitCreditReport';
 
 export async function getPDADebitCreditReportInitialData() {
     const session = await auth();

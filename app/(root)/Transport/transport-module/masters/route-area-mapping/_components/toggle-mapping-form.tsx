@@ -43,7 +43,11 @@ export default function ToggleMappingForm({
             <div className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.trmR_RouteName} - {rowData.trmA_AreaName}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'}{' '}
+                        <strong>
+                            {rowData.trmR_RouteName} - {rowData.trmA_AreaName}
+                        </strong>
+                        ?
                     </p>
                 </AdaptiveBody>
                 <AdaptiveFooter>

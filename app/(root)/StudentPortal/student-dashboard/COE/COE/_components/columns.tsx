@@ -69,6 +69,3 @@ export const columns: ColumnDef<COEReport>[] = [
         }
     }
 ];
-
-
-

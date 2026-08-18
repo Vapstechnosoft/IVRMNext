@@ -37,7 +37,7 @@ export async function getPromotionReportTBSchool(data: any): Promise<ApiResponse
     let payload: any = null;
     try {
         const url = '/JSHSExamReports/promotion_report_TBSchool';
-        
+
         // Formatting student list
         let temp_Amstids: { amsT_Id: number }[] = [];
         if (Array.isArray(data.temp_Amstids)) {
@@ -86,11 +86,13 @@ export async function getPromotionReportTBSchool(data: any): Promise<ApiResponse
         console.log('==============================================');
 
         if (hasDataItems(response)) return cleanJson(response);
-        return cleanJson(response || {
-            success: false,
-            message: 'No records found',
-            data: null
-        });
+        return cleanJson(
+            response || {
+                success: false,
+                message: 'No records found',
+                data: null
+            }
+        );
     } catch (error) {
         console.error('getPromotionReportTBSchool error:', error);
         return cleanJson({
@@ -102,12 +104,13 @@ export async function getPromotionReportTBSchool(data: any): Promise<ApiResponse
 }
 
 function getMockReportData(payload: any, originalData?: any) {
-    const className = payload?.asmcL_ClassName || originalData?.asmcL_ClassName || originalData?.className || `Class ${payload?.asmcL_Id || 5}`;
+    const className =
+        payload?.asmcL_ClassName || originalData?.asmcL_ClassName || originalData?.className || `Class ${payload?.asmcL_Id || 5}`;
     const sectionName = payload?.asmC_SectionName || originalData?.asmC_SectionName || originalData?.sectionName || 'A';
     const academicYear = originalData?.asmaY_Year || '2025-2026';
 
     const rawStudents = originalData?.studentList || originalData?.temp_Amstids || payload?.temp_Amstids || [];
-    
+
     let studentDetails: any[] = [];
 
     if (Array.isArray(rawStudents) && rawStudents.length > 0) {
@@ -128,10 +131,38 @@ function getMockReportData(payload: any, originalData?: any) {
 
     if (studentDetails.length === 0) {
         studentDetails = [
-            { AMST_Id: 1, studentname: 'Rohan Sharma', classname: className, sectionname: sectionName, admno: 'ADM101', asmaY_Year: academicYear },
-            { AMST_Id: 2, studentname: 'Ananya Verma', classname: className, sectionname: sectionName, admno: 'ADM102', asmaY_Year: academicYear },
-            { AMST_Id: 3, studentname: 'Arjun Patel', classname: className, sectionname: sectionName, admno: 'ADM103', asmaY_Year: academicYear },
-            { AMST_Id: 4, studentname: 'Sneha Reddy', classname: className, sectionname: sectionName, admno: 'ADM104', asmaY_Year: academicYear }
+            {
+                AMST_Id: 1,
+                studentname: 'Rohan Sharma',
+                classname: className,
+                sectionname: sectionName,
+                admno: 'ADM101',
+                asmaY_Year: academicYear
+            },
+            {
+                AMST_Id: 2,
+                studentname: 'Ananya Verma',
+                classname: className,
+                sectionname: sectionName,
+                admno: 'ADM102',
+                asmaY_Year: academicYear
+            },
+            {
+                AMST_Id: 3,
+                studentname: 'Arjun Patel',
+                classname: className,
+                sectionname: sectionName,
+                admno: 'ADM103',
+                asmaY_Year: academicYear
+            },
+            {
+                AMST_Id: 4,
+                studentname: 'Sneha Reddy',
+                classname: className,
+                sectionname: sectionName,
+                admno: 'ADM104',
+                asmaY_Year: academicYear
+            }
         ];
     }
 

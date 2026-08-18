@@ -11,9 +11,19 @@ export const extractList = (data: any, preferredKey?: string) => {
     }
 
     const keys = [
-        'academiclist', 'catelist', 'classlist', 'sectionlist', 'stafflist', 'subjectlist',
-        'staffbyall', 'subjectbystaff', 'sectionbyclass', 'classbycategory', 'categorylist',
-        'daylist', 'periodlist'
+        'academiclist',
+        'catelist',
+        'classlist',
+        'sectionlist',
+        'stafflist',
+        'subjectlist',
+        'staffbyall',
+        'subjectbystaff',
+        'sectionbyclass',
+        'classbycategory',
+        'categorylist',
+        'daylist',
+        'periodlist'
     ];
     for (const key of keys) {
         const foundKey = Object.keys(target).find((k) => k.toLowerCase() === key.toLowerCase());

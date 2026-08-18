@@ -82,7 +82,10 @@ function InvMasterItemActionButtons({ rowData }: { rowData: IInvMasterItem }) {
                 toggleConditionKey='invmI_ActiveFlg'
             />
             {rowData.invmI_TaxAplFlg && (
-                <Badge variant="outline" className="cursor-pointer hover:bg-primary/10" onClick={() => (window as any).openTaxModal?.(rowData)}>
+                <Badge
+                    variant='outline'
+                    className='cursor-pointer hover:bg-primary/10'
+                    onClick={() => (window as any).openTaxModal?.(rowData)}>
                     Tax
                 </Badge>
             )}

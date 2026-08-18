@@ -1,12 +1,12 @@
 'use client';
 
-import { useMutation, useQuery } from '@tanstack/react-query';
 import { ADMISSION_QUERY_KEYS } from '@/constants/query-keys';
 import {
     getStudentSmartCardLogInitialDetails,
     getStudentSmartCardLogNameRegNo,
     getStudentSmartCardLogReport
 } from '@/server/admission/oldsharehost/reports/student_smart_card_log';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const useStudentSmartCardLogInitialDetails = () => {
     return useQuery({

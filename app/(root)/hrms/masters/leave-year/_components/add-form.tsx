@@ -5,9 +5,9 @@ import { DateField } from '@/components/ui/dateField';
 import { InputText } from '@/components/ui/extension/input-text';
 import { useMasterLeaveYear } from '@/hooks/hrms/useMasters';
 import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
-import { format } from 'date-fns';
 import { addOrUpdateMasterLeaveYear } from '@/server/hrms/hrmsConfig/master/leave-year';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm, useWatch } from 'react-hook-form';
@@ -54,7 +54,7 @@ export default function AddLeaveYearForm({ onSuccess, className = '' }: AddLeave
 
     useEffect(() => {
         if (leaveYear && leaveYear.length === 4 && !isNaN(Number(leaveYear))) {
-            const year = parseInt(leaveYear, 10);
+            const year = Number.parseInt(leaveYear, 10);
             const fromD = new Date(year, 0, 1);
             fromD.setHours(12, 0, 0, 0); // avoid timezone shifts
             const toD = new Date(year, 11, 31);
@@ -105,7 +105,7 @@ export default function AddLeaveYearForm({ onSuccess, className = '' }: AddLeave
         reset();
     };
 
-    const yearLimit = leaveYear && leaveYear.length === 4 && !isNaN(Number(leaveYear)) ? parseInt(leaveYear, 10) : undefined;
+    const yearLimit = leaveYear && leaveYear.length === 4 && !isNaN(Number(leaveYear)) ? Number.parseInt(leaveYear, 10) : undefined;
     const minYearDate = yearLimit ? new Date(yearLimit, 0, 1) : undefined;
     const maxYearDate = yearLimit ? new Date(yearLimit, 11, 31) : undefined;
 

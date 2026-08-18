@@ -1,8 +1,8 @@
 'use client';
+import { Badge } from '@/components/ui/badge';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { IEmployeeList } from '@/types/hrms/hrms-config/employee';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Badge } from '@/components/ui/badge';
 import { ActionsCell } from './actions-cell';
 export const employeeColumns: ColumnDef<IEmployeeList>[] = [
     {
@@ -124,9 +124,7 @@ export const employeeColumns: ColumnDef<IEmployeeList>[] = [
             const isActive = row.getValue('hrmE_ActiveFlag') as boolean;
             return (
                 <div className='flex justify-center'>
-                    <Badge variant={isActive ? 'success' : 'destructive'}>
-                        {isActive ? 'Active' : 'Deactive'}
-                    </Badge>
+                    <Badge variant={isActive ? 'success' : 'destructive'}>{isActive ? 'Active' : 'Deactive'}</Badge>
                 </div>
             );
         },

@@ -1,6 +1,6 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
+import type { ColumnDef } from '@tanstack/react-table';
 import Image from 'next/image';
 
 export interface IStudentWiseReport {
@@ -22,9 +22,7 @@ export interface IDocumentWiseReport {
     filetype?: string;
 }
 
-export const getStudentWiseColumns = (
-    onViewDoc: (doc: any) => void
-): ColumnDef<IStudentWiseReport>[] => {
+export const getStudentWiseColumns = (onViewDoc: (doc: any) => void): ColumnDef<IStudentWiseReport>[] => {
     return [
         {
             accessorKey: 'slno',
@@ -50,20 +48,15 @@ export const getStudentWiseColumns = (
             cell: ({ row }) => {
                 const docpath = row.original.docpath;
                 const filetype = row.original.filetype || docpath?.split('.').pop()?.toLowerCase();
-                
+
                 if (!docpath) return null;
-                
+
                 if (filetype === 'pdf') {
-                    return <span className="font-bold">PDF</span>;
+                    return <span className='font-bold'>PDF</span>;
                 } else if (filetype === 'jpg' || filetype === 'jpeg' || filetype === 'png') {
                     return (
-                        <div className="h-16 w-16 relative">
-                            <Image 
-                                src={docpath} 
-                                alt="Document" 
-                                fill 
-                                className="object-cover rounded"
-                            />
+                        <div className='relative h-16 w-16'>
+                            <Image src={docpath} alt='Document' fill className='rounded object-cover' />
                         </div>
                     );
                 }
@@ -76,22 +69,18 @@ export const getStudentWiseColumns = (
             cell: ({ row }) => {
                 const docpath = row.original.docpath;
                 const filetype = row.original.filetype || docpath?.split('.').pop()?.toLowerCase();
-                
+
                 if (!docpath) return null;
-                
+
                 if (filetype === 'pdf') {
                     return (
-                        <a href={docpath} target="_blank" rel="noreferrer" className="text-orange-500 font-bold hover:underline">
+                        <a href={docpath} target='_blank' rel='noreferrer' className='font-bold text-orange-500 hover:underline'>
                             (Download pdf)
                         </a>
                     );
                 } else if (filetype === 'jpg' || filetype === 'jpeg' || filetype === 'png') {
                     return (
-                        <button 
-                            type="button" 
-                            className="text-blue-600 hover:underline"
-                            onClick={() => onViewDoc(row.original)}
-                        >
+                        <button type='button' className='text-blue-600 hover:underline' onClick={() => onViewDoc(row.original)}>
                             View
                         </button>
                     );
@@ -102,9 +91,7 @@ export const getStudentWiseColumns = (
     ];
 };
 
-export const getDocumentWiseColumns = (
-    onViewDoc: (doc: any) => void
-): ColumnDef<IDocumentWiseReport>[] => {
+export const getDocumentWiseColumns = (onViewDoc: (doc: any) => void): ColumnDef<IDocumentWiseReport>[] => {
     return [
         {
             accessorKey: 'slno',
@@ -142,20 +129,15 @@ export const getDocumentWiseColumns = (
             cell: ({ row }) => {
                 const docpath = row.original.docpath;
                 const filetype = row.original.filetype || docpath?.split('.').pop()?.toLowerCase();
-                
+
                 if (!docpath) return null;
-                
+
                 if (filetype === 'pdf') {
-                    return <span className="font-bold">PDF</span>;
+                    return <span className='font-bold'>PDF</span>;
                 } else if (filetype === 'jpg' || filetype === 'jpeg' || filetype === 'png') {
                     return (
-                        <div className="h-16 w-16 relative">
-                            <Image 
-                                src={docpath} 
-                                alt="Document" 
-                                fill 
-                                className="object-cover rounded"
-                            />
+                        <div className='relative h-16 w-16'>
+                            <Image src={docpath} alt='Document' fill className='rounded object-cover' />
                         </div>
                     );
                 }
@@ -168,22 +150,18 @@ export const getDocumentWiseColumns = (
             cell: ({ row }) => {
                 const docpath = row.original.docpath;
                 const filetype = row.original.filetype || docpath?.split('.').pop()?.toLowerCase();
-                
+
                 if (!docpath) return null;
-                
+
                 if (filetype === 'pdf') {
                     return (
-                        <a href={docpath} target="_blank" rel="noreferrer" className="text-orange-500 font-bold hover:underline">
+                        <a href={docpath} target='_blank' rel='noreferrer' className='font-bold text-orange-500 hover:underline'>
                             (Download pdf)
                         </a>
                     );
                 } else if (filetype === 'jpg' || filetype === 'jpeg' || filetype === 'png') {
                     return (
-                        <button 
-                            type="button" 
-                            className="text-blue-600 hover:underline"
-                            onClick={() => onViewDoc(row.original)}
-                        >
+                        <button type='button' className='text-blue-600 hover:underline' onClick={() => onViewDoc(row.original)}>
                             View
                         </button>
                     );

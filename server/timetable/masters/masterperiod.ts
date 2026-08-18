@@ -23,7 +23,6 @@ export async function ToggleMasterDay(ttmd_id: number) {
     return await api.put<any>('timetable', url);
 }
 
-
 //delete
 export async function MasterPeriodDelete(IMP_Id: number) {
     const url = `/TimeTableCommon/MasterPeriodDelete/${IMP_Id}`;

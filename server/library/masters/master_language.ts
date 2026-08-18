@@ -29,7 +29,6 @@ export async function toggleMasterLanguage(id: number) {
         const url = `/MasterLanguage/toggle?LML_Id=${id}`;
         return await api.put('library', url);
     } catch (error: any) {
-
         return { success: false, message: error?.message || 'Failed to toggle record' };
     }
 }

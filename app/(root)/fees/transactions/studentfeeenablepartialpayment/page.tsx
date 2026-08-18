@@ -16,12 +16,7 @@ export default function StudentFeeEnablePartialPaymentPage() {
 
     return (
         <FormProvider<IStudentFeeEnablePartialPaymentList>>
-            <StudentFeeEnablePartialPaymentContent
-                response={response}
-                isLoading={isLoading}
-                error={error}
-                refetchAll={refetchAll}
-            />
+            <StudentFeeEnablePartialPaymentContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
         </FormProvider>
     );
 }
@@ -42,8 +37,7 @@ function StudentFeeEnablePartialPaymentContent({
     // Extract table grid data from response
     // Response can be { data: { alldata: [...] } } or { alldata: [...] } or direct array
     const rawData = response?.data ?? response;
-    const tableData: IStudentFeeEnablePartialPaymentList[] =
-        rawData?.alldata ?? (Array.isArray(rawData) ? rawData : []);
+    const tableData: IStudentFeeEnablePartialPaymentList[] = rawData?.alldata ?? (Array.isArray(rawData) ? rawData : []);
 
     const tableProps = useDataTableProps(tableData);
 
@@ -89,14 +83,8 @@ function StudentFeeEnablePartialPaymentContent({
 }
 
 function FormSections({ initialData }: { initialData?: any }) {
-    const {
-        isAddFormOpen,
-        isToggleFormOpen,
-        selectedRow,
-        closeAddForm,
-        closeToggleForm,
-        addFormRef
-    } = useFormContext<IStudentFeeEnablePartialPaymentList>();
+    const { isAddFormOpen, isToggleFormOpen, selectedRow, closeAddForm, closeToggleForm, addFormRef } =
+        useFormContext<IStudentFeeEnablePartialPaymentList>();
 
     return (
         <>
@@ -118,20 +106,14 @@ function FormSections({ initialData }: { initialData?: any }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddStudentFeeEnablePartialPaymentForm
-                                initialData={initialData}
-                                onSuccess={closeAddForm}
-                            />
+                            <AddStudentFeeEnablePartialPaymentForm initialData={initialData} onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
 
             {isToggleFormOpen && selectedRow && (
-                <ToggleStudentFeeEnablePartialPaymentForm
-                    rowData={selectedRow}
-                    onClose={closeToggleForm}
-                />
+                <ToggleStudentFeeEnablePartialPaymentForm rowData={selectedRow} onClose={closeToggleForm} />
             )}
         </>
     );

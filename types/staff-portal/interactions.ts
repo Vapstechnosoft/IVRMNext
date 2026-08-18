@@ -1,4 +1,3 @@
-
 export interface IInteractionRoleConfig {
     ivrmgC_EnableSTIntFlg?: boolean;
     ivrmgC_EnableCTIntFlg?: boolean;
@@ -7,19 +6,19 @@ export interface IInteractionRoleConfig {
     ivrmgC_EnableASIntFlg?: boolean;
     ivrmgC_EnableECIntFlg?: boolean;
     ivrmgC_EnableSTSUBTIntFlg?: boolean; // STforStudent
-    ivrmgC_EnableSTCTIntFlg?: boolean;    // CTforStudent
-    ivrmgC_EnableSTHODIntFlg?: boolean;   // HODforStudent
+    ivrmgC_EnableSTCTIntFlg?: boolean; // CTforStudent
+    ivrmgC_EnableSTHODIntFlg?: boolean; // HODforStudent
     ivrmgC_EnableSTPrincipalIntFlg?: boolean; // PRPLforStudent
-    ivrmgC_EnableSTASIntFlg?: boolean;    // ASforStudent
-    ivrmgC_EnableSTECIntFlg?: boolean;    // ExCoforStudent
+    ivrmgC_EnableSTASIntFlg?: boolean; // ASforStudent
+    ivrmgC_EnableSTECIntFlg?: boolean; // ExCoforStudent
     ivrmgC_EnableStaffwiseIntFlg?: boolean; // STFtoSTF
-    ivrmgC_EnableCTSTIntFlg?: boolean;    // CLTtoSTU
-    ivrmgC_EnableHODSTIntFlg?: boolean;   // HODtoSTU
+    ivrmgC_EnableCTSTIntFlg?: boolean; // CLTtoSTU
+    ivrmgC_EnableHODSTIntFlg?: boolean; // HODtoSTU
     ivrmgC_EnablePrincipalSTIntFlg?: boolean; // PRItoSTU
-    ivrmgC_EnableASSTIntFlg?: boolean;    // ACStoSTU
-    ivrmgC_EnableECSTIntFlg?: boolean;    // ECtoSTU
+    ivrmgC_EnableASSTIntFlg?: boolean; // ACStoSTU
+    ivrmgC_EnableECSTIntFlg?: boolean; // ECtoSTU
     ivrmgC_EnableSUBTSTUIntFlg?: boolean; // SUBTtoSTU
-    ivrmgC_GMRDTOALLFlg?: boolean;        // Groupview
+    ivrmgC_GMRDTOALLFlg?: boolean; // Groupview
 }
 
 export interface IMessage {
@@ -50,7 +49,6 @@ export interface IMessage {
     filetype2?: string;
     AMST_AdmNo?: string | null;
 }
-
 
 export interface IRecipient {
     AMST_Id?: number;
@@ -92,9 +90,9 @@ export interface IInteractionsInitialData {
     rolename?: string;
     configflag?: IInteractionRoleConfig[];
     getinboxmsg?: IMessage[];
-    getinboxmsg_readflg?: Array<{ ISMINT_Id: number, ISTINT_ReadFlg: number }>;
+    getinboxmsg_readflg?: Array<{ ISMINT_Id: number; ISTINT_ReadFlg: number }>;
     result?: IMessage[];
-    result1?: Array<{ ISMINT_Id: number, ISTINT_ReadFlg: number }>;
+    result1?: Array<{ ISMINT_Id: number; ISTINT_ReadFlg: number }>;
     userhrmE_Id?: number;
     blockstudent?: Array<{ IBINTSTD_BlockedFlg: boolean }>;
     classteacherlist?: any[];
@@ -122,7 +120,6 @@ export interface IInteractionsInitialData {
     chatwithstudent?: boolean;
     chatwithstaff?: boolean;
 }
-
 
 export interface IThreadResponse {
     viewmessage?: any[];
@@ -218,4 +215,3 @@ export interface ISaveReplyDataRequest {
     images_paths?: string[];
     FILESLISTdata?: IFILESLISTdata[];
 }
-

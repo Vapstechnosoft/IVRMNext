@@ -95,7 +95,7 @@ const createDynamicColumn = (fieldId: string): ColumnDef<any> => {
     if (!config) {
         return {
             accessorKey: fieldId,
-            header: ({ column }) => <DataTableColumnHeader column={column} title={fieldId}  className="font-bold text-black" />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title={fieldId} className='font-bold text-black' />,
             cell: ({ row }) => <div>{row.getValue(fieldId) || 'N/A'}</div>,
             enableSorting: true,
             enableHiding: true
@@ -104,7 +104,7 @@ const createDynamicColumn = (fieldId: string): ColumnDef<any> => {
 
     return {
         accessorKey: fieldId,
-        header: ({ column }) => <DataTableColumnHeader column={column} title={config.label}  className="font-bold text-black" />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title={config.label} className='font-bold text-black' />,
         cell: ({ row }) => {
             const value = row.getValue(fieldId);
 

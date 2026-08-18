@@ -1,8 +1,8 @@
 'use client';
 
 import { getRoomTariffData } from '@/server/hostel/hostel-management/masters/room-tariff';
+import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ApiSearchparams } from '@/types';
 
 const ROOM_TARIFF_QUERY_KEY = ['ROOM_TARIFF_LIST'];
 
@@ -13,12 +13,12 @@ export const useRoomTariff = (searchParams?: ApiSearchparams) => {
             queryKey: [ROOM_TARIFF_QUERY_KEY, searchParams ?? {}],
             queryFn: async () => getRoomTariffData(),
             staleTime: 0,
-            refetchOnWindowFocus: false,
+            refetchOnWindowFocus: false
         }),
         refetchAll: () => {
-             return queryClient.invalidateQueries({
-                 queryKey: [ROOM_TARIFF_QUERY_KEY]
-             });
+            return queryClient.invalidateQueries({
+                queryKey: [ROOM_TARIFF_QUERY_KEY]
+            });
         }
     };
 };

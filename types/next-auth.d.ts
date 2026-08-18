@@ -38,5 +38,5 @@ declare module 'next-auth' {
         expires_at?: number;
     }
 
-    interface JWT extends User { }
+    interface JWT extends User {}
 }

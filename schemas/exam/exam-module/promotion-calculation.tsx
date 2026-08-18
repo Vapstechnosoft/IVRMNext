@@ -9,6 +9,6 @@ export const promotionCalculationSchemaSchema = {
 
         asmcL_Id: z.number({ required_error: 'Class  is required' }).min(1, { message: 'Please select Class ' }),
 
-        asmS_Id: z.number({ required_error: 'Section is required' }).min(1, { message: 'Please select  Section' }),
+        asmS_Id: z.number({ required_error: 'Section is required' }).min(1, { message: 'Please select  Section' })
     })
 };

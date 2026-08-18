@@ -1,11 +1,11 @@
 'use client';
 
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ColumnDef } from '@tanstack/react-table';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { IFacility } from '@/types/hostel/hostel-management/masters';
-import { IMasterFloor } from './columns';
+import type { IFacility } from '@/types/hostel/hostel-management/masters';
+import type { ColumnDef } from '@tanstack/react-table';
+import type { IMasterFloor } from './columns';
 
 interface ViewFacilityModalProps {
     isOpen: boolean;
@@ -27,23 +27,25 @@ export default function ViewFacilityModal({ isOpen, onClose, floor }: ViewFacili
                 const index = row.index + 1;
                 return <div className='w-full pl-6'>{index}</div>;
             },
-            enableSorting: false,
+            enableSorting: false
         },
         {
             accessorKey: 'hlmftY_FacilityName',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Facility Name' />,
             cell: ({ row }) => <div>{row.getValue('hlmftY_FacilityName')}</div>,
-            enableSorting: true,
+            enableSorting: true
         }
     ];
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogContent className='max-h-[80vh] max-w-2xl overflow-y-auto'>
                 <DialogHeader>
-                    <DialogTitle>Facilities for {floor?.hrmF_FloorName} ({floor?.hlmH_Name})</DialogTitle>
+                    <DialogTitle>
+                        Facilities for {floor?.hrmF_FloorName} ({floor?.hlmH_Name})
+                    </DialogTitle>
                 </DialogHeader>
-                <div className="mt-4">
+                <div className='mt-4'>
                     <GenericDataTable
                         {...tableProps}
                         data={mappedData}
@@ -62,7 +64,6 @@ export default function ViewFacilityModal({ isOpen, onClose, floor }: ViewFacili
         </Dialog>
     );
 }
-function useMappedFacilities(hlmF_Id: any): { data: any; isLoading: any; } {
+function useMappedFacilities(hlmF_Id: any): { data: any; isLoading: any } {
     throw new Error('Function not implemented.');
 }
-

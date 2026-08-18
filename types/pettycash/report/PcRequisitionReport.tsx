@@ -1,5 +1,4 @@
 export interface RequisitionReport {
-
     mI_Id: number;
     mI_Name: string;
 

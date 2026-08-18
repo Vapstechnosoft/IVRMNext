@@ -16,10 +16,10 @@ import { z } from 'zod';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
-import { getNoticeBoardInitialData, getNoticeBoardReport, viewNoticeBoardAttachmentData } from '@/server/upload/reports/noticeboard-report';
+import { getNoticeBoardInitialData, getNoticeBoardReport } from '@/server/upload/reports/noticeboard-report';
 import type { INoticeBoardAttachment, INoticeBoardReport } from '@/types/upload/reports/noticeboard-report';
-import { NoticeBoardReportTable } from './_components/noticeboard-report-table';
 import { AttachmentViewModal } from './_components/attachment-view-modal';
+import { NoticeBoardReportTable } from './_components/noticeboard-report-table';
 
 /* ---------------- Schema ---------------- */
 const formSchema = z.object({
@@ -36,7 +36,7 @@ export default function NoticeBoardUploadReportPage() {
     const [reportData, setReportData] = useState<INoticeBoardReport[]>([]);
     const [initialData, setInitialData] = useState<any>(null);
     const [isLoadingInitial, setIsLoadingInitial] = useState(true);
-    
+
     // Attachment Modal State
     const [isAttachmentModalOpen, setIsAttachmentModalOpen] = useState(false);
     const [selectedAttachments, setSelectedAttachments] = useState<INoticeBoardAttachment[]>([]);
@@ -99,9 +99,7 @@ export default function NoticeBoardUploadReportPage() {
                 ASMAY_Id: Number(values.asmay_id),
                 fromdate: values.fromdate.toISOString().split('T')[0],
                 todate: values.todate.toISOString().split('T')[0],
-                classarray: (values.classarray ?? []).length > 0 
-                    ? values.classarray?.map((id) => ({ ASMCL_Id: Number(id) })) 
-                    : undefined
+                classarray: (values.classarray ?? []).length > 0 ? values.classarray?.map((id) => ({ ASMCL_Id: Number(id) })) : undefined
             };
 
             const response = await getNoticeBoardReport(payload);
@@ -122,12 +120,14 @@ export default function NoticeBoardUploadReportPage() {
     /* ---------------- View Attachment ---------------- */
     const handleViewAttachment = async (item: INoticeBoardReport) => {
         if (item.Filepath) {
-            setSelectedAttachments([{
-                intbfL_FileName: item.FileName,
-                intbfL_FilePath: item.Filepath,
-                intB_Attachment: null,
-                intB_Id: item.Id
-            }]);
+            setSelectedAttachments([
+                {
+                    intbfL_FileName: item.FileName,
+                    intbfL_FilePath: item.Filepath,
+                    intB_Attachment: null,
+                    intB_Id: item.Id
+                }
+            ]);
             setIsAttachmentModalOpen(true);
         } else {
             toast.error('No attachments found');
@@ -143,28 +143,28 @@ export default function NoticeBoardUploadReportPage() {
 
     if (isLoadingInitial) {
         return (
-            <div className="flex h-[60vh] items-center justify-center">
-                <Spinner className="h-8 w-8" />
+            <div className='flex h-[60vh] items-center justify-center'>
+                <Spinner className='h-8 w-8' />
             </div>
         );
     }
 
     return (
-        <div className='container mx-auto space-y-6 p-6 animate-in fade-in duration-500'>
+        <div className='fade-in container mx-auto animate-in space-y-6 p-6 duration-500'>
             <CollapsibleSection title='NoticeBoard Report' defaultOpen>
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-8'>
-                    <div className='grid grid-cols-1 gap-6 md:grid-cols-4 items-end'>
+                    <div className='grid grid-cols-1 items-end gap-6 md:grid-cols-4'>
                         {/* Academic Year */}
                         <Controller
                             control={control}
                             name='asmay_id'
                             render={({ field, fieldState }) => (
                                 <div className='space-y-2'>
-                                    <Label className="text-sm font-semibold">
+                                    <Label className='font-semibold text-sm'>
                                         Academic Year <span className='text-destructive'>*</span>
                                     </Label>
                                     <Select onValueChange={handleYearChange} value={field.value}>
-                                        <SelectTrigger className="w-full">
+                                        <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='--Select Academic Year--' />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -185,13 +185,7 @@ export default function NoticeBoardUploadReportPage() {
                             control={control}
                             name='fromdate'
                             render={({ field, fieldState }) => (
-                                <DateField 
-                                    field={field} 
-                                    fieldState={fieldState} 
-                                    label='From Date' 
-                                    placeholder='From Date' 
-                                    required 
-                                />
+                                <DateField field={field} fieldState={fieldState} label='From Date' placeholder='From Date' required />
                             )}
                         />
 
@@ -200,13 +194,7 @@ export default function NoticeBoardUploadReportPage() {
                             control={control}
                             name='todate'
                             render={({ field, fieldState }) => (
-                                <DateField 
-                                    field={field} 
-                                    fieldState={fieldState} 
-                                    label='To Date' 
-                                    placeholder='To Date' 
-                                    required 
-                                />
+                                <DateField field={field} fieldState={fieldState} label='To Date' placeholder='To Date' required />
                             )}
                         />
 
@@ -216,7 +204,7 @@ export default function NoticeBoardUploadReportPage() {
                             name='classarray'
                             render={({ field, fieldState }) => (
                                 <div className='space-y-2'>
-                                    <Label className="text-sm font-semibold">Class Name</Label>
+                                    <Label className='font-semibold text-sm'>Class Name</Label>
                                     <CustomMultiSelectBox
                                         options={classList}
                                         value={field.value ?? []}
@@ -231,23 +219,17 @@ export default function NoticeBoardUploadReportPage() {
                         />
                     </div>
 
-                    <div className='flex justify-center gap-4 pt-4 border-t'>
-                        <Button type='submit' disabled={isSubmitting} size="lg" className="px-8 shadow-md">
+                    <div className='flex justify-center gap-4 border-t pt-4'>
+                        <Button type='submit' disabled={isSubmitting} size='lg' className='px-8 shadow-md'>
                             {isSubmitting ? (
                                 <>
-                                    <Spinner className="mr-2 h-4 w-4" /> Generating...
+                                    <Spinner className='mr-2 h-4 w-4' /> Generating...
                                 </>
                             ) : (
                                 'Report'
                             )}
                         </Button>
-                        <Button 
-                            type='button' 
-                            variant='destructive' 
-                            onClick={handleCancel} 
-                            size="lg" 
-                            className="px-8 shadow-md"
-                        >
+                        <Button type='button' variant='destructive' onClick={handleCancel} size='lg' className='px-8 shadow-md'>
                             Cancel
                         </Button>
                     </div>
@@ -256,19 +238,16 @@ export default function NoticeBoardUploadReportPage() {
 
             {showReport && (
                 <CollapsibleSection title='NoticeBoard Upload Report List' defaultOpen>
-                    <div className='bg-card rounded-lg p-2'>
-                        <NoticeBoardReportTable 
-                            data={reportData} 
-                            onViewAttachment={handleViewAttachment} 
-                        />
+                    <div className='rounded-lg bg-card p-2'>
+                        <NoticeBoardReportTable data={reportData} onViewAttachment={handleViewAttachment} />
                     </div>
                 </CollapsibleSection>
             )}
 
-            <AttachmentViewModal 
-                isOpen={isAttachmentModalOpen} 
-                onClose={() => setIsAttachmentModalOpen(false)} 
-                attachments={selectedAttachments} 
+            <AttachmentViewModal
+                isOpen={isAttachmentModalOpen}
+                onClose={() => setIsAttachmentModalOpen(false)}
+                attachments={selectedAttachments}
             />
         </div>
     );

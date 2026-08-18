@@ -242,7 +242,13 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
                             pasR_Sex: student.pasR_Sex || student.pasr_sex || result.pasr_sex || result.pasR_Sex || undefined,
                             asmcL_Id: Number(student.asmcL_Id || result.asmcL_Id || result.pasR_AppliedClassId || student.asmcL_id || 0),
                             caste_Id: Number(
-                                student.caste_Id || result.caste_id || result.ic_Id || student.caste_id || student.imC_Id || student.amC_Id || 0
+                                student.caste_Id ||
+                                    result.caste_id ||
+                                    result.ic_Id ||
+                                    student.caste_id ||
+                                    student.imC_Id ||
+                                    student.amC_Id ||
+                                    0
                             ),
                             religion_Id: Number(student.religion_Id || result.religion_id || student.religion_id || 0),
                             casteCategory_Id: Number(student.casteCategory_Id || result.casteCategory_Id || student.imCC_Id || 0),

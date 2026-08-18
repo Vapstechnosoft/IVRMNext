@@ -3,19 +3,16 @@
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type {
+    IActivePreadmissionDetails,
     ICasteDropdown,
     ICountryDropdown,
+    IDistrictDropdown,
     IGenderDropdown,
     IInitiatePaymentResponse,
     IPreadmissionClassDropdown,
-    IPreadmissionDocumentDropdown,
     IPreadmissionStudentApplicationList,
-    IReferenceDropdown,
     IReligionDropdown,
-    ISourceDropdown,
-    IStateDropdown,
-    IDistrictDropdown,
-    IActivePreadmissionDetails
+    IStateDropdown
 } from '@/types/admission/preadmission/transactions';
 
 /**

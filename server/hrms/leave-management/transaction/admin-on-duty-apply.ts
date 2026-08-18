@@ -1,5 +1,5 @@
 'use server';
-import { api, type ApiResponse, getSearchParamsUrl } from '@/lib/apiService';
+import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type {
     AdminOnDutyApplyApiData,
@@ -11,9 +11,7 @@ import type {
  * Get employee on duty leave apply list
  * GET /api/AdminOnDutyApply/get_employee_on_duty_leave_apply
  */
-export async function getEmployeeOnDutyLeaveApply(
-    searchParams?: ApiSearchparams
-): Promise<ApiResponse<AdminOnDutyApplyApiData[]>> {
+export async function getEmployeeOnDutyLeaveApply(searchParams?: ApiSearchparams): Promise<ApiResponse<AdminOnDutyApplyApiData[]>> {
     const baseUrl = '/api/AdminOnDutyApply/get_employee_on_duty_leave_apply';
     const queryParams = getSearchParamsUrl(searchParams);
     const url = queryParams ? `${baseUrl}?${queryParams}` : baseUrl;

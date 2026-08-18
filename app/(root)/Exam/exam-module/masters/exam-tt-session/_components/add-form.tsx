@@ -49,7 +49,7 @@ export default function AddExamTTSessionForm({
                 try {
                     const match = timeStr.match(/(\d+):(\d+)\s?(AM|PM|am|pm)?/i);
                     if (match) {
-                        let hours = parseInt(match[1], 10);
+                        let hours = Number.parseInt(match[1], 10);
                         const minutes = match[2];
                         const ampm = match[3]?.toUpperCase();
 
@@ -77,7 +77,7 @@ export default function AddExamTTSessionForm({
         // Assume timeStr is "HH:mm" from input type="time", convert to "h:mm a"
         try {
             const [h, m] = timeStr.split(':');
-            let hours = parseInt(h, 10);
+            let hours = Number.parseInt(h, 10);
             const ampm = hours >= 12 ? 'PM' : 'AM';
             hours = hours % 12;
             hours = hours ? hours : 12; // the hour '0' should be '12'

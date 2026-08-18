@@ -1,15 +1,11 @@
 'use client';
-
-import { getStatusBadge } from '@/components/extras/helpers/helper';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { useMasterCategoryListData } from '@/hooks/library/useMasters';
+import { Switch } from '@/components/ui/switch';
 import type { IMasterCategoryList } from '@/types/library/masters/masters';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
-import { Switch } from '@/components/ui/switch';
-import { toast } from 'sonner';
 
 export const masterCategoryColumns: ColumnDef<IMasterCategoryList>[] = [
     {
@@ -60,12 +56,8 @@ function StatusToggleCell({ rowData }: { rowData: IMasterCategoryList }) {
 
     return (
         <div className='flex items-center space-x-2'>
-            <Switch
-                checked={rowData.lmC_ActiveFlag}
-                onCheckedChange={() => openToggleForm(rowData)}
-                aria-label='Toggle status'
-            />
-            <span className={`text-xs font-medium ${rowData.lmC_ActiveFlag ? 'text-green-600' : 'text-red-600'}`}>
+            <Switch checked={rowData.lmC_ActiveFlag} onCheckedChange={() => openToggleForm(rowData)} aria-label='Toggle status' />
+            <span className={`font-medium text-xs ${rowData.lmC_ActiveFlag ? 'text-green-600' : 'text-red-600'}`}>
                 {rowData.lmC_ActiveFlag ? 'Active' : 'Inactive'}
             </span>
         </div>

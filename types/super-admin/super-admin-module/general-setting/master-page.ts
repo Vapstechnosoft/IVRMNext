@@ -1,5 +1,5 @@
-import { z } from 'zod';
-import { masterPageSchema } from '@/schemas/super-admin/super-admin-module/general-setting/master-page';
+import type { masterPageSchema } from '@/schemas/super-admin/super-admin-module/general-setting/master-page';
+import type { z } from 'zod';
 
 export interface IMasterPage extends z.infer<typeof masterPageSchema> {
     createdDate?: string;

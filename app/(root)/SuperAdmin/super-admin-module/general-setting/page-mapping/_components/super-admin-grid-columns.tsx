@@ -1,8 +1,8 @@
 'use client';
 
-import { IPageMappingData, ISavedMapping } from '@/types/super-admin/super-admin-module/general-setting/page-mapping';
+import type { IPageMappingData } from '@/types/super-admin/super-admin-module/general-setting/page-mapping';
+import type { ColumnDef } from '@tanstack/react-table';
 import { Trash2 } from 'lucide-react';
-import { ColumnDef } from '@tanstack/react-table';
 
 export const superAdminGridColumns: ColumnDef<IPageMappingData>[] = [
     {
@@ -12,13 +12,13 @@ export const superAdminGridColumns: ColumnDef<IPageMappingData>[] = [
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             return pageIndex * pageSize + row.index + 1;
-        },
+        }
     },
     // Only Page Name as requested in snippet
     {
         accessorKey: 'ivrmP_PageName',
         header: 'Page Name',
-        enableSorting: true,
+        enableSorting: true
     },
     {
         id: 'remove',
@@ -26,16 +26,12 @@ export const superAdminGridColumns: ColumnDef<IPageMappingData>[] = [
         cell: ({ row, table }) => {
             const meta = table.options.meta as any;
             return (
-                <div className="flex justify-center">
-                    <button
-                        onClick={() => meta?.handleRemove?.(row.original)}
-                        className="text-red-500 hover:text-red-700"
-                        title="Remove"
-                    >
+                <div className='flex justify-center'>
+                    <button onClick={() => meta?.handleRemove?.(row.original)} className='text-red-500 hover:text-red-700' title='Remove'>
                         <Trash2 size={18} />
                     </button>
                 </div>
             );
-        },
-    },
+        }
+    }
 ];

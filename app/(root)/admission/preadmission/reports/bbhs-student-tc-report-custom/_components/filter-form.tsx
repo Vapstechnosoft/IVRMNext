@@ -1,33 +1,25 @@
 'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { useEffect, useState } from 'react';
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-} from '@/components/ui/form';
-import { Label } from '@/components/ui/label';
-import { FormError } from '@/components/ui/extension/field';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { RefreshCcw, FileText, Search, Check, Loader2, Printer, X } from 'lucide-react';
+import { FormError } from '@/components/ui/extension/field';
+import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useBbhsStudentTcStudentList } from '@/hooks/admission/preadmission/reports/useBbhsStudentTcReportCustom';
-import { cn } from '@/lib/utils';
 import { useBbhsStudentTcACS } from '@/hooks/admission/preadmission/reports/useBbhsStudentTcReportCustom';
-import { bbhsStudentTcCustomSchema, type BbhsStudentTcCustomFields } from '@/schemas/admission/preadmission/reports/bbhs-student-tc-custom.schema';
+import { cn } from '@/lib/utils';
+import {
+    type BbhsStudentTcCustomFields,
+    bbhsStudentTcCustomSchema
+} from '@/schemas/admission/preadmission/reports/bbhs-student-tc-custom.schema';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Check, FileText, Loader2, RefreshCcw, Search } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 
 interface FilterFormProps {
     initialData: any;
@@ -37,7 +29,7 @@ interface FilterFormProps {
 
 const uniqueBy = <T,>(arr: T[], key: keyof T): T[] => {
     const seen = new Set();
-    return arr.filter(item => {
+    return arr.filter((item) => {
         const val = item[key];
         if (val === undefined || val === null) return true; // Keep items with missing keys (will be handled by index or ignored)
         if (seen.has(val)) return false;
@@ -62,11 +54,16 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
             asmcL_Id: '',
             asmS_Id: '',
             AMST_Id: null,
-            pervious: '',
-        },
+            pervious: ''
+        }
     });
 
-    const { watch, setValue, reset, formState: { errors } } = form;
+    const {
+        watch,
+        setValue,
+        reset,
+        formState: { errors }
+    } = form;
 
     const watchYear = watch('asmaY_Id');
     const watchClass = watch('asmcL_Id');
@@ -80,9 +77,9 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
 
             try {
                 const payload = {
-                    ASMAY_Id: parseInt(watchYear),
-                    ASMCL_Id: parseInt(watchClass),
-                    ASMC_Id: parseInt(watchSection),
+                    ASMAY_Id: Number.parseInt(watchYear),
+                    ASMCL_Id: Number.parseInt(watchClass),
+                    ASMC_Id: Number.parseInt(watchSection)
                 };
 
                 const response = await searchMutation.mutateAsync(payload as any);
@@ -104,7 +101,7 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
         if (watchYear) {
             const fetchAcsStudents = async () => {
                 try {
-                    const response = await acsMutation.mutateAsync(parseInt(watchYear));
+                    const response = await acsMutation.mutateAsync(Number.parseInt(watchYear));
                     const data = (response?.data || response) as any;
                     const studentData = data.studentlist || data.studentList || [];
                     const distinctStudents = uniqueBy(Array.isArray(studentData) ? studentData : [], 'amsT_Id');
@@ -125,26 +122,27 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
+                <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                     {/* Left Column */}
-                    <div className="space-y-4">
+                    <div className='space-y-4'>
                         <FormField
                             control={form.control}
-                            name="asmaY_Id"
+                            name='asmaY_Id'
                             render={({ field }) => (
                                 <FormItem>
-                                    <Label className="font-semibold">Left Year <span className="text-red-500">*</span></Label>
+                                    <Label className='font-semibold'>
+                                        Left Year <span className='text-red-500'>*</span>
+                                    </Label>
                                     <Select
                                         onValueChange={(val) => {
                                             field.onChange(val);
                                             form.setValue('AMST_Id', null, { shouldValidate: true });
                                         }}
-                                        value={field.value}
-                                    >
+                                        value={field.value}>
                                         <FormControl>
-                                            <SelectTrigger className="bg-white h-9">
-                                                <SelectValue placeholder="Select Year" />
+                                            <SelectTrigger className='h-9 bg-white'>
+                                                <SelectValue placeholder='Select Year' />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
@@ -162,23 +160,28 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
 
                         <FormField
                             control={form.control}
-                            name="admname"
+                            name='admname'
                             render={({ field }) => (
-                                <FormItem className="space-y-3">
-                                    <Label className="font-semibold">Select Radio Button <span className="text-red-500">*</span></Label>
+                                <FormItem className='space-y-3'>
+                                    <Label className='font-semibold'>
+                                        Select Radio Button <span className='text-red-500'>*</span>
+                                    </Label>
                                     <FormControl>
                                         <RadioGroup
                                             onValueChange={field.onChange}
                                             defaultValue={field.value}
-                                            className="flex gap-4 p-3 bg-slate-50 rounded-md border"
-                                        >
-                                            <FormItem className="flex items-center space-x-2 space-y-0">
-                                                <FormControl><RadioGroupItem value="regno" /></FormControl>
-                                                <Label className="font-normal cursor-pointer">Adm.No.</Label>
+                                            className='flex gap-4 rounded-md border bg-slate-50 p-3'>
+                                            <FormItem className='flex items-center space-x-2 space-y-0'>
+                                                <FormControl>
+                                                    <RadioGroupItem value='regno' />
+                                                </FormControl>
+                                                <Label className='cursor-pointer font-normal'>Adm.No.</Label>
                                             </FormItem>
-                                            <FormItem className="flex items-center space-x-2 space-y-0">
-                                                <FormControl><RadioGroupItem value="stdname" /></FormControl>
-                                                <Label className="font-normal cursor-pointer">Name</Label>
+                                            <FormItem className='flex items-center space-x-2 space-y-0'>
+                                                <FormControl>
+                                                    <RadioGroupItem value='stdname' />
+                                                </FormControl>
+                                                <Label className='cursor-pointer font-normal'>Name</Label>
                                             </FormItem>
                                         </RadioGroup>
                                     </FormControl>
@@ -189,20 +192,21 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
 
                         <FormField
                             control={form.control}
-                            name="asmcL_Id"
+                            name='asmcL_Id'
                             render={({ field }) => (
                                 <FormItem>
-                                    <Label className="font-semibold">Class <span className="text-red-500">*</span></Label>
+                                    <Label className='font-semibold'>
+                                        Class <span className='text-red-500'>*</span>
+                                    </Label>
                                     <Select
                                         onValueChange={(val) => {
                                             field.onChange(val);
                                             form.setValue('AMST_Id', null, { shouldValidate: true });
                                         }}
-                                        value={field.value}
-                                    >
+                                        value={field.value}>
                                         <FormControl>
-                                            <SelectTrigger className="bg-white h-9">
-                                                <SelectValue placeholder="Select Class" />
+                                            <SelectTrigger className='h-9 bg-white'>
+                                                <SelectValue placeholder='Select Class' />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
@@ -220,23 +224,24 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                     </div>
 
                     {/* Right Column */}
-                    <div className="space-y-4">
+                    <div className='space-y-4'>
                         <FormField
                             control={form.control}
-                            name="asmS_Id"
+                            name='asmS_Id'
                             render={({ field }) => (
                                 <FormItem>
-                                    <Label className="font-semibold">Section <span className="text-red-500">*</span></Label>
+                                    <Label className='font-semibold'>
+                                        Section <span className='text-red-500'>*</span>
+                                    </Label>
                                     <Select
                                         onValueChange={(val) => {
                                             field.onChange(val);
                                             form.setValue('AMST_Id', null, { shouldValidate: true });
                                         }}
-                                        value={field.value}
-                                    >
+                                        value={field.value}>
                                         <FormControl>
-                                            <SelectTrigger className="bg-white h-9">
-                                                <SelectValue placeholder="Select Section" />
+                                            <SelectTrigger className='h-9 bg-white'>
+                                                <SelectValue placeholder='Select Section' />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
@@ -254,37 +259,38 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
 
                         <FormField
                             control={form.control}
-                            name="AMST_Id"
+                            name='AMST_Id'
                             render={({ field }) => (
                                 <FormItem>
-                                    <Label className="font-semibold">Student Name <span className="text-red-500">*</span></Label>
-                                    <div className="relative">
+                                    <Label className='font-semibold'>
+                                        Student Name <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <div className='relative'>
                                         <Popover open={studentOpen} onOpenChange={setStudentOpen}>
                                             <PopoverTrigger asChild>
                                                 <FormControl>
                                                     <Button
-                                                        variant="outline"
-                                                        role="combobox"
+                                                        variant='outline'
+                                                        role='combobox'
                                                         className={cn(
-                                                            "w-full justify-between h-9 bg-white border-slate-300 font-normal",
-                                                            !field.value && "text-muted-foreground"
-                                                        )}
-                                                    >
-                                                        <span className="truncate pr-2">
+                                                            'h-9 w-full justify-between border-slate-300 bg-white font-normal',
+                                                            !field.value && 'text-muted-foreground'
+                                                        )}>
+                                                        <span className='truncate pr-2'>
                                                             {field.value
                                                                 ? `${field.value.amsT_FirstName} ${field.value.amsT_MiddleName || ''} ${field.value.amsT_LastName || ''}`
-                                                                : "Select Or Search Student"}
+                                                                : 'Select Or Search Student'}
                                                         </span>
-                                                        <Search className="h-4 w-4 opacity-50 shrink-0" />
+                                                        <Search className='h-4 w-4 shrink-0 opacity-50' />
                                                     </Button>
                                                 </FormControl>
                                             </PopoverTrigger>
-                                            <PopoverContent className="w-[400px] p-0" align="start">
+                                            <PopoverContent className='w-[400px] p-0' align='start'>
                                                 <Command>
-                                                    <CommandInput placeholder="Search student..." className="h-9" />
+                                                    <CommandInput placeholder='Search student...' className='h-9' />
                                                     <CommandList>
                                                         <CommandEmpty>No student found.</CommandEmpty>
-                                                        <CommandGroup className="max-h-64 overflow-y-auto">
+                                                        <CommandGroup className='max-h-64 overflow-y-auto'>
                                                             {uniqueBy(studentList, 'amsT_Id').map((s: any) => (
                                                                 <CommandItem
                                                                     key={s.amsT_Id}
@@ -292,21 +298,22 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                                                     onSelect={() => {
                                                                         field.onChange(s);
                                                                         setStudentOpen(false);
-                                                                    }}
-                                                                >
-                                                                    <div className="flex flex-col">
-                                                                        <span className="font-semibold">
+                                                                    }}>
+                                                                    <div className='flex flex-col'>
+                                                                        <span className='font-semibold'>
                                                                             {s.amsT_FirstName}
                                                                             {s.amsT_MiddleName ? ` ${s.amsT_MiddleName}` : ''}
                                                                             {s.amsT_LastName ? ` ${s.amsT_LastName}` : ''}
                                                                         </span>
                                                                         {s.amsT_AdmNo && (
-                                                                            <span className="text-xs text-muted-foreground">
+                                                                            <span className='text-muted-foreground text-xs'>
                                                                                 Adm No: {s.amsT_AdmNo}
                                                                             </span>
                                                                         )}
                                                                     </div>
-                                                                    {field.value?.amsT_Id === s.amsT_Id && <Check className="ml-auto h-4 w-4 text-primary" />}
+                                                                    {field.value?.amsT_Id === s.amsT_Id && (
+                                                                        <Check className='ml-auto h-4 w-4 text-primary' />
+                                                                    )}
                                                                 </CommandItem>
                                                             ))}
                                                         </CommandGroup>
@@ -315,11 +322,10 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                                             </PopoverContent>
                                         </Popover>
                                         {searchMutation.isPending && (
-                                            <div className="absolute right-10 top-2">
-                                                <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+                                            <div className='absolute top-2 right-10'>
+                                                <Loader2 className='h-4 w-4 animate-spin text-slate-400' />
                                             </div>
                                         )}
-
                                     </div>
                                 </FormItem>
                             )}
@@ -327,15 +333,15 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
 
                         <FormField
                             control={form.control}
-                            name="pervious"
+                            name='pervious'
                             render={({ field }) => (
                                 <FormItem>
-                                    <Label className="font-semibold">Previous School</Label>
+                                    <Label className='font-semibold'>Previous School</Label>
                                     <FormControl>
                                         <Input
                                             {...field}
-                                            placeholder="Enter previous school name"
-                                            className="h-9 bg-white"
+                                            placeholder='Enter previous school name'
+                                            className='h-9 bg-white'
                                             maxLength={50}
                                         />
                                     </FormControl>
@@ -346,21 +352,19 @@ export function FilterForm({ initialData, onSubmit, onReset }: FilterFormProps) 
                     </div>
                 </div>
 
-                <div className="flex flex-wrap items-center justify-center gap-4 pt-6 border-t border-slate-200">
+                <div className='flex flex-wrap items-center justify-center gap-4 border-slate-200 border-t pt-6'>
                     <Button
-                        type="submit"
-                        className="min-w-[120px] bg-indigo-600 hover:bg-indigo-700 text-white shadow-md active:scale-95 transition-all"
-                        disabled={searchMutation.isPending}
-                    >
-                        <FileText className="mr-2 h-4 w-4" /> Report
+                        type='submit'
+                        className='min-w-[120px] bg-indigo-600 text-white shadow-md transition-all hover:bg-indigo-700 active:scale-95'
+                        disabled={searchMutation.isPending}>
+                        <FileText className='mr-2 h-4 w-4' /> Report
                     </Button>
                     <Button
-                        type="button"
-                        variant="outline"
+                        type='button'
+                        variant='outline'
                         onClick={handleReset}
-                        className="min-w-[120px] shadow-sm active:scale-95 transition-all"
-                    >
-                        <RefreshCcw className="mr-2 h-4 w-4" /> Cancel
+                        className='min-w-[120px] shadow-sm transition-all active:scale-95'>
+                        <RefreshCcw className='mr-2 h-4 w-4' /> Cancel
                     </Button>
                 </div>
             </form>

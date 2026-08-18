@@ -1,24 +1,24 @@
 'use client';
 // Temporary comment to resolve EBUSY lock issue
 
-import { Controller, useFormContext } from 'react-hook-form';
-import { useMemo, useEffect } from 'react';
-import { useGetCasteByCasteCategory } from '@/hooks/admission/admissionForm';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label, FormError } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
-import { InputNumber } from '@/components/ui/extension/input-number';
+import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
-import { WebcamCapture } from '../webcam-capture';
+import { FormError, Label } from '@/components/ui/extension/field';
+import { InputNumber } from '@/components/ui/extension/input-number';
+import { InputText } from '@/components/ui/extension/input-text';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useGetCasteByCasteCategory } from '@/hooks/admission/admissionForm';
+import { calculateAge, cn, dateToWords } from '@/lib/utils';
+import { format } from 'date-fns';
+import { CalendarIcon, Camera, Trash } from 'lucide-react';
+import { useEffect, useMemo } from 'react';
+import { Controller, useFormContext } from 'react-hook-form';
 import { StreamExamSelection } from '../stream-exam-selection';
 import { SubjectGroupTable } from '../subject-group-table';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Button } from '@/components/ui/button';
-import { CalendarIcon, Camera, Trash } from 'lucide-react';
-import { cn, calculateAge, dateToWords } from '@/lib/utils';
-import { format } from 'date-fns';
+import { WebcamCapture } from '../webcam-capture';
 
 interface StudentInfoSectionProps {
     religion: any[];
@@ -123,51 +123,46 @@ export function StudentInfoSection({
     const isEcs = watch('amsT_ECSFlag');
 
     return (
-        <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className='space-y-6'>
+            <div className='grid grid-cols-1 gap-6 md:grid-cols-4'>
                 {/* Photo Upload Section */}
-                <div className="md:col-span-1 flex flex-col items-center gap-4">
-                    <Label className="w-full text-center">Student Photo</Label>
-                    <div className="relative group">
+                <div className='flex flex-col items-center gap-4 md:col-span-1'>
+                    <Label className='w-full text-center'>Student Photo</Label>
+                    <div className='group relative'>
                         {studentPhoto?.amsT_Photoname ? (
-                            <div className="relative h-48 w-40 rounded-lg overflow-hidden border-2 border-primary/20 bg-muted">
-                                <img
-                                    src={studentPhoto.amsT_Photoname}
-                                    alt="Student"
-                                    className="h-full w-full object-cover"
-                                />
+                            <div className='relative h-48 w-40 overflow-hidden rounded-lg border-2 border-primary/20 bg-muted'>
+                                <img src={studentPhoto.amsT_Photoname} alt='Student' className='h-full w-full object-cover' />
                                 <button
-                                    type="button"
+                                    type='button'
                                     onClick={() => {
                                         setStudentPhoto(null);
                                         setStudentPhotoFile(null);
                                         setValue('amsT_Photoname', '');
                                     }}
-                                    className="absolute top-2 right-2 p-1.5 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                >
-                                    <Trash className="h-4 w-4" />
+                                    className='absolute top-2 right-2 rounded-full bg-destructive p-1.5 text-destructive-foreground opacity-0 transition-opacity group-hover:opacity-100'>
+                                    <Trash className='h-4 w-4' />
                                 </button>
                             </div>
                         ) : (
-                            <div className="h-48 w-40 rounded-lg border-2 border-dashed border-muted-foreground/25 flex flex-col items-center justify-center gap-2 bg-muted/50 text-muted-foreground">
-                                <Camera className="h-8 w-8 opacity-50" />
-                                <span className="text-xs">No Photo</span>
+                            <div className='flex h-48 w-40 flex-col items-center justify-center gap-2 rounded-lg border-2 border-muted-foreground/25 border-dashed bg-muted/50 text-muted-foreground'>
+                                <Camera className='h-8 w-8 opacity-50' />
+                                <span className='text-xs'>No Photo</span>
                             </div>
                         )}
                     </div>
-                    <div className="flex gap-2">
+                    <div className='flex gap-2'>
                         <WebcamCapture
                             onCapture={(dataUrl) => {
                                 setStudentPhoto({ amsT_Photoname: dataUrl });
                                 setValue('amsT_Photoname', dataUrl);
                             }}
                         />
-                        <div className="relative">
+                        <div className='relative'>
                             <input
-                                type="file"
-                                id="student-photo-upload"
-                                className="hidden"
-                                accept="image/*"
+                                type='file'
+                                id='student-photo-upload'
+                                className='hidden'
+                                accept='image/*'
                                 onChange={(e) => {
                                     const file = e.target.files?.[0];
                                     if (file) {
@@ -186,32 +181,30 @@ export function StudentInfoSection({
                                 }}
                             />
                             <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => document.getElementById('student-photo-upload')?.click()}
-                            >
+                                type='button'
+                                variant='outline'
+                                size='sm'
+                                onClick={() => document.getElementById('student-photo-upload')?.click()}>
                                 Upload
                             </Button>
                         </div>
                     </div>
-                    {studentPhotoError && <p className="text-xs text-destructive">{studentPhotoError}</p>}
+                    {studentPhotoError && <p className='text-destructive text-xs'>{studentPhotoError}</p>}
                 </div>
 
                 {/* Form Fields */}
-                <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="flex flex-col gap-1.5">
-                        <Label>Academic Year <span className="ml-1 text-red-500">*</span></Label>
+                <div className='grid grid-cols-1 gap-4 md:col-span-3 md:grid-cols-3'>
+                    <div className='flex flex-col gap-1.5'>
+                        <Label>
+                            Academic Year <span className='ml-1 text-red-500'>*</span>
+                        </Label>
                         <Controller
-                            name="asmaY_Id"
+                            name='asmaY_Id'
                             control={control}
                             render={({ field }) => (
-                                <Select
-                                    value={field.value?.toString() || ''}
-                                    onValueChange={(val) => field.onChange(Number(val))}
-                                >
+                                <Select value={field.value?.toString() || ''} onValueChange={(val) => field.onChange(Number(val))}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select Year" />
+                                        <SelectValue placeholder='Select Year' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {academicYears.map((item: any) => (
@@ -226,32 +219,25 @@ export function StudentInfoSection({
                         {errors.asmaY_Id && <FormError>{errors.asmaY_Id.message as string}</FormError>}
                     </div>
 
-                    <div className="flex flex-col gap-1.5">
-                        <Label>Date of Admission <span className="ml-1 text-red-500">*</span></Label>
+                    <div className='flex flex-col gap-1.5'>
+                        <Label>
+                            Date of Admission <span className='ml-1 text-red-500'>*</span>
+                        </Label>
                         <Controller
-                            name="amsT_Date"
+                            name='amsT_Date'
                             control={control}
                             render={({ field }) => (
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <Button
-                                            variant="outline"
-                                            className={cn(
-                                                'justify-start text-left font-normal',
-                                                !field.value && 'text-muted-foreground'
-                                            )}
-                                        >
-                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                            variant='outline'
+                                            className={cn('justify-start text-left font-normal', !field.value && 'text-muted-foreground')}>
+                                            <CalendarIcon className='mr-2 h-4 w-4' />
                                             {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0">
-                                        <CalendarYear
-                                            mode="single"
-                                            selected={field.value}
-                                            onSelect={field.onChange}
-                                            initialFocus
-                                        />
+                                    <PopoverContent className='w-auto p-0'>
+                                        <CalendarYear mode='single' selected={field.value} onSelect={field.onChange} initialFocus />
                                     </PopoverContent>
                                 </Popover>
                             )}
@@ -259,43 +245,51 @@ export function StudentInfoSection({
                         {errors.amsT_Date && <FormError>{errors.amsT_Date.message as string}</FormError>}
                     </div>
 
-                    <div className="flex flex-col gap-1.5">
-                        <Label>Registration No <span className="ml-1 text-red-500">*</span></Label>
-                        <InputText {...register('amsT_RegistrationNo')} placeholder="Registration No" />
+                    <div className='flex flex-col gap-1.5'>
+                        <Label>
+                            Registration No <span className='ml-1 text-red-500'>*</span>
+                        </Label>
+                        <InputText {...register('amsT_RegistrationNo')} placeholder='Registration No' />
                         {errors.amsT_RegistrationNo && <FormError>{errors.amsT_RegistrationNo.message as string}</FormError>}
                     </div>
 
-                    <div className="flex flex-col gap-1.5">
-                        <Label>Admission No <span className="ml-1 text-red-500">*</span></Label>
-                        <InputText {...register('amsT_AdmissionNo')} placeholder="Admission No" />
+                    <div className='flex flex-col gap-1.5'>
+                        <Label>
+                            Admission No <span className='ml-1 text-red-500'>*</span>
+                        </Label>
+                        <InputText {...register('amsT_AdmissionNo')} placeholder='Admission No' />
                         {errors.amsT_AdmissionNo && <FormError>{errors.amsT_AdmissionNo.message as string}</FormError>}
                     </div>
 
-                    <div className="flex flex-col gap-1.5">
-                        <Label>First Name <span className="ml-1 text-red-500">*</span></Label>
-                        <InputText {...register('amsT_FirstName')} placeholder="First Name" />
+                    <div className='flex flex-col gap-1.5'>
+                        <Label>
+                            First Name <span className='ml-1 text-red-500'>*</span>
+                        </Label>
+                        <InputText {...register('amsT_FirstName')} placeholder='First Name' />
                         {errors.amsT_FirstName && <FormError>{errors.amsT_FirstName.message as string}</FormError>}
                     </div>
 
-                    <div className="flex flex-col gap-1.5">
+                    <div className='flex flex-col gap-1.5'>
                         <Label>Middle Name</Label>
-                        <InputText {...register('amsT_MiddleName')} placeholder="Middle Name" />
+                        <InputText {...register('amsT_MiddleName')} placeholder='Middle Name' />
                     </div>
 
-                    <div className="flex flex-col gap-1.5">
+                    <div className='flex flex-col gap-1.5'>
                         <Label>Last Name</Label>
-                        <InputText {...register('amsT_LastName')} placeholder="Last Name" />
+                        <InputText {...register('amsT_LastName')} placeholder='Last Name' />
                     </div>
 
-                    <div className="flex flex-col gap-1.5">
-                        <Label>Gender <span className="ml-1 text-red-500">*</span></Label>
+                    <div className='flex flex-col gap-1.5'>
+                        <Label>
+                            Gender <span className='ml-1 text-red-500'>*</span>
+                        </Label>
                         <Controller
-                            name="amsT_Sex"
+                            name='amsT_Sex'
                             control={control}
                             render={({ field }) => (
                                 <Select value={field.value || ''} onValueChange={field.onChange}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select Gender" />
+                                        <SelectValue placeholder='Select Gender' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {genderOptions.map((opt: any) => (
@@ -310,32 +304,25 @@ export function StudentInfoSection({
                         {errors.amsT_Sex && <FormError>{errors.amsT_Sex.message as string}</FormError>}
                     </div>
 
-                    <div className="flex flex-col gap-1.5">
-                        <Label>Date of Birth <span className="ml-1 text-red-500">*</span></Label>
+                    <div className='flex flex-col gap-1.5'>
+                        <Label>
+                            Date of Birth <span className='ml-1 text-red-500'>*</span>
+                        </Label>
                         <Controller
-                            name="amsT_DOB"
+                            name='amsT_DOB'
                             control={control}
                             render={({ field }) => (
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <Button
-                                            variant="outline"
-                                            className={cn(
-                                                'justify-start text-left font-normal',
-                                                !field.value && 'text-muted-foreground'
-                                            )}
-                                        >
-                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                            variant='outline'
+                                            className={cn('justify-start text-left font-normal', !field.value && 'text-muted-foreground')}>
+                                            <CalendarIcon className='mr-2 h-4 w-4' />
                                             {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0">
-                                        <CalendarYear
-                                            mode="single"
-                                            selected={field.value}
-                                            onSelect={field.onChange}
-                                            initialFocus
-                                        />
+                                    <PopoverContent className='w-auto p-0'>
+                                        <CalendarYear mode='single' selected={field.value} onSelect={field.onChange} initialFocus />
                                     </PopoverContent>
                                 </Popover>
                             )}
@@ -343,33 +330,30 @@ export function StudentInfoSection({
                         {errors.amsT_DOB && <FormError>{errors.amsT_DOB.message as string}</FormError>}
                     </div>
 
-                    <InputText 
-                        label="DOB in Words"
-                        {...register('amsT_DOB_Words')} 
-                        readOnly 
-                        containerClassName="col-span-2"
-                    />
+                    <InputText label='DOB in Words' {...register('amsT_DOB_Words')} readOnly containerClassName='col-span-2' />
 
                     <Controller
-                        name="pasR_Age"
+                        name='pasR_Age'
                         control={control}
                         render={({ field }) => (
-                            <InputNumber 
-                                label="Age"
-                                value={Number(field.value) || 0} 
-                                onChange={(val: number) => field.onChange(val)} 
-                                isReadOnly 
+                            <InputNumber
+                                label='Age'
+                                value={Number(field.value) || 0}
+                                onChange={(val: number) => field.onChange(val)}
+                                isReadOnly
                             />
                         )}
                     />
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="flex flex-col gap-1.5">
-                    <Label>Admission Class <span className="ml-1 text-red-500">*</span></Label>
+            <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
+                <div className='flex flex-col gap-1.5'>
+                    <Label>
+                        Admission Class <span className='ml-1 text-red-500'>*</span>
+                    </Label>
                     <Controller
-                        name="asmcL_Id"
+                        name='asmcL_Id'
                         control={control}
                         render={({ field }) => (
                             <Select
@@ -378,10 +362,9 @@ export function StudentInfoSection({
                                     field.onChange(Number(val));
                                     // Clear section when class changes
                                     setValue('asmS_Id', 0);
-                                }}
-                            >
+                                }}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select Class" />
+                                    <SelectValue placeholder='Select Class' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {admissionClass.map((item: any) => (
@@ -396,17 +379,18 @@ export function StudentInfoSection({
                     {errors.asmcL_Id && <FormError>{errors.asmcL_Id.message as string}</FormError>}
                 </div>
 
-                <div className="flex flex-col gap-1.5">
-                    <Label>Section <span className="ml-1 text-red-500">*</span></Label>
+                <div className='flex flex-col gap-1.5'>
+                    <Label>
+                        Section <span className='ml-1 text-red-500'>*</span>
+                    </Label>
                     <Controller
-                        name="asmS_Id"
+                        name='asmS_Id'
                         control={control}
                         render={({ field }) => (
                             <Select
                                 value={field.value?.toString() || ''}
                                 onValueChange={(val) => field.onChange(Number(val))}
-                                disabled={sectionLoading || !watch('asmcL_Id')}
-                            >
+                                disabled={sectionLoading || !watch('asmcL_Id')}>
                                 <SelectTrigger>
                                     <SelectValue placeholder={sectionLoading ? 'Loading...' : 'Select Section'} />
                                 </SelectTrigger>
@@ -422,10 +406,12 @@ export function StudentInfoSection({
                     />
                 </div>
 
-                <div className="flex flex-col gap-1.5">
-                    <Label>Religion <span className="ml-1 text-red-500">*</span></Label>
+                <div className='flex flex-col gap-1.5'>
+                    <Label>
+                        Religion <span className='ml-1 text-red-500'>*</span>
+                    </Label>
                     <Controller
-                        name="amsT_ReligionId"
+                        name='amsT_ReligionId'
                         control={control}
                         render={({ field }) => (
                             <Select
@@ -433,10 +419,9 @@ export function StudentInfoSection({
                                 onValueChange={(val) => {
                                     field.onChange(Number(val));
                                     setValue('imC_Id', 0);
-                                }}
-                            >
+                                }}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select Religion" />
+                                    <SelectValue placeholder='Select Religion' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {religion.map((item: any) => (
@@ -450,28 +435,29 @@ export function StudentInfoSection({
                     />
                 </div>
 
-                <div className="flex flex-col gap-1.5">
-                    <Label>Caste <span className="ml-1 text-red-500">*</span></Label>
+                <div className='flex flex-col gap-1.5'>
+                    <Label>
+                        Caste <span className='ml-1 text-red-500'>*</span>
+                    </Label>
                     <Controller
-                        name="imC_Id"
+                        name='imC_Id'
                         control={control}
                         render={({ field }) => (
                             <Select
                                 value={field.value?.toString() || ''}
                                 onValueChange={(val) => field.onChange(Number(val))}
-                                disabled={!categoryId}
-                            >
+                                disabled={!categoryId}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select Caste" />
+                                    <SelectValue placeholder='Select Caste' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {casteLoading && (
-                                        <div className="flex items-center justify-center p-2 text-sm text-muted-foreground italic">
+                                        <div className='flex items-center justify-center p-2 text-muted-foreground text-sm italic'>
                                             Loading castes...
                                         </div>
                                     )}
                                     {!casteLoading && filteredCaste.length === 0 && (
-                                        <div className="flex items-center justify-center p-2 text-sm text-muted-foreground italic">
+                                        <div className='flex items-center justify-center p-2 text-muted-foreground text-sm italic'>
                                             No castes found
                                         </div>
                                     )}
@@ -486,19 +472,20 @@ export function StudentInfoSection({
                     />
                 </div>
 
-                <div className="flex flex-col gap-1.5">
-                    <Label>Caste Category <span className="ml-1 text-red-500">*</span></Label>
+                <div className='flex flex-col gap-1.5'>
+                    <Label>
+                        Caste Category <span className='ml-1 text-red-500'>*</span>
+                    </Label>
                     <Controller
-                        name="imCC_Id"
+                        name='imCC_Id'
                         control={control}
                         render={({ field }) => (
                             <Select
                                 value={field.value?.toString() || ''}
                                 onValueChange={(val) => field.onChange(Number(val))}
-                                searchable={true}
-                            >
+                                searchable={true}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select Category" />
+                                    <SelectValue placeholder='Select Category' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {casteCategory.map((item: any) => (
@@ -512,19 +499,24 @@ export function StudentInfoSection({
                     />
                 </div>
 
-                <div className="flex flex-col gap-1.5">
-                    <Label>Student Category <span className="ml-1 text-red-500">*</span></Label>
+                <div className='flex flex-col gap-1.5'>
+                    <Label>
+                        Student Category <span className='ml-1 text-red-500'>*</span>
+                    </Label>
                     <Controller
-                        name="asmcC_Id"
+                        name='asmcC_Id'
                         control={control}
                         render={({ field }) => (
                             <Select
                                 value={field.value?.toString() || ''}
                                 onValueChange={(val) => field.onChange(Number(val))}
-                                disabled={!categoryByClass || categoryByClass.length === 0}
-                            >
+                                disabled={!categoryByClass || categoryByClass.length === 0}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder={!categoryByClass || categoryByClass.length === 0 ? "No category found" : "Select Category"} />
+                                    <SelectValue
+                                        placeholder={
+                                            !categoryByClass || categoryByClass.length === 0 ? 'No category found' : 'Select Category'
+                                        }
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {categoryByClass?.map((item: any) => (
@@ -538,18 +530,17 @@ export function StudentInfoSection({
                     />
                 </div>
 
-                <div className="flex flex-col gap-1.5">
-                    <Label>Fee Concession Type <span className="ml-1 text-red-500">*</span></Label>
+                <div className='flex flex-col gap-1.5'>
+                    <Label>
+                        Fee Concession Type <span className='ml-1 text-red-500'>*</span>
+                    </Label>
                     <Controller
-                        name="feeConcessionType"
+                        name='feeConcessionType'
                         control={control}
                         render={({ field }) => (
-                            <Select
-                                value={field.value?.toString() || ''}
-                                onValueChange={(val) => field.onChange(val)}
-                            >
+                            <Select value={field.value?.toString() || ''} onValueChange={(val) => field.onChange(val)}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select Concession" />
+                                    <SelectValue placeholder='Select Concession' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {concessionList?.map((item: any) => (
@@ -564,132 +555,141 @@ export function StudentInfoSection({
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="flex flex-col gap-1.5">
+            <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
+                <div className='flex flex-col gap-1.5'>
                     <Label>Sub Caste</Label>
-                    <InputText {...register('amsT_SubCasteIMC_Id')} placeholder="Sub Caste" />
+                    <InputText {...register('amsT_SubCasteIMC_Id')} placeholder='Sub Caste' />
                 </div>
-                <div className="flex flex-col gap-1.5">
+                <div className='flex flex-col gap-1.5'>
                     <Label>Caste Certificate No</Label>
-                    <InputText {...register('amsT_CasteCertiNo')} placeholder="Certificate No" />
+                    <InputText {...register('amsT_CasteCertiNo')} placeholder='Certificate No' />
                 </div>
-                <div className="flex flex-col gap-1.5">
+                <div className='flex flex-col gap-1.5'>
                     <Label>Nationality</Label>
-                    <InputText {...register('amsT_Nationality_Name')} placeholder="Nationality" />
+                    <InputText {...register('amsT_Nationality_Name')} placeholder='Nationality' />
                 </div>
-                <div className="flex flex-col gap-1.5">
+                <div className='flex flex-col gap-1.5'>
                     <Label>Mother Tongue</Label>
-                    <InputText {...register('amsT_MotherTongue')} placeholder="Mother Tongue" />
+                    <InputText {...register('amsT_MotherTongue')} placeholder='Mother Tongue' />
                 </div>
             </div>
 
             {/* Stream & Exam Selection */}
-            <StreamExamSelection 
-                control={control} 
-                streams={streamList} 
-                exams={examList} 
-                isLoading={streamLoading} 
-            />
+            <StreamExamSelection control={control} streams={streamList} exams={examList} isLoading={streamLoading} />
 
             {/* Subject Group Multi-Select & Table */}
-            <div className="grid grid-cols-1 gap-6">
-                <div className="flex flex-col gap-1.5">
+            <div className='grid grid-cols-1 gap-6'>
+                <div className='flex flex-col gap-1.5'>
                     <Label>Elective Subject Groups</Label>
                     <Controller
-                        name="electivelist_Groups"
+                        name='electivelist_Groups'
                         control={control}
                         render={({ field }) => (
                             <CustomMultiSelectBox
                                 options={electiveOptions}
-                                placeholder="Select Groups"
+                                placeholder='Select Groups'
                                 value={field.value || []}
                                 onChange={field.onChange}
-                                height="150px"
+                                height='150px'
                                 isSearchRequired
                             />
                         )}
                     />
                 </div>
-                <SubjectGroupTable 
-                    control={control} 
-                    electiveList={electiveList.filter((e: any) => (watch('electivelist_Groups') || []).includes(e.asmgC_Id.toString()))} 
+                <SubjectGroupTable
+                    control={control}
+                    electiveList={electiveList.filter((e: any) => (watch('electivelist_Groups') || []).includes(e.asmgC_Id.toString()))}
                 />
             </div>
 
             {/* Checkboxes Area */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-4 bg-muted/30 rounded-lg">
-                <div className="flex items-center space-x-2">
+            <div className='grid grid-cols-1 gap-6 rounded-lg bg-muted/30 p-4 md:grid-cols-3'>
+                <div className='flex items-center space-x-2'>
                     <Controller
-                        name="isEmisBpl"
+                        name='isEmisBpl'
                         control={control}
                         render={({ field }) => (
                             <Checkbox
-                                id="isEmisBpl"
+                                id='isEmisBpl'
                                 checked={field.value === 1}
                                 onCheckedChange={(checked) => field.onChange(checked ? 1 : 0)}
                             />
                         )}
                     />
-                    <Label htmlFor="isEmisBpl">EMIS / BPL / STS Available?</Label>
+                    <Label htmlFor='isEmisBpl'>EMIS / BPL / STS Available?</Label>
                 </div>
 
-                <div className="flex items-center space-x-2">
+                <div className='flex items-center space-x-2'>
                     <Controller
-                        name="amsT_ECSFlag"
+                        name='amsT_ECSFlag'
                         control={control}
                         render={({ field }) => (
                             <Checkbox
-                                id="amsT_ECSFlag"
+                                id='amsT_ECSFlag'
                                 checked={field.value === 1}
                                 onCheckedChange={(checked) => field.onChange(checked ? 1 : 0)}
                             />
                         )}
                     />
-                    <Label htmlFor="amsT_ECSFlag">ECS Required?</Label>
+                    <Label htmlFor='amsT_ECSFlag'>ECS Required?</Label>
                 </div>
             </div>
 
             {isEmisBpl === 1 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in duration-300">
-                    <div className="flex flex-col gap-1.5">
-                        <Label>EMIS / BPL / STS No <span className="ml-1 text-red-500">*</span></Label>
-                        <InputText {...register('amsT_BPLCardNo')} placeholder="Enter Number" />
+                <div className='fade-in grid animate-in grid-cols-1 gap-4 duration-300 md:grid-cols-2'>
+                    <div className='flex flex-col gap-1.5'>
+                        <Label>
+                            EMIS / BPL / STS No <span className='ml-1 text-red-500'>*</span>
+                        </Label>
+                        <InputText {...register('amsT_BPLCardNo')} placeholder='Enter Number' />
                         {errors.amsT_BPLCardNo && <FormError>{errors.amsT_BPLCardNo.message as string}</FormError>}
                     </div>
                 </div>
             )}
 
             {isEcs === 1 && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border rounded-lg bg-background animate-in slide-in-from-top-2 duration-300">
-                    <div className="md:col-span-3 font-semibold text-sm border-b pb-2">ECS Account Details</div>
-                    <div className="flex flex-col gap-1.5">
-                        <Label>Account No <span className="ml-1 text-red-500">*</span></Label>
-                        <InputText {...register('asecS_AccountNo')} placeholder="Account No" />
+                <div className='slide-in-from-top-2 grid animate-in grid-cols-1 gap-4 rounded-lg border bg-background p-4 duration-300 md:grid-cols-3'>
+                    <div className='border-b pb-2 font-semibold text-sm md:col-span-3'>ECS Account Details</div>
+                    <div className='flex flex-col gap-1.5'>
+                        <Label>
+                            Account No <span className='ml-1 text-red-500'>*</span>
+                        </Label>
+                        <InputText {...register('asecS_AccountNo')} placeholder='Account No' />
                         {errors.asecS_AccountNo && <FormError>{errors.asecS_AccountNo.message as string}</FormError>}
                     </div>
-                    <div className="flex flex-col gap-1.5">
-                        <Label>Account Holder Name <span className="ml-1 text-red-500">*</span></Label>
-                        <InputText {...register('asecS_AccountHolderName')} placeholder="Holder Name" />
+                    <div className='flex flex-col gap-1.5'>
+                        <Label>
+                            Account Holder Name <span className='ml-1 text-red-500'>*</span>
+                        </Label>
+                        <InputText {...register('asecS_AccountHolderName')} placeholder='Holder Name' />
                         {errors.asecS_AccountHolderName && <FormError>{errors.asecS_AccountHolderName.message as string}</FormError>}
                     </div>
-                    <div className="flex flex-col gap-1.5">
-                        <Label>Bank Name <span className="ml-1 text-red-500">*</span></Label>
-                        <InputText {...register('asecS_BankName')} placeholder="Bank Name" />
+                    <div className='flex flex-col gap-1.5'>
+                        <Label>
+                            Bank Name <span className='ml-1 text-red-500'>*</span>
+                        </Label>
+                        <InputText {...register('asecS_BankName')} placeholder='Bank Name' />
                         {errors.asecS_BankName && <FormError>{errors.asecS_BankName.message as string}</FormError>}
                     </div>
-                    <div className="flex flex-col gap-1.5">
-                        <Label>Account Type <span className="ml-1 text-red-500">*</span></Label>
-                        <InputText {...register('asecS_AccountType')} placeholder="SB / Current" />
+                    <div className='flex flex-col gap-1.5'>
+                        <Label>
+                            Account Type <span className='ml-1 text-red-500'>*</span>
+                        </Label>
+                        <InputText {...register('asecS_AccountType')} placeholder='SB / Current' />
                         {errors.asecS_AccountType && <FormError>{errors.asecS_AccountType.message as string}</FormError>}
                     </div>
-                    <div className="flex flex-col gap-1.5">
-                        <Label>MICR No <span className="ml-1 text-red-500">*</span></Label>
-                        <InputText {...register('asecS_MICRNo')} placeholder="MICR No" />
+                    <div className='flex flex-col gap-1.5'>
+                        <Label>
+                            MICR No <span className='ml-1 text-red-500'>*</span>
+                        </Label>
+                        <InputText {...register('asecS_MICRNo')} placeholder='MICR No' />
                         {errors.asecS_MICRNo && <FormError>{errors.asecS_MICRNo.message as string}</FormError>}
                     </div>
-                    <div className="flex flex-col gap-1.5">
-                        <Label>Branch <span className="ml-1 text-red-500">*</span></Label>
-                        <InputText {...register('asecS_Branch')} placeholder="Branch Name" />
+                    <div className='flex flex-col gap-1.5'>
+                        <Label>
+                            Branch <span className='ml-1 text-red-500'>*</span>
+                        </Label>
+                        <InputText {...register('asecS_Branch')} placeholder='Branch Name' />
                         {errors.asecS_Branch && <FormError>{errors.asecS_Branch.message as string}</FormError>}
                     </div>
                 </div>
@@ -697,5 +697,3 @@ export function StudentInfoSection({
         </div>
     );
 }
-
-

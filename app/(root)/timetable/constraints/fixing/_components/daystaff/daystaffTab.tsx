@@ -10,11 +10,11 @@ import { getdetailsAllFixing } from '@/server/timetable/constraints/fixing';
 import { Plus, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { dayStaffColumns } from './daystaffColumns';
-import DayStaffAddForm from './daystaffAddForm';
-import DayStaffUpdate from './daystaffUpdate';
-import DayStaffToggle from './daystaffToggle';
 import { filterData } from '../dayperiod/utils';
+import DayStaffAddForm from './daystaffAddForm';
+import { dayStaffColumns } from './daystaffColumns';
+import DayStaffToggle from './daystaffToggle';
+import DayStaffUpdate from './daystaffUpdate';
 
 interface DayStaffTabProps {
     initialData: any;
@@ -110,42 +110,42 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
                 <div ref={isAddFormOpen ? addFormRef : editFormRef}>
                     <CollapsibleSection
                         title={isEditFormOpen ? 'Edit Day Staff Constraint' : 'Add New Day Staff Constraint'}
-                    defaultOpen={true}
-                    variant='outline'
-                    size='md'
-                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                    <div className='relative'>
-                        <Button
-                            type='button'
-                            onClick={isEditFormOpen ? closeEditForm : closeAddForm}
-                            variant='ghost'
-                            size='sm'
-                            className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                            <X className='h-4 w-4 text-destructive' /> Close
-                        </Button>
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={isEditFormOpen ? closeEditForm : closeAddForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
 
-                        {isAddFormOpen && (
-                            <DayStaffAddForm
-                                academicList={academicList}
-                                dayList={dayList}
-                                staffList={staffList}
-                                onSuccess={onFormSuccess}
-                                onCancel={closeAddForm}
-                            />
-                        )}
+                            {isAddFormOpen && (
+                                <DayStaffAddForm
+                                    academicList={academicList}
+                                    dayList={dayList}
+                                    staffList={staffList}
+                                    onSuccess={onFormSuccess}
+                                    onCancel={closeAddForm}
+                                />
+                            )}
 
-                        {isEditFormOpen && selectedRow && (
-                            <DayStaffUpdate
-                                academicList={academicList}
-                                dayList={dayList}
-                                staffList={staffList}
-                                selectedRow={selectedRow}
-                                onSuccess={onFormSuccess}
-                                onCancel={closeEditForm}
-                            />
-                        )}
-                    </div>
-                </CollapsibleSection>
+                            {isEditFormOpen && selectedRow && (
+                                <DayStaffUpdate
+                                    academicList={academicList}
+                                    dayList={dayList}
+                                    staffList={staffList}
+                                    selectedRow={selectedRow}
+                                    onSuccess={onFormSuccess}
+                                    onCancel={closeEditForm}
+                                />
+                            )}
+                        </div>
+                    </CollapsibleSection>
                 </div>
             )}
         </div>

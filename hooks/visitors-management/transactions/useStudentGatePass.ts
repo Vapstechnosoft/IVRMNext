@@ -1,13 +1,13 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
-import { 
-    getStudentGatePassData, 
-    saveStudentGatePass,
+import {
     deactivateStudentGatePass,
     getGatePassClasses,
     getGatePassSections,
-    getGatePassStudents
+    getGatePassStudents,
+    getStudentGatePassData,
+    saveStudentGatePass
 } from '@/server/visitors-management/transactions/student-gate-pass';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 export const STUDENT_GATE_PASS_KEY = ['student-gate-pass'] as const;
 
@@ -22,7 +22,7 @@ export function useStudentGatePass() {
                 throw new Error(response.message || 'Failed to fetch student gate pass data');
             }
             return response.data;
-        },
+        }
     });
 
     const mutation = useMutation({
@@ -39,7 +39,7 @@ export function useStudentGatePass() {
         },
         onError: (error: Error) => {
             toast.error(error.message || 'Failed to save record');
-        },
+        }
     });
 
     const statusMutation = useMutation({
@@ -56,7 +56,7 @@ export function useStudentGatePass() {
         },
         onError: (error: Error) => {
             toast.error(error.message || 'Failed to change status');
-        },
+        }
     });
 
     return {

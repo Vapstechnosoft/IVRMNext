@@ -75,7 +75,7 @@ export default function AddPreadmissionRegistrationForm({ sub_domain, closeDialo
                     id='name'
                     {...register('name')}
                     error={errors.name?.message}
-                    requiredTooltip="Name is mandatory. Please fill it."
+                    requiredTooltip='Name is mandatory. Please fill it.'
                 />
                 <InputText
                     label='Email'
@@ -83,7 +83,7 @@ export default function AddPreadmissionRegistrationForm({ sub_domain, closeDialo
                     id='email'
                     {...register('email_id')}
                     error={errors.email_id?.message}
-                    requiredTooltip="Email is mandatory. Please fill it."
+                    requiredTooltip='Email is mandatory. Please fill it.'
                 />
                 <div className='group flex flex-col gap-1.5'>
                     <Controller
@@ -98,7 +98,7 @@ export default function AddPreadmissionRegistrationForm({ sub_domain, closeDialo
                                 onChange={(value) => field.onChange(value)}
                                 type='number'
                                 showSpinner={false}
-                                requiredTooltip="Mobile No. is mandatory. Please fill it."
+                                requiredTooltip='Mobile No. is mandatory. Please fill it.'
                             />
                         )}
                     />
@@ -110,7 +110,7 @@ export default function AddPreadmissionRegistrationForm({ sub_domain, closeDialo
                     id='username'
                     {...register('username')}
                     error={errors.username?.message}
-                    requiredTooltip="Username is mandatory. Please fill it."
+                    requiredTooltip='Username is mandatory. Please fill it.'
                 />
                 <InputText
                     label='Password'
@@ -118,7 +118,7 @@ export default function AddPreadmissionRegistrationForm({ sub_domain, closeDialo
                     id='password'
                     {...register('password')}
                     error={errors.password?.message}
-                    requiredTooltip="Password is mandatory. Please fill it."
+                    requiredTooltip='Password is mandatory. Please fill it.'
                 />
 
                 <FormError>{errors.root?.message}</FormError>

@@ -25,7 +25,7 @@ export const getMockTBSPrimaryData = () => {
         { ISMS_Id: 7, ISMS_SubjectName: 'COMPUTER SCIENCE' },
         { ISMS_Id: 8, ISMS_SubjectName: 'GENERAL KNOWLEDGE' },
         { ISMS_Id: 9, ISMS_SubjectName: 'ART & CRAFT' },
-        { ISMS_Id: 10, ISMS_SubjectName: 'VALUE EDUCATION' },
+        { ISMS_Id: 10, ISMS_SubjectName: 'VALUE EDUCATION' }
     ];
 
     const allOutcomes = [
@@ -57,16 +57,16 @@ export const getMockTBSPrimaryData = () => {
         // Art
         { ISMS_Id: 9, subExam: 'Creativity', score: 1 },
         // Value Ed
-        { ISMS_Id: 10, subExam: 'Behavior', score: 1 },
+        { ISMS_Id: 10, subExam: 'Behavior', score: 1 }
     ];
 
     const getstudentwisesubjectlist: any[] = [];
-    students.forEach(stu => {
+    students.forEach((stu) => {
         subjects.forEach((sub) => {
             // Add outcomes for Term 1 (EME_Id 1) and Term 2 (EME_Id 2)
-            [1, 2].forEach(emeId => {
-                const subOutcomes = allOutcomes.filter(o => o.ISMS_Id === sub.ISMS_Id);
-                subOutcomes.forEach(out => {
+            [1, 2].forEach((emeId) => {
+                const subOutcomes = allOutcomes.filter((o) => o.ISMS_Id === sub.ISMS_Id);
+                subOutcomes.forEach((out) => {
                     getstudentwisesubjectlist.push({
                         AMST_Id: stu.AMST_Id,
                         ISMS_Id: sub.ISMS_Id,
@@ -81,8 +81,8 @@ export const getMockTBSPrimaryData = () => {
     });
 
     const uniqueSubjects: any[] = [];
-    getstudentwisesubjectlist.forEach(item => {
-        if (!uniqueSubjects.find(s => s.ISMS_Id === item.ISMS_Id && s.AMST_Id === item.AMST_Id)) {
+    getstudentwisesubjectlist.forEach((item) => {
+        if (!uniqueSubjects.find((s) => s.ISMS_Id === item.ISMS_Id && s.AMST_Id === item.AMST_Id)) {
             uniqueSubjects.push({
                 AMST_Id: item.AMST_Id,
                 ISMS_Id: item.ISMS_Id,
@@ -91,7 +91,7 @@ export const getMockTBSPrimaryData = () => {
         }
     });
 
-    const getstudentwiseattendancedetails = students.flatMap(stu => [
+    const getstudentwiseattendancedetails = students.flatMap((stu) => [
         { AMST_Id: stu.AMST_Id, EME_Id: 1, PRESENTDAYS: 45, TOTALWORKINGDAYS: 50, ATTENDANCEPERCENTAGE: 90 },
         { AMST_Id: stu.AMST_Id, EME_Id: 2, PRESENTDAYS: 48, TOTALWORKINGDAYS: 50, ATTENDANCEPERCENTAGE: 96 }
     ]);

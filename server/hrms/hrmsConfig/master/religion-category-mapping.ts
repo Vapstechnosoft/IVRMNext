@@ -33,7 +33,6 @@ export async function getReligionCategoryMappingById(id: number) {
     return await api.get<any>('hrms', url);
 }
 
-
 /**
  * Toggle religion category mapping (activate/deactivate)
  * PUT /api/MasterReligionCategory_Mapping/toggle_religion_category/{id}

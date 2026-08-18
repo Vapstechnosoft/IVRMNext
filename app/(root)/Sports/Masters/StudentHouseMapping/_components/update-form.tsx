@@ -1,35 +1,22 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { Button } from '@/components/ui/button';
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { toast } from 'sonner';
-import { studentHouseMappingSchema } from '@/schemas/sports/masters/student-house-mapping';
-import { StudentHouseMappingDTO } from '@/types/sports/masters/student-house-mapping';
-import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DatePicker } from '@/components/ui/date-picker';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { useStudentHouseMapping } from '@/hooks/sports/useStudentHouseMapping';
+import { studentHouseMappingSchema } from '@/schemas/sports/masters/student-house-mapping';
+import type { StudentHouseMappingDTO } from '@/types/sports/masters/student-house-mapping';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import type { z } from 'zod';
 
 interface UpdateFormProps {
     selectedRow: StudentHouseMappingDTO;
@@ -37,14 +24,10 @@ interface UpdateFormProps {
 }
 
 export default function UpdateForm({ selectedRow, onSuccess }: UpdateFormProps) {
-    const {
-        loadData,
-        editData,
-        saveData,
-    } = useStudentHouseMapping();
+    const { loadData, editData, saveData } = useStudentHouseMapping();
 
     const yearList = loadData.data?.yearlist || [];
-    const houses   = loadData.data?.houseList || [];
+    const houses = loadData.data?.houseList || [];
 
     const [studentList, setStudentList] = useState<any[]>([]);
     const [searchStudent, setSearchStudent] = useState('');
@@ -60,39 +43,42 @@ export default function UpdateForm({ selectedRow, onSuccess }: UpdateFormProps) 
             spccmH_Id: selectedRow.spccmH_Id,
             spccsH_Remarks: selectedRow.spccsH_Remarks || '',
             studList1: [{ amsT_Id: selectedRow.amsT_Id! }],
-            spccsH_Date: selectedRow.spccsH_Date ? new Date(selectedRow.spccsH_Date) : new Date(),
-        },
+            spccsH_Date: selectedRow.spccsH_Date ? new Date(selectedRow.spccsH_Date) : new Date()
+        }
     });
 
     useEffect(() => {
         if (selectedRow) {
             setIsLoading(true);
-            editData.mutate({ 
-                spccsH_Id: selectedRow.spccsH_Id!, 
-                asmaY_Id: selectedRow.asmaY_Id 
-            }, {
-                onSuccess: (data: any) => {
-                    if (data.editrecord && data.editrecord.length > 0) {
-                        const record = data.editrecord[0];
-                        form.reset({
-                            spccsH_Id: record.spccsH_Id,
-                            asmaY_Id: record.asmaY_Id,
-                            asmcL_Id: record.asmcL_Id,
-                            asmS_Id: record.asmS_Id,
-                            spccmH_Id: record.spccmH_Id,
-                            spccsH_Remarks: record.spccsH_Remarks || '',
-                            studList1: [{ amsT_Id: record.amsT_Id }],
-                            spccsH_Date: record.spccsH_Date ? new Date(record.spccsH_Date) : new Date(),
-                        });
-                    }
-                    setStudentList(data.studentList || []);
-                    setIsLoading(false);
+            editData.mutate(
+                {
+                    spccsH_Id: selectedRow.spccsH_Id!,
+                    asmaY_Id: selectedRow.asmaY_Id
                 },
-                onError: () => {
-                    toast.error('Failed to load record details');
-                    setIsLoading(false);
+                {
+                    onSuccess: (data: any) => {
+                        if (data.editrecord && data.editrecord.length > 0) {
+                            const record = data.editrecord[0];
+                            form.reset({
+                                spccsH_Id: record.spccsH_Id,
+                                asmaY_Id: record.asmaY_Id,
+                                asmcL_Id: record.asmcL_Id,
+                                asmS_Id: record.asmS_Id,
+                                spccmH_Id: record.spccmH_Id,
+                                spccsH_Remarks: record.spccsH_Remarks || '',
+                                studList1: [{ amsT_Id: record.amsT_Id }],
+                                spccsH_Date: record.spccsH_Date ? new Date(record.spccsH_Date) : new Date()
+                            });
+                        }
+                        setStudentList(data.studentList || []);
+                        setIsLoading(false);
+                    },
+                    onError: () => {
+                        toast.error('Failed to load record details');
+                        setIsLoading(false);
+                    }
                 }
-            });
+            );
         }
     }, [selectedRow]);
 
@@ -105,10 +91,8 @@ export default function UpdateForm({ selectedRow, onSuccess }: UpdateFormProps) 
         const current = form.getValues('studList1') || [];
         form.setValue(
             'studList1',
-            checked
-                ? [...current, { amsT_Id: studentId }]
-                : current.filter((item: any) => item.amsT_Id !== studentId),
-            { shouldValidate: true },
+            checked ? [...current, { amsT_Id: studentId }] : current.filter((item: any) => item.amsT_Id !== studentId),
+            { shouldValidate: true }
         );
     };
 
@@ -116,14 +100,15 @@ export default function UpdateForm({ selectedRow, onSuccess }: UpdateFormProps) 
         saveData.mutate(values, {
             onSuccess: (result: any) => {
                 const msg = (result?.message || result?.Message || '') as string;
-                const isOk = result?.success || 
-                            result?.returnval == true || 
-                            result?.returnVal == true || 
-                            result?.returnVal === 'saved' || 
-                            result?.returnVal === 'updated' || 
-                            msg.toLowerCase() === 'saved' ||
-                            msg.toLowerCase() === 'updated' ||
-                            msg.toLowerCase().includes('success');
+                const isOk =
+                    result?.success ||
+                    result?.returnval == true ||
+                    result?.returnVal == true ||
+                    result?.returnVal === 'saved' ||
+                    result?.returnVal === 'updated' ||
+                    msg.toLowerCase() === 'saved' ||
+                    msg.toLowerCase() === 'updated' ||
+                    msg.toLowerCase().includes('success');
 
                 if (isOk) {
                     toast.success(msg || 'Record updated successfully');
@@ -133,30 +118,43 @@ export default function UpdateForm({ selectedRow, onSuccess }: UpdateFormProps) 
                     toast.error(msg || 'Failed to update record');
                 }
             },
-            onError: () => toast.error('Something went wrong'),
+            onError: () => toast.error('Something went wrong')
         });
     };
 
     if (isLoading) {
-        return <div className="flex items-center justify-center py-10 gap-2 text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin" /> Loading record details...</div>;
+        return (
+            <div className='flex items-center justify-center gap-2 py-10 text-muted-foreground'>
+                <Loader2 className='h-5 w-5 animate-spin' /> Loading record details...
+            </div>
+        );
     }
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
+                <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+                    <div className='space-y-4'>
                         <FormField
                             control={form.control}
-                            name="asmaY_Id"
+                            name='asmaY_Id'
                             render={({ field }: { field: any }) => (
                                 <FormItem>
                                     <FormLabel>Academic Year</FormLabel>
-                                    <Select disabled onValueChange={(val: string) => field.onChange(Number(val))} value={field.value ? field.value.toString() : ''}>
-                                        <FormControl><SelectTrigger><SelectValue placeholder="Year" /></SelectTrigger></FormControl>
+                                    <Select
+                                        disabled
+                                        onValueChange={(val: string) => field.onChange(Number(val))}
+                                        value={field.value ? field.value.toString() : ''}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='Year' />
+                                            </SelectTrigger>
+                                        </FormControl>
                                         <SelectContent>
                                             {yearList.map((item: any) => (
-                                                <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>{item.asmaY_Year}</SelectItem>
+                                                <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                    {item.asmaY_Year}
+                                                </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
@@ -164,7 +162,7 @@ export default function UpdateForm({ selectedRow, onSuccess }: UpdateFormProps) 
                             )}
                         />
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className='grid grid-cols-2 gap-4'>
                             <FormItem>
                                 <FormLabel>Class</FormLabel>
                                 <Input disabled value={selectedRow.asmcL_ClassName || ''} />
@@ -177,15 +175,25 @@ export default function UpdateForm({ selectedRow, onSuccess }: UpdateFormProps) 
 
                         <FormField
                             control={form.control}
-                            name="spccmH_Id"
+                            name='spccmH_Id'
                             render={({ field }: { field: any }) => (
                                 <FormItem>
-                                    <FormLabel>House <span className="text-red-500">*</span></FormLabel>
-                                    <Select onValueChange={(val: string) => field.onChange(Number(val))} value={field.value ? field.value.toString() : ''}>
-                                        <FormControl><SelectTrigger><SelectValue placeholder="Select House" /></SelectTrigger></FormControl>
+                                    <FormLabel>
+                                        House <span className='text-red-500'>*</span>
+                                    </FormLabel>
+                                    <Select
+                                        onValueChange={(val: string) => field.onChange(Number(val))}
+                                        value={field.value ? field.value.toString() : ''}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='Select House' />
+                                            </SelectTrigger>
+                                        </FormControl>
                                         <SelectContent>
                                             {houses.map((item: any) => (
-                                                <SelectItem key={item.spccmH_Id} value={item.spccmH_Id.toString()}>{item.spccmH_HouseName}</SelectItem>
+                                                <SelectItem key={item.spccmH_Id} value={item.spccmH_Id.toString()}>
+                                                    {item.spccmH_HouseName}
+                                                </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
@@ -195,42 +203,62 @@ export default function UpdateForm({ selectedRow, onSuccess }: UpdateFormProps) 
                         />
                     </div>
 
-                    <div className="space-y-4">
-                        <div className="border rounded-md p-4">
-                            <FormLabel className="block mb-2 font-semibold">Student Selection <span className="text-red-500">*</span></FormLabel>
-                            <Input placeholder="Search students..." value={searchStudent} onChange={(e: any) => setSearchStudent(e.target.value)} className="mb-2" />
-                            <ScrollArea className="h-[180px] w-full rounded-md border p-2">
+                    <div className='space-y-4'>
+                        <div className='rounded-md border p-4'>
+                            <FormLabel className='mb-2 block font-semibold'>
+                                Student Selection <span className='text-red-500'>*</span>
+                            </FormLabel>
+                            <Input
+                                placeholder='Search students...'
+                                value={searchStudent}
+                                onChange={(e: any) => setSearchStudent(e.target.value)}
+                                className='mb-2'
+                            />
+                            <ScrollArea className='h-[180px] w-full rounded-md border p-2'>
                                 {filteredStudents.map((student: any) => {
-                                    const isSelected = (form.watch('studList1') || []).some((item: any) => item.amsT_Id === student.amsT_Id);
+                                    const isSelected = (form.watch('studList1') || []).some(
+                                        (item: any) => item.amsT_Id === student.amsT_Id
+                                    );
                                     return (
-                                        <div key={student.amsT_Id} className="flex items-center space-x-2 py-1.5 hover:bg-muted/30 px-1 rounded-sm">
-                                            <Checkbox checked={isSelected} onCheckedChange={(checked: any) => handleStudentToggle(student.amsT_Id, !!checked)} />
-                                            <span className="text-sm">{student.studentname} - {student.amsT_AdmNo}</span>
+                                        <div
+                                            key={student.amsT_Id}
+                                            className='flex items-center space-x-2 rounded-sm px-1 py-1.5 hover:bg-muted/30'>
+                                            <Checkbox
+                                                checked={isSelected}
+                                                onCheckedChange={(checked: any) => handleStudentToggle(student.amsT_Id, !!checked)}
+                                            />
+                                            <span className='text-sm'>
+                                                {student.studentname} - {student.amsT_AdmNo}
+                                            </span>
                                         </div>
                                     );
                                 })}
                             </ScrollArea>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                             <FormField
                                 control={form.control}
-                                name="spccsH_Date"
+                                name='spccsH_Date'
                                 render={({ field }: { field: any }) => (
-                                    <FormItem className="flex flex-col">
-                                        <FormLabel>Date <span className="text-red-500">*</span></FormLabel>
-                                        <DatePicker date={field.value} setDate={field.onChange} placeholder="Select Date" />
+                                    <FormItem className='flex flex-col'>
+                                        <FormLabel>
+                                            Date <span className='text-red-500'>*</span>
+                                        </FormLabel>
+                                        <DatePicker date={field.value} setDate={field.onChange} placeholder='Select Date' />
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
                             <FormField
                                 control={form.control}
-                                name="spccsH_Remarks"
+                                name='spccsH_Remarks'
                                 render={({ field }: { field: any }) => (
                                     <FormItem>
                                         <FormLabel>Remarks</FormLabel>
-                                        <FormControl><Textarea placeholder="Remarks" className="min-h-[40px] resize-none" {...field} /></FormControl>
+                                        <FormControl>
+                                            <Textarea placeholder='Remarks' className='min-h-[40px] resize-none' {...field} />
+                                        </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
@@ -239,9 +267,15 @@ export default function UpdateForm({ selectedRow, onSuccess }: UpdateFormProps) 
                     </div>
                 </div>
 
-                <div className="flex justify-center gap-3 pt-4 border-t">
-                    <Button type="submit" disabled={saveData.isPending} className="min-w-[100px]">
-                        {saveData.isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Updating...</> : 'Update Mapping'}
+                <div className='flex justify-center gap-3 border-t pt-4'>
+                    <Button type='submit' disabled={saveData.isPending} className='min-w-[100px]'>
+                        {saveData.isPending ? (
+                            <>
+                                <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Updating...
+                            </>
+                        ) : (
+                            'Update Mapping'
+                        )}
                     </Button>
                 </div>
             </form>

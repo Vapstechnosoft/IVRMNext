@@ -1,5 +1,3 @@
-import type { ApiResponse } from '@/lib/apiService';
-
 /**
  * Request interface for PF Challan Report onload
  */
@@ -197,4 +195,3 @@ export interface PFChallanReportSearchResponse {
     pfreport?: any;
     [key: string]: any;
 }
-

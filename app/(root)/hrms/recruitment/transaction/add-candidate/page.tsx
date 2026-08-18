@@ -3,14 +3,12 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { useGetCandidateGridData } from '@/hooks/hrms/recruitment/transactions/useTransactions';
 import { Plus, X } from 'lucide-react';
-import { useSession } from 'next-auth/react';
-import { use, useEffect } from 'react';
-import AddCandidateForm from './_components/add-form';
-import { getCandidateColumns, type Candidate } from './_components/columns';
-import { useGetCandidateGridData, useToggleCandidateStatus } from '@/hooks/hrms/recruitment/transactions/useTransactions';
-import ToggleCandidateModal from './_components/toggle-modal';
 import { useState } from 'react';
+import AddCandidateForm from './_components/add-form';
+import { type Candidate, getCandidateColumns } from './_components/columns';
+import ToggleCandidateModal from './_components/toggle-modal';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function AddCandidatePage() {
@@ -38,7 +36,6 @@ function AddCandidatePageContent() {
     });
 
     const tableProps = useDataTableProps(response);
-    
 
     return (
         <div className='min-h-screen'>

@@ -1,10 +1,10 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
-import { format } from 'date-fns';
-import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import type { ColumnDef } from '@tanstack/react-table';
+import { format } from 'date-fns';
 import { useCallback } from 'react';
 
 export const staffRequestColumns: ColumnDef<any, any>[] = [
@@ -21,19 +21,19 @@ export const staffRequestColumns: ColumnDef<any, any>[] = [
     },
     {
         accessorKey: 'empName',
-        header: ({ column }) => <ColumnHeader column={column} title='Staff Name' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Staff Name' />
     },
     {
         accessorKey: 'HRMD_DepartmentName',
-        header: ({ column }) => <ColumnHeader column={column} title='Department' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Department' />
     },
     {
         accessorKey: 'HLMH_Name',
-        header: ({ column }) => <ColumnHeader column={column} title='Hostel' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Hostel' />
     },
     {
         accessorKey: 'HLMRCA_RoomCategory',
-        header: ({ column }) => <ColumnHeader column={column} title='Category' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Category' />
     },
     {
         accessorKey: 'HLHSTREQ_RequestDate',
@@ -41,11 +41,11 @@ export const staffRequestColumns: ColumnDef<any, any>[] = [
         cell: ({ row }) => {
             const date = row.original.HLHSTREQ_RequestDate;
             return date ? format(new Date(date), 'dd/MM/yyyy') : '';
-        },
+        }
     },
     {
         accessorKey: 'HLHSTREQ_BookingStatus',
-        header: ({ column }) => <ColumnHeader column={column} title='Status' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Status' />
     },
     {
         id: 'actions',

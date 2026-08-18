@@ -417,7 +417,11 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                     name='HRME_Id'
                                     render={({ field, fieldState }) => (
                                         <>
-                                            <Select key={field.value} onValueChange={field.onChange} value={field.value} disabled={!watchEmployeeChecked}>
+                                            <Select
+                                                key={field.value}
+                                                onValueChange={field.onChange}
+                                                value={field.value}
+                                                disabled={!watchEmployeeChecked}>
                                                 <SelectTrigger className={!watchEmployeeChecked ? 'bg-gray-100' : ''}>
                                                     <SelectValue placeholder='Select Employee' />
                                                 </SelectTrigger>

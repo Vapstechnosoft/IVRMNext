@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useRef, useState } from 'react';
+import { useReactToPrint } from 'react-to-print';
 // Ensure these paths are correct for your project structure
 import ReportFilter from './components/ReportFilter';
 import TimeTableGrid from './components/TimeTableGrid';
-import { useReactToPrint } from 'react-to-print';
 
 export default function ClassSectionTimeTableReplacementPage() {
     // We use filterData to control the visibility and pass params to the grid
@@ -20,7 +20,7 @@ export default function ClassSectionTimeTableReplacementPage() {
 
     const handlePrint = useReactToPrint({
         contentRef: componentRef,
-        documentTitle: `Class_Section_TimeTable_Report`,
+        documentTitle: `Class_Section_TimeTable_Report`
     });
 
     return (
@@ -36,7 +36,7 @@ export default function ClassSectionTimeTableReplacementPage() {
                 {/* 2. Conditional Rendering: Grid appears only when filterData is truthy */}
                 {filterData && (
                     <div className='fade-in slide-in-from-top-4 animate-in duration-500'>
-                        <div ref={componentRef} className="print:p-4 printable-content">
+                        <div ref={componentRef} className='printable-content print:p-4'>
                             <TimeTableGrid params={filterData} onPrint={handlePrint} />
                         </div>
                     </div>

@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useMemo, ReactNode } from 'react';
-import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search } from 'lucide-react';
+import { type ReactNode, useMemo, useState } from 'react';
 
 export interface CustomTableColumn<T> {
     header: ReactNode;
@@ -49,7 +49,7 @@ export function CustomPaginationTable<T>({
     onSelect,
     onSelectAll,
     itemsPerPage = 5,
-    searchPlaceholder = "Search..."
+    searchPlaceholder = 'Search...'
 }: CustomPaginationTableProps<T>) {
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
@@ -81,32 +81,28 @@ export function CustomPaginationTable<T>({
     }, [filteredData, currentPage, itemsPerPage]);
 
     // Determine Selection State for the *Filtered* view
-    const isAllSelected =
-        filteredData.length > 0 &&
-        filteredData.every((item) => selectedIds.has(item[idKey]));
-    
-    const isSomeSelected =
-        filteredData.length > 0 &&
-        !isAllSelected &&
-        filteredData.some((item) => selectedIds.has(item[idKey]));
+    const isAllSelected = filteredData.length > 0 && filteredData.every((item) => selectedIds.has(item[idKey]));
+
+    const isSomeSelected = filteredData.length > 0 && !isAllSelected && filteredData.some((item) => selectedIds.has(item[idKey]));
 
     const handleSelectAll = (checked: boolean) => {
         // Pass the currently filtered IDs so the parent knows which ones to select/deselect
-        onSelectAll(checked, filteredData.map((item) => item[idKey]));
+        onSelectAll(
+            checked,
+            filteredData.map((item) => item[idKey])
+        );
     };
 
     return (
-        <div className="space-y-4 w-full">
-            <div className="flex items-center justify-between">
-                <div className="font-medium text-foreground text-sm">
-                    Items ({filteredData.length} total)
-                </div>
+        <div className='w-full space-y-4'>
+            <div className='flex items-center justify-between'>
+                <div className='font-medium text-foreground text-sm'>Items ({filteredData.length} total)</div>
                 {searchKeys.length > 0 && (
-                    <div className="relative w-64">
-                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <div className='relative w-64'>
+                        <Search className='absolute top-2.5 left-2 h-4 w-4 text-muted-foreground' />
                         <Input
                             placeholder={searchPlaceholder}
-                            className="pl-8"
+                            className='pl-8'
                             value={searchTerm}
                             onChange={(e) => {
                                 setSearchTerm(e.target.value);
@@ -117,16 +113,16 @@ export function CustomPaginationTable<T>({
                 )}
             </div>
 
-            <div className="rounded-md border overflow-hidden">
-                <div className="overflow-x-auto max-h-[300px]">
-                    <table className="w-full text-sm">
-                        <thead className="bg-muted/50 sticky top-0 z-10">
-                            <tr className="border-b">
-                                <th className="p-3 text-left w-12">
+            <div className='overflow-hidden rounded-md border'>
+                <div className='max-h-[300px] overflow-x-auto'>
+                    <table className='w-full text-sm'>
+                        <thead className='sticky top-0 z-10 bg-muted/50'>
+                            <tr className='border-b'>
+                                <th className='w-12 p-3 text-left'>
                                     <Checkbox
                                         checked={isAllSelected ? true : isSomeSelected ? 'indeterminate' : false}
                                         onCheckedChange={(value) => handleSelectAll(!!value)}
-                                        aria-label="Select all"
+                                        aria-label='Select all'
                                     />
                                 </th>
                                 {columns.map((col, index) => (
@@ -139,14 +135,14 @@ export function CustomPaginationTable<T>({
                         <tbody>
                             {paginatedData.length === 0 ? (
                                 <tr>
-                                    <td colSpan={columns.length + 1} className="h-24 text-center text-muted-foreground">
+                                    <td colSpan={columns.length + 1} className='h-24 text-center text-muted-foreground'>
                                         No Results Found For Selected Criteria
                                     </td>
                                 </tr>
                             ) : (
                                 paginatedData.map((item, index) => (
-                                    <tr key={String(item[idKey])} className="border-b hover:bg-muted/50 transition-colors">
-                                        <td className="px-3 py-2">
+                                    <tr key={String(item[idKey])} className='border-b transition-colors hover:bg-muted/50'>
+                                        <td className='px-3 py-2'>
                                             <Checkbox
                                                 checked={selectedIds.has(item[idKey])}
                                                 onCheckedChange={(value) => onSelect(item[idKey], !!value)}
@@ -166,56 +162,51 @@ export function CustomPaginationTable<T>({
                 </div>
             </div>
 
-            <div className="flex mt-6 pb-2">
-                <div className="flex items-center gap-1.5 rounded-full border border-gray-200 px-2 py-1 shadow-sm bg-white">
+            <div className='mt-6 flex pb-2'>
+                <div className='flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-2 py-1 shadow-sm'>
                     <button
                         onClick={() => setCurrentPage(1)}
                         disabled={currentPage === 1}
-                        className="p-1 text-gray-400 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                        <ChevronsLeft className="h-4 w-4" />
+                        className='p-1 text-gray-400 transition-colors hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50'>
+                        <ChevronsLeft className='h-4 w-4' />
                     </button>
                     <button
                         onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                         disabled={currentPage === 1}
-                        className="p-1 text-gray-400 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mr-2"
-                    >
-                        <ChevronLeft className="h-4 w-4" />
+                        className='mr-2 p-1 text-gray-400 transition-colors hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50'>
+                        <ChevronLeft className='h-4 w-4' />
                     </button>
-                    
-                    {getPageNumbers(currentPage, totalPages).map((pageNum, idx) => (
+
+                    {getPageNumbers(currentPage, totalPages).map((pageNum, idx) =>
                         pageNum === '...' ? (
-                            <span key={`ellipsis-${idx}`} className="px-2 text-gray-400 text-sm tracking-widest">
+                            <span key={`ellipsis-${idx}`} className='px-2 text-gray-400 text-sm tracking-widest'>
                                 ...
                             </span>
                         ) : (
                             <button
                                 key={pageNum}
                                 onClick={() => setCurrentPage(pageNum as number)}
-                                className={`min-w-[32px] h-8 flex items-center justify-center rounded-full text-sm font-medium transition-all ${
-                                    currentPage === pageNum 
-                                        ? 'bg-[#E05C2B] text-white shadow-md' 
+                                className={`flex h-8 min-w-[32px] items-center justify-center rounded-full font-medium text-sm transition-all ${
+                                    currentPage === pageNum
+                                        ? 'bg-[#E05C2B] text-white shadow-md'
                                         : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                                }`}
-                            >
+                                }`}>
                                 {pageNum}
                             </button>
                         )
-                    ))}
+                    )}
 
                     <button
                         onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                         disabled={currentPage === totalPages}
-                        className="p-1 text-gray-400 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ml-2"
-                    >
-                        <ChevronRight className="h-4 w-4" />
+                        className='ml-2 p-1 text-gray-400 transition-colors hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50'>
+                        <ChevronRight className='h-4 w-4' />
                     </button>
                     <button
                         onClick={() => setCurrentPage(totalPages)}
                         disabled={currentPage === totalPages}
-                        className="p-1 text-gray-400 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                        <ChevronsRight className="h-4 w-4" />
+                        className='p-1 text-gray-400 transition-colors hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50'>
+                        <ChevronsRight className='h-4 w-4' />
                     </button>
                 </div>
             </div>

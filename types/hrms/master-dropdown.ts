@@ -9,22 +9,22 @@ export interface DropdownItem {
 /**
  * Group Type item from /api/MasterDropDown/GroupType
  */
-export interface GroupTypeItem extends DropdownItem { }
+export interface GroupTypeItem extends DropdownItem {}
 
 /**
  * Department item from /api/MasterDropDown/department_drop_down_by_group_Type/{hrmgt_ids}
  */
-export interface DepartmentItem extends DropdownItem { }
+export interface DepartmentItem extends DropdownItem {}
 
 /**
  * Designation item from /api/MasterDropDown/designations_drop_down_by_dept/{hrmd_ids}
  */
-export interface DesignationItem extends DropdownItem { }
+export interface DesignationItem extends DropdownItem {}
 
 /**
  * Employee item from /api/MasterDropDown/employees_drop_down_by_dept_and_designation/{hrmd_ids}/{hrmdes_ids}
  */
-export interface EmployeeItem extends DropdownItem { }
+export interface EmployeeItem extends DropdownItem {}
 
 /**
  * Generic API response structure for MasterDropDown endpoints

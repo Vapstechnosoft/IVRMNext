@@ -18,42 +18,42 @@ export const summaryColumns: ColumnDef<any>[] = [
     },
     {
         id: 'ClassName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' className='font-bold text-black text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' className='text-center font-bold text-black' />,
         cell: ({ row }) => <div className='text-center'>{row.original.ASMCL_ClassName}</div>,
         enableSorting: true,
         enableHiding: false
     },
     {
         id: 'SectionName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Section' className='font-bold text-black text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Section' className='text-center font-bold text-black' />,
         cell: ({ row }) => <div className='text-center'>{row.original.ASMC_SectionName}</div>,
         enableSorting: true,
         enableHiding: false
     },
     {
         accessorKey: 'TOTAL',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Strength' className='font-bold text-black text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Strength' className='text-center font-bold text-black' />,
         cell: ({ row }) => <div className='text-center'>{row.getValue('TOTAL')}</div>,
         enableSorting: true,
         enableHiding: false
     },
     {
         accessorKey: 'PRESENT',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Present' className='font-bold text-black text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Present' className='text-center font-bold text-black' />,
         cell: ({ row }) => <div className='text-center'>{row.getValue('PRESENT')}</div>,
         enableSorting: true,
         enableHiding: false
     },
     {
         accessorKey: 'ABSENT',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Absent' className='font-bold text-black text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Absent' className='text-center font-bold text-black' />,
         cell: ({ row }) => <div className='text-center'>{row.getValue('ABSENT')}</div>,
         enableSorting: true,
         enableHiding: false
     },
     {
         accessorKey: 'HALFDAY',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Half Day' className='font-bold text-black text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Half Day' className='text-center font-bold text-black' />,
         cell: ({ row }) => <div className='text-center'>{row.getValue('HALFDAY')}</div>,
         enableSorting: true,
         enableHiding: false
@@ -65,7 +65,7 @@ export const getStudentColumns = (frequency: string): ColumnDef<any>[] => {
         {
             id: 'select',
             header: ({ table }) => (
-                <div className='flex items-center justify-center w-full'>
+                <div className='flex w-full items-center justify-center'>
                     <Checkbox
                         checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
                         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
@@ -74,11 +74,11 @@ export const getStudentColumns = (frequency: string): ColumnDef<any>[] => {
                 </div>
             ),
             cell: ({ row }) => (
-                <div className='flex items-center justify-center w-full'>
-                    <Checkbox 
-                        checked={row.getIsSelected()} 
-                        onCheckedChange={(value) => row.toggleSelected(!!value)} 
-                        aria-label='Select row' 
+                <div className='flex w-full items-center justify-center'>
+                    <Checkbox
+                        checked={row.getIsSelected()}
+                        onCheckedChange={(value) => row.toggleSelected(!!value)}
+                        aria-label='Select row'
                     />
                 </div>
             ),
@@ -92,7 +92,9 @@ export const getStudentColumns = (frequency: string): ColumnDef<any>[] => {
         columns.push(
             {
                 id: 'firstHalf',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='I Half' className='font-bold text-black text-center' />,
+                header: ({ column }) => (
+                    <DataTableColumnHeader column={column} title='I Half' className='text-center font-bold text-black' />
+                ),
                 cell: ({ row }) => (
                     <div className='flex items-center justify-center'>
                         <Checkbox checked={row.original.FirstHalfflag} disabled />
@@ -103,7 +105,9 @@ export const getStudentColumns = (frequency: string): ColumnDef<any>[] => {
             },
             {
                 id: 'secondHalf',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='II Half' className='font-bold text-black text-center' />,
+                header: ({ column }) => (
+                    <DataTableColumnHeader column={column} title='II Half' className='text-center font-bold text-black' />
+                ),
                 cell: ({ row }) => (
                     <div className='flex items-center justify-center'>
                         <Checkbox checked={row.original.SecondHalfflag} disabled />
@@ -118,7 +122,7 @@ export const getStudentColumns = (frequency: string): ColumnDef<any>[] => {
     columns.push(
         {
             accessorKey: 'RowNo',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='SL.No.' className='font-bold text-black text-center' />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='SL.No.' className='text-center font-bold text-black' />,
             cell: ({ row, table }) => {
                 const pageIndex = table.getState().pagination.pageIndex;
                 const pageSize = table.getState().pagination.pageSize;
@@ -129,9 +133,9 @@ export const getStudentColumns = (frequency: string): ColumnDef<any>[] => {
         },
         {
             accessorKey: 'class',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Class' className='font-bold text-black text-center' />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Class' className='text-center font-bold text-black' />,
             cell: ({ row }) => {
-                const parts = (row.getValue('classsection') as string || '').split('-');
+                const parts = ((row.getValue('classsection') as string) || '').split('-');
                 return <div className='text-center'>{parts[0]}</div>;
             },
             enableSorting: true,
@@ -139,9 +143,9 @@ export const getStudentColumns = (frequency: string): ColumnDef<any>[] => {
         },
         {
             accessorKey: 'section',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Section' className='font-bold text-black text-center' />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Section' className='text-center font-bold text-black' />,
             cell: ({ row }) => {
-                const parts = (row.getValue('classsection') as string || '').split('-');
+                const parts = ((row.getValue('classsection') as string) || '').split('-');
                 return <div className='text-center'>{parts[1] || ''}</div>;
             },
             enableSorting: true,
@@ -149,7 +153,7 @@ export const getStudentColumns = (frequency: string): ColumnDef<any>[] => {
         },
         {
             accessorKey: 'AMST_AdmNo',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Adm.No.' className='font-bold text-black text-center' />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Adm.No.' className='text-center font-bold text-black' />,
             cell: ({ row }) => <div className='text-center'>{row.getValue('AMST_AdmNo')}</div>,
             enableSorting: true,
             enableHiding: false

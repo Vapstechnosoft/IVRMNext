@@ -6,28 +6,28 @@ export async function getDashboardCounts() {
     try {
         const url = '/configuration/dashboard';
         return await api.get('preadmission', url);
-    } catch(err) {
+    } catch (err) {
         console.error('getDashboardCounts Error', err);
         return { success: false, data: [] };
     }
 }
 
-export async function  GetChairmanDashBoardFeesdata(ASMAY_ID:number){
+export async function GetChairmanDashBoardFeesdata(ASMAY_ID: number) {
     try {
-        const url = `/FeesCommon/GetChairmanDashBoardFeesdata?ASMAY_ID=${ASMAY_ID}`
+        const url = `/FeesCommon/GetChairmanDashBoardFeesdata?ASMAY_ID=${ASMAY_ID}`;
         // Try with standard path, if it fails backend will be logged
         return await api.get('fees', url);
-    } catch(err) {
+    } catch (err) {
         console.error('GetChairmanDashBoardFeesdata Error', err);
         return { success: false, data: [] };
     }
 }
 
-export async function GetTeacherCount(){
+export async function GetTeacherCount() {
     try {
         const url = '/api/MasterDropDown/get_today_employee_punch_counts';
         return await api.get('hmslms', url);
-    } catch(err) {
+    } catch (err) {
         console.error('GetTeacherCount Error', err);
         return { success: false, data: [] };
     }

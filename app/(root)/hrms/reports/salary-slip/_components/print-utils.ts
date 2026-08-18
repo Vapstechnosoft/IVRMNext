@@ -1,53 +1,68 @@
 import { format } from 'date-fns';
 
 export function numberToWords(num: number) {
-    if (num === 0) return "Zero Rupees Only";
+    if (num === 0) return 'Zero Rupees Only';
 
     const isNegative = num < 0;
     const absNum = Math.abs(num);
 
     const a = [
-        "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
-        "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen",
-        "Seventeen", "Eighteen", "Nineteen"
+        '',
+        'One',
+        'Two',
+        'Three',
+        'Four',
+        'Five',
+        'Six',
+        'Seven',
+        'Eight',
+        'Nine',
+        'Ten',
+        'Eleven',
+        'Twelve',
+        'Thirteen',
+        'Fourteen',
+        'Fifteen',
+        'Sixteen',
+        'Seventeen',
+        'Eighteen',
+        'Nineteen'
     ];
 
-    const b = [
-        "", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"
-    ];
+    const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
 
     function inWords(n: number): string {
         if (n < 20) return a[n];
-        if (n < 100) return b[Math.floor(n / 10)] + (n % 10 ? " " + a[n % 10] : "");
-        if (n < 1000) return a[Math.floor(n / 100)] + " Hundred" + (n % 100 ? " " + inWords(n % 100) : "");
-        if (n < 100000) return inWords(Math.floor(n / 1000)) + " Thousand" + (n % 1000 ? " " + inWords(n % 1000) : "");
-        if (n < 10000000) return inWords(Math.floor(n / 100000)) + " Lakh" + (n % 100000 ? " " + inWords(n % 100000) : "");
-        return inWords(Math.floor(n / 10000000)) + " Crore" + (n % 10000000 ? " " + inWords(n % 10000000) : "");
+        if (n < 100) return b[Math.floor(n / 10)] + (n % 10 ? ' ' + a[n % 10] : '');
+        if (n < 1000) return a[Math.floor(n / 100)] + ' Hundred' + (n % 100 ? ' ' + inWords(n % 100) : '');
+        if (n < 100000) return inWords(Math.floor(n / 1000)) + ' Thousand' + (n % 1000 ? ' ' + inWords(n % 1000) : '');
+        if (n < 10000000) return inWords(Math.floor(n / 100000)) + ' Lakh' + (n % 100000 ? ' ' + inWords(n % 100000) : '');
+        return inWords(Math.floor(n / 10000000)) + ' Crore' + (n % 10000000 ? ' ' + inWords(n % 10000000) : '');
     }
 
-    const [rupees, paise] = absNum.toFixed(2).split(".");
-    const rupeesVal = parseInt(rupees);
-    const paiseVal = parseInt(paise);
+    const [rupees, paise] = absNum.toFixed(2).split('.');
+    const rupeesVal = Number.parseInt(rupees);
+    const paiseVal = Number.parseInt(paise);
 
-    let words = "";
+    let words = '';
 
     if (rupeesVal > 0) {
-        words = inWords(rupeesVal) + " Rupees";
+        words = inWords(rupeesVal) + ' Rupees';
     }
 
     if (paiseVal > 0) {
         if (words) {
-            words += " and " + inWords(paiseVal) + " Paise";
+            words += ' and ' + inWords(paiseVal) + ' Paise';
         } else {
-            words = inWords(paiseVal) + " Paise";
+            words = inWords(paiseVal) + ' Paise';
         }
     }
 
     if (!words) {
-        words = "Zero Rupees";
+        words = 'Zero Rupees';
     }
 
-    return (isNegative ? "Minus " : "") + words + " Only";
+    return (isNegative ? 'Minus ' : '') + words + ' Only';
 }
 
 export function generateSalarySlipHtml(
@@ -55,13 +70,13 @@ export function generateSalarySlipHtml(
     institution: { name: string; address: string; logo: string },
     month: string,
     year: string,
-    showLopDays: boolean = false,
-    showLeaveDetails: boolean = false,
-    showPanCardNo: boolean = false,
-    showBankDetails: boolean = false
+    showLopDays = false,
+    showLeaveDetails = false,
+    showPanCardNo = false,
+    showBankDetails = false
 ) {
     const formatCurrency = (val: number) => (val || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    
+
     const earnings = slip.earnings || [];
     const deductions = slip.deductions || [];
     const maxRows = Math.max(earnings.length, deductions.length);
@@ -98,10 +113,14 @@ export function generateSalarySlipHtml(
                         <tr><td style="font-weight: bold;">Department</td><td>:</td><td>${slip.department || '-'}</td></tr>
                         <tr><td style="font-weight: bold;">Designation</td><td>:</td><td>${slip.designation}</td></tr>
                         ${slip.uanNumber ? `<tr><td style="font-weight: bold;">PF UAN Number</td><td>:</td><td>${slip.uanNumber}</td></tr>` : ''}
-                        ${showBankDetails ? `
+                        ${
+                            showBankDetails
+                                ? `
                             <tr><td style="font-weight: bold;">Bank Name</td><td>:</td><td>${slip.bankName || '-'}</td></tr>
                             <tr><td style="font-weight: bold;">Bank Acc No.</td><td>:</td><td>${slip.bankAccountNo || '-'}</td></tr>
-                        ` : ''}
+                        `
+                                : ''
+                        }
                     </table>
                 </div>
                 <div>
@@ -151,7 +170,9 @@ export function generateSalarySlipHtml(
                 NOTE : Signature is not required because it is a computer generated statement.
             </p>
 
-            ${showLeaveDetails && slip.leaveDetails && slip.leaveDetails.length > 0 ? `
+            ${
+                showLeaveDetails && slip.leaveDetails && slip.leaveDetails.length > 0
+                    ? `
                 <div class="leave-details" style="margin-top: 50px; border-top: 2px dashed #ccc; padding-top: 40px;">
                     <h4 style="text-align: center; font-size: 18px; text-decoration: underline; margin-bottom: 20px;">Leave Details</h4>
                     <table style="width: 85%; margin: auto; border-collapse: collapse; font-size: 12px;">
@@ -165,7 +186,9 @@ export function generateSalarySlipHtml(
                             </tr>
                         </thead>
                         <tbody>
-                            ${(slip.leaveDetails || []).map((l: any) => `
+                            ${(slip.leaveDetails || [])
+                                .map(
+                                    (l: any) => `
                                 <tr>
                                     <td style="border: 1px solid black; padding: 8px; text-align: center;">${l.serialNo}</td>
                                     <td style="border: 1px solid black; padding: 8px; text-align: left; padding-left: 15px;">${l.leaveName || '-'}</td>
@@ -173,11 +196,15 @@ export function generateSalarySlipHtml(
                                     <td style="border: 1px solid black; padding: 8px; text-align: center;">${l.availedLeaves || 0}</td>
                                     <td style="border: 1px solid black; padding: 8px; text-align: center;">${l.balanceLeaves || 0}</td>
                                 </tr>
-                            `).join('')}
+                            `
+                                )
+                                .join('')}
                         </tbody>
                     </table>
                 </div>
-            ` : ''}
+            `
+                    : ''
+            }
         </div>
     `;
 }
@@ -187,17 +214,19 @@ export function printSalarySlips(
     institution: { name: string; address: string; logo: string },
     month: string,
     year: string,
-    showLopDays: boolean = false,
-    showLeaveDetails: boolean = false,
-    showPanCardNo: boolean = false,
-    showBankDetails: boolean = false
+    showLopDays = false,
+    showLeaveDetails = false,
+    showPanCardNo = false,
+    showBankDetails = false
 ) {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
-    const content = slips.map((slip, index) => {
-        return generateSalarySlipHtml(slip, institution, month, year, showLopDays, showLeaveDetails, showPanCardNo, showBankDetails);
-    }).join('');
+    const content = slips
+        .map((slip, index) => {
+            return generateSalarySlipHtml(slip, institution, month, year, showLopDays, showLeaveDetails, showPanCardNo, showBankDetails);
+        })
+        .join('');
 
     printWindow.document.write(`
         <html>

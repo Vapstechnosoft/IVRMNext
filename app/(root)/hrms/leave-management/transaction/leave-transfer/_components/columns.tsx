@@ -3,9 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { BaseEntity } from '@/lib/localdb';
+import type { LeaveCreditBalanceGridItem } from '@/types/hrms/leave-management/leave-transfer-new';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2 } from 'lucide-react';
-import type { LeaveCreditBalanceGridItem } from '@/types/hrms/leave-management/leave-transfer-new';
 
 export type { LeaveCreditBalanceGridItem };
 export interface LeaveCredit extends BaseEntity {
@@ -100,7 +100,6 @@ interface LeaveTransferColumnsProps {
 }
 
 export const getLeaveTransferColumns = ({ onEdit, onDelete }: LeaveTransferColumnsProps): ColumnDef<LeaveCreditBalanceGridItem>[] => [
-
     {
         id: 'sl',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sno' />,
@@ -155,4 +154,3 @@ export const getLeaveTransferColumns = ({ onEdit, onDelete }: LeaveTransferColum
         }
     }
 ];
-

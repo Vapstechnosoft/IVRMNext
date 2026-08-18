@@ -5,8 +5,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import { getAcademicYearDropdown } from '@/server/fees/masters/class_yearly_category';
 import { vvehpc_examreportcardSchema } from '@/schemas/exam/exam-module/reports';
+import { getAcademicYearDropdown } from '@/server/fees/masters/class_yearly_category';
 
 import {
     getClassDropDownByAcademicYearlist,
@@ -33,12 +33,19 @@ function parseArrayData(raw: any): any[] {
     if (raw.data?.$values && Array.isArray(raw.data.$values)) return raw.data.$values;
     if (raw.$values && Array.isArray(raw.$values)) return raw.$values;
 
-    const source = (raw.data && typeof raw.data === 'object' && !Array.isArray(raw.data)) ? { ...raw, ...raw.data } : raw;
+    const source = raw.data && typeof raw.data === 'object' && !Array.isArray(raw.data) ? { ...raw, ...raw.data } : raw;
     if (typeof source !== 'object') return [];
 
     for (const key of Object.keys(source)) {
         const lower = key.toLowerCase();
-        if (lower.includes('year') || lower.includes('class') || lower.includes('section') || lower.includes('exam') || lower.includes('student') || lower.includes('detail')) {
+        if (
+            lower.includes('year') ||
+            lower.includes('class') ||
+            lower.includes('section') ||
+            lower.includes('exam') ||
+            lower.includes('student') ||
+            lower.includes('detail')
+        ) {
             const val = source[key];
             if (Array.isArray(val) && val.length > 0) return val;
             if (val?.$values && Array.isArray(val.$values) && val.$values.length > 0) return val.$values;
@@ -118,7 +125,16 @@ export default function ProgressCardReportForm({
     const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
     const [exams, setExams] = useState<{ emE_Id: number; emE_ExamName: string }[]>([]);
-    const [students, setStudents] = useState<{ amsT_AdmNo: number; amsT_Id: number; studentName?: string | null; amsT_FatherName?: string | null; amsT_DOB?: string | null; amaY_RollNo?: number | null }[]>([]);
+    const [students, setStudents] = useState<
+        {
+            amsT_AdmNo: number;
+            amsT_Id: number;
+            studentName?: string | null;
+            amsT_FatherName?: string | null;
+            amsT_DOB?: string | null;
+            amaY_RollNo?: number | null;
+        }[]
+    >([]);
     const [searchTerm, setSearchTerm] = useState('');
 
     const { data: academicData, isLoading: academicYearLoading } = useAcademicYearDropdown();
@@ -167,10 +183,12 @@ export default function ProgressCardReportForm({
                 setLoadingClasses(true);
                 const res: any = await getClassDropDownByAcademicYearlist(selectedYear);
                 const rawList = parseArrayData(res?.data ?? res);
-                let formatted = rawList.map((c: any) => ({
-                    asmcL_Id: Number(c.asmcL_Id ?? c.ASMCL_Id ?? c.id ?? 0),
-                    asmcL_ClassName: String(c.asmcL_ClassName ?? c.ASMCL_ClassName ?? c.className ?? c.name ?? '')
-                })).filter((c: any) => c.asmcL_Id > 0 && c.asmcL_ClassName !== '');
+                let formatted = rawList
+                    .map((c: any) => ({
+                        asmcL_Id: Number(c.asmcL_Id ?? c.ASMCL_Id ?? c.id ?? 0),
+                        asmcL_ClassName: String(c.asmcL_ClassName ?? c.ASMCL_ClassName ?? c.className ?? c.name ?? '')
+                    }))
+                    .filter((c: any) => c.asmcL_Id > 0 && c.asmcL_ClassName !== '');
 
                 if (formatted.length === 0) {
                     formatted = FALLBACK_CLASSES;
@@ -197,10 +215,12 @@ export default function ProgressCardReportForm({
                 setLoadingSections(true);
                 const res: any = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass);
                 const rawList = parseArrayData(res?.data ?? res);
-                let formatted = rawList.map((s: any) => ({
-                    asmS_Id: Number(s.asmS_Id ?? s.ASMS_Id ?? s.id ?? 0),
-                    asmC_SectionName: String(s.asmC_SectionName ?? s.ASMC_SectionName ?? s.sectionName ?? s.name ?? '')
-                })).filter((s: any) => s.asmS_Id > 0 && s.asmC_SectionName !== '');
+                let formatted = rawList
+                    .map((s: any) => ({
+                        asmS_Id: Number(s.asmS_Id ?? s.ASMS_Id ?? s.id ?? 0),
+                        asmC_SectionName: String(s.asmC_SectionName ?? s.ASMC_SectionName ?? s.sectionName ?? s.name ?? '')
+                    }))
+                    .filter((s: any) => s.asmS_Id > 0 && s.asmC_SectionName !== '');
 
                 if (formatted.length === 0) {
                     formatted = FALLBACK_SECTIONS;
@@ -233,27 +253,37 @@ export default function ProgressCardReportForm({
 
                 // Students List
                 const studList = parseArrayData(studRes?.data ?? studRes);
-                let mappedStudents = studList.map((s: any) => ({
-                    amsT_Id: Number(s.amsT_Id ?? s.AMST_Id ?? s.id ?? 0),
-                    amsT_AdmNo: Number(s.amsT_AdmNo ?? s.AMST_AdmNo ?? 0),
-                    studentName: s.studentName || s.studentname || `${s.amsT_FirstName || s.AMST_FirstName || ''} ${s.amsT_MiddleName || s.AMST_MiddleName || ''} ${s.amsT_LastName || s.AMST_LastName || ''}`.trim(),
-                    amsT_FatherName: s.amsT_FatherName ?? s.AMST_FatherName ?? s.fatherName ?? null,
-                    amsT_DOB: s.amsT_DOB ?? s.AMST_DOB ?? null,
-                    amaY_RollNo: s.amaY_RollNo ?? s.AMAY_RollNo ?? null
-                })).filter((s: any) => s.amsT_Id > 0 && s.studentName !== '');
+                let mappedStudents = studList
+                    .map((s: any) => ({
+                        amsT_Id: Number(s.amsT_Id ?? s.AMST_Id ?? s.id ?? 0),
+                        amsT_AdmNo: Number(s.amsT_AdmNo ?? s.AMST_AdmNo ?? 0),
+                        studentName:
+                            s.studentName ||
+                            s.studentname ||
+                            `${s.amsT_FirstName || s.AMST_FirstName || ''} ${s.amsT_MiddleName || s.AMST_MiddleName || ''} ${s.amsT_LastName || s.AMST_LastName || ''}`.trim(),
+                        amsT_FatherName: s.amsT_FatherName ?? s.AMST_FatherName ?? s.fatherName ?? null,
+                        amsT_DOB: s.amsT_DOB ?? s.AMST_DOB ?? null,
+                        amaY_RollNo: s.amaY_RollNo ?? s.AMAY_RollNo ?? null
+                    }))
+                    .filter((s: any) => s.amsT_Id > 0 && s.studentName !== '');
 
                 if (mappedStudents.length === 0) {
                     mappedStudents = FALLBACK_STUDENTS;
                 }
                 setStudents(mappedStudents);
-                setValue('studentList', mappedStudents.map((s: any) => ({ amsT_Id: s.amsT_Id })));
+                setValue(
+                    'studentList',
+                    mappedStudents.map((s: any) => ({ amsT_Id: s.amsT_Id }))
+                );
 
                 // Exams List
                 const examList = parseArrayData(examRes?.data ?? examRes);
-                let mappedExams = examList.map((e: any) => ({
-                    emE_Id: Number(e.emE_Id ?? e.EME_Id ?? e.id ?? 0),
-                    emE_ExamName: String(e.emE_ExamName ?? e.EME_ExamName ?? e.examName ?? e.name ?? '')
-                })).filter((e: any) => e.emE_Id > 0 && e.emE_ExamName !== '');
+                let mappedExams = examList
+                    .map((e: any) => ({
+                        emE_Id: Number(e.emE_Id ?? e.EME_Id ?? e.id ?? 0),
+                        emE_ExamName: String(e.emE_ExamName ?? e.EME_ExamName ?? e.examName ?? e.name ?? '')
+                    }))
+                    .filter((e: any) => e.emE_Id > 0 && e.emE_ExamName !== '');
 
                 if (mappedExams.length === 0) {
                     mappedExams = FALLBACK_EXAMS;
@@ -264,7 +294,10 @@ export default function ProgressCardReportForm({
                 console.error('Error loading students/exams:', err);
                 setStudents(FALLBACK_STUDENTS);
                 setExams(FALLBACK_EXAMS);
-                setValue('studentList', FALLBACK_STUDENTS.map((s: any) => ({ amsT_Id: s.amsT_Id })));
+                setValue(
+                    'studentList',
+                    FALLBACK_STUDENTS.map((s: any) => ({ amsT_Id: s.amsT_Id }))
+                );
                 setValue('emE_Id', FALLBACK_EXAMS[0].emE_Id);
             } finally {
                 setLoadingStudents(false);
@@ -273,18 +306,16 @@ export default function ProgressCardReportForm({
         })();
     }, [selectedYear, selectedClass, selectedSection, setValue]);
 
-    const filteredStudents = students.filter(s =>
-        (s.studentName || '').toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredStudents = students.filter((s) => (s.studentName || '').toLowerCase().includes(searchTerm.toLowerCase()));
 
     const allSelected = students.length > 0 && studentList?.length === students.length;
 
     const onSubmit = async (data: FormFields) => {
         try {
-            const selectedClassObj = classes.find(c => String(c.asmcL_Id) === String(data.asmcL_Id));
-            const selectedSectionObj = sections.find(s => String(s.asmS_Id) === String(data.asmS_Id));
-            const selectedExamObj = exams.find(e => String(e.emE_Id) === String(data.emE_Id));
-            const selectedYearObj = academicYears.find(y => String(y.asmaY_Id) === String(data.asmaY_Id));
+            const selectedClassObj = classes.find((c) => String(c.asmcL_Id) === String(data.asmcL_Id));
+            const selectedSectionObj = sections.find((s) => String(s.asmS_Id) === String(data.asmS_Id));
+            const selectedExamObj = exams.find((e) => String(e.emE_Id) === String(data.emE_Id));
+            const selectedYearObj = academicYears.find((y) => String(y.asmaY_Id) === String(data.asmaY_Id));
 
             const payload = {
                 ...data,
@@ -305,7 +336,7 @@ export default function ProgressCardReportForm({
     };
 
     return (
-        <div className='rounded-lg border bg-card text-card-foreground shadow-sm p-6'>
+        <div className='rounded-lg border bg-card p-6 text-card-foreground shadow-sm'>
             <FormProvider {...methods}>
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-6' noValidate>
                     <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
@@ -324,10 +355,11 @@ export default function ProgressCardReportForm({
                                             <Select
                                                 key={field.value}
                                                 onValueChange={(v) => field.onChange(Number(v))}
-                                                value={field.value ? String(field.value) : ''}
-                                            >
+                                                value={field.value ? String(field.value) : ''}>
                                                 <SelectTrigger className='w-full'>
-                                                    <SelectValue placeholder={academicYearLoading ? 'Loading...' : 'Select Academic Year'} />
+                                                    <SelectValue
+                                                        placeholder={academicYearLoading ? 'Loading...' : 'Select Academic Year'}
+                                                    />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {academicYears.map((y) => (
@@ -356,8 +388,7 @@ export default function ProgressCardReportForm({
                                             <Select
                                                 key={field.value}
                                                 onValueChange={(v) => field.onChange(Number(v))}
-                                                value={field.value ? String(field.value) : ''}
-                                            >
+                                                value={field.value ? String(field.value) : ''}>
                                                 <SelectTrigger className='w-full'>
                                                     <SelectValue placeholder={loadingClasses ? 'Loading...' : 'Select Class'} />
                                                 </SelectTrigger>
@@ -388,8 +419,7 @@ export default function ProgressCardReportForm({
                                             <Select
                                                 key={field.value}
                                                 onValueChange={(v) => field.onChange(Number(v))}
-                                                value={field.value ? String(field.value) : ''}
-                                            >
+                                                value={field.value ? String(field.value) : ''}>
                                                 <SelectTrigger className='w-full'>
                                                     <SelectValue placeholder={loadingSections ? 'Loading...' : 'Select Section'} />
                                                 </SelectTrigger>
@@ -420,8 +450,7 @@ export default function ProgressCardReportForm({
                                             <Select
                                                 key={field.value}
                                                 onValueChange={(v) => field.onChange(Number(v))}
-                                                value={field.value ? String(field.value) : ''}
-                                            >
+                                                value={field.value ? String(field.value) : ''}>
                                                 <SelectTrigger className='w-full'>
                                                     <SelectValue placeholder={loadingExams ? 'Loading...' : 'Select Exam'} />
                                                 </SelectTrigger>
@@ -447,11 +476,9 @@ export default function ProgressCardReportForm({
                                     <Checkbox
                                         checked={allSelected}
                                         onCheckedChange={(checked) => {
-                                            setValue(
-                                                'studentList',
-                                                checked ? students.map((s) => ({ amsT_Id: s.amsT_Id })) : [],
-                                                { shouldValidate: true }
-                                            );
+                                            setValue('studentList', checked ? students.map((s) => ({ amsT_Id: s.amsT_Id })) : [], {
+                                                shouldValidate: true
+                                            });
                                         }}
                                     />
                                     Students <span className='text-red-500'>*</span>
@@ -488,13 +515,22 @@ export default function ProgressCardReportForm({
                                                                         checked={isChecked}
                                                                         onCheckedChange={(checked) => {
                                                                             if (checked) {
-                                                                                field.onChange([...(field.value || []), { amsT_Id: s.amsT_Id }]);
+                                                                                field.onChange([
+                                                                                    ...(field.value || []),
+                                                                                    { amsT_Id: s.amsT_Id }
+                                                                                ]);
                                                                             } else {
-                                                                                field.onChange((field.value || []).filter((v) => v.amsT_Id !== s.amsT_Id));
+                                                                                field.onChange(
+                                                                                    (field.value || []).filter(
+                                                                                        (v) => v.amsT_Id !== s.amsT_Id
+                                                                                    )
+                                                                                );
                                                                             }
                                                                         }}
                                                                     />
-                                                                    <Label htmlFor={`stu-${s.amsT_Id}`} className='cursor-pointer text-sm font-medium'>
+                                                                    <Label
+                                                                        htmlFor={`stu-${s.amsT_Id}`}
+                                                                        className='cursor-pointer font-medium text-sm'>
                                                                         {s.studentName}
                                                                     </Label>
                                                                 </div>
@@ -518,16 +554,18 @@ export default function ProgressCardReportForm({
                             type='submit'
                             isLoading={isSubmitting}
                             disabled={isSubmitting || !studentList?.length}
-                            className='min-w-[140px]'
-                        >
+                            className='min-w-[140px]'>
                             {isSubmitting ? 'Generating...' : 'Report'}
                         </Button>
                         <Button
                             type='button'
                             variant='outline'
-                            onClick={() => { reset(); setStudents([]); setSearchTerm(''); }}
-                            className='min-w-[100px]'
-                        >
+                            onClick={() => {
+                                reset();
+                                setStudents([]);
+                                setSearchTerm('');
+                            }}
+                            className='min-w-[100px]'>
                             Cancel
                         </Button>
                     </div>

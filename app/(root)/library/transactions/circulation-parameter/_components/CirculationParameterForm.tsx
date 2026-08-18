@@ -128,7 +128,10 @@ export const CirculationParameterForm = ({
                                 <FormLabel>
                                     Book Type <span className='text-red-500'>*</span>
                                 </FormLabel>
-                                <Select key={field.value || 'empty-bookType'} onValueChange={field.onChange} value={field.value || undefined}>
+                                <Select
+                                    key={field.value || 'empty-bookType'}
+                                    onValueChange={field.onChange}
+                                    value={field.value || undefined}>
                                     <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Book Type' />
@@ -190,7 +193,10 @@ export const CirculationParameterForm = ({
                                 <FormLabel>
                                     Class <span className='text-red-500'>*</span>
                                 </FormLabel>
-                                <Select key={field.value ? String(field.value) : 'empty-class'} onValueChange={(val) => field.onChange(Number(val))} value={field.value ? String(field.value) : undefined}>
+                                <Select
+                                    key={field.value ? String(field.value) : 'empty-class'}
+                                    onValueChange={(val) => field.onChange(Number(val))}
+                                    value={field.value ? String(field.value) : undefined}>
                                     <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Class' />
@@ -219,7 +225,10 @@ export const CirculationParameterForm = ({
                                 <FormLabel>
                                     Employee Group <span className='text-red-500'>*</span>
                                 </FormLabel>
-                                <Select key={field.value ? String(field.value) : 'empty-employeeGroup'} onValueChange={(val) => field.onChange(Number(val))} value={field.value ? String(field.value) : undefined}>
+                                <Select
+                                    key={field.value ? String(field.value) : 'empty-employeeGroup'}
+                                    onValueChange={(val) => field.onChange(Number(val))}
+                                    value={field.value ? String(field.value) : undefined}>
                                     <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Employee Group' />
@@ -248,7 +257,10 @@ export const CirculationParameterForm = ({
                                 <FormLabel>
                                     Department <span className='text-red-500'>*</span>
                                 </FormLabel>
-                                <Select key={field.value ? String(field.value) : 'empty-department'} onValueChange={(val) => field.onChange(Number(val))} value={field.value ? String(field.value) : undefined}>
+                                <Select
+                                    key={field.value ? String(field.value) : 'empty-department'}
+                                    onValueChange={(val) => field.onChange(Number(val))}
+                                    value={field.value ? String(field.value) : undefined}>
                                     <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Department' />
@@ -277,7 +289,10 @@ export const CirculationParameterForm = ({
                                 <FormLabel>
                                     Guest Name <span className='text-red-500'>*</span>
                                 </FormLabel>
-                                <Select key={field.value ? String(field.value) : 'empty-guest'} onValueChange={(val) => field.onChange(Number(val))} value={field.value ? String(field.value) : undefined}>
+                                <Select
+                                    key={field.value ? String(field.value) : 'empty-guest'}
+                                    onValueChange={(val) => field.onChange(Number(val))}
+                                    value={field.value ? String(field.value) : undefined}>
                                     <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Guest' />

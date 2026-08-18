@@ -1,7 +1,7 @@
 'use client';
 
-import * as React from 'react';
 import { cn } from '@/lib/utils';
+import type * as React from 'react';
 
 interface PageHeaderProps {
     title: string;
@@ -11,13 +11,7 @@ interface PageHeaderProps {
     children?: React.ReactNode;
 }
 
-export function PageHeader({
-    title,
-    highlightWord,
-    description,
-    className,
-    children
-}: PageHeaderProps) {
+export function PageHeader({ title, highlightWord, description, className, children }: PageHeaderProps) {
     const parts = highlightWord ? title.split(highlightWord) : [title];
 
     return (
@@ -34,11 +28,7 @@ export function PageHeader({
                         title
                     )}
                 </h1>
-                {description && (
-                    <p className='max-w-2xl font-medium text-slate-500'>
-                        {description}
-                    </p>
-                )}
+                {description && <p className='max-w-2xl font-medium text-slate-500'>{description}</p>}
             </div>
             {children && <div className='flex items-center gap-3'>{children}</div>}
         </div>

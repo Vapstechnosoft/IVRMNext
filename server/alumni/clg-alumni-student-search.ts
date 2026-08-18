@@ -2,12 +2,7 @@
 
 import { api } from '@/lib/apiService';
 
-import type {
-    IAcademicYear,
-    IClgAlumniSearchResponse,
-    IClgAlumniStudentSearchPayload
-} from '@/types/alumni/clg-alumni-student-search';
-
+import type { IClgAlumniSearchResponse, IClgAlumniStudentSearchPayload } from '@/types/alumni/clg-alumni-student-search';
 
 export async function getAcademicYear() {
     const url = `/CLGAlumniApproval/get_intial_data`;
@@ -29,13 +24,18 @@ export async function getSemestersByBranch(data: { AMB_Id: number; ASMAY_Id: num
     return await api.get<any>('alumni', url);
 }
 
-
 export async function getClgAlumniStudentSearchData(data: IClgAlumniStudentSearchPayload) {
     const url = '/CLGAlumnistudentsearch/getsearchdata';
     return await api.post<IClgAlumniSearchResponse>('alumni', url, data);
 }
 
-export async function getClgAlumniStudentSemData(params: { AMCO_Id: number; AMB_Id: number; AMSE_Id: number; ASMAY_Id: number; ACAYCB_Id: number }) {
+export async function getClgAlumniStudentSemData(params: {
+    AMCO_Id: number;
+    AMB_Id: number;
+    AMSE_Id: number;
+    ASMAY_Id: number;
+    ACAYCB_Id: number;
+}) {
     const url = `/CLGAlumnistudentsearch/getdata?AMCO_Id=${params.AMCO_Id}&AMB_Id=${params.AMB_Id}&AMSE_Id=${params.AMSE_Id}&ASMAY_Id=${params.ASMAY_Id}&ACAYCB_Id=${params.ACAYCB_Id}`;
     return await api.get<IClgAlumniSearchResponse>('alumni', url);
 }
