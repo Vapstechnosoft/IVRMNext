@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useEventsSponsor } from '@/hooks/sports/useEventsSponsor';
+import { useEventsSponsor, useEventsSponsorEdit } from '@/hooks/sports/useEventsSponsor';
 import { eventSponsorSchema } from '@/schemas/sports/transactions/events-sponsor';
 import type { IEventSponsorMapping } from '@/types/sports/transactions/events-sponsor';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,8 +18,8 @@ interface UpdateEventSponsorMappingFormProps {
 }
 
 export default function UpdateEventSponsorMappingForm({ selectedRow, onSuccess }: UpdateEventSponsorMappingFormProps) {
-    const { details, saveMutation, useEditDetails } = useEventsSponsor();
-    const { data: editData, isLoading: isEditLoading } = useEditDetails(selectedRow.spccesP_Id);
+    const { details, saveMutation } = useEventsSponsor();
+    const { data: editData, isLoading: isEditLoading } = useEventsSponsorEdit(selectedRow.spccesP_Id);
 
     const {
         control,
@@ -35,12 +35,14 @@ export default function UpdateEventSponsorMappingForm({ selectedRow, onSuccess }
 
     // Reset form when edit data is fetched
     useEffect(() => {
-        if (editData?.data && Array.isArray(editData.data) && editData.data.length > 0) {
-            const fetched = editData.data[0];
-            reset({
-                ...selectedRow,
-                ...fetched
-            });
+        if (editData?.data) {
+            const fetched = Array.isArray(editData.data) ? editData.data[0] : editData.data;
+            if (fetched) {
+                reset({
+                    ...selectedRow,
+                    ...fetched
+                });
+            }
         }
     }, [editData, reset, selectedRow]);
 
@@ -97,7 +99,7 @@ function FormFields({ details, control, watch, setValue, errors }: { details: an
     return (
         <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
             <div className='flex flex-col gap-2'>
-                <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Program Name</Label>
+                <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Program Name</Label>
                 <Controller
                     name='spccE_Id'
                     control={control}
@@ -133,7 +135,7 @@ function FormFields({ details, control, watch, setValue, errors }: { details: an
             </div>
 
             <div className='flex flex-col gap-2'>
-                <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Sponsor Name</Label>
+                <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Sponsor Name</Label>
                 <Controller
                     name='spccmsP_Id'
                     control={control}

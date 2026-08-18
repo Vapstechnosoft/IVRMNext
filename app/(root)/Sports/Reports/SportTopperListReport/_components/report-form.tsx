@@ -178,7 +178,7 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
                         <div className='grid grid-cols-1 items-end gap-6 md:grid-cols-2 lg:grid-cols-3'>
                             {/* Academic Year */}
                             <div className="flex flex-col gap-2">
-                                <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Academic Year</Label>
+                                <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Academic Year</Label>
                                 <Controller
                                     control={control}
                                     name="asmaY_Id"
@@ -209,7 +209,7 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
                             {/* Class Selection (Only if Type == CS) */}
                             {watchedType === 'CS' && (
                                 <div className="flex flex-col gap-2">
-                                    <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Class</Label>
+                                    <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Class</Label>
                                     <Controller
                                         control={control}
                                         name="asmcL_Id"
@@ -241,7 +241,7 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
                             {/* Section Selection (Only if Type == CS) */}
                             {watchedType === 'CS' && (
                                 <div className="flex flex-col gap-2">
-                                    <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Section</Label>
+                                    <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Section</Label>
                                     <Controller
                                         control={control}
                                         name="asmS_Id"
@@ -264,7 +264,7 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
 
                             {/* House Selection (Always visible per analysis) */}
                             <div className="flex flex-col gap-2">
-                                <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>House</Label>
+                                <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">House</Label>
                                 <Controller
                                     control={control}
                                     name="spccmH_Id"
@@ -286,7 +286,7 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
 
                             {/* Event Selection */}
                             <div className="flex flex-col gap-2">
-                                <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Event</Label>
+                                <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Event</Label>
                                 <Controller
                                     control={control}
                                     name="spccmE_Id"

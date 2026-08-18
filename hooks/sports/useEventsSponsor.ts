@@ -1,6 +1,7 @@
 import { tableSearchVariables } from '@/lib/data-table.config';
 import {
     deactivateEventsSponsorMapping,
+    getEditEventsSponsorMapping,
     getEventsSponsorMapping,
     saveEventsSponsorMapping
 } from '@/server/sports/transactions/events-sponsor';
@@ -62,7 +63,9 @@ export const useEventsSponsor = (searchParams?: any) => {
 
     return {
         loadData,
+        details: loadData,
         save,
+        saveMutation: save,
         deactivateMutation,
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -71,3 +74,12 @@ export const useEventsSponsor = (searchParams?: any) => {
         }
     };
 };
+
+export const useEventsSponsorEdit = (id?: number) => {
+    return useQuery({
+        queryKey: ['events-sponsor-edit', id],
+        queryFn: () => getEditEventsSponsorMapping(id!),
+        enabled: Boolean(id && id > 0)
+    });
+};
+
