@@ -5,7 +5,7 @@ async function test() {
     try {
         const chatCompletion = await groq.chat.completions.create({
             messages: [{ role: 'user', content: 'hi' }],
-            model: 'llama-3.1-70b-versatile',
+            model: 'openai/gpt-oss-120b',
             temperature: 0.2,
             max_tokens: 100
         });
