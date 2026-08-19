@@ -1428,13 +1428,13 @@ export const useeditThirdpartytrasaction_GM = (mi_id: number, asmaY_Id: number, 
     };
 };
 
-export const useStudentFeeEnablePartialPayment = (pageId: number = 2) => {
+export const useStudentFeeEnablePartialPayment = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.STUDENT_FEE_ENABLE_PARTIAL_PAYMENT, pageId],
-            queryFn: async () => getStudentFeeEnablePartialPaymentDetails(pageId),
+            queryKey: [FEES_QUERY_KEYS.STUDENT_FEE_ENABLE_PARTIAL_PAYMENT, searchParams ?? {}],
+            queryFn: async () => getStudentFeeEnablePartialPaymentDetails(searchParams),
             staleTime: 0
         }),
 
