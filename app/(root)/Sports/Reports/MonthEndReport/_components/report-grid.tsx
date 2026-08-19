@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import * as XLSX from 'xlsx';
 import { useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
+import MonthEndReportChart from './report-chart';
 
 interface ReportGridProps {
     data: IMonthEndReportData;
@@ -23,7 +24,7 @@ export default function ReportGrid({ data, formData }: ReportGridProps) {
         pageStyle: `
           @page {
             size: A4;
-            margin: 20mm;
+            margin: 15mm;
           }
           @media print {
             body {
@@ -142,6 +143,9 @@ export default function ReportGrid({ data, formData }: ReportGridProps) {
                     <div className="mt-4">Nodal Officer: ______________________</div>
                     <div className="mt-4">With Seal: ______________________</div>
                 </div>
+
+                {/* Sports Month End Bar Chart matching screenshot */}
+                <MonthEndReportChart data={data} />
             </div>
         </div>
     );
