@@ -1,14 +1,12 @@
 import Navbar from '@/components/layout/navigation/navbar';
-import React from 'react';
+import type React from 'react';
 
 export default async function ChairmanLayout({ children }: { children: React.ReactNode }) {
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className='min-h-screen bg-slate-50'>
             <Navbar />
-            <main className="p-4 md:p-8">
-                <div className="max-w-[1600px] mx-auto w-full">
-                    {children}
-                </div>
+            <main className='p-4 md:p-8'>
+                <div className='mx-auto w-full max-w-[1600px]'>{children}</div>
             </main>
         </div>
     );

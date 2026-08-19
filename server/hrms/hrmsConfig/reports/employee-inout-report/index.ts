@@ -64,9 +64,7 @@ export async function getEmployeeInOutReportOnload(
 /**
  * Get employee in-out report data
  */
-export async function getEmployeeInOutReport(
-    payload: { from_date: string; to_date: string; hrme_ids: number[]; }
-) {
+export async function getEmployeeInOutReport(payload: { from_date: string; to_date: string; hrme_ids: number[] }) {
     const url = '/api/EmployeeInOutReport/get_employee_in_out_report';
     return await api.post<any>('hrmsfrontoffice', url, payload);
 }

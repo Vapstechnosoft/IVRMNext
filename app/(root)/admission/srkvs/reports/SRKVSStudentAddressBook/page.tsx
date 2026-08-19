@@ -1,27 +1,27 @@
 'use client';
 
 import { format } from 'date-fns';
-import { Printer, Loader2, Check, Search, X, FileSpreadsheet, ChevronDown } from 'lucide-react';
-import { useRef, useState, useMemo } from 'react';
+import { FileSpreadsheet, Loader2, Printer, Search, X } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import * as XLSX from 'xlsx';
 
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/extension/field';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import {
-    useSrkvsAddressBookLoadData,
-    useChangeYearSrkvsAddressBook,
     useChangeClassSrkvsAddressBook,
     useChangeSectionSrkvsAddressBook,
+    useChangeYearSrkvsAddressBook,
+    useSrkvsAddressBookLoadData,
     useSrkvsAddressBookReport
 } from '@/hooks/admission/preadmission/reports/useSrkvsStudentAddressBook';
 
@@ -74,9 +74,7 @@ export default function SRKVSStudentAddressBookPage() {
 
     /* -------------------- Filtering Logic -------------------- */
     const filteredStudents = useMemo(() => {
-        return studentList.filter(s =>
-            s.amsT_FirstName?.toLowerCase().includes(studentSearch.toLowerCase())
-        );
+        return studentList.filter((s) => s.amsT_FirstName?.toLowerCase().includes(studentSearch.toLowerCase()));
     }, [studentList, studentSearch]);
 
     /* -------------------- Handlers -------------------- */
@@ -121,7 +119,7 @@ export default function SRKVSStudentAddressBookPage() {
                 ASMCL_Id: classId!,
                 ASMS_Id: sId
             });
-            const students = Array.isArray(res) ? res : (Array.isArray((res as any)?.studentlist) ? (res as any)?.studentlist : []);
+            const students = Array.isArray(res) ? res : Array.isArray((res as any)?.studentlist) ? (res as any)?.studentlist : [];
             setStudentList(students);
             // Default to select all
             setSelectedStudentIds(students.map((s: any) => s.amsT_Id));
@@ -131,14 +129,12 @@ export default function SRKVSStudentAddressBookPage() {
     };
 
     const toggleStudent = (id: number) => {
-        setSelectedStudentIds(prev =>
-            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-        );
+        setSelectedStudentIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
     };
 
     const toggleAllStudents = (checked: boolean) => {
         if (checked) {
-            setSelectedStudentIds(studentList.map(s => s.amsT_Id));
+            setSelectedStudentIds(studentList.map((s) => s.amsT_Id));
         } else {
             setSelectedStudentIds([]);
         }
@@ -151,8 +147,8 @@ export default function SRKVSStudentAddressBookPage() {
         }
 
         const selectedList = studentList
-            .filter(s => selectedStudentIds.includes(s.amsT_Id))
-            .map(s => ({ amsT_Id: s.amsT_Id, studentname: s.amsT_FirstName }));
+            .filter((s) => selectedStudentIds.includes(s.amsT_Id))
+            .map((s) => ({ amsT_Id: s.amsT_Id, studentname: s.amsT_FirstName }));
 
         try {
             const res = await reportMutation.mutateAsync({
@@ -160,11 +156,11 @@ export default function SRKVSStudentAddressBookPage() {
                 asmcL_Id: classId,
                 asmS_Id: sectionId,
                 flag: activeStatus,
-                sall: "1",
+                sall: '1',
                 studentlisttemp: selectedList
             });
 
-            const reportData = Array.isArray(res) ? res : (Array.isArray((res as any)?.getdetails) ? (res as any)?.getdetails : []);
+            const reportData = Array.isArray(res) ? res : Array.isArray((res as any)?.getdetails) ? (res as any)?.getdetails : [];
 
             if (reportData.length > 0) {
                 setReportItems(reportData);
@@ -182,23 +178,24 @@ export default function SRKVSStudentAddressBookPage() {
     const handleExcel = () => {
         if (reportItems.length === 0) return;
 
-        const excelData = reportItems.map(item => ({
+        const excelData = reportItems.map((item) => ({
             'Student Name': item.studentname,
             'Admission No': item.AMST_AdmNo,
-            'Class': item.ASMCL_ClassName,
-            'Section': item.ASMC_SectionName,
+            Class: item.ASMCL_ClassName,
+            Section: item.ASMC_SectionName,
             'Father Name': item.AMST_FatherName,
-            'Address': addressType === '1'
-                ? `${item.AMST_PerStreet}, ${item.AMST_PerArea}, ${item.AMST_PerCity} - ${item.AMST_PerPincode}`
-                : `${item.AMST_ConStreet}, ${item.AMST_ConArea}, ${item.AMST_ConCity} - ${item.AMST_ConPincode}`,
-            'Email': item.AMST_emailId,
-            'Phone': item.AMST_MobileNo,
-            'DOB': item.AMST_DOB ? format(new Date(item.AMST_DOB), 'dd/MM/yyyy') : ''
+            Address:
+                addressType === '1'
+                    ? `${item.AMST_PerStreet}, ${item.AMST_PerArea}, ${item.AMST_PerCity} - ${item.AMST_PerPincode}`
+                    : `${item.AMST_ConStreet}, ${item.AMST_ConArea}, ${item.AMST_ConCity} - ${item.AMST_ConPincode}`,
+            Email: item.AMST_emailId,
+            Phone: item.AMST_MobileNo,
+            DOB: item.AMST_DOB ? format(new Date(item.AMST_DOB), 'dd/MM/yyyy') : ''
         }));
 
         const ws = XLSX.utils.json_to_sheet(excelData);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Address Book");
+        XLSX.utils.book_append_sheet(wb, ws, 'Address Book');
         XLSX.writeFile(wb, `SRKVS_AddressBook_${format(new Date(), 'yyyyMMdd')}.xlsx`);
     };
 
@@ -224,39 +221,42 @@ export default function SRKVSStudentAddressBookPage() {
     };
 
     return (
-        <div className='min-h-screen p-4 space-y-6'>
+        <div className='min-h-screen space-y-6 p-4'>
             <CollapsibleSection
                 title='SRKVS Student Address Book'
                 description='Generate printable address labels and directories for students'
                 defaultOpen={true}
                 variant='outline'
                 className='shadow-lg'>
-
                 <div className='space-y-8 bg-white p-6'>
                     {/* Top Control Bar */}
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                    <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                         {/* Display Format */}
-                        <div className='flex flex-col space-y-3 p-4 rounded-2xl bg-slate-50 border border-slate-100'>
-                            <Label className='text-xs font-black text-slate-400 uppercase tracking-widest'>Display Format</Label>
+                        <div className='flex flex-col space-y-3 rounded-2xl border border-slate-100 bg-slate-50 p-4'>
+                            <Label className='font-black text-slate-400 text-xs uppercase tracking-widest'>Display Format</Label>
                             <RadioGroup
                                 value={reportDisplayType}
                                 onValueChange={(v) => setReportDisplayType(v as any)}
                                 className='flex space-x-8'>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='address' id='dt-pdf' />
-                                    <Label htmlFor='dt-pdf' className='font-bold cursor-pointer'>Address_Pdf</Label>
+                                    <Label htmlFor='dt-pdf' className='cursor-pointer font-bold'>
+                                        Address_Pdf
+                                    </Label>
                                 </div>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='addressprint' id='dt-print' />
-                                    <Label htmlFor='dt-print' className='font-bold cursor-pointer'>Address_Print</Label>
+                                    <Label htmlFor='dt-print' className='cursor-pointer font-bold'>
+                                        Address_Print
+                                    </Label>
                                 </div>
                             </RadioGroup>
                         </div>
 
                         {/* Student Status & Address Type */}
                         <div className='grid grid-cols-2 gap-4'>
-                            <div className='flex flex-col space-y-3 p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100'>
-                                <Label className='text-xs font-black text-indigo-400 uppercase tracking-widest'>Status</Label>
+                            <div className='flex flex-col space-y-3 rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4'>
+                                <Label className='font-black text-indigo-400 text-xs uppercase tracking-widest'>Status</Label>
                                 <RadioGroup
                                     value={activeStatus}
                                     onValueChange={(v) => {
@@ -267,38 +267,45 @@ export default function SRKVSStudentAddressBookPage() {
                                     className='flex space-x-6'>
                                     <div className='flex items-center space-x-2'>
                                         <RadioGroupItem value='S' id='as-active' />
-                                        <Label htmlFor='as-active' className='font-bold cursor-pointer'>Active</Label>
+                                        <Label htmlFor='as-active' className='cursor-pointer font-bold'>
+                                            Active
+                                        </Label>
                                     </div>
                                     <div className='flex items-center space-x-2'>
                                         <RadioGroupItem value='L' id='as-left' />
-                                        <Label htmlFor='as-left' className='font-bold cursor-pointer'>Left</Label>
+                                        <Label htmlFor='as-left' className='cursor-pointer font-bold'>
+                                            Left
+                                        </Label>
                                     </div>
                                 </RadioGroup>
                             </div>
-                            <div className='flex flex-col space-y-3 p-4 rounded-2xl bg-orange-50/50 border border-orange-100'>
-                                <Label className='text-xs font-black text-orange-400 uppercase tracking-widest'>Address Type</Label>
-                                <RadioGroup
-                                    value={addressType}
-                                    onValueChange={(v) => setAddressType(v as any)}
-                                    className='flex space-x-4'>
+                            <div className='flex flex-col space-y-3 rounded-2xl border border-orange-100 bg-orange-50/50 p-4'>
+                                <Label className='font-black text-orange-400 text-xs uppercase tracking-widest'>Address Type</Label>
+                                <RadioGroup value={addressType} onValueChange={(v) => setAddressType(v as any)} className='flex space-x-4'>
                                     <div className='flex items-center space-x-2'>
                                         <RadioGroupItem value='1' id='at-per' />
-                                        <Label htmlFor='at-per' className='font-bold cursor-pointer'>Permanent</Label>
+                                        <Label htmlFor='at-per' className='cursor-pointer font-bold'>
+                                            Permanent
+                                        </Label>
                                     </div>
                                     <div className='flex items-center space-x-2'>
                                         <RadioGroupItem value='2' id='at-temp' />
-                                        <Label htmlFor='at-temp' className='font-bold cursor-pointer'>Temporary</Label>
+                                        <Label htmlFor='at-temp' className='cursor-pointer font-bold'>
+                                            Temporary
+                                        </Label>
                                     </div>
                                 </RadioGroup>
                             </div>
                         </div>
                     </div>
 
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
+                    <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
                         {/* Cascading Filters */}
                         <div className='space-y-5'>
                             <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
-                                <Label className='text-sm font-bold'>Academic Year:<span className='text-red-500'>*</span></Label>
+                                <Label className='font-bold text-sm'>
+                                    Academic Year:<span className='text-red-500'>*</span>
+                                </Label>
                                 <Select value={academicYearId?.toString()} onValueChange={(v) => handleYearChange(Number(v))}>
                                     <SelectTrigger className='h-10 rounded-xl'>
                                         <SelectValue placeholder='Select Year' />
@@ -314,12 +321,13 @@ export default function SRKVSStudentAddressBookPage() {
                             </div>
 
                             <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
-                                <Label className='text-sm font-bold'>Class:<span className='text-red-500'>*</span></Label>
+                                <Label className='font-bold text-sm'>
+                                    Class:<span className='text-red-500'>*</span>
+                                </Label>
                                 <Select
                                     disabled={!academicYearId}
                                     value={classId?.toString()}
-                                    onValueChange={(v) => handleClassChange(Number(v))}
-                                >
+                                    onValueChange={(v) => handleClassChange(Number(v))}>
                                     <SelectTrigger className='h-10 rounded-xl'>
                                         <SelectValue placeholder='Select Class' />
                                     </SelectTrigger>
@@ -334,17 +342,18 @@ export default function SRKVSStudentAddressBookPage() {
                             </div>
 
                             <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
-                                <Label className='text-sm font-bold'>Section:<span className='text-red-500'>*</span></Label>
+                                <Label className='font-bold text-sm'>
+                                    Section:<span className='text-red-500'>*</span>
+                                </Label>
                                 <Select
                                     disabled={!classId}
                                     value={sectionId?.toString()}
-                                    onValueChange={(v) => handleSectionChange(Number(v))}
-                                >
+                                    onValueChange={(v) => handleSectionChange(Number(v))}>
                                     <SelectTrigger className='h-10 rounded-xl'>
                                         <SelectValue placeholder='Select Section' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="0">All Sections</SelectItem>
+                                        <SelectItem value='0'>All Sections</SelectItem>
                                         {sectionList.map((item: any) => (
                                             <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>
                                                 {item.asmC_SectionName}
@@ -355,62 +364,74 @@ export default function SRKVSStudentAddressBookPage() {
                             </div>
 
                             {/* Options Checkboxes */}
-                            <div className='p-4 rounded-2xl border bg-slate-50/50 space-y-4'>
-                                <Label className='text-xs font-black text-slate-400 uppercase tracking-widest block mb-1'>Include in Address</Label>
+                            <div className='space-y-4 rounded-2xl border bg-slate-50/50 p-4'>
+                                <Label className='mb-1 block font-black text-slate-400 text-xs uppercase tracking-widest'>
+                                    Include in Address
+                                </Label>
                                 <div className='grid grid-cols-2 gap-4'>
                                     <div className='flex items-center space-x-2'>
                                         <Checkbox id='opt-email' checked={showEmail} onCheckedChange={(v) => setShowEmail(!!v)} />
-                                        <Label htmlFor='opt-email' className='text-sm font-medium'>Email Address</Label>
+                                        <Label htmlFor='opt-email' className='font-medium text-sm'>
+                                            Email Address
+                                        </Label>
                                     </div>
                                     <div className='flex items-center space-x-2'>
                                         <Checkbox id='opt-dob' checked={showDOB} onCheckedChange={(v) => setShowDOB(!!v)} />
-                                        <Label htmlFor='opt-dob' className='text-sm font-medium'>Date of Birth</Label>
+                                        <Label htmlFor='opt-dob' className='font-medium text-sm'>
+                                            Date of Birth
+                                        </Label>
                                     </div>
                                     <div className='flex items-center space-x-2'>
                                         <Checkbox id='opt-phone' checked={showPhone} onCheckedChange={(v) => setShowPhone(!!v)} />
-                                        <Label htmlFor='opt-phone' className='text-sm font-medium'>Phone Number</Label>
+                                        <Label htmlFor='opt-phone' className='font-medium text-sm'>
+                                            Phone Number
+                                        </Label>
                                     </div>
                                     <div className='flex items-center space-x-2'>
                                         <Checkbox id='opt-tc' checked={showTC} onCheckedChange={(v) => setShowTC(!!v)} />
-                                        <Label htmlFor='opt-tc' className='text-sm font-medium'>Previous School TC</Label>
+                                        <Label htmlFor='opt-tc' className='font-medium text-sm'>
+                                            Previous School TC
+                                        </Label>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Student Selection Section */}
-                        <div className='flex flex-col h-full border rounded-2xl bg-white overflow-hidden shadow-sm'>
-                            <div className='p-3 bg-slate-50 border-b flex items-center justify-between'>
+                        <div className='flex h-full flex-col overflow-hidden rounded-2xl border bg-white shadow-sm'>
+                            <div className='flex items-center justify-between border-b bg-slate-50 p-3'>
                                 <div className='flex items-center space-x-2'>
                                     <Checkbox
                                         id='toggle-all'
                                         checked={selectedStudentIds.length === studentList.length && studentList.length > 0}
                                         onCheckedChange={toggleAllStudents}
                                     />
-                                    <Label htmlFor='toggle-all' className='text-sm font-bold text-slate-700'>Select All Students</Label>
+                                    <Label htmlFor='toggle-all' className='font-bold text-slate-700 text-sm'>
+                                        Select All Students
+                                    </Label>
                                 </div>
-                                <span className='text-[10px] font-bold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full uppercase'>
+                                <span className='rounded-full bg-indigo-100 px-2 py-0.5 font-bold text-[10px] text-indigo-700 uppercase'>
                                     {selectedStudentIds.length} / {studentList.length} Selected
                                 </span>
                             </div>
-                            <div className='p-2 border-b'>
+                            <div className='border-b p-2'>
                                 <div className='relative'>
-                                    <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400' />
+                                    <Search className='-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-slate-400' />
                                     <Input
                                         placeholder='Search by name...'
-                                        className='pl-9 h-9 rounded-lg border-slate-200'
+                                        className='h-9 rounded-lg border-slate-200 pl-9'
                                         value={studentSearch}
                                         onChange={(e) => setStudentSearch(e.target.value)}
                                     />
                                     {studentSearch && (
                                         <X
-                                            className='absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 cursor-pointer hover:text-slate-600'
+                                            className='-translate-y-1/2 absolute top-1/2 right-3 h-4 w-4 cursor-pointer text-slate-400 hover:text-slate-600'
                                             onClick={() => setStudentSearch('')}
                                         />
                                     )}
                                 </div>
                             </div>
-                            <ScrollArea className='flex-grow h-[260px] p-2'>
+                            <ScrollArea className='h-[260px] flex-grow p-2'>
                                 {filteredStudents.length > 0 ? (
                                     <div className='grid grid-cols-1 gap-1'>
                                         {filteredStudents.map((s: any) => (
@@ -418,22 +439,27 @@ export default function SRKVSStudentAddressBookPage() {
                                                 key={s.amsT_Id}
                                                 onClick={() => toggleStudent(s.amsT_Id)}
                                                 className={cn(
-                                                    'flex items-center space-x-3 p-2 rounded-lg cursor-pointer transition-colors',
-                                                    selectedStudentIds.includes(s.amsT_Id) ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-slate-50'
-                                                )}
-                                            >
+                                                    'flex cursor-pointer items-center space-x-3 rounded-lg p-2 transition-colors',
+                                                    selectedStudentIds.includes(s.amsT_Id)
+                                                        ? 'bg-indigo-50 text-indigo-700'
+                                                        : 'hover:bg-slate-50'
+                                                )}>
                                                 <Checkbox checked={selectedStudentIds.includes(s.amsT_Id)} />
                                                 <div className='flex flex-col'>
-                                                    <span className='text-sm font-semibold'>{s.amsT_FirstName} {s.amsT_MiddleName || ''} {s.amsT_LastName || ''}</span>
-                                                    <span className='text-[10px] opacity-60 uppercase tracking-tighter'>Reg: {s.amsT_RegistrationNo || 'N/A'}</span>
+                                                    <span className='font-semibold text-sm'>
+                                                        {s.amsT_FirstName} {s.amsT_MiddleName || ''} {s.amsT_LastName || ''}
+                                                    </span>
+                                                    <span className='text-[10px] uppercase tracking-tighter opacity-60'>
+                                                        Reg: {s.amsT_RegistrationNo || 'N/A'}
+                                                    </span>
                                                 </div>
                                             </div>
                                         ))}
                                     </div>
                                 ) : (
-                                    <div className='flex flex-col items-center justify-center h-full text-slate-400 py-10'>
-                                        <Search className='h-8 w-8 mb-2 opacity-20' />
-                                        <p className='text-xs font-medium italic'>No students found</p>
+                                    <div className='flex h-full flex-col items-center justify-center py-10 text-slate-400'>
+                                        <Search className='mb-2 h-8 w-8 opacity-20' />
+                                        <p className='font-medium text-xs italic'>No students found</p>
                                     </div>
                                 )}
                             </ScrollArea>
@@ -441,26 +467,26 @@ export default function SRKVSStudentAddressBookPage() {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className='flex flex-wrap justify-center gap-6 pt-8 border-t border-slate-100'>
+                    <div className='flex flex-wrap justify-center gap-6 border-slate-100 border-t pt-8'>
                         <Button
                             size='lg'
                             onClick={handleReport}
                             disabled={reportMutation.isPending}
-                            className='min-w-[160px] bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-md h-12'>
+                            className='h-12 min-w-[160px] rounded-xl bg-indigo-600 font-bold text-white shadow-md hover:bg-indigo-700'>
                             {reportMutation.isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : 'SUBMIT'}
                         </Button>
                         <Button
                             size='lg'
                             variant='outline'
                             onClick={handleClear}
-                            className='min-w-[160px] border-2 border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl font-bold h-12'>
+                            className='h-12 min-w-[160px] rounded-xl border-2 border-slate-200 font-bold text-slate-600 hover:bg-slate-50'>
                             CLEAR
                         </Button>
                         <Button
                             size='lg'
                             disabled={reportItems.length === 0}
                             onClick={handleExcel}
-                            className='min-w-[160px] bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-md h-12'>
+                            className='h-12 min-w-[160px] rounded-xl bg-emerald-600 font-bold text-white shadow-md hover:bg-emerald-700'>
                             <FileSpreadsheet className='mr-2 h-4 w-4' />
                             EXCEL
                         </Button>
@@ -468,7 +494,7 @@ export default function SRKVSStudentAddressBookPage() {
                             size='lg'
                             onClick={handlePrint}
                             disabled={!showReport}
-                            className='min-w-[160px] bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold shadow-md h-12'>
+                            className='h-12 min-w-[160px] rounded-xl bg-slate-800 font-bold text-white shadow-md hover:bg-slate-900'>
                             <Printer className='mr-2 h-4 w-4' />
                             PRINT
                         </Button>
@@ -478,51 +504,62 @@ export default function SRKVSStudentAddressBookPage() {
 
             {/* Print Preview Area */}
             {showReport && reportItems.length > 0 && (
-                <div className='mt-8 flex flex-col items-center bg-slate-100 p-8 rounded-3xl border-2 border-dashed border-slate-300 overflow-auto'>
-                    <div ref={printRef} className='bg-white shadow-2xl w-[210mm] min-h-[297mm] p-[10mm] printable-content font-serif'>
-                        <div className="grid grid-cols-2 gap-[10mm]">
+                <div className='mt-8 flex flex-col items-center overflow-auto rounded-3xl border-2 border-slate-300 border-dashed bg-slate-100 p-8'>
+                    <div ref={printRef} className='printable-content min-h-[297mm] w-[210mm] bg-white p-[10mm] font-serif shadow-2xl'>
+                        <div className='grid grid-cols-2 gap-[10mm]'>
                             {reportItems.map((user: any, idx: number) => (
-                                <section key={idx} className="label-item">
+                                <section key={idx} className='label-item'>
                                     {reportDisplayType === 'address' ? (
-                                        <div className="flex flex-col space-y-1 p-4 border border-slate-200 min-h-[50mm] justify-center">
-                                            <div className="text-[16px] font-bold uppercase underline">
+                                        <div className='flex min-h-[50mm] flex-col justify-center space-y-1 border border-slate-200 p-4'>
+                                            <div className='font-bold text-[16px] uppercase underline'>
                                                 {user.studentname} ({user.ASMCL_ClassName} {user.ASMC_SectionName})
                                             </div>
-                                            <div className="text-[14px] flex gap-2">
+                                            <div className='flex gap-2 text-[14px]'>
                                                 <span>S/O.</span>
-                                                <span className="font-bold">{user.AMST_FatherName}</span>
+                                                <span className='font-bold'>{user.AMST_FatherName}</span>
                                             </div>
-                                            <div className="text-[14px] leading-tight flex flex-col">
+                                            <div className='flex flex-col text-[14px] leading-tight'>
                                                 {addressType === '1' ? (
                                                     <>
                                                         <span>{user.AMST_PerStreet}</span>
                                                         <span>{user.AMST_PerArea}</span>
-                                                        <span className="font-bold">{user.AMST_PerCity} - {user.AMST_PerPincode}</span>
+                                                        <span className='font-bold'>
+                                                            {user.AMST_PerCity} - {user.AMST_PerPincode}
+                                                        </span>
                                                     </>
                                                 ) : (
                                                     <>
                                                         <span>{user.AMST_ConStreet}</span>
                                                         <span>{user.AMST_ConArea}</span>
-                                                        <span className="font-bold">{user.AMST_ConCity} - {user.AMST_ConPincode}</span>
+                                                        <span className='font-bold'>
+                                                            {user.AMST_ConCity} - {user.AMST_ConPincode}
+                                                        </span>
                                                     </>
                                                 )}
                                             </div>
-                                            {showEmail && <div className="text-[12px] italic text-slate-500">Email: {user.AMST_emailId}</div>}
-                                            {showDOB && <div className="text-[12px] italic text-slate-500">DOB: {user.AMST_DOB ? format(new Date(user.AMST_DOB), 'dd/MM/yyyy') : ''}</div>}
-                                            {showPhone && <div className="text-[13px] font-bold">Ph: {user.AMST_MobileNo}</div>}
+                                            {showEmail && (
+                                                <div className='text-[12px] text-slate-500 italic'>Email: {user.AMST_emailId}</div>
+                                            )}
+                                            {showDOB && (
+                                                <div className='text-[12px] text-slate-500 italic'>
+                                                    DOB: {user.AMST_DOB ? format(new Date(user.AMST_DOB), 'dd/MM/yyyy') : ''}
+                                                </div>
+                                            )}
+                                            {showPhone && <div className='font-bold text-[13px]'>Ph: {user.AMST_MobileNo}</div>}
                                         </div>
                                     ) : (
-                                        <div className="flex flex-col p-6 min-h-[60mm] text-[15px] space-y-1.5 whitespace-pre-wrap font-mono tracking-tight bg-slate-50">
-                                            <span className="font-black uppercase">{user.studentname} ({user.ASMCL_ClassName} {user.ASMC_SectionName})</span>
+                                        <div className='flex min-h-[60mm] flex-col space-y-1.5 whitespace-pre-wrap bg-slate-50 p-6 font-mono text-[15px] tracking-tight'>
+                                            <span className='font-black uppercase'>
+                                                {user.studentname} ({user.ASMCL_ClassName} {user.ASMC_SectionName})
+                                            </span>
                                             <span>ADM: {user.AMST_AdmNo}</span>
-                                            <span className="font-bold">{user.AMST_FatherName}</span>
+                                            <span className='font-bold'>{user.AMST_FatherName}</span>
                                             <span>
                                                 {addressType === '1'
                                                     ? `${user.AMST_PerStreet}, ${user.AMST_PerArea}, ${user.AMST_PerCity} - ${user.AMST_PerPincode}`
-                                                    : `${user.AMST_ConStreet}, ${user.AMST_ConArea}, ${user.AMST_ConCity} - ${user.AMST_ConPincode}`
-                                                }
+                                                    : `${user.AMST_ConStreet}, ${user.AMST_ConArea}, ${user.AMST_ConCity} - ${user.AMST_ConPincode}`}
                                             </span>
-                                            <span className="font-bold">Mob: {user.AMST_MobileNo}</span>
+                                            <span className='font-bold'>Mob: {user.AMST_MobileNo}</span>
                                         </div>
                                     )}
                                 </section>

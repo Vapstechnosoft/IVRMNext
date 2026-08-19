@@ -3,15 +3,15 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { useLeaveAuthorizationDropdowns } from '@/hooks/hrms/leave-management/useMasters';
 import {
+    useCreditMonthDropdown,
     useDeleteLeaveCreditDetails,
     useLeaveCreditDetails,
-    useSaveLeaveCreditDetails,
     useLeaveNameDropdown,
-    useCreditMonthDropdown
+    useSaveLeaveCreditDetails
 } from '@/hooks/hrms/leave-management/useTransactions';
-import { useLeaveAuthorizationDropdowns } from '@/hooks/hrms/leave-management/useMasters';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { Plus, X } from 'lucide-react';
 import { use, useState } from 'react';
 import { toast } from 'sonner';
@@ -141,13 +141,13 @@ function FormSections() {
             HRMLD_NoOfDays: String(formData.noOfDays || '0'),
             HRMLD_MaxLeaveApplicable: Number(formData.maxLeaveApplicable || 0),
             LoginId: 0,
-            Emp_types: (formData.type || []).map(id => ({ HRMGT_Id: id })),
-            dept_types: (formData.department || []).map(id => ({ HRMD_Id: id })),
-            desig_types: (formData.designation || []).map(id => ({ HRMDES_Id: id })),
-            grade_types: (formData.grade || []).map(id => ({ HRMG_Id: id })),
+            Emp_types: (formData.type || []).map((id) => ({ HRMGT_Id: id })),
+            dept_types: (formData.department || []).map((id) => ({ HRMD_Id: id })),
+            desig_types: (formData.designation || []).map((id) => ({ HRMDES_Id: id })),
+            grade_types: (formData.grade || []).map((id) => ({ HRMG_Id: id })),
             HRMLD_CarryForFlg: !!formData.leaveCarryForward,
             HRMLD_EncashFlg: !!formData.leaveEncashment,
-            selectedMonthList: (formData.creditMonths || []).map(m => Number(m)),
+            selectedMonthList: (formData.creditMonths || []).map((m) => Number(m)),
             selectedcarryMonthList: []
         };
 

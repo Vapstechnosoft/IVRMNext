@@ -1,10 +1,10 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
-import { InwardTransactionData } from '@/types/visitors-management/transactions';
 import { Button } from '@/components/ui/button';
-import { ArrowUpDown, Edit, Trash2 } from 'lucide-react';
 import { useInward } from '@/hooks/visitors-management/transactions/useInward';
+import type { InwardTransactionData } from '@/types/visitors-management/transactions';
+import type { ColumnDef } from '@tanstack/react-table';
+import { ArrowUpDown, Edit, Trash2 } from 'lucide-react';
 
 interface ColumnProps {
     onEdit: (data: InwardTransactionData) => void;
@@ -15,28 +15,28 @@ export const getColumns = ({ onEdit }: ColumnProps): ColumnDef<InwardTransaction
         accessorKey: 'foiN_Discription',
         header: ({ column }) => {
             return (
-                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+                <Button variant='ghost' onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
                     Description
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                    <ArrowUpDown className='ml-2 h-4 w-4' />
                 </Button>
             );
-        },
+        }
     },
     {
         accessorKey: 'foiN_ContactPerson',
-        header: 'Contact Person',
+        header: 'Contact Person'
     },
     {
         accessorKey: 'foiN_InwardNo',
-        header: 'Inward No',
+        header: 'Inward No'
     },
     {
         accessorKey: 'foiN_From',
-        header: 'From',
+        header: 'From'
     },
     {
         accessorKey: 'foiN_PhoneNo',
-        header: 'Phone No',
+        header: 'Phone No'
     },
     {
         accessorKey: 'foiN_DateTime',
@@ -48,7 +48,7 @@ export const getColumns = ({ onEdit }: ColumnProps): ColumnDef<InwardTransaction
     },
     {
         accessorKey: 'hrmE_EmployeeFirstName',
-        header: 'Person To',
+        header: 'Person To'
     },
     {
         id: 'actions',
@@ -57,15 +57,15 @@ export const getColumns = ({ onEdit }: ColumnProps): ColumnDef<InwardTransaction
             const { deleteInward } = useInward();
 
             return (
-                <div className="flex gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => onEdit(record)}>
-                        <Edit className="h-4 w-4" />
+                <div className='flex gap-2'>
+                    <Button variant='ghost' size='icon' onClick={() => onEdit(record)}>
+                        <Edit className='h-4 w-4' />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => deleteInward(record.foiN_Id)}>
-                        <Trash2 className="h-4 w-4" />
+                    <Button variant='ghost' size='icon' onClick={() => deleteInward(record.foiN_Id)}>
+                        <Trash2 className='h-4 w-4' />
                     </Button>
                 </div>
             );
-        },
-    },
+        }
+    }
 ];

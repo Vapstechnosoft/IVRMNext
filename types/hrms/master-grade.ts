@@ -1,9 +1,11 @@
 export interface MasterGradeResponse {
     success?: boolean;
     message?: string;
-    data?: GradeDetail[] | {
-        gradelList: GradeDetail[];
-    };
+    data?:
+        | GradeDetail[]
+        | {
+              gradelList: GradeDetail[];
+          };
     gradelList?: GradeDetail[];
     retrunMsg?: string;
     roleId?: number;

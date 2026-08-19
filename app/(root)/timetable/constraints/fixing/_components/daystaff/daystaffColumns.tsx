@@ -49,11 +49,6 @@ export const dayStaffColumns: ColumnDef<TTDayStaffGridData>[] = [
     {
         id: 'actions',
         header: 'Actions',
-        cell: ({ row }) => (
-            <ActionButtonsCell
-                row={row}
-                deleteFunc={deactivateFixingDayStaff}
-            />
-        )
+        cell: ({ row }) => <ActionButtonsCell row={row} deleteFunc={deactivateFixingDayStaff} />
     }
 ];

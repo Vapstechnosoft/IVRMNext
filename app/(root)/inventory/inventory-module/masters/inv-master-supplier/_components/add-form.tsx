@@ -1,14 +1,14 @@
 'use client';
 
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useInvMasterSupplier } from '@/hooks/inventory/masters/use-inv-master-supplier';
-import { invMasterSupplierSchema, type InvMasterSupplierSchema } from '@/schemas/inventory/masters/inv-master-supplier';
+import { type InvMasterSupplierSchema, invMasterSupplierSchema } from '@/schemas/inventory/masters/inv-master-supplier';
 import { saveInvMasterSupplier } from '@/server/inventory/masters/inv-master-supplier';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 interface AddInvMasterSupplierFormProps {
@@ -35,7 +35,7 @@ export default function AddInvMasterSupplierForm({ onSuccess, onCancel }: AddInv
             invmS_EmailId: '',
             invmS_GSTNo: '',
             invmS_SupplierAddress: '',
-            invmS_ActiveFlg: true,
+            invmS_ActiveFlg: true
         }
     } as any);
 
@@ -64,7 +64,7 @@ export default function AddInvMasterSupplierForm({ onSuccess, onCancel }: AddInv
 
     return (
         <form onSubmit={handleSubmit(onSubmit, onInvalid)} className='space-y-4 p-4'>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                 <div className='space-y-2'>
                     <Label htmlFor='invmS_SupplierName'>
                         Supplier Name <span className='text-red-500'>*</span>
@@ -81,9 +81,7 @@ export default function AddInvMasterSupplierForm({ onSuccess, onCancel }: AddInv
                             />
                         )}
                     />
-                    {errors.invmS_SupplierName && (
-                        <p className='text-red-500 text-xs'>{errors.invmS_SupplierName.message}</p>
-                    )}
+                    {errors.invmS_SupplierName && <p className='text-red-500 text-xs'>{errors.invmS_SupplierName.message}</p>}
                 </div>
 
                 <div className='space-y-2'>
@@ -91,13 +89,7 @@ export default function AddInvMasterSupplierForm({ onSuccess, onCancel }: AddInv
                     <Controller
                         name='invmS_SupplierCode'
                         control={control}
-                        render={({ field }) => (
-                            <Input
-                                {...field}
-                                id='invmS_SupplierCode'
-                                placeholder='Enter Supplier Code'
-                            />
-                        )}
+                        render={({ field }) => <Input {...field} id='invmS_SupplierCode' placeholder='Enter Supplier Code' />}
                     />
                 </div>
 
@@ -106,13 +98,7 @@ export default function AddInvMasterSupplierForm({ onSuccess, onCancel }: AddInv
                     <Controller
                         name='invmS_SupplierConatctPerson'
                         control={control}
-                        render={({ field }) => (
-                            <Input
-                                {...field}
-                                id='invmS_SupplierConatctPerson'
-                                placeholder='Enter Contact Person'
-                            />
-                        )}
+                        render={({ field }) => <Input {...field} id='invmS_SupplierConatctPerson' placeholder='Enter Contact Person' />}
                     />
                 </div>
 
@@ -133,9 +119,7 @@ export default function AddInvMasterSupplierForm({ onSuccess, onCancel }: AddInv
                             />
                         )}
                     />
-                    {errors.invmS_SupplierConatctNo && (
-                        <p className='text-red-500 text-xs'>{errors.invmS_SupplierConatctNo.message}</p>
-                    )}
+                    {errors.invmS_SupplierConatctNo && <p className='text-red-500 text-xs'>{errors.invmS_SupplierConatctNo.message}</p>}
                 </div>
 
                 <div className='space-y-2'>
@@ -154,9 +138,7 @@ export default function AddInvMasterSupplierForm({ onSuccess, onCancel }: AddInv
                             />
                         )}
                     />
-                    {errors.invmS_EmailId && (
-                        <p className='text-red-500 text-xs'>{errors.invmS_EmailId.message}</p>
-                    )}
+                    {errors.invmS_EmailId && <p className='text-red-500 text-xs'>{errors.invmS_EmailId.message}</p>}
                 </div>
 
                 <div className='space-y-2'>
@@ -164,13 +146,7 @@ export default function AddInvMasterSupplierForm({ onSuccess, onCancel }: AddInv
                     <Controller
                         name='invmS_GSTNo'
                         control={control}
-                        render={({ field }) => (
-                            <Input
-                                {...field}
-                                id='invmS_GSTNo'
-                                placeholder='Enter GST No.'
-                            />
-                        )}
+                        render={({ field }) => <Input {...field} id='invmS_GSTNo' placeholder='Enter GST No.' />}
                     />
                 </div>
 
@@ -180,19 +156,21 @@ export default function AddInvMasterSupplierForm({ onSuccess, onCancel }: AddInv
                         name='invmS_SupplierAddress'
                         control={control}
                         render={({ field }) => (
-                            <Textarea
-                                {...field}
-                                id='invmS_SupplierAddress'
-                                placeholder='Enter Supplier Address'
-                                rows={3}
-                            />
+                            <Textarea {...field} id='invmS_SupplierAddress' placeholder='Enter Supplier Address' rows={3} />
                         )}
                     />
                 </div>
             </div>
 
             <div className='flex justify-end gap-2'>
-                <Button type='button' variant='outline' onClick={() => { reset(); onCancel?.(); }} disabled={isSubmitting}>
+                <Button
+                    type='button'
+                    variant='outline'
+                    onClick={() => {
+                        reset();
+                        onCancel?.();
+                    }}
+                    disabled={isSubmitting}>
                     Cancel
                 </Button>
                 <Button type='submit' disabled={isSubmitting}>

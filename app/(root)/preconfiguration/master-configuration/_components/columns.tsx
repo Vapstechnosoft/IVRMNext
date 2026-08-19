@@ -1,7 +1,7 @@
 'use client';
 
-import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IMasterConfiguration } from '@/types/preconfiguration/master-configuration';
 import type { ColumnDef } from '@tanstack/react-table';

@@ -2,8 +2,8 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
 import { FormError, Label } from '@/components/ui/extension/field';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMasterAreaDropDown, useMasterRoute, useMasterRouteDropDown } from '@/hooks/transport/transportmodule/usemasters';
 import { routeAreaMappingSchema } from '@/schemas/transport/masters';
@@ -25,7 +25,6 @@ interface AddMappingFormProps {
 export default function AddMappingForm({ routes = [], areas = [], onClose }: AddMappingFormProps) {
     const { refetchAll } = useMasterRoute();
     const [searchTerm, setSearchTerm] = useState('');
-
 
     const { data: routesData, isLoading: routesLoading, error: routesError } = useMasterRouteDropDown();
     const { data: areaData, isLoading: areaLoading, error: areaError } = useMasterAreaDropDown();
@@ -53,7 +52,6 @@ export default function AddMappingForm({ routes = [], areas = [], onClose }: Add
         }
     }, [areaData, areas]);
 
-
     const methods = useForm<FormFields>({
         resolver: zodResolver(routeAreaMappingSchema.addOrUpdate),
         mode: 'onChange',
@@ -72,9 +70,7 @@ export default function AddMappingForm({ routes = [], areas = [], onClose }: Add
         formState: { isSubmitting }
     } = methods;
 
-    const filteredAreas = areaOptions?.filter((area: any) =>
-        area?.trmA_AreaName?.toLowerCase().includes(searchTerm.toLowerCase())
-    ) || [];
+    const filteredAreas = areaOptions?.filter((area: any) => area?.trmA_AreaName?.toLowerCase().includes(searchTerm.toLowerCase())) || [];
 
     const selectedAreaIds = watch('selectedAreaIds');
 
@@ -82,14 +78,20 @@ export default function AddMappingForm({ routes = [], areas = [], onClose }: Add
         if (filteredAreas.length > 0 && selectedAreaIds.length === filteredAreas.length) {
             setValue('selectedAreaIds', []);
         } else {
-            setValue('selectedAreaIds', filteredAreas.map((a: any) => a.trmA_Id));
+            setValue(
+                'selectedAreaIds',
+                filteredAreas.map((a: any) => a.trmA_Id)
+            );
         }
     };
 
     const handleAreaToggle = (areaId: number) => {
         const current = selectedAreaIds || [];
         if (current.includes(areaId)) {
-            setValue('selectedAreaIds', current.filter((id) => id !== areaId));
+            setValue(
+                'selectedAreaIds',
+                current.filter((id) => id !== areaId)
+            );
         } else {
             setValue('selectedAreaIds', [...current, areaId]);
         }
@@ -101,7 +103,7 @@ export default function AddMappingForm({ routes = [], areas = [], onClose }: Add
                 trmR_Id: data.trmR_Id,
                 arealistarr: data.selectedAreaIds.map((id) => ({ trmA_Id: id }))
             };
-            console.log("payloadarea", payload)
+            console.log('payloadarea', payload);
             const response = await saveRouteAreaMapping(payload);
 
             if (response.success) {
@@ -128,8 +130,7 @@ export default function AddMappingForm({ routes = [], areas = [], onClose }: Add
                     })}
                     className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md'
                     noValidate>
-
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                    <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                         {/* Route Selection */}
                         <Controller
                             control={control}
@@ -148,7 +149,9 @@ export default function AddMappingForm({ routes = [], areas = [], onClose }: Add
                                         </SelectTrigger>
                                         <SelectContent>
                                             {routesLoading ? (
-                                                <SelectItem value='loading' disabled>Loading Routes...</SelectItem>
+                                                <SelectItem value='loading' disabled>
+                                                    Loading Routes...
+                                                </SelectItem>
                                             ) : (
                                                 routeOptions?.map((route: any) => (
                                                     <SelectItem key={route.trmR_Id} value={route.trmR_Id.toString()}>
@@ -168,19 +171,19 @@ export default function AddMappingForm({ routes = [], areas = [], onClose }: Add
                             <Label>
                                 Area <span className='text-red-500'>*</span>
                             </Label>
-                            <div className='border rounded-md p-2 h-60 overflow-y-auto flex flex-col gap-2'>
+                            <div className='flex h-60 flex-col gap-2 overflow-y-auto rounded-md border p-2'>
                                 <Input
                                     placeholder='Search Area...'
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     className='mb-2'
                                 />
-                                <div className='flex items-center space-x-2 pb-2 border-b'>
+                                <div className='flex items-center space-x-2 border-b pb-2'>
                                     <Checkbox
                                         checked={filteredAreas.length > 0 && selectedAreaIds.length === filteredAreas.length}
                                         onCheckedChange={handleSelectAll}
                                     />
-                                    <label className='text-sm font-medium text-muted-foreground'>Select All</label>
+                                    <label className='font-medium text-muted-foreground text-sm'>Select All</label>
                                 </div>
 
                                 <Controller
@@ -189,7 +192,7 @@ export default function AddMappingForm({ routes = [], areas = [], onClose }: Add
                                     render={({ fieldState }) => (
                                         <>
                                             {areaLoading ? (
-                                                <div className="p-2 text-sm text-center">Loading Areas...</div>
+                                                <div className='p-2 text-center text-sm'>Loading Areas...</div>
                                             ) : (
                                                 filteredAreas.map((area: any) => (
                                                     <div key={area.trmA_Id} className='flex items-center space-x-2'>
@@ -209,7 +212,7 @@ export default function AddMappingForm({ routes = [], areas = [], onClose }: Add
                         </div>
                     </div>
 
-                    <div className='flex justify-end gap-2 mt-4'>
+                    <div className='mt-4 flex justify-end gap-2'>
                         <Button type='button' variant='outline' onClick={onClose} disabled={isSubmitting}>
                             Cancel
                         </Button>

@@ -31,7 +31,10 @@ export default function ToggleDepartmentForm({ rowData, onClose }: ToggleDepartm
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterDepartmentSchema.delete),
-        mode: 'onChange'
+        mode: 'onChange',
+        defaultValues: {
+            lmD_Id: Number(rowData.lmD_Id)
+        }
     });
 
     function closeDialog() {

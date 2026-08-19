@@ -55,16 +55,11 @@ export const ViewAttachmentModal = ({ isOpen, onClose, attachments }: ViewAttach
                                                     href={att.intbfL_FilePath}
                                                     target='_blank'
                                                     rel='noopener noreferrer'
-                                                    className='text-primary hover:underline'
-                                                >
+                                                    className='text-primary hover:underline'>
                                                     Click Here
                                                 </a>
                                             ) : (
-                                                <Button
-                                                    variant='ghost'
-                                                    size='icon'
-                                                    onClick={() => handlePreview(att.intbfL_FilePath)}
-                                                >
+                                                <Button variant='ghost' size='icon' onClick={() => handlePreview(att.intbfL_FilePath)}>
                                                     <Eye className='h-4 w-4' />
                                                 </Button>
                                             )}

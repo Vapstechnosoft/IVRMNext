@@ -1,8 +1,8 @@
 'use client';
 
 import { DataTable } from '@/components/ui/data-table/data-table';
+import type { LeaveApplication } from '../types';
 import { createColumns } from './columns';
-import { LeaveApplication } from '../types';
 
 interface LeaveDetailsGridProps {
     data: LeaveApplication[];

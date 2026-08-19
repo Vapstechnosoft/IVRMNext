@@ -4,19 +4,19 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
-import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
-import { toast } from 'sonner';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import {
     getClassDropDownByAcademicYearlist,
     getSectionsDropDownByAcademicYearandClasslist,
     getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/cumulative-report';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useState } from 'react';
+import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
+import { toast } from 'sonner';
+import { z } from 'zod';
 
 const finalPromReportSchema = z.object({
     ASMAY_Id: z.string().min(1, 'Academic Year is required'),
@@ -138,13 +138,18 @@ export default function FinalPromReportForm({
                     Number(selectedSection)
                 );
                 const valid = Array.isArray(data) ? data : [];
-                setStudents(valid.map((s: any) => ({
-                    amsT_Id: s.amsT_Id,
-                    studentname: s.studentName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
-                })));
-                
+                setStudents(
+                    valid.map((s: any) => ({
+                        amsT_Id: s.amsT_Id,
+                        studentname: s.studentName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
+                    }))
+                );
+
                 // Select all by default
-                setValue('selectedStudents', valid.map((s: any) => s.amsT_Id.toString()));
+                setValue(
+                    'selectedStudents',
+                    valid.map((s: any) => s.amsT_Id.toString())
+                );
                 setAllStudentsSelected(true);
             } catch {
                 toast.error('Failed to load students');
@@ -162,9 +167,9 @@ export default function FinalPromReportForm({
             Temp_AmstIds: data.selectedStudents.map((id) => ({ AMST_Id: Number(id) })),
             exmname: data.exmname,
             logo: data.logo,
-            academicYear: academicYears.find(y => y.asmaY_Id.toString() === data.ASMAY_Id)?.asmaY_Year || '',
-            className: classes.find(c => c.asmcL_Id.toString() === data.ASMCL_Id)?.asmcL_ClassName || '',
-            sectionName: sections.find(s => s.asmS_Id.toString() === data.ASMS_Id)?.asmC_SectionName || ''
+            academicYear: academicYears.find((y) => y.asmaY_Id.toString() === data.ASMAY_Id)?.asmaY_Year || '',
+            className: classes.find((c) => c.asmcL_Id.toString() === data.ASMCL_Id)?.asmcL_ClassName || '',
+            sectionName: sections.find((s) => s.asmS_Id.toString() === data.ASMS_Id)?.asmC_SectionName || ''
         };
         if (onSuccess) {
             await onSuccess(payload);
@@ -173,7 +178,11 @@ export default function FinalPromReportForm({
 
     const handleAllStudents = (checked: boolean) => {
         if (checked && students.length) {
-            setValue('selectedStudents', students.map((s) => s.amsT_Id.toString()), { shouldValidate: true });
+            setValue(
+                'selectedStudents',
+                students.map((s) => s.amsT_Id.toString()),
+                { shouldValidate: true }
+            );
             setAllStudentsSelected(true);
         } else {
             setValue('selectedStudents', [], { shouldValidate: true });
@@ -201,10 +210,7 @@ export default function FinalPromReportForm({
                                         Academic Year <span className='text-red-500'>*</span>
                                     </Label>
                                     <div className='flex-1'>
-                                        <Select
-                                            key={field.value}
-                                            onValueChange={field.onChange}
-                                            value={field.value || undefined}>
+                                        <Select key={field.value} onValueChange={field.onChange} value={field.value || undefined}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder={academicYearLoading ? 'Loading...' : 'Select Academic Year'} />
                                             </SelectTrigger>
@@ -296,32 +302,22 @@ export default function FinalPromReportForm({
                                         Exam Name <span className='text-red-500'>*</span>
                                     </Label>
                                     <div className='flex-1'>
-                                        <Input
-                                            {...field}
-                                            placeholder='Exam Name'
-                                            autoComplete='off'
-                                        />
+                                        <Input {...field} placeholder='Exam Name' autoComplete='off' />
                                         {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                     </div>
                                 </div>
                             )}
                         />
-                        
+
                         {/* Logo Checkbox */}
                         <Controller
                             control={control}
                             name='logo'
                             render={({ field }) => (
                                 <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                    <Label className='font-medium text-sm sm:w-36'>
-                                        Print Logo
-                                    </Label>
-                                    <div className='flex-1 flex items-center gap-2'>
-                                        <Checkbox 
-                                            checked={field.value} 
-                                            onCheckedChange={field.onChange} 
-                                            id='print-logo' 
-                                        />
+                                    <Label className='font-medium text-sm sm:w-36'>Print Logo</Label>
+                                    <div className='flex flex-1 items-center gap-2'>
+                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} id='print-logo' />
                                     </div>
                                 </div>
                             )}

@@ -1,47 +1,19 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-    MessageSquare,
-    Send,
-    X,
-    Paperclip,
-    Plus,
-    Loader2,
-    Trash2,
-    Calendar,
-    User,
-    ChevronDown,
-    FileText,
-    Image as ImageIcon,
-    FileMinus,
-    Download,
-    Eye
-} from 'lucide-react';
-import {
-    fetchThread,
-    saveInteractionReplyData,
-    deleteInteractionReply
-} from '@/server/staff-portal/interactions';
-import { uploadDocument } from '@/server/document_upload';
-import type { IMessage, ISaveReplyDataRequest, IFILESLISTdata } from '@/types/staff-portal/interactions';
-import { format } from 'date-fns';
-import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { uploadDocument } from '@/server/document_upload';
+import { deleteInteractionReply, fetchThread, saveInteractionReplyData } from '@/server/staff-portal/interactions';
+import type { IFILESLISTdata, IMessage, ISaveReplyDataRequest } from '@/types/staff-portal/interactions';
+import { format } from 'date-fns';
 import { saveAs } from 'file-saver';
+import { Calendar, Download, Eye, FileText, Loader2, MessageSquare, Paperclip, Plus, Trash2, User, X } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 
 interface ViewReplyModalProps {
@@ -77,9 +49,10 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
 
                     // Find if this record belongs to an already added transaction
                     // We check ID first (precise), then fallback to content+time if ID is missing (robust)
-                    const existing = acc.find(item =>
-                        (istintId && item.ISTINT_Id === istintId) ||
-                        (!istintId && item.ISTINT_Interaction === interaction && item.ISTINT_DateTime === dateTime)
+                    const existing = acc.find(
+                        (item) =>
+                            (istintId && item.ISTINT_Id === istintId) ||
+                            (!istintId && item.ISTINT_Interaction === interaction && item.ISTINT_DateTime === dateTime)
                     );
 
                     // Extract attachment from current record
@@ -100,14 +73,15 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
                         const nestedFiles = current.FILESLISTdata || current.attachmentlist || current.images_paths || [];
                         if (Array.isArray(nestedFiles)) {
                             for (const f of nestedFiles) {
-                                const url = typeof f === 'string' ? f : (f.ISMID_Filepath || f.ISMID_FilePath || f.url);
-                                const name = typeof f === 'string' ? url.split('/').pop() : (f.ISMID_Filename || f.name || url.split('/').pop());
+                                const url = typeof f === 'string' ? f : f.ISMID_Filepath || f.ISMID_FilePath || f.url;
+                                const name =
+                                    typeof f === 'string' ? url.split('/').pop() : f.ISMID_Filename || f.name || url.split('/').pop();
                                 if (url) attachments.push({ url, name });
                             }
                         }
 
                         // Add top-level attachment if not redundant
-                        if (currentUrl && !attachments.some(a => a.url === currentUrl)) {
+                        if (currentUrl && !attachments.some((a) => a.url === currentUrl)) {
                             attachments.push({ url: currentUrl, name: currentName });
                         }
 
@@ -171,7 +145,7 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
                 ISTINT_MACAddress: '00-00-00-00-00-00',
                 ISMINT_ISPIPAddress: '127.0.0.1',
                 FILESLISTdata: uploadedFiles,
-                images_paths: uploadedFiles.map(f => f.ISMID_Filepath)
+                images_paths: uploadedFiles.map((f) => f.ISMID_Filepath)
             };
 
             const res = await saveInteractionReplyData(payload);
@@ -222,12 +196,14 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
 
             setPreviewFile({ url: fileUrl, name: fileName, type: fileType });
 
-            const isExcel = fileName.toLowerCase().endsWith('.xlsx') ||
+            const isExcel =
+                fileName.toLowerCase().endsWith('.xlsx') ||
                 fileName.toLowerCase().endsWith('.xls') ||
                 fileType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
                 fileType === 'application/vnd.ms-excel';
 
-            const isWord = fileName.toLowerCase().endsWith('.docx') ||
+            const isWord =
+                fileName.toLowerCase().endsWith('.docx') ||
                 fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
                 fileType === 'application/msword';
 
@@ -252,85 +228,104 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="max-w-5xl p-0 overflow-hidden border-none shadow-2xl rounded-3xl h-[90vh] flex flex-col">
-                <DialogHeader className="bg-[#1e40af] p-6 text-white shrink-0">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md">
-                                <MessageSquare className="h-6 w-6 text-white" />
+            <DialogContent className='flex h-[90vh] max-w-5xl flex-col overflow-hidden rounded-3xl border-none p-0 shadow-2xl'>
+                <DialogHeader className='shrink-0 bg-[#1e40af] p-6 text-white'>
+                    <div className='flex items-center justify-between'>
+                        <div className='flex items-center gap-4'>
+                            <div className='rounded-2xl bg-white/20 p-3 backdrop-blur-md'>
+                                <MessageSquare className='h-6 w-6 text-white' />
                             </div>
                             <div>
-                                <DialogTitle className="text-xl font-black tracking-tight">{message.ISMINT_Subject}</DialogTitle>
-                                <div className="flex items-center gap-3 mt-1 opacity-80 text-xs font-bold uppercase tracking-widest">
-                                    <span className="flex items-center gap-1"><User className="h-3 w-3" /> {message.Sender}</span>
-                                    <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {format(new Date(message.ISMINT_DateTime), 'dd MMM yyyy')}</span>
+                                <DialogTitle className='font-black text-xl tracking-tight'>{message.ISMINT_Subject}</DialogTitle>
+                                <div className='mt-1 flex items-center gap-3 font-bold text-xs uppercase tracking-widest opacity-80'>
+                                    <span className='flex items-center gap-1'>
+                                        <User className='h-3 w-3' /> {message.Sender}
+                                    </span>
+                                    <span className='flex items-center gap-1'>
+                                        <Calendar className='h-3 w-3' /> {format(new Date(message.ISMINT_DateTime), 'dd MMM yyyy')}
+                                    </span>
                                 </div>
                             </div>
                         </div>
-                        <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-white/10 rounded-full">
-                            <X className="h-5 w-5" />
+                        <Button variant='ghost' size='icon' onClick={onClose} className='rounded-full text-white hover:bg-white/10'>
+                            <X className='h-5 w-5' />
                         </Button>
                     </div>
                 </DialogHeader>
 
-                <div className="flex-1 flex flex-col min-h-0 bg-white">
-                    <ScrollArea className="flex-1 p-8">
+                <div className='flex min-h-0 flex-1 flex-col bg-white'>
+                    <ScrollArea className='flex-1 p-8'>
                         {isLoading ? (
-                            <div className="flex flex-col items-center justify-center py-20 gap-4">
-                                <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                                <p className="text-[10px] font-black uppercase tracking-widest text-primary animate-pulse">Loading interaction history...</p>
+                            <div className='flex flex-col items-center justify-center gap-4 py-20'>
+                                <Loader2 className='h-10 w-10 animate-spin text-primary' />
+                                <p className='animate-pulse font-black text-[10px] text-primary uppercase tracking-widest'>
+                                    Loading interaction history...
+                                </p>
                             </div>
                         ) : (
-                            <div className="max-w-[95%] mx-auto pb-10">
+                            <div className='mx-auto max-w-[95%] pb-10'>
                                 {/* Table View */}
-                                <div className="border border-slate-200 rounded-sm overflow-hidden bg-white shadow-sm">
-                                    <table className="w-full text-left border-collapse">
-                                        <thead className="bg-[#1e40af] text-white">
+                                <div className='overflow-hidden rounded-sm border border-slate-200 bg-white shadow-sm'>
+                                    <table className='w-full border-collapse text-left'>
+                                        <thead className='bg-[#1e40af] text-white'>
                                             <tr>
-                                                <th className="px-4 py-2 text-[11px] font-black uppercase tracking-wider border-r border-[#3b82f6]/30 text-center w-[60px]">SL NO</th>
-                                                <th className="px-4 py-2 text-[11px] font-black uppercase tracking-wider border-r border-[#3b82f6]/30 text-center">Interaction</th>
-                                                <th className="px-4 py-2 text-[11px] font-black uppercase tracking-wider border-r border-[#3b82f6]/30 text-center w-[120px]">Image</th>
-                                                <th className="px-4 py-2 text-[11px] font-black uppercase tracking-wider border-r border-[#3b82f6]/30 text-center w-[150px]">Reply By</th>
-                                                <th className="px-4 py-2 text-[11px] font-black uppercase tracking-wider border-r border-[#3b82f6]/30 text-center w-[180px]">Date</th>
-                                                <th className="px-4 py-2 text-[11px] font-black uppercase tracking-wider text-center w-[80px]">Action</th>
+                                                <th className='w-[60px] border-[#3b82f6]/30 border-r px-4 py-2 text-center font-black text-[11px] uppercase tracking-wider'>
+                                                    SL NO
+                                                </th>
+                                                <th className='border-[#3b82f6]/30 border-r px-4 py-2 text-center font-black text-[11px] uppercase tracking-wider'>
+                                                    Interaction
+                                                </th>
+                                                <th className='w-[120px] border-[#3b82f6]/30 border-r px-4 py-2 text-center font-black text-[11px] uppercase tracking-wider'>
+                                                    Image
+                                                </th>
+                                                <th className='w-[150px] border-[#3b82f6]/30 border-r px-4 py-2 text-center font-black text-[11px] uppercase tracking-wider'>
+                                                    Reply By
+                                                </th>
+                                                <th className='w-[180px] border-[#3b82f6]/30 border-r px-4 py-2 text-center font-black text-[11px] uppercase tracking-wider'>
+                                                    Date
+                                                </th>
+                                                <th className='w-[80px] px-4 py-2 text-center font-black text-[11px] uppercase tracking-wider'>
+                                                    Action
+                                                </th>
                                             </tr>
                                         </thead>
-                                        <tbody className="text-[12px] font-bold text-slate-600">
+                                        <tbody className='font-bold text-[12px] text-slate-600'>
                                             {/* Replies */}
                                             {thread.map((msg, idx) => (
-                                                <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                                                    <td className="px-4 py-4 text-center border-r border-slate-100 italic text-slate-400">{idx + 1}</td>
-                                                    <td className="px-4 py-4 border-r border-slate-100 leading-relaxed font-medium">
+                                                <tr key={idx} className='border-slate-100 border-b transition-colors hover:bg-slate-50'>
+                                                    <td className='border-slate-100 border-r px-4 py-4 text-center text-slate-400 italic'>
+                                                        {idx + 1}
+                                                    </td>
+                                                    <td className='border-slate-100 border-r px-4 py-4 font-medium leading-relaxed'>
                                                         {msg.ISTINT_Interaction || msg.ISMINT_Interaction}
                                                     </td>
-                                                    <td className="px-4 py-4 border-r border-slate-100 text-center">
-                                                        <div className="flex flex-wrap justify-center gap-2">
+                                                    <td className='border-slate-100 border-r px-4 py-4 text-center'>
+                                                        <div className='flex flex-wrap justify-center gap-2'>
                                                             {msg.attachments?.map((at: any, i: number) => (
                                                                 <button
                                                                     key={i}
                                                                     onClick={() => handleViewFile(at.url, at.name)}
-                                                                    className="inline-flex p-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors border border-blue-100"
-                                                                    title={at.name}
-                                                                >
-                                                                    <Paperclip className="h-4 w-4" />
+                                                                    className='inline-flex rounded-md border border-blue-100 bg-blue-50 p-2 text-blue-600 transition-colors hover:bg-blue-100'
+                                                                    title={at.name}>
+                                                                    <Paperclip className='h-4 w-4' />
                                                                 </button>
                                                             ))}
                                                         </div>
                                                     </td>
-                                                    <td className="px-4 py-4 border-r border-slate-100 text-center text-[11px] uppercase tracking-tighter">
+                                                    <td className='border-slate-100 border-r px-4 py-4 text-center text-[11px] uppercase tracking-tighter'>
                                                         {msg.Sender}
                                                     </td>
-                                                    <td className="px-4 py-4 text-center text-[11px] text-slate-500 border-r border-slate-100">
+                                                    <td className='border-slate-100 border-r px-4 py-4 text-center text-[11px] text-slate-500'>
                                                         {format(new Date(msg.ISTINT_DateTime || msg.ISMINT_DateTime), 'dd/MM/yyyy hh:mm a')}
                                                     </td>
-                                                    <td className="px-4 py-4 text-center">
-                                                        {(msg.ISTINT_ComposedById === userhrmE_Id || msg.ISMINT_ComposedById === userhrmE_Id) && (
+                                                    <td className='px-4 py-4 text-center'>
+                                                        {(msg.ISTINT_ComposedById === userhrmE_Id ||
+                                                            msg.ISMINT_ComposedById === userhrmE_Id) && (
                                                             <button
                                                                 onClick={() => handleDeleteReply(msg.ISTINT_Id)}
-                                                                className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-md transition-all shadow-sm border border-blue-100"
-                                                                title="Delete Reply"
-                                                            >
-                                                                <Trash2 className="h-4 w-4" />
+                                                                className='rounded-md border border-blue-100 p-1.5 text-blue-500 shadow-sm transition-all hover:bg-blue-50'
+                                                                title='Delete Reply'>
+                                                                <Trash2 className='h-4 w-4' />
                                                             </button>
                                                         )}
                                                     </td>
@@ -344,88 +339,90 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
                     </ScrollArea>
 
                     {/* Reply Section */}
-                    <div className="shrink-0 bg-white border-t-2 shadow-[0_-10px_30px_rgba(0,0,0,0.03)] p-6">
-                        <div className="max-w-4xl mx-auto space-y-6">
-                            <div className="flex gap-4">
-                                <div className="flex-1 flex flex-col gap-4">
-                                    <div className="relative group">
+                    <div className='shrink-0 border-t-2 bg-white p-6 shadow-[0_-10px_30px_rgba(0,0,0,0.03)]'>
+                        <div className='mx-auto max-w-4xl space-y-6'>
+                            <div className='flex gap-4'>
+                                <div className='flex flex-1 flex-col gap-4'>
+                                    <div className='group relative'>
                                         <Textarea
-                                            placeholder="Type your reply..."
-                                            className="min-h-[100px] bg-accent/5 border-2 border-transparent focus-visible:border-primary/20 focus-visible:ring-0 transition-all rounded-2xl p-4 text-sm font-medium resize-none"
+                                            placeholder='Type your reply...'
+                                            className='min-h-[100px] resize-none rounded-2xl border-2 border-transparent bg-accent/5 p-4 font-medium text-sm transition-all focus-visible:border-primary/20 focus-visible:ring-0'
                                             value={replyText}
                                             onChange={(e) => setReplyText(e.target.value)}
                                         />
-                                        <div className="absolute bottom-4 right-4 flex items-center gap-2 opacity-0 group-focus-within:opacity-100 transition-opacity">
-                                            <span className="text-[10px] font-black uppercase text-muted-foreground/40">Press Shift+Enter for new line</span>
+                                        <div className='absolute right-4 bottom-4 flex items-center gap-2 opacity-0 transition-opacity group-focus-within:opacity-100'>
+                                            <span className='font-black text-[10px] text-muted-foreground/40 uppercase'>
+                                                Press Shift+Enter for new line
+                                            </span>
                                         </div>
                                     </div>
 
                                     {/* File Attachments in Reply - Legacy Table Style */}
-                                    <div className="overflow-hidden border rounded-none mt-2">
-                                        <table className="w-full text-left border-collapse">
-                                            <thead className="bg-[#1a5f7a] text-white text-[10px] font-bold uppercase">
+                                    <div className='mt-2 overflow-hidden rounded-none border'>
+                                        <table className='w-full border-collapse text-left'>
+                                            <thead className='bg-[#1a5f7a] font-bold text-[10px] text-white uppercase'>
                                                 <tr>
-                                                    <th className="px-4 py-1.5 text-center border-r border-white/10 w-12">SL NO</th>
-                                                    <th className="px-4 py-1.5 border-r border-white/10 w-28">Upload File</th>
-                                                    <th className="px-4 py-1.5 border-r border-white/10">File Name</th>
-                                                    <th className="px-4 py-1.5 border-r border-white/10 w-16 text-center">View</th>
-                                                    <th className="px-4 py-1.5 text-center w-16">Action</th>
+                                                    <th className='w-12 border-white/10 border-r px-4 py-1.5 text-center'>SL NO</th>
+                                                    <th className='w-28 border-white/10 border-r px-4 py-1.5'>Upload File</th>
+                                                    <th className='border-white/10 border-r px-4 py-1.5'>File Name</th>
+                                                    <th className='w-16 border-white/10 border-r px-4 py-1.5 text-center'>View</th>
+                                                    <th className='w-16 px-4 py-1.5 text-center'>Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {files.map((file, idx) => (
-                                                    <tr key={idx} className="border-b last:border-b-0 hover:bg-muted/30 transition-colors">
-                                                        <td className="px-4 py-1.5 text-center border-r font-bold text-xs">{idx + 1}</td>
-                                                        <td className="px-4 py-1.5 border-r relative">
-                                                            <Button size="sm" variant="outline" className="h-6 w-full text-[9px] font-bold bg-[#1e40af] text-white border-none shadow-sm cursor-pointer relative overflow-hidden">
+                                                    <tr key={idx} className='border-b transition-colors last:border-b-0 hover:bg-muted/30'>
+                                                        <td className='border-r px-4 py-1.5 text-center font-bold text-xs'>{idx + 1}</td>
+                                                        <td className='relative border-r px-4 py-1.5'>
+                                                            <Button
+                                                                size='sm'
+                                                                variant='outline'
+                                                                className='relative h-6 w-full cursor-pointer overflow-hidden border-none bg-[#1e40af] font-bold text-[9px] text-white shadow-sm'>
                                                                 Browse
                                                                 <input
-                                                                    type="file"
-                                                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                                                    type='file'
+                                                                    className='absolute inset-0 cursor-pointer opacity-0'
                                                                     onChange={(e) => handleFileChange(idx, e)}
                                                                 />
                                                             </Button>
                                                         </td>
-                                                        <td className="px-4 py-1.5 border-r">
-                                                            <div className="h-6 border rounded-none bg-background flex items-center px-2">
-                                                                <span className="text-[10px] font-medium truncate max-w-[200px]">
+                                                        <td className='border-r px-4 py-1.5'>
+                                                            <div className='flex h-6 items-center rounded-none border bg-background px-2'>
+                                                                <span className='max-w-[200px] truncate font-medium text-[10px]'>
                                                                     {file.name || ''}
                                                                 </span>
                                                             </div>
                                                         </td>
-                                                        <td className="px-4 py-1.5 text-center border-r">
+                                                        <td className='border-r px-4 py-1.5 text-center'>
                                                             {file.name && file.file ? (
                                                                 <Button
-                                                                    variant="ghost"
-                                                                    size="icon"
-                                                                    className="h-5 w-5 text-primary hover:bg-primary/10"
+                                                                    variant='ghost'
+                                                                    size='icon'
+                                                                    className='h-5 w-5 text-primary hover:bg-primary/10'
                                                                     onClick={() => {
                                                                         const url = URL.createObjectURL(file.file!);
                                                                         handleViewFile(url, file.name);
-                                                                    }}
-                                                                >
-                                                                    <Eye className="h-3.5 w-3.5" />
+                                                                    }}>
+                                                                    <Eye className='h-3.5 w-3.5' />
                                                                 </Button>
                                                             ) : null}
                                                         </td>
-                                                        <td className="px-4 py-1.5 text-center">
-                                                            <div className="flex items-center justify-center gap-1">
+                                                        <td className='px-4 py-1.5 text-center'>
+                                                            <div className='flex items-center justify-center gap-1'>
                                                                 <Button
-                                                                    variant="ghost"
-                                                                    size="icon"
-                                                                    className="h-5 w-5 text-primary hover:bg-primary/10 rounded-none border"
-                                                                    onClick={addNewFile}
-                                                                >
-                                                                    <Plus className="h-3 w-3" />
+                                                                    variant='ghost'
+                                                                    size='icon'
+                                                                    className='h-5 w-5 rounded-none border text-primary hover:bg-primary/10'
+                                                                    onClick={addNewFile}>
+                                                                    <Plus className='h-3 w-3' />
                                                                 </Button>
                                                                 {files.length > 1 && (
                                                                     <Button
-                                                                        variant="ghost"
-                                                                        size="icon"
-                                                                        className="h-5 w-5 text-red-500 hover:bg-red-50 rounded-none border"
-                                                                        onClick={() => removeFile(idx)}
-                                                                    >
-                                                                        <Trash2 className="h-3 w-3" />
+                                                                        variant='ghost'
+                                                                        size='icon'
+                                                                        className='h-5 w-5 rounded-none border text-red-500 hover:bg-red-50'
+                                                                        onClick={() => removeFile(idx)}>
+                                                                        <Trash2 className='h-3 w-3' />
                                                                     </Button>
                                                                 )}
                                                             </div>
@@ -438,15 +435,10 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
                                 </div>
 
                                 <Button
-                                    className="h-10 px-6 rounded-md bg-[#1e40af] hover:bg-[#1e3a8a] text-white font-black text-xs uppercase tracking-widest shadow-md transition-all self-end"
+                                    className='h-10 self-end rounded-md bg-[#1e40af] px-6 font-black text-white text-xs uppercase tracking-widest shadow-md transition-all hover:bg-[#1e3a8a]'
                                     onClick={handleReply}
-                                    disabled={isSubmitting || !replyText.trim()}
-                                >
-                                    {isSubmitting ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                    ) : (
-                                        "REPLY"
-                                    )}
+                                    disabled={isSubmitting || !replyText.trim()}>
+                                    {isSubmitting ? <Loader2 className='h-4 w-4 animate-spin' /> : 'REPLY'}
                                 </Button>
                             </div>
                         </div>
@@ -454,67 +446,69 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
                 </div>
             </DialogContent>
             {/* Unified Preview Modal */}
-            <Dialog open={!!previewFile} onOpenChange={(open) => {
-                if (!open) {
-                    setPreviewFile(null);
-                    setXlsxPreviewData(null);
-                    setDocxPreviewHtml(null);
-                }
-            }}>
-                <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden rounded-2xl border-none shadow-2xl">
-                    <DialogHeader className="p-6 bg-primary text-white flex-row items-center justify-between space-y-0">
-                        <DialogTitle className="text-lg font-bold truncate pr-8">{previewFile?.name}</DialogTitle>
+            <Dialog
+                open={!!previewFile}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setPreviewFile(null);
+                        setXlsxPreviewData(null);
+                        setDocxPreviewHtml(null);
+                    }
+                }}>
+                <DialogContent className='flex max-h-[90vh] max-w-4xl flex-col overflow-hidden rounded-2xl border-none p-0 shadow-2xl'>
+                    <DialogHeader className='flex-row items-center justify-between space-y-0 bg-primary p-6 text-white'>
+                        <DialogTitle className='truncate pr-8 font-bold text-lg'>{previewFile?.name}</DialogTitle>
                         <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-white hover:bg-white/20 rounded-full"
-                            onClick={() => setPreviewFile(null)}
-                        >
-                            <X className="h-5 w-5" />
+                            variant='ghost'
+                            size='icon'
+                            className='h-8 w-8 rounded-full text-white hover:bg-white/20'
+                            onClick={() => setPreviewFile(null)}>
+                            <X className='h-5 w-5' />
                         </Button>
                     </DialogHeader>
-                    <div className="flex-1 overflow-auto bg-muted/20 p-8 flex items-center justify-center min-h-[300px]">
-                        {previewFile?.url && (
-                            previewFile.type?.startsWith('video/') ? (
-                                <video
-                                    src={previewFile.url}
-                                    controls
-                                    className="max-w-full max-h-full rounded-lg shadow-xl"
-                                    autoPlay
-                                />
+                    <div className='flex min-h-[300px] flex-1 items-center justify-center overflow-auto bg-muted/20 p-8'>
+                        {previewFile?.url &&
+                            (previewFile.type?.startsWith('video/') ? (
+                                <video src={previewFile.url} controls className='max-h-full max-w-full rounded-lg shadow-xl' autoPlay />
                             ) : previewFile.type?.startsWith('audio/') ? (
-                                <div className="flex flex-col items-center gap-6 w-full max-w-md bg-background p-10 rounded-2xl shadow-xl border">
-                                    <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center">
-                                        <FileText className="h-10 w-10 text-primary" />
+                                <div className='flex w-full max-w-md flex-col items-center gap-6 rounded-2xl border bg-background p-10 shadow-xl'>
+                                    <div className='flex h-20 w-20 items-center justify-center rounded-full bg-primary/10'>
+                                        <FileText className='h-10 w-10 text-primary' />
                                     </div>
-                                    <audio
-                                        src={previewFile.url}
-                                        controls
-                                        className="w-full"
-                                        autoPlay
-                                    />
-                                    <p className="text-sm font-bold text-muted-foreground">{previewFile.name}</p>
+                                    <audio src={previewFile.url} controls className='w-full' autoPlay />
+                                    <p className='font-bold text-muted-foreground text-sm'>{previewFile.name}</p>
                                 </div>
-                            ) : (previewFile.type === 'application/pdf' || previewFile.name.toLowerCase().endsWith('.docx') || previewFile.name.toLowerCase().endsWith('.doc')) ? (
+                            ) : previewFile.type === 'application/pdf' ||
+                              previewFile.name.toLowerCase().endsWith('.docx') ||
+                              previewFile.name.toLowerCase().endsWith('.doc') ? (
                                 <iframe
                                     src={previewFile.url}
-                                    className="w-full h-full min-h-[600px] border-none rounded-lg"
+                                    className='h-full min-h-[600px] w-full rounded-lg border-none'
                                     title={previewFile.name}
                                 />
                             ) : xlsxPreviewData ? (
-                                <div className="w-full h-full min-h-[500px] bg-background rounded-lg border overflow-hidden flex flex-col shadow-inner">
-                                    <div className="bg-muted/50 px-4 py-2 border-b flex items-center justify-between">
-                                        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Excel Preview (First 50 Rows)</span>
-                                        <Badge variant="outline" className="text-[9px] bg-green-50 text-green-700 border-green-200">XLSX DATA</Badge>
+                                <div className='flex h-full min-h-[500px] w-full flex-col overflow-hidden rounded-lg border bg-background shadow-inner'>
+                                    <div className='flex items-center justify-between border-b bg-muted/50 px-4 py-2'>
+                                        <span className='font-bold text-[10px] text-muted-foreground uppercase tracking-wider'>
+                                            Excel Preview (First 50 Rows)
+                                        </span>
+                                        <Badge variant='outline' className='border-green-200 bg-green-50 text-[9px] text-green-700'>
+                                            XLSX DATA
+                                        </Badge>
                                     </div>
-                                    <ScrollArea className="flex-1 w-full overflow-auto">
-                                        <div className="p-4">
-                                            <table className="w-full border-collapse text-[11px] font-medium">
+                                    <ScrollArea className='w-full flex-1 overflow-auto'>
+                                        <div className='p-4'>
+                                            <table className='w-full border-collapse font-medium text-[11px]'>
                                                 <tbody>
                                                     {xlsxPreviewData.slice(0, 50).map((row, rIdx) => (
-                                                        <tr key={rIdx} className={cn("hover:bg-muted/30 transition-colors", rIdx === 0 && "bg-muted/80 font-bold border-b-2")}>
+                                                        <tr
+                                                            key={rIdx}
+                                                            className={cn(
+                                                                'transition-colors hover:bg-muted/30',
+                                                                rIdx === 0 && 'border-b-2 bg-muted/80 font-bold'
+                                                            )}>
                                                             {row.map((cell: any, cIdx: number) => (
-                                                                <td key={cIdx} className="border p-2 min-w-[120px] whitespace-nowrap">
+                                                                <td key={cIdx} className='min-w-[120px] whitespace-nowrap border p-2'>
                                                                     {cell?.toString() || ''}
                                                                 </td>
                                                             ))}
@@ -523,7 +517,7 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
                                                 </tbody>
                                             </table>
                                             {xlsxPreviewData.length > 50 && (
-                                                <div className="p-4 text-center text-muted-foreground text-xs font-bold bg-muted/10 mt-2 border-t border-dashed">
+                                                <div className='mt-2 border-t border-dashed bg-muted/10 p-4 text-center font-bold text-muted-foreground text-xs'>
                                                     Showing first 50 rows. Download to see all {xlsxPreviewData.length} rows.
                                                 </div>
                                             )}
@@ -534,49 +528,51 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
                                 <img
                                     src={previewFile.url}
                                     alt={previewFile.name}
-                                    className="max-w-full max-h-full object-contain rounded-lg shadow-xl"
+                                    className='max-h-full max-w-full rounded-lg object-contain shadow-xl'
                                 />
                             ) : (
-                                <div className="flex flex-col items-center gap-6 w-full max-w-md bg-background p-10 rounded-2xl shadow-xl border">
-                                    <div className="h-20 w-20 rounded-full bg-slate-100 flex items-center justify-center">
-                                        <FileText className="h-10 w-10 text-slate-400" />
+                                <div className='flex w-full max-w-md flex-col items-center gap-6 rounded-2xl border bg-background p-10 shadow-xl'>
+                                    <div className='flex h-20 w-20 items-center justify-center rounded-full bg-slate-100'>
+                                        <FileText className='h-10 w-10 text-slate-400' />
                                     </div>
-                                    <div className="text-center space-y-2">
-                                        <h4 className="font-bold">Document Preview Unavailable</h4>
-                                        <p className="text-xs text-muted-foreground">This file type ({previewFile.name.split('.').pop()?.toUpperCase()}) cannot be viewed directly in the browser.</p>
+                                    <div className='space-y-2 text-center'>
+                                        <h4 className='font-bold'>Document Preview Unavailable</h4>
+                                        <p className='text-muted-foreground text-xs'>
+                                            This file type ({previewFile.name.split('.').pop()?.toUpperCase()}) cannot be viewed directly in
+                                            the browser.
+                                        </p>
                                     </div>
-                                    <Button
-                                        className="w-full h-12 bg-primary hover:bg-primary/90 font-bold gap-2"
-                                        onClick={handleDownload}
-                                    >
-                                        <Download className="h-4 w-4" />
+                                    <Button className='h-12 w-full gap-2 bg-primary font-bold hover:bg-primary/90' onClick={handleDownload}>
+                                        <Download className='h-4 w-4' />
                                         Download to View
                                     </Button>
                                 </div>
-                            )
-                        )}
+                            ))}
                     </div>
-                    <DialogFooter className="p-6 bg-muted/30 border-t flex items-center justify-between sm:justify-between px-8">
-                        <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest hidden sm:block">
+                    <DialogFooter className='flex items-center justify-between border-t bg-muted/30 p-6 px-8 sm:justify-between'>
+                        <div className='hidden font-bold text-muted-foreground text-xs uppercase tracking-widest sm:block'>
                             {previewFile?.name}
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className='flex items-center gap-3'>
                             <Button
-                                variant="outline"
+                                variant='outline'
                                 onClick={() => setPreviewFile(null)}
-                                className="rounded-full px-8 font-bold border-2 hover:bg-slate-50 uppercase tracking-widest text-xs"
-                            >
+                                className='rounded-full border-2 px-8 font-bold text-xs uppercase tracking-widest hover:bg-slate-50'>
                                 Close
                             </Button>
                             <Button
                                 onClick={handleDownload}
-                                className="bg-primary hover:bg-primary/90 text-white px-8 rounded-full font-bold uppercase tracking-widest text-xs gap-3 shadow-lg hover:shadow-primary/20 transition-all border-none"
-                            >
-                                <Download className="h-4 w-4" />
-                                {previewFile?.type?.startsWith('video/') ? 'Download Video' :
-                                    previewFile?.type?.startsWith('audio/') ? 'Download Audio' :
-                                        previewFile?.type?.startsWith('image/') ? 'Download Image' :
-                                            previewFile?.type === 'application/pdf' ? 'Download PDF' : 'Download File'}
+                                className='gap-3 rounded-full border-none bg-primary px-8 font-bold text-white text-xs uppercase tracking-widest shadow-lg transition-all hover:bg-primary/90 hover:shadow-primary/20'>
+                                <Download className='h-4 w-4' />
+                                {previewFile?.type?.startsWith('video/')
+                                    ? 'Download Video'
+                                    : previewFile?.type?.startsWith('audio/')
+                                      ? 'Download Audio'
+                                      : previewFile?.type?.startsWith('image/')
+                                        ? 'Download Image'
+                                        : previewFile?.type === 'application/pdf'
+                                          ? 'Download PDF'
+                                          : 'Download File'}
                             </Button>
                         </div>
                     </DialogFooter>

@@ -446,4 +446,3 @@ export interface GetLeaveOpeningBalancePageDetailsResponse {
     message: string;
     data: GetLeaveOpeningBalancePageDetailsResponseData;
 }
-

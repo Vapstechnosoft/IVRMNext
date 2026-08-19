@@ -1,14 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import VacateReportForm from './_components/report-form';
-import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Printer } from 'lucide-react';
+import { getVacateReportLoadData } from '@/server/hostel/hostel-management/reports/vacate-report';
 import { format } from 'date-fns';
-import { getVacateReport, getVacateReportLoadData } from '@/server/hostel/hostel-management/reports/vacate-report';
+import { Printer } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import VacateReportForm from './_components/report-form';
 
 export default function VacateReportPage() {
     const [reportData, setReportData] = useState<any[]>([]);
@@ -77,32 +76,29 @@ export default function VacateReportPage() {
     };
 
     return (
-        <div className="flex-col">
-            <div className="flex-1 space-y-4 p-8 pt-6">
+        <div className='flex-col'>
+            <div className='flex-1 space-y-4 p-8 pt-6'>
                 {loadData ? (
-                    <VacateReportForm
-                        initialData={loadData}
-                        onReportGenerated={handleReportGenerated}
-                    />
+                    <VacateReportForm initialData={loadData} onReportGenerated={handleReportGenerated} />
                 ) : (
-                    <div className="flex items-center justify-center p-8">Loading form data...</div>
+                    <div className='flex items-center justify-center p-8'>Loading form data...</div>
                 )}
 
                 {reportData.length > 0 && (
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
                             <CardTitle>Report Results</CardTitle>
-                            <Button variant="outline" size="sm" onClick={handlePrint}>
-                                <Printer className="mr-2 h-4 w-4" />
+                            <Button variant='outline' size='sm' onClick={handlePrint}>
+                                <Printer className='mr-2 h-4 w-4' />
                                 Print
                             </Button>
                         </CardHeader>
                         <CardContent>
-                            <div className="rounded-md border mt-4">
-                                <Table id="reportTable">
+                            <div className='mt-4 rounded-md border'>
+                                <Table id='reportTable'>
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHead className="w-[80px]">SL.No.</TableHead>
+                                            <TableHead className='w-[80px]'>SL.No.</TableHead>
                                             {reportType === 'student' && (
                                                 <>
                                                     <TableHead>Student Name</TableHead>

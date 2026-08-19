@@ -4,9 +4,7 @@ import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IExamTTSession } from '@/types/exam/exam-module/exam-mapping';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Eye } from 'lucide-react';
 import { useCallback } from 'react';
-
 
 export const ExamTTSessionColumns: ColumnDef<IExamTTSession>[] = [
     {

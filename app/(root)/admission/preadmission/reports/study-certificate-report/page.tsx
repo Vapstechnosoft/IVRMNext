@@ -1,31 +1,28 @@
 'use client';
 
 import { format } from 'date-fns';
-import { CalendarIcon, RotateCcw, Printer, FileSpreadsheet, QrCode, Check, ChevronsUpDown, Loader2 } from 'lucide-react';
-import { useRef, useState, useEffect } from 'react';
+import { CalendarIcon, Check, Loader2, Printer, QrCode, RotateCcw } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 
 import { Button } from '@/components/ui/button';
+import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
 import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { Label } from '@/components/ui/extension/field';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
 
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import {
-    useCharacterCertificateReport,
-    useGenerateQRCodeCertificate,
-    useadmissionStudentsDropdown,
-    useStudyCertificateLoadData,
-    useStudyCertificateStudentList,
-    useStudyCertificateDetails,
-    useStudyCertificateAcademicYearChange,
     useStudyCertificateConductDetails,
-    // useStudyCertificateSearchFilter, 
-    useStudyCertificateQRMutation as useStudyCertificateQR
+    useStudyCertificateDetails,
+    useStudyCertificateLoadData,
+    // useStudyCertificateSearchFilter,
+    useStudyCertificateQRMutation as useStudyCertificateQR,
+    useStudyCertificateStudentList,
+    useadmissionStudentsDropdown
 } from '@/hooks/admission/preadmission/useReports';
 import { useStudentSearchFilter } from '@/hooks/admission/preadmission/useStudentTc';
 import { getExcelStudyCertificateReport } from '@/server/admission/preadmission/reports/month_end_report';
@@ -69,13 +66,16 @@ export default function CertificateReportPage() {
         data: studentList,
         isLoading: admissionStudentsLoading,
         isError: admissionStudentsError
-    } = useStudyCertificateStudentList({
-        ASMAY_Id: academicYearId ?? 0,
-        ASMCL_Id: classId ?? 0,
-        ASMC_Id: sectionId ?? 0,
-        AMST_Id: 0,
-        AMST_SOL: studentStatus
-    }, !!academicYearId);
+    } = useStudyCertificateStudentList(
+        {
+            ASMAY_Id: academicYearId ?? 0,
+            ASMCL_Id: classId ?? 0,
+            ASMC_Id: sectionId ?? 0,
+            AMST_Id: 0,
+            AMST_SOL: studentStatus
+        },
+        !!academicYearId
+    );
 
     // Debounced Search Effect
     useEffect(() => {
@@ -91,30 +91,35 @@ export default function CertificateReportPage() {
                 deactive: 'D'
             };
 
-            searchMutation.mutate({
-                asmayId: Number(academicYearId),
-                amstSol: statusMap[studentStatus] || 'S',
-                searchfilter: searchQuery,
-                flag: 'N' // Default to search by Name for reports
-            }, {
-                onSuccess: (response: any) => {
-                    const list = response?.data || response?.studentList || response || [];
-                    setStudentListFromSearch(Array.isArray(list) ? list : []);
+            searchMutation.mutate(
+                {
+                    asmayId: Number(academicYearId),
+                    amstSol: statusMap[studentStatus] || 'S',
+                    searchfilter: searchQuery,
+                    flag: 'N' // Default to search by Name for reports
+                },
+                {
+                    onSuccess: (response: any) => {
+                        const list = response?.data || response?.studentList || response || [];
+                        setStudentListFromSearch(Array.isArray(list) ? list : []);
+                    }
                 }
-            });
+            );
         }, 500);
 
         return () => clearTimeout(timer);
     }, [searchQuery, academicYearId, studentStatus]);
 
     const admissionStudents = searchQuery.length >= 3 ? studentListFromSearch : studentList;
-    const rawStudents = (admissionStudents as any)?.data?.studentList ||
+    const rawStudents =
+        (admissionStudents as any)?.data?.studentList ||
         (admissionStudents as any)?.data?.fillstudlist ||
         (Array.isArray(admissionStudents) ? admissionStudents : []);
 
     const students = rawStudents.map((s: any) => ({
         ...s,
-        studentName: s.studentName || s.amsT_FirstName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
+        studentName:
+            s.studentName || s.amsT_FirstName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
     }));
 
     const [isLoading, setIsLoading] = useState(false);
@@ -170,9 +175,7 @@ export default function CertificateReportPage() {
             setShowCertificate(false);
             setStudentData(null);
 
-            const res = certificateType === '0'
-                ? await studyReport.refetch()
-                : await characterReport.refetch();
+            const res = certificateType === '0' ? await studyReport.refetch() : await characterReport.refetch();
 
             const studentListResult = (res.data as any)?.data?.studentList ?? [];
 
@@ -296,7 +299,7 @@ export default function CertificateReportPage() {
 
     /* -------------------- UI -------------------- */
     return (
-        <div className='min-h-screen p-4 space-y-6'>
+        <div className='min-h-screen space-y-6 p-4'>
             <CollapsibleSection
                 title='Study Certificate Report'
                 description='Generate study or character certificates for students'
@@ -306,7 +309,7 @@ export default function CertificateReportPage() {
                 <div className='space-y-6 bg-white p-6'>
                     {/* Top Filters Row */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                        <div className='flex items-center space-x-4 rounded-lg border p-2 bg-gray-50/50'>
+                        <div className='flex items-center space-x-4 rounded-lg border bg-gray-50/50 p-2'>
                             <RadioGroup
                                 value={studentScope}
                                 onValueChange={(v) => {
@@ -319,47 +322,58 @@ export default function CertificateReportPage() {
                                 className='flex space-x-4'>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='A' id='scope-all' />
-                                    <Label htmlFor='scope-all' className='text-sm font-medium'>All</Label>
+                                    <Label htmlFor='scope-all' className='font-medium text-sm'>
+                                        All
+                                    </Label>
                                 </div>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='indid' id='scope-ind' />
-                                    <Label htmlFor='scope-ind' className='text-sm font-medium'>Individual</Label>
+                                    <Label htmlFor='scope-ind' className='font-medium text-sm'>
+                                        Individual
+                                    </Label>
                                 </div>
                             </RadioGroup>
                         </div>
 
-                        <div className='flex items-center space-x-4 rounded-lg border p-2 bg-gray-50/50'>
-                            <RadioGroup
-                                value={studentStatus}
-                                onValueChange={(v) => setStudentStatus(v as any)}
-                                className='flex space-x-4'>
+                        <div className='flex items-center space-x-4 rounded-lg border bg-gray-50/50 p-2'>
+                            <RadioGroup value={studentStatus} onValueChange={(v) => setStudentStatus(v as any)} className='flex space-x-4'>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='S' id='status-studying' />
-                                    <Label htmlFor='status-studying' className='text-sm font-medium'>Studying</Label>
+                                    <Label htmlFor='status-studying' className='font-medium text-sm'>
+                                        Studying
+                                    </Label>
                                 </div>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='L' id='status-left' />
-                                    <Label htmlFor='status-left' className='text-sm font-medium'>Left</Label>
+                                    <Label htmlFor='status-left' className='font-medium text-sm'>
+                                        Left
+                                    </Label>
                                 </div>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='D' id='status-deactive' />
-                                    <Label htmlFor='status-deactive' className='text-sm font-medium'>Deactive</Label>
+                                    <Label htmlFor='status-deactive' className='font-medium text-sm'>
+                                        Deactive
+                                    </Label>
                                 </div>
                             </RadioGroup>
                         </div>
 
-                        <div className='flex items-center space-x-4 rounded-lg border p-2 bg-gray-50/50'>
+                        <div className='flex items-center space-x-4 rounded-lg border bg-gray-50/50 p-2'>
                             <RadioGroup
                                 value={certificateType}
                                 onValueChange={(v) => setCertificateType(v as any)}
                                 className='flex space-x-4'>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='1' id='type-character' />
-                                    <Label htmlFor='type-character' className='text-sm font-medium'>Character Certificate</Label>
+                                    <Label htmlFor='type-character' className='font-medium text-sm'>
+                                        Character Certificate
+                                    </Label>
                                 </div>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='0' id='type-study' />
-                                    <Label htmlFor='type-study' className='text-sm font-medium'>Study Certificate</Label>
+                                    <Label htmlFor='type-study' className='font-medium text-sm'>
+                                        Study Certificate
+                                    </Label>
                                 </div>
                             </RadioGroup>
                         </div>
@@ -369,7 +383,9 @@ export default function CertificateReportPage() {
                         {/* Left Column */}
                         <div className='space-y-4'>
                             <div className='grid grid-cols-[120px_1fr] items-center gap-4'>
-                                <Label className='text-sm font-bold'>Academic Year:<span className='text-red-500'>*</span></Label>
+                                <Label className='font-bold text-sm'>
+                                    Academic Year:<span className='text-red-500'>*</span>
+                                </Label>
                                 <Select value={academicYearId?.toString()} onValueChange={(v) => setAcademicYearId(Number(v))}>
                                     <SelectTrigger className='h-8'>
                                         <SelectValue placeholder='--Select Year--' />
@@ -385,12 +401,13 @@ export default function CertificateReportPage() {
                             </div>
 
                             <div className='grid grid-cols-[120px_1fr] items-center gap-4'>
-                                <Label className='text-sm font-bold'>Class:<span className='text-red-500'>*</span></Label>
+                                <Label className='font-bold text-sm'>
+                                    Class:<span className='text-red-500'>*</span>
+                                </Label>
                                 <Select
                                     disabled={studentScope === 'A'}
                                     value={classId?.toString()}
-                                    onValueChange={(v) => setClassId(Number(v))}
-                                >
+                                    onValueChange={(v) => setClassId(Number(v))}>
                                     <SelectTrigger className='h-8'>
                                         <SelectValue placeholder='--Select Class--' />
                                     </SelectTrigger>
@@ -405,12 +422,13 @@ export default function CertificateReportPage() {
                             </div>
 
                             <div className='grid grid-cols-[120px_1fr] items-center gap-4'>
-                                <Label className='text-sm font-bold'>Section:<span className='text-red-500'>*</span></Label>
+                                <Label className='font-bold text-sm'>
+                                    Section:<span className='text-red-500'>*</span>
+                                </Label>
                                 <Select
                                     disabled={studentScope === 'A' || !classId}
                                     value={sectionId?.toString()}
-                                    onValueChange={(v) => setSectionId(Number(v))}
-                                >
+                                    onValueChange={(v) => setSectionId(Number(v))}>
                                     <SelectTrigger className='h-8'>
                                         <SelectValue placeholder='--Select Section--' />
                                     </SelectTrigger>
@@ -425,11 +443,11 @@ export default function CertificateReportPage() {
                             </div>
 
                             <div className='grid grid-cols-[120px_1fr] items-center gap-4'>
-                                <Label className='text-sm font-bold'>QR Code Scanner :</Label>
+                                <Label className='font-bold text-sm'>QR Code Scanner :</Label>
                                 <input
                                     value={qrCodeScanner}
                                     onChange={(e) => setQrCodeScanner(e.target.value)}
-                                    className='flex h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
+                                    className='flex h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background file:border-0 file:bg-transparent file:font-medium file:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
                                     placeholder='QR Code Scanner'
                                 />
                             </div>
@@ -438,7 +456,9 @@ export default function CertificateReportPage() {
                         {/* Right Column */}
                         <div className='space-y-4'>
                             <div className='grid grid-cols-[100px_1fr] items-center gap-4'>
-                                <Label className='text-sm font-bold'>Date:<span className='text-red-500'>*</span></Label>
+                                <Label className='font-bold text-sm'>
+                                    Date:<span className='text-red-500'>*</span>
+                                </Label>
                                 <Popover open={dateOpen} onOpenChange={setDateOpen}>
                                     <PopoverTrigger asChild>
                                         <Button variant='outline' className='h-8 w-full justify-start text-left font-normal'>
@@ -459,59 +479,62 @@ export default function CertificateReportPage() {
                                 </Popover>
                             </div>
 
-                            <div className='grid grid-cols-[100px_1fr] items-center gap-4 relative'>
-                                <Label className='text-sm font-bold'>Student:</Label>
+                            <div className='relative grid grid-cols-[100px_1fr] items-center gap-4'>
+                                <Label className='font-bold text-sm'>Student:</Label>
                                 <div className='space-y-1'>
                                     <Popover open={studentOpen} onOpenChange={setStudentOpen}>
                                         <PopoverTrigger asChild>
                                             <div className='relative'>
                                                 <input
-                                                    value={studentId ? students.find((s: any) => s.amsT_Id === studentId)?.studentName || searchQuery : searchQuery}
+                                                    value={
+                                                        studentId
+                                                            ? students.find((s: any) => s.amsT_Id === studentId)?.studentName || searchQuery
+                                                            : searchQuery
+                                                    }
                                                     onChange={(e) => {
                                                         setSearchQuery(e.target.value);
                                                         setStudentId(null);
                                                         setStudentOpen(true);
                                                     }}
                                                     onFocus={() => setStudentOpen(true)}
-                                                    className='flex h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
+                                                    className='flex h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background file:border-0 file:bg-transparent file:font-medium file:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
                                                     placeholder='Search Student... (min 3 chars)'
                                                 />
                                                 {studentId && (
                                                     <Button
                                                         variant='ghost'
                                                         size='sm'
-                                                        className='absolute right-0 top-0 h-8 w-8 p-0'
+                                                        className='absolute top-0 right-0 h-8 w-8 p-0'
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             setStudentId(null);
                                                             setSearchQuery('');
-                                                        }}
-                                                    >
+                                                        }}>
                                                         <RotateCcw className='h-3 w-3' />
                                                     </Button>
                                                 )}
                                                 {searchMutation.isPending && (
-                                                    <div className="absolute right-8 top-2">
-                                                        <Loader2 className="h-4 w-4 animate-spin text-indigo-500" />
+                                                    <div className='absolute top-2 right-8'>
+                                                        <Loader2 className='h-4 w-4 animate-spin text-indigo-500' />
                                                     </div>
                                                 )}
                                             </div>
                                         </PopoverTrigger>
-                                        <PopoverContent
-                                            className='w-[400px] p-0'
-                                            align='start'
-                                            onOpenAutoFocus={(e) => e.preventDefault()}
-                                        >
+                                        <PopoverContent className='w-[400px] p-0' align='start' onOpenAutoFocus={(e) => e.preventDefault()}>
                                             <Command shouldFilter={false} className='w-full'>
                                                 <CommandList>
                                                     {searchMutation.isPending && (
-                                                        <div className="p-4 text-center text-sm text-muted-foreground">Searching students...</div>
+                                                        <div className='p-4 text-center text-muted-foreground text-sm'>
+                                                            Searching students...
+                                                        </div>
                                                     )}
                                                     {!searchMutation.isPending && searchQuery.length > 0 && searchQuery.length < 3 && (
-                                                        <div className="p-4 text-center text-sm text-muted-foreground">Enter at least 3 characters</div>
+                                                        <div className='p-4 text-center text-muted-foreground text-sm'>
+                                                            Enter at least 3 characters
+                                                        </div>
                                                     )}
                                                     <CommandEmpty>
-                                                        {!searchMutation.isPending && searchQuery.length >= 3 ? "No students found." : ""}
+                                                        {!searchMutation.isPending && searchQuery.length >= 3 ? 'No students found.' : ''}
                                                     </CommandEmpty>
                                                     <CommandGroup>
                                                         {students.map((s: any, idx: number) => (
@@ -522,18 +545,18 @@ export default function CertificateReportPage() {
                                                                     setStudentId(s.amsT_Id);
                                                                     setSearchQuery(s.studentName);
                                                                     setStudentOpen(false);
-                                                                }}
-                                                            >
+                                                                }}>
                                                                 <Check
                                                                     className={cn(
                                                                         'mr-2 h-4 w-4',
                                                                         studentId === s.amsT_Id ? 'opacity-100' : 'opacity-0'
                                                                     )}
                                                                 />
-                                                                <div className="flex flex-col">
+                                                                <div className='flex flex-col'>
                                                                     <span>{s.studentName}</span>
-                                                                    <span className="text-[10px] text-muted-foreground">
-                                                                        Adm: {s.amsT_AdmNo} | {s.asmcL_ClassName || 'N/A'}-{s.asmC_SectionName || 'N/A'}
+                                                                    <span className='text-[10px] text-muted-foreground'>
+                                                                        Adm: {s.amsT_AdmNo} | {s.asmcL_ClassName || 'N/A'}-
+                                                                        {s.asmC_SectionName || 'N/A'}
                                                                     </span>
                                                                 </div>
                                                             </CommandItem>
@@ -547,39 +570,46 @@ export default function CertificateReportPage() {
                             </div>
 
                             <div className='flex justify-center pt-2'>
-                                <RadioGroup
-                                    value={addressType}
-                                    onValueChange={(v) => setAddressType(v as any)}
-                                    className='flex space-x-6'>
+                                <RadioGroup value={addressType} onValueChange={(v) => setAddressType(v as any)} className='flex space-x-6'>
                                     <div className='flex items-center space-x-2'>
                                         <RadioGroupItem value='address_per' id='addr-per' />
-                                        <Label htmlFor='addr-per' className='text-sm'>Permanent Address</Label>
+                                        <Label htmlFor='addr-per' className='text-sm'>
+                                            Permanent Address
+                                        </Label>
                                     </div>
                                     <div className='flex items-center space-x-2'>
                                         <RadioGroupItem value='address_con' id='addr-con' />
-                                        <Label htmlFor='addr-con' className='text-sm'>Communication Address</Label>
+                                        <Label htmlFor='addr-con' className='text-sm'>
+                                            Communication Address
+                                        </Label>
                                     </div>
                                 </RadioGroup>
                             </div>
 
                             {/* Parent Name Selection for Baldwin Boys (MI_Id = 6) */}
                             {isMIId6 && (
-                                <div className='flex justify-center pt-4 border-t'>
+                                <div className='flex justify-center border-t pt-4'>
                                     <RadioGroup
                                         value={parentType}
                                         onValueChange={(v) => setParentType(v as any)}
                                         className='flex space-x-6'>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='0' id='parent-father' />
-                                            <Label htmlFor='parent-father' className='text-sm'>Father Name</Label>
+                                            <Label htmlFor='parent-father' className='text-sm'>
+                                                Father Name
+                                            </Label>
                                         </div>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='1' id='parent-mother' />
-                                            <Label htmlFor='parent-mother' className='text-sm'>Mother Name</Label>
+                                            <Label htmlFor='parent-mother' className='text-sm'>
+                                                Mother Name
+                                            </Label>
                                         </div>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='2' id='parent-both' />
-                                            <Label htmlFor='parent-both' className='text-sm'>Both</Label>
+                                            <Label htmlFor='parent-both' className='text-sm'>
+                                                Both
+                                            </Label>
                                         </div>
                                     </RadioGroup>
                                 </div>
@@ -593,21 +623,21 @@ export default function CertificateReportPage() {
                             size='sm'
                             onClick={handleReport}
                             disabled={isLoading}
-                            className='min-w-[100px] bg-[#3f51b5] hover:bg-[#303f9f] text-white shadow-md'>
+                            className='min-w-[100px] bg-[#3f51b5] text-white shadow-md hover:bg-[#303f9f]'>
                             {isLoading ? <RotateCcw className='mr-1 h-3 w-3 animate-spin' /> : <Printer className='mr-1 h-3 w-3' />}
                             REPORT
                         </Button>
                         <Button
                             size='sm'
                             onClick={handleGenerateQRCode}
-                            className='min-w-[100px] bg-[#3f51b5] hover:bg-[#303f9f] text-white shadow-md'>
+                            className='min-w-[100px] bg-[#3f51b5] text-white shadow-md hover:bg-[#303f9f]'>
                             <QrCode className='mr-1 h-3 w-3' />
                             QRCODE
                         </Button>
                         <Button
                             size='sm'
                             onClick={handleReset}
-                            className='min-w-[100px] bg-[#ff5722] hover:bg-[#f4511e] text-white shadow-md uppercase'>
+                            className='min-w-[100px] bg-[#ff5722] text-white uppercase shadow-md hover:bg-[#f4511e]'>
                             <RotateCcw className='mr-1 h-3 w-3' />
                             CANCEL
                         </Button>
@@ -615,7 +645,7 @@ export default function CertificateReportPage() {
                             size='sm'
                             onClick={handlePrint}
                             disabled={!showCertificate}
-                            className='min-w-[100px] bg-[#e0e0e0] hover:bg-[#d5d5d5] text-gray-700 shadow-md disabled:bg-gray-100 uppercase'>
+                            className='min-w-[100px] bg-[#e0e0e0] text-gray-700 uppercase shadow-md hover:bg-[#d5d5d5] disabled:bg-gray-100'>
                             <Printer className='mr-1 h-3 w-3' />
                             PRINT
                         </Button>
@@ -625,8 +655,8 @@ export default function CertificateReportPage() {
 
             {/* UI Certificate Display (Preview Only) */}
             {showCertificate && studentData && (
-                <div className='mt-8 flex justify-center overflow-x-auto p-4 bg-gray-100 rounded-xl border-2 border-dashed border-gray-300'>
-                    <div className='bg-white shadow-2xl origin-top transition-none'>
+                <div className='mt-8 flex justify-center overflow-x-auto rounded-xl border-2 border-gray-300 border-dashed bg-gray-100 p-4'>
+                    <div className='origin-top bg-white shadow-2xl transition-none'>
                         {certificateType === '0' ? (
                             <StudyCertificate
                                 ref={printRef}
@@ -638,12 +668,7 @@ export default function CertificateReportPage() {
                                 academicYearData={selectedAcademicYearData}
                             />
                         ) : (
-                            <CharacterCertificate
-                                ref={printRef}
-                                data={studentData}
-                                selectedDate={selectedDate}
-                                qrCode={generatedQrCode}
-                            />
+                            <CharacterCertificate ref={printRef} data={studentData} selectedDate={selectedDate} qrCode={generatedQrCode} />
                         )}
                     </div>
                 </div>

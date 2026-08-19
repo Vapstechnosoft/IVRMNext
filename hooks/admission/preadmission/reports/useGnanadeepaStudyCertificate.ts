@@ -1,12 +1,12 @@
 'use client';
 
-import { useMutation, useQuery } from '@tanstack/react-query';
 import { ADMISSION_QUERY_KEYS } from '@/constants/query-keys';
 import {
+    getGDARSStudyCertDetails,
     getGDARSStudyCertLoadData,
-    getGDARSStudyCertSearchFilter,
-    getGDARSStudyCertDetails
+    getGDARSStudyCertSearchFilter
 } from '@/server/admission/preadmission/reports/gnanadeepa_study_certificate';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const useGDARSStudyCertLoadData = () => {
     return useQuery({

@@ -4,7 +4,6 @@ import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type { IMasterServiceStation } from '@/types/transport/transport-module/masters';
 
-
 export async function getMasterServiceStation(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/master_service_station/service_station_grid_list?${urlParams}`;

@@ -139,9 +139,7 @@ function FormSections() {
             )}
 
             {/* View Details */}
-            {isDetailsViewOpen && selectedRow && (
-                <ExamTTTransSettingsViewDetails rowData={selectedRow} onClose={closeDetailsView} />
-            )}
+            {isDetailsViewOpen && selectedRow && <ExamTTTransSettingsViewDetails rowData={selectedRow} onClose={closeDetailsView} />}
         </>
     );
 }

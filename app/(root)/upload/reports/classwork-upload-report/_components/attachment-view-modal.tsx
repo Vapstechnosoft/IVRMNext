@@ -1,24 +1,12 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import { Download, Eye, Ban, X } from 'lucide-react';
-import { useState } from 'react';
-import type { IClassWorkAttachment } from '@/types/upload/reports/classwork-upload-report';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { downloadFile } from '@/lib/utils';
+import type { IClassWorkAttachment } from '@/types/upload/reports/classwork-upload-report';
+import { Ban, Download, Eye, X } from 'lucide-react';
+import { useState } from 'react';
 
 interface AttachmentViewModalProps {
     isOpen: boolean;
@@ -57,58 +45,70 @@ export function AttachmentViewModal({ isOpen, onClose, attachments }: Attachment
     return (
         <>
             <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-                <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col rounded-2xl shadow-2xl">
+                <DialogContent className='flex max-h-[90vh] max-w-4xl flex-col overflow-hidden rounded-2xl shadow-2xl'>
                     <DialogHeader>
-                        <DialogTitle className="text-xl font-black text-slate-800 flex items-center gap-2 uppercase tracking-tight">
+                        <DialogTitle className='flex items-center gap-2 font-black text-slate-800 text-xl uppercase tracking-tight'>
                             CLASSWORK ATTACHMENT DETAILS
                         </DialogTitle>
                     </DialogHeader>
 
-                    <div className="flex-1 overflow-auto py-4">
-                        <div className="rounded-xl border border-slate-100 overflow-hidden shadow-sm">
+                    <div className='flex-1 overflow-auto py-4'>
+                        <div className='overflow-hidden rounded-xl border border-slate-100 shadow-sm'>
                             <Table>
-                                <TableHeader className="bg-slate-900">
-                                    <TableRow className="hover:bg-transparent">
-                                        <TableHead className="w-16 text-center text-white font-bold uppercase text-[10px] tracking-widest">SLNO</TableHead>
-                                        <TableHead className="text-white font-bold uppercase text-[10px] tracking-widest">File Name/URL</TableHead>
-                                        <TableHead className="text-center w-32 text-white font-bold uppercase text-[10px] tracking-widest">View</TableHead>
-                                        <TableHead className="text-center w-24 text-white font-bold uppercase text-[10px] tracking-widest">Download</TableHead>
+                                <TableHeader className='bg-slate-900'>
+                                    <TableRow className='hover:bg-transparent'>
+                                        <TableHead className='w-16 text-center font-bold text-[10px] text-white uppercase tracking-widest'>
+                                            SLNO
+                                        </TableHead>
+                                        <TableHead className='font-bold text-[10px] text-white uppercase tracking-widest'>
+                                            File Name/URL
+                                        </TableHead>
+                                        <TableHead className='w-32 text-center font-bold text-[10px] text-white uppercase tracking-widest'>
+                                            View
+                                        </TableHead>
+                                        <TableHead className='w-24 text-center font-bold text-[10px] text-white uppercase tracking-widest'>
+                                            Download
+                                        </TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {attachments.map((attachment, index) => {
                                         const isHyperlink = attachment.icW_Attachment === 'HyperLink';
                                         return (
-                                            <TableRow key={index} className="hover:bg-slate-50 transition-colors">
-                                                <TableCell className="text-center font-medium text-slate-500">{index + 1}</TableCell>
-                                                <TableCell className="font-semibold text-slate-700 truncate max-w-xs" title={attachment.icwatT_FileName}>
+                                            <TableRow key={index} className='transition-colors hover:bg-slate-50'>
+                                                <TableCell className='text-center font-medium text-slate-500'>{index + 1}</TableCell>
+                                                <TableCell
+                                                    className='max-w-xs truncate font-semibold text-slate-700'
+                                                    title={attachment.icwatT_FileName}>
                                                     {attachment.icwatT_FileName}
                                                 </TableCell>
-                                                <TableCell className="text-center">
+                                                <TableCell className='text-center'>
                                                     {isHyperlink ? (
-                                                        <span className="text-muted-foreground text-[10px] font-bold opacity-30 tracking-widest uppercase">---</span>
+                                                        <span className='font-bold text-[10px] text-muted-foreground uppercase tracking-widest opacity-30'>
+                                                            ---
+                                                        </span>
                                                     ) : (
                                                         <Button
-                                                            variant="ghost"
-                                                            size="sm"
+                                                            variant='ghost'
+                                                            size='sm'
                                                             onClick={() => handlePreview(attachment.icwatT_Attachment)}
-                                                            className="text-primary hover:text-primary hover:bg-primary/10 flex items-center gap-1 mx-auto transition-all"
-                                                        >
-                                                            <Eye className="h-4 w-4" /> View
+                                                            className='mx-auto flex items-center gap-1 text-primary transition-all hover:bg-primary/10 hover:text-primary'>
+                                                            <Eye className='h-4 w-4' /> View
                                                         </Button>
                                                     )}
                                                 </TableCell>
-                                                <TableCell className="text-center">
+                                                <TableCell className='text-center'>
                                                     {isHyperlink ? (
-                                                        <Ban className="h-4 w-4 mx-auto text-slate-300" />
+                                                        <Ban className='mx-auto h-4 w-4 text-slate-300' />
                                                     ) : (
                                                         <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            onClick={() => downloadFile(attachment.icwatT_Attachment, attachment.icwatT_FileName)}
-                                                            className="text-primary hover:scale-110 transition-transform h-8 w-8 rounded-full hover:bg-primary/5 p-0"
-                                                        >
-                                                            <Download className="h-4 w-4 mx-auto" />
+                                                            variant='ghost'
+                                                            size='icon'
+                                                            onClick={() =>
+                                                                downloadFile(attachment.icwatT_Attachment, attachment.icwatT_FileName)
+                                                            }
+                                                            className='h-8 w-8 rounded-full p-0 text-primary transition-transform hover:scale-110 hover:bg-primary/5'>
+                                                            <Download className='mx-auto h-4 w-4' />
                                                         </Button>
                                                     )}
                                                 </TableCell>
@@ -120,52 +120,69 @@ export function AttachmentViewModal({ isOpen, onClose, attachments }: Attachment
                         </div>
                     </div>
 
-                    <div className="pt-4 border-t flex flex-col md:flex-row justify-between items-center gap-4">
-                        <div className="flex items-center gap-2 text-sm">
-                            <span className="font-black text-primary uppercase text-[10px] tracking-wider px-2 py-0.5 bg-primary/5 rounded">Info :</span>
-                            <span className="text-muted-foreground italic text-xs font-medium">Document preview (PDF, Word, Excel) is now enabled. For other files, use download.</span>
+                    <div className='flex flex-col items-center justify-between gap-4 border-t pt-4 md:flex-row'>
+                        <div className='flex items-center gap-2 text-sm'>
+                            <span className='rounded bg-primary/5 px-2 py-0.5 font-black text-[10px] text-primary uppercase tracking-wider'>
+                                Info :
+                            </span>
+                            <span className='font-medium text-muted-foreground text-xs italic'>
+                                Document preview (PDF, Word, Excel) is now enabled. For other files, use download.
+                            </span>
                         </div>
-                        <Button variant="outline" onClick={onClose} className="rounded-full px-6 font-bold uppercase text-[11px] tracking-widest h-9 border-slate-200 hover:bg-slate-50">Close</Button>
+                        <Button
+                            variant='outline'
+                            onClick={onClose}
+                            className='h-9 rounded-full border-slate-200 px-6 font-bold text-[11px] uppercase tracking-widest hover:bg-slate-50'>
+                            Close
+                        </Button>
                     </div>
                 </DialogContent>
             </Dialog>
 
             {/* Media Preview Dialog */}
             <Dialog open={!!previewUrl} onOpenChange={(open) => !open && setPreviewUrl(null)}>
-                <DialogContent className="max-w-5xl h-[85vh] flex flex-col p-0 overflow-hidden border-none shadow-2xl rounded-2xl">
-                    <DialogHeader className="p-4 border-b bg-white flex flex-row items-center justify-between">
-                        <DialogTitle className="font-black text-slate-800 uppercase tracking-tight">Media Preview</DialogTitle>
-                        <Button variant="ghost" size="icon" onClick={() => setPreviewUrl(null)} className="rounded-full hover:bg-slate-100">
-                            <X className="h-4 w-4" />
+                <DialogContent className='flex h-[85vh] max-w-5xl flex-col overflow-hidden rounded-2xl border-none p-0 shadow-2xl'>
+                    <DialogHeader className='flex flex-row items-center justify-between border-b bg-white p-4'>
+                        <DialogTitle className='font-black text-slate-800 uppercase tracking-tight'>Media Preview</DialogTitle>
+                        <Button variant='ghost' size='icon' onClick={() => setPreviewUrl(null)} className='rounded-full hover:bg-slate-100'>
+                            <X className='h-4 w-4' />
                         </Button>
                     </DialogHeader>
-                    <div className="flex-1 bg-slate-900 flex items-center justify-center p-4">
+                    <div className='flex flex-1 items-center justify-center bg-slate-900 p-4'>
                         {previewType === 'image' ? (
-                            <img src={previewUrl!} alt="Preview" className="max-w-full max-h-full object-contain shadow-2xl animate-in zoom-in duration-300" />
+                            <img
+                                src={previewUrl!}
+                                alt='Preview'
+                                className='zoom-in max-h-full max-w-full animate-in object-contain shadow-2xl duration-300'
+                            />
                         ) : previewType === 'video' ? (
-                            <video src={previewUrl!} controls className="max-w-full max-h-full shadow-2xl rounded-lg">
+                            <video src={previewUrl!} controls className='max-h-full max-w-full rounded-lg shadow-2xl'>
                                 Your browser does not support the video tag.
                             </video>
                         ) : previewType === 'audio' ? (
-                            <audio src={previewUrl!} controls className="w-full max-w-md">
+                            <audio src={previewUrl!} controls className='w-full max-w-md'>
                                 Your browser does not support the audio tag.
                             </audio>
                         ) : previewType === 'office' ? (
                             <iframe
                                 src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(previewUrl!)}`}
-                                className="w-full h-full rounded-lg shadow-2xl bg-white border-none"
-                                title="Document Preview"
+                                className='h-full w-full rounded-lg border-none bg-white shadow-2xl'
+                                title='Document Preview'
                             />
                         ) : (
-                            <div className="text-center p-12 bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-md animate-in slide-in-from-bottom duration-500">
-                                <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                                    <Ban className="h-10 w-10 text-slate-300" />
+                            <div className='slide-in-from-bottom max-w-md animate-in rounded-3xl border border-slate-100 bg-white p-12 text-center shadow-2xl duration-500'>
+                                <div className='mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-slate-50'>
+                                    <Ban className='h-10 w-10 text-slate-300' />
                                 </div>
-                                <h3 className="font-black text-slate-800 text-xl mb-3 uppercase tracking-tight">Preview Not Available</h3>
-                                <p className="text-muted-foreground mb-8 text-sm font-medium">This file type ({previewType}) cannot be previewed online. Please download to view.</p>
-                                <Button asChild className="rounded-full h-12 px-8 shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95">
-                                    <a href={previewUrl!} download className="flex items-center gap-2">
-                                        <Download className="h-4 w-4" /> Download File
+                                <h3 className='mb-3 font-black text-slate-800 text-xl uppercase tracking-tight'>Preview Not Available</h3>
+                                <p className='mb-8 font-medium text-muted-foreground text-sm'>
+                                    This file type ({previewType}) cannot be previewed online. Please download to view.
+                                </p>
+                                <Button
+                                    asChild
+                                    className='h-12 rounded-full px-8 shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95'>
+                                    <a href={previewUrl!} download className='flex items-center gap-2'>
+                                        <Download className='h-4 w-4' /> Download File
                                     </a>
                                 </Button>
                             </div>

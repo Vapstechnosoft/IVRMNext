@@ -1,13 +1,13 @@
 'use client';
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ColumnDef } from '@tanstack/react-table';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { IFacility } from '@/types/hostel/hostel-management/masters';
-import { useEffect, useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 import { getFloorDetails } from '@/server/hostel/hostel-management/masters/floor';
-import { IMasterFloor } from './columns';
+import type { IFacility } from '@/types/hostel/hostel-management/masters';
+import type { ColumnDef } from '@tanstack/react-table';
+import { useEffect, useState } from 'react';
+import type { IMasterFloor } from './columns';
 
 interface ViewFacilitiesModalProps {
     isOpen: boolean;
@@ -31,7 +31,7 @@ export function ViewFacilitiesModal({ isOpen, onClose, floor }: ViewFacilitiesMo
                         setData([]);
                     }
                 } catch (error) {
-                    console.error("Failed to fetch facilities", error);
+                    console.error('Failed to fetch facilities', error);
                     setData([]);
                 } finally {
                     setIsLoading(false);
@@ -49,17 +49,17 @@ export function ViewFacilitiesModal({ isOpen, onClose, floor }: ViewFacilitiesMo
         {
             accessorKey: 'hlmftY_FacilityName',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Facility Name' />,
-            cell: ({ row }) => <div>{row.getValue('hlmftY_FacilityName')}</div>,
+            cell: ({ row }) => <div>{row.getValue('hlmftY_FacilityName')}</div>
         }
     ];
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogContent className='max-h-[80vh] max-w-2xl overflow-y-auto'>
                 <DialogHeader>
                     <DialogTitle>Facilities for Floor {floor?.hrmF_FloorName}</DialogTitle>
                 </DialogHeader>
-                <div className="mt-4">
+                <div className='mt-4'>
                     <GenericDataTable
                         {...tableProps}
                         data={data}

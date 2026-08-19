@@ -5,8 +5,8 @@ import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IPcIndent } from '@/types/pettycash/transaction/pcIndent';
 import type { ColumnDef } from '@tanstack/react-table';
-import { useCallback } from 'react';
 import { format } from 'date-fns';
+import { useCallback } from 'react';
 
 export const pcIndentColumns: ColumnDef<IPcIndent>[] = [
     {
@@ -24,7 +24,7 @@ export const pcIndentColumns: ColumnDef<IPcIndent>[] = [
     {
         accessorKey: 'pcindT_IndentNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Indent No' />,
-        cell: ({ row }) => <div className="font-medium text-primary">{row.getValue('pcindT_IndentNo')}</div>
+        cell: ({ row }) => <div className='font-medium text-primary'>{row.getValue('pcindT_IndentNo')}</div>
     },
     {
         accessorKey: 'departmentname',

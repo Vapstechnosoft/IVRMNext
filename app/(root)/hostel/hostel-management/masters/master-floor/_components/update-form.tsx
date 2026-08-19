@@ -1,8 +1,8 @@
 'use client';
 
-import AddMasterFloorForm from "./add-form";
-import { IFacility, IHostel } from "@/types/hostel/hostel-management/masters";
-import { IMasterFloor } from "./columns";
+import type { IFacility, IHostel } from '@/types/hostel/hostel-management/masters';
+import AddMasterFloorForm from './add-form';
+import type { IMasterFloor } from './columns';
 
 interface UpdateMasterFloorFormProps {
     rowData: IMasterFloor | any;
@@ -20,13 +20,8 @@ export default function UpdateMasterFloorForm({ rowData, onSuccess, hostels, fac
         hrmF_FloorName: rowData.hrmF_FloorName,
         hrmF_TotalRooms: rowData.hrmF_TotalRooms?.toString(),
         hrmF_FloorDesc: rowData.hrmF_FloorDesc,
-        facilities: rowData.facilities || [], // Ensure this is matches the expected array format
+        facilities: rowData.facilities || [] // Ensure this is matches the expected array format
     };
 
-    return (
-        <AddMasterFloorForm
-            onSuccess={onSuccess}
-            initialData={initialData}
-        />
-    );
+    return <AddMasterFloorForm onSuccess={onSuccess} initialData={initialData} />;
 }

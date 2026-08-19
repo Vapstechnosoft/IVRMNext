@@ -9,9 +9,9 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterModeOfPaymentForm from './_components/add-form';
 import { paymentgatewaydetailsColumns } from './_components/columns';
+import DeletePaymentGatewayForm from './_components/delete-form';
 import TogglepaymentgatewaydetailsForm from './_components/toggle-form';
 import UpdatepaymentGatewaydetailsForm from './_components/update-form';
-import DeletePaymentGatewayForm from './_components/delete-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 

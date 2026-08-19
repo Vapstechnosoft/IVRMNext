@@ -1,4 +1,4 @@
-import { type BaseEntity } from '@/lib/localdb';
+import type { BaseEntity } from '@/lib/localdb';
 
 export interface LeaveCarryForward extends BaseEntity {
     fromYear: string;
@@ -38,4 +38,3 @@ export interface LeaveCreditDeduction extends BaseEntity {
     leaveBalance?: number;
     type?: string[];
 }
-

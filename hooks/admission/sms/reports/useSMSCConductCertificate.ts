@@ -1,42 +1,43 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
 import {
     getSMSCConductCertLoadData,
-    onSMSCConductCertYearChange,
-    onSMSCConductCertCourseChange,
+    getSMSCConductCertReport,
     onSMSCConductCertBranchChange,
+    onSMSCConductCertCourseChange,
     onSMSCConductCertSemesterChange,
-    searchSMSCConductCertStudents,
-    getSMSCConductCertReport
+    onSMSCConductCertYearChange,
+    searchSMSCConductCertStudents
 } from '@/server/admission/preadmission/reports/sms_conduct_certificate';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const useSMSCConductCertLoadData = () => {
     return useQuery({
         queryKey: ['smsc-conduct-cert-load-data'],
-        queryFn: async () => await getSMSCConductCertLoadData(),
+        queryFn: async () => await getSMSCConductCertLoadData()
     });
 };
 
 export const useSMSCConductCertYearChange = () => {
     return useMutation({
-        mutationFn: async (data: { ASMAY_Id: number }) => await onSMSCConductCertYearChange(data),
+        mutationFn: async (data: { ASMAY_Id: number }) => await onSMSCConductCertYearChange(data)
     });
 };
 
 export const useSMSCConductCertCourseChange = () => {
     return useMutation({
-        mutationFn: async (data: { ASMAY_Id: number; AMCO_Id: number }) => await onSMSCConductCertCourseChange(data),
+        mutationFn: async (data: { ASMAY_Id: number; AMCO_Id: number }) => await onSMSCConductCertCourseChange(data)
     });
 };
 
 export const useSMSCConductCertBranchChange = () => {
     return useMutation({
-        mutationFn: async (data: { ASMAY_Id: number; AMCO_Id: number; AMB_Id: number }) => await onSMSCConductCertBranchChange(data),
+        mutationFn: async (data: { ASMAY_Id: number; AMCO_Id: number; AMB_Id: number }) => await onSMSCConductCertBranchChange(data)
     });
 };
 
 export const useSMSCConductCertSemesterChange = () => {
     return useMutation({
-        mutationFn: async (data: { ASMAY_Id: number; AMCO_Id: number; AMB_Id: number; AMSE_Id: number }) => await onSMSCConductCertSemesterChange(data),
+        mutationFn: async (data: { ASMAY_Id: number; AMCO_Id: number; AMB_Id: number; AMSE_Id: number }) =>
+            await onSMSCConductCertSemesterChange(data)
     });
 };
 
@@ -52,7 +53,7 @@ export const useSMSCConductCertSearchFilter = () => {
             AMSE_Id: number;
             ACMS_Id: number;
             allorindid: string;
-        }) => await searchSMSCConductCertStudents(data),
+        }) => await searchSMSCConductCertStudents(data)
     });
 };
 
@@ -67,6 +68,6 @@ export const useSMSCConductCertReport = () => {
             ACMS_Id: number;
             AMCST_Id: number;
             allorindid: string;
-        }) => await getSMSCConductCertReport(data),
+        }) => await getSMSCConductCertReport(data)
     });
 };

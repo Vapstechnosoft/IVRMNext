@@ -23,12 +23,7 @@ export default function MasterLocationPage(props: { searchParams: SearchParams }
         <FormProvider<IMasterLocation>>
             <div className='min-h-screen'>
                 <div className='container space-y-4 p-1'>
-                    <MasterLocationPageContent
-                        response={response}
-                        isLoading={isLoading}
-                        error={error}
-                        refetchAll={refetchAll}
-                    />
+                    <MasterLocationPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
                 </div>
             </div>
         </FormProvider>
@@ -150,9 +145,7 @@ function FormSections() {
                 </div>
             )}
 
-            {isToggleFormOpen && selectedRow && (
-                <ToggleMasterLocationForm rowData={selectedRow} onClose={closeToggleForm} />
-            )}
+            {isToggleFormOpen && selectedRow && <ToggleMasterLocationForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

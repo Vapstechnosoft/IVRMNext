@@ -204,12 +204,14 @@ export default function PfForm3A({
     const printRef = useRef<HTMLDivElement>(null);
 
     const handlePrint = useReactToPrint({
-        contentRef: printRef,
+        contentRef: printRef
         // documentTitle: `PF_Form_3A_${employeeName.replace(/\s+/g, '_')}`
     });
     return (
         <>
-            <style dangerouslySetInnerHTML={{ __html: `
+            <style
+                dangerouslySetInnerHTML={{
+                    __html: `
                 @media print {
                     @page {
                         size: A4;
@@ -221,12 +223,15 @@ export default function PfForm3A({
                         print-color-adjust: exact !important;
                     }
                 }
-            ` }} />
-            <div ref={printRef} className='printable-content mx-auto w-full max-w-[1200px] bg-white p-6 print:bg-transparent print:p-0' id="handle-print-pf-form-3a-report">
+            `
+                }}
+            />
+            <div
+                ref={printRef}
+                className='printable-content mx-auto w-full max-w-[1200px] bg-white p-6 print:bg-transparent print:p-0'
+                id='handle-print-pf-form-3a-report'>
                 {/* Header */}
-                <div className='flex justify-end font-bold'>
-                    FORM 3A
-                </div>
+                <div className='flex justify-end font-bold'>FORM 3A</div>
                 <div className='space-y-1 text-center text-sm'>
                     <h3 className='font-bold text-gray-800'>Employees' Provident Fund Scheme, 1952</h3>
                     <p className='text-gray-700'>(Paragraph 35 & 42)</p>

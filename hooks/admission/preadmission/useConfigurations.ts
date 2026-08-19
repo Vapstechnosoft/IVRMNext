@@ -1,13 +1,24 @@
 import { PREADMISSION_QUERY_KEYS } from '@/constants/query-keys';
-import { getInstitutionList, getPreAdmissionSetOrder, getPreAdmissionYear } from '@/server/admission/preadmission/configuration/academic_year_master';
+import { tableSearchVariables } from '@/lib/data-table.config';
+import {
+    getInstitutionList,
+    getPreAdmissionSetOrder,
+    getPreAdmissionYear
+} from '@/server/admission/preadmission/configuration/academic_year_master';
 import { checkPreadmissionLive } from '@/server/admission/preadmission/configuration/configuration';
 import {
     getAcademicYearMasterConfiguration,
     getMasterConfiguration
 } from '@/server/admission/preadmission/configuration/master_configuration';
-import { getMasterNumbering, getPreRegistrationNumbering, getRegistrationNumbering, getRegNumbering } from '@/server/preconfiguration/transaction-numbering';
+import {
+    getMasterNumbering,
+    getPreRegistrationNumbering,
+    getRegNumbering,
+    getRegistrationNumbering
+} from '@/server/preconfiguration/transaction-numbering';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs';
 
 export const useMasterNumberingDropdown = () => {
     return useQuery({
@@ -55,10 +66,37 @@ export const useMasterConfiguration = (searchParams?: ApiSearchparams) => {
 export const usePreAdmissionAcademicYear = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
+    const [page] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
+    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
+    const [sortBy] = useQueryState(tableSearchVariables.sort_column, parseAsString.withOptions({ shallow: false }).withDefault(''));
+    const [order] = useQueryState(
+        tableSearchVariables.sort_direction,
+        parseAsStringLiteral(['asc', 'desc'] as const)
+            .withOptions({ shallow: false })
+            .withDefault('asc')
+    );
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
+
+    const params: ApiSearchparams = {
+        page: searchParams?.page ?? page,
+        page_size: searchParams?.page_size ?? pageSize,
+        sort_column: searchParams?.sort_column !== undefined ? searchParams.sort_column : sortBy,
+        sort_direction: searchParams?.sort_direction !== undefined ? searchParams.sort_direction : order,
+        search_query: searchParams?.search_query !== undefined ? searchParams.search_query : searchQuery,
+        ...searchParams
+    };
+
     return {
         ...useQuery({
-            queryKey: [PREADMISSION_QUERY_KEYS.ACADEMIC_YEAR_MASTER, searchParams ?? {}],
-            queryFn: async () => getPreAdmissionYear(searchParams),
+            queryKey: [
+                PREADMISSION_QUERY_KEYS.ACADEMIC_YEAR_MASTER,
+                params.page,
+                params.page_size,
+                params.sort_column,
+                params.sort_direction,
+                params.search_query
+            ],
+            queryFn: async () => getPreAdmissionYear(params),
             staleTime: 0
         }),
         refetchAll: () => {

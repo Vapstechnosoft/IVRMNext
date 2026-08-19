@@ -1,7 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type { IBookRegisterReportInitialData, IBookRegisterReportRequest } from '@/types/library/reports/book-register-report';
+import type { IBookRegisterReportRequest } from '@/types/library/reports/book-register-report';
 
 const MODULE_URL = 'BookRegisterReport';
 

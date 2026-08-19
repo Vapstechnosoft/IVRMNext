@@ -2,20 +2,25 @@
 
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { InputText } from '@/components/ui/extension/input-text';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useTTCategory } from '@/hooks/admission/preadmission/useTTCategory';
-import { addOrUpdateTTCategory, getTTCategoryDetails, toggleTTCategory, deleteTTCategory } from '@/server/admission/preadmission/newsharedhost/masters/ttcategory';
+import {
+    addOrUpdateTTCategory,
+    deleteTTCategory,
+    getTTCategoryDetails,
+    toggleTTCategory
+} from '@/server/admission/preadmission/newsharedhost/masters/ttcategory';
 
-import { Save, X, Plus } from 'lucide-react';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { toast } from 'sonner';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Plus, Save, X } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import Swal from 'sweetalert2';
+import { z } from 'zod';
 
 const formSchema = z.object({
     ttmC_Id: z.number().default(0),
@@ -56,7 +61,12 @@ export default function TTCategoryPage() {
                 const editData = details.data[0];
                 setValue('ttmC_Id', editData.ttmC_Id);
                 setValue('ttmC_CategoryName', editData.ttmC_CategoryName);
-            } else if (details && details.categorylistedit && Array.isArray(details.categorylistedit) && details.categorylistedit.length > 0) {
+            } else if (
+                details &&
+                details.categorylistedit &&
+                Array.isArray(details.categorylistedit) &&
+                details.categorylistedit.length > 0
+            ) {
                 const editData = details.categorylistedit[0];
                 setValue('ttmC_Id', editData.ttmC_Id);
                 setValue('ttmC_CategoryName', editData.ttmC_CategoryName);
@@ -74,7 +84,8 @@ export default function TTCategoryPage() {
         try {
             const res = await toggleTTCategory(data.ttmC_Id);
             // Check for both possible success keys (success or returnval) and also assume success if the message contains "success"
-            const isSuccess = res?.success === true || res?.returnval === true || (res?.message && res.message.toLowerCase().includes('success'));
+            const isSuccess =
+                res?.success === true || res?.returnval === true || (res?.message && res.message.toLowerCase().includes('success'));
 
             if (res && isSuccess) {
                 toast.success(res.message || 'Category status updated successfully');
@@ -102,7 +113,8 @@ export default function TTCategoryPage() {
         if (result.isConfirmed) {
             try {
                 const res = await deleteTTCategory(data.ttmC_Id);
-                const isSuccess = res?.success === true || res?.returnval === true || (res?.message && res.message.toLowerCase().includes('success'));
+                const isSuccess =
+                    res?.success === true || res?.returnval === true || (res?.message && res.message.toLowerCase().includes('success'));
 
                 if (res && isSuccess) {
                     toast.success(res.message || 'Category deleted successfully');
@@ -117,43 +129,50 @@ export default function TTCategoryPage() {
         }
     };
 
-    const masterCategoryColumns = useMemo(() => [
-        {
-            accessorKey: 'ttmC_Id',
-            header: ({ column }: any) => <DataTableColumnHeader column={column} title='Sl No' className='w-full pl-6 font-bold text-black' />,
-            cell: ({ row, table }: any) => {
-                const pageIndex = table.getState().pagination.pageIndex;
-                const pageSize = table.getState().pagination.pageSize;
-                const continuousIndex = pageIndex * pageSize + row.index + 1;
-                return <div className='w-full pl-6'>{continuousIndex}</div>;
+    const masterCategoryColumns = useMemo(
+        () => [
+            {
+                accessorKey: 'ttmC_Id',
+                header: ({ column }: any) => (
+                    <DataTableColumnHeader column={column} title='Sl No' className='w-full pl-6 font-bold text-black' />
+                ),
+                cell: ({ row, table }: any) => {
+                    const pageIndex = table.getState().pagination.pageIndex;
+                    const pageSize = table.getState().pagination.pageSize;
+                    const continuousIndex = pageIndex * pageSize + row.index + 1;
+                    return <div className='w-full pl-6'>{continuousIndex}</div>;
+                },
+                enableSorting: false,
+                enableHiding: false
             },
-            enableSorting: false,
-            enableHiding: false
-        },
-        {
-            accessorKey: 'ttmC_CategoryName',
-            header: ({ column }: any) => <DataTableColumnHeader column={column} title='CategoryName' className='font-bold text-black' />,
-            cell: ({ row }: any) => <div>{row.getValue('ttmC_CategoryName')}</div>,
-            enableSorting: false,
-            enableHiding: true
-        },
-        {
-            id: 'actions',
-            header: ({ column }: any) => <DataTableColumnHeader column={column} title='Actions' className='font-bold text-black' />,
-            accessorFn: (row: any) => row,
-            enableSorting: false,
-            cell: ({ row }: any) => (
-                <ActionButtons
-                    rowData={row.original}
-                    buttons={{ edit: true, toggle: true, delete: true }}
-                    onEdit={handleEdit}
-                    onToggle={handleToggle}
-                    onDelete={handleDelete}
-                    toggleConditionKey='ttmC_ActiveFlag'
-                />
-            )
-        }
-    ], [handleEdit, handleToggle, handleDelete]);
+            {
+                accessorKey: 'ttmC_CategoryName',
+                header: ({ column }: any) => (
+                    <DataTableColumnHeader column={column} title='CategoryName' className='font-bold text-black' />
+                ),
+                cell: ({ row }: any) => <div>{row.getValue('ttmC_CategoryName')}</div>,
+                enableSorting: false,
+                enableHiding: true
+            },
+            {
+                id: 'actions',
+                header: ({ column }: any) => <DataTableColumnHeader column={column} title='Actions' className='font-bold text-black' />,
+                accessorFn: (row: any) => row,
+                enableSorting: false,
+                cell: ({ row }: any) => (
+                    <ActionButtons
+                        rowData={row.original}
+                        buttons={{ edit: true, toggle: true, delete: true }}
+                        onEdit={handleEdit}
+                        onToggle={handleToggle}
+                        onDelete={handleDelete}
+                        toggleConditionKey='ttmC_ActiveFlag'
+                    />
+                )
+            }
+        ],
+        [handleEdit, handleToggle, handleDelete]
+    );
 
     const onSubmit = async (data: FormFields) => {
         try {
@@ -165,7 +184,8 @@ export default function TTCategoryPage() {
                 updatedDate: new Date().toISOString()
             };
             const res = await addOrUpdateTTCategory(payload);
-            const isSuccess = res?.success === true || res?.returnval === true || (res?.message && res.message.toLowerCase().includes('success'));
+            const isSuccess =
+                res?.success === true || res?.returnval === true || (res?.message && res.message.toLowerCase().includes('success'));
 
             if (res && isSuccess) {
                 toast.success(res.message || 'Data successfully Saved');
@@ -195,13 +215,12 @@ export default function TTCategoryPage() {
     };
 
     return (
-        <div className='min-h-screen p-4 space-y-6'>
+        <div className='min-h-screen space-y-6 p-4'>
             {/* Header Actions */}
             <div className='flex justify-end'>
                 <Button
                     onClick={handleAddNew}
-                    className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg bg-[#3f51b5] hover:bg-[#303f9f] text-white'
-                >
+                    className='w-fit bg-[#3f51b5] text-white shadow-md transition-all duration-200 hover:scale-105 hover:bg-[#303f9f] hover:shadow-lg'>
                     <Plus className='mr-2 h-4 w-4' /> Add New Category
                 </Button>
             </div>
@@ -215,14 +234,13 @@ export default function TTCategoryPage() {
                                 variant='ghost'
                                 size='sm'
                                 onClick={handleClear}
-                                className='-top-12 absolute right-0 text-destructive hover:bg-destructive/10'
-                            >
+                                className='-top-12 absolute right-0 text-destructive hover:bg-destructive/10'>
                                 <X className='mr-2 h-4 w-4' /> Close
                             </Button>
                             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 py-4'>
                                 <div className='flex justify-center'>
-                                    <div className='w-full max-w-2xl flex items-center gap-4'>
-                                        <label className='whitespace-nowrap font-medium text-sm w-1/3 text-right'>
+                                    <div className='flex w-full max-w-2xl items-center gap-4'>
+                                        <label className='w-1/3 whitespace-nowrap text-right font-medium text-sm'>
                                             Category Name: <span className='text-red-500'>*</span>
                                         </label>
                                         <div className='w-2/3'>
@@ -246,9 +264,8 @@ export default function TTCategoryPage() {
                                     <Button
                                         type='submit'
                                         disabled={isSubmitting}
-                                        className='bg-[#3f51b5] hover:bg-[#303f9f] text-white transition-all duration-200'
-                                        isLoading={isSubmitting}
-                                    >
+                                        className='bg-[#3f51b5] text-white transition-all duration-200 hover:bg-[#303f9f]'
+                                        isLoading={isSubmitting}>
                                         <Save className='mr-2 h-4 w-4' />
                                         SAVE
                                     </Button>
@@ -257,8 +274,7 @@ export default function TTCategoryPage() {
                                         variant='destructive'
                                         onClick={handleClear}
                                         disabled={isSubmitting}
-                                        className='bg-[#ff5722] hover:bg-[#e64a19] text-white transition-all duration-200'
-                                    >
+                                        className='bg-[#ff5722] text-white transition-all duration-200 hover:bg-[#e64a19]'>
                                         <X className='mr-2 h-4 w-4' />
                                         CANCEL
                                     </Button>

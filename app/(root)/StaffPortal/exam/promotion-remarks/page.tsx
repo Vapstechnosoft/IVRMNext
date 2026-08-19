@@ -1,25 +1,18 @@
 'use client';
 
-import React, { useState } from 'react';
 import { usePromotionRemarks } from '@/hooks/staff-portal/usePromotionRemarks';
+import type { IStudentPromotion } from '@/types/staff-portal/promotion-remarks';
+import { useState } from 'react';
 import PromotionRemarksFilter from './_components/promotion-remarks-filter';
 import PromotionRemarksGrid from './_components/promotion-remarks-grid';
-import type { IStudentPromotion } from '@/types/staff-portal/promotion-remarks';
 
 export default function PromotionRemarksPage() {
-    const {
-        initialData,
-        isLoadingInitial,
-        getClasses,
-        getSections,
-        searchStudent,
-        saveDetails
-    } = usePromotionRemarks();
+    const { initialData, isLoadingInitial, getClasses, getSections, searchStudent, saveDetails } = usePromotionRemarks();
 
     const [students, setStudents] = useState<IStudentPromotion[]>([]);
     const [filterData, setFilterData] = useState<{ ASMAY_Id: number; ASMCL_Id: number; ASMS_Id: number } | null>(null);
 
-    if (isLoadingInitial) return <div className="p-8 text-center">Loading...</div>;
+    if (isLoadingInitial) return <div className='p-8 text-center'>Loading...</div>;
 
     const handleSearch = async (data: { ASMAY_Id: number; ASMCL_Id: number; ASMS_Id: number }) => {
         setFilterData(data);
@@ -33,9 +26,9 @@ export default function PromotionRemarksPage() {
             const saved = res.data?.getsavedetails || [];
 
             // Merge logic from legacy controller
-            const merged = rawStudents.map(s => {
-                const studentMarks = marks.find(m => m.amsT_Id === s.amsT_Id);
-                const savedDetail = saved.find(sd => sd.amsT_Id === s.amsT_Id);
+            const merged = rawStudents.map((s) => {
+                const studentMarks = marks.find((m) => m.amsT_Id === s.amsT_Id);
+                const savedDetail = saved.find((sd) => sd.amsT_Id === s.amsT_Id);
 
                 return {
                     ...s,
@@ -66,23 +59,20 @@ export default function PromotionRemarksPage() {
     };
 
     return (
-        <div className="container mx-auto p-4 space-y-6">
+        <div className='container mx-auto space-y-6 p-4'>
             <PromotionRemarksFilter
                 initialData={initialData}
                 getClasses={async (d) => (await getClasses.mutateAsync(d)).data || { getclass: [] }}
                 getSections={async (d) => (await getSections.mutateAsync(d)).data || { getsection: [] }}
                 onSearch={handleSearch}
-                onReset={() => { setStudents([]); setFilterData(null); }}
+                onReset={() => {
+                    setStudents([]);
+                    setFilterData(null);
+                }}
                 isLoading={searchStudent.isPending}
             />
 
-            {(students.length > 0) && (
-                <PromotionRemarksGrid
-                    studentList={students}
-                    onSave={handleSave}
-                    filterData={filterData!}
-                />
-            )}
+            {students.length > 0 && <PromotionRemarksGrid studentList={students} onSave={handleSave} filterData={filterData!} />}
         </div>
     );
 }

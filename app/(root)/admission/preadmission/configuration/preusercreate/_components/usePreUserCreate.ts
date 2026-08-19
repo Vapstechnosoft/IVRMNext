@@ -1,4 +1,3 @@
-import { PREADMISSION_QUERY_KEYS } from '@/constants/query-keys';
 import { getPreUserInitialData } from '@/server/admission/preadmission/configuration/pre_user_create';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 

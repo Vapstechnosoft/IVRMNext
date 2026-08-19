@@ -5,8 +5,8 @@ import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { InvVendorPayment } from '@/types/inventory/transactions/inv-vendor-payment';
 import type { ColumnDef } from '@tanstack/react-table';
-import { useCallback } from 'react';
 import { formatDate } from 'date-fns';
+import { useCallback } from 'react';
 
 export const invVendorPaymentColumns: ColumnDef<InvVendorPayment>[] = [
     {
@@ -45,9 +45,9 @@ export const invVendorPaymentColumns: ColumnDef<InvVendorPayment>[] = [
             const cheque = row.original.invspT_ChequeDDNo;
             const bank = row.original.invspT_BankName;
             return (
-                <div className="flex flex-col text-xs">
+                <div className='flex flex-col text-xs'>
                     <span>{cheque || ref || '-'}</span>
-                    {bank && <span className="text-muted-foreground">{bank}</span>}
+                    {bank && <span className='text-muted-foreground'>{bank}</span>}
                 </div>
             );
         }
@@ -55,7 +55,7 @@ export const invVendorPaymentColumns: ColumnDef<InvVendorPayment>[] = [
     {
         accessorKey: 'invspT_Amount',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Amount' />,
-        cell: ({ row }) => <div className="text-right">{row.getValue('invspT_Amount')}</div>
+        cell: ({ row }) => <div className='text-right'>{row.getValue('invspT_Amount')}</div>
     },
     {
         accessorKey: 'invspT_Remarks',

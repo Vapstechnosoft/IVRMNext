@@ -1,18 +1,15 @@
 'use client';
-
-import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useEmployeeYearlyReport } from '@/hooks/hrms/attendance-management/useReports';
 import { exportToExcel } from '@/lib/utils';
 import { format } from 'date-fns';
-import { FileSpreadsheet, Printer, X } from 'lucide-react';
+import { FileSpreadsheet } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { use } from 'react';
 import { toast } from 'sonner';
 import AddEmployeeYearlyReportForm from './_components/add-from';
-import { getEmployeeYearlyReportColumns, type YearRow } from './_components/columns';
+import { type YearRow, getEmployeeYearlyReportColumns } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -22,9 +19,7 @@ export default function EmployeeYearlyReportPage(props: {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useEmployeeYearlyReport(searchParams);
 
-    return (
-        <EmployeeYearlyReportPageContent response={response} isLoading={isLoading} error={error} searchParams={searchParams} />
-    );
+    return <EmployeeYearlyReportPageContent response={response} isLoading={isLoading} error={error} searchParams={searchParams} />;
 }
 
 function FormSections({ searchParams }: { searchParams?: any }) {
@@ -58,39 +53,83 @@ function EmployeeYearlyReportPageContent({
 }) {
     const [selectedRows, setSelectedRows] = useState<YearRow[]>([]);
 
-    // Extract data from new response structure
-    const reportData = useMemo(() => response?.data?.report || response?.data || [], [response]);
-    const dynamicMonths = useMemo(() => response?.data?.columns || [], [response]);
-    const totalWorkingDays = response?.data?.tpdays;
+    // Extract data from response structure
+    const reportData = useMemo(() => {
+        if (!response) return [];
 
-    console.log('dynamicMonths', dynamicMonths);
+        // Check multiple possible data structures
+        if (Array.isArray(response.data)) return response.data;
+        if (response.data?.report && Array.isArray(response.data.report)) {
+            return response.data.report;
+        }
+        if (response.report && Array.isArray(response.report)) {
+            return response.report;
+        }
+        return [];
+    }, [response]);
+
+    const dynamicMonths = useMemo(() => {
+        if (!response) return [];
+        if (response.data?.columns && Array.isArray(response.data.columns)) {
+            return response.data.columns;
+        }
+        if (response.columns && Array.isArray(response.columns)) {
+            return response.columns;
+        }
+        return [];
+    }, [response]);
+
+    const totalWorkingDays = useMemo(() => {
+        if (!response) return 0;
+        return response.data?.tpdays || response.tpdays || 0;
+    }, [response]);
+
+    console.log('response', response);
     console.log('reportData', reportData);
-    // Get modes from searchParams
-    const rawModes = searchParams?.mode;
-    const modes = useMemo(() => Array.isArray(rawModes) ? rawModes : rawModes ? [rawModes as string] : [], [rawModes]);
+    console.log('dynamicMonths', dynamicMonths);
 
-    const tableProps = useMemo(() => ({
-        ...response,
-        data: reportData,
-        total: response?.total ?? reportData.length,
-        errorMessage: response?.message || response?.errorMessage
-    }), [response, reportData]);
+    const rawModes = searchParams?.mode;
+    const modes = useMemo(() => {
+        if (Array.isArray(rawModes)) return rawModes;
+        if (rawModes) return [rawModes as string];
+        return [];
+    }, [rawModes]);
+
+    const tableProps = useMemo(() => {
+        const total = response?.data?.total || response?.total || reportData.length;
+        const errorMessage = response?.message || response?.errorMessage || error?.message;
+
+        return {
+            data: reportData,
+            total: total,
+            errorMessage: errorMessage,
+            success: response?.success !== false
+        };
+    }, [reportData, response, error]);
 
     const columns = useMemo(() => {
         return getEmployeeYearlyReportColumns(dynamicMonths, modes);
     }, [dynamicMonths, modes]);
 
-    const handleRowSelectionChange = useCallback((rows: YearRow[]) => {
-        // Only update if selection has actually changed to prevent infinite loops
-        if (rows.length !== selectedRows.length ||
-            JSON.stringify(rows.map(r => r.ecode)) !== JSON.stringify(selectedRows.map(r => r.ecode))) {
-            setSelectedRows(rows);
-        }
-    }, [selectedRows]);
+    const handleRowSelectionChange = useCallback(
+        (rows: YearRow[]) => {
+            if (
+                rows.length !== selectedRows.length ||
+                JSON.stringify(rows.map((r) => r.ecode)) !== JSON.stringify(selectedRows.map((r) => r.ecode))
+            ) {
+                setSelectedRows(rows);
+            }
+        },
+        [selectedRows]
+    );
 
     useEffect(() => {
         if (!isLoading && searchParams?.fromDate && searchParams?.toDate && reportData.length === 0 && response) {
-            toast.error('No Data Found');
+            if (response.message) {
+                toast.error(response.message);
+            } else {
+                toast.error('No Data Found');
+            }
         }
     }, [isLoading, reportData.length, searchParams?.fromDate, searchParams?.toDate, response]);
 
@@ -103,10 +142,9 @@ function EmployeeYearlyReportPageContent({
                 'Sl.No': index + 1,
                 'Employee Code': row.ecode || '',
                 'Employee Name': row.ename || '',
-                'Designation': row.designation || ''
+                Designation: row.designation || ''
             };
 
-            // Add dynamic months
             dynamicMonths.forEach((month: string) => {
                 exportRow[month.replace('_', ' ')] = row[month] ?? '';
             });
@@ -133,7 +171,6 @@ function EmployeeYearlyReportPageContent({
         const dataToPrint = selectedRows.length > 0 ? selectedRows : reportData;
         if (dataToPrint.length === 0) return;
 
-        // Create a print-friendly table
         const printWindow = window.open('', '_blank');
         if (!printWindow) return;
 
@@ -185,7 +222,9 @@ function EmployeeYearlyReportPageContent({
                         </tr>
                     </thead>
                     <tbody>
-                        ${dataToPrint.map((row: YearRow, index: number) => `
+                        ${dataToPrint
+                            .map(
+                                (row: YearRow, index: number) => `
                             <tr>
                                 <td>${index + 1}</td>
                                 <td>${row.ecode || ''}</td>
@@ -196,7 +235,9 @@ function EmployeeYearlyReportPageContent({
                                 ${modes.includes('Show Holiday Punch') ? `<td>${row.hwkdays ?? ''}</td>` : ''}
                                 ${modes.includes('Date Of Joining') ? `<td>${row.doj ? format(new Date(row.doj), 'dd-MM-yyyy') : ''}</td>` : ''}
                             </tr>
-                        `).join('')}
+                        `
+                            )
+                            .join('')}
                     </tbody>
                 </table>
                 <div class="footer">
@@ -215,73 +256,36 @@ function EmployeeYearlyReportPageContent({
         }, 300);
     };
 
+    const shouldShowTable = searchParams?.fromDate && searchParams?.toDate && reportData.length > 0;
+
     return (
         <FormProvider<YearRow>>
             <div className='min-h-screen'>
                 <div className='container space-y-4 p-1'>
                     <FormSections searchParams={searchParams} />
 
-                    {/* Data Table Section - Only show when search criteria are provided AND data exists */}
-                    {searchParams?.fromDate && searchParams?.toDate && reportData.length > 0 && (
-                        <CollapsibleSection
-                            defaultOpen={true}
-                            variant='default'
-                            size='lg'
-                            className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    {/* {shouldShowTable && (
+                        
+                    )} */}
 
-                            {/* Action Buttons inside CollapsibleSection */}
-                            {reportData.length > 0 && (
-                                <div className='mb-4 flex items-center gap-2 rounded-lg border bg-blue-50/30 p-3 shadow-sm'>
-                                    <div className='flex flex-col gap-0.5'>
-                                        <span className='font-semibold text-blue-900 text-sm'>
-                                            Report Actions
-                                        </span>
-                                        <span className='text-blue-700 text-[10px] text-muted-foreground'>
-                                            {selectedRows.length > 0
-                                                ? `${selectedRows.length} of ${reportData.length} records selected`
-                                                : `${reportData.length} total records found`}
-                                        </span>
-                                    </div>
-                                    <div className='ml-auto flex items-center gap-2'>
-                                        <Button
-                                            type='button'
-                                            variant='outline'
-                                            size='sm'
-                                            onClick={handleExportToExcel}
-                                            className='h-8 border-emerald-200 bg-white text-emerald-700 shadow-sm hover:bg-emerald-50'>
-                                            <FileSpreadsheet className='mr-2 h-3.5 w-3.5' />
-                                            Excel
-                                        </Button>
-                                        <Button
-                                            type='button'
-                                            variant='outline'
-                                            size='sm'
-                                            onClick={handlePrint}
-                                            className='h-8 border-blue-200 bg-white text-blue-700 shadow-sm hover:bg-blue-50'>
-                                            <Printer className='mr-2 h-3.5 w-3.5' />
-                                            Print
-                                        </Button>
-                                    </div>
-                                </div>
-                            )}
+                    {isLoading && searchParams?.fromDate && searchParams?.toDate && (
+                        <div className='flex items-center justify-center py-12'>
+                            <div className='text-center'>
+                                <p className='mt-4 text-muted-foreground'>Loading report data...</p>
+                            </div>
+                        </div>
+                    )}
 
-                            <GenericDataTable<YearRow>
-                                {...tableProps}
-                                columns={columns}
-                                isLoading={isLoading}
-                                success={response?.success}
-                                error={error}
-                                errorMessage={response?.message || response?.errorMessage}
-                                showViewOptions={false}
-                                columnPinning={{ right: ['actions'] }}
-                                isPaginationRequired={true}
-                                onRowSelectionChange={handleRowSelectionChange}
-                                loadingMessage='Loading Employee Yearly Reports...'
-                                noDataTitle='No Employee Yearly Reports Found'
-                                noDataDescription='Get started by generating your first Employee Yearly Report'
-                                errorTitle='Error Loading Employee Yearly Reports'
-                            />
-                        </CollapsibleSection>
+                    {!isLoading && searchParams?.fromDate && searchParams?.toDate && reportData.length === 0 && response && (
+                        <div className='rounded-lg border bg-card p-12 text-center'>
+                            <div className='mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted'>
+                                <FileSpreadsheet className='h-6 w-6 text-muted-foreground' />
+                            </div>
+                            <h3 className='mt-4 font-semibold text-lg'>No Data Found</h3>
+                            <p className='mt-2 text-muted-foreground text-sm'>
+                                {response?.message || 'No employee yearly report data found for the selected criteria.'}
+                            </p>
+                        </div>
                     )}
                 </div>
             </div>

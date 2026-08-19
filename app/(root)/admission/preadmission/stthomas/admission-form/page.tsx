@@ -4,16 +4,16 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { IadmissionStudentApplicationList } from '@/types/admission/admission';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Plus, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
+import { useQueryState } from 'nuqs';
 import React, { useEffect, useState } from 'react';
 import AddStudentAdmissionForm from './_components/add-form';
 import { studentApplicationColumns } from './_components/columns';
 import ApplicationFormSuccessDialog from './_components/success-dialog';
-import { useQueryState } from 'nuqs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -52,16 +52,13 @@ function StudentApplicationPageContent({
 }) {
     const { openAddForm } = useFormContext();
     const tableProps = useDataTableProps(
-        response?.data && response.data.studentList 
-            ? { ...response, data: response.data.studentList } 
-            : response
+        response?.data && response.data.studentList ? { ...response, data: response.data.studentList } : response
     );
     const [isSuccessOpen, setSuccessOpen] = useState(false);
     const [successType, setSuccessType] = useState<'create' | 'update'>('create');
     const session = useSession();
 
-    useEffect(() => {
-    }, [session?.data?.role]);
+    useEffect(() => {}, [session?.data?.role]);
 
     useEffect(() => {
         const handler = () => refetch();
@@ -79,10 +76,10 @@ function StudentApplicationPageContent({
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Header */}
-                <div className='flex justify-between items-center'>
+                <div className='flex items-center justify-between'>
                     <div className='w-64'>
                         <Select value={selectedYear} onValueChange={setSelectedYear}>
-                            <SelectTrigger className="w-full bg-background">
+                            <SelectTrigger className='w-full bg-background'>
                                 <SelectValue placeholder='Select Academic Year' />
                             </SelectTrigger>
                             <SelectContent>

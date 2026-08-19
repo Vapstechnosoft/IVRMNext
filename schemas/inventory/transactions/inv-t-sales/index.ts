@@ -15,19 +15,23 @@ export const invTSalesItemSchema = z.object({
     invtsL_ActiveFlg: z.boolean().optional(),
     availableStock: z.number().optional(),
     // Tax list for item
-    SalesItemTax: z.array(z.object({
-        invmT_Id: z.number(),
-        invmT_TaxName: z.string().optional(),
-        invtslT_TaxPer: z.number(),
-        invtslT_TaxAmt: z.number()
-    })).optional()
+    SalesItemTax: z
+        .array(
+            z.object({
+                invmT_Id: z.number(),
+                invmT_TaxName: z.string().optional(),
+                invtslT_TaxPer: z.number(),
+                invtslT_TaxAmt: z.number()
+            })
+        )
+        .optional()
 });
 
 export const invTSalesSchema = z.object({
     invmsL_Id: z.number().optional(),
     invmsL_SalesNo: z.string().optional(),
     invmsL_SalesDate: z.date({
-        required_error: "Sale Date is required",
+        required_error: 'Sale Date is required'
     }),
     invmsL_SalesValue: z.number().optional(),
     invmsL_TotDiscount: z.number().optional(),
@@ -44,7 +48,7 @@ export const invTSalesSchema = z.object({
     invmC_Id: z.number().optional(), // Customer
 
     // Sub items
-    SaleItem: z.array(invTSalesItemSchema).min(1, "At least one item is required"),
+    SaleItem: z.array(invTSalesItemSchema).min(1, 'At least one item is required'),
 
     // UI Helpers
     stu_Flag: z.enum(['I', 'C', 'CS']).optional() // Individual, Class, Class/Section

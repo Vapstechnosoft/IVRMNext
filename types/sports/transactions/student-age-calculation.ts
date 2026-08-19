@@ -1,5 +1,3 @@
-import { StudentAgeCalculationFormData, StudentAgeRecord } from '@/schemas/sports/transactions/student-age-calculation';
-
 export interface StudentAgeCalculationInitialData {
     academicYear: AcademicYear[];
     classList: ClassList[];

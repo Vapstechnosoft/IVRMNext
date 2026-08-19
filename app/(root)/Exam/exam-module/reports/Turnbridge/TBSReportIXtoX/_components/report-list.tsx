@@ -2,7 +2,6 @@
 
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
-import React from 'react';
 
 interface ReportListProps {
     data: any;
@@ -49,7 +48,7 @@ const turnbridgeSubjectOrderIXtoX = [
     'physical education',
     'supw',
     'art education',
-    'value education',
+    'value education'
 ];
 
 const getSubjectOrderIndex = (subjName: string) => {
@@ -68,12 +67,21 @@ export const ReportList = ({ data, params }: ReportListProps) => {
     const rawStudentDetails = getArray(rawData, ['getstudentdetails', 'studentdetails', 'studentlist', 'getstudentlist']);
     const getstudentmarksdetails = getArray(rawData, ['getstudentmarksdetails', 'studentmarksdetails', 'getStudentMarksDetails']);
     const getstudent_examwisemarks = getArray(rawData, ['getstudent_examwisemarks', 'student_examwisemarks', 'examwisemarks']);
-    const getpromotionremarksdetails = getArray(rawData, ['getpromotionremarksdetails', 'promotionremarksdetails', 'getPromotionRemarksDetails']);
+    const getpromotionremarksdetails = getArray(rawData, [
+        'getpromotionremarksdetails',
+        'promotionremarksdetails',
+        'getPromotionRemarksDetails'
+    ]);
     const getgroupdetails = getArray(rawData, ['getgroupdetails', 'groupdetails', 'getGroupDetails']);
     const getgroupexamdetails = getArray(rawData, ['getgroupexamdetails', 'groupexamdetails', 'getGroupExamDetails']);
     const backendGroupWise = getArray(rawData, ['groupwiseexamlist', 'groupwiseExamList']);
     const examwiseremarks = getArray(rawData, ['examwiseremarks', 'getexamwiseremarks', 'remarksdetails', 'getremarksdetails']);
-    const getstudentwiseattendancedetails = getArray(rawData, ['getstudentwiseattendancedetails', 'studentwiseattendancedetails', 'getStudentWiseAttendanceDetails', 'attendancedetails']);
+    const getstudentwiseattendancedetails = getArray(rawData, [
+        'getstudentwiseattendancedetails',
+        'studentwiseattendancedetails',
+        'getStudentWiseAttendanceDetails',
+        'attendancedetails'
+    ]);
     const getstudentwisetermwisedetails = getArray(rawData, ['getstudentwisetermwisedetails', 'studentwisetermwisedetails']);
     const getexamwisetotaldetails = getArray(rawData, ['getexamwisetotaldetails', 'examwisetotaldetails']);
 
@@ -81,9 +89,11 @@ export const ReportList = ({ data, params }: ReportListProps) => {
     const studentdetails = rawStudentDetails.map((r: any, idx: number) => {
         const realAmstId =
             Number(r.amsT_Id ?? r.AMST_Id ?? r.amst_id ?? 0) ||
-            Number(getstudentmarksdetails.find((m: any) => (m.admNo || m.amsT_AdmNo || m.r_isms_id) === (r.r_isms_id || r.admno))?.amsT_Id ?? 0) ||
+            Number(
+                getstudentmarksdetails.find((m: any) => (m.admNo || m.amsT_AdmNo || m.r_isms_id) === (r.r_isms_id || r.admno))?.amsT_Id ?? 0
+            ) ||
             Number(getstudentmarksdetails[0]?.amsT_Id ?? 0) ||
-            Number(r.subject_wise_total_per ?? (idx + 1));
+            Number(r.subject_wise_total_per ?? idx + 1);
 
         return {
             AMST_Id: realAmstId,
@@ -103,7 +113,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
             attendance: r.attendance ?? r.overallAttendancePercentage ?? r.TOTALAttendancePercentage ?? r.r_emgr_id,
             presentDays: r.presentDays ?? r.r_estmppsg_groupobtgrade ?? r.totalPresentDays,
             workingDays: r.workingDays ?? r.r_eyces_gradedisplayflg ?? r.totalWorkingDays,
-            percentage: r.percentage ?? r.ESTMPP_Percentage ?? r.estmpP_Percentage,
+            percentage: r.percentage ?? r.ESTMPP_Percentage ?? r.estmpP_Percentage
         };
     });
 
@@ -129,7 +139,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                 EMPSGE_ForMaxMarkrs: g.maxMarks ?? g.EMPSGE_ForMaxMarkrs ?? g.empsgE_ForMaxMarkrs,
                 examnamedisplay: g.displayName ?? g.examnamedisplay ?? g.examName,
                 colspan: g.colspan ?? null,
-                Attcolspan: g.Attcolspan ?? null,
+                Attcolspan: g.Attcolspan ?? null
             });
         });
     } else if (getgroupdetails.length > 0) {
@@ -150,7 +160,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                     EMPSGE_ForMaxMarkrs: d.empsgE_ForMaxMarkrs || d.EMPSGE_ForMaxMarkrs,
                     examnamedisplay: d.emE_ExamCode || d.emE_ExamName || d.EME_ExamName,
                     colspan: null,
-                    Attcolspan: null,
+                    Attcolspan: null
                 });
             });
             groupwiseexamlist.push({
@@ -162,7 +172,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                 EMPSGE_ForMaxMarkrs: counttotal,
                 examnamedisplay: 'Total',
                 colspan: 2,
-                Attcolspan: 2,
+                Attcolspan: 2
             });
             groupwiseexamlist.push({
                 EMPG_GroupName: dd.empG_GroupName || displayName,
@@ -173,7 +183,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                 EMPSGE_ForMaxMarkrs: counttotal,
                 examnamedisplay: 'Term Average',
                 colspan: null,
-                Attcolspan: null,
+                Attcolspan: null
             });
         });
     }
@@ -210,7 +220,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                         EYCES_MarksDisplayFlg: s.eyceS_MarksDisplayFlg ?? s.EYCES_MarksDisplayFlg ?? true,
                         EYCES_GradeDisplayFlg: s.eyceS_GradeDisplayFlg ?? s.EYCES_GradeDisplayFlg ?? false,
                         subject_wise_total_per: s.subject_wise_total_per ?? s.ESTMPP_ObtGrade ?? s.subject_Wise_Total_Per,
-                        order: Number(s.ismS_OrderFlag ?? s.ISMS_OrderFlag ?? s.ismS_SubjectOrder ?? 999),
+                        order: Number(s.ismS_OrderFlag ?? s.ISMS_OrderFlag ?? s.ismS_SubjectOrder ?? 999)
                     });
                 }
             });
@@ -228,7 +238,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                         EYCES_MarksDisplayFlg: m.eyceS_MarksDisplayFlg ?? m.EYCES_MarksDisplayFlg ?? true,
                         EYCES_GradeDisplayFlg: m.eyceS_GradeDisplayFlg ?? m.EYCES_GradeDisplayFlg ?? false,
                         subject_wise_total_per: m.subject_wise_total_per ?? m.estmpp_ObtGrade ?? m.ESTMPP_ObtGrade,
-                        order: Number(m.ismS_OrderFlag ?? m.ISMS_OrderFlag ?? m.ismS_SubjectOrder ?? 999),
+                        order: Number(m.ismS_OrderFlag ?? m.ISMS_OrderFlag ?? m.ismS_SubjectOrder ?? 999)
                     });
                 }
             });
@@ -282,8 +292,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         if (rem.length === 0) {
             rem = getstudent_examwisemarks.filter(
                 (m: any) =>
-                    (Number(m.amsT_Id ?? m.AMST_Id) === amstId ||
-                        (rawAmstId && Number(m.amsT_Id ?? m.AMST_Id) === rawAmstId)) &&
+                    (Number(m.amsT_Id ?? m.AMST_Id) === amstId || (rawAmstId && Number(m.amsT_Id ?? m.AMST_Id) === rawAmstId)) &&
                     (m.emeR_Remarks || m.EMER_Remarks || m.remarks || m.estmP_ClassRank !== undefined || m.ESTMP_ClassRank !== undefined)
             );
         }
@@ -299,15 +308,35 @@ export const ReportList = ({ data, params }: ReportListProps) => {
             return true;
         }
 
-        const itemGroup = String(item.empsG_DisplayName || item.EMPSG_DisplayName || item.emE_ExamName || item.EME_ExamName || '').toLowerCase().trim();
-        const grpGroup = String(grpexam?.EMPG_DistplayName || grpexam?.EME_ExamName || grpexam?.examnamedisplay || '').toLowerCase().trim();
+        const itemGroup = String(item.empsG_DisplayName || item.EMPSG_DisplayName || item.emE_ExamName || item.EME_ExamName || '')
+            .toLowerCase()
+            .trim();
+        const grpGroup = String(grpexam?.EMPG_DistplayName || grpexam?.EME_ExamName || grpexam?.examnamedisplay || '')
+            .toLowerCase()
+            .trim();
 
         if (itemGroup && grpGroup) {
             if (itemGroup === grpGroup) return true;
-            if ((itemGroup.includes('unit test 1') || itemGroup.includes('i unit')) && (grpGroup.includes('unit test 1') || grpGroup.includes('i unit'))) return true;
-            if ((itemGroup.includes('term 1') || itemGroup.includes('i term')) && (grpGroup.includes('term 1') || grpGroup.includes('i term'))) return true;
-            if ((itemGroup.includes('unit test 2') || itemGroup.includes('ii unit')) && (grpGroup.includes('unit test 2') || grpGroup.includes('ii unit'))) return true;
-            if ((itemGroup.includes('term 2') || itemGroup.includes('ii term')) && (grpGroup.includes('term 2') || grpGroup.includes('ii term'))) return true;
+            if (
+                (itemGroup.includes('unit test 1') || itemGroup.includes('i unit')) &&
+                (grpGroup.includes('unit test 1') || grpGroup.includes('i unit'))
+            )
+                return true;
+            if (
+                (itemGroup.includes('term 1') || itemGroup.includes('i term')) &&
+                (grpGroup.includes('term 1') || grpGroup.includes('i term'))
+            )
+                return true;
+            if (
+                (itemGroup.includes('unit test 2') || itemGroup.includes('ii unit')) &&
+                (grpGroup.includes('unit test 2') || grpGroup.includes('ii unit'))
+            )
+                return true;
+            if (
+                (itemGroup.includes('term 2') || itemGroup.includes('ii term')) &&
+                (grpGroup.includes('term 2') || grpGroup.includes('ii term'))
+            )
+                return true;
         }
         return false;
     };
@@ -320,7 +349,9 @@ export const ReportList = ({ data, params }: ReportListProps) => {
             const mSubId = Number(m.ismS_Id ?? m.ISMS_Id ?? 0);
             const mSubName = (m.ismS_SubjectName || m.ISMS_SubjectName || '').toLowerCase().trim();
 
-            const isSubjMatch = (subId > 0 && mSubId === subId) || (subName && mSubName && (mSubName === subName || mSubName.includes(subName) || subName.includes(mSubName)));
+            const isSubjMatch =
+                (subId > 0 && mSubId === subId) ||
+                (subName && mSubName && (mSubName === subName || mSubName.includes(subName) || subName.includes(mSubName)));
             if (!isSubjMatch) return false;
 
             const mExamId = Number(m.emE_Id ?? m.EME_Id ?? 0);
@@ -348,24 +379,20 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
     const getStudentExamMark = (examwisemarks: any[], examId: number, displayName: string) =>
         examwisemarks.find(
-            (m: any) =>
-                Number(m.emE_Id ?? m.EME_Id) === examId ||
-                (m.empsG_DisplayName || m.EMPSG_DisplayName) === displayName
+            (m: any) => Number(m.emE_Id ?? m.EME_Id) === examId || (m.empsG_DisplayName || m.EMPSG_DisplayName) === displayName
         );
 
     const renderMarkValue = (mark: any) => {
         if (!mark) return '';
-        const passFailFlag = String(mark.passFailFlag || mark.PassFailFlag || '').toUpperCase().trim();
+        const passFailFlag = String(mark.passFailFlag || mark.PassFailFlag || '')
+            .toUpperCase()
+            .trim();
         if (['AB', 'M', 'L', 'ABSENT'].includes(passFailFlag)) {
             return passFailFlag === 'ABSENT' ? 'AB' : passFailFlag;
         }
 
         const obtMarks =
-            mark.estmpP_ObtMarks ??
-            mark.obtainedMarks ??
-            mark.ObtainedMarks ??
-            mark.r_estmppsg_groupobtmarks ??
-            mark.ESTMPP_ObtMarks;
+            mark.estmpP_ObtMarks ?? mark.obtainedMarks ?? mark.ObtainedMarks ?? mark.r_estmppsg_groupobtmarks ?? mark.ESTMPP_ObtMarks;
 
         if ((mark.eyceS_MarksDisplayFlg ?? mark.EYCES_MarksDisplayFlg ?? true) && obtMarks !== undefined && obtMarks !== null) {
             return String(obtMarks);
@@ -422,9 +449,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
     };
 
     const getSubjectExamMarks = (studentmarks: any[], subjectId: number) => {
-        const subjMarks = studentmarks.filter(
-            (m: any) => Number(m.ismS_Id ?? m.ISMS_Id) === subjectId
-        );
+        const subjMarks = studentmarks.filter((m: any) => Number(m.ismS_Id ?? m.ISMS_Id) === subjectId);
         const uniqueMarksMap = new Map();
         subjMarks.forEach((m: any) => {
             const key = m.empsG_DisplayName || m.EMPSG_DisplayName || m.emE_Id || m.EME_Id;
@@ -465,7 +490,8 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         const uniqueMarks = getSubjectExamMarks(studentmarks, subj.ISMS_Id);
         if (uniqueMarks.length === 0) return '';
 
-        const isGrade = subj.EYCES_GradeDisplayFlg || uniqueMarks.some((mark: any) => mark.eyceS_GradeDisplayFlg || mark.EYCES_GradeDisplayFlg);
+        const isGrade =
+            subj.EYCES_GradeDisplayFlg || uniqueMarks.some((mark: any) => mark.eyceS_GradeDisplayFlg || mark.EYCES_GradeDisplayFlg);
         if (isGrade) {
             const g = uniqueMarks[0]?.obtainedGrade || uniqueMarks[0]?.ObtainedGrade || uniqueMarks[0]?.estmpP_ObtGrade;
             return g || '';
@@ -473,9 +499,16 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
         const numVals: number[] = [];
         uniqueMarks.forEach((mark: any) => {
-            const passFailFlag = String(mark.passFailFlag || mark.PassFailFlag || '').toUpperCase().trim();
+            const passFailFlag = String(mark.passFailFlag || mark.PassFailFlag || '')
+                .toUpperCase()
+                .trim();
             if (!['AB', 'M', 'L', 'ABSENT'].includes(passFailFlag)) {
-                const val = mark.estmpP_ObtMarks ?? mark.obtainedMarks ?? mark.ObtainedMarks ?? mark.r_estmppsg_groupobtmarks ?? mark.ESTMPP_ObtMarks;
+                const val =
+                    mark.estmpP_ObtMarks ??
+                    mark.obtainedMarks ??
+                    mark.ObtainedMarks ??
+                    mark.r_estmppsg_groupobtmarks ??
+                    mark.ESTMPP_ObtMarks;
                 if (typeof val === 'number') numVals.push(val);
                 else if (val !== null && val !== undefined && !Number.isNaN(Number(val))) numVals.push(Number(val));
             }
@@ -486,15 +519,23 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         return avg % 1 === 0 ? avg.toString() : avg.toFixed(1);
     };
 
-    const getExamAttendancePct = (attendanceDetails: any[], examwisemarks: any[], grpexam: any, colType: 'EXAM' | 'TOTAL', studentReport?: any) => {
+    const getExamAttendancePct = (
+        attendanceDetails: any[],
+        examwisemarks: any[],
+        grpexam: any,
+        colType: 'EXAM' | 'TOTAL',
+        studentReport?: any
+    ) => {
         if (attendanceDetails && attendanceDetails.length > 0) {
             const att = attendanceDetails.find((a: any) => matchExamGroup(a, grpexam));
             if (att) {
                 if (colType === 'TOTAL') {
-                    const val = att.TOTALAttendancePercentage ?? att.totalAttendancePercentage ?? att.attendancePercentage ?? att.estmP_Percentage;
+                    const val =
+                        att.TOTALAttendancePercentage ?? att.totalAttendancePercentage ?? att.attendancePercentage ?? att.estmP_Percentage;
                     if (val !== undefined && val !== null && String(val) !== '') return String(val);
                 }
-                const val = att.attendancePercentage ?? att.TOTALAttendancePercentage ?? att.totalAttendancePercentage ?? att.estmP_Percentage;
+                const val =
+                    att.attendancePercentage ?? att.TOTALAttendancePercentage ?? att.totalAttendancePercentage ?? att.estmP_Percentage;
                 if (val !== undefined && val !== null && String(val) !== '') return String(val);
             }
         }
@@ -536,9 +577,17 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         if (attendanceDetails && attendanceDetails.length > 0) {
             const att = attendanceDetails.find((a: any) => matchExamGroup(a, grpexam));
             if (att) {
-                let pres = getPres(att);
-                let work = getWork(att);
-                if (pres !== undefined && work !== undefined && pres !== null && work !== null && String(pres) !== '' && String(work) !== '' && String(pres) !== '0') {
+                const pres = getPres(att);
+                const work = getWork(att);
+                if (
+                    pres !== undefined &&
+                    work !== undefined &&
+                    pres !== null &&
+                    work !== null &&
+                    String(pres) !== '' &&
+                    String(work) !== '' &&
+                    String(pres) !== '0'
+                ) {
                     return `${pres}/${work}`;
                 }
             }
@@ -547,9 +596,16 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         if (examwisemarks && examwisemarks.length > 0) {
             const exMark = examwisemarks.find((m: any) => matchExamGroup(m, grpexam));
             if (exMark) {
-                let pres = getPres(exMark);
-                let work = getWork(exMark);
-                if (pres !== undefined && work !== undefined && pres !== null && work !== null && String(pres) !== '' && String(work) !== '') {
+                const pres = getPres(exMark);
+                const work = getWork(exMark);
+                if (
+                    pres !== undefined &&
+                    work !== undefined &&
+                    pres !== null &&
+                    work !== null &&
+                    String(pres) !== '' &&
+                    String(work) !== ''
+                ) {
                     return `${pres}/${work}`;
                 }
             }
@@ -571,8 +627,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
             <div className='no-print mb-6 flex justify-end gap-3 rounded-t-md border-gray-200 border-b bg-gray-50/50 px-4 py-3'>
                 <Button
                     onClick={handlePrint}
-                    className='flex w-fit items-center gap-2 bg-sky-800 font-medium text-white shadow-sm transition-colors hover:bg-sky-900'
-                >
+                    className='flex w-fit items-center gap-2 bg-sky-800 font-medium text-white shadow-sm transition-colors hover:bg-sky-900'>
                     <Printer className='h-4 w-4' /> Print
                 </Button>
             </div>
@@ -659,7 +714,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                         padding: 4px 6px;
                         text-align: left;
                     }
-                `,
+                `
                     }}
                 />
 
@@ -674,34 +729,35 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                     const attendanceDetails = getStudentAttendance(amstId, rawAmstId, subjWiseId);
                     const studentRemarks = getStudentRemarks(amstId, rawAmstId, subjWiseId);
 
-                    const promotionRemarks = getpromotionremarksdetails.find(
-                        (r: any) =>
-                            Number(r.amsT_Id ?? r.AMST_Id ?? 0) === amstId ||
-                            (rawAmstId && Number(r.amsT_Id ?? r.AMST_Id) === rawAmstId) ||
-                            r.AMST_Id === amstId
-                    ) || getpromotionremarksdetails[0];
+                    const promotionRemarks =
+                        getpromotionremarksdetails.find(
+                            (r: any) =>
+                                Number(r.amsT_Id ?? r.AMST_Id ?? 0) === amstId ||
+                                (rawAmstId && Number(r.amsT_Id ?? r.AMST_Id) === rawAmstId) ||
+                                r.AMST_Id === amstId
+                        ) || getpromotionremarksdetails[0];
 
-                    const termwiseDetail = getstudentwisetermwisedetails.find(
-                        (r: any) =>
-                            Number(r.amsT_Id ?? r.AMST_Id ?? 0) === amstId ||
-                            (rawAmstId && Number(r.amsT_Id ?? r.AMST_Id) === rawAmstId) ||
-                            r.AMST_Id === amstId
-                    ) || getstudentwisetermwisedetails[0];
+                    const termwiseDetail =
+                        getstudentwisetermwisedetails.find(
+                            (r: any) =>
+                                Number(r.amsT_Id ?? r.AMST_Id ?? 0) === amstId ||
+                                (rawAmstId && Number(r.amsT_Id ?? r.AMST_Id) === rawAmstId) ||
+                                r.AMST_Id === amstId
+                        ) || getstudentwisetermwisedetails[0];
 
                     const standardExamGroups = [
                         { name: 'Unit Test 1', id: 24 },
                         { name: 'Term 1', id: 25 },
                         { name: 'Unit Test 2', id: 26 },
-                        { name: 'Term 2', id: 27 },
+                        { name: 'Term 2', id: 27 }
                     ];
 
-                    const attAverageObj = attendanceDetails.find((a: any) => (a.EMPSG_DisplayName || a.empsG_DisplayName || '').toLowerCase() === 'att_average');
+                    const attAverageObj = attendanceDetails.find(
+                        (a: any) => (a.EMPSG_DisplayName || a.empsG_DisplayName || '').toLowerCase() === 'att_average'
+                    );
 
                     return (
-                        <div
-                            key={`tb-report-ixtox-${amstId}-${idx}`}
-                            className={`tb-pagelayout ${idx > 0 ? 'page-break' : ''}`}
-                        >
+                        <div key={`tb-report-ixtox-${amstId}-${idx}`} className={`tb-pagelayout ${idx > 0 ? 'page-break' : ''}`}>
                             {/* Student Info Header Row */}
                             <table className='tb-table' style={{ backgroundColor: 'transparent' }}>
                                 <tbody>
@@ -732,9 +788,8 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                     width: '100%',
                                     borderCollapse: 'collapse',
                                     marginTop: '4px',
-                                    backgroundColor: 'transparent',
-                                }}
-                            >
+                                    backgroundColor: 'transparent'
+                                }}>
                                 <tbody>
                                     <tr>
                                         <td style={{ verticalAlign: 'top' }}>
@@ -765,15 +820,15 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                         const subjNameLower = (subj.ISMS_SubjectName || '').toLowerCase();
                                                         const isEngLit = subjNameLower.includes('english literature');
                                                         const isGeo = subjNameLower.includes('geography');
-                                                        const isChemOrBio = subjNameLower.includes('chemistry') || subjNameLower.includes('biology');
+                                                        const isChemOrBio =
+                                                            subjNameLower.includes('chemistry') || subjNameLower.includes('biology');
 
                                                         return (
                                                             <tr key={`subj-${si}`}>
                                                                 <td>{si + 1}</td>
                                                                 <td
                                                                     className='tb-subject-col'
-                                                                    style={{ width: '150px', wordBreak: 'break-word' }}
-                                                                >
+                                                                    style={{ width: '150px', wordBreak: 'break-word' }}>
                                                                     {subj.ISMS_SubjectName}
                                                                 </td>
                                                                 {visibleExams.map((grpexam: any, gi: number) => {
@@ -781,12 +836,20 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                                         if (isEngLit || isGeo || isChemOrBio) {
                                                                             return null;
                                                                         }
-                                                                        const rowSpanVal = subjNameLower.includes('english language') ? 2 :
-                                                                                            (subjNameLower.includes('history') || subjNameLower.includes('civics')) ? 2 :
-                                                                                            subjNameLower.includes('physics') ? 3 : 1;
+                                                                        const rowSpanVal = subjNameLower.includes('english language')
+                                                                            ? 2
+                                                                            : subjNameLower.includes('history') ||
+                                                                                subjNameLower.includes('civics')
+                                                                              ? 2
+                                                                              : subjNameLower.includes('physics')
+                                                                                ? 3
+                                                                                : 1;
 
                                                                         return (
-                                                                            <td key={`mark-${gi}`} rowSpan={rowSpanVal} style={{ verticalAlign: 'middle' }}>
+                                                                            <td
+                                                                                key={`mark-${gi}`}
+                                                                                rowSpan={rowSpanVal}
+                                                                                style={{ verticalAlign: 'middle' }}>
                                                                                 <b>
                                                                                     {getTermAverage(
                                                                                         subj,
@@ -803,7 +866,8 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                                         mark = studentmarks.find(
                                                                             (m: any) =>
                                                                                 Number(m.ismS_Id ?? m.ISMS_Id) === subj.ISMS_Id &&
-                                                                                (m.empsG_DisplayName || m.EMPSG_DisplayName) === grpexam.EMPG_DistplayName
+                                                                                (m.empsG_DisplayName || m.EMPSG_DisplayName) ===
+                                                                                    grpexam.EMPG_DistplayName
                                                                         );
                                                                     } else {
                                                                         mark = getStudentMark(
@@ -813,11 +877,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                                             grpexam.EMPG_DistplayName
                                                                         );
                                                                     }
-                                                                    return (
-                                                                        <td key={`mark-${gi}`}>
-                                                                            {mark ? renderMarkValue(mark) : ''}
-                                                                        </td>
-                                                                    );
+                                                                    return <td key={`mark-${gi}`}>{mark ? renderMarkValue(mark) : ''}</td>;
                                                                 })}
                                                                 <td>
                                                                     <b>{getYearlyAggregate(subj, studentmarks)}</b>
@@ -853,8 +913,8 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                             {termwiseDetail
                                                                 ? `${termwiseDetail.ESTMPP_TotalObtMarks || termwiseDetail.estmpP_TotalObtMarks || report.totalObtMarks || ''} / ${termwiseDetail.ESTMPP_TotalMaxMarks || termwiseDetail.estmpP_TotalMaxMarks || report.totalMaxMarks || ''}`
                                                                 : report.totalObtMarks && report.totalMaxMarks
-                                                                ? `${report.totalObtMarks} / ${report.totalMaxMarks}`
-                                                                : ''}
+                                                                  ? `${report.totalObtMarks} / ${report.totalMaxMarks}`
+                                                                  : ''}
                                                         </th>
                                                     </tr>
 
@@ -871,10 +931,16 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                                 grpexam.EME_Id,
                                                                 grpexam.EMPG_DistplayName
                                                             );
-                                                            const pct = mark?.totalPercentage ?? mark?.TotalPercentage ?? mark?.estmP_Percentage;
+                                                            const pct =
+                                                                mark?.totalPercentage ?? mark?.TotalPercentage ?? mark?.estmP_Percentage;
                                                             return <th key={`pct-${gi}`}>{pct !== undefined ? `${pct}` : ''}</th>;
                                                         })}
-                                                        <th>{termwiseDetail?.ESTMPP_Percentage || termwiseDetail?.estmpP_Percentage || report.percentage || ''}</th>
+                                                        <th>
+                                                            {termwiseDetail?.ESTMPP_Percentage ||
+                                                                termwiseDetail?.estmpP_Percentage ||
+                                                                report.percentage ||
+                                                                ''}
+                                                        </th>
                                                     </tr>
 
                                                     <tr>
@@ -886,11 +952,24 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                                 return <th key={`att-avg-${gi}`}></th>;
                                                             }
                                                             const colType = grpexam.EME_Id === 9800000 ? 'TOTAL' : 'EXAM';
-                                                            const val = getExamAttendancePct(attendanceDetails, examwisemarks, grpexam, colType, report);
-                                                            return <th key={`att-${gi}`}>{val !== undefined && val !== null ? `${val}` : ''}</th>;
+                                                            const val = getExamAttendancePct(
+                                                                attendanceDetails,
+                                                                examwisemarks,
+                                                                grpexam,
+                                                                colType,
+                                                                report
+                                                            );
+                                                            return (
+                                                                <th key={`att-${gi}`}>
+                                                                    {val !== undefined && val !== null ? `${val}` : ''}
+                                                                </th>
+                                                            );
                                                         })}
                                                         <th>
-                                                            {attAverageObj?.TOTALAttendancePercentage ?? attAverageObj?.totalAttendancePercentage ?? report.attendance ?? ''}
+                                                            {attAverageObj?.TOTALAttendancePercentage ??
+                                                                attAverageObj?.totalAttendancePercentage ??
+                                                                report.attendance ??
+                                                                ''}
                                                         </th>
                                                     </tr>
 
@@ -902,15 +981,20 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                             if (grpexam.EME_Id === 9800001) {
                                                                 return <th key={`cum-att-avg-${gi}`}></th>;
                                                             }
-                                                            const val = getExamAttendanceDays(attendanceDetails, examwisemarks, grpexam, report);
+                                                            const val = getExamAttendanceDays(
+                                                                attendanceDetails,
+                                                                examwisemarks,
+                                                                grpexam,
+                                                                report
+                                                            );
                                                             return <th key={`cum-att-${gi}`}>{val}</th>;
                                                         })}
                                                         <th>
                                                             {attAverageObj?.totalPresentDays && attAverageObj?.totalWorkingDays
                                                                 ? `${attAverageObj.totalPresentDays}/${attAverageObj.totalWorkingDays}`
                                                                 : report.presentDays && report.workingDays
-                                                                ? `${String(report.presentDays).replace('.00', '')}/${String(report.workingDays).replace('.00', '')}`
-                                                                : ''}
+                                                                  ? `${String(report.presentDays).replace('.00', '')}/${String(report.workingDays).replace('.00', '')}`
+                                                                  : ''}
                                                         </th>
                                                     </tr>
 
@@ -951,9 +1035,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                             <table className='comments-table'>
                                                 <thead>
                                                     <tr>
-                                                        <th style={{ height: '94px' }}>
-                                                            Teacher&apos;s Comments/Rank
-                                                        </th>
+                                                        <th style={{ height: '94px' }}>Teacher&apos;s Comments/Rank</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -961,17 +1043,19 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                         const remarkObj =
                                                             studentRemarks.find(
                                                                 (r: any) =>
-                                                                    matchExamGroup(
-                                                                        r,
-                                                                        { EMPG_DistplayName: grp.name, EME_ExamName: grp.name, EME_Id: grp.id }
-                                                                    ) || Number(r.emE_Id ?? r.EME_Id ?? 0) === grp.id
+                                                                    matchExamGroup(r, {
+                                                                        EMPG_DistplayName: grp.name,
+                                                                        EME_ExamName: grp.name,
+                                                                        EME_Id: grp.id
+                                                                    }) || Number(r.emE_Id ?? r.EME_Id ?? 0) === grp.id
                                                             ) ||
                                                             getstudent_examwisemarks.find(
                                                                 (m: any) =>
-                                                                    matchExamGroup(
-                                                                        m,
-                                                                        { EMPG_DistplayName: grp.name, EME_ExamName: grp.name, EME_Id: grp.id }
-                                                                    ) || Number(m.emE_Id ?? m.EME_Id ?? 0) === grp.id
+                                                                    matchExamGroup(m, {
+                                                                        EMPG_DistplayName: grp.name,
+                                                                        EME_ExamName: grp.name,
+                                                                        EME_Id: grp.id
+                                                                    }) || Number(m.emE_Id ?? m.EME_Id ?? 0) === grp.id
                                                             );
 
                                                         const examName =
@@ -997,7 +1081,13 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
                                                         return (
                                                             <tr key={`remark-box-${eIdx}`}>
-                                                                <td style={{ textAlign: 'left', padding: '6px', fontSize: '12px', minHeight: '50px' }}>
+                                                                <td
+                                                                    style={{
+                                                                        textAlign: 'left',
+                                                                        padding: '6px',
+                                                                        fontSize: '12px',
+                                                                        minHeight: '50px'
+                                                                    }}>
                                                                     <b>{examName}</b>
                                                                     {rank !== undefined && rank !== null && String(rank) !== '' && (
                                                                         <>

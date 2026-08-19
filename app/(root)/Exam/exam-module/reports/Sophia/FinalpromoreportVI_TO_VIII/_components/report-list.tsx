@@ -2,7 +2,6 @@
 
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
-import React from 'react';
 
 /* ───────── helpers ───────── */
 function formatDate(d?: string | null) {
@@ -45,7 +44,7 @@ function StudentCard({
     institution,
     classTeacher,
     reopenDate,
-    apiData,
+    apiData
 }: {
     studentId: number;
     studentDetails: any;
@@ -69,16 +68,25 @@ function StudentCard({
     // Also build a subject name -> id map to fix missing IDs in subjectList
     const subjectNameIdMap: Record<string, number> = {};
     const marksMap: Record<string, any> = {};
-    
+
     studentMarks.forEach((m: any) => {
         const subjId = m.ismS_Id || m.ISMS_Id;
         const examId = m.emE_Id || m.EME_Id;
         const sName = (m.ismS_SubjectName || m.ISMS_SubjectName || '').toString().trim().toUpperCase();
         if (subjId && sName) subjectNameIdMap[sName] = subjId;
 
-        const rawGName = m.empsG_DisplayName || m.EMPSG_DisplayName || m.empsG_GroupName || m.EMPSG_GroupName || m.empG_GroupName || m.EMPG_GroupName || m.EMPG_DistplayName || m.empG_DistplayName || '';
+        const rawGName =
+            m.empsG_DisplayName ||
+            m.EMPSG_DisplayName ||
+            m.empsG_GroupName ||
+            m.EMPSG_GroupName ||
+            m.empG_GroupName ||
+            m.EMPG_GroupName ||
+            m.EMPG_DistplayName ||
+            m.empG_DistplayName ||
+            '';
         const gNameNormalized = rawGName.toString().trim().toUpperCase();
-        
+
         const key = `${subjId || sName}_${examId}_${gNameNormalized}`;
         marksMap[key] = m;
     });
@@ -87,7 +95,16 @@ function StudentCard({
     const totalMarksMap: Record<string, any> = {};
     studentExamWiseMarks.forEach((m: any) => {
         const examId = m.emE_Id || m.EME_Id;
-        const rawGName = m.empsG_DisplayName || m.EMPSG_DisplayName || m.empsG_GroupName || m.EMPSG_GroupName || m.empG_GroupName || m.EMPG_GroupName || m.EMPG_DistplayName || m.empG_DistplayName || '';
+        const rawGName =
+            m.empsG_DisplayName ||
+            m.EMPSG_DisplayName ||
+            m.empsG_GroupName ||
+            m.EMPSG_GroupName ||
+            m.empG_GroupName ||
+            m.EMPG_GroupName ||
+            m.EMPG_DistplayName ||
+            m.empG_DistplayName ||
+            '';
         const gNameNormalized = rawGName.toString().trim().toUpperCase();
         const key = `${examId}_${gNameNormalized}`;
         totalMarksMap[key] = m;
@@ -95,21 +112,31 @@ function StudentCard({
 
     // Sort groups by empsG_Order
     const sortedGroups = [...groupDetails].sort((a, b) => (a.empsG_Order ?? 0) - (b.empsG_Order ?? 0));
-    
+
     // Flatten exams for headers
     const groupwiseexamlist: any[] = [];
-    sortedGroups.forEach(grp => {
-        const rawGName = grp.empG_DistplayName || grp.EMPG_DistplayName || grp.empG_GroupName || grp.EMPG_GroupName || grp.empG_DisplayName || grp.EMPSG_DisplayName || '';
+    sortedGroups.forEach((grp) => {
+        const rawGName =
+            grp.empG_DistplayName ||
+            grp.EMPG_DistplayName ||
+            grp.empG_GroupName ||
+            grp.EMPG_GroupName ||
+            grp.empG_DisplayName ||
+            grp.EMPSG_DisplayName ||
+            '';
         const gNameNormalized = rawGName.toString().trim().toUpperCase();
 
         const exams = [...groupExamDetails]
             .filter((e) => {
-                const eGName = (e.empG_GroupName || e.EMPG_GroupName || e.EMPG_DistplayName || e.empG_DistplayName || '').toString().trim().toUpperCase();
+                const eGName = (e.empG_GroupName || e.EMPG_GroupName || e.EMPG_DistplayName || e.empG_DistplayName || '')
+                    .toString()
+                    .trim()
+                    .toUpperCase();
                 return eGName === gNameNormalized;
             })
             .sort((a, b) => (a.emE_ExamOrder ?? 0) - (b.emE_ExamOrder ?? 0) || (a.EME_ExamOrder ?? 0) - (b.EME_ExamOrder ?? 0));
-        
-        exams.forEach(ex => {
+
+        exams.forEach((ex) => {
             groupwiseexamlist.push({
                 ...ex,
                 emE_Id: ex.emE_Id || ex.EME_Id,
@@ -122,7 +149,8 @@ function StudentCard({
 
     // attendance
     const att = studentAttendance[0] || {};
-    const workingDays = att.totalWorkingDays || att.TOTALWORKINGDAYS || att.work_attendence || student.totalWorkingDays || student.TOTALWORKINGDAYS || '';
+    const workingDays =
+        att.totalWorkingDays || att.TOTALWORKINGDAYS || att.work_attendence || student.totalWorkingDays || student.TOTALWORKINGDAYS || '';
     const presentDays = att.presentDays || att.PRESENTDAYS || att.present_attendence || student.presentDays || student.PRESENTDAYS || '';
 
     const today = new Date();
@@ -131,66 +159,74 @@ function StudentCard({
     return (
         <div style={{ pageBreakAfter: 'always', marginBottom: '24px' }}>
             {/* ── TOP SPACING & TITLE ── */}
-            <div className="margin-top-100">
+            <div className='margin-top-100'>
                 <br />
                 <br />
             </div>
-            <div className="margin-top-100">
+            <div className='margin-top-100'>
                 <br />
                 <br />
             </div>
             <br />
-            <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '20px', marginBottom: '20px' }}>
-                PROMOTION REPORT
-            </div>
+            <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '20px', marginBottom: '20px' }}>PROMOTION REPORT</div>
 
             {/* ── SCHOOL LOGO ── */}
             <div style={{ width: '100%', marginBottom: '8px' }}>
                 <img
-                    src={(institution?.mI_Logo || institution?.MI_Logo) || 'https://kusumadata.blob.core.windows.net/files/14/ISM_Attachments/f1192e36-a28c-4c01-a9b6-7ba55f1ae243.jpg'}
-                    alt="School Logo"
+                    src={
+                        institution?.mI_Logo ||
+                        institution?.MI_Logo ||
+                        'https://kusumadata.blob.core.windows.net/files/14/ISM_Attachments/f1192e36-a28c-4c01-a9b6-7ba55f1ae243.jpg'
+                    }
+                    alt='School Logo'
                     style={{ width: '100%', height: '185px', objectFit: 'cover' }}
                 />
             </div>
 
             <div style={{ textAlign: 'center', marginBottom: '8px' }}>
-                <h4 style={{ fontWeight: 'bold', fontSize: '16px', margin: 0 }}>ACADEMIC YEAR - {student.asmaY_Year || student.ASMAY_Year || ''}</h4>
+                <h4 style={{ fontWeight: 'bold', fontSize: '16px', margin: 0 }}>
+                    ACADEMIC YEAR - {student.asmaY_Year || student.ASMAY_Year || ''}
+                </h4>
             </div>
 
             {/* ── STUDENT INFO ── */}
             <div style={{ marginBottom: '8px' }}>
-                <div className="field-row">
-                    <span className="field-label">Class.</span>
-                    <span className="field-value">: {student.className || student.classname} : {student.sectionName || student.sectionname}</span>
+                <div className='field-row'>
+                    <span className='field-label'>Class.</span>
+                    <span className='field-value'>
+                        : {student.className || student.classname} : {student.sectionName || student.sectionname}
+                    </span>
                 </div>
-                <div className="field-row">
-                    <span className="field-label">Roll No.</span>
-                    <span className="field-value">: {student.rollNo || student.rollno || student.admissionNo || student.admissionno}</span>
+                <div className='field-row'>
+                    <span className='field-label'>Roll No.</span>
+                    <span className='field-value'>: {student.rollNo || student.rollno || student.admissionNo || student.admissionno}</span>
                 </div>
-                <div className="field-row">
-                    <span className="field-label">Student&apos;s Name</span>
-                    <span className="field-value">: {student.studentName || student.studentname}</span>
+                <div className='field-row'>
+                    <span className='field-label'>Student&apos;s Name</span>
+                    <span className='field-value'>: {student.studentName || student.studentname}</span>
                 </div>
-                <div className="field-row">
-                    <span className="field-label">Father&apos;s/Mother&apos;s/Guardian&apos;s Name</span>
-                    <span className="field-value">: {student.fatherName || student.fathername || ''} &nbsp;</span>
+                <div className='field-row'>
+                    <span className='field-label'>Father&apos;s/Mother&apos;s/Guardian&apos;s Name</span>
+                    <span className='field-value'>: {student.fatherName || student.fathername || ''} &nbsp;</span>
                 </div>
-                <div className="field-row">
-                    <span className="field-label">Date Of Birth</span>
-                    <span className="field-value">: {student.dob || student.DOB}</span>
+                <div className='field-row'>
+                    <span className='field-label'>Date Of Birth</span>
+                    <span className='field-value'>: {student.dob || student.DOB}</span>
                 </div>
             </div>
 
             {/* ── MARKS TABLE ── */}
             <div style={{ marginTop: '10px', overflowX: 'auto' }}>
-                <table className="table-bordered" style={{ width: '100%' }}>
+                <table className='table-bordered' style={{ width: '100%' }}>
                     <thead>
                         {/* Group header row */}
                         <tr>
                             <td style={{ textAlign: 'left', fontWeight: 'bold', width: '150px' }}>Scholastic Areas(A)</td>
                             {sortedGroups.map((grp, idx) => {
                                 const gName = grp.empG_DistplayName || grp.EMPG_DistplayName || grp.empG_GroupName || grp.EMPG_GroupName;
-                                const examsCount = groupwiseexamlist.filter(e => e.groupDisplayName === gName.toString().trim().toUpperCase()).length;
+                                const examsCount = groupwiseexamlist.filter(
+                                    (e) => e.groupDisplayName === gName.toString().trim().toUpperCase()
+                                ).length;
                                 return (
                                     <td key={idx} colSpan={examsCount} style={{ textAlign: 'center', fontWeight: 'bold' }}>
                                         {gName}
@@ -200,9 +236,14 @@ function StudentCard({
                         </tr>
                         {/* Exam sub-header row */}
                         <tr>
-                            <th style={{ textAlign: 'center', width: '150px' }}><b>Subject Name</b></th>
+                            <th style={{ textAlign: 'center', width: '150px' }}>
+                                <b>Subject Name</b>
+                            </th>
                             {groupwiseexamlist.map((ex, i) => (
-                                <th key={i} className="trclasssubject" style={{ textAlign: 'center', width: '70px', whiteSpace: 'pre-wrap' }}>
+                                <th
+                                    key={i}
+                                    className='trclasssubject'
+                                    style={{ textAlign: 'center', width: '70px', whiteSpace: 'pre-wrap' }}>
                                     <b>{ex.emE_ExamName}</b> <br />
                                     <b>({ex.empsgE_ForMaxMarkrs})</b>
                                 </th>
@@ -211,45 +252,64 @@ function StudentCard({
                     </thead>
                     <tbody>
                         {/* Scholastic subjects (AppToResultFlg = true) */}
-                        {studentSubjects.filter((s: any) => s.empS_AppToResultFlg || s.EMPS_AppToResultFlg || s.empS_AppToResultFlag || s.EMPS_AppToResultFlag).map((subj: any) => {
-                            const sName = (subj.subjectName || subj.ismS_SubjectName || subj.ISMS_SubjectName || '').toString().trim().toUpperCase();
-                            const sId = subj.ismS_Id || subj.ISMS_Id || subjectNameIdMap[sName];
-                            
-                            return (
-                                <tr key={sId || sName}>
-                                    <td style={{ textAlign: 'left' }}><b>{subj.subjectName || subj.ismS_SubjectName || subj.ISMS_SubjectName}</b></td>
-                                    {groupwiseexamlist.map((ex, i) => {
-                                        const key = `${sId || sName}_${ex.emE_Id}_${ex.groupDisplayName}`;
-                                        const mrks = marksMap[key];
-                                        if (!mrks) return <td key={i}></td>;
-                                        
-                                        const isGrade = ex.emE_ExamName.toString().toUpperCase().includes('GRADE');
-                                        const pFlag = mrks.passFailFlag || mrks.PassFailFlag;
-                                        const isAbs = ['AB', 'M', 'L'].includes(pFlag);
-                                        const obtMarks = mrks.obtainedMarks ?? mrks.ObtainedMarks;
-                                        const obtGrade = mrks.emgD_Name || mrks.EMGD_Name || mrks.obtainedGrade || mrks.ObtainedGrade || mrks.Obtainedgrade;
+                        {studentSubjects
+                            .filter(
+                                (s: any) =>
+                                    s.empS_AppToResultFlg || s.EMPS_AppToResultFlg || s.empS_AppToResultFlag || s.EMPS_AppToResultFlag
+                            )
+                            .map((subj: any) => {
+                                const sName = (subj.subjectName || subj.ismS_SubjectName || subj.ISMS_SubjectName || '')
+                                    .toString()
+                                    .trim()
+                                    .toUpperCase();
+                                const sId = subj.ismS_Id || subj.ISMS_Id || subjectNameIdMap[sName];
 
-                                        return (
-                                            <td key={i} style={{ textAlign: 'center' }}>
-                                                {isAbs ? (
-                                                    <b>{pFlag} {obtMarks > 0 && !isGrade ? `(${obtMarks})` : ''}</b>
-                                                ) : (
-                                                    <b>{isGrade ? obtGrade : (obtGrade || obtMarks)}</b>
-                                                )}
-                                            </td>
-                                        );
-                                    })}
-                                </tr>
-                            );
-                        })}
+                                return (
+                                    <tr key={sId || sName}>
+                                        <td style={{ textAlign: 'left' }}>
+                                            <b>{subj.subjectName || subj.ismS_SubjectName || subj.ISMS_SubjectName}</b>
+                                        </td>
+                                        {groupwiseexamlist.map((ex, i) => {
+                                            const key = `${sId || sName}_${ex.emE_Id}_${ex.groupDisplayName}`;
+                                            const mrks = marksMap[key];
+                                            if (!mrks) return <td key={i}></td>;
+
+                                            const isGrade = ex.emE_ExamName.toString().toUpperCase().includes('GRADE');
+                                            const pFlag = mrks.passFailFlag || mrks.PassFailFlag;
+                                            const isAbs = ['AB', 'M', 'L'].includes(pFlag);
+                                            const obtMarks = mrks.obtainedMarks ?? mrks.ObtainedMarks;
+                                            const obtGrade =
+                                                mrks.emgD_Name ||
+                                                mrks.EMGD_Name ||
+                                                mrks.obtainedGrade ||
+                                                mrks.ObtainedGrade ||
+                                                mrks.Obtainedgrade;
+
+                                            return (
+                                                <td key={i} style={{ textAlign: 'center' }}>
+                                                    {isAbs ? (
+                                                        <b>
+                                                            {pFlag} {obtMarks > 0 && !isGrade ? `(${obtMarks})` : ''}
+                                                        </b>
+                                                    ) : (
+                                                        <b>{isGrade ? obtGrade : obtGrade || obtMarks}</b>
+                                                    )}
+                                                </td>
+                                            );
+                                        })}
+                                    </tr>
+                                );
+                            })}
 
                         {/* TOTAL row */}
                         <tr>
-                            <td style={{ textAlign: 'left' }}><b>TOTAL</b></td>
+                            <td style={{ textAlign: 'left' }}>
+                                <b>TOTAL</b>
+                            </td>
                             {groupwiseexamlist.map((ex, i) => {
                                 const key = `${ex.emE_Id}_${ex.groupDisplayName}`;
                                 const totalData = totalMarksMap[key];
-                                
+
                                 // Fallback to marksMap if not found in totalMarksMap
                                 const mKey = `9800000_${ex.emE_Id}_${ex.groupDisplayName}`;
                                 const mTotal = totalData || marksMap[mKey];
@@ -257,9 +317,19 @@ function StudentCard({
                                 return (
                                     <td key={i} style={{ textAlign: 'center' }}>
                                         {ex.emE_Id === 9800000 ? <b>{mTotal?.obtainedMarks ?? mTotal?.ObtainedMarks}</b> : ''}
-                                        {ex.emE_Id === 9800001 ? <b>{totalData?.emgD_Name ?? totalData?.EMGD_Name ?? marksMap[`9800001_${ex.emE_Id}_${ex.groupDisplayName}`]?.emgD_Name}</b> : ''}
+                                        {ex.emE_Id === 9800001 ? (
+                                            <b>
+                                                {totalData?.emgD_Name ??
+                                                    totalData?.EMGD_Name ??
+                                                    marksMap[`9800001_${ex.emE_Id}_${ex.groupDisplayName}`]?.emgD_Name}
+                                            </b>
+                                        ) : (
+                                            ''
+                                        )}
                                         {/* If it's a regular exam column but we want the total for that column? No, usually total is separate column */}
-                                        {! [9800000, 9800001].includes(ex.emE_Id) && <b>{totalData?.obtainedMarks ?? totalData?.ObtainedMarks}</b>}
+                                        {![9800000, 9800001].includes(ex.emE_Id) && (
+                                            <b>{totalData?.obtainedMarks ?? totalData?.ObtainedMarks}</b>
+                                        )}
                                     </td>
                                 );
                             })}
@@ -267,7 +337,9 @@ function StudentCard({
 
                         {/* PERCENTAGE row */}
                         <tr>
-                            <td style={{ textAlign: 'left' }}><b>PERCENTAGE</b></td>
+                            <td style={{ textAlign: 'left' }}>
+                                <b>PERCENTAGE</b>
+                            </td>
                             {groupwiseexamlist.map((ex, i) => {
                                 const key = `${ex.emE_Id}_${ex.groupDisplayName}`;
                                 const totalData = totalMarksMap[key];
@@ -283,49 +355,69 @@ function StudentCard({
                         </tr>
 
                         {/* Non-scholastic subjects (AppToResultFlg = false) */}
-                        {studentSubjects.filter((s: any) => !(s.empS_AppToResultFlg || s.EMPS_AppToResultFlg || s.empS_AppToResultFlag || s.EMPS_AppToResultFlag)).map((subj: any) => {
-                            const sName = (subj.subjectName || subj.ismS_SubjectName || subj.ISMS_SubjectName || '').toString().trim().toUpperCase();
-                            const sId = subj.ismS_Id || subj.ISMS_Id || subjectNameIdMap[sName];
-                            
-                            return (
-                                <tr key={sId || sName}>
-                                    <td style={{ textAlign: 'left' }}><b>{subj.subjectName || subj.ismS_SubjectName || subj.ISMS_SubjectName}</b></td>
-                                    {groupwiseexamlist.map((ex, i) => {
-                                        const key = `${sId || sName}_${ex.emE_Id}_${ex.groupDisplayName}`;
-                                        const mrks = marksMap[key];
-                                        if (!mrks) return <td key={i}></td>;
-                                        
-                                        const pFlag = mrks.passFailFlag || mrks.PassFailFlag;
-                                        const isAbs = ['AB', 'M', 'L'].includes(pFlag);
-                                        const obtGrade = mrks.emgD_Name || mrks.EMGD_Name || mrks.obtainedGrade || mrks.ObtainedGrade;
-                                        
-                                        return (
-                                            <td key={i} style={{ textAlign: 'center' }}>
-                                                {isAbs ? <b>{pFlag}</b> : <b>{obtGrade}</b>}
-                                            </td>
-                                        );
-                                    })}
-                                </tr>
-                            );
-                        })}
+                        {studentSubjects
+                            .filter(
+                                (s: any) =>
+                                    !(s.empS_AppToResultFlg || s.EMPS_AppToResultFlg || s.empS_AppToResultFlag || s.EMPS_AppToResultFlag)
+                            )
+                            .map((subj: any) => {
+                                const sName = (subj.subjectName || subj.ismS_SubjectName || subj.ISMS_SubjectName || '')
+                                    .toString()
+                                    .trim()
+                                    .toUpperCase();
+                                const sId = subj.ismS_Id || subj.ISMS_Id || subjectNameIdMap[sName];
+
+                                return (
+                                    <tr key={sId || sName}>
+                                        <td style={{ textAlign: 'left' }}>
+                                            <b>{subj.subjectName || subj.ismS_SubjectName || subj.ISMS_SubjectName}</b>
+                                        </td>
+                                        {groupwiseexamlist.map((ex, i) => {
+                                            const key = `${sId || sName}_${ex.emE_Id}_${ex.groupDisplayName}`;
+                                            const mrks = marksMap[key];
+                                            if (!mrks) return <td key={i}></td>;
+
+                                            const pFlag = mrks.passFailFlag || mrks.PassFailFlag;
+                                            const isAbs = ['AB', 'M', 'L'].includes(pFlag);
+                                            const obtGrade = mrks.emgD_Name || mrks.EMGD_Name || mrks.obtainedGrade || mrks.ObtainedGrade;
+
+                                            return (
+                                                <td key={i} style={{ textAlign: 'center' }}>
+                                                    {isAbs ? <b>{pFlag}</b> : <b>{obtGrade}</b>}
+                                                </td>
+                                            );
+                                        })}
+                                    </tr>
+                                );
+                            })}
                     </tbody>
                 </table>
             </div>
 
             {/* ── ATTENDANCE TABLE ── */}
             <div style={{ marginTop: '10px' }}>
-                <table className="table-bordered" style={{ width: '100%' }}>
+                <table className='table-bordered' style={{ width: '100%' }}>
                     <tbody>
                         <tr>
-                            <td colSpan={2} style={{ textAlign: 'center' }}><b>ATTENDANCE</b></td>
+                            <td colSpan={2} style={{ textAlign: 'center' }}>
+                                <b>ATTENDANCE</b>
+                            </td>
                         </tr>
                         <tr>
-                            <td style={{ textAlign: 'left' }}><b>No. Of Working Days</b></td>
-                            <td style={{ textAlign: 'center' }}><b>{workingDays || '---'}</b></td>
+                            <td style={{ textAlign: 'left' }}>
+                                <b>No. Of Working Days</b>
+                            </td>
+                            <td style={{ textAlign: 'center' }}>
+                                <b>{workingDays || '---'}</b>
+                            </td>
                         </tr>
                         <tr>
-                            <td style={{ textAlign: 'left' }}><b>No. Of Present Days</b></td>
-                            <td style={{ textAlign: 'center' }}><b>{presentDays || '---'}</b></td>
+                            <td style={{ textAlign: 'left' }}>
+                                <b>No. Of Present Days</b>
+                            </td>
+                            <td style={{ textAlign: 'center' }}>
+                                <b>{presentDays || '---'}</b>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -333,13 +425,13 @@ function StudentCard({
 
             {/* ── SCHOOL REOPEN & PROMOTED ── */}
             <div style={{ marginTop: '10px' }}>
-                <div className="field-row">
-                    <span className="field-label">School ReOpen On :</span>
-                    <span className="field-value">{reopenDate}</span>
+                <div className='field-row'>
+                    <span className='field-label'>School ReOpen On :</span>
+                    <span className='field-value'>{reopenDate}</span>
                 </div>
-                <div className="field-row">
-                    <span className="field-label">Promoted To Class :</span>
-                    <span className="field-value">&nbsp;</span>
+                <div className='field-row'>
+                    <span className='field-label'>Promoted To Class :</span>
+                    <span className='field-value'>&nbsp;</span>
                 </div>
             </div>
 
@@ -347,22 +439,46 @@ function StudentCard({
             <div style={{ marginTop: '40px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                     <div style={{ width: '25%' }}>
-                        <div><b>Place : {institution?.ivrmmcT_Name || institution?.IVRMMCT_Name || ''}</b></div>
-                        <div><b>Date : {generatedDate}</b></div>
+                        <div>
+                            <b>Place : {institution?.ivrmmcT_Name || institution?.IVRMMCT_Name || ''}</b>
+                        </div>
+                        <div>
+                            <b>Date : {generatedDate}</b>
+                        </div>
                     </div>
                     <div style={{ width: '25%', textAlign: 'center' }}>
-                        <b>Signature of Class<br />Teacher</b>
+                        <b>
+                            Signature of Class
+                            <br />
+                            Teacher
+                        </b>
                     </div>
-                    <div style={{ width: '25%', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                    <div
+                        style={{
+                            width: '25%',
+                            textAlign: 'center',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '4px'
+                        }}>
                         <img
-                            src="https://kusumadata.blob.core.windows.net/files/13/ISM_Attachments/8528f23f-aaeb-441f-a38e-e437b3dbe9d8.png"
-                            alt="School Seal"
+                            src='https://kusumadata.blob.core.windows.net/files/13/ISM_Attachments/8528f23f-aaeb-441f-a38e-e437b3dbe9d8.png'
+                            alt='School Seal'
                             style={{ width: '60px', height: '60px', objectFit: 'contain' }}
                         />
-                        <b>Signature of<br />Principal</b>
+                        <b>
+                            Signature of
+                            <br />
+                            Principal
+                        </b>
                     </div>
                     <div style={{ width: '25%', textAlign: 'center' }}>
-                        <b>Signature of<br />Parents</b>
+                        <b>
+                            Signature of
+                            <br />
+                            Parents
+                        </b>
                     </div>
                 </div>
             </div>
@@ -385,9 +501,11 @@ export default function FinalpromoreportView({ data }: { data: any }) {
     const groupDetails: any[] = Array.isArray(apiData?.getgroupdetails) ? apiData.getgroupdetails : [];
     const groupExamDetails: any[] = Array.isArray(apiData?.getgroupexamdetails) ? apiData.getgroupexamdetails : [];
     const attendanceDetails: any[] = Array.isArray(apiData?.getstudentwiseattendancedetails) ? apiData.getstudentwiseattendancedetails : [];
-    const classTeacher = Array.isArray(apiData?.clstchname) && (apiData.clstchname[0]?.hrmE_EmployeeFirstName || apiData.clstchname[0]?.HRME_EmployeeFirstName)
-        ? (apiData.clstchname[0].hrmE_EmployeeFirstName || apiData.clstchname[0].HRME_EmployeeFirstName)
-        : '';
+    const classTeacher =
+        Array.isArray(apiData?.clstchname) &&
+        (apiData.clstchname[0]?.hrmE_EmployeeFirstName || apiData.clstchname[0]?.HRME_EmployeeFirstName)
+            ? apiData.clstchname[0].hrmE_EmployeeFirstName || apiData.clstchname[0].HRME_EmployeeFirstName
+            : '';
     const reopenDate = payload?.reopen_date || '';
 
     // Unique student IDs from the request (temp_AmstIds)
@@ -445,13 +563,13 @@ export default function FinalpromoreportView({ data }: { data: any }) {
             `}</style>
 
             {/* Print Button */}
-            <div className="no-print flex justify-end pr-4 pt-2 pb-1">
-                <Button onClick={handlePrint} size="sm" className="w-auto flex items-center gap-1 text-xs px-3 py-1">
-                    <Printer className="h-3 w-3" /> Print
+            <div className='no-print flex justify-end pt-2 pr-4 pb-1'>
+                <Button onClick={handlePrint} size='sm' className='flex w-auto items-center gap-1 px-3 py-1 text-xs'>
+                    <Printer className='h-3 w-3' /> Print
                 </Button>
             </div>
 
-            <div id="finalpro-print-area" style={{ padding: '16px 24px' }}>
+            <div id='finalpro-print-area' style={{ padding: '16px 24px' }}>
                 {requestedStudentIds.map((studentId, idx) => (
                     <StudentCard
                         key={studentId}

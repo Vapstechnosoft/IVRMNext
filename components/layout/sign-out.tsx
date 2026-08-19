@@ -9,6 +9,11 @@ import { DropdownMenuItem } from '../ui/dropdown-menu';
 export default function SignOut() {
     const handleSignOut = async () => {
         try {
+            if (typeof window !== 'undefined') {
+                sessionStorage.clear();
+                localStorage.removeItem('activeNavigation');
+                localStorage.removeItem('moduleFilter');
+            }
             await signOut({ redirect: true, redirectTo: AUTH_ROUTES.SIGN_IN });
         } catch (error) {
             console.error('Error signing out:', error);

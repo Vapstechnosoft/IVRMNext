@@ -4,8 +4,8 @@ import {
     getSuperAdminMaster,
     getSuperAdminMasterOrderData
 } from '@/server/super-admin/super-admin-module/masters/super-admin';
-import type { ISuperAdminMasterOrder } from '@/types/super-admin/super-admin-module/masters';
 import type { ApiSearchparams } from '@/types';
+import type { ISuperAdminMasterOrder } from '@/types/super-admin/super-admin-module/masters';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 

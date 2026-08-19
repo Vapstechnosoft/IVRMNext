@@ -2,12 +2,12 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Select as UISelect, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SelectContent, SelectItem, SelectTrigger, SelectValue, Select as UISelect } from '@/components/ui/select';
 import {
     useAcademicYearDropdown,
     useMasterClassDropdown,
@@ -24,6 +24,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 import { getActiveDeactiveColumns } from './_components/columns';
+import Swal from 'sweetalert2';
 
 type FormFields = z.infer<typeof masterActiveDeactiveStudentSchema>;
 
@@ -84,41 +85,22 @@ export default function MasterActiveDeactiveStudentPage(props: {
 
     const apiSearchParams: ApiSearchparams | undefined = searchParams
         ? {
-            page: Number(searchParams.page) || 1,
-            page_size: Number(searchParams.page_size) || 10,
-            sort_column: String(searchParams.sort_column || ''),
-            sort_direction: String(searchParams.sort_direction || 'asc'),
-            search_query: String(searchParams.search_query || ''),
-            search_columns: String(searchParams.search_columns || '')
-        }
+              page: Number(searchParams.page) || 1,
+              page_size: Number(searchParams.page_size) || 10,
+              sort_column: String(searchParams.sort_column || ''),
+              sort_direction: String(searchParams.sort_direction || 'asc'),
+              search_query: String(searchParams.search_query || ''),
+              search_columns: String(searchParams.search_columns || '')
+          }
         : undefined;
 
     const {
         data: StudentListData,
         isLoading: StudentListLoading,
         isError: StudentListError
-    } = useMasterStudentList(amst_sol, academicYearId, classId, sectionId, undefined);
+    } = useMasterStudentList(amst_sol, academicYearId, classId, sectionId, apiSearchParams);
 
     const students = StudentListData?.data || [];
-
-    const searchQuery = apiSearchParams?.search_query?.toLowerCase() || '';
-    const filteredStudents = useMemo(() => {
-        if (!searchQuery) return students;
-        return students.filter((student: Student) => {
-            return (
-                student.student_name?.toLowerCase().includes(searchQuery) ||
-                student.registration_no?.toLowerCase().includes(searchQuery) ||
-                student.admission_no?.toLowerCase().includes(searchQuery) ||
-                student.student_id?.toString().includes(searchQuery)
-            );
-        });
-    }, [students, searchQuery]);
-
-    const page = apiSearchParams?.page || 1;
-    const pageSize = apiSearchParams?.page_size || 10;
-    const paginatedStudents = useMemo(() => {
-        return filteredStudents.slice((page - 1) * pageSize, page * pageSize);
-    }, [filteredStudents, page, pageSize]);
 
     const handleAcademicYearChange = (value: string) => {
         const numValue = Number(value);
@@ -206,7 +188,6 @@ export default function MasterActiveDeactiveStudentPage(props: {
         });
         console.log('studentsArray', studentsArray);
 
-
         if (hasError) {
             toast.error('Please fill Reason and Remarks for all selected students');
             return;
@@ -225,10 +206,19 @@ export default function MasterActiveDeactiveStudentPage(props: {
         try {
             const response = await ActiveDeactive(payload);
             if (response.success) {
-                toast.success(amst_sol === 'S' ? 'Record Deactivated Successfully' : 'Record Activated Successfully');
-                handleClear();
+                Swal.fire({
+                    title: 'Success',
+                    text: 'Saved successfully',
+                    icon: 'success'
+                }).then(() => {
+                    handleClear();
+                });
             } else {
-                toast.error('Record Not Activated/Deactivated Successfully');
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Not saved successfully',
+                    icon: 'error'
+                });
             }
         } catch (error: any) {
             toast.error(error.message || 'Failed to update students');
@@ -236,18 +226,15 @@ export default function MasterActiveDeactiveStudentPage(props: {
     };
 
     const tableProps = {
-        data: paginatedStudents,
-        totalItems: filteredStudents.length,
+        data: students,
+        totalItems: (StudentListData as any)?.total || 0,
         success: StudentListData?.success ?? true,
         errorMessage: StudentListData?.message,
         enableRowSelection: true,
-        getRowId: (row: Student) => row.student_id.toString(),
+        getRowId: (row: Student) => row.student_id.toString()
     };
 
-    const columns = useMemo(
-        () => getActiveDeactiveColumns(studentDataRef, updateStudentData),
-        [updateStudentData]
-    );
+    const columns = useMemo(() => getActiveDeactiveColumns(studentDataRef, updateStudentData), [updateStudentData]);
 
     return (
         <div className='min-h-screen bg-gray-50'>
@@ -417,32 +404,27 @@ export default function MasterActiveDeactiveStudentPage(props: {
                                     onRowSelectionChange={handleSelectStudent}
                                 />
 
-                                <div className="flex flex-col items-center gap-6 py-4 border-t mt-4">
-                                    <div className="flex items-center gap-8 p-4 bg-muted/30 rounded-lg">
-                                        <div className="flex items-center space-x-2">
+                                <div className='mt-4 flex flex-col items-center gap-6 border-t py-4'>
+                                    <div className='flex items-center gap-8 rounded-lg bg-muted/30 p-4'>
+                                        <div className='flex items-center space-x-2'>
                                             <Checkbox checked={amst_sol === 'D'} disabled />
-                                            <Label className="text-sm font-medium leading-none">Activate the Students</Label>
+                                            <Label className='font-medium text-sm leading-none'>Activate the Students</Label>
                                         </div>
-                                        <div className="flex items-center space-x-2">
+                                        <div className='flex items-center space-x-2'>
                                             <Checkbox checked={amst_sol === 'S'} disabled />
-                                            <Label className="text-sm font-medium leading-none">Deactivate the Students</Label>
+                                            <Label className='font-medium text-sm leading-none'>Deactivate the Students</Label>
                                         </div>
                                     </div>
 
-                                    <div className="flex gap-4">
+                                    <div className='flex gap-4'>
                                         <Button
-                                            className="bg-primary hover:bg-primary/90 text-primary-foreground min-w-[120px]"
-                                            onClick={handleSave}
-                                        >
-                                            <Save className="w-4 h-4 mr-2" />
+                                            className='min-w-[120px] bg-primary text-primary-foreground hover:bg-primary/90'
+                                            onClick={handleSave}>
+                                            <Save className='mr-2 h-4 w-4' />
                                             Save
                                         </Button>
-                                        <Button
-                                            variant="destructive"
-                                            className="min-w-[120px]"
-                                            onClick={handleClear}
-                                        >
-                                            <X className="w-4 h-4 mr-2" />
+                                        <Button variant='destructive' className='min-w-[120px]' onClick={handleClear}>
+                                            <X className='mr-2 h-4 w-4' />
                                             Clear
                                         </Button>
                                     </div>

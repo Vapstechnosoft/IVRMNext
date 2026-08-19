@@ -1,13 +1,13 @@
 'use server';
 import { api } from '@/lib/apiService';
 import type {
+    NewSalaryCalculationGenerateRequest,
+    NewSalaryCalculationSearchRequest,
     SalaryCalculationGenerateRequest,
     SalaryCalculationGenerateResponse,
     SalaryCalculationOnloadRequest,
     SalaryCalculationOnloadResponse,
     SalaryCalculationSearchRequest,
-    NewSalaryCalculationSearchRequest,
-    NewSalaryCalculationGenerateRequest,
     SelectionEmployee
 } from '@/types/hrms/salary-calculation';
 /**
@@ -30,17 +30,17 @@ export async function getSalaryCalculationOnload(payload: SalaryCalculationOnloa
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped
             console.log('📊 [SALARY CALCULATION - BACKEND] Response data summary:', {
-                hasMonths: !!(response.data?.monthdropdown?.length),
+                hasMonths: !!response.data?.monthdropdown?.length,
                 monthsCount: response.data?.monthdropdown?.length || 0,
-                hasLeaveYears: !!(response.data?.leaveyeardropdown?.length),
+                hasLeaveYears: !!response.data?.leaveyeardropdown?.length,
                 leaveYearsCount: response.data?.leaveyeardropdown?.length || 0,
-                hasDepartments: !!(response.data?.departmentdropdown?.length),
+                hasDepartments: !!response.data?.departmentdropdown?.length,
                 departmentsCount: response.data?.departmentdropdown?.length || 0,
-                hasDesignations: !!(response.data?.designationdropdown?.length),
+                hasDesignations: !!response.data?.designationdropdown?.length,
                 designationsCount: response.data?.designationdropdown?.length || 0,
-                hasGroupTypes: !!(response.data?.groupTypedropdown?.length),
+                hasGroupTypes: !!response.data?.groupTypedropdown?.length,
                 groupTypesCount: response.data?.groupTypedropdown?.length || 0,
-                hasEmployees: !!(response.data?.employeedropdown?.length),
+                hasEmployees: !!response.data?.employeedropdown?.length,
                 employeesCount: response.data?.employeedropdown?.length || 0,
                 hasConfiguration: !!response.data?.configurationDetails
             });
@@ -54,17 +54,17 @@ export async function getSalaryCalculationOnload(payload: SalaryCalculationOnloa
             data: response as unknown as SalaryCalculationOnloadResponse
         };
         console.log('📊 [SALARY CALCULATION - BACKEND] Response data summary:', {
-            hasMonths: !!(wrappedResponse.data?.monthdropdown?.length),
+            hasMonths: !!wrappedResponse.data?.monthdropdown?.length,
             monthsCount: wrappedResponse.data?.monthdropdown?.length || 0,
-            hasLeaveYears: !!(wrappedResponse.data?.leaveyeardropdown?.length),
+            hasLeaveYears: !!wrappedResponse.data?.leaveyeardropdown?.length,
             leaveYearsCount: wrappedResponse.data?.leaveyeardropdown?.length || 0,
-            hasDepartments: !!(wrappedResponse.data?.departmentdropdown?.length),
+            hasDepartments: !!wrappedResponse.data?.departmentdropdown?.length,
             departmentsCount: wrappedResponse.data?.departmentdropdown?.length || 0,
-            hasDesignations: !!(wrappedResponse.data?.designationdropdown?.length),
+            hasDesignations: !!wrappedResponse.data?.designationdropdown?.length,
             designationsCount: wrappedResponse.data?.designationdropdown?.length || 0,
-            hasGroupTypes: !!(wrappedResponse.data?.groupTypedropdown?.length),
+            hasGroupTypes: !!wrappedResponse.data?.groupTypedropdown?.length,
             groupTypesCount: wrappedResponse.data?.groupTypedropdown?.length || 0,
-            hasEmployees: !!(wrappedResponse.data?.employeedropdown?.length),
+            hasEmployees: !!wrappedResponse.data?.employeedropdown?.length,
             employeesCount: wrappedResponse.data?.employeedropdown?.length || 0,
             hasConfiguration: !!wrappedResponse.data?.configurationDetails
         });
@@ -120,7 +120,8 @@ export async function searchSalaryCalculationBySelection(payload: SalaryCalculat
             message: 'Data loaded successfully',
             data: response as unknown as SalaryCalculationOnloadResponse
         };
-        const employeeCount = (wrappedResponse.data as any)?.ReportData?.length || (wrappedResponse.data as any)?.employeeDetails?.length || 0;
+        const employeeCount =
+            (wrappedResponse.data as any)?.ReportData?.length || (wrappedResponse.data as any)?.employeeDetails?.length || 0;
         if (employeeCount > 0) {
             const reportData = (wrappedResponse.data as any)?.ReportData || (wrappedResponse.data as any)?.employeeDetails;
             if (reportData && Array.isArray(reportData) && reportData.length > 0) {

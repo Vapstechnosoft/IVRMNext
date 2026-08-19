@@ -21,14 +21,14 @@ export interface ApiResponse<T> extends Partial<PaginationData> {
 export async function getStaffRequestLoadData(): Promise<ApiResponse<any>> {
     try {
         const res = await api.post<any>(SERVICE_NAME, 'StaffRequest/loaddata', {});
-         return res;
+        return res;
     } catch (error) {
         console.error('Error fetching staff request load data:', error);
-         return {
+        return {
             success: false,
             message: 'Failed to fetch data',
             data: null
-         };
+        };
     }
 }
 
@@ -36,7 +36,7 @@ export async function saveStaffRequest(data: any): Promise<ApiResponse<any>> {
     try {
         const res = await api.post<any>(SERVICE_NAME, 'StaffRequest/save', data);
         if (res.data) {
-             revalidatePath('/hostel/hostel-management/transactions/staff-request');
+            revalidatePath('/hostel/hostel-management/transactions/staff-request');
         }
         return res;
     } catch (error) {
@@ -53,9 +53,9 @@ export async function toggleStaffRequestStatus(usersem: any): Promise<ApiRespons
     try {
         const res = await api.post<any>(SERVICE_NAME, 'StaffRequest/deactive', usersem);
         if (res.data) {
-             revalidatePath('/hostel/hostel-management/transactions/staff-request');
+            revalidatePath('/hostel/hostel-management/transactions/staff-request');
         }
-         return res;
+        return res;
     } catch (error) {
         console.error('Error toggling staff request status:', error);
         return {
@@ -70,7 +70,7 @@ export async function toggleStaffRequestStatus(usersem: any): Promise<ApiRespons
 export async function getStaffApprovalLoadData(): Promise<ApiResponse<any>> {
     try {
         const res = await api.get<any>(SERVICE_NAME, 'StaffRequestConfirm/loaddata/2');
-         return res;
+        return res;
     } catch (error) {
         console.error('Error fetching staff approval load data:', error);
         return {
@@ -85,9 +85,9 @@ export async function approveStaffRequest(data: any): Promise<ApiResponse<any>> 
     try {
         const res = await api.post<any>(SERVICE_NAME, 'StaffRequestConfirm/requestApproved', data);
         if (res.data) {
-             revalidatePath('/hostel/hostel-management/transactions/staff-approval-list');
+            revalidatePath('/hostel/hostel-management/transactions/staff-approval-list');
         }
-         return res;
+        return res;
     } catch (error) {
         console.error('Error approving staff request:', error);
         return {

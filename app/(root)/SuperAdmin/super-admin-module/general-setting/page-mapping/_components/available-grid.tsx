@@ -1,19 +1,17 @@
 'use client';
 
+import { Checkbox } from '@/components/ui/checkbox';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { tableSearchVariables } from '@/lib/data-table.config';
-import { getAvailablePages, getSavedMappings } from '@/server/super-admin/super-admin-module/general-setting/page-mapping';
+import { getAvailablePages } from '@/server/super-admin/super-admin-module/general-setting/page-mapping';
 import type { IPageMappingData } from '@/types/super-admin/super-admin-module/general-setting/page-mapping';
+import type { ColumnDef } from '@tanstack/react-table';
 import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePageMapping } from './mapping-context';
 
-import { Checkbox } from '@/components/ui/checkbox';
-import type { ColumnDef } from '@tanstack/react-table';
-import { useMemo } from 'react';
-
 export default function AvailableGrid() {
-    const { selectedModuleId, addToCart, cartPages, removeFromCart, saveCart } = usePageMapping();
+    const { selectedModuleId, addToCart, cartPages, removeFromCart } = usePageMapping();
     const [data, setData] = useState<IPageMappingData[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [totalItems, setTotalItems] = useState(0);
@@ -23,34 +21,29 @@ export default function AvailableGrid() {
     const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
 
     const fetchData = useCallback(async () => {
+        if (!selectedModuleId) {
+            setData([]);
+            setIsLoading(false);
+            return;
+        }
         setIsLoading(true);
         try {
-            if (!selectedModuleId) {
-                const res = await getSavedMappings({});
-                if (res.success) {
-                    const mappedData = (res.data || []).map((item: any) => ({
-                        ivrmP_Id: item.ivrmP_Id,
-                        ivrmP_PageName: item.ivrmmP_PageName
-                    }));
-                    setData(mappedData);
-                } else {
-                    setData([]);
-                }
+            const searchParams = { ivrmM_Id: selectedModuleId, page, page_size: pageSize, search_query: searchQuery };
+            const res = await getAvailablePages(searchParams);
+            console.log('available pages', res);
+            if (res.success) {
+                setData(res.data || []);
+                setTotalItems(res.total || 0);
             } else {
-                const searchParams = { ivrmM_Id: selectedModuleId };
-                const res = await getAvailablePages(searchParams);
-                if (res.success) {
-                    setData(res.data || []);
-                } else {
-                    setData([]);
-                }
+                setData([]);
+                setTotalItems(0);
             }
         } catch (error) {
             console.error('Failed to fetch master pages', error);
         } finally {
             setIsLoading(false);
         }
-    }, [selectedModuleId]);
+    }, [selectedModuleId, page, pageSize, searchQuery]);
 
     useEffect(() => {
         fetchData();
@@ -117,8 +110,7 @@ export default function AvailableGrid() {
         [cartPages]
     );
 
-    // Always render the grid, even if no module is selected
-    // if (!selectedModuleId) return null;
+    if (!selectedModuleId) return null;
 
     return (
         <div className='flex h-full flex-col rounded-md border bg-white shadow-sm'>
@@ -127,13 +119,7 @@ export default function AvailableGrid() {
             </div>
 
             <div className='flex-1 overflow-auto p-2'>
-                <GenericDataTable
-                    data={paginatedData}
-                    columns={columns}
-                    isLoading={isLoading}
-                    isPaginationRequired={true}
-                    totalItems={currentTotalItems}
-                />
+                <GenericDataTable data={data} columns={columns} isLoading={isLoading} isPaginationRequired={true} totalItems={totalItems} />
             </div>
         </div>
     );

@@ -20,8 +20,8 @@ function formatDate(dateInput: any): string {
 export async function getStaffBirthdayReportDetails(data: any) {
     const fromDate = data.Fromdate || data.fromdate || '';
     const toDate = data.Todate || data.todate || '';
-    const months = data.months !== undefined ? data.months : (data.Months !== undefined ? data.Months : 1);
-    const all1 = data.all1 !== undefined ? data.all1 : (data.All1 !== undefined ? data.All1 : 0);
+    const months = data.months !== undefined ? data.months : data.Months !== undefined ? data.Months : 1;
+    const all1 = data.all1 !== undefined ? data.all1 : data.All1 !== undefined ? data.All1 : 0;
     const loginType = data.Logintype || data.logintype || '';
     const moId = data.MO_Id || data.mo_id || data.mo_Id || data.MO_ID || 2;
 
@@ -61,5 +61,3 @@ export async function getStaffBirthdayReportDetails(data: any) {
 
     return res;
 }
-
-

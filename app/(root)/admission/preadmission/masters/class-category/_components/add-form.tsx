@@ -130,8 +130,13 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
                         name='asmaY_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Academic Year <span className='ml-1 text-red-500'>*</span></FormLabel>
-                                <Select key={`year-${clearKey}`} onValueChange={(value) => field.onChange(Number(value))} value={field.value ? String(field.value) : undefined}>
+                                <FormLabel>
+                                    Academic Year <span className='ml-1 text-red-500'>*</span>
+                                </FormLabel>
+                                <Select
+                                    key={`year-${clearKey}`}
+                                    onValueChange={(value) => field.onChange(Number(value))}
+                                    value={field.value ? String(field.value) : undefined}>
                                     <FormControl>
                                         <SelectTrigger disabled={!academicYears}>
                                             <SelectValue placeholder='Select Academic Year' />
@@ -158,8 +163,13 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
                         name='amC_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Category <span className='ml-1 text-red-500'>*</span></FormLabel>
-                                <Select key={`category-${clearKey}`} onValueChange={(value) => field.onChange(Number(value))} value={field.value ? String(field.value) : undefined}>
+                                <FormLabel>
+                                    Category <span className='ml-1 text-red-500'>*</span>
+                                </FormLabel>
+                                <Select
+                                    key={`category-${clearKey}`}
+                                    onValueChange={(value) => field.onChange(Number(value))}
+                                    value={field.value ? String(field.value) : undefined}>
                                     <FormControl>
                                         <SelectTrigger disabled={!categories}>
                                             <SelectValue placeholder='Select Category' />
@@ -188,7 +198,9 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
                         name='category_classes'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Select Classes <span className='ml-1 text-red-500'>*</span></FormLabel>
+                                <FormLabel>
+                                    Select Classes <span className='ml-1 text-red-500'>*</span>
+                                </FormLabel>
                                 <FormControl>
                                     <CustomMultiSelect
                                         options={classOptions}
@@ -215,7 +227,9 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
                         name='category_class_sections'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Select Sections <span className='ml-1 text-red-500'>*</span></FormLabel>
+                                <FormLabel>
+                                    Select Sections <span className='ml-1 text-red-500'>*</span>
+                                </FormLabel>
                                 <FormControl>
                                     <CustomMultiSelect
                                         options={sectionOptions}
@@ -253,7 +267,7 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
                         className='w-full sm:w-auto'
                         onClick={() => {
                             form.reset();
-                            setClearKey(prev => prev + 1);
+                            setClearKey((prev) => prev + 1);
                         }}>
                         Clear
                     </Button>

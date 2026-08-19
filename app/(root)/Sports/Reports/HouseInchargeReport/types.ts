@@ -1,4 +1,3 @@
-
 export interface IHouseInchargeReportLoadData {
     asmay_list: IYear[];
 }

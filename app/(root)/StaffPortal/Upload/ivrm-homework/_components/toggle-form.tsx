@@ -3,11 +3,10 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { HomeWorkUploadedList } from '@/hooks/upload/transactions/useHomeWork';
 import { homeWorkSchema } from '@/schemas/upload/transactions/ivrm-homework.schema';
 import { toggleHomeWork } from '@/server/upload/transactions/ivrm-homework/server-action';
 
-import { IHomeWorkDetails } from '@/types/upload/reports/homework-upload-report';
+import type { IHomeWorkDetails } from '@/types/upload/reports/homework-upload-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -22,7 +21,6 @@ interface ToggleHomeWorkFormProps {
 }
 
 export default function ToggleHomeWorkForm({ rowData, onClose }: ToggleHomeWorkFormProps) {
-
     const {
         register,
         handleSubmit,

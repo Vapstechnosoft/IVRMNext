@@ -1,23 +1,23 @@
 'use client';
+import type { LeaveApprovalRow } from '@/app/(root)/hrms/leave-management/leave-approval/_components/columns';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
 import {
-    getApprovalStatus,
-    getStatusAsync,
-    rejectStatusAsync,
-    getApprovedLeave,
-    viewLeaveBalanceHistory,
-    getRequestStatus,
-    getApproveStatusAsync,
-    getPeriodApprovalStatus,
-    periodLeaveStatus,
-    getLeaveAppliedOrApprovalGrid,
     approveOrRejectLeaveStatus,
+    getApprovalStatus,
+    getApproveStatusAsync,
+    getApprovedLeave,
+    getLeaveAppliedOrApprovalGrid,
+    getPeriodApprovalStatus,
+    getRequestStatus,
+    getStatusAsync,
+    periodLeaveStatus,
+    rejectStatusAsync,
+    viewLeaveBalanceHistory,
     viewLeaveBalanceHistoryByEmpId
 } from '@/server/hrms/leave-management/leave-approval';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import type { LeaveApprovalRow } from '@/app/(root)/hrms/leave-management/leave-approval/_components/columns';
 /**
  * Map API response data to LeaveApprovalRow format
  */
@@ -30,14 +30,20 @@ function mapApiDataToLeaveApproval(apiData: any): LeaveApprovalRow | null {
         hrmE_Id: apiData.HRME_Id || apiData.hrmE_Id || 0,
         hrelaP_Id: apiData.HRELAP_Id || apiData.hrelaP_Id || 0,
         employeeCode: apiData.HRME_EmployeeCode || apiData.hrmE_EmployeeCode || '',
-        employeeName: apiData.HRME_EmployeeFirstName ||
+        employeeName:
+            apiData.HRME_EmployeeFirstName ||
             apiData.hrmE_FullName ||
-            `${apiData.HRME_EmployeeFirstName || ''} ${apiData.HRME_EmployeeLastName || ''}`.trim() || '',
+            `${apiData.HRME_EmployeeFirstName || ''} ${apiData.HRME_EmployeeLastName || ''}`.trim() ||
+            '',
         leaveName: apiData.HRML_LeaveName || apiData.hrmL_LeaveName || '',
         fromDate: apiData.HRELAP_FromDate || apiData.hrelaP_FromDate || apiData.hreltD_FromDate || '',
         toDate: apiData.HRELAP_ToDate || apiData.hrelaP_ToDate || apiData.hreltD_ToDate || '',
         totalDays: apiData.HRELAP_TotalDays || apiData.hrelapD_TotalDays || apiData.hreltD_TotDays || 0,
-        leaveStatus: (apiData.HRELAP_ApplicationStatus || apiData.hrelT_Status || 'Applied') as 'Applied' | 'Approved' | 'Rejected' | 'Pending',
+        leaveStatus: (apiData.HRELAP_ApplicationStatus || apiData.hrelT_Status || 'Applied') as
+            | 'Applied'
+            | 'Approved'
+            | 'Rejected'
+            | 'Pending',
         remark: apiData.HRELAP_LeaveReason || apiData.hrelapA_Remarks || ''
     };
 }
@@ -62,9 +68,9 @@ export function useLeaveApprovalStatus(request?: { MI_Id?: number }) {
                     let approvalList: LeaveApprovalRow[] = [];
                     const data = response.data;
                     if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
-                        approvalList = data.GridviewDetails
-                            .map((item: any) => mapApiDataToLeaveApproval(item))
-                            .filter((item: LeaveApprovalRow | null): item is LeaveApprovalRow => item !== null);
+                        approvalList = data.GridviewDetails.map((item: any) => mapApiDataToLeaveApproval(item)).filter(
+                            (item: LeaveApprovalRow | null): item is LeaveApprovalRow => item !== null
+                        );
                     } else if (data.approvalList && Array.isArray(data.approvalList)) {
                         approvalList = data.approvalList
                             .map((item: any) => mapApiDataToLeaveApproval(item))
@@ -104,17 +110,20 @@ export function useLeaveApprovalStatus(request?: { MI_Id?: number }) {
  * Hook to fetch leave status async (for filtering/searching)
  * This can be used to filter leave approvals by various criteria
  */
-export function useLeaveStatusAsync(request?: {
-    MI_Id?: number;
-    retrunMsg?: string;
-    HRME_Id?: number;
-    HRELTD_FromDate?: string;
-    HRELTD_ToDate?: string;
-    HRELT_Status?: string;
-    LoginId?: number;
-    HRELAPA_Remarks?: string;
-    get_leave_status?: any[];
-}, enabled: boolean = true) {
+export function useLeaveStatusAsync(
+    request?: {
+        MI_Id?: number;
+        retrunMsg?: string;
+        HRME_Id?: number;
+        HRELTD_FromDate?: string;
+        HRELTD_ToDate?: string;
+        HRELT_Status?: string;
+        LoginId?: number;
+        HRELAPA_Remarks?: string;
+        get_leave_status?: any[];
+    },
+    enabled = true
+) {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
@@ -139,9 +148,9 @@ export function useLeaveStatusAsync(request?: {
                     const data = response.data;
                     let approvalList: LeaveApprovalRow[] = [];
                     if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
-                        approvalList = data.GridviewDetails
-                            .map((item: any) => mapApiDataToLeaveApproval(item))
-                            .filter((item: LeaveApprovalRow | null): item is LeaveApprovalRow => item !== null);
+                        approvalList = data.GridviewDetails.map((item: any) => mapApiDataToLeaveApproval(item)).filter(
+                            (item: LeaveApprovalRow | null): item is LeaveApprovalRow => item !== null
+                        );
                     } else if (data.approvalList && Array.isArray(data.approvalList)) {
                         approvalList = data.approvalList
                             .map((item: any) => mapApiDataToLeaveApproval(item))
@@ -250,9 +259,9 @@ export function useApprovedLeave(request?: { MI_Id?: number; LoginId?: number })
                     const data = response.data;
                     let approvedList: LeaveApprovalRow[] = [];
                     if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
-                        approvedList = data.GridviewDetails
-                            .map((item: any) => mapApiDataToLeaveApproval(item))
-                            .filter((item: LeaveApprovalRow | null): item is LeaveApprovalRow => item !== null);
+                        approvedList = data.GridviewDetails.map((item: any) => mapApiDataToLeaveApproval(item)).filter(
+                            (item: LeaveApprovalRow | null): item is LeaveApprovalRow => item !== null
+                        );
                     } else if (data.approvedLeaves && Array.isArray(data.approvedLeaves)) {
                         approvedList = data.approvedLeaves
                             .map((item: any) => mapApiDataToLeaveApproval(item))
@@ -292,7 +301,7 @@ export function useApprovedLeave(request?: { MI_Id?: number; LoginId?: number })
 /**
  * Hook to fetch leave balance history
  */
-export function useLeaveBalanceHistory(HRME_Id: number, enabled: boolean = true) {
+export function useLeaveBalanceHistory(HRME_Id: number, enabled = true) {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
@@ -394,18 +403,21 @@ export function useRequestStatus(request?: { MI_Id?: number; LoginId?: number })
 /**
  * Hook to fetch approve status async
  */
-export function useApproveStatusAsync(request?: {
-    LoginId?: number;
-    MI_Id?: number;
-    doc_list2?: Array<{
-        HRELAPA_Remarks: string;
-        HRELAPD_InTime: string;
-        HRELAPD_OutTime: string;
-        Status: string;
-        HRELAP_Id: number;
-        HRME_Id: number;
-    }>;
-}, enabled: boolean = true) {
+export function useApproveStatusAsync(
+    request?: {
+        LoginId?: number;
+        MI_Id?: number;
+        doc_list2?: Array<{
+            HRELAPA_Remarks: string;
+            HRELAPD_InTime: string;
+            HRELAPD_OutTime: string;
+            Status: string;
+            HRELAP_Id: number;
+            HRME_Id: number;
+        }>;
+    },
+    enabled = true
+) {
     const queryClient = useQueryClient();
     return {
         ...useQuery({

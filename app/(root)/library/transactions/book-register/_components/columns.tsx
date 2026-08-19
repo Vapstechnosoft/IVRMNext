@@ -112,9 +112,12 @@ function ActionButtonsCell({ rowData }: { rowData: BookRegisterPayload }) {
 
     const handleEdit = useCallback((data: BookRegisterPayload) => openEditForm(data), [openEditForm]);
 
-    const handleCopy = useCallback((data: BookRegisterPayload) => {
-        openCopyForm(data);
-    }, [openCopyForm]);
+    const handleCopy = useCallback(
+        (data: BookRegisterPayload) => {
+            openCopyForm(data);
+        },
+        [openCopyForm]
+    );
 
     return (
         <ActionButtons

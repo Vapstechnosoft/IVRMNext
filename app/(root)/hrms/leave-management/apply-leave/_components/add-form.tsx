@@ -1,14 +1,15 @@
 import { Button } from '@/components/ui/button';
-import { FormError } from '@/components/ui/extension/field';
+import { Checkbox } from '@/components/ui/checkbox';
 import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useEmployeeLeaveDetails, useSaveOnlineLeaveApplication, useSaveLeaveRequestDocument } from '@/hooks/hrms/leave-management/useOnlineLeaveApplication';
-import { Check, Loader2, RotateCcw, X, Eye, FileUp } from 'lucide-react';
-import { useEffect, useState, useMemo } from 'react';
-import { Controller, type SubmitHandler, useForm, useFieldArray } from 'react-hook-form';
-import type { ApplyLeave } from './columns';
-import { Checkbox } from '@/components/ui/checkbox';
+import {
+    useEmployeeLeaveDetails,
+    useSaveLeaveRequestDocument,
+    useSaveOnlineLeaveApplication
+} from '@/hooks/hrms/leave-management/useOnlineLeaveApplication';
+import { Check, Eye, FileUp, Loader2, RotateCcw, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { type SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 
 interface AddApplyLeaveFormProps {
     onSuccess?: () => void;
@@ -34,7 +35,7 @@ type LeaveGridItem = {
     toDate: string;
     numDays: number;
     isHalfDay: boolean;
-}
+};
 
 export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEmployee }: AddApplyLeaveFormProps) {
     const { data: balanceData, isLoading: isBalanceLoading } = useEmployeeLeaveDetails();
@@ -75,7 +76,7 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
     // Initialize grid when balance data is loaded
     useEffect(() => {
         if (balanceData?.leaveBalances) {
-            const gridItems: LeaveGridItem[] = balanceData.leaveBalances.map(lb => ({
+            const gridItems: LeaveGridItem[] = balanceData.leaveBalances.map((lb) => ({
                 selected: false,
                 leaveId: lb.leaveId,
                 leaveName: lb.leaveName,
@@ -143,13 +144,16 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
         const formData = new FormData();
         formData.append('file', file);
 
-        uploadDocument({ hrmeId: defaultEmployee.id, formData }, {
-            onSuccess: (response) => {
-                if (response.success && response.data) {
-                    setUploadedFileUrl(response.data);
+        uploadDocument(
+            { hrmeId: defaultEmployee.id, formData },
+            {
+                onSuccess: (response) => {
+                    if (response.success && response.data) {
+                        setUploadedFileUrl(response.data);
+                    }
                 }
             }
-        });
+        );
     };
 
     const onSubmit: SubmitHandler<any> = async (data) => {
@@ -206,7 +210,7 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
             reason: '',
             contactNumber: defaultEmployee.phone || '',
             dateReportingBack: '',
-            leaveGrid: fields.map(f => ({ ...f, selected: false, numDays: 1, isHalfDay: false }))
+            leaveGrid: fields.map((f) => ({ ...f, selected: false, numDays: 1, isHalfDay: false }))
         });
         setUploadedFileUrl('');
         const fileInput = document.getElementById('leave-document-file') as HTMLInputElement;
@@ -216,28 +220,27 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
     };
 
     return (
-        <div className={`${className} bg-white rounded-xl shadow-sm border p-6`}>
+        <div className={`${className} rounded-xl border bg-white p-6 shadow-sm`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-8'>
-
                 {/* Employee Leave Details Grid (Reference UI Box 2) */}
                 <div className='space-y-4'>
-                    <h3 className='text-lg font-bold text-primary border-b pb-2 flex items-center gap-2'>
+                    <h3 className='flex items-center gap-2 border-b pb-2 font-bold text-lg text-primary'>
                         <Check className='h-5 w-5' />
                         Employee Leave Details
                     </h3>
 
                     <div className='overflow-x-auto rounded-lg border bg-muted/5'>
-                        <table className='w-full text-sm text-left border-collapse'>
-                            <thead className='bg-primary/5 text-primary-foreground font-semibold'>
+                        <table className='w-full border-collapse text-left text-sm'>
+                            <thead className='bg-primary/5 font-semibold text-primary-foreground'>
                                 <tr className='bg-muted/50'>
-                                    <th className='p-3 text-center border w-[50px]'>Select</th>
-                                    <th className='p-3 text-center border w-[60px]'>Sl No</th>
-                                    <th className='p-3 border'>Leave Type</th>
-                                    <th className='p-3 text-center border'>Total</th>
-                                    <th className='p-3 text-center border font-bold'>Balance</th>
-                                    <th className='p-3 border min-w-[150px]'>From Date</th>
-                                    <th className='p-3 border min-w-[150px]'>To Date</th>
-                                    <th className='p-3 text-center border min-w-[120px]'>No. of Days</th>
+                                    <th className='w-[50px] border p-3 text-center'>Select</th>
+                                    <th className='w-[60px] border p-3 text-center'>Sl No</th>
+                                    <th className='border p-3'>Leave Type</th>
+                                    <th className='border p-3 text-center'>Total</th>
+                                    <th className='border p-3 text-center font-bold'>Balance</th>
+                                    <th className='min-w-[150px] border p-3'>From Date</th>
+                                    <th className='min-w-[150px] border p-3'>To Date</th>
+                                    <th className='min-w-[120px] border p-3 text-center'>No. of Days</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -246,19 +249,21 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
                                     const isLowBalance = row.balance === 0;
 
                                     return (
-                                        <tr key={field.id} className={`transition-colors border-b ${row.selected ? 'bg-primary/10' : 'hover:bg-muted/30'}`}>
-                                            <td className='p-3 text-center border'>
+                                        <tr
+                                            key={field.id}
+                                            className={`border-b transition-colors ${row.selected ? 'bg-primary/10' : 'hover:bg-muted/30'}`}>
+                                            <td className='border p-3 text-center'>
                                                 <Checkbox
                                                     checked={row.selected}
                                                     disabled={isLowBalance}
                                                     onCheckedChange={(val) => handleRowChange(index, 'selected', val)}
                                                 />
                                             </td>
-                                            <td className='p-3 text-center border font-medium'>{index + 1}</td>
-                                            <td className='p-3 border font-semibold'>{row.leaveName}</td>
-                                            <td className='p-3 text-center border text-muted-foreground'>{row.total}</td>
-                                            <td className='p-3 text-center border font-bold text-blue-600'>{row.balance}</td>
-                                            <td className='p-3 border'>
+                                            <td className='border p-3 text-center font-medium'>{index + 1}</td>
+                                            <td className='border p-3 font-semibold'>{row.leaveName}</td>
+                                            <td className='border p-3 text-center text-muted-foreground'>{row.total}</td>
+                                            <td className='border p-3 text-center font-bold text-blue-600'>{row.balance}</td>
+                                            <td className='border p-3'>
                                                 <InputText
                                                     type='date'
                                                     disabled={!row.selected}
@@ -267,7 +272,7 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
                                                     className='h-9 text-xs'
                                                 />
                                             </td>
-                                            <td className='p-3 border'>
+                                            <td className='border p-3'>
                                                 <InputText
                                                     type='date'
                                                     disabled={!row.selected}
@@ -277,20 +282,22 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
                                                     className='h-9 text-xs'
                                                 />
                                             </td>
-                                            <td className='p-3 border'>
-                                                <div className='flex items-center flex-col gap-1'>
+                                            <td className='border p-3'>
+                                                <div className='flex flex-col items-center gap-1'>
                                                     <InputText
                                                         readOnly
                                                         value={row.numDays}
-                                                        className='h-8 w-16 text-center bg-muted/50 font-bold text-xs'
+                                                        className='h-8 w-16 bg-muted/50 text-center font-bold text-xs'
                                                     />
-                                                    <label className='flex items-center gap-1.5 cursor-pointer mt-1'>
+                                                    <label className='mt-1 flex cursor-pointer items-center gap-1.5'>
                                                         <Checkbox
                                                             disabled={!row.selected}
                                                             checked={row.isHalfDay}
                                                             onCheckedChange={(val) => handleRowChange(index, 'isHalfDay', val)}
                                                         />
-                                                        <span className='text-[10px] text-muted-foreground uppercase font-semibold'>Half Day</span>
+                                                        <span className='font-semibold text-[10px] text-muted-foreground uppercase'>
+                                                            Half Day
+                                                        </span>
                                                     </label>
                                                 </div>
                                             </td>
@@ -300,7 +307,7 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
                                 {isBalanceLoading && (
                                     <tr>
                                         <td colSpan={8} className='p-8 text-center'>
-                                            <Loader2 className='h-6 w-6 animate-spin mx-auto text-primary' />
+                                            <Loader2 className='mx-auto h-6 w-6 animate-spin text-primary' />
                                             <p className='mt-2 text-muted-foreground'>Syncing your leave balances...</p>
                                         </td>
                                     </tr>
@@ -311,7 +318,7 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
                 </div>
 
                 {/* Additional Details (Reason, Contact, Reporting Date) */}
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-8 bg-muted/5 p-6 rounded-xl border border-dashed'>
+                <div className='grid grid-cols-1 gap-8 rounded-xl border border-dashed bg-muted/5 p-6 md:grid-cols-2'>
                     <div className='space-y-4'>
                         <InputTextarea
                             label='Reasons for Leave'
@@ -323,7 +330,7 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
                         />
                         <div className='flex items-center gap-4'>
                             <div className='flex-1'>
-                                <label className='block text-sm font-medium mb-1.5'>Supporting Document</label>
+                                <label className='mb-1.5 block font-medium text-sm'>Supporting Document</label>
                                 <div className='flex items-center gap-2'>
                                     <input
                                         id='leave-document-file'
@@ -337,10 +344,13 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
                                         variant='outline'
                                         size='sm'
                                         onClick={() => document.getElementById('leave-document-file')?.click()}
-                                        className='flex-1 bg-orange-500 hover:bg-orange-600 text-white border-none shadow-sm transition-all'
-                                        disabled={isUploading}
-                                    >
-                                        {isUploading ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <FileUp className='mr-2 h-4 w-4' />}
+                                        className='flex-1 border-none bg-orange-500 text-white shadow-sm transition-all hover:bg-orange-600'
+                                        disabled={isUploading}>
+                                        {isUploading ? (
+                                            <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                                        ) : (
+                                            <FileUp className='mr-2 h-4 w-4' />
+                                        )}
                                         {uploadedFileUrl ? 'Change Document' : 'Upload File (Max 2MB)'}
                                     </Button>
                                     {uploadedFileUrl && (
@@ -349,13 +359,12 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
                                             variant='ghost'
                                             size='icon'
                                             title='Preview Document'
-                                            onClick={() => window.open(uploadedFileUrl, '_blank')}
-                                        >
+                                            onClick={() => window.open(uploadedFileUrl, '_blank')}>
                                             <Eye className='h-4 w-4 text-blue-600' />
                                         </Button>
                                     )}
                                 </div>
-                                <p className='text-[10px] text-muted-foreground mt-1'>PDF, JPEG, PNG, DOC (Max 2MB)</p>
+                                <p className='mt-1 text-[10px] text-muted-foreground'>PDF, JPEG, PNG, DOC (Max 2MB)</p>
                             </div>
                         </div>
                     </div>
@@ -383,23 +392,17 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
                 </div>
 
                 {/* Submit Actions */}
-                <div className='flex items-center justify-end gap-3 pt-6 border-t'>
+                <div className='flex items-center justify-end gap-3 border-t pt-6'>
                     <Button
                         type='button'
                         variant='ghost'
                         onClick={handleReset}
-                        className='text-muted-foreground hover:text-destructive transition-colors'
-                        disabled={isSaving || isSubmitting}
-                    >
+                        className='text-muted-foreground transition-colors hover:text-destructive'
+                        disabled={isSaving || isSubmitting}>
                         <RotateCcw className='mr-2 h-4 w-4' />
                         Reset Form
                     </Button>
-                    <Button
-                        type='button'
-                        variant='secondary'
-                        onClick={onSuccess}
-                        disabled={isSaving || isSubmitting}
-                    >
+                    <Button type='button' variant='secondary' onClick={onSuccess} disabled={isSaving || isSubmitting}>
                         <X className='mr-2 h-4 w-4' />
                         Cancel
                     </Button>
@@ -407,9 +410,8 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
                         type='submit'
                         size='sm'
                         variant='outline'
-                        className='shadow-lg hover:shadow-xl transition-all'
-                        disabled={isSaving || isSubmitting}
-                    >
+                        className='shadow-lg transition-all hover:shadow-xl'
+                        disabled={isSaving || isSubmitting}>
                         {isSaving || isSubmitting ? (
                             <>
                                 <Loader2 className='mr-2 h-5 w-5 animate-spin' />
@@ -418,7 +420,6 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
                         ) : (
                             <>
                                 <Check className='mr-2 h-5 w-5' />
-
                                 Apply Leave Now
                             </>
                         )}

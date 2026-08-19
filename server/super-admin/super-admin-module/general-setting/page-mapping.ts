@@ -7,7 +7,7 @@ import type { IModuleDropdown, IPageMappingData, ISavedMapping } from '@/types/s
 import { revalidatePath } from 'next/cache';
 
 export async function getModulesForDropdown() {
-    const url = 'MasterSubMenuFacade/get_module_drop_down';
+    const url = 'MasterPageModuleMappingFacade/get_saved_pages_mapping_list_onchange_of_modulename?page=1&page_size=100';
 
     try {
         const response = await api.get<any>('sadmin', url);
@@ -15,9 +15,9 @@ export async function getModulesForDropdown() {
             return {
                 success: true,
                 data: response.data.map((m: any) => ({
-                    ivrmM_Id: m.ivrmM_Id,
-                    ivrmM_ModuleName: m.ivrmM_ModuleName,
-                    ivrmM_ModuleDesc: m.ivrmM_ModuleDesc
+                    ivrmM_Id: m.ivrmM_Id ?? m.IVRMM_Id,
+                    ivrmM_ModuleName: m.ivrmM_ModuleName ?? m.IVRMM_ModuleName,
+                    ivrmM_ModuleDesc: m.ivrmM_ModuleDesc ?? m.IVRMM_ModuleDesc
                 })) as IModuleDropdown[]
             };
         }
@@ -29,25 +29,22 @@ export async function getModulesForDropdown() {
 }
 
 export async function getAvailablePages(searchParams: any) {
-    // Calling the specific API endpoint provided by user
-    // URL: MasterPageModuleMappingFacade/get_master_page_details_onchange_of_modulename
-    // Accepts query params: ivrmM_Id, page, page_size
+    const paramsObj =
+        typeof searchParams === 'number' || typeof searchParams === 'string'
+            ? { ivrmM_Id: searchParams }
+            : searchParams && typeof searchParams === 'object'
+              ? searchParams
+              : {};
 
-    // We construct query from searchParams.
-    // searchParams usually comes from nuqs as object { page: 1, page_size: 10, ivrmM_Id: 123 }
-
-    const query = getSearchParamsUrl(searchParams);
+    const query = getSearchParamsUrl(paramsObj);
     const url = `MasterPageModuleMappingFacade/get_master_page_details_onchange_of_modulename?${query}`;
 
     try {
         const response = await api.get<any>('sadmin', url);
-        // Handle the specific response structure
         if (response.success && Array.isArray(response.data)) {
             const mappedData = response.data.map((item: any) => ({
                 ivrmP_Id: item.IVRMP_Id ?? item.ivrmP_Id,
-                // Map IVRMMP_PageName or ivrmmP_PageName to ivrmP_PageName for frontend consistency
                 ivrmP_PageName: item.IVRMMP_PageName ?? item.ivrmmP_PageName ?? item.IVRMP_PageName ?? item.ivrmP_PageName,
-                // Include other fields if needed, e.g. ivrmP_PageDisplayName if available, else use PageName
                 ivrmP_PageDisplayName:
                     item.IVRMP_PageDisplayName ?? item.ivrmP_PageDisplayName ?? item.IVRMMP_PageName ?? item.ivrmmP_PageName
             }));
@@ -68,23 +65,24 @@ export async function getAvailablePages(searchParams: any) {
 
 export async function getSavedMappings(searchParams: any) {
     const query = getSearchParamsUrl(searchParams);
-    // If ivrmM_Id is passed in searchParams, the getSearchParamsUrl helper should handle it if it just iterates keys.
-    // However, usually we might want to ensure it's passed safely.
-    // Let's assume searchParams now includes ivrmM_Id if needed.
-
     const url = `MasterPageModuleMappingFacade/get_all_details_grid_page_mapping?${query}`;
 
     try {
         const response = await api.get<any>('sadmin', url);
         if (response.success && response.data) {
-            // Check if data is directly array or paginated object
             const dataList = Array.isArray(response.data) ? response.data : response.data.savedMappings || [];
             return {
                 success: true,
-                data: dataList as ISavedMapping[],
-                total: response.data.total ?? response.total ?? dataList.length,
-                page: response.data.page ?? response.page ?? 1,
-                page_size: response.data.page_size ?? response.page_Size ?? dataList.length
+                data: dataList.map((item: any) => ({
+                    ivrmmP_Id: item.ivrmmP_Id ?? item.IVRMMP_Id ?? item.ivrmmp_Id ?? item.id,
+                    ivrmM_Id: item.ivrmM_Id ?? item.IVRMM_Id,
+                    ivrmP_Id: item.ivrmP_Id ?? item.IVRMP_Id,
+                    ivrmmP_PageName: item.ivrmmP_PageName ?? item.IVRMMP_PageName ?? item.ivrmP_PageName ?? item.IVRMP_PageName,
+                    ivrmM_ModuleName: item.ivrmM_ModuleName ?? item.IVRMM_ModuleName
+                })) as ISavedMapping[],
+                total: response.total ?? response.data.total ?? dataList.length,
+                page: response.page ?? response.data.page ?? 1,
+                page_size: response.page_size ?? response.data.page_size ?? dataList.length
             };
         }
     } catch (error) {

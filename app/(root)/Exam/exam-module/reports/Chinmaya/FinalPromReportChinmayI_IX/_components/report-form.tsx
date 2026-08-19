@@ -3,17 +3,17 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
+import { DatePicker } from '@/components/ui/date-picker';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DatePicker } from '@/components/ui/date-picker';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import { finalPromReportChinmayI_IXSchema } from '@/schemas/exam/exam-module/reports';
 import { getFinalPromReportChinmayI_IX } from '@/server/exam/exam-module/reports/FinalPromReportChinmayI_IX';
 import {
     getClassDropDownByAcademicYearlist,
     getSectionsDropDownByAcademicYearandClasslist,
     getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/cumulative-report';
-import { finalPromReportChinmayI_IXSchema } from '@/schemas/exam/exam-module/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
@@ -138,9 +138,12 @@ export default function FinalPromReportChinmayI_IXForm({
                     amsT_AdmNo: s.amsT_AdmNo || ''
                 }));
                 setStudents(formattedStudents);
-                
+
                 // Select all by default
-                setValue('selectedStudents', formattedStudents.map((s) => s.amsT_Id.toString()));
+                setValue(
+                    'selectedStudents',
+                    formattedStudents.map((s) => s.amsT_Id.toString())
+                );
                 setAllStudentsSelected(true);
             } catch {
                 toast.error('Failed to load students');
@@ -179,7 +182,7 @@ export default function FinalPromReportChinmayI_IXForm({
                 ASMAY_Id: Number(formData.ASMAY_Id),
                 ASMCL_Id: Number(formData.ASMCL_Id),
                 ASMS_Id: Number(formData.ASMS_Id),
-                Temp_AmstIds: formData.selectedStudents.map(id => ({ AMST_Id: Number(id) })),
+                Temp_AmstIds: formData.selectedStudents.map((id) => ({ AMST_Id: Number(id) })),
                 Reopen_Date: formData.reopen_date,
                 OverAlltotal: formData.OverAlltotal,
                 OverAlClass: formData.OverAlClass,
@@ -191,7 +194,11 @@ export default function FinalPromReportChinmayI_IXForm({
 
     const handleAllStudents = (checked: boolean) => {
         if (checked && students.length) {
-            setValue('selectedStudents', students.map((s) => s.amsT_Id.toString()), { shouldValidate: true });
+            setValue(
+                'selectedStudents',
+                students.map((s) => s.amsT_Id.toString()),
+                { shouldValidate: true }
+            );
             setAllStudentsSelected(true);
         } else {
             setValue('selectedStudents', [], { shouldValidate: true });
@@ -219,10 +226,7 @@ export default function FinalPromReportChinmayI_IXForm({
                                         Academic Year <span className='text-red-500'>*</span>
                                     </Label>
                                     <div className='flex-1'>
-                                        <Select
-                                            key={field.value}
-                                            onValueChange={field.onChange}
-                                            value={field.value || undefined}>
+                                        <Select key={field.value} onValueChange={field.onChange} value={field.value || undefined}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder={academicYearLoading ? 'Loading...' : 'Select Academic Year'} />
                                             </SelectTrigger>
@@ -325,14 +329,14 @@ export default function FinalPromReportChinmayI_IXForm({
                         />
 
                         {/* Chinmaya Specific Checkboxes */}
-                        <div className='space-y-2 pt-2 border-t'>
+                        <div className='space-y-2 border-t pt-2'>
                             <Controller
                                 control={control}
                                 name='OverAlltotal'
                                 render={({ field }) => (
                                     <div className='flex items-center space-x-2'>
                                         <Checkbox id='OverAlltotal' checked={field.value} onCheckedChange={field.onChange} />
-                                        <Label htmlFor='OverAlltotal' className='font-normal text-xs cursor-pointer'>
+                                        <Label htmlFor='OverAlltotal' className='cursor-pointer font-normal text-xs'>
                                             OverAll Total Grade ?
                                         </Label>
                                     </div>
@@ -344,7 +348,7 @@ export default function FinalPromReportChinmayI_IXForm({
                                 render={({ field }) => (
                                     <div className='flex items-center space-x-2'>
                                         <Checkbox id='OverAlClass' checked={field.value} onCheckedChange={field.onChange} />
-                                        <Label htmlFor='OverAlClass' className='font-normal text-xs cursor-pointer'>
+                                        <Label htmlFor='OverAlClass' className='cursor-pointer font-normal text-xs'>
                                             OverAll Class-Section Rank ?
                                         </Label>
                                     </div>
@@ -356,7 +360,7 @@ export default function FinalPromReportChinmayI_IXForm({
                                 render={({ field }) => (
                                     <div className='flex items-center space-x-2'>
                                         <Checkbox id='ECTEX_NotApplToTotalFlg' checked={field.value} onCheckedChange={field.onChange} />
-                                        <Label htmlFor='ECTEX_NotApplToTotalFlg' className='font-normal text-xs cursor-pointer'>
+                                        <Label htmlFor='ECTEX_NotApplToTotalFlg' className='cursor-pointer font-normal text-xs'>
                                             Exam Wise Remarks ?
                                         </Label>
                                     </div>

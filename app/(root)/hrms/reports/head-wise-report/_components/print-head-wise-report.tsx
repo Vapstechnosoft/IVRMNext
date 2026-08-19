@@ -1,19 +1,12 @@
+export const printHeadWiseReport = (data: any[], institution: any, monthName: string, yearStr: string) => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
 
+    const totalEarning = data.reduce((sum, item) => sum + (item.totalEarning || 0), 0);
+    const totalDeduction = data.reduce((sum, item) => sum + (item.totalDeduction || 0), 0);
+    const totalNetSalary = data.reduce((sum, item) => sum + (item.netSalary || 0), 0);
 
-export const printHeadWiseReport = (
-  data: any[],
-  institution: any,
-  monthName: string,
-  yearStr: string
-) => {
-  const printWindow = window.open('', '_blank');
-  if (!printWindow) return;
-
-  const totalEarning = data.reduce((sum, item) => sum + (item.totalEarning || 0), 0);
-  const totalDeduction = data.reduce((sum, item) => sum + (item.totalDeduction || 0), 0);
-  const totalNetSalary = data.reduce((sum, item) => sum + (item.netSalary || 0), 0);
-
-  const htmlContent = `
+    const htmlContent = `
     <html>
       <head>
         <title>Head wise Report</title>
@@ -60,7 +53,9 @@ export const printHeadWiseReport = (
             </tr>
           </thead>
           <tbody>
-            ${data.map((item, index) => `
+            ${data
+                .map(
+                    (item, index) => `
               <tr>
                 <td>${index + 1}</td>
                 <td>${item.employeeCode || ''}</td>
@@ -70,7 +65,9 @@ export const printHeadWiseReport = (
                 <td class="text-right">₹${(item.totalDeduction || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                 <td class="text-right">₹${(item.netSalary || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
               </tr>
-            `).join('')}
+            `
+                )
+                .join('')}
           </tbody>
         </table>
 
@@ -103,6 +100,6 @@ export const printHeadWiseReport = (
     </html>
   `;
 
-  printWindow.document.write(htmlContent);
-  printWindow.document.close();
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
 };

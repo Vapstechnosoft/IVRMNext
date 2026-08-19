@@ -101,10 +101,6 @@ export async function searchEmployeeDetailsReport(data: EmployeeDetailsReportReq
     }
 }
 
-
-
-
-
 export async function getEmployeeAndEmployeeType(data: any) {
     const url = '/api/ReportEmployeeDetailsReport/get_employee_and_employee_type';
     try {

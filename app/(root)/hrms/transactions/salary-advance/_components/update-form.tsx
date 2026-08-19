@@ -5,14 +5,13 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useLeaveYearDropdown, useMonthDropdown } from '@/hooks/hrms/useMasters';
 import { useSaveSalaryAdvance } from '@/hooks/hrms/useTransactions';
 import { cn } from '@/lib/utils';
 import type { SalaryAdvanceEmployeeDropdownItem, SalaryAdvanceGridItem } from '@/types/hrms/salary-advance';
 import { format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';
-import React, { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -42,11 +41,14 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, employeeDropdown,
     const { data: monthsData } = useMonthDropdown();
 
     // Hardcoded mode of payments as they are standard and might not have a specific hook yet
-    const modeOfPayments = useMemo(() => [
-        { id: 'Cash', name: 'Cash' },
-        { id: 'Bank Transfer', name: 'Bank Transfer' },
-        { id: 'Cheque', name: 'Cheque' }
-    ], []);
+    const modeOfPayments = useMemo(
+        () => [
+            { id: 'Cash', name: 'Cash' },
+            { id: 'Bank Transfer', name: 'Bank Transfer' },
+            { id: 'Cheque', name: 'Cheque' }
+        ],
+        []
+    );
 
     const employees = useMemo(() => employeeDropdown || [], [employeeDropdown]);
     const leaveYears = useMemo(() => (leaveYearsData as any)?.data || [], [leaveYearsData]);
@@ -56,30 +58,29 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, employeeDropdown,
 
     // Generate initial values for immediate binding on mount
     const initialValues = useMemo(() => {
-        if (!selectedRow) return {
-            employeeId: '',
-            entryDate: '',
-            advanceYear: '',
-            advanceMonth: '',
-            appliedAmount: 0,
-            remarks: '',
-            modeOfPayment: '',
-            referenceNo: ''
-        };
+        if (!selectedRow)
+            return {
+                employeeId: '',
+                entryDate: '',
+                advanceYear: '',
+                advanceMonth: '',
+                appliedAmount: 0,
+                remarks: '',
+                modeOfPayment: '',
+                referenceNo: ''
+            };
 
         // Try to find matching year if possible (though we prefer immediate binding)
         let yearValue = String(selectedRow.hresA_AdvYear ?? '');
         const matchingYear = (leaveYears as any[]).find(
-            (y: any) =>
-                String(y.hrmlY_LeaveYear) === yearValue ||
-                String(y.HRMLY_LeaveYear) === yearValue
+            (y: any) => String(y.hrmlY_LeaveYear) === yearValue || String(y.HRMLY_LeaveYear) === yearValue
         );
         if (matchingYear) {
             yearValue = String(matchingYear.hrmlY_LeaveYear || matchingYear.HRMLY_LeaveYear || '');
         }
 
         const paymentMode = selectedRow.hresA_ModeOfPayment || '';
-        const matchingMode = modeOfPayments.find(m => m.id.toLowerCase() === paymentMode.toLowerCase());
+        const matchingMode = modeOfPayments.find((m) => m.id.toLowerCase() === paymentMode.toLowerCase());
         const normalizedPaymentMode = matchingMode ? matchingMode.id : paymentMode;
 
         return {
@@ -135,7 +136,12 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, employeeDropdown,
                         setValue('advanceYear', String(yearVal));
                     }
 
-                    const matchingMonth = (months as any[]).find((m: any) => m.IVRM_Month_Id === month || m.key === month || m.value?.toLowerCase() === format(entryDate, 'MMMM').toLowerCase());
+                    const matchingMonth = (months as any[]).find(
+                        (m: any) =>
+                            m.IVRM_Month_Id === month ||
+                            m.key === month ||
+                            m.value?.toLowerCase() === format(entryDate, 'MMMM').toLowerCase()
+                    );
                     if (matchingMonth) {
                         setValue('advanceMonth', matchingMonth.IVRM_Month_Name || matchingMonth.value);
                     }
@@ -194,11 +200,13 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, employeeDropdown,
                                         <SelectValue placeholder='Select Employee' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {employees.filter(emp => emp.hrmE_Id).map((emp) => (
-                                            <SelectItem key={emp.hrmE_Id} value={String(emp.hrmE_Id)}>
-                                                {emp.employeeName}
-                                            </SelectItem>
-                                        ))}
+                                        {employees
+                                            .filter((emp) => emp.hrmE_Id)
+                                            .map((emp) => (
+                                                <SelectItem key={emp.hrmE_Id} value={String(emp.hrmE_Id)}>
+                                                    {emp.employeeName}
+                                                </SelectItem>
+                                            ))}
                                     </SelectContent>
                                 </Select>
                             )}
@@ -249,11 +257,15 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, employeeDropdown,
                                         <SelectValue placeholder='Select Year' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {(leaveYears as any[]).filter(year => year.hrmlY_LeaveYear || year.HRMLY_LeaveYear).map((year: any) => (
-                                            <SelectItem key={year.hrmlY_Id || year.HRMLY_Id} value={String(year.hrmlY_LeaveYear || year.HRMLY_LeaveYear)}>
-                                                {year.hrmlY_LeaveYear || year.HRMLY_LeaveYear}
-                                            </SelectItem>
-                                        ))}
+                                        {(leaveYears as any[])
+                                            .filter((year) => year.hrmlY_LeaveYear || year.HRMLY_LeaveYear)
+                                            .map((year: any) => (
+                                                <SelectItem
+                                                    key={year.hrmlY_Id || year.HRMLY_Id}
+                                                    value={String(year.hrmlY_LeaveYear || year.HRMLY_LeaveYear)}>
+                                                    {year.hrmlY_LeaveYear || year.HRMLY_LeaveYear}
+                                                </SelectItem>
+                                            ))}
                                     </SelectContent>
                                 </Select>
                             )}
@@ -272,11 +284,15 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, employeeDropdown,
                                         <SelectValue placeholder='Select Month' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {(months as any[]).filter(month => month.IVRM_Month_Name || month.value).map((month: any) => (
-                                            <SelectItem key={month.IVRM_Month_Id || month.key} value={String(month.IVRM_Month_Name || month.value)}>
-                                                {month.IVRM_Month_Name || month.value}
-                                            </SelectItem>
-                                        ))}
+                                        {(months as any[])
+                                            .filter((month) => month.IVRM_Month_Name || month.value)
+                                            .map((month: any) => (
+                                                <SelectItem
+                                                    key={month.IVRM_Month_Id || month.key}
+                                                    value={String(month.IVRM_Month_Name || month.value)}>
+                                                    {month.IVRM_Month_Name || month.value}
+                                                </SelectItem>
+                                            ))}
                                     </SelectContent>
                                 </Select>
                             )}
@@ -324,11 +340,7 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, employeeDropdown,
                     </div>
                     <div className='space-y-2'>
                         <Label>Reference No</Label>
-                        <InputText
-                            placeholder='Enter reference number'
-                            {...register('referenceNo')}
-                            error={errors.referenceNo?.message}
-                        />
+                        <InputText placeholder='Enter reference number' {...register('referenceNo')} error={errors.referenceNo?.message} />
                     </div>
                 </div>
                 <div className='space-y-2'>
@@ -360,4 +372,3 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, employeeDropdown,
         </div>
     );
 }
-

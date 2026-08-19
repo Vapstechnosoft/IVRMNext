@@ -2,9 +2,9 @@
 
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
-import type { MasterPositionType } from './columns';
 import { useTogglePositionTypeStatus } from '@/hooks/hrms/recruitment/masters/useMasters';
 import { toast } from 'sonner';
+import type { MasterPositionType } from './columns';
 
 interface ToggleMasterPositionTypeModalProps {
     rowData: MasterPositionType;
@@ -45,11 +45,7 @@ export default function ToggleMasterPositionTypeModal({ rowData, isOpen, onClose
                     <Button variant='secondary' onClick={onClose} type='button'>
                         Cancel
                     </Button>
-                    <Button
-                        onClick={handleToggle}
-                        isLoading={isSubmitting}
-                        variant={isActive ? 'destructive' : 'default'}
-                    >
+                    <Button onClick={handleToggle} isLoading={isSubmitting} variant={isActive ? 'destructive' : 'default'}>
                         {isActive ? 'Deactivate' : 'Activate'}
                     </Button>
                 </AdaptiveFooter>

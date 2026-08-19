@@ -1,6 +1,12 @@
-import { getCountryDropdown, getInstitutionDropdown, getMasterInstitutionData, getStateDropdown } from '@/server/super-admin/super-admin-module/institution/master-institution';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+    getCountryDropdown,
+    getInstitutionDropdown,
+    getMasterInstitutionData,
+    getStateDropdown,
+    getTrustNameDropdown
+} from '@/server/super-admin/super-admin-module/institution/master-institution';
 import type { ApiSearchparams } from '@/types';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useMasterInstitutionData = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
@@ -52,6 +58,17 @@ export const useInstitutionSubscriptionDropdown = () => {
         queryKey: ['institution_subscription_dropdown_data'],
         queryFn: async () => {
             const response = await getInstitutionDropdown();
+            return response;
+        },
+        staleTime: 1000 * 60 * 60 // 1 hour
+    });
+};
+
+export const useTrustNameDropdown = () => {
+    return useQuery({
+        queryKey: ['trust_name_dropdown_data'],
+        queryFn: async () => {
+            const response = await getTrustNameDropdown();
             return response;
         },
         staleTime: 1000 * 60 * 60 // 1 hour

@@ -3,18 +3,18 @@
 import { api } from '@/lib/apiService';
 import type {
     ApiResponse,
-    SalaryAdvanceGridItem,
-    SalaryAdvanceEmployeeDropdownItem,
-    SalaryAdvanceSaveRequest,
+    EmployeeSalaryAdvanceDetails,
     SalaryAdvanceDetailsRequest,
-    EmployeeSalaryAdvanceDetails
+    SalaryAdvanceEmployeeDropdownItem,
+    SalaryAdvanceGridItem,
+    SalaryAdvanceSaveRequest
 } from '@/types/hrms/salary-advance';
 
 /**
  * Get salary advance grid data
  * GET /api/TransHREmpSalaryAdvance/get_salary_advance_grid
  */
-export async function getSalaryAdvanceGrid(pageSize: number = 100) {
+export async function getSalaryAdvanceGrid(pageSize = 100) {
     const url = `/api/TransHREmpSalaryAdvance/get_salary_advance_grid?page_size=${pageSize}`;
     try {
         return await api.get<ApiResponse<SalaryAdvanceGridItem[]>>('hrms', url);

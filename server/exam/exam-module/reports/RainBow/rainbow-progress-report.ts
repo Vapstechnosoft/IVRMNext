@@ -1,8 +1,8 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { IMasterClassYearlyList } from '@/types/exam/exam-module/masters';
-import { IAcademicYearandClassandsection } from '@/types/exam/exam-module/report';
+import type { IMasterClassYearlyList } from '@/types/exam/exam-module/masters';
+import type { IAcademicYearandClassandsection } from '@/types/exam/exam-module/report';
 
 /**
  * Get Academic Year Dropdown
@@ -26,7 +26,6 @@ export async function getClassDropDownByAcademicYearlist(asmaY_Id: number) {
     const url = `/exam_master_category/class_drop_down_by_academic_year_list/${asmaY_Id}`;
     return await api.get<IAcademicYearandClassandsection[]>('exam', url);
 }
-
 
 /**
  * Get Sections by Academic Year and Class

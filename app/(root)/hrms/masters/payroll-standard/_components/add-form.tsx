@@ -11,7 +11,6 @@ import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
 import type { IMasterPayrollStandardList, IMonthDropdown } from '@/types/hrms/hrms-config/master';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { error } from 'node:console';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -64,7 +63,6 @@ const defaultFormValues: any = {
     HRC_SalaryToDay: '',
     HRC_ActiveFlag: true
 };
-
 
 export default function PayrollStandardForm({ existingData, className = '' }: PayrollStandardFormProps) {
     const { saveMutation } = useMasterPayrollStandard();
@@ -136,9 +134,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                 HRC_Increment: existingData.hrC_IncrementApprovalFlg ?? false,
                 HRC_Probation: existingData.hrC_ProbationApprovalFlg ?? false,
                 // Payment Method
-                HRC_PaymentMethod: existingData.hrC_PayMethodFlg
-                    ? Number(existingData.hrC_PayMethodFlg.toString().replace(/\D/g, ''))
-                    : 0,
+                HRC_PaymentMethod: existingData.hrC_PayMethodFlg ? Number(existingData.hrC_PayMethodFlg.toString().replace(/\D/g, '')) : 0,
                 // Increment Process
                 HRC_OptionalHolidays: existingData.hrC_NoOfOptionalHolidays,
                 HRC_ApplicableFlag: existingData.hrC_FixedIncrmentFlg ?? false,
@@ -204,10 +200,10 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
             HRC_SalaryToDay: data.HRC_SalaryToDay,
             HRC_ActiveFlag: data.HRC_ActiveFlag ?? true
         };
-        console.log("Payload : ", payload);
+        console.log('Payload : ', payload);
         savePayrollStandard(payload, {
             onSuccess: (response) => {
-                console.log("Response 123", response);
+                console.log('Response 123', response);
                 if (response?.success) {
                     toast.success(response.message || 'Payroll standard saved successfully');
                 } else {
@@ -222,14 +218,14 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
     const [resetKey, setResetKey] = useState(0);
     const handleReset = () => {
         reset(defaultFormValues);
-        setResetKey(prev => prev + 1);
+        setResetKey((prev) => prev + 1);
     };
     // Add debug logging for form state changes
     const _formValues = watch();
     // Error handling for HRC_SalaryFromDay and HRC_SalaryToDay done in form validation
     const handleFormSubmit = (e?: React.FormEvent) => {
         return handleSubmit(onSubmit, (errors) => {
-            console.log("Validation Errors:", errors);
+            console.log('Validation Errors:', errors);
         })(e);
     };
     return (
@@ -1467,9 +1463,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                                 Method {method}
                                             </Label>
                                         )}
-
                                     </div>
-
                                 );
                             })}
                         </div>
@@ -1543,11 +1537,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                     name='HRC_ApplicableFlag'
                                     control={control}
                                     render={({ field }) => (
-                                        <Checkbox
-                                            id='HRC_ApplicableFlag'
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
-                                        />
+                                        <Checkbox id='HRC_ApplicableFlag' checked={field.value} onCheckedChange={field.onChange} />
                                     )}
                                 />
                                 <Label htmlFor='HRC_ApplicableFlag' className='cursor-pointer font-normal'>

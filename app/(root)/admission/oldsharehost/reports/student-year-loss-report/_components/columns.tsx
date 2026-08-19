@@ -1,4 +1,4 @@
-import { ColumnDef } from '@tanstack/react-table';
+import type { ColumnDef } from '@tanstack/react-table';
 
 export const getDynamicColumns = (columns: { columnID: string; columnName: string }[]): ColumnDef<any>[] => {
     return columns.map((col) => ({
@@ -6,7 +6,7 @@ export const getDynamicColumns = (columns: { columnID: string; columnName: strin
         header: col.columnName,
         cell: ({ row }) => {
             const value = row.original[col.columnID];
-            return <div className="text-center">{value || '--'}</div>;
+            return <div className='text-center'>{value || '--'}</div>;
         }
     }));
 };

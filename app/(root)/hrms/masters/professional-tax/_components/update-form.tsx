@@ -72,7 +72,7 @@ export default function UpdateProfessionalTaxForm({ onSuccess, className = '', s
 
     const handleReset = () => {
         reset();
-        setResetKey(prev => prev + 1);
+        setResetKey((prev) => prev + 1);
     };
 
     return (
@@ -146,9 +146,7 @@ export default function UpdateProfessionalTaxForm({ onSuccess, className = '', s
                             )}
                         />
                     </div>
-                    {errors.root && (
-                        <FormError>{errors.root.message}</FormError>
-                    )}
+                    {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
                 {/* Action Buttons */}

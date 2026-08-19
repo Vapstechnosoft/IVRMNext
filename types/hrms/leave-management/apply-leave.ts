@@ -113,4 +113,3 @@ export interface SaveOnlineLeaveResponse {
     returnval_add?: boolean;
     returnval_Update?: boolean;
 }
-

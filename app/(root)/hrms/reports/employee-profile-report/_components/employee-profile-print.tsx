@@ -5,27 +5,28 @@ export const printEmployeeProfileReport = (reportData: any) => {
         return;
     }
 
-    const profileCards = reportData.map((record: any, index: number) => {
-        let doj = record.joinDate;
-        let dol = record.leftDate;
-        let dob = record.dob;
+    const profileCards = reportData
+        .map((record: any, index: number) => {
+            const doj = record.joinDate;
+            const dol = record.leftDate;
+            const dob = record.dob;
 
-        const formatDate = (dateString?: string) => {
-            if (!dateString) return 'N/A';
-            try {
-                const date = new Date(dateString);
-                return isNaN(date.getTime()) ? dateString : date.toLocaleDateString('en-GB');
-            } catch (e) {
-                return dateString;
+            const formatDate = (dateString?: string) => {
+                if (!dateString) return 'N/A';
+                try {
+                    const date = new Date(dateString);
+                    return isNaN(date.getTime()) ? dateString : date.toLocaleDateString('en-GB');
+                } catch (e) {
+                    return dateString;
+                }
+            };
+
+            let contacts = record.contactDetails;
+            if (Array.isArray(contacts)) {
+                contacts = contacts.join(', ');
             }
-        };
 
-        let contacts = record.contactDetails;
-        if (Array.isArray(contacts)) {
-            contacts = contacts.join(', ');
-        }
-
-        return `
+            return `
             <div class="profile-card">
                 <div class="profile-content">
                     <div class="details-column">
@@ -61,7 +62,8 @@ export const printEmployeeProfileReport = (reportData: any) => {
                 </div>
             </div>
         `;
-    }).join('');
+        })
+        .join('');
 
     printWindow.document.write(`
         <html>

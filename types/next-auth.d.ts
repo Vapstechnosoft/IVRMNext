@@ -16,6 +16,9 @@ declare module 'next-auth' {
         expires: string;
         amst_id?: number;
         mi_name?: string;
+        username?: string;
+        mi_logo?: string;
+        expires_at?: number;
     }
 
     interface User {
@@ -29,7 +32,11 @@ declare module 'next-auth' {
         user_image: string | null;
         amst_id?: number;
         mi_name?: string;
+        username?: string;
+        mi_logo?: string;
+        expires_in?: number | string;
+        expires_at?: number;
     }
 
-    interface JWT extends User { }
+    interface JWT extends User {}
 }

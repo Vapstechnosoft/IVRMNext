@@ -1,20 +1,20 @@
-import { useState, useEffect } from 'react';
 import {
-    getInitialData,
     getDetails,
+    getInitialData,
+    getReportData,
     getSections,
-    getStudentData,
-    getReportData
+    getStudentData
 } from '@/server/sports/transactions/sport-venuewise-participation-report';
-import {
-    ISportVenueWiseParticipationReportYear,
+import type {
     ISportVenueWiseParticipationReportClass,
+    ISportVenueWiseParticipationReportHouse,
+    ISportVenueWiseParticipationReportPayload,
     ISportVenueWiseParticipationReportSection,
     ISportVenueWiseParticipationReportStudent,
     ISportVenueWiseParticipationReportVenue,
-    ISportVenueWiseParticipationReportHouse,
-    ISportVenueWiseParticipationReportPayload
+    ISportVenueWiseParticipationReportYear
 } from '@/types/sports/reports/venue-wise-participation-report';
+import { useEffect, useState } from 'react';
 
 export const useVenueWiseParticipationReport = () => {
     const [years, setYears] = useState<ISportVenueWiseParticipationReportYear[]>([]);
@@ -33,7 +33,7 @@ export const useVenueWiseParticipationReport = () => {
                 const response = await getInitialData();
                 if (response.success && response.data) {
                     setYears(response.data.yearlist || []);
-                    // Initial load typically only guarantees years based on similar reports, 
+                    // Initial load typically only guarantees years based on similar reports,
                     // but we will see if we need to load others.
                 } else {
                     setError(response.message || 'Failed to load initial data');
@@ -110,7 +110,6 @@ export const useVenueWiseParticipationReport = () => {
             setLoading(false);
         }
     };
-
 
     return {
         years,

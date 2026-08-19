@@ -1,30 +1,33 @@
 'use client';
 
-import { useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider } from '@/components/ui/form/form-provider';
-import { Label } from '@/components/ui/extension/field';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MultiSelect } from '@/components/ui/multi-select';
-import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
-import {
-    useReportDepartments,
-    useReportDesignations,
-    useReportGroupTypes,
-    useSearchEmployeeContribution
-} from '@/hooks/hrms/useReports';
-import { Loader2, Search, Download, X, Printer } from 'lucide-react';
-import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { useReportDepartments, useReportDesignations, useReportGroupTypes, useSearchEmployeeContribution } from '@/hooks/hrms/useReports';
 import { exportToExcel } from '@/lib/export-to-file';
+import { format } from 'date-fns';
+import { Loader2, Printer, Search, X } from 'lucide-react';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 const MONTH_LIST = [
-    { id: 1, name: 'January' }, { id: 2, name: 'February' }, { id: 3, name: 'March' },
-    { id: 4, name: 'April' }, { id: 5, name: 'May' }, { id: 6, name: 'June' },
-    { id: 7, name: 'July' }, { id: 8, name: 'August' }, { id: 9, name: 'September' },
-    { id: 10, name: 'October' }, { id: 11, name: 'November' }, { id: 12, name: 'December' }
+    { id: 1, name: 'January' },
+    { id: 2, name: 'February' },
+    { id: 3, name: 'March' },
+    { id: 4, name: 'April' },
+    { id: 5, name: 'May' },
+    { id: 6, name: 'June' },
+    { id: 7, name: 'July' },
+    { id: 8, name: 'August' },
+    { id: 9, name: 'September' },
+    { id: 10, name: 'October' },
+    { id: 11, name: 'November' },
+    { id: 12, name: 'December' }
 ];
 
 interface FilterFormValues {
@@ -105,7 +108,7 @@ function EmployeeContributionContent() {
         generateReport(payload, {
             onSuccess: (res) => {
                 if (res.success && res.data) {
-                    console.log("Report Data", res);
+                    console.log('Report Data', res);
                     setReportData(res.data);
                     toast.success(res.message || 'Report generated successfully');
                 } else {
@@ -173,12 +176,14 @@ function EmployeeContributionContent() {
     const estName = institution?.mI_Name || '';
     const estAddress = institution
         ? [
-            institution.mI_Address1,
-            institution.mI_Address2,
-            institution.mI_Address3,
-            institution.ivrmmcT_Name ? `${institution.ivrmmcT_Name}` : '',
-            institution.mI_Pincode ? `${institution.mI_Pincode}` : ''
-        ].filter(val => val && val.trim() !== '').join(', ')
+              institution.mI_Address1,
+              institution.mI_Address2,
+              institution.mI_Address3,
+              institution.ivrmmcT_Name ? `${institution.ivrmmcT_Name}` : '',
+              institution.mI_Pincode ? `${institution.mI_Pincode}` : ''
+          ]
+              .filter((val) => val && val.trim() !== '')
+              .join(', ')
         : '';
 
     const handlePrint = () => {
@@ -193,9 +198,11 @@ function EmployeeContributionContent() {
             return;
         }
 
-        const tableRows = records.map((record: any, index: number) => {
-            const name = `${record.hrmE_EmployeeFirstName || ''} ${record.hrmE_EmployeeMiddleName || ''} ${record.hrmE_EmployeeLastName || ''}`.trim();
-            return `
+        const tableRows = records
+            .map((record: any, index: number) => {
+                const name =
+                    `${record.hrmE_EmployeeFirstName || ''} ${record.hrmE_EmployeeMiddleName || ''} ${record.hrmE_EmployeeLastName || ''}`.trim();
+                return `
                 <tr>
                     <td class="text-center">${index + 1}</td>
                     <td class="text-center font-mono">${record.hrmE_PFAccNo || '-'}</td>
@@ -209,7 +216,8 @@ function EmployeeContributionContent() {
                     <td class="text-center font-mono">${record.hreS_WorkingDays || 0}</td>
                 </tr>
             `;
-        }).join('');
+            })
+            .join('');
 
         printWindow.document.write(`
             <html>
@@ -317,107 +325,143 @@ function EmployeeContributionContent() {
 
     return (
         <div className='container min-h-screen space-y-4 p-2'>
-            <CollapsibleSection defaultOpen={true} title="Report Criteria" variant='outline' className='shadow-sm'>
+            <CollapsibleSection defaultOpen={true} title='Report Criteria' variant='outline' className='shadow-sm'>
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                     <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
                         <div className='space-y-2'>
-                            <Label>Year <span className='text-destructive'>*</span></Label>
-                            <Controller name='year' control={control} key={resetKey} render={({ field }) => (
-                                <Select onValueChange={field.onChange} value={field.value} disabled={isYearsLoading}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder={isYearsLoading ? 'Loading...' : 'Select Year'} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {yearsData?.data?.map((y: any) => (
-                                            <SelectItem key={y.hrmlY_Id} value={y.hrmlY_Id.toString()}>
-                                                {y.hrmlY_LeaveYear}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            )} />
+                            <Label>
+                                Year <span className='text-destructive'>*</span>
+                            </Label>
+                            <Controller
+                                name='year'
+                                control={control}
+                                key={resetKey}
+                                render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={isYearsLoading}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder={isYearsLoading ? 'Loading...' : 'Select Year'} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {yearsData?.data?.map((y: any) => (
+                                                <SelectItem key={y.hrmlY_Id} value={y.hrmlY_Id.toString()}>
+                                                    {y.hrmlY_LeaveYear}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>Month <span className='text-destructive'>*</span></Label>
-                            <Controller name='month' control={control} key={resetKey} render={({ field }) => (
-                                <Select onValueChange={field.onChange} value={field.value} disabled={isYearsLoading}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder={isYearsLoading ? 'Loading...' : 'Select Month'} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {MONTH_LIST.map((m: any) => (
-                                            <SelectItem key={m.id} value={m.name}>
-                                                {m.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            )} />
+                            <Label>
+                                Month <span className='text-destructive'>*</span>
+                            </Label>
+                            <Controller
+                                name='month'
+                                control={control}
+                                key={resetKey}
+                                render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={isYearsLoading}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder={isYearsLoading ? 'Loading...' : 'Select Month'} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {MONTH_LIST.map((m: any) => (
+                                                <SelectItem key={m.id} value={m.name}>
+                                                    {m.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
                         </div>
 
                         <div className='space-y-2'>
                             <Label>Group Type</Label>
-                            <Controller name='groupType' control={control} render={({ field }) => (
-                                <MultiSelect
-                                    options={groupTypesData?.data?.map((gt: any) => ({
-                                        label: gt.value,
-                                        value: gt.key.toString()
-                                    })) || []}
-                                    defaultValue={field.value}
-                                    onValueChange={(vals) => {
-                                        field.onChange(vals);
-                                        setValue('department', []);
-                                        setValue('designation', []);
-                                    }}
-                                    placeholder={isGroupTypesLoading ? 'Loading...' : 'Select Group Types'}
-                                    disabled={isGroupTypesLoading}
-                                />
-                            )} />
+                            <Controller
+                                name='groupType'
+                                control={control}
+                                render={({ field }) => (
+                                    <MultiSelect
+                                        options={
+                                            groupTypesData?.data?.map((gt: any) => ({
+                                                label: gt.value,
+                                                value: gt.key.toString()
+                                            })) || []
+                                        }
+                                        defaultValue={field.value}
+                                        onValueChange={(vals) => {
+                                            field.onChange(vals);
+                                            setValue('department', []);
+                                            setValue('designation', []);
+                                        }}
+                                        placeholder={isGroupTypesLoading ? 'Loading...' : 'Select Group Types'}
+                                        disabled={isGroupTypesLoading}
+                                    />
+                                )}
+                            />
                         </div>
 
                         <div className='space-y-2'>
                             <Label>Department</Label>
-                            <Controller name='department' control={control} render={({ field }) => (
-                                <MultiSelect
-                                    options={departmentsData?.data?.map((d: any) => ({
-                                        label: d.hrmD_DepartmentName,
-                                        value: d.hrmD_Id.toString()
-                                    })) || []}
-                                    defaultValue={field.value}
-                                    onValueChange={(vals) => {
-                                        field.onChange(vals);
-                                        setValue('designation', []);
-                                    }}
-                                    placeholder={isDepartmentsLoading ? 'Loading...' : 'Select Departments'}
-                                    disabled={!watchedGroupType.length || isDepartmentsLoading}
-                                />
-                            )} />
+                            <Controller
+                                name='department'
+                                control={control}
+                                render={({ field }) => (
+                                    <MultiSelect
+                                        options={
+                                            departmentsData?.data?.map((d: any) => ({
+                                                label: d.hrmD_DepartmentName,
+                                                value: d.hrmD_Id.toString()
+                                            })) || []
+                                        }
+                                        defaultValue={field.value}
+                                        onValueChange={(vals) => {
+                                            field.onChange(vals);
+                                            setValue('designation', []);
+                                        }}
+                                        placeholder={isDepartmentsLoading ? 'Loading...' : 'Select Departments'}
+                                        disabled={!watchedGroupType.length || isDepartmentsLoading}
+                                    />
+                                )}
+                            />
                         </div>
 
                         <div className='space-y-2'>
                             <Label>Designation</Label>
-                            <Controller name='designation' control={control} render={({ field }) => (
-                                <MultiSelect
-                                    options={designationsData?.data?.map((d: any) => ({
-                                        label: d.hrmdeS_DesignationName,
-                                        value: d.hrmdeS_Id.toString()
-                                    })) || []}
-                                    defaultValue={field.value}
-                                    onValueChange={field.onChange}
-                                    placeholder={isDesignationsLoading ? 'Loading...' : 'Select Designations'}
-                                    disabled={!watchedDepartment.length || isDesignationsLoading}
-                                />
-                            )} />
+                            <Controller
+                                name='designation'
+                                control={control}
+                                render={({ field }) => (
+                                    <MultiSelect
+                                        options={
+                                            designationsData?.data?.map((d: any) => ({
+                                                label: d.hrmdeS_DesignationName,
+                                                value: d.hrmdeS_Id.toString()
+                                            })) || []
+                                        }
+                                        defaultValue={field.value}
+                                        onValueChange={field.onChange}
+                                        placeholder={isDesignationsLoading ? 'Loading...' : 'Select Designations'}
+                                        disabled={!watchedDepartment.length || isDesignationsLoading}
+                                    />
+                                )}
+                            />
                         </div>
                     </div>
 
                     <div className='flex justify-end gap-2'>
-                        <Button type='button' variant='outline' onClick={handleCancel} className='w-32 border-orange-500 text-orange-600 hover:bg-orange-50 transition-all rounded-xl'>
+                        <Button
+                            type='button'
+                            variant='outline'
+                            onClick={handleCancel}
+                            className='w-32 rounded-xl border-orange-500 text-orange-600 transition-all hover:bg-orange-50'>
                             <X className='mr-2 h-4 w-4' />
                             CANCEL
                         </Button>
-                        <Button type='submit' disabled={isPending} className='w-32 transition-all rounded-xl'>
+                        <Button type='submit' disabled={isPending} className='w-32 rounded-xl transition-all'>
                             {isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
                             Generate
                         </Button>
@@ -426,7 +470,10 @@ function EmployeeContributionContent() {
             </CollapsibleSection>
 
             {reportData && (
-                <CollapsibleSection title="EPF CONTRIBUTION REGISTER" defaultOpen={true} className='shadow-md border'
+                <CollapsibleSection
+                    title='EPF CONTRIBUTION REGISTER'
+                    defaultOpen={true}
+                    className='border shadow-md'
                     // rightElement={
                     //     <div className='flex gap-2'>
                     //         <Button variant='outline' size='sm' onClick={handleExport} className='gap-2'>
@@ -436,19 +483,21 @@ function EmployeeContributionContent() {
                     //     </div>
                     // }
                 >
-                    <div className='border border-gray-300 p-6 bg-white text-black space-y-4 rounded-md shadow-sm font-sans'>
-                        <div className='space-y-1 text-sm font-bold text-blue-900 uppercase'>
+                    <div className='space-y-4 rounded-md border border-gray-300 bg-white p-6 font-sans text-black shadow-sm'>
+                        <div className='space-y-1 font-bold text-blue-900 text-sm uppercase'>
                             <div>NAME OF ESTABLISHMENT: {estName || '-'}</div>
                             <div>ADDRESS OF ESTABLISHMENT: {estAddress || '-'}</div>
-                            <div>FOR THE MONTH OF {(selectedMonthStr || '').toUpperCase()} - {selectedYearStr}</div>
+                            <div>
+                                FOR THE MONTH OF {(selectedMonthStr || '').toUpperCase()} - {selectedYearStr}
+                            </div>
                         </div>
 
-                        <div className='text-center py-2 font-bold text-blue-900 text-lg tracking-wide uppercase'>
+                        <div className='py-2 text-center font-bold text-blue-900 text-lg uppercase tracking-wide'>
                             EPF CONTRIBUTION REPORT
                         </div>
 
                         <div className='overflow-x-auto'>
-                            <table className='w-full border-collapse border border-gray-400 text-xs font-semibold'>
+                            <table className='w-full border-collapse border border-gray-400 font-semibold text-xs'>
                                 <thead>
                                     <tr className='bg-gray-100 text-blue-900'>
                                         <th className='border border-gray-400 p-2 text-center'>Sl.No</th>
@@ -466,35 +515,54 @@ function EmployeeContributionContent() {
                                 <tbody>
                                     {records.length === 0 ? (
                                         <tr>
-                                            <td colSpan={10} className='border border-gray-400 p-8 text-center text-gray-500 font-medium'>
+                                            <td colSpan={10} className='border border-gray-400 p-8 text-center font-medium text-gray-500'>
                                                 No records found
                                             </td>
                                         </tr>
                                     ) : (
                                         <>
                                             {records.map((record: any, index: number) => {
-                                                const name = `${record.hrmE_EmployeeFirstName || ''} ${record.hrmE_EmployeeMiddleName || ''} ${record.hrmE_EmployeeLastName || ''}`.trim();
+                                                const name =
+                                                    `${record.hrmE_EmployeeFirstName || ''} ${record.hrmE_EmployeeMiddleName || ''} ${record.hrmE_EmployeeLastName || ''}`.trim();
                                                 return (
-                                                    <tr key={index} className='hover:bg-gray-50 text-gray-800'>
+                                                    <tr key={index} className='text-gray-800 hover:bg-gray-50'>
                                                         <td className='border border-gray-400 p-2 text-center'>{index + 1}</td>
-                                                        <td className='border border-gray-400 p-2 text-center font-mono'>{record.hrmE_PFAccNo || '-'}</td>
-                                                        <td className='border border-gray-400 p-2 text-center font-mono'>{record.hrmE_PFuAN || '-'}</td>
+                                                        <td className='border border-gray-400 p-2 text-center font-mono'>
+                                                            {record.hrmE_PFAccNo || '-'}
+                                                        </td>
+                                                        <td className='border border-gray-400 p-2 text-center font-mono'>
+                                                            {record.hrmE_PFuAN || '-'}
+                                                        </td>
                                                         <td className='border border-gray-400 p-2 text-left uppercase'>{name || '-'}</td>
-                                                        <td className='border border-gray-400 p-2 text-right font-mono'>{Number(record.amountofWages || 0).toFixed(2)}</td>
-                                                        <td className='border border-gray-400 p-2 text-right font-mono'>{Number(record.pfAmount || 0).toFixed(2)}</td>
-                                                        <td className='border border-gray-400 p-2 text-right font-mono'>{Number(record.hreS_EPF || 0).toFixed(2)}</td>
-                                                        <td className='border border-gray-400 p-2 text-right font-mono'>{Number(record.hreS_FPF || 0).toFixed(2)}</td>
+                                                        <td className='border border-gray-400 p-2 text-right font-mono'>
+                                                            {Number(record.amountofWages || 0).toFixed(2)}
+                                                        </td>
+                                                        <td className='border border-gray-400 p-2 text-right font-mono'>
+                                                            {Number(record.pfAmount || 0).toFixed(2)}
+                                                        </td>
+                                                        <td className='border border-gray-400 p-2 text-right font-mono'>
+                                                            {Number(record.hreS_EPF || 0).toFixed(2)}
+                                                        </td>
+                                                        <td className='border border-gray-400 p-2 text-right font-mono'>
+                                                            {Number(record.hreS_FPF || 0).toFixed(2)}
+                                                        </td>
                                                         <td className='border border-gray-400 p-2 text-center font-mono'>{0}</td>
-                                                        <td className='border border-gray-400 p-2 text-center font-mono'>{record.hreS_WorkingDays || 0}</td>
+                                                        <td className='border border-gray-400 p-2 text-center font-mono'>
+                                                            {record.hreS_WorkingDays || 0}
+                                                        </td>
                                                     </tr>
                                                 );
                                             })}
                                             <tr className='bg-gray-50 font-bold text-gray-900'>
-                                                <td colSpan={4} className='border border-gray-400 p-2 text-center'>Total</td>
+                                                <td colSpan={4} className='border border-gray-400 p-2 text-center'>
+                                                    Total
+                                                </td>
                                                 <td className='border border-gray-400 p-2 text-right font-mono'>{totalWages.toFixed(2)}</td>
                                                 <td className='border border-gray-400 p-2 text-right font-mono'>{totalEPF.toFixed(2)}</td>
                                                 <td className='border border-gray-400 p-2 text-right font-mono'>{totalDiff.toFixed(2)}</td>
-                                                <td className='border border-gray-400 p-2 text-right font-mono'>{totalPension.toFixed(2)}</td>
+                                                <td className='border border-gray-400 p-2 text-right font-mono'>
+                                                    {totalPension.toFixed(2)}
+                                                </td>
                                                 <td className='border border-gray-400 p-2 text-center'></td>
                                                 <td className='border border-gray-400 p-2 text-center'></td>
                                             </tr>
@@ -505,16 +573,19 @@ function EmployeeContributionContent() {
                         </div>
                     </div>
 
-                    <div className='flex justify-center gap-4 mt-6 print:hidden'>
+                    <div className='mt-6 flex justify-center gap-4 print:hidden'>
                         <Button
                             type='button'
                             onClick={handlePrint}
-                            className='w-32  text-white rounded-md flex items-center justify-center gap-2 transition-colors'
-                        >
+                            className='flex w-32 items-center justify-center gap-2 rounded-md text-white transition-colors'>
                             <Printer className='h-4 w-4' />
                             PRINT
                         </Button>
-                        <Button type='button' variant='outline' onClick={handleCancel} className='w-32 border-orange-500 text-orange-600 hover:bg-orange-50 transition-all rounded-xl'>
+                        <Button
+                            type='button'
+                            variant='outline'
+                            onClick={handleCancel}
+                            className='w-32 rounded-xl border-orange-500 text-orange-600 transition-all hover:bg-orange-50'>
                             <X className='mr-2 h-4 w-4' />
                             CANCEL
                         </Button>

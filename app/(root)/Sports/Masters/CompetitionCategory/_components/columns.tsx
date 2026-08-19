@@ -1,8 +1,8 @@
 'use client';
 
-import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { Badge } from '@/components/ui/badge';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IMasterCompetitionCategory } from '@/types/sports/masters/competition-category';
 import type { ColumnDef, Row } from '@tanstack/react-table';
@@ -63,9 +63,14 @@ export const MasterCompetitionCategoryColumns: ColumnDef<IMasterCompetitionCateg
         id: 'SPCCMCC_CCAgeFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Age Flag' />,
         enableSorting: true,
-        cell: ({ row }) => (
-            row.original.spccmcC_CCAgeFlag ? <Badge variant="default" className='bg-blue-600 hover:bg-blue-700'>Yes</Badge> : <Badge variant="outline">No</Badge>
-        )
+        cell: ({ row }) =>
+            row.original.spccmcC_CCAgeFlag ? (
+                <Badge variant='default' className='bg-blue-600 hover:bg-blue-700'>
+                    Yes
+                </Badge>
+            ) : (
+                <Badge variant='outline'>No</Badge>
+            )
     },
     {
         accessorKey: 'spccmcC_FromCCAgeYear',
@@ -108,9 +113,14 @@ export const MasterCompetitionCategoryColumns: ColumnDef<IMasterCompetitionCateg
         id: 'SPCCMCC_CCWeightFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Weight Flag' />,
         enableSorting: true,
-        cell: ({ row }) => (
-            row.original.spccmcC_CCWeightFlag ? <Badge variant="default" className='bg-blue-600 hover:bg-blue-700'>Yes</Badge> : <Badge variant="outline">No</Badge>
-        )
+        cell: ({ row }) =>
+            row.original.spccmcC_CCWeightFlag ? (
+                <Badge variant='default' className='bg-blue-600 hover:bg-blue-700'>
+                    Yes
+                </Badge>
+            ) : (
+                <Badge variant='outline'>No</Badge>
+            )
     },
     {
         accessorKey: 'spccmcC_CCWeight',

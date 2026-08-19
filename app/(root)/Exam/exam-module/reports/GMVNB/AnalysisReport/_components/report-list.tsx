@@ -1,8 +1,8 @@
 'use client';
 
-import { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
+import { useRef } from 'react';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -66,14 +66,14 @@ const FAIL5_CLASS_IDS = [387, 388, 389, 390, 391];
 
 const tdStyle: React.CSSProperties = {
     border: '1px solid black',
-    padding: '5px',
+    padding: '5px'
 };
 
 const thCenterStyle: React.CSSProperties = {
     border: '1px solid black',
     textAlign: 'center',
     fontWeight: 'bold',
-    padding: '8px',
+    padding: '8px'
 };
 
 // ─── Single Report Table ───────────────────────────────────────────────────────
@@ -82,7 +82,7 @@ function ReportTable({
     report,
     subjectlists,
     subjectcountlist,
-    classid,
+    classid
 }: {
     report: AnalysisReport;
     subjectlists: SubjectItem[];
@@ -94,10 +94,7 @@ function ReportTable({
 
     return (
         <div style={{ pageBreakBefore: 'always' }}>
-            <table
-                className='table table-bordered'
-                style={{ width: '100%', borderCollapse: 'collapse', fontSize: '16px' }}
-            >
+            <table className='table-bordered table' style={{ width: '100%', borderCollapse: 'collapse', fontSize: '16px' }}>
                 {/* School Header */}
                 <tbody>
                     <tr>
@@ -205,19 +202,23 @@ function ReportTable({
                     )}
 
                     {/* Subject-wise Highest / Lowest / Average */}
-                    {subjectlists.map(sub => {
-                        const sc = subjectcountlist.find(s => s.ISMS_Id === sub.ISMS_Id);
+                    {subjectlists.map((sub) => {
+                        const sc = subjectcountlist.find((s) => s.ISMS_Id === sub.ISMS_Id);
                         return (
                             <tr key={sub.ISMS_Id}>
                                 <td style={tdStyle}>{sub.ISMS_SubjectName}</td>
                                 <td style={tdStyle}>
                                     {sc ? (
                                         <>
-                                            Highest: {sc.HighestMarks}<br />
-                                            Lowest: {sc.LowestMarks}<br />
+                                            Highest: {sc.HighestMarks}
+                                            <br />
+                                            Lowest: {sc.LowestMarks}
+                                            <br />
                                             Average: {sc.AverageMarks}
                                         </>
-                                    ) : '—'}
+                                    ) : (
+                                        '—'
+                                    )}
                                 </td>
                             </tr>
                         );
@@ -267,14 +268,11 @@ function ReportTable({
                     alignItems: 'flex-start',
                     padding: '60px 20px',
                     marginBottom: '20px',
-                    textAlign: 'center',
-                }}
-            >
+                    textAlign: 'center'
+                }}>
                 <div style={{ flex: 1, textAlign: 'left', fontSize: '18px', color: 'black' }}>Principal</div>
                 <div style={{ flex: 1, textAlign: 'center', fontSize: '18px', color: 'black' }}>Section Head</div>
-                <div style={{ flex: 1, textAlign: 'center', marginLeft: '200px', fontSize: '18px', color: 'black' }}>
-                    Date:
-                </div>
+                <div style={{ flex: 1, textAlign: 'center', marginLeft: '200px', fontSize: '18px', color: 'black' }}>Date:</div>
             </div>
         </div>
     );
@@ -329,12 +327,7 @@ export function AnalysisReportList({ data }: AnalysisReportListProps) {
             {/* Header bar */}
             <div className='mb-4 flex items-center justify-between border-b pb-2'>
                 <h3 className='font-semibold text-gray-800 text-lg'>PERFORMANCE ANALYSIS REPORT</h3>
-                <Button
-                    variant='outline'
-                    size='sm'
-                    onClick={handlePrint}
-                    className='no-print flex items-center gap-2'
-                >
+                <Button variant='outline' size='sm' onClick={handlePrint} className='no-print flex items-center gap-2'>
                     <Printer className='h-4 w-4' />
                     Print
                 </Button>
@@ -344,12 +337,7 @@ export function AnalysisReportList({ data }: AnalysisReportListProps) {
             <div ref={printRef}>
                 {studlist.map((report, idx) => (
                     <div key={idx} className='mt-4'>
-                        <ReportTable
-                            report={report}
-                            subjectlists={subjectlists}
-                            subjectcountlist={subjectcountlist}
-                            classid={asmcL_Id}
-                        />
+                        <ReportTable report={report} subjectlists={subjectlists} subjectcountlist={subjectcountlist} classid={asmcL_Id} />
                     </div>
                 ))}
             </div>

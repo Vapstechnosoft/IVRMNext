@@ -579,7 +579,6 @@ export interface IPromotionalGroupDetails {
     empsG_Order: number;
 }
 
-
 export interface IPromotionalGroupMappedExamDetails {
     empsgE_Id: number;
 
@@ -716,7 +715,6 @@ export interface IBackendSearchResponse {
     saved_ss_list?: any[];
     saved_se_list?: any[];
 }
-
 
 // types/marks-entry.ts
 export type SubSub = {

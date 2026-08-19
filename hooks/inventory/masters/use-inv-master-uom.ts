@@ -1,9 +1,9 @@
 'use client';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getInvMasterUOM } from '@/server/inventory/masters/inv-master-uom';
-import { ApiSearchparams } from '@/types';
 import { INVENTORY_QUERY_KEYS } from '@/constants/query-keys';
+import { getInvMasterUOM } from '@/server/inventory/masters/inv-master-uom';
+import type { ApiSearchparams } from '@/types';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useInvMasterUom = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();

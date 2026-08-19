@@ -7,7 +7,7 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
-import { getReceipts, getReceiptDetails } from '../actions'; // Fixed: removed duplicate
+import { getReceiptDetails, getReceipts } from '../actions'; // Fixed: removed duplicate
 import type { AcademicYear, FeeReceipt, ReceiptDetailsResponse } from '../types';
 
 interface PortalFeeReceiptClientProps {
@@ -25,7 +25,7 @@ export default function PortalFeeReceiptClient({ initialYears }: PortalFeeReceip
 
     const handlePrint = useReactToPrint({
         contentRef: componentRef,
-        documentTitle: 'Fee_Receipt',
+        documentTitle: 'Fee_Receipt'
     });
 
     const handleDownload = async () => {
@@ -36,7 +36,7 @@ export default function PortalFeeReceiptClient({ initialYears }: PortalFeeReceip
             const pdf = new jsPDF({
                 orientation: 'portrait',
                 unit: 'px',
-                format: 'a4',
+                format: 'a4'
             });
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
@@ -79,7 +79,7 @@ export default function PortalFeeReceiptClient({ initialYears }: PortalFeeReceip
         setReceipts([]);
         setSelectedReceipt('');
         setReceiptData(null);
-        setResetKey(prev => prev + 1);
+        setResetKey((prev) => prev + 1);
     };
 
     // Helper to format currency or numbers
@@ -120,10 +120,10 @@ export default function PortalFeeReceiptClient({ initialYears }: PortalFeeReceip
         words[90] = 'Ninety';
 
         const atotalcStr = num.toString();
-        const atemp = atotalcStr.split(".");
-        const number = atemp[0].split(",").join("");
+        const atemp = atotalcStr.split('.');
+        const number = atemp[0].split(',').join('');
         const n_length = number.length;
-        let words_string = "";
+        let words_string = '';
 
         if (n_length <= 9) {
             const n_array: number[] = new Array(0, 0, 0, 0, 0, 0, 0, 0, 0);
@@ -132,7 +132,7 @@ export default function PortalFeeReceiptClient({ initialYears }: PortalFeeReceip
                 received_n_array[i] = number.substr(i, 1);
             }
             for (let i = 9 - n_length, j = 0; i < 9; i++, j++) {
-                n_array[i] = parseInt(received_n_array[j]);
+                n_array[i] = Number.parseInt(received_n_array[j]);
             }
             for (let i = 0, j = 1; i < 9; i++, j++) {
                 if (i == 0 || i == 2 || i == 4 || i == 7) {
@@ -150,24 +150,24 @@ export default function PortalFeeReceiptClient({ initialYears }: PortalFeeReceip
                     value = n_array[i];
                 }
                 if (value != 0) {
-                    words_string += words[value] + " ";
+                    words_string += words[value] + ' ';
                 }
                 if ((i == 1 && value != 0) || (i == 0 && value != 0 && n_array[i + 1] == 0)) {
-                    words_string += "Crores ";
+                    words_string += 'Crores ';
                 }
                 if ((i == 3 && value != 0) || (i == 2 && value != 0 && n_array[i + 1] == 0)) {
-                    words_string += "Lakhs ";
+                    words_string += 'Lakhs ';
                 }
                 if ((i == 5 && value != 0) || (i == 4 && value != 0 && n_array[i + 1] == 0)) {
-                    words_string += "Thousand ";
+                    words_string += 'Thousand ';
                 }
-                if (i == 6 && value != 0 && (n_array[i + 1] != 0 && n_array[i + 2] != 0)) {
-                    words_string += "Hundred and ";
+                if (i == 6 && value != 0 && n_array[i + 1] != 0 && n_array[i + 2] != 0) {
+                    words_string += 'Hundred and ';
                 } else if (i == 6 && value != 0) {
-                    words_string += "Hundred ";
+                    words_string += 'Hundred ';
                 }
             }
-            words_string = words_string.split("  ").join(" ");
+            words_string = words_string.split('  ').join(' ');
         }
         return words_string;
     };
@@ -202,7 +202,11 @@ export default function PortalFeeReceiptClient({ initialYears }: PortalFeeReceip
                             <div className='font-semibold text-sm'>
                                 Receipt No <span className='text-red-500'>*</span>
                             </div>
-                            <Select key={`receipt-${resetKey}`} value={selectedReceipt} onValueChange={handleReceiptChange} disabled={!selectedYear}>
+                            <Select
+                                key={`receipt-${resetKey}`}
+                                value={selectedReceipt}
+                                onValueChange={handleReceiptChange}
+                                disabled={!selectedYear}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Receipt No.' />
                                 </SelectTrigger>

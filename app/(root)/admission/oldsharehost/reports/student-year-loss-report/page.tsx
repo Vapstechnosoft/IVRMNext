@@ -1,24 +1,24 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { toast } from 'sonner';
-import { Search, Loader2 } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2, Search } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/extension/field';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { Label } from '@/components/ui/extension/field';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 import {
-    useStudentYearLossReportInitialDetails,
-    useStudentYearLossReportData
+    useStudentYearLossReportData,
+    useStudentYearLossReportInitialDetails
 } from '@/hooks/admission/oldsharehost/reports/useStudentYearLossReport';
 
 import { getDynamicColumns } from './_components/columns';
@@ -46,29 +46,31 @@ const DEFAULT_HEADERS = [
     { id: 'AMST_ConCity', checked: true, value: 'Present Address' }
 ];
 
-const formSchema = z.object({
-    allOrIndi: z.enum(['all', 'indi']),
-    ASMAY_Id: z.string().min(1, 'Select Academic Year'),
-    ASMCL_Id: z.string().optional(),
-    ASMC_Id: z.string().optional(),
-}).superRefine((data, ctx) => {
-    if (data.allOrIndi === 'indi') {
-        if (!data.ASMCL_Id) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: ['ASMCL_Id'],
-                message: 'Select Class'
-            });
+const formSchema = z
+    .object({
+        allOrIndi: z.enum(['all', 'indi']),
+        ASMAY_Id: z.string().min(1, 'Select Academic Year'),
+        ASMCL_Id: z.string().optional(),
+        ASMC_Id: z.string().optional()
+    })
+    .superRefine((data, ctx) => {
+        if (data.allOrIndi === 'indi') {
+            if (!data.ASMCL_Id) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    path: ['ASMCL_Id'],
+                    message: 'Select Class'
+                });
+            }
+            if (!data.ASMC_Id) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    path: ['ASMC_Id'],
+                    message: 'Select Section'
+                });
+            }
         }
-        if (!data.ASMC_Id) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: ['ASMC_Id'],
-                message: 'Select Section'
-            });
-        }
-    }
-});
+    });
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -83,9 +85,7 @@ export default function StudentYearLossReportPage() {
     const { data: initialData, isLoading: isInitialLoading } = useStudentYearLossReportInitialDetails();
     const reportMutation = useStudentYearLossReportData();
 
-    const [selectedHeaders, setSelectedHeaders] = useState<HeaderType[]>(
-        DEFAULT_HEADERS.map(h => ({ ...h, selected: false }))
-    );
+    const [selectedHeaders, setSelectedHeaders] = useState<HeaderType[]>(DEFAULT_HEADERS.map((h) => ({ ...h, selected: false })));
     const [selectAllHeaders, setSelectAllHeaders] = useState(false);
 
     const [reportData, setReportData] = useState<any[]>([]);
@@ -113,23 +113,23 @@ export default function StudentYearLossReportPage() {
 
     const handleSelectAllHeaders = (checked: boolean) => {
         setSelectAllHeaders(checked);
-        setSelectedHeaders(prev => prev.map(h => ({ ...h, selected: checked })));
+        setSelectedHeaders((prev) => prev.map((h) => ({ ...h, selected: checked })));
     };
 
     const handleHeaderSelect = (id: string, checked: boolean) => {
-        const updated = selectedHeaders.map(h => h.id === id ? { ...h, selected: checked } : h);
+        const updated = selectedHeaders.map((h) => (h.id === id ? { ...h, selected: checked } : h));
         setSelectedHeaders(updated);
-        setSelectAllHeaders(updated.every(h => h.selected));
+        setSelectAllHeaders(updated.every((h) => h.selected));
     };
 
     const onSubmit = async (values: FormValues) => {
-        const selected = selectedHeaders.filter(h => h.selected);
+        const selected = selectedHeaders.filter((h) => h.selected);
         if (selected.length === 0) {
             toast.error('Please select at least one checkbox');
             return;
         }
 
-        const albumNameArraycolumn = selected.map(h => ({
+        const albumNameArraycolumn = selected.map((h) => ({
             columnID: h.id,
             columnName: h.value
         }));
@@ -146,7 +146,7 @@ export default function StudentYearLossReportPage() {
             });
 
             const data = res?.data?.alldatagridreport || [];
-            
+
             if (data.length === 0) {
                 toast.info('Record Not Found');
                 setReportData([]);
@@ -167,50 +167,40 @@ export default function StudentYearLossReportPage() {
         form.reset();
         setReportData([]);
         setReportColumns([]);
-        setSelectedHeaders(DEFAULT_HEADERS.map(h => ({ ...h, selected: false })));
+        setSelectedHeaders(DEFAULT_HEADERS.map((h) => ({ ...h, selected: false })));
         setSelectAllHeaders(false);
     };
 
     return (
-        <div className="min-h-screen p-4 space-y-6 bg-gray-50">
+        <div className='min-h-screen space-y-6 bg-gray-50 p-4'>
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                    <CollapsibleSection
-                        title="Student Year Loss Report"
-                        defaultOpen={true}
-                        variant="outline"
-                        className="shadow-md"
-                    >
-                        <div className="p-6 space-y-6 bg-white rounded-lg">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="space-y-6">
-                                    <div className="flex justify-center p-4 bg-gray-50 rounded-lg border">
+                <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
+                    <CollapsibleSection title='Student Year Loss Report' defaultOpen={true} variant='outline' className='shadow-md'>
+                        <div className='space-y-6 rounded-lg bg-white p-6'>
+                            <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
+                                <div className='space-y-6'>
+                                    <div className='flex justify-center rounded-lg border bg-gray-50 p-4'>
                                         <FormField
                                             control={form.control}
-                                            name="allOrIndi"
+                                            name='allOrIndi'
                                             render={({ field }) => (
-                                                <FormItem className="space-y-3">
+                                                <FormItem className='space-y-3'>
                                                     <FormControl>
                                                         <RadioGroup
                                                             onValueChange={field.onChange}
                                                             defaultValue={field.value}
-                                                            className="flex flex-row space-x-4"
-                                                        >
-                                                            <FormItem className="flex items-center space-x-3 space-y-0">
+                                                            className='flex flex-row space-x-4'>
+                                                            <FormItem className='flex items-center space-x-3 space-y-0'>
                                                                 <FormControl>
-                                                                    <RadioGroupItem value="all" />
+                                                                    <RadioGroupItem value='all' />
                                                                 </FormControl>
-                                                                <FormLabel className="font-normal cursor-pointer">
-                                                                    All
-                                                                </FormLabel>
+                                                                <FormLabel className='cursor-pointer font-normal'>All</FormLabel>
                                                             </FormItem>
-                                                            <FormItem className="flex items-center space-x-3 space-y-0">
+                                                            <FormItem className='flex items-center space-x-3 space-y-0'>
                                                                 <FormControl>
-                                                                    <RadioGroupItem value="indi" />
+                                                                    <RadioGroupItem value='indi' />
                                                                 </FormControl>
-                                                                <FormLabel className="font-normal cursor-pointer">
-                                                                    Individual
-                                                                </FormLabel>
+                                                                <FormLabel className='cursor-pointer font-normal'>Individual</FormLabel>
                                                             </FormItem>
                                                         </RadioGroup>
                                                     </FormControl>
@@ -221,15 +211,17 @@ export default function StudentYearLossReportPage() {
 
                                     <FormField
                                         control={form.control}
-                                        name="ASMAY_Id"
+                                        name='ASMAY_Id'
                                         render={({ field }) => (
-                                            <FormItem className="grid grid-cols-3 items-center gap-4">
-                                                <FormLabel className="text-right">Academic Year:<span className="text-red-500">*</span></FormLabel>
-                                                <div className="col-span-2">
+                                            <FormItem className='grid grid-cols-3 items-center gap-4'>
+                                                <FormLabel className='text-right'>
+                                                    Academic Year:<span className='text-red-500'>*</span>
+                                                </FormLabel>
+                                                <div className='col-span-2'>
                                                     <Select onValueChange={field.onChange} value={field.value} disabled={isInitialLoading}>
                                                         <FormControl>
                                                             <SelectTrigger>
-                                                                <SelectValue placeholder="Select Year" />
+                                                                <SelectValue placeholder='Select Year' />
                                                             </SelectTrigger>
                                                         </FormControl>
                                                         <SelectContent>
@@ -248,15 +240,20 @@ export default function StudentYearLossReportPage() {
 
                                     <FormField
                                         control={form.control}
-                                        name="ASMCL_Id"
+                                        name='ASMCL_Id'
                                         render={({ field }) => (
-                                            <FormItem className="grid grid-cols-3 items-center gap-4">
-                                                <FormLabel className="text-right">Class:{allOrIndi === 'indi' && <span className="text-red-500">*</span>}</FormLabel>
-                                                <div className="col-span-2">
-                                                    <Select onValueChange={field.onChange} value={field.value} disabled={allOrIndi === 'all' || isInitialLoading}>
+                                            <FormItem className='grid grid-cols-3 items-center gap-4'>
+                                                <FormLabel className='text-right'>
+                                                    Class:{allOrIndi === 'indi' && <span className='text-red-500'>*</span>}
+                                                </FormLabel>
+                                                <div className='col-span-2'>
+                                                    <Select
+                                                        onValueChange={field.onChange}
+                                                        value={field.value}
+                                                        disabled={allOrIndi === 'all' || isInitialLoading}>
                                                         <FormControl>
                                                             <SelectTrigger>
-                                                                <SelectValue placeholder="Select Class" />
+                                                                <SelectValue placeholder='Select Class' />
                                                             </SelectTrigger>
                                                         </FormControl>
                                                         <SelectContent>
@@ -275,15 +272,20 @@ export default function StudentYearLossReportPage() {
 
                                     <FormField
                                         control={form.control}
-                                        name="ASMC_Id"
+                                        name='ASMC_Id'
                                         render={({ field }) => (
-                                            <FormItem className="grid grid-cols-3 items-center gap-4">
-                                                <FormLabel className="text-right">Section:{allOrIndi === 'indi' && <span className="text-red-500">*</span>}</FormLabel>
-                                                <div className="col-span-2">
-                                                    <Select onValueChange={field.onChange} value={field.value} disabled={allOrIndi === 'all' || isInitialLoading}>
+                                            <FormItem className='grid grid-cols-3 items-center gap-4'>
+                                                <FormLabel className='text-right'>
+                                                    Section:{allOrIndi === 'indi' && <span className='text-red-500'>*</span>}
+                                                </FormLabel>
+                                                <div className='col-span-2'>
+                                                    <Select
+                                                        onValueChange={field.onChange}
+                                                        value={field.value}
+                                                        disabled={allOrIndi === 'all' || isInitialLoading}>
                                                         <FormControl>
                                                             <SelectTrigger>
-                                                                <SelectValue placeholder="Select Section" />
+                                                                <SelectValue placeholder='Select Section' />
                                                             </SelectTrigger>
                                                         </FormControl>
                                                         <SelectContent>
@@ -301,45 +303,43 @@ export default function StudentYearLossReportPage() {
                                     />
                                 </div>
 
-                                <div className="space-y-4">
-                                    <div className="flex items-center space-x-2 pb-2 border-b">
+                                <div className='space-y-4'>
+                                    <div className='flex items-center space-x-2 border-b pb-2'>
                                         <Checkbox
-                                            id="selectAll"
+                                            id='selectAll'
                                             checked={selectAllHeaders}
                                             onCheckedChange={(checked) => handleSelectAllHeaders(checked as boolean)}
                                         />
-                                        <Label htmlFor="selectAll" className="font-bold">Select All Columns</Label>
+                                        <Label htmlFor='selectAll' className='font-bold'>
+                                            Select All Columns
+                                        </Label>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-2">
+                                    <div className='grid max-h-[300px] grid-cols-2 gap-3 overflow-y-auto pr-2'>
                                         {selectedHeaders.map((header) => (
-                                            <div key={header.id} className="flex items-center space-x-2">
+                                            <div key={header.id} className='flex items-center space-x-2'>
                                                 <Checkbox
                                                     id={header.id}
                                                     checked={header.selected}
                                                     onCheckedChange={(checked) => handleHeaderSelect(header.id, checked as boolean)}
                                                 />
-                                                <Label htmlFor={header.id} className="text-sm cursor-pointer">{header.value}</Label>
+                                                <Label htmlFor={header.id} className='cursor-pointer text-sm'>
+                                                    {header.value}
+                                                </Label>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="flex justify-center gap-4 pt-4 border-t">
+                            <div className='flex justify-center gap-4 border-t pt-4'>
                                 <Button
-                                    type="submit"
+                                    type='submit'
                                     disabled={isGenerating}
-                                    className="min-w-[140px] bg-indigo-600 hover:bg-indigo-700 text-white font-bold"
-                                >
-                                    {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+                                    className='min-w-[140px] bg-indigo-600 font-bold text-white hover:bg-indigo-700'>
+                                    {isGenerating ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
                                     Report
                                 </Button>
-                                <Button
-                                    type="button"
-                                    onClick={clearDetails}
-                                    variant="destructive"
-                                    className="min-w-[140px] font-bold"
-                                >
+                                <Button type='button' onClick={clearDetails} variant='destructive' className='min-w-[140px] font-bold'>
                                     Cancel
                                 </Button>
                             </div>
@@ -349,18 +349,14 @@ export default function StudentYearLossReportPage() {
             </Form>
 
             {reportData.length > 0 && reportColumns.length > 0 && (
-                <div className="bg-white p-6 rounded-lg shadow-md space-y-4">
-                    <div className="flex justify-between items-center border-b pb-2">
-                        <h3 className="text-lg font-bold uppercase text-indigo-700">STUDENT YEAR LOSS REPORT</h3>
-                        <div className="text-sm font-semibold bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full">
+                <div className='space-y-4 rounded-lg bg-white p-6 shadow-md'>
+                    <div className='flex items-center justify-between border-b pb-2'>
+                        <h3 className='font-bold text-indigo-700 text-lg uppercase'>STUDENT YEAR LOSS REPORT</h3>
+                        <div className='rounded-full bg-indigo-100 px-3 py-1 font-semibold text-indigo-800 text-sm'>
                             Total Records: {reportData.length}
                         </div>
                     </div>
-                    <GenericDataTable
-                        data={reportData}
-                        columns={getDynamicColumns(reportColumns)}
-                        isLoading={isGenerating}
-                    />
+                    <GenericDataTable data={reportData} columns={getDynamicColumns(reportColumns)} isLoading={isGenerating} />
                 </div>
             )}
         </div>

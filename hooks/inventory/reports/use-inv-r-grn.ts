@@ -1,20 +1,20 @@
-
-import { useMutation, useQuery } from '@tanstack/react-query';
 import { getInvRGRNLoadData, getInvRGRNReport } from '@/server/inventory/reports/inv-r-grn';
+import type { IInvRGRNPayload } from '@/types/inventory/reports/inv-r-grn';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { IInvRGRNPayload } from '@/types/inventory/reports/inv-r-grn';
 
 export const useInvRGRNLoadData = (optionflag: string) => {
     return useQuery({
         queryKey: ['invRGRNLoadData', optionflag],
         queryFn: () => getInvRGRNLoadData(optionflag),
-        enabled: !!optionflag, // Only run if optionflag is set
+        enabled: !!optionflag // Only run if optionflag is set
     });
 };
 
 export const useInvRGRNReport = () => {
     return useMutation({
-        mutationFn: ({ payload, searchParams }: { payload: IInvRGRNPayload, searchParams?: any }) => getInvRGRNReport(payload, searchParams),
+        mutationFn: ({ payload, searchParams }: { payload: IInvRGRNPayload; searchParams?: any }) =>
+            getInvRGRNReport(payload, searchParams),
         onSuccess: (data) => {
             if (data.success) {
                 toast.success('Report generated successfully');

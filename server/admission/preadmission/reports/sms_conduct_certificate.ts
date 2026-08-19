@@ -78,7 +78,6 @@ export async function getSMSCConductCertReport(data: {
     ACMS_Id: number;
     AMCST_Id: number;
     allorindid: string;
-
 }) {
     // const url = '/CollegeStudyCertificateReport/onclickreport';
     // return await api.post<any>('admission', url, data);

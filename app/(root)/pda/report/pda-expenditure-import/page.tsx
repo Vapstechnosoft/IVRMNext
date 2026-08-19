@@ -1,27 +1,21 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { toast } from 'sonner';
-import {
-    getPDAExpenditureImportLoadData,
-    checkPDAExpenditureValidation,
-    savePDAExpenditureImport
-} from '@/server/pda/report/pda-expenditure-import';
-import type {
-    IPDAExpenditureImportLoadData,
-    IPDAExpenditureImportRow
-} from '@/types/pda/report/pda-expenditure-import';
 import PDAExpenditureImportForm from '@/app/(root)/pda/report/pda-expenditure-import/_components/PDAExpenditureImportForm';
 import PDAExpenditureImportGrid from '@/app/(root)/pda/report/pda-expenditure-import/_components/PDAExpenditureImportGrid';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Save, RotateCcw } from 'lucide-react';
 import { usePDAAcademicYear } from '@/hooks/pda/usePDACommon';
+import { checkPDAExpenditureValidation, savePDAExpenditureImport } from '@/server/pda/report/pda-expenditure-import';
+import type { IPDAExpenditureImportRow } from '@/types/pda/report/pda-expenditure-import';
+import { Loader2, RotateCcw, Save } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 export default function PDAExpenditureImportPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [importedData, setImportedData] = useState<IPDAExpenditureImportRow[]>([]); 0
+    const [importedData, setImportedData] = useState<IPDAExpenditureImportRow[]>([]);
+    0;
     const [selectedAsmayId, setSelectedAsmayId] = useState<number | null>(null);
     const [trnType, setTrnType] = useState<'Debit' | 'Credit'>('Debit');
     const [totalAmount, setTotalAmount] = useState(0);
@@ -36,8 +30,6 @@ export default function PDAExpenditureImportPage() {
     };
 
     const academicYearsList = getArray(yearsRes?.data?.data || yearsRes?.data?.fillyear || yearsRes?.data);
-
-
 
     const handleImport = async (data: IPDAExpenditureImportRow[]) => {
         try {
@@ -72,12 +64,10 @@ export default function PDAExpenditureImportPage() {
 
         setSaving(true);
         try {
-            const formattedData = importedData.map(row => {
+            const formattedData = importedData.map((row) => {
                 // Convert DD/MM/YYYY to YYYY/MM/DD
                 const dateParts = row.Date.split('/');
-                const formattedDate = dateParts.length === 3
-                    ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`
-                    : row.Date;
+                const formattedDate = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}` : row.Date;
 
                 return {
                     AMST_AdmNo: row.RollNumber,
@@ -86,7 +76,7 @@ export default function PDAExpenditureImportPage() {
                     AMST_FirstName: row.StudentName,
                     Particular: row.Particulars,
                     VoucherNo: row.VoucherNo,
-                    remarks: ""
+                    remarks: ''
                 };
             });
 
@@ -120,25 +110,23 @@ export default function PDAExpenditureImportPage() {
 
     if (loadingYears) {
         return (
-            <div className="flex h-[400px] items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className='flex h-[400px] items-center justify-center'>
+                <Loader2 className='h-8 w-8 animate-spin text-primary' />
             </div>
         );
     }
 
-
     return (
-        <div className="container space-y-8 p-6 animate-in fade-in duration-500">
-            <div className="flex items-center justify-between">
-                <div>
-                </div>
+        <div className='fade-in container animate-in space-y-8 p-6 duration-500'>
+            <div className='flex items-center justify-between'>
+                <div></div>
             </div>
 
-            <Card className="border-none shadow-xl bg-white/50 backdrop-blur-sm">
-                <CardHeader className="border-b bg-gray-50/50">
-                    <CardTitle className="text-xl font-semibold text-gray-800">Import Configuration</CardTitle>
+            <Card className='border-none bg-white/50 shadow-xl backdrop-blur-sm'>
+                <CardHeader className='border-b bg-gray-50/50'>
+                    <CardTitle className='font-semibold text-gray-800 text-xl'>Import Configuration</CardTitle>
                 </CardHeader>
-                <CardContent className="p-6">
+                <CardContent className='p-6'>
                     <PDAExpenditureImportForm
                         academicYears={academicYearsList}
                         selectedAsmayId={selectedAsmayId}
@@ -148,20 +136,19 @@ export default function PDAExpenditureImportPage() {
                         onImport={handleImport}
                     />
 
-                    <div className="flex justify-center gap-4 pt-6 mt-6">
+                    <div className='mt-6 flex justify-center gap-4 pt-6'>
                         <Button
                             onClick={handleSave}
                             disabled={saving || importedData.length === 0}
-                            className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white w-40 h-10 rounded-md font-bold shadow-md transition-all active:scale-95 disabled:opacity-50"
-                        >
+                            className='h-10 w-40 rounded-md bg-gradient-to-r from-orange-600 to-orange-700 font-bold text-white shadow-md transition-all hover:from-orange-700 hover:to-orange-800 active:scale-95 disabled:opacity-50'>
                             {saving ? (
                                 <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                                     Saving...
                                 </>
                             ) : (
                                 <>
-                                    <Save className="mr-2 h-4 w-4" />
+                                    <Save className='mr-2 h-4 w-4' />
                                     Save Records
                                 </>
                             )}
@@ -169,10 +156,9 @@ export default function PDAExpenditureImportPage() {
                         <Button
                             onClick={handleCancel}
                             disabled={saving}
-                            variant="outline"
-                            className="w-32 h-10 rounded-md font-bold shadow-md border-gray-200 hover:bg-gray-50 hover:scale-105 active:scale-95 disabled:opacity-50"
-                        >
-                            <RotateCcw className="mr-2 h-4 w-4 text-gray-500" />
+                            variant='outline'
+                            className='h-10 w-32 rounded-md border-gray-200 font-bold shadow-md hover:scale-105 hover:bg-gray-50 active:scale-95 disabled:opacity-50'>
+                            <RotateCcw className='mr-2 h-4 w-4 text-gray-500' />
                             Cancel
                         </Button>
                     </div>
@@ -180,15 +166,16 @@ export default function PDAExpenditureImportPage() {
             </Card>
 
             {importedData.length > 0 && (
-                <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
-                    <Card className="border-none shadow-xl">
-                        <CardHeader className="border-b bg-gray-50/50 flex flex-row items-center justify-between">
-                            <CardTitle className="text-xl font-semibold text-gray-800">Imported Data Preview</CardTitle>
-                            <div className="text-sm font-medium px-4 py-2 bg-primary/10 text-primary rounded-full">
-                                Total Amount: {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                <div className='slide-in-from-bottom-4 animate-in space-y-6 duration-500'>
+                    <Card className='border-none shadow-xl'>
+                        <CardHeader className='flex flex-row items-center justify-between border-b bg-gray-50/50'>
+                            <CardTitle className='font-semibold text-gray-800 text-xl'>Imported Data Preview</CardTitle>
+                            <div className='rounded-full bg-primary/10 px-4 py-2 font-medium text-primary text-sm'>
+                                Total Amount:{' '}
+                                {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </div>
                         </CardHeader>
-                        <CardContent className="p-0">
+                        <CardContent className='p-0'>
                             <PDAExpenditureImportGrid data={importedData} />
                         </CardContent>
                     </Card>

@@ -1,4 +1,4 @@
-import { createCustomStringSchema, createStringSchema } from '@/schemas/validationSchemas';
+import { createCustomStringSchema } from '@/schemas/validationSchemas';
 import { z } from 'zod';
 
 export const examLoginPrivilegesSchema = {
@@ -638,10 +638,7 @@ export const lifeSkillAreaMappingSchema = {
             .array(
                 z.object({
                     ecsA_Id: z.number().default(0),
-                    ecsA_SkillOrder: z
-                        .number()
-                        .int()
-                        .optional(),
+                    ecsA_SkillOrder: z.number().int().optional(),
                     ecsA_SkillArea: z.string().optional()
                 })
             )

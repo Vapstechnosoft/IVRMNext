@@ -46,4 +46,3 @@ export interface EmployeeYearlyReportGetDataResponse {
     page: number;
     page_size: number;
 }
-

@@ -1,40 +1,40 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
 import {
-    studentDataLoad,
-    onChangeYear,
+    editMappingDetails,
     onChangeClass,
     onChangeSection,
-    searchData,
+    onChangeYear,
     saveMapping,
-    viewSubjectWiseRemarks,
-    editMappingDetails
+    searchData,
+    studentDataLoad,
+    viewSubjectWiseRemarks
 } from '@/server/staff-portal/examwise-student-remarks';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 export const useExamwiseStudentRemarks = () => {
     const initialDataQuery = useQuery({
         queryKey: ['examwise-remarks-initial'],
-        queryFn: () => studentDataLoad(),
+        queryFn: () => studentDataLoad()
     });
 
     const getClassesMutation = useMutation({
         mutationFn: onChangeYear,
-        onError: (error) => toast.error('Failed to load classes'),
+        onError: (error) => toast.error('Failed to load classes')
     });
 
     const getSectionsMutation = useMutation({
         mutationFn: onChangeClass,
-        onError: (error) => toast.error('Failed to load sections'),
+        onError: (error) => toast.error('Failed to load sections')
     });
 
     const getExamsMutation = useMutation({
         mutationFn: onChangeSection,
-        onError: (error) => toast.error('Failed to load exams'),
+        onError: (error) => toast.error('Failed to load exams')
     });
 
     const searchDataMutation = useMutation({
         mutationFn: searchData,
-        onError: (error) => toast.error('Failed to search student data'),
+        onError: (error) => toast.error('Failed to search student data')
     });
 
     const saveMappingMutation = useMutation({
@@ -46,17 +46,17 @@ export const useExamwiseStudentRemarks = () => {
                 toast.error('Failed to Save/Update Record');
             }
         },
-        onError: (error) => toast.error('Failed to save record'),
+        onError: (error) => toast.error('Failed to save record')
     });
 
     const viewSubjectWiseRemarksMutation = useMutation({
         mutationFn: viewSubjectWiseRemarks,
-        onError: (error) => toast.error('Failed to load subject wise remarks'),
+        onError: (error) => toast.error('Failed to load subject wise remarks')
     });
 
     const editMappingDetailsMutation = useMutation({
         mutationFn: editMappingDetails,
-        onError: (error) => toast.error('Failed to load edit details'),
+        onError: (error) => toast.error('Failed to load edit details')
     });
 
     return {

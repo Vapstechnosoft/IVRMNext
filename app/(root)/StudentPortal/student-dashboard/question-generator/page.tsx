@@ -1,14 +1,12 @@
-"use client"
-
-import React from 'react'
+'use client';
 
 const QuestionGeneratorPage = () => {
     return (
         <div className='p-6'>
-            <h1 className='text-2xl font-bold mb-4'>Question Generator</h1>
+            <h1 className='mb-4 font-bold text-2xl'>Question Generator</h1>
             <p>Manage Question Generator Details</p>
         </div>
-    )
-}
+    );
+};
 
-export default QuestionGeneratorPage
+export default QuestionGeneratorPage;

@@ -1,24 +1,18 @@
 'use client';
 
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { invRMonthEndReportSchema, type InvRMonthEndReportSchema } from '@/schemas/inventory/reports/inv-r-month-end-report';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { FileText, RefreshCcw } from 'lucide-react';
 import { FormError } from '@/components/ui/extension/field';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
-import { useEffect, useState } from 'react';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { type InvRMonthEndReportSchema, invRMonthEndReportSchema } from '@/schemas/inventory/reports/inv-r-month-end-report';
 import { getInvRMonthEndReportLoadData } from '@/server/inventory/reports/inv-r-month-end-report';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
+import { FileText, RefreshCcw } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 
 interface ReportFormProps {
     onReportGenerated: (data: any, payload: any) => void;
@@ -26,7 +20,7 @@ interface ReportFormProps {
 }
 
 export default function ReportForm({ onReportGenerated, isLoading }: ReportFormProps) {
-    const [years, setYears] = useState<{ id: string, year: string }[]>([]);
+    const [years, setYears] = useState<{ id: string; year: string }[]>([]);
 
     const form = useForm<InvRMonthEndReportSchema>({
         resolver: zodResolver(invRMonthEndReportSchema),
@@ -38,7 +32,14 @@ export default function ReportForm({ onReportGenerated, isLoading }: ReportFormP
         }
     });
 
-    const { control, handleSubmit, watch, setValue, reset, formState: { errors } } = form;
+    const {
+        control,
+        handleSubmit,
+        watch,
+        setValue,
+        reset,
+        formState: { errors }
+    } = form;
 
     const { data: loadData } = useQuery({
         queryKey: ['invRMonthEndReportLoadDataV3'],
@@ -68,7 +69,6 @@ export default function ReportForm({ onReportGenerated, isLoading }: ReportFormP
         }
     }, [ASMAY_Id, loadData]);
 
-
     const onSubmit = (data: InvRMonthEndReportSchema) => {
         // Find academic year object and month object to pass names if needed for display
         const acaYearObj = loadData?.acayear.find((y: any) => y.asmaY_Id === Number(data.ASMAY_Id));
@@ -95,19 +95,20 @@ export default function ReportForm({ onReportGenerated, isLoading }: ReportFormP
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <CollapsibleSection title="Report Configuration" defaultOpen={true}>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
-
-                    <div className="space-y-2">
-                        <Label>Academic Year <span className="text-destructive">*</span></Label>
+        <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
+            <CollapsibleSection title='Report Configuration' defaultOpen={true}>
+                <div className='grid grid-cols-1 gap-6 p-4 md:grid-cols-2 lg:grid-cols-3'>
+                    <div className='space-y-2'>
+                        <Label>
+                            Academic Year <span className='text-destructive'>*</span>
+                        </Label>
                         <Controller
                             control={control}
-                            name="ASMAY_Id"
+                            name='ASMAY_Id'
                             render={({ field }) => (
                                 <Select onValueChange={field.onChange} value={field.value?.toString()}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select Academic Year" />
+                                        <SelectValue placeholder='Select Academic Year' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {loadData?.acayear?.map((year: any) => (
@@ -122,15 +123,17 @@ export default function ReportForm({ onReportGenerated, isLoading }: ReportFormP
                         {errors.ASMAY_Id && <FormError>{errors.ASMAY_Id.message}</FormError>}
                     </div>
 
-                    <div className="space-y-2">
-                        <Label>Month <span className="text-destructive">*</span></Label>
+                    <div className='space-y-2'>
+                        <Label>
+                            Month <span className='text-destructive'>*</span>
+                        </Label>
                         <Controller
                             control={control}
-                            name="IVRM_Month_Id"
+                            name='IVRM_Month_Id'
                             render={({ field }) => (
                                 <Select onValueChange={field.onChange} value={field.value?.toString()}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select Month" />
+                                        <SelectValue placeholder='Select Month' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {loadData?.month_array?.map((month: any) => (
@@ -145,15 +148,17 @@ export default function ReportForm({ onReportGenerated, isLoading }: ReportFormP
                         {errors.IVRM_Month_Id && <FormError>{errors.IVRM_Month_Id.message}</FormError>}
                     </div>
 
-                    <div className="space-y-2">
-                        <Label>Year <span className="text-destructive">*</span></Label>
+                    <div className='space-y-2'>
+                        <Label>
+                            Year <span className='text-destructive'>*</span>
+                        </Label>
                         <Controller
                             control={control}
-                            name="year"
+                            name='year'
                             render={({ field }) => (
                                 <Select onValueChange={field.onChange} value={field.value}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select Year" />
+                                        <SelectValue placeholder='Select Year' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {years.map((y) => (
@@ -168,33 +173,30 @@ export default function ReportForm({ onReportGenerated, isLoading }: ReportFormP
                         {errors.year && <FormError>{errors.year.message}</FormError>}
                     </div>
 
-                    <div className="space-y-2">
+                    <div className='space-y-2'>
                         <Label>Name</Label>
                         <Controller
                             control={control}
-                            name="IE_Name"
-                            render={({ field }) => (
-                                <Input {...field} placeholder="IE Name" maxLength={30} />
-                            )}
+                            name='IE_Name'
+                            render={({ field }) => <Input {...field} placeholder='IE Name' maxLength={30} />}
                         />
                     </div>
-
                 </div>
 
-                <div className="flex justify-center gap-4 p-4 border-t bg-muted/10">
+                <div className='flex justify-center gap-4 border-t bg-muted/10 p-4'>
                     <Button
-                        type="submit"
-                        variant="secondary"
-                        className="w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg"
+                        type='submit'
+                        variant='secondary'
+                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'
                         isLoading={isLoading}>
-                        <FileText className="mr-2 h-4 w-4" /> Report
+                        <FileText className='mr-2 h-4 w-4' /> Report
                     </Button>
                     <Button
-                        type="button"
-                        variant="outline"
-                        className="w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg"
+                        type='button'
+                        variant='outline'
+                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'
                         onClick={handleCancel}>
-                        <RefreshCcw className="mr-2 h-4 w-4" /> Reset
+                        <RefreshCcw className='mr-2 h-4 w-4' /> Reset
                     </Button>
                 </div>
             </CollapsibleSection>

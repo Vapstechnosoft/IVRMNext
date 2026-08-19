@@ -1,6 +1,10 @@
+import {
+    getAppointmentStatusData,
+    getAppointmentStatusEdit,
+    saveAppointmentStatus
+} from '@/server/visitors-management/transactions/appointment-status';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { getAppointmentStatusData, getAppointmentStatusEdit, saveAppointmentStatus } from '@/server/visitors-management/transactions/appointment-status';
 
 export const APPOINTMENT_STATUS_KEY = ['appointment-status'] as const;
 
@@ -15,14 +19,14 @@ export function useAppointmentStatus() {
                 throw new Error(response.message || 'Failed to fetch appointment status data');
             }
             return response.data;
-        },
+        }
     });
 
     const editMutation = useMutation({
         mutationFn: async (id: number) => {
-             const response = await getAppointmentStatusEdit(id);
-             if (!response.success) throw new Error(response.message);
-             return response.data;
+            const response = await getAppointmentStatusEdit(id);
+            if (!response.success) throw new Error(response.message);
+            return response.data;
         }
     });
 
@@ -40,7 +44,7 @@ export function useAppointmentStatus() {
         },
         onError: (error: Error) => {
             toast.error(error.message || 'Failed to save appointment status');
-        },
+        }
     });
 
     return {

@@ -74,7 +74,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
         (async () => {
             try {
                 setLoadingClasses(true);
-                const response = await getClassDropDownByAcademicYearlist(Number(watchYear)) as any;
+                const response = (await getClassDropDownByAcademicYearlist(Number(watchYear))) as any;
                 setClasses(Array.isArray(response?.data) ? response.data : []);
                 setValue('ASMCL_Id', '');
                 setValue('ASMS_Id', '');
@@ -181,7 +181,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                 epfrC_OverallPercentage: 0
             };
 
-            const response = await getHHSReport10thSaveDetails(payload) as any;
+            const response = (await getHHSReport10thSaveDetails(payload)) as any;
 
             const selectedYear = academicYears.find((y: any) => String(y.asmaY_Id) === data.ASMAY_Id);
             const selectedYearName = selectedYear?.asmaY_Year || '';
@@ -246,7 +246,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                         <Label className='font-medium text-sm'>
                                             Academic Year <span className='text-red-500'>*</span>
                                         </Label>
-                                        <Select onValueChange={field.onChange} value={field.value || ""}>
+                                        <Select onValueChange={field.onChange} value={field.value || ''}>
                                             <SelectTrigger className='w-full'>
                                                 <SelectValue placeholder='Select Academic Year' />
                                             </SelectTrigger>
@@ -278,7 +278,10 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                         <Label className='font-medium text-sm'>
                                             Class <span className='text-red-500'>*</span>
                                         </Label>
-                                        <Select onValueChange={field.onChange} value={field.value || ""} disabled={!watchYear || loadingClasses}>
+                                        <Select
+                                            onValueChange={field.onChange}
+                                            value={field.value || ''}
+                                            disabled={!watchYear || loadingClasses}>
                                             <SelectTrigger className='w-full'>
                                                 <SelectValue placeholder={loadingClasses ? 'Loading Classes...' : 'Select Class'} />
                                             </SelectTrigger>
@@ -306,7 +309,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                         </Label>
                                         <Select
                                             onValueChange={field.onChange}
-                                            value={field.value || ""}
+                                            value={field.value || ''}
                                             disabled={!watchClass || loadingSections}>
                                             <SelectTrigger className='w-full'>
                                                 <SelectValue placeholder={loadingSections ? 'Loading Sections...' : 'Select Section'} />
@@ -335,7 +338,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                         </Label>
                                         <Select
                                             onValueChange={field.onChange}
-                                            value={field.value || ""}
+                                            value={field.value || ''}
                                             disabled={!watchSection || loadingStudents}>
                                             <SelectTrigger className='w-full'>
                                                 <SelectValue placeholder={loadingStudents ? 'Loading Students...' : 'Select Student'} />
@@ -358,12 +361,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                 control={control}
                                 name='re_opendate'
                                 render={({ field, fieldState }) => (
-                                    <DateField
-                                        field={field}
-                                        fieldState={fieldState}
-                                        label='School Re-open Date'
-                                        placeholder='Enter Date'
-                                    />
+                                    <DateField field={field} fieldState={fieldState} label='School Re-open Date' placeholder='Enter Date' />
                                 )}
                             />
 
@@ -376,7 +374,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                         <Label className='font-medium text-sm'>
                                             Grade Group <span className='text-red-500'>*</span>
                                         </Label>
-                                        <Select onValueChange={field.onChange} value={field.value || ""} disabled={!watchStudent}>
+                                        <Select onValueChange={field.onChange} value={field.value || ''} disabled={!watchStudent}>
                                             <SelectTrigger className='w-full'>
                                                 <SelectValue placeholder='Select Grade' />
                                             </SelectTrigger>
@@ -406,10 +404,16 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                         Generating...
                                     </>
                                 ) : (
-                                    <><FileText className='mr-2 h-4 w-4' /> Report</>
+                                    <>
+                                        <FileText className='mr-2 h-4 w-4' /> Report
+                                    </>
                                 )}
                             </Button>
-                            <Button type='button' variant='outline' onClick={handleClear} className='w-32 text-red-500 border-red-500 hover:bg-red-50'>
+                            <Button
+                                type='button'
+                                variant='outline'
+                                onClick={handleClear}
+                                className='w-32 border-red-500 text-red-500 hover:bg-red-50'>
                                 <RefreshCcw className='mr-2 h-4 w-4' />
                                 Cancel
                             </Button>

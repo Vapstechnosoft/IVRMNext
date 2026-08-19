@@ -211,25 +211,25 @@ export default function AIResumeCheckerPage() {
                                         onChange={handleFileChange}
                                         accept='.pdf,.doc,.docx'
                                     />
-                                        <div className='pointer-events-none relative flex flex-col items-center justify-center space-y-3'>
-                                            <div className='relative flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 transition-transform duration-300 group-hover/upload:scale-110 pointer-events-auto'>
-                                                <FileText className='h-6 w-6' />
-                                                {resumeFile && (
-                                                    <Button
-                                                        variant='secondary'
-                                                        size='icon'
-                                                        className='-right-2 -top-2 absolute h-6 w-6 rounded-full bg-white shadow-sm hover:bg-indigo-50 text-indigo-600'
-                                                        onClick={handlePreview(resumeFile)}>
-                                                        <Eye className='h-3 w-3' />
-                                                    </Button>
-                                                )}
-                                            </div>
-                                            <div>
-                                                {resumeFile ? (
-                                                    <p className='mx-auto max-w-[200px] truncate font-bold text-indigo-700'>
-                                                        {resumeFile.name}
-                                                    </p>
-                                                ) : (
+                                    <div className='pointer-events-none relative flex flex-col items-center justify-center space-y-3'>
+                                        <div className='pointer-events-auto relative flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 transition-transform duration-300 group-hover/upload:scale-110'>
+                                            <FileText className='h-6 w-6' />
+                                            {resumeFile && (
+                                                <Button
+                                                    variant='secondary'
+                                                    size='icon'
+                                                    className='-right-2 -top-2 absolute h-6 w-6 rounded-full bg-white text-indigo-600 shadow-sm hover:bg-indigo-50'
+                                                    onClick={handlePreview(resumeFile)}>
+                                                    <Eye className='h-3 w-3' />
+                                                </Button>
+                                            )}
+                                        </div>
+                                        <div>
+                                            {resumeFile ? (
+                                                <p className='mx-auto max-w-[200px] truncate font-bold text-indigo-700'>
+                                                    {resumeFile.name}
+                                                </p>
+                                            ) : (
                                                 <>
                                                     <p className='font-semibold text-slate-700'>Drop your resume here</p>
                                                     <p className='text-slate-500 text-sm'>or click to browse</p>
@@ -265,14 +265,14 @@ export default function AIResumeCheckerPage() {
                                         </TabsContent>
                                         <TabsContent value='file' className='mt-0'>
                                             <div className='relative rounded-xl border border-slate-200 border-dashed bg-white p-6 text-center transition-all hover:bg-slate-50'>
-                                                <div className='space-y-2 pointer-events-none'>
-                                                    <div className='relative mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-indigo-50 pointer-events-auto'>
+                                                <div className='pointer-events-none space-y-2'>
+                                                    <div className='pointer-events-auto relative mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-indigo-50'>
                                                         <FileText className='h-4 w-4 text-indigo-600' />
                                                         {jdFile && (
                                                             <Button
                                                                 variant='secondary'
                                                                 size='icon'
-                                                                className='-right-2 -top-1 absolute h-5 w-5 rounded-full bg-white shadow-sm hover:bg-indigo-50 text-indigo-600'
+                                                                className='-right-2 -top-1 absolute h-5 w-5 rounded-full bg-white text-indigo-600 shadow-sm hover:bg-indigo-50'
                                                                 onClick={handlePreview(jdFile)}>
                                                                 <Eye className='h-2.5 w-2.5' />
                                                             </Button>
@@ -287,7 +287,7 @@ export default function AIResumeCheckerPage() {
                                                 </div>
                                                 <input
                                                     type='file'
-                                                    className='absolute inset-0 cursor-pointer opacity-0 z-0'
+                                                    className='absolute inset-0 z-0 cursor-pointer opacity-0'
                                                     onChange={(e) => {
                                                         const file = e.target.files?.[0];
                                                         if (file) {
@@ -561,83 +561,85 @@ export default function AIResumeCheckerPage() {
                                                                         {analysisResult?.candidate?.name || 'Unknown Candidate'}
                                                                     </h3>
                                                                     <div className='flex flex-wrap gap-x-4 gap-y-2 text-slate-600 text-sm'>
-                                                                         <span className='flex items-center gap-1.5'>
-                                                                             <Mail className='h-3.5 w-3.5' />{' '}
-                                                                             {analysisResult?.candidate?.email || 'Not extracted'}
-                                                                         </span>
-                                                                         <span className='flex items-center gap-1.5'>
-                                                                             <Phone className='h-3.5 w-3.5' />{' '}
-                                                                             {analysisResult?.candidate?.phone || 'Not extracted'}
-                                                                         </span>
-                                                                     </div>
-                                                                 </div>
-                                                             </div>
-                                                             <div className='p-6'>
-                                                                 <h4 className='mb-4 font-bold text-slate-800 text-sm uppercase tracking-wider'>
-                                                                     Extracted Details
-                                                                 </h4>
-                                                                 <div className='grid grid-cols-1 gap-x-4 gap-y-6 md:grid-cols-2'>
-                                                                     <div>
-                                                                         <p className='mb-1 flex items-center gap-1.5 text-slate-500 text-sm'>
-                                                                             <Briefcase className='h-4 w-4' /> Experience
-                                                                         </p>
-                                                                         <p className='font-medium text-slate-900'>
-                                                                             {analysisResult?.candidate?.experience_years ?? 0} Years Total
-                                                                         </p>
-                                                                     </div>
-                                                                     <div>
-                                                                         <p className='mb-1 flex items-center gap-1.5 text-slate-500 text-sm'>
-                                                                             <GraduationCap className='h-4 w-4' /> Education Focus
-                                                                         </p>
-                                                                         <p className='font-medium text-slate-900'>
-                                                                             {analysisResult?.candidate?.education?.field || 'Not specified'}
-                                                                         </p>
-                                                                     </div>
-                                                                     <div className='md:col-span-2'>
-                                                                         <p className='mb-2 flex items-center gap-1.5 text-slate-500 text-sm'>
-                                                                             <Zap className='h-4 w-4 text-emerald-500' /> Extracted Technical Skills
-                                                                         </p>
-                                                                         <div className='flex flex-wrap gap-1.5'>
-                                                                             {analysisResult?.candidate?.skills?.technical?.length > 0 ? (
-                                                                                 analysisResult.candidate.skills.technical.map(
-                                                                                     (s: string, i: number) => (
-                                                                                         <Badge
-                                                                                             key={i}
-                                                                                             variant='secondary'
-                                                                                             className='bg-emerald-50 text-emerald-700 hover:bg-emerald-100'>
-                                                                                             {s}
-                                                                                         </Badge>
-                                                                                     )
-                                                                                 )
-                                                                             ) : (
-                                                                                 <span className='text-slate-400 text-sm'>
-                                                                                     None detected
-                                                                                 </span>
-                                                                             )}
-                                                                         </div>
-                                                                     </div>
-                                                                     {analysisResult?.candidate?.skills?.soft?.length > 0 && (
-                                                                         <div className='md:col-span-2'>
-                                                                             <p className='mb-2 flex items-center gap-1.5 text-slate-500 text-sm'>
-                                                                                 <Sparkles className='h-4 w-4 text-amber-500' /> Interpersonal & Soft Skills
-                                                                             </p>
-                                                                             <div className='flex flex-wrap gap-1.5'>
-                                                                                 {analysisResult.candidate.skills.soft.map(
-                                                                                     (s: string, i: number) => (
-                                                                                         <Badge
-                                                                                             key={i}
-                                                                                             variant='secondary'
-                                                                                             className='bg-amber-50 text-amber-700 hover:bg-amber-100'>
-                                                                                             {s}
-                                                                                         </Badge>
-                                                                                     )
-                                                                                 )}
-                                                                             </div>
-                                                                         </div>
-                                                                     )}
-                                                                 </div>
-                                                             </div>
-                                                         </div>
+                                                                        <span className='flex items-center gap-1.5'>
+                                                                            <Mail className='h-3.5 w-3.5' />{' '}
+                                                                            {analysisResult?.candidate?.email || 'Not extracted'}
+                                                                        </span>
+                                                                        <span className='flex items-center gap-1.5'>
+                                                                            <Phone className='h-3.5 w-3.5' />{' '}
+                                                                            {analysisResult?.candidate?.phone || 'Not extracted'}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div className='p-6'>
+                                                                <h4 className='mb-4 font-bold text-slate-800 text-sm uppercase tracking-wider'>
+                                                                    Extracted Details
+                                                                </h4>
+                                                                <div className='grid grid-cols-1 gap-x-4 gap-y-6 md:grid-cols-2'>
+                                                                    <div>
+                                                                        <p className='mb-1 flex items-center gap-1.5 text-slate-500 text-sm'>
+                                                                            <Briefcase className='h-4 w-4' /> Experience
+                                                                        </p>
+                                                                        <p className='font-medium text-slate-900'>
+                                                                            {analysisResult?.candidate?.experience_years ?? 0} Years Total
+                                                                        </p>
+                                                                    </div>
+                                                                    <div>
+                                                                        <p className='mb-1 flex items-center gap-1.5 text-slate-500 text-sm'>
+                                                                            <GraduationCap className='h-4 w-4' /> Education Focus
+                                                                        </p>
+                                                                        <p className='font-medium text-slate-900'>
+                                                                            {analysisResult?.candidate?.education?.field || 'Not specified'}
+                                                                        </p>
+                                                                    </div>
+                                                                    <div className='md:col-span-2'>
+                                                                        <p className='mb-2 flex items-center gap-1.5 text-slate-500 text-sm'>
+                                                                            <Zap className='h-4 w-4 text-emerald-500' /> Extracted Technical
+                                                                            Skills
+                                                                        </p>
+                                                                        <div className='flex flex-wrap gap-1.5'>
+                                                                            {analysisResult?.candidate?.skills?.technical?.length > 0 ? (
+                                                                                analysisResult.candidate.skills.technical.map(
+                                                                                    (s: string, i: number) => (
+                                                                                        <Badge
+                                                                                            key={i}
+                                                                                            variant='secondary'
+                                                                                            className='bg-emerald-50 text-emerald-700 hover:bg-emerald-100'>
+                                                                                            {s}
+                                                                                        </Badge>
+                                                                                    )
+                                                                                )
+                                                                            ) : (
+                                                                                <span className='text-slate-400 text-sm'>
+                                                                                    None detected
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                    {analysisResult?.candidate?.skills?.soft?.length > 0 && (
+                                                                        <div className='md:col-span-2'>
+                                                                            <p className='mb-2 flex items-center gap-1.5 text-slate-500 text-sm'>
+                                                                                <Sparkles className='h-4 w-4 text-amber-500' />{' '}
+                                                                                Interpersonal & Soft Skills
+                                                                            </p>
+                                                                            <div className='flex flex-wrap gap-1.5'>
+                                                                                {analysisResult.candidate.skills.soft.map(
+                                                                                    (s: string, i: number) => (
+                                                                                        <Badge
+                                                                                            key={i}
+                                                                                            variant='secondary'
+                                                                                            className='bg-amber-50 text-amber-700 hover:bg-amber-100'>
+                                                                                            {s}
+                                                                                        </Badge>
+                                                                                    )
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </TabsContent>
                                                 </Tabs>
                                             </div>

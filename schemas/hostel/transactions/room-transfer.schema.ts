@@ -6,21 +6,21 @@ export const roomTransferSchema = z.object({
     HRME_Id: z.number().optional(),
     HLHGSTALT_Id: z.number().optional(),
     HLHSALTC_TransferDate: z.date({
-        required_error: "Transfer date is required",
+        required_error: 'Transfer date is required'
     }),
     ToHLMH_Id: z.number({
-        required_error: "Target hostel is required",
+        required_error: 'Target hostel is required'
     }),
     HLMRCA_Id: z.number({
-        required_error: "Room category is required",
+        required_error: 'Room category is required'
     }),
     hlmF_Id: z.number({
-        required_error: "Floor is required",
+        required_error: 'Floor is required'
     }),
     HRMRM_Id: z.number({
-        required_error: "Room is required",
+        required_error: 'Room is required'
     }),
-    HLHSTRSC_NewRoomFee: z.number().min(0, "Room fee must be positive"),
+    HLHSTRSC_NewRoomFee: z.number().min(0, 'Room fee must be positive'),
     HLHSTRSC_EntireRoomReqdFlg: z.number().optional(),
     HLHSTRSC_VacateRemarks: z.string().optional(),
     HLHSTRSC_AllotmentRemarks: z.string().optional(),
@@ -28,7 +28,7 @@ export const roomTransferSchema = z.object({
     currentHostel: z.string().optional(),
     currentRoom: z.string().optional(),
     currentCategory: z.string().optional(),
-    joiningDate: z.string().optional(),
+    joiningDate: z.string().optional()
 });
 
 export type RoomTransferValues = z.infer<typeof roomTransferSchema>;

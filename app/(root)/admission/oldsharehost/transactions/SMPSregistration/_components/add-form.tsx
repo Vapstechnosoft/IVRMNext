@@ -935,17 +935,15 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
     const handleDOBChange = (date: Date | undefined) => {
         console.log('handleDOBChange');
         if (!date || !masterConfig?.data) {
-
             if (masterConfig?.data == null) {
-                console.log(masterConfig?.data)
+                console.log(masterConfig?.data);
                 console.log('Master Config data is null');
             }
-            console.log(masterConfig?.data)
+            console.log(masterConfig?.data);
             setIsClassDisabled(true);
             setFilteredClasses([]);
             setValue('asmcL_Id', 0);
             return;
-
         }
 
         const allClasses = preadmissionClass?.data || [];
@@ -962,7 +960,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                 invalidClasses.push(classItem);
             }
         });
-
 
         setFilteredClasses(validClasses);
 

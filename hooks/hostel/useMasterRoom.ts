@@ -1,7 +1,12 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getRoomList, getFloorsByHostel, getRoomCategoryByHostel, getRoomDetails, getRoomDropdownList } from '@/server/hostel/hostel-management/masters/room';
-import { ApiSearchparams } from '@/types';
 import { HOSTEL_QUERY_KEYS } from '@/constants/query-keys';
+import {
+    getFloorsByHostel,
+    getRoomCategoryByHostel,
+    getRoomDropdownList,
+    getRoomList
+} from '@/server/hostel/hostel-management/masters/room';
+import type { ApiSearchparams } from '@/types';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useMasterRoom = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
@@ -9,13 +14,13 @@ export const useMasterRoom = (searchParams?: ApiSearchparams) => {
         ...useQuery({
             queryKey: [HOSTEL_QUERY_KEYS.MATER_ROOM_GRID_LIST, searchParams],
             queryFn: () => getRoomList(searchParams),
-            refetchOnWindowFocus: false,
+            refetchOnWindowFocus: false
         }),
         refetchAll: () => {
-             return queryClient.invalidateQueries({
-                 queryKey: [HOSTEL_QUERY_KEYS.MATER_ROOM_GRID_LIST]
-             });
-         }
+            return queryClient.invalidateQueries({
+                queryKey: [HOSTEL_QUERY_KEYS.MATER_ROOM_GRID_LIST]
+            });
+        }
     };
 };
 
@@ -25,13 +30,13 @@ export const useMasterRoomDropdown = () => {
         ...useQuery({
             queryKey: [HOSTEL_QUERY_KEYS.MASTER_ROOM_DROPDOWN_LIST],
             queryFn: () => getRoomDropdownList(),
-            refetchOnWindowFocus: false,
+            refetchOnWindowFocus: false
         }),
         refetchAll: () => {
-             return queryClient.invalidateQueries({
-                 queryKey: [HOSTEL_QUERY_KEYS.MASTER_ROOM_DROPDOWN_LIST]
-             });
-         }
+            return queryClient.invalidateQueries({
+                queryKey: [HOSTEL_QUERY_KEYS.MASTER_ROOM_DROPDOWN_LIST]
+            });
+        }
     };
 };
 
@@ -54,4 +59,3 @@ export const useRoomCategoryByHostel = (hostelId: string) => {
         staleTime: 0
     });
 };
-

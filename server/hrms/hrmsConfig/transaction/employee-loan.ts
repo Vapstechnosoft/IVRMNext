@@ -20,12 +20,10 @@ import type {
  * GET /api/MasterDropDown/mode_of_payment_drop_down_for_loan
  * POST /api/HREmpLoanFacade/onloadgetdetails (Legacy for Config)
  */
-export async function getEmployeeLoanMasters(
-    payload?: EmployeeLoanOnloadRequest
-): Promise<ApiResponse<EmployeeLoanMastersResponse>> {
+export async function getEmployeeLoanMasters(payload?: EmployeeLoanOnloadRequest): Promise<ApiResponse<EmployeeLoanMastersResponse>> {
     const onloadUrl = '/api/HREmpLoanFacade/onloadgetdetails';
     const employeeDropdownUrl = '/api/MasterDropDown/active_loan_employees_dropdown';
-   const loanTypeUrl = '/api/MasterDropDown/GetLoanType';
+    const loanTypeUrl = '/api/MasterDropDown/GetLoanType';
     const paymentModeUrl = '/api/MasterDropDown/mode_of_payment_drop_down_for_loan';
 
     const requestBody = {
@@ -105,7 +103,7 @@ export async function getEmployeeLoanMasters(
             configurationDetails: onloadResponse.data?.configurationDetails || null,
             ASMAY_Id: onloadResponse.data?.ASMAY_Id || 0,
             roleId: onloadResponse.data?.roleId || 0,
-            retrunMsg: onloadResponse.data?.retrunMsg || '',
+            retrunMsg: onloadResponse.data?.retrunMsg || ''
         };
 
         return {
@@ -127,9 +125,7 @@ export async function getEmployeeLoanMasters(
  * Get Employee Loan Grid Data (New REST API)
  * GET /api/HREmpLoan
  */
-export async function getEmployeeLoanGrid(
-    payload: EmployeeLoanOnloadRequest
-): Promise<ApiResponse<EmployeeLoanGridResponse>> {
+export async function getEmployeeLoanGrid(payload: EmployeeLoanOnloadRequest): Promise<ApiResponse<EmployeeLoanGridResponse>> {
     const queryString = new URLSearchParams();
     if (payload.page) queryString.append('page', payload.page!.toString());
     if (payload.page_size) queryString.append('page_size', payload.page_size!.toString());
@@ -149,32 +145,32 @@ export async function getEmployeeLoanGrid(
 
         const mappedItems: EmployeeLoanItem[] = Array.isArray(response.data)
             ? response.data.map((item: any) => ({
-                HREL_Id: item.hreL_Id,
-                MI_Id: item.mI_Id || 0,
-                HRME_Id: item.hrmE_Id || 0,
-                EmployeeFullName: item.employeeFullName || '', // Added
-                HRME_EmployeeCode: item.masterEmployee?.hrmE_EmployeeCode,
-                HRME_EmployeeFirstName: item.employeeFullName, // Use full name as fallback
-                HRMLN_Id: item.hrmlN_Id || 0,
-                HRML_LoanType: item.hrmL_LoanType, // Added
-                HREL_AppliedDate: item.hreL_AppliedDate,
-                HREL_EmpLoanId: item.hreL_EmpLoanId,
-                HREL_LoanAmount: item.hreL_LoanAmount || 0,
-                HREL_LoanInsallments: item.hreL_LoanInsallments,
-                HREL_LaonEMI: item.hreL_LaonEMI,
-                HREL_LoanStatus: item.hreL_LoanStatus,
-                HREL_SanctionedAmount: item.hreL_SanctionedAmount || 0,
-                HREL_TotalPrincipalPaid: item.hreL_TotalPrincipalPaid || 0,
-                HREL_TotalInterestPaid: item.hreL_TotalInterestPaid || 0,
-                HREL_TotalPending: item.hreL_TotalPending || 0,
-                HREL_LoanInterest: item.hreL_LoanInterest || 0,
-                HREL_ModeOfPayment: item.hreL_ModeOfPayment,
-                HREL_ReferenceNo: item.hreL_ReferenceNo,
-                HREL_ActiveFlag: item.hreL_ActiveFlag,
-                HREL_NoofInstallment: item.hreL_NoofInstallment,
-                CreatedDate: item.createdDate,
-                UpdatedDate: item.updatedDate
-            }))
+                  HREL_Id: item.hreL_Id,
+                  MI_Id: item.mI_Id || 0,
+                  HRME_Id: item.hrmE_Id || 0,
+                  EmployeeFullName: item.employeeFullName || '', // Added
+                  HRME_EmployeeCode: item.masterEmployee?.hrmE_EmployeeCode,
+                  HRME_EmployeeFirstName: item.employeeFullName, // Use full name as fallback
+                  HRMLN_Id: item.hrmlN_Id || 0,
+                  HRML_LoanType: item.hrmL_LoanType, // Added
+                  HREL_AppliedDate: item.hreL_AppliedDate,
+                  HREL_EmpLoanId: item.hreL_EmpLoanId,
+                  HREL_LoanAmount: item.hreL_LoanAmount || 0,
+                  HREL_LoanInsallments: item.hreL_LoanInsallments,
+                  HREL_LaonEMI: item.hreL_LaonEMI,
+                  HREL_LoanStatus: item.hreL_LoanStatus,
+                  HREL_SanctionedAmount: item.hreL_SanctionedAmount || 0,
+                  HREL_TotalPrincipalPaid: item.hreL_TotalPrincipalPaid || 0,
+                  HREL_TotalInterestPaid: item.hreL_TotalInterestPaid || 0,
+                  HREL_TotalPending: item.hreL_TotalPending || 0,
+                  HREL_LoanInterest: item.hreL_LoanInterest || 0,
+                  HREL_ModeOfPayment: item.hreL_ModeOfPayment,
+                  HREL_ReferenceNo: item.hreL_ReferenceNo,
+                  HREL_ActiveFlag: item.hreL_ActiveFlag,
+                  HREL_NoofInstallment: item.hreL_NoofInstallment,
+                  CreatedDate: item.createdDate,
+                  UpdatedDate: item.updatedDate
+              }))
             : [];
 
         return {
@@ -208,7 +204,7 @@ export async function saveEmployeeLoan(data: EmployeeLoanSaveRequest): Promise<E
         hreL_Id: data.HREL_Id || 0,
         hrmE_Id: data.HRME_Id || 0,
         hreL_AppliedDate: data.HREL_AppliedDate,
-        hreL_EmpLoanId: data.HREL_EmpLoanId || "0",
+        hreL_EmpLoanId: data.HREL_EmpLoanId || '0',
         hrmlN_Id: data.HRMLN_Id || 0,
         hreL_LoanAmount: data.HREL_LoanAmount || 0,
         hreL_LoanInsallments: String(data.HREL_LoanInsallments || ''),
@@ -304,7 +300,6 @@ export async function getEmployeeLoanById(hrelId: number): Promise<ApiResponse<E
             message: 'Record retrieved successfully',
             data: mappedData
         };
-
     } catch (error: any) {
         return {
             success: false,
@@ -360,7 +355,6 @@ export async function getEmployeeLoanByEmployee(employeeId: number): Promise<Api
             message: 'Employee details retrieved successfully',
             data: response.data as EmployeeDetailsResponse
         };
-
     } catch (error: any) {
         return {
             success: false,

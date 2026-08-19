@@ -1,11 +1,8 @@
 'use client';
 
 import { PolygonBanner } from '@/components/ui/extension/polygon-banner';
-import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
-import {
-    ChevronRight,
-} from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getNavigationContext } from './navigation-context';
@@ -60,7 +57,6 @@ export function PageNavigation() {
             }
         }
     }, [pathname, activeNavigation]);
-
 
     if (!activeNavigation) {
         return null;

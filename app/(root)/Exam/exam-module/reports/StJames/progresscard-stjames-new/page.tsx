@@ -63,11 +63,7 @@ export default function StJamesNewReportPage() {
             {isReportVisible && reportData && (
                 <CollapsibleSection title='Progress Cards Report' defaultOpen>
                     <div ref={printRef}>
-                        <StJamesNewReportList 
-                            data={reportData} 
-                            reporttype={reportType} 
-                            displayAttendance={displayAttendance} 
-                        />
+                        <StJamesNewReportList data={reportData} reporttype={reportType} displayAttendance={displayAttendance} />
                     </div>
                 </CollapsibleSection>
             )}

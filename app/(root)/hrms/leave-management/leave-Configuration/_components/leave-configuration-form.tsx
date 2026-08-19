@@ -1,11 +1,10 @@
 'use client';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { leaveConfigurationSchema, type LeaveConfigurationFormValues } from '@/schemas/hrms/leaveConfiguration/leaveConfiguration';
+import { type LeaveConfigurationFormValues, leaveConfigurationSchema } from '@/schemas/hrms/leaveConfiguration/leaveConfiguration';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
@@ -153,7 +152,10 @@ export default function LeaveConfigurationForm({ initialData, onSubmit, onCancel
                             <FormItem className='space-y-3'>
                                 <FormLabel>No. of Lates Flag</FormLabel>
                                 <FormControl>
-                                    <RadioGroup onValueChange={(val) => field.onChange(val === 'true')} value={field.value ? 'true' : 'false'} className='flex space-x-4'>
+                                    <RadioGroup
+                                        onValueChange={(val) => field.onChange(val === 'true')}
+                                        value={field.value ? 'true' : 'false'}
+                                        className='flex space-x-4'>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='true' id='nolates-yes' />
                                             <Label htmlFor='nolates-yes'>Yes</Label>
@@ -194,7 +196,10 @@ export default function LeaveConfigurationForm({ initialData, onSubmit, onCancel
                             <FormItem className='space-y-3'>
                                 <FormLabel>Cumulative Time Flag</FormLabel>
                                 <FormControl>
-                                    <RadioGroup onValueChange={(val) => field.onChange(val === 'true')} value={field.value ? 'true' : 'false'} className='flex space-x-4'>
+                                    <RadioGroup
+                                        onValueChange={(val) => field.onChange(val === 'true')}
+                                        value={field.value ? 'true' : 'false'}
+                                        className='flex space-x-4'>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='true' id='cumtime-yes' />
                                             <Label htmlFor='cumtime-yes'>Yes</Label>
@@ -267,7 +272,10 @@ export default function LeaveConfigurationForm({ initialData, onSubmit, onCancel
                             <FormItem className='space-y-3'>
                                 <FormLabel>Carry Forward</FormLabel>
                                 <FormControl>
-                                    <RadioGroup onValueChange={(val) => field.onChange(val === 'true')} value={field.value ? 'true' : 'false'} className='flex space-x-4'>
+                                    <RadioGroup
+                                        onValueChange={(val) => field.onChange(val === 'true')}
+                                        value={field.value ? 'true' : 'false'}
+                                        className='flex space-x-4'>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='true' id='cf-yes' />
                                             <Label htmlFor='cf-yes'>Yes</Label>
@@ -291,7 +299,10 @@ export default function LeaveConfigurationForm({ initialData, onSubmit, onCancel
                             <FormItem className='space-y-3'>
                                 <FormLabel>Leave Prefix Suffix Flag</FormLabel>
                                 <FormControl>
-                                    <RadioGroup onValueChange={(val) => field.onChange(val === 'true')} value={field.value ? 'true' : 'false'} className='flex space-x-4'>
+                                    <RadioGroup
+                                        onValueChange={(val) => field.onChange(val === 'true')}
+                                        value={field.value ? 'true' : 'false'}
+                                        className='flex space-x-4'>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='true' id='prefix-yes' />
                                             <Label htmlFor='prefix-yes'>Yes</Label>
@@ -315,7 +326,10 @@ export default function LeaveConfigurationForm({ initialData, onSubmit, onCancel
                             <FormItem className='space-y-3'>
                                 <FormLabel>Include Holiday Flag</FormLabel>
                                 <FormControl>
-                                    <RadioGroup onValueChange={(val) => field.onChange(val === 'true')} value={field.value ? 'true' : 'false'} className='flex space-x-4'>
+                                    <RadioGroup
+                                        onValueChange={(val) => field.onChange(val === 'true')}
+                                        value={field.value ? 'true' : 'false'}
+                                        className='flex space-x-4'>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='true' id='holiday-yes' />
                                             <Label htmlFor='holiday-yes'>Yes</Label>

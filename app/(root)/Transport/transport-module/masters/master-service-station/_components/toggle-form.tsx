@@ -23,7 +23,8 @@ export default function ToggleServiceStationForm({
         try {
             setIsLoading(true);
             const response = await activeDeactiveServiceStation(rowData.trmssT_Id);
-            if (response.success) { // Assuming success pattern; if API wasn't changed to success, I might need to adapt, but based on user request 'ToggleRouteForm' uses success.
+            if (response.success) {
+                // Assuming success pattern; if API wasn't changed to success, I might need to adapt, but based on user request 'ToggleRouteForm' uses success.
                 toast.success(response.message);
                 refetchAll();
                 onClose();
@@ -42,7 +43,8 @@ export default function ToggleServiceStationForm({
             <div className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.trmssT_ServiceStationName}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.trmssT_ServiceStationName}</strong>
+                        ?
                     </p>
                 </AdaptiveBody>
                 <AdaptiveFooter>

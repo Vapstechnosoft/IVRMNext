@@ -192,4 +192,3 @@ export interface EmployeeContributionReportSearchResponse extends EmployeeContri
 export type EmployeeContributionReportOnloadResponse = ApiResponse<EmployeeContributionReportResponse>;
 export type EmployeeContributionReportFilterResponseType = ApiResponse<EmployeeContributionReportFilterResponse>;
 export type EmployeeContributionReportSearchResponseType = ApiResponse<EmployeeContributionReportSearchResponse>;
-

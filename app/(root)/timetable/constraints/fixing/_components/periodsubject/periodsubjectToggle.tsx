@@ -1,22 +1,15 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
-import { deactivateFixingPeriodSubject } from '@/server/timetable/constraints/fixing';
 import { usePeriodSubjectGridData } from '@/hooks/timetable/constraints/fixingData';
+import { deactivateFixingPeriodSubject } from '@/server/timetable/constraints/fixing';
 
+import { zodResolver } from '@hookform/resolvers/zod';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import { SubmitHandler, useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 
 const toggleSchema = z.object({
     ttfpsU_Id: z.number()
@@ -80,26 +73,17 @@ export default function PeriodSubjectToggle({ rowData, onClose }: TogglePeriodSu
                         <DialogDescription>
                             Are you sure you want to {isActive ? 'deactivate' : 'activate'} this record?
                             <br />
-                            <strong>Class:</strong> {rowData.asmcL_ClassName || 'N/A'} |
-                            <strong> Section:</strong> {rowData.asmC_SectionName || 'N/A'}
+                            <strong>Class:</strong> {rowData.asmcL_ClassName || 'N/A'} |<strong> Section:</strong>{' '}
+                            {rowData.asmC_SectionName || 'N/A'}
                         </DialogDescription>
                     </DialogHeader>
 
                     <DialogFooter className='mt-6'>
-                        <Button
-                            variant='outline'
-                            onClick={onClose}
-                            type='button'
-                            disabled={isSubmitting}
-                        >
+                        <Button variant='outline' onClick={onClose} type='button' disabled={isSubmitting}>
                             Cancel
                         </Button>
 
-                        <Button
-                            variant={isActive ? 'destructive' : 'default'}
-                            type='submit'
-                            isLoading={isSubmitting}
-                        >
+                        <Button variant={isActive ? 'destructive' : 'default'} type='submit' isLoading={isSubmitting}>
                             {isActive ? 'Deactivate' : 'Activate'}
                         </Button>
                     </DialogFooter>

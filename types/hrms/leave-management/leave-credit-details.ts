@@ -594,7 +594,6 @@ export interface GetLeaveDetailsEnCashResponse {
     page_size?: number | null;
 }
 
-
 /**
  * Item for leave name dropdown
  */

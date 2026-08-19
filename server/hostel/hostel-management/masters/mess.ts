@@ -1,6 +1,6 @@
 'use server';
 
-import { api, ApiResponse, getSearchParamsUrl } from '@/lib/apiService';
+import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 
 // --- Interfaces ---

@@ -2,7 +2,6 @@
 
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
-import { getStJamesNurseryReport } from '@/server/exam/exam-module/reports/cumulative-report';
 import type { IMasterInstitution, Institution } from '@/types/exam/exam-module/report';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -44,16 +43,28 @@ export default function StJamesNurseryReportPage() {
                                     ISMS_SubjectName: 'ENGLISH',
                                     Style: 'bold',
                                     subsubjectlist: [
-                                        { EMSS_SubSubjectName: 'Phonetics', studentmarks: [{ ObtainedGrade: 'A+', GRADEREMAKS: 'Excellent' }] },
-                                        { EMSS_SubSubjectName: 'Letter Recognition', studentmarks: [{ ObtainedGrade: 'A+', GRADEREMAKS: 'Outstanding' }] }
+                                        {
+                                            EMSS_SubSubjectName: 'Phonetics',
+                                            studentmarks: [{ ObtainedGrade: 'A+', GRADEREMAKS: 'Excellent' }]
+                                        },
+                                        {
+                                            EMSS_SubSubjectName: 'Letter Recognition',
+                                            studentmarks: [{ ObtainedGrade: 'A+', GRADEREMAKS: 'Outstanding' }]
+                                        }
                                     ]
                                 },
                                 {
                                     ISMS_SubjectName: 'MATHEMATICS',
                                     Style: 'bold',
                                     subsubjectlist: [
-                                        { EMSS_SubSubjectName: 'Counting (1-50)', studentmarks: [{ ObtainedGrade: 'A', GRADEREMAKS: 'Very Good' }] },
-                                        { EMSS_SubSubjectName: 'Object Identification', studentmarks: [{ ObtainedGrade: 'A+', GRADEREMAKS: 'Brilliant' }] }
+                                        {
+                                            EMSS_SubSubjectName: 'Counting (1-50)',
+                                            studentmarks: [{ ObtainedGrade: 'A', GRADEREMAKS: 'Very Good' }]
+                                        },
+                                        {
+                                            EMSS_SubSubjectName: 'Object Identification',
+                                            studentmarks: [{ ObtainedGrade: 'A+', GRADEREMAKS: 'Brilliant' }]
+                                        }
                                     ]
                                 }
                             ]
@@ -74,15 +85,24 @@ export default function StJamesNurseryReportPage() {
                                     Style: 'bold',
                                     subsubjectlist: [
                                         { EMSS_SubSubjectName: 'Phonetics', studentmarks: [{ ObtainedGrade: 'A', GRADEREMAKS: 'Good' }] },
-                                        { EMSS_SubSubjectName: 'Letter Recognition', studentmarks: [{ ObtainedGrade: 'B', GRADEREMAKS: 'Satisfactory' }] }
+                                        {
+                                            EMSS_SubSubjectName: 'Letter Recognition',
+                                            studentmarks: [{ ObtainedGrade: 'B', GRADEREMAKS: 'Satisfactory' }]
+                                        }
                                     ]
                                 },
                                 {
                                     ISMS_SubjectName: 'MATHEMATICS',
                                     Style: 'bold',
                                     subsubjectlist: [
-                                        { EMSS_SubSubjectName: 'Counting (1-50)', studentmarks: [{ ObtainedGrade: 'A', GRADEREMAKS: 'Good' }] },
-                                        { EMSS_SubSubjectName: 'Object Identification', studentmarks: [{ ObtainedGrade: 'A', GRADEREMAKS: 'Developing well' }] }
+                                        {
+                                            EMSS_SubSubjectName: 'Counting (1-50)',
+                                            studentmarks: [{ ObtainedGrade: 'A', GRADEREMAKS: 'Good' }]
+                                        },
+                                        {
+                                            EMSS_SubSubjectName: 'Object Identification',
+                                            studentmarks: [{ ObtainedGrade: 'A', GRADEREMAKS: 'Developing well' }]
+                                        }
                                     ]
                                 }
                             ]

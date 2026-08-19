@@ -40,7 +40,7 @@ export const studentColumns: ColumnDef<any>[] = [
     {
         accessorKey: 'HLHSALT_VacatedDate',
         header: ({ column }) => <ColumnHeader column={column} title='Vacate Date' />,
-        cell: ({ row }) => row.original.HLHSALT_VacatedDate ? format(new Date(row.original.HLHSALT_VacatedDate), 'dd/MM/yyyy') : '-'
+        cell: ({ row }) => (row.original.HLHSALT_VacatedDate ? format(new Date(row.original.HLHSALT_VacatedDate), 'dd/MM/yyyy') : '-')
     },
     {
         accessorKey: 'HLHSALT_VacateRemarks',
@@ -84,7 +84,7 @@ export const staffColumns: ColumnDef<any>[] = [
     {
         accessorKey: 'HLHSTALT_VacatedDate',
         header: ({ column }) => <ColumnHeader column={column} title='Vacate Date' />,
-        cell: ({ row }) => row.original.HLHSTALT_VacatedDate ? format(new Date(row.original.HLHSTALT_VacatedDate), 'dd/MM/yyyy') : '-'
+        cell: ({ row }) => (row.original.HLHSTALT_VacatedDate ? format(new Date(row.original.HLHSTALT_VacatedDate), 'dd/MM/yyyy') : '-')
     },
     {
         accessorKey: 'HLHSTALT_VacateRemarks',
@@ -120,7 +120,7 @@ export const guestColumns: ColumnDef<any>[] = [
     {
         accessorKey: 'HLHGSTALT_VacatedDate',
         header: ({ column }) => <ColumnHeader column={column} title='Vacate Date' />,
-        cell: ({ row }) => row.original.HLHGSTALT_VacatedDate ? format(new Date(row.original.HLHGSTALT_VacatedDate), 'dd/MM/yyyy') : '-'
+        cell: ({ row }) => (row.original.HLHGSTALT_VacatedDate ? format(new Date(row.original.HLHGSTALT_VacatedDate), 'dd/MM/yyyy') : '-')
     },
     {
         accessorKey: 'HLHGSTALT_VacateRemarks',

@@ -3,7 +3,6 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { ClassWorkUploadedList } from '@/hooks/upload/transactions/useClassWork';
 import { classWorkSchema } from '@/schemas/upload/transactions/ivrm-classwork.schema';
 import { toggleClassWork } from '@/server/upload/transactions/ivrm-classwork/server-action';
 
@@ -19,7 +18,6 @@ interface ToggleClassWorkFormProps {
 }
 
 export default function ToggleClassWorkForm({ rowData, onClose }: ToggleClassWorkFormProps) {
-
     const {
         register,
         handleSubmit,
@@ -53,7 +51,7 @@ export default function ToggleClassWorkForm({ rowData, onClose }: ToggleClassWor
         <AdaptiveDialog title='Class Work Upload Status' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden'{...register('icW_Id')} defaultValue={rowData.icW_Id} />
+                    <input type='hidden' {...register('icW_Id')} defaultValue={rowData.icW_Id} />
                     <p>
                         Are you sure you want to {rowData.icW_ActiveFlag ? 'deactivate' : 'activate'} <strong>{rowData.icW_Content}</strong>
                         ?

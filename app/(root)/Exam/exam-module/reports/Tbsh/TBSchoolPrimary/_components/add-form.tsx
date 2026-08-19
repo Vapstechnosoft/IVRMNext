@@ -11,9 +11,9 @@ import {
     getAcademicYearList,
     getClassDropDownByAcademicYearlist,
     getExamsDropDownByAcademicYearandClassandSectionlist,
+    getGradeList,
     getSectionsDropDownByAcademicYearandClasslist,
-    getStudentsDropDownByAcademicYearandClassandSectionlist,
-    getGradeList
+    getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/tbschoolprimary';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
@@ -112,12 +112,24 @@ export default function ProgressCardReportForm({
         let isMounted = true;
         (async () => {
             try {
-                let rawYears = extractArray(academicData, ['academicyearlist', 'yearlist', 'getacademicyearlist', 'academicYearList', 'getacademicyear']);
+                let rawYears = extractArray(academicData, [
+                    'academicyearlist',
+                    'yearlist',
+                    'getacademicyearlist',
+                    'academicYearList',
+                    'getacademicyear'
+                ]);
 
                 if (!rawYears || rawYears.length === 0) {
                     try {
                         const res = await getAcademicYearList();
-                        rawYears = extractArray(res, ['academicyearlist', 'yearlist', 'getacademicyearlist', 'academicYearList', 'getacademicyear']);
+                        rawYears = extractArray(res, [
+                            'academicyearlist',
+                            'yearlist',
+                            'getacademicyearlist',
+                            'academicYearList',
+                            'getacademicyear'
+                        ]);
                     } catch (err) {
                         console.error('getAcademicYearList error:', err);
                     }
@@ -130,10 +142,12 @@ export default function ProgressCardReportForm({
                     ];
                 }
 
-                const formatted = (rawYears || []).map((i: any) => ({
-                    asmaY_Id: Number(i.asmaY_Id ?? i.ASMAY_Id ?? i.asmaY_id ?? i.ASMAY_ID ?? i.id ?? 0),
-                    asmaY_Year: String(i.asmaY_Year ?? i.ASMAY_Year ?? i.asmaY_year ?? i.ASMAY_YEAR ?? i.year ?? '')
-                })).filter((i: any) => i.asmaY_Id > 0 || i.asmaY_Year.length > 0);
+                const formatted = (rawYears || [])
+                    .map((i: any) => ({
+                        asmaY_Id: Number(i.asmaY_Id ?? i.ASMAY_Id ?? i.asmaY_id ?? i.ASMAY_ID ?? i.id ?? 0),
+                        asmaY_Year: String(i.asmaY_Year ?? i.ASMAY_Year ?? i.asmaY_year ?? i.ASMAY_YEAR ?? i.year ?? '')
+                    }))
+                    .filter((i: any) => i.asmaY_Id > 0 || i.asmaY_Year.length > 0);
 
                 if (isMounted && formatted.length > 0) {
                     setAcademicYears(formatted);
@@ -143,7 +157,9 @@ export default function ProgressCardReportForm({
                 console.error('Error loading academic years:', error);
             }
         })();
-        return () => { isMounted = false; };
+        return () => {
+            isMounted = false;
+        };
     }, [academicData, setValue]);
 
     useEffect(() => {
@@ -172,7 +188,9 @@ export default function ProgressCardReportForm({
                 if (isMounted) setLoadingGrades(false);
             }
         })();
-        return () => { isMounted = false; };
+        return () => {
+            isMounted = false;
+        };
     }, []);
 
     useEffect(() => {
@@ -190,10 +208,12 @@ export default function ProgressCardReportForm({
                         { asmcL_Id: 11, asmcL_ClassName: 'Class 6' }
                     ];
                 }
-                const formatted = (rawClasses || []).map((c: any) => ({
-                    asmcL_Id: Number(c.asmcL_Id ?? c.ASMCL_Id ?? c.asmcL_id ?? c.ASMCL_ID ?? c.id ?? 0),
-                    asmcL_ClassName: String(c.asmcL_ClassName ?? c.ASMCL_ClassName ?? c.className ?? c.classname ?? '')
-                })).filter((c: any) => c.asmcL_Id > 0 || c.asmcL_ClassName.length > 0);
+                const formatted = (rawClasses || [])
+                    .map((c: any) => ({
+                        asmcL_Id: Number(c.asmcL_Id ?? c.ASMCL_Id ?? c.asmcL_id ?? c.ASMCL_ID ?? c.id ?? 0),
+                        asmcL_ClassName: String(c.asmcL_ClassName ?? c.ASMCL_ClassName ?? c.className ?? c.classname ?? '')
+                    }))
+                    .filter((c: any) => c.asmcL_Id > 0 || c.asmcL_ClassName.length > 0);
 
                 if (isMounted) {
                     setClasses(formatted);
@@ -212,7 +232,9 @@ export default function ProgressCardReportForm({
                 if (isMounted) setLoadingClasses(false);
             }
         })();
-        return () => { isMounted = false; };
+        return () => {
+            isMounted = false;
+        };
     }, [selectedYear, setValue]);
 
     useEffect(() => {
@@ -230,10 +252,20 @@ export default function ProgressCardReportForm({
                         { asmS_Id: 2, asmC_SectionName: 'B' }
                     ];
                 }
-                const formatted = (rawSections || []).map((s: any) => ({
-                    asmS_Id: Number(s.asmS_Id ?? s.ASMS_Id ?? s.asmS_id ?? s.ASMS_ID ?? s.id ?? 0),
-                    asmC_SectionName: String(s.asmC_SectionName ?? s.ASMC_SectionName ?? s.asmS_SectionName ?? s.ASMS_SectionName ?? s.sectionName ?? s.sectionname ?? '')
-                })).filter((s: any) => s.asmS_Id > 0 || s.asmC_SectionName.length > 0);
+                const formatted = (rawSections || [])
+                    .map((s: any) => ({
+                        asmS_Id: Number(s.asmS_Id ?? s.ASMS_Id ?? s.asmS_id ?? s.ASMS_ID ?? s.id ?? 0),
+                        asmC_SectionName: String(
+                            s.asmC_SectionName ??
+                                s.ASMC_SectionName ??
+                                s.asmS_SectionName ??
+                                s.ASMS_SectionName ??
+                                s.sectionName ??
+                                s.sectionname ??
+                                ''
+                        )
+                    }))
+                    .filter((s: any) => s.asmS_Id > 0 || s.asmC_SectionName.length > 0);
 
                 if (isMounted) {
                     setSections(formatted);
@@ -251,7 +283,9 @@ export default function ProgressCardReportForm({
                 if (isMounted) setLoadingSections(false);
             }
         })();
-        return () => { isMounted = false; };
+        return () => {
+            isMounted = false;
+        };
     }, [selectedYear, selectedClass, setValue]);
 
     useEffect(() => {
@@ -268,28 +302,66 @@ export default function ProgressCardReportForm({
                     getStudentsDropDownByAcademicYearandClassandSectionlist(selectedYear, selectedClass, selectedSection)
                 ]);
 
-                let rawExams = extractArray(resExams, ['examlist', 'getexamlist', 'examList', 'getexam', 'get_Exam', 'getExam', 'getexamdetails', 'examdetails', 'exams']);
-                let rawStudents = extractArray(resStudents, ['studentlist', 'getstudentlist', 'studentList', 'getstudentdetails', 'studentdetails', 'get_studentdetails', 'students']);
+                const rawExams = extractArray(resExams, [
+                    'examlist',
+                    'getexamlist',
+                    'examList',
+                    'getexam',
+                    'get_Exam',
+                    'getExam',
+                    'getexamdetails',
+                    'examdetails',
+                    'exams'
+                ]);
+                const rawStudents = extractArray(resStudents, [
+                    'studentlist',
+                    'getstudentlist',
+                    'studentList',
+                    'getstudentdetails',
+                    'studentdetails',
+                    'get_studentdetails',
+                    'students'
+                ]);
 
-                const formattedExams = (rawExams || []).map((e: any) => {
-                    const id = Number(e.emE_Id ?? e.EME_Id ?? e.emE_id ?? e.EME_ID ?? e.id ?? e.ID ?? 0);
-                    const name = String(e.emE_ExamName ?? e.EME_ExamName ?? e.emE_ExamCode ?? e.EME_ExamCode ?? e.examName ?? e.examname ?? e.name ?? e.label ?? '');
-                    return {
-                        emE_Id: id,
-                        emE_ExamName: name || `Exam ${id}`
-                    };
-                }).filter((e: any) => e.emE_Id > 0 || e.emE_ExamName.length > 0);
+                const formattedExams = (rawExams || [])
+                    .map((e: any) => {
+                        const id = Number(e.emE_Id ?? e.EME_Id ?? e.emE_id ?? e.EME_ID ?? e.id ?? e.ID ?? 0);
+                        const name = String(
+                            e.emE_ExamName ??
+                                e.EME_ExamName ??
+                                e.emE_ExamCode ??
+                                e.EME_ExamCode ??
+                                e.examName ??
+                                e.examname ??
+                                e.name ??
+                                e.label ??
+                                ''
+                        );
+                        return {
+                            emE_Id: id,
+                            emE_ExamName: name || `Exam ${id}`
+                        };
+                    })
+                    .filter((e: any) => e.emE_Id > 0 || e.emE_ExamName.length > 0);
 
-                const mappedStudents = (rawStudents || []).map((s: any) => {
-                    const id = Number(s.amsT_Id ?? s.AMST_Id ?? s.amsT_id ?? s.AMST_ID ?? s.id ?? s.ID ?? 0);
-                    const admNo = s.amsT_AdmNo ?? s.AMST_AdmNo ?? s.admNo ?? s.admno ?? s.AMST_Admno ?? '';
-                    const name = s.studentName || s.studentname || s.student_Name || (s.amsT_FirstName || s.AMST_FirstName ? `${s.amsT_FirstName || s.AMST_FirstName || ''} ${s.amsT_MiddleName || s.AMST_MiddleName || ''} ${s.amsT_LastName || s.AMST_LastName || ''}`.trim() : '');
-                    return {
-                        amsT_Id: id,
-                        amsT_AdmNo: admNo,
-                        studentName: name || `Student ${id}`
-                    };
-                }).filter((s: any) => s.amsT_Id > 0);
+                const mappedStudents = (rawStudents || [])
+                    .map((s: any) => {
+                        const id = Number(s.amsT_Id ?? s.AMST_Id ?? s.amsT_id ?? s.AMST_ID ?? s.id ?? s.ID ?? 0);
+                        const admNo = s.amsT_AdmNo ?? s.AMST_AdmNo ?? s.admNo ?? s.admno ?? s.AMST_Admno ?? '';
+                        const name =
+                            s.studentName ||
+                            s.studentname ||
+                            s.student_Name ||
+                            (s.amsT_FirstName || s.AMST_FirstName
+                                ? `${s.amsT_FirstName || s.AMST_FirstName || ''} ${s.amsT_MiddleName || s.AMST_MiddleName || ''} ${s.amsT_LastName || s.AMST_LastName || ''}`.trim()
+                                : '');
+                        return {
+                            amsT_Id: id,
+                            amsT_AdmNo: admNo,
+                            studentName: name || `Student ${id}`
+                        };
+                    })
+                    .filter((s: any) => s.amsT_Id > 0);
 
                 if (isMounted) {
                     setExams(formattedExams);
@@ -308,7 +380,9 @@ export default function ProgressCardReportForm({
                 }
             }
         })();
-        return () => { isMounted = false; };
+        return () => {
+            isMounted = false;
+        };
     }, [selectedYear, selectedClass, selectedSection, setValue]);
 
     const onSubmit = async (data: FormFields) => {
@@ -552,33 +626,33 @@ export default function ProgressCardReportForm({
                                     control={control}
                                     name='reporttype'
                                     render={({ field }) => (
-                                        <div className='flex items-center justify-center p-4 border rounded-md'>
+                                        <div className='flex items-center justify-center rounded-md border p-4'>
                                             <div className='flex items-center space-x-6'>
-                                                <label className='flex items-center space-x-2 cursor-pointer'>
+                                                <label className='flex cursor-pointer items-center space-x-2'>
                                                     <input
-                                                        type="radio"
-                                                        value="REPORT"
+                                                        type='radio'
+                                                        value='REPORT'
                                                         checked={field.value === 'REPORT'}
                                                         onChange={() => {
                                                             field.onChange('REPORT');
                                                             if (onReportTypeChange) onReportTypeChange('REPORT');
                                                         }}
-                                                        className="form-radio h-4 w-4 text-blue-600"
+                                                        className='form-radio h-4 w-4 text-blue-600'
                                                     />
-                                                    <span className='font-medium text-sm text-gray-700'>REPORT</span>
+                                                    <span className='font-medium text-gray-700 text-sm'>REPORT</span>
                                                 </label>
-                                                <label className='flex items-center space-x-2 cursor-pointer'>
+                                                <label className='flex cursor-pointer items-center space-x-2'>
                                                     <input
-                                                        type="radio"
-                                                        value="TEMPLATE"
+                                                        type='radio'
+                                                        value='TEMPLATE'
                                                         checked={field.value === 'TEMPLATE'}
                                                         onChange={() => {
                                                             field.onChange('TEMPLATE');
                                                             if (onReportTypeChange) onReportTypeChange('TEMPLATE');
                                                         }}
-                                                        className="form-radio h-4 w-4 text-blue-600"
+                                                        className='form-radio h-4 w-4 text-blue-600'
                                                     />
-                                                    <span className='font-medium text-sm text-gray-700'>TEMPLATE</span>
+                                                    <span className='font-medium text-gray-700 text-sm'>TEMPLATE</span>
                                                 </label>
                                             </div>
                                         </div>
@@ -605,14 +679,11 @@ export default function ProgressCardReportForm({
                                     setStudents([]);
                                     setExams([]);
                                 }}
-                                className='min-w-[100px] bg-orange-500 hover:bg-orange-600 text-white'>
+                                className='min-w-[100px] bg-orange-500 text-white hover:bg-orange-600'>
                                 Cancel
                             </Button>
                             {onPrint && (
-                                <Button
-                                    type='button'
-                                    onClick={onPrint}
-                                    className='min-w-[100px] bg-blue-600 hover:bg-blue-700 text-white'>
+                                <Button type='button' onClick={onPrint} className='min-w-[100px] bg-blue-600 text-white hover:bg-blue-700'>
                                     Print
                                 </Button>
                             )}

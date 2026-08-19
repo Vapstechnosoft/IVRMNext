@@ -2,7 +2,12 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { IBMICalculation, IBMIClassResponse, IBMISectionResponse, IBMIStudentResponse } from '@/types/sports/transactions/bmi-calculation';
+import type {
+    IBMICalculation,
+    IBMIClassResponse,
+    IBMISectionResponse,
+    IBMIStudentResponse
+} from '@/types/sports/transactions/bmi-calculation';
 
 export async function getBMILoadGrid(searchParams?: ApiSearchparams) {
     const params = { ...searchParams };
@@ -11,7 +16,8 @@ export async function getBMILoadGrid(searchParams?: ApiSearchparams) {
     }
     // Default search columns for multi-column search if not provided
     if (!params.search_column && !params.search_columns) {
-        params.search_columns = 'studentName,AMST_AdmNo,ASMCL_ClassName,ASMC_SectionName,ASMAY_Year,asondate,SPCCSHW_Height,SPCCSHW_Weight,SPCCSHW_BMI,SPCCSHW_BMIRemark';
+        params.search_columns =
+            'studentName,AMST_AdmNo,ASMCL_ClassName,ASMC_SectionName,ASMAY_Year,asondate,SPCCSHW_Height,SPCCSHW_Weight,SPCCSHW_BMI,SPCCSHW_BMIRemark';
     }
 
     const urlParams = getSearchParamsUrl(params);
@@ -44,7 +50,7 @@ export async function getBMILoadGrid(searchParams?: ApiSearchparams) {
             Array.isArray(response.data) ? response.data : null
         ];
 
-        const list = possibleLists.find(l => Array.isArray(l) && l.length > 0);
+        const list = possibleLists.find((l) => Array.isArray(l) && l.length > 0);
 
         if (list) {
             response.data = list;
@@ -70,7 +76,7 @@ export async function getBMILoadGrid(searchParams?: ApiSearchparams) {
         return {
             success: false,
             message: 'Failed to load grid data',
-            data: [],
+            data: []
         };
     }
 }

@@ -1,10 +1,10 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type { 
-    ISMSCollegeStudentTCInitialData, 
-    ISMSCollegeStudentTCStudent, 
-    ISMSCollegeStudentTCResponse 
+import type {
+    ISMSCollegeStudentTCInitialData,
+    ISMSCollegeStudentTCResponse,
+    ISMSCollegeStudentTCStudent
 } from '@/types/admission/sms/transactions/sms-college-student-tc';
 
 const BASE_URL = 'CollegeStudenttctransaction';
@@ -22,29 +22,29 @@ export async function onCourseChange(asmaY_Id: number, amcO_Id: number) {
 }
 
 export async function onBranchChange(asmaY_Id: number, amcO_Id: number, amB_Id: number) {
-    return await api.post<any>('admission', `/${BASE_URL}/onchangebranch`, { 
-        ASMAY_Id: asmaY_Id, 
-        AMCO_Id: amcO_Id, 
-        AMB_Id: amB_Id 
+    return await api.post<any>('admission', `/${BASE_URL}/onchangebranch`, {
+        ASMAY_Id: asmaY_Id,
+        AMCO_Id: amcO_Id,
+        AMB_Id: amB_Id
     });
 }
 
 export async function onSemesterChange(asmaY_Id: number, amcO_Id: number, amB_Id: number, amsE_Id: number) {
-    return await api.post<any>('admission', `/${BASE_URL}/onchangesemester`, { 
-        ASMAY_Id: asmaY_Id, 
-        AMCO_Id: amcO_Id, 
-        AMB_Id: amB_Id, 
-        AMSE_Id: amsE_Id 
+    return await api.post<any>('admission', `/${BASE_URL}/onchangesemester`, {
+        ASMAY_Id: asmaY_Id,
+        AMCO_Id: amcO_Id,
+        AMB_Id: amB_Id,
+        AMSE_Id: amsE_Id
     });
 }
 
 export async function onSectionChange(asmaY_Id: number, amcO_Id: number, amB_Id: number, amsE_Id: number, acmS_Id: number) {
-    return await api.post<any>('admission', `/${BASE_URL}/onchangesection`, { 
-        ASMAY_Id: asmaY_Id, 
-        AMCO_Id: amcO_Id, 
-        AMB_Id: amB_Id, 
-        AMSE_Id: amsE_Id, 
-        ACMS_Id: acmS_Id 
+    return await api.post<any>('admission', `/${BASE_URL}/onchangesection`, {
+        ASMAY_Id: asmaY_Id,
+        AMCO_Id: amcO_Id,
+        AMB_Id: amB_Id,
+        AMSE_Id: amsE_Id,
+        ACMS_Id: acmS_Id
     });
 }
 

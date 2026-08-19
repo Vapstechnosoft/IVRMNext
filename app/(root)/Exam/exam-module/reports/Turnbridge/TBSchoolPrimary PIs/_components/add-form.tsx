@@ -10,9 +10,9 @@ import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import {
     getClassDropDownByAcademicYearlist,
     getExamsDropDownByAcademicYearandClassandSectionlist,
+    getGradeList,
     getSectionsDropDownByAcademicYearandClasslist,
-    getStudentsDropDownByAcademicYearandClassandSectionlist,
-    getGradeList
+    getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/tbschoolprimary';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
@@ -62,7 +62,7 @@ export default function ProgressCardReportForm({
     const [exams, setExams] = useState<{ emE_Id: number; emE_ExamName: string }[]>([]);
     const [students, setStudents] = useState<{ amsT_AdmNo: number; amsT_Id: number; studentName?: string | null }[]>([]);
     const [grades, setGrades] = useState<{ emgR_Id: number; emgR_GradeName: string }[]>([]);
-    
+
     const [allStudentsSelected, setAllStudentsSelected] = useState(false);
     const [allExamsSelected, setAllExamsSelected] = useState(false);
 
@@ -232,12 +232,12 @@ export default function ProgressCardReportForm({
             examlist: data.examList.map((e) => ({ emE_Id: e.emE_Id })),
             EMGR_Id: 0
         };
-        
+
         if (onSuccess) {
             await onSuccess(payload, data.reporttype);
         }
     };
-    
+
     const handleAllStudents = (checked: boolean) => {
         if (checked && students.length) {
             setValue('studentList', [...students], { shouldValidate: true });
@@ -452,38 +452,38 @@ export default function ProgressCardReportForm({
                                         </div>
                                     )}
                                 />
-                                
+
                                 <Controller
                                     control={control}
                                     name='reporttype'
                                     render={({ field }) => (
-                                        <div className='flex items-center justify-center p-4 border rounded-md'>
+                                        <div className='flex items-center justify-center rounded-md border p-4'>
                                             <div className='flex items-center space-x-6'>
-                                                <label className='flex items-center space-x-2 cursor-pointer'>
+                                                <label className='flex cursor-pointer items-center space-x-2'>
                                                     <input
-                                                        type="radio"
-                                                        value="REPORT"
+                                                        type='radio'
+                                                        value='REPORT'
                                                         checked={field.value === 'REPORT'}
                                                         onChange={() => {
                                                             field.onChange('REPORT');
                                                             if (onReportTypeChange) onReportTypeChange('REPORT');
                                                         }}
-                                                        className="form-radio h-4 w-4 text-blue-600"
+                                                        className='form-radio h-4 w-4 text-blue-600'
                                                     />
-                                                    <span className='font-medium text-sm text-gray-700'>REPORT</span>
+                                                    <span className='font-medium text-gray-700 text-sm'>REPORT</span>
                                                 </label>
-                                                <label className='flex items-center space-x-2 cursor-pointer'>
+                                                <label className='flex cursor-pointer items-center space-x-2'>
                                                     <input
-                                                        type="radio"
-                                                        value="TEMPLATE"
+                                                        type='radio'
+                                                        value='TEMPLATE'
                                                         checked={field.value === 'TEMPLATE'}
                                                         onChange={() => {
                                                             field.onChange('TEMPLATE');
                                                             if (onReportTypeChange) onReportTypeChange('TEMPLATE');
                                                         }}
-                                                        className="form-radio h-4 w-4 text-blue-600"
+                                                        className='form-radio h-4 w-4 text-blue-600'
                                                     />
-                                                    <span className='font-medium text-sm text-gray-700'>TEMPLATE</span>
+                                                    <span className='font-medium text-gray-700 text-sm'>TEMPLATE</span>
                                                 </label>
                                             </div>
                                         </div>
@@ -510,14 +510,11 @@ export default function ProgressCardReportForm({
                                     setStudents([]);
                                     setExams([]);
                                 }}
-                                className='min-w-[100px] bg-orange-500 hover:bg-orange-600 text-white'>
+                                className='min-w-[100px] bg-orange-500 text-white hover:bg-orange-600'>
                                 Cancel
                             </Button>
                             {onPrint && (
-                                <Button
-                                    type='button'
-                                    onClick={onPrint}
-                                    className='min-w-[100px] bg-blue-600 hover:bg-blue-700 text-white'>
+                                <Button type='button' onClick={onPrint} className='min-w-[100px] bg-blue-600 text-white hover:bg-blue-700'>
                                     Print
                                 </Button>
                             )}

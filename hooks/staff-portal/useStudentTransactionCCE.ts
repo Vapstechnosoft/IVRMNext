@@ -1,55 +1,57 @@
-
 'use client';
 
-import { useMutation, useQuery } from '@tanstack/react-query';
 import {
-    getInitialStudentTransactionData,
-    getClasses,
-    getSections,
-    getTermsOrExams,
-    getSkillsOrActivities,
     getActivitiesAreas,
+    getClasses,
+    getInitialStudentTransactionData,
+    getSections,
     getSkillsAreas,
+    getSkillsOrActivities,
     getStudentList,
+    getTermsOrExams,
     saveStudentTransaction
 } from '@/server/staff-portal/student-transaction-cce';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const useStudentTransactionCCE = () => {
     const initialDataQuery = useQuery({
         queryKey: ['student-transaction-initial'],
-        queryFn: () => getInitialStudentTransactionData(),
+        queryFn: () => getInitialStudentTransactionData()
     });
 
     const getClassesMutation = useMutation({
-        mutationFn: (params: { asmaY_Id: number, flag: string }) => getClasses(params.asmaY_Id, params.flag),
+        mutationFn: (params: { asmaY_Id: number; flag: string }) => getClasses(params.asmaY_Id, params.flag)
     });
 
     const getSectionsMutation = useMutation({
-        mutationFn: (params: { asmaY_Id: number, asmcL_Id: number, flag: string }) => getSections(params.asmaY_Id, params.asmcL_Id, params.flag),
+        mutationFn: (params: { asmaY_Id: number; asmcL_Id: number; flag: string }) =>
+            getSections(params.asmaY_Id, params.asmcL_Id, params.flag)
     });
 
     const getTermsOrExamsMutation = useMutation({
-        mutationFn: (params: { asmaY_Id: number, asmcL_Id: number, asmS_Id: number, flag: string }) => getTermsOrExams(params.asmaY_Id, params.asmcL_Id, params.asmS_Id, params.flag),
+        mutationFn: (params: { asmaY_Id: number; asmcL_Id: number; asmS_Id: number; flag: string }) =>
+            getTermsOrExams(params.asmaY_Id, params.asmcL_Id, params.asmS_Id, params.flag)
     });
 
     const getSkillsOrActivitiesMutation = useMutation({
-        mutationFn: (params: { skills: string, asmaY_Id: number, asmcL_Id: number, asmS_Id: number, flag: string }) => getSkillsOrActivities(params.skills, params.asmaY_Id, params.asmcL_Id, params.asmS_Id, params.flag),
+        mutationFn: (params: { skills: string; asmaY_Id: number; asmcL_Id: number; asmS_Id: number; flag: string }) =>
+            getSkillsOrActivities(params.skills, params.asmaY_Id, params.asmcL_Id, params.asmS_Id, params.flag)
     });
 
     const getActivitiesAreasMutation = useMutation({
-        mutationFn: getActivitiesAreas,
+        mutationFn: getActivitiesAreas
     });
 
     const getSkillsAreasMutation = useMutation({
-        mutationFn: getSkillsAreas,
+        mutationFn: getSkillsAreas
     });
 
     const searchMutation = useMutation({
-        mutationFn: getStudentList,
+        mutationFn: getStudentList
     });
 
     const saveMutation = useMutation({
-        mutationFn: saveStudentTransaction,
+        mutationFn: saveStudentTransaction
     });
 
     return {
@@ -62,6 +64,6 @@ export const useStudentTransactionCCE = () => {
         getActivitiesAreas: getActivitiesAreasMutation,
         getSkillsAreas: getSkillsAreasMutation,
         search: searchMutation,
-        save: saveMutation,
+        save: saveMutation
     };
 };

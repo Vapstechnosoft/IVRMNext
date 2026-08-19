@@ -1,4 +1,3 @@
-
 export interface IInvRStockLoadData {
     // This will handle the dynamic list based on option flag
     stockDetails?: IInvRStockEntity[];
@@ -27,8 +26,8 @@ export interface IInvRStockReportData {
     sno?: number;
     invmI_ItemName?: string;
     // Common fields
-    purOBQty?: number;     // Opening Balance
-    salesQty?: number;     // Sale Qty
+    purOBQty?: number; // Opening Balance
+    salesQty?: number; // Sale Qty
     invstO_ItemConQty?: number; // Item Consumption
     invstO_CheckedOutQty?: number; // Checked Out
     invstO_PhyPlusQty?: number; // Stock +

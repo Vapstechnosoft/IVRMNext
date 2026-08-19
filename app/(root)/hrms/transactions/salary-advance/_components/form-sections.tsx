@@ -13,7 +13,8 @@ interface FormSectionsProps {
 }
 
 export default function FormSections({ employeeDropdown, onSuccess }: FormSectionsProps) {
-    const { isAddFormOpen, closeAddForm, addFormRef, isEditFormOpen, closeEditForm, editFormRef, selectedRow } = useFormContext<SalaryAdvanceGridItem>();
+    const { isAddFormOpen, closeAddForm, addFormRef, isEditFormOpen, closeEditForm, editFormRef, selectedRow } =
+        useFormContext<SalaryAdvanceGridItem>();
 
     return (
         <>

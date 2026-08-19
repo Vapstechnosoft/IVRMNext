@@ -1,8 +1,8 @@
 import { LIBRARY_QUERY_KEYS } from '@/constants/query-keys';
 import { getMasterCategory } from '@/server/admission/preadmission/masters/category';
 import { getMasterClassCategory } from '@/server/admission/preadmission/masters/class_category';
-import { getMasterDepartment } from '@/server/library/masters/department';
 import { getMasterAccessories } from '@/server/library/masters/accessories';
+import { getMasterDepartment } from '@/server/library/masters/department';
 import { getMasterCategoryList } from '@/server/library/masters/library_category';
 import { getMasterVendorList } from '@/server/library/masters/library_vendor';
 import { getMasterAuthorList } from '@/server/library/masters/master_author';

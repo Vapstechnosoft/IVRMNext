@@ -2,7 +2,7 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import { IRouteLocationMapping } from '@/types/transport/transport-module/transaction';
+import type { IRouteLocationMapping } from '@/types/transport/transport-module/transaction';
 
 export async function getRouteLocationMapping(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
@@ -20,8 +20,6 @@ export async function getLocationsByRoute(trmR_Id: number) {
     const url = `/route_location_mapping/locations_dropdown_by_route/${trmR_Id}`;
     return await api.get<any>('transport', url);
 }
-
-
 
 export async function activeDeactiveRouteLocationMapping(trmrL_Id: number) {
     const url = `/route_location_mapping/active_deactive_route_location/${trmrL_Id}`;

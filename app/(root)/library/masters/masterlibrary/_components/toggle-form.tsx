@@ -30,7 +30,10 @@ export default function ToggleMasterLibraryForm({ rowData, onClose }: toggleMast
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterLibrarySchema.delete),
-        mode: 'onChange'
+        mode: 'onChange',
+        defaultValues: {
+            lmaL_Id: String(rowData.lmaL_Id)
+        }
     });
 
     function closeDialog() {

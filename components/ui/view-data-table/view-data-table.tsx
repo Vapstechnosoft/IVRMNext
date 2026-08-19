@@ -1,10 +1,10 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { getCommonPinningStyles } from '@/lib/data-table.config';
+import { cn } from '@/lib/utils';
 import type { ApiSearchparams } from '@/types';
 import { DoubleArrowLeftIcon, DoubleArrowRightIcon } from '@radix-ui/react-icons';
 import {
@@ -115,8 +115,7 @@ function DataTableInner<TData, TValue>(props: DataTableProps<TData, TValue>, ref
     const currentSorting = sortBy ? [{ id: sortBy, desc: order === 'desc' }] : [];
 
     const onSortingChange = (updaterOrValue: any) => {
-        const newSortingState =
-            typeof updaterOrValue === 'function' ? updaterOrValue(currentSorting) : updaterOrValue;
+        const newSortingState = typeof updaterOrValue === 'function' ? updaterOrValue(currentSorting) : updaterOrValue;
 
         const hasChanged = JSON.stringify(newSortingState) !== JSON.stringify(currentSorting);
         if (!hasChanged) {
@@ -138,7 +137,7 @@ function DataTableInner<TData, TValue>(props: DataTableProps<TData, TValue>, ref
 
     const handlePaginationChange = (updaterOrValue: PaginationState | ((old: PaginationState) => PaginationState)) => {
         const pagination = typeof updaterOrValue === 'function' ? updaterOrValue(paginationState) : updaterOrValue;
-        
+
         if (data.length === 0) {
             return;
         }
@@ -252,28 +251,30 @@ function DataTableInner<TData, TValue>(props: DataTableProps<TData, TValue>, ref
                 <>
                     {/* ---------- FIXED TABLE STRUCTURE ---------- */}
                     <div className='overflow-hidden rounded-md border'>
-                        <div className="relative max-h-[520px] overflow-auto">   {/* SINGLE SCROLL CONTAINER */}
-                            <Table className="min-w-full table-fixed border-separate border-spacing-0">
-
+                        <div className='relative max-h-[520px] overflow-auto'>
+                            {' '}
+                            {/* SINGLE SCROLL CONTAINER */}
+                            <Table className='min-w-full table-fixed border-separate border-spacing-0'>
                                 {/* column widths stay the same for both header & body */}
                                 <colgroup>
-                                    {table.getAllLeafColumns().map(col => (
+                                    {table.getAllLeafColumns().map((col) => (
                                         <col key={col.id} style={{ width: col.getSize() }} />
                                     ))}
                                 </colgroup>
 
                                 <TableHeader className='grid-header-row'>
-                                    {table.getHeaderGroups().map(headerGroup => (
-                                        <TableRow key={headerGroup.id} className="border-none hover:bg-transparent">
-                                            {headerGroup.headers.map(header => (
+                                    {table.getHeaderGroups().map((headerGroup) => (
+                                        <TableRow key={headerGroup.id} className='border-none hover:bg-transparent'>
+                                            {headerGroup.headers.map((header) => (
                                                 <TableHead
                                                     key={header.id}
                                                     colSpan={header.colSpan}
-                                                    className="grid-header-cell sticky top-0 z-10"
-                                                    style={getCommonPinningStyles({ column: header.column })}  // 👈 pinning works here
+                                                    className='grid-header-cell sticky top-0 z-10'
+                                                    style={getCommonPinningStyles({ column: header.column })} // 👈 pinning works here
                                                 >
-                                                    {header.isPlaceholder ? null :
-                                                        flexRender(header.column.columnDef.header, header.getContext())}
+                                                    {header.isPlaceholder
+                                                        ? null
+                                                        : flexRender(header.column.columnDef.header, header.getContext())}
                                                 </TableHead>
                                             ))}
                                         </TableRow>
@@ -282,13 +283,13 @@ function DataTableInner<TData, TValue>(props: DataTableProps<TData, TValue>, ref
 
                                 <TableBody>
                                     {table.getRowModel().rows?.length ? (
-                                        table.getRowModel().rows.map(row => (
-                                            <TableRow key={row.id} className="border-b">
-                                                {row.getVisibleCells().map(cell => (
+                                        table.getRowModel().rows.map((row) => (
+                                            <TableRow key={row.id} className='border-b'>
+                                                {row.getVisibleCells().map((cell) => (
                                                     <TableCell
                                                         key={cell.id}
-                                                        className="whitespace-nowrap border-b"
-                                                        style={getCommonPinningStyles({ column: cell.column })}  // 👈 NOW body pinning works
+                                                        className='whitespace-nowrap border-b'
+                                                        style={getCommonPinningStyles({ column: cell.column })} // 👈 NOW body pinning works
                                                     >
                                                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                                     </TableCell>
@@ -297,10 +298,7 @@ function DataTableInner<TData, TValue>(props: DataTableProps<TData, TValue>, ref
                                         ))
                                     ) : (
                                         <TableRow>
-                                            <TableCell
-                                                colSpan={table.getAllColumns().length}
-                                                className="h-24 text-center"
-                                            >
+                                            <TableCell colSpan={table.getAllColumns().length} className='h-24 text-center'>
                                                 No results found
                                             </TableCell>
                                         </TableRow>
@@ -308,8 +306,6 @@ function DataTableInner<TData, TValue>(props: DataTableProps<TData, TValue>, ref
                                 </TableBody>
                             </Table>
                         </div>
-
-
                     </div>
 
                     {/* ---------- PAGINATION ---------- */}
@@ -325,9 +321,15 @@ function DataTableInner<TData, TValue>(props: DataTableProps<TData, TValue>, ref
                                     <div className='pagination-info'>
                                         {totalItems > 0 ? (
                                             <>
-                                                Showing <span className="pagination-number">{paginationState.pageIndex * paginationState.pageSize + 1}</span>
-                                                to <span className="pagination-number">{Math.min((paginationState.pageIndex + 1) * paginationState.pageSize, totalItems)}</span>
-                                                of <span className="pagination-number">{totalItems}</span> entries
+                                                Showing{' '}
+                                                <span className='pagination-number'>
+                                                    {paginationState.pageIndex * paginationState.pageSize + 1}
+                                                </span>
+                                                to{' '}
+                                                <span className='pagination-number'>
+                                                    {Math.min((paginationState.pageIndex + 1) * paginationState.pageSize, totalItems)}
+                                                </span>
+                                                of <span className='pagination-number'>{totalItems}</span> entries
                                             </>
                                         ) : (
                                             'No entries found'
@@ -337,7 +339,9 @@ function DataTableInner<TData, TValue>(props: DataTableProps<TData, TValue>, ref
 
                                 {/* Rows per page */}
                                 <div className='pagination-size-container'>
-                                    <p className='whitespace-nowrap font-semibold text-[11px] text-slate-500 uppercase tracking-wider'>Rows per page</p>
+                                    <p className='whitespace-nowrap font-semibold text-[11px] text-slate-500 uppercase tracking-wider'>
+                                        Rows per page
+                                    </p>
                                     <Select
                                         value={`${paginationState.pageSize}`}
                                         onValueChange={(value) => {
@@ -347,9 +351,9 @@ function DataTableInner<TData, TValue>(props: DataTableProps<TData, TValue>, ref
                                         <SelectTrigger className='h-7 w-[70px] rounded-full border-none bg-white/50 shadow-none focus:ring-0'>
                                             <SelectValue placeholder={paginationState.pageSize} />
                                         </SelectTrigger>
-                                        <SelectContent side='top' className="rounded-xl border-slate-100 shadow-xl">
+                                        <SelectContent side='top' className='rounded-xl border-slate-100 shadow-xl'>
                                             {pageSizeOptions.map((pageSize) => (
-                                                <SelectItem key={pageSize} value={`${pageSize}`} className="rounded-lg">
+                                                <SelectItem key={pageSize} value={`${pageSize}`} className='rounded-lg'>
                                                     {pageSize}
                                                 </SelectItem>
                                             ))}
@@ -397,14 +401,24 @@ function DataTableInner<TData, TValue>(props: DataTableProps<TData, TValue>, ref
                                             } else if (currentPage >= totalPages - 2) {
                                                 return [1, 2, 3, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
                                             } else {
-                                                return [1, 2, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages - 1, totalPages];
+                                                return [
+                                                    1,
+                                                    2,
+                                                    '...',
+                                                    currentPage - 1,
+                                                    currentPage,
+                                                    currentPage + 1,
+                                                    '...',
+                                                    totalPages - 1,
+                                                    totalPages
+                                                ];
                                             }
                                         };
 
                                         return getRange().map((page, i) => {
                                             if (page === '...') {
                                                 return (
-                                                    <span key={`dots-${i}`} className="px-2 text-slate-400">
+                                                    <span key={`dots-${i}`} className='px-2 text-slate-400'>
                                                         ...
                                                     </span>
                                                 );
@@ -415,11 +429,7 @@ function DataTableInner<TData, TValue>(props: DataTableProps<TData, TValue>, ref
                                                 <button
                                                     key={pageNum}
                                                     onClick={() => table.setPageIndex(pageNum - 1)}
-                                                    className={cn(
-                                                        'pagination-item',
-                                                        currentPage === pageNum && 'pagination-item-active'
-                                                    )}
-                                                >
+                                                    className={cn('pagination-item', currentPage === pageNum && 'pagination-item-active')}>
                                                     {pageNum}
                                                 </button>
                                             );

@@ -1,13 +1,13 @@
 'use client';
 
-import React from 'react';
-import { Dancing_Script } from 'next/font/google';
 import { cn } from '@/lib/utils';
+import { Dancing_Script } from 'next/font/google';
+import React from 'react';
 
 const dancingScript = Dancing_Script({
     subsets: ['latin'],
     weight: ['400', '700'],
-    variable: '--font-dancing-script',
+    variable: '--font-dancing-script'
 });
 
 type CertificateProps = {
@@ -20,14 +20,13 @@ type CertificateProps = {
     purpose: string;
 };
 
-const MeritCertificate = React.forwardRef<HTMLDivElement, CertificateProps>(
-    ({ student, purpose }, ref) => {
-        const fullName = student ? `${student.stuFN} ${student.stuMN || ''} ${student.stuLN || ''}`.trim() : '';
+const MeritCertificate = React.forwardRef<HTMLDivElement, CertificateProps>(({ student, purpose }, ref) => {
+    const fullName = student ? `${student.stuFN} ${student.stuMN || ''} ${student.stuLN || ''}`.trim() : '';
 
-        return (
-            <div ref={ref} className={cn("printable-content", dancingScript.variable)}>
-                <style>
-                    {`
+    return (
+        <div ref={ref} className={cn('printable-content', dancingScript.variable)}>
+            <style>
+                {`
                     @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap');
                     
                     @media print {
@@ -224,64 +223,63 @@ const MeritCertificate = React.forwardRef<HTMLDivElement, CertificateProps>(
                         margin: 0 10px;
                     }
                 `}
-                </style>
-                
-                <div className="outer-wrap">
-                    <div className="certificate-container">
-                        <div className="inner-border">
-                            <div className="certificate-header">
-                                <h1 className="header-title">ST. ANN’S GROUP OF SCHOOL</h1>
-                                <h2 className="header-subtitle">ICSE & ISC, NEW DELHI</h2>
-                                <p className="header-address">Howrah Maidan | Bankra | Bolpur | Panchanantala</p>
+            </style>
+
+            <div className='outer-wrap'>
+                <div className='certificate-container'>
+                    <div className='inner-border'>
+                        <div className='certificate-header'>
+                            <h1 className='header-title'>ST. ANN’S GROUP OF SCHOOL</h1>
+                            <h2 className='header-subtitle'>ICSE & ISC, NEW DELHI</h2>
+                            <p className='header-address'>Howrah Maidan | Bankra | Bolpur | Panchanantala</p>
+                            <img
+                                src='https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/43ac8b87-aedb-4b6c-8611-8d4312e1a8ea.jpg'
+                                alt='School Header'
+                                className='header-image'
+                            />
+                        </div>
+
+                        <div className='certificate-body'>
+                            <p>
+                                Name
+                                <span className='dotted-underline' style={{ width: '560px' }}>
+                                    <span className='highlight-text'>{fullName}</span>
+                                </span>
+                            </p>
+                            <p style={{ marginTop: '20px' }}>
+                                For
+                                <span className='dotted-underline' style={{ width: '380px' }}>
+                                    <span className='highlight-text'>{purpose}</span>
+                                </span>
+                                &nbsp; For the Session {student?.acadamicyear || '____'}
+                            </p>
+                        </div>
+
+                        <div className='certificate-footer'>
+                            <div className='signature-box'>
                                 <img
-                                    src="https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/43ac8b87-aedb-4b6c-8611-8d4312e1a8ea.jpg"
-                                    alt="School Header"
-                                    className="header-image"
+                                    src='https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/89e83cbd-ca37-49f2-b3ee-1e3ba0d7798d.png'
+                                    alt='Rector Signature'
+                                    className='rector-sign'
                                 />
-                            </div>
-
-                            <div className="certificate-body">
-                                <p>
-                                    Name
-                                    <span className="dotted-underline" style={{ width: '560px' }}>
-                                        <span className="highlight-text">{fullName}</span>
-                                    </span>
-                                </p>
-                                <p style={{ marginTop: '20px' }}>
-                                    For
-                                    <span className="dotted-underline" style={{ width: '380px' }}>
-                                        <span className="highlight-text">{purpose}</span>
-                                    </span>
-                                    &nbsp; For the Session {student?.acadamicyear || '____'}
-                                </p>
-                            </div>
-
-                            <div className="certificate-footer">
-                                <div className="signature-box">
-                                    <img
-                                        src="https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/89e83cbd-ca37-49f2-b3ee-1e3ba0d7798d.png"
-                                        alt="Rector Signature"
-                                        className="rector-sign"
-                                    />
-                                    <div className="signature-line" />
-                                    <p className="signature-title">Secretary</p>
-                                </div>
+                                <div className='signature-line' />
+                                <p className='signature-title'>Secretary</p>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <div className="bottom-bar">
-                        <span>4000+ Happy Students</span>
-                        <span className="bottom-sep">|</span>
-                        <span>350+ Dedicated Teachers</span>
-                        <span className="bottom-sep">|</span>
-                        <span>55+ Years of Excellence</span>
-                    </div>
+                <div className='bottom-bar'>
+                    <span>4000+ Happy Students</span>
+                    <span className='bottom-sep'>|</span>
+                    <span>350+ Dedicated Teachers</span>
+                    <span className='bottom-sep'>|</span>
+                    <span>55+ Years of Excellence</span>
                 </div>
             </div>
-        );
-    }
-);
+        </div>
+    );
+});
 
 MeritCertificate.displayName = 'MeritCertificate';
 

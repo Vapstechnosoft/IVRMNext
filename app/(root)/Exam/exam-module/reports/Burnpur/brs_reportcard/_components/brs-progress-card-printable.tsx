@@ -34,12 +34,7 @@ interface Props {
     year: string;
 }
 
-export default function BrsProgressCardPrintable({
-    reportData,
-    subjects,
-    examName,
-    year
-}: Props) {
+export default function BrsProgressCardPrintable({ reportData, subjects, examName, year }: Props) {
     const formatDate = (dateStr?: string | null) => {
         if (!dateStr) return 'N/A';
         try {
@@ -141,7 +136,6 @@ export default function BrsProgressCardPrintable({
                             key={student.amsT_Id}
                             className={`brs-print-card brs-border-print ${idx > 0 ? 'brs-print-break' : ''}`}
                             style={{ padding: '16px', backgroundColor: 'white' }}>
-
                             {/* School Header Image — Burnpur */}
                             <div style={{ textAlign: 'center', marginBottom: '8px' }}>
                                 <img
@@ -201,23 +195,16 @@ export default function BrsProgressCardPrintable({
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td className='brs-info-td'>
-                                            &nbsp;&nbsp;&nbsp;&nbsp;Admn. No. : {student.amsT_AdmNo}
-                                        </td>
-                                        <td className='brs-info-td'>
-                                            Date of Birth : {formatDate(student.amsT_DOB)}
-                                        </td>
-                                        <td className='brs-info-td'>
-                                            House : {(student as any).userName || 'N/A'}
-                                        </td>
+                                        <td className='brs-info-td'>&nbsp;&nbsp;&nbsp;&nbsp;Admn. No. : {student.amsT_AdmNo}</td>
+                                        <td className='brs-info-td'>Date of Birth : {formatDate(student.amsT_DOB)}</td>
+                                        <td className='brs-info-td'>House : {(student as any).userName || 'N/A'}</td>
                                     </tr>
                                     <tr>
                                         <td className='brs-info-td'>
-                                            &nbsp;&nbsp;&nbsp;&nbsp;Mother's Name : {student.amsT_MotherName || (student as any)._MotherName || 'N/A'}
+                                            &nbsp;&nbsp;&nbsp;&nbsp;Mother's Name :{' '}
+                                            {student.amsT_MotherName || (student as any)._MotherName || 'N/A'}
                                         </td>
-                                        <td className='brs-info-td'>
-                                            Father's Name : {student.amsT_FatherName}
-                                        </td>
+                                        <td className='brs-info-td'>Father's Name : {student.amsT_FatherName}</td>
                                         <td className='brs-info-td' />
                                     </tr>
                                 </tbody>
@@ -247,12 +234,8 @@ export default function BrsProgressCardPrintable({
 
                                         return (
                                             <tr key={subj.ismS_Id} className='brs-white-row'>
-                                                <td style={{ textAlign: 'left', fontWeight: 'bold' }}>
-                                                    {subj.ismS_SubjectName}
-                                                </td>
-                                                <td style={{ textAlign: 'center', fontWeight: 'bold' }}>
-                                                    {mark?.estmpS_MaxMarks ?? '-'}
-                                                </td>
+                                                <td style={{ textAlign: 'left', fontWeight: 'bold' }}>{subj.ismS_SubjectName}</td>
+                                                <td style={{ textAlign: 'center', fontWeight: 'bold' }}>{mark?.estmpS_MaxMarks ?? '-'}</td>
                                                 {subSubjects.map((sub) => {
                                                     const ssm = subSubjectMarks.find(
                                                         (m) => m.EMSS_Id === sub.EMSS_Id && m.ISMS_Id === subj.ismS_Id
@@ -262,8 +245,8 @@ export default function BrsProgressCardPrintable({
                                                             {ssm?.ESTMPSSS_PassFailFlg === 'AB'
                                                                 ? 'AB'
                                                                 : showMarks
-                                                                    ? ssm?.ESTMPSSS_ObtainedMarks ?? '-'
-                                                                    : '-'}
+                                                                  ? (ssm?.ESTMPSSS_ObtainedMarks ?? '-')
+                                                                  : '-'}
                                                         </td>
                                                     );
                                                 })}
@@ -287,9 +270,7 @@ export default function BrsProgressCardPrintable({
                                         <td style={{ textAlign: 'center', fontWeight: 'bold' }}>
                                             {student.estmP_TotalObtMarks ?? '-'} / {student.estmP_TotalMaxMarks ?? '-'}
                                         </td>
-                                        <td style={{ textAlign: 'center', fontWeight: 'bold' }}>
-                                            {student.estmP_TotalGrade ?? '-'}
-                                        </td>
+                                        <td style={{ textAlign: 'center', fontWeight: 'bold' }}>{student.estmP_TotalGrade ?? '-'}</td>
                                     </tr>
 
                                     {/* Percentage Row */}
@@ -339,9 +320,7 @@ export default function BrsProgressCardPrintable({
                                 }}>
                                 {/* Place & Date */}
                                 <div style={{ flex: 1, textAlign: 'left' }}>
-                                    <span style={{ fontSize: '15px', fontWeight: 'bold' }}>
-                                        &nbsp;&nbsp;&nbsp;&nbsp;Place : Burnpur
-                                    </span>
+                                    <span style={{ fontSize: '15px', fontWeight: 'bold' }}>&nbsp;&nbsp;&nbsp;&nbsp;Place : Burnpur</span>
                                     <br />
                                     <span style={{ fontSize: '15px', fontWeight: 'bold' }}>
                                         &nbsp;&nbsp;&nbsp;&nbsp;Date : {todayFormatted}

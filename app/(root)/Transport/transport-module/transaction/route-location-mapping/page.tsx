@@ -22,12 +22,7 @@ export default function RouteLocationMappingPage(props: { searchParams: SearchPa
         <FormProvider<IRouteLocationMapping>>
             <div className='min-h-screen'>
                 <div className='container space-y-4 p-1'>
-                    <RouteLocationMappingContent
-                        response={response}
-                        isLoading={isLoading}
-                        error={error}
-                        refetchAll={refetchAll}
-                    />
+                    <RouteLocationMappingContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
                 </div>
             </div>
         </FormProvider>
@@ -89,14 +84,8 @@ function RouteLocationMappingContent({
 }
 
 function FormSections() {
-    const {
-        isAddFormOpen,
-        isToggleFormOpen,
-        selectedRow,
-        closeAddForm,
-        closeToggleForm,
-        addFormRef
-    } = useFormContext<IRouteLocationMapping>();
+    const { isAddFormOpen, isToggleFormOpen, selectedRow, closeAddForm, closeToggleForm, addFormRef } =
+        useFormContext<IRouteLocationMapping>();
 
     return (
         <>

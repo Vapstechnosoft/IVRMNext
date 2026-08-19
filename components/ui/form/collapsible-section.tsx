@@ -78,19 +78,23 @@ export function CollapsibleSection({
                                 compactHeader,
                                 headerClassName
                             )}>
-                            <div className='flex items-center justify-between w-full'>
+                            <div className='flex w-full items-center justify-between'>
                                 <div className='flex items-center pl-2'>
-                                    {icon && <div className='mr-4 text-slate-400 group-hover:text-slate-600 transition-colors'>{icon}</div>}
+                                    {icon && <div className='mr-4 text-slate-400 transition-colors group-hover:text-slate-600'>{icon}</div>}
                                     {(title || description) && (
                                         <div className='space-y-0.5 text-left'>
-                                            {title && <div className={cn('card-bordered-title tracking-tight', sizeClasses[size])}>{title}</div>}
-                                            {description && <p className='text-slate-400 text-[11px] leading-tight font-medium'>{description}</p>}
+                                            {title && (
+                                                <div className={cn('card-bordered-title tracking-tight', sizeClasses[size])}>{title}</div>
+                                            )}
+                                            {description && (
+                                                <p className='font-medium text-[11px] text-slate-400 leading-tight'>{description}</p>
+                                            )}
                                         </div>
                                     )}
                                 </div>
                                 <div className='flex items-center gap-4'>
                                     {rightElement && <div onClick={(e) => e.stopPropagation()}>{rightElement}</div>}
-                                    <div className='flex h-8 w-8 items-center justify-center rounded-xl border border-slate-100 bg-white shadow-sm transition-all hover:bg-slate-50 hover:border-slate-200 dark:border-white/5 dark:bg-slate-900/50 dark:hover:border-white/20'>
+                                    <div className='flex h-8 w-8 items-center justify-center rounded-xl border border-slate-100 bg-white shadow-sm transition-all hover:border-slate-200 hover:bg-slate-50 dark:border-white/5 dark:bg-slate-900/50 dark:hover:border-white/20'>
                                         <ChevronRight
                                             className={`h-4 w-4 text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-90' : 'rotate-0'}`}
                                         />

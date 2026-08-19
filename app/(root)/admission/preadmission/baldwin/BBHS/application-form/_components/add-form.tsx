@@ -3,9 +3,9 @@
 import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { MobileNumberInput } from '@/components/ui/extension/input-mobile-number';
-import PhoneInput from 'react-phone-input-2';
 // import 'react-phone-input-2/lib/style.css';
 import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
@@ -14,7 +14,6 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useAcademicYearMasterConfiguration } from '@/hooks/admission/preadmission/useConfigurations';
 import {
     useActivePreadmissionDetails,
@@ -30,20 +29,21 @@ import {
 } from '@/hooks/admission/preadmission/useTransactions';
 import { getIconByName } from '@/lib/lucide-icon-registry';
 import { cn } from '@/lib/utils';
+import PhoneInput from 'react-phone-input-2';
 
+import { studentApplicationFormSchema } from '@/schemas/admission/preadmission/baldwin/transactions';
 import { addBBHSStudentApplication } from '@/server/admission/preadmission/transactions/bbhs_student_application';
 import { deleteDocument, uploadDocument } from '@/server/document_upload';
 import type { IPreadmissionClassDropdown } from '@/types/admission/preadmission/transactions';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon, Check, ChevronLeft, ChevronRight, Eye, Inbox, Save, Trash } from 'lucide-react';
+import { CalendarIcon, Check, ChevronLeft, ChevronRight, Eye, Save, Trash } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 import { IneligibleClassesDialog } from './InEligibleDialog';
 import { validateAgeForClass } from './application-form-helper';
-import { studentApplicationFormSchema } from '@/schemas/admission/preadmission/baldwin/transactions';
 
 type FormFields = z.infer<typeof studentApplicationFormSchema.add>;
 
@@ -128,13 +128,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
             siblingsDetails: []
         }
     });
-
-
-
-
-
-
-
 
     // Define siblingFields using useFieldArray
     const {
@@ -435,7 +428,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
             } else if (currentStep === 2) {
                 toast.error('Please fill in all required address fields. Check the form for any errors.');
             } else if (currentStep === 3) {
-                toast.error('Please fill in all required parent/guardian details (Father Name, Father Nationality, Mother Name, Mother Nationality). Check the form for any errors.');
+                toast.error(
+                    'Please fill in all required parent/guardian details (Father Name, Father Nationality, Mother Name, Mother Nationality). Check the form for any errors.'
+                );
             } else if (currentStep === 4) {
                 toast.error('Please complete document uploads. Check the form for any errors.');
             }
@@ -685,7 +680,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                     PASRG_GuardianPhoneNo: ''
                 }
             ],
-
 
             siblingsDetails: []
         });
@@ -1060,7 +1054,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
             // Only reset if current selection is invalid
             const currentClassId = getValues('asmcL_Id');
-            if (currentClassId !== 0 && !validClasses.some(c => c.asmcL_Id === currentClassId)) {
+            if (currentClassId !== 0 && !validClasses.some((c) => c.asmcL_Id === currentClassId)) {
                 setValue('asmcL_Id', 0);
             }
         }
@@ -1274,8 +1268,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                         currentStep === step.id
                                                             ? 'border-blue-600 bg-blue-600 text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                                ? 'border-green-500 bg-green-500 text-white'
-                                                                : 'border-gray-300 bg-white text-gray-400'
+                                                              ? 'border-green-500 bg-green-500 text-white'
+                                                              : 'border-gray-300 bg-white text-gray-400'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-5 w-5' />
@@ -1324,8 +1318,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                         currentStep === step.id
                                                             ? 'border-secondary bg-secondary text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                                ? 'border-green-500 bg-green-500 text-white'
-                                                                : 'border-gray-300 bg-white text-gray-500'
+                                                              ? 'border-green-500 bg-green-500 text-white'
+                                                              : 'border-gray-300 bg-white text-gray-500'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-6 w-6' />
@@ -1490,9 +1484,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     type='button'
                                                                     variant='outline'
                                                                     size='sm'
-                                                                    onClick={() =>
-                                                                        handleImagePreview(studentPhoto.pasR_Student_Pic_Path)
-                                                                    }>
+                                                                    onClick={() => handleImagePreview(studentPhoto.pasR_Student_Pic_Path)}>
                                                                     <Eye className='h-4 w-4' />
                                                                 </Button>
                                                                 <Button
@@ -1518,9 +1510,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                 </div>
                                             </div>
                                         </div>
-                                        <label className='text-sm font-medium'>Name of the Child</label>
+                                        <label className='font-medium text-sm'>Name of the Child</label>
                                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-
                                             <InputText
                                                 label='First Name'
                                                 required
@@ -1638,8 +1629,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             />
                                                             {phoneExpectedInfo.pasR_MobileNo?.expected && (
                                                                 <span className='mt-1 text-muted-foreground text-xs'>
-                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MobileNo.expected} digits for ${phoneExpectedInfo.pasR_MobileNo.name ?? 'selected country'
-                                                                        }`}
+                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MobileNo.expected} digits for ${
+                                                                        phoneExpectedInfo.pasR_MobileNo.name ?? 'selected country'
+                                                                    }`}
                                                                 </span>
                                                             )}
                                                         </div>
@@ -1730,7 +1722,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                 {errors.caste_Id && <FormError>{errors.caste_Id.message}</FormError>}
                                             </div>
 
-
                                             <div className='flex flex-col gap-1.5'>
                                                 <Controller
                                                     name='SubCaste_Id'
@@ -1748,10 +1739,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                 />
                                                 {errors.SubCaste_Id && <FormError>{errors.SubCaste_Id.message}</FormError>}
                                             </div>
-
-
-
-
 
                                             <div className='flex flex-col gap-1.5'>
                                                 <Label htmlFor='pasR_Sex'>
@@ -2023,7 +2010,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                 )}
                                             </div>
 
-
                                             <div className='flex flex-col gap-1.5'>
                                                 <Label htmlFor='PASR_BloodGroup'>
                                                     Blood Group <span className='ml-1 text-red-500'>*</span>
@@ -2052,9 +2038,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                         </Select>
                                                     )}
                                                 />
-                                                {errors.PASR_BloodGroup && (
-                                                    <FormError>{errors.PASR_BloodGroup.message}</FormError>
-                                                )}
+                                                {errors.PASR_BloodGroup && <FormError>{errors.PASR_BloodGroup.message}</FormError>}
                                             </div>
                                         </div>
                                     </div>
@@ -2181,15 +2165,15 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             rules={
                                                                 conZipLength
                                                                     ? {
-                                                                        minLength: {
-                                                                            value: conZipLength,
-                                                                            message: `Pin code must be ${conZipLength} digits`
-                                                                        },
-                                                                        maxLength: {
-                                                                            value: conZipLength,
-                                                                            message: `Pin code must be ${conZipLength} digits`
-                                                                        }
-                                                                    }
+                                                                          minLength: {
+                                                                              value: conZipLength,
+                                                                              message: `Pin code must be ${conZipLength} digits`
+                                                                          },
+                                                                          maxLength: {
+                                                                              value: conZipLength,
+                                                                              message: `Pin code must be ${conZipLength} digits`
+                                                                          }
+                                                                      }
                                                                     : undefined
                                                             }
                                                             render={({ field }) => (
@@ -2368,15 +2352,15 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             rules={
                                                                 perZipLength
                                                                     ? {
-                                                                        minLength: {
-                                                                            value: perZipLength,
-                                                                            message: `Pin code must be ${perZipLength} digits`
-                                                                        },
-                                                                        maxLength: {
-                                                                            value: perZipLength,
-                                                                            message: `Pin code must be ${perZipLength} digits`
-                                                                        }
-                                                                    }
+                                                                          minLength: {
+                                                                              value: perZipLength,
+                                                                              message: `Pin code must be ${perZipLength} digits`
+                                                                          },
+                                                                          maxLength: {
+                                                                              value: perZipLength,
+                                                                              message: `Pin code must be ${perZipLength} digits`
+                                                                          }
+                                                                      }
                                                                     : undefined
                                                             }
                                                             render={({ field }) => (
@@ -2594,10 +2578,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                         error={errors.pasR_FatherSurname?.message}
                                                     />
 
-
-
-
-
                                                     <InputText
                                                         label='Qualification'
                                                         id='pasR_FatherEducation'
@@ -2605,7 +2585,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                         {...register('pasR_FatherEducation')}
                                                         error={errors.pasR_FatherEducation?.message}
                                                     />
-
 
                                                     <div className='col-span-full space-y-3'>
                                                         <Label>Occupation</Label>
@@ -2623,13 +2602,15 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                             }
                                                                         }}
                                                                         value={
-                                                                            ['Government Employee', 'Private Employee', 'Self Employee'].includes(
-                                                                                field.value ?? ''
-                                                                            )
+                                                                            [
+                                                                                'Government Employee',
+                                                                                'Private Employee',
+                                                                                'Self Employee'
+                                                                            ].includes(field.value ?? '')
                                                                                 ? field.value
                                                                                 : field.value === undefined
-                                                                                    ? undefined
-                                                                                    : 'Others'
+                                                                                  ? undefined
+                                                                                  : 'Others'
                                                                         }
                                                                         className='flex flex-wrap gap-6'>
                                                                         <div className='flex items-center space-x-2'>
@@ -2659,9 +2640,11 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     </RadioGroup>
 
                                                                     {field.value !== undefined &&
-                                                                        !['Government Employee', 'Private Employee', 'Self Employee'].includes(
-                                                                            field.value
-                                                                        ) && (
+                                                                        ![
+                                                                            'Government Employee',
+                                                                            'Private Employee',
+                                                                            'Self Employee'
+                                                                        ].includes(field.value) && (
                                                                             <InputText
                                                                                 label='Specify Occupation'
                                                                                 placeholder='Enter occupation'
@@ -2673,9 +2656,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             )}
                                                         />
                                                     </div>
-
-
-
 
                                                     <InputText
                                                         label='Pan No'
@@ -2733,7 +2713,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                         )}
                                                     </div>
 
-
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Controller
                                                             name='PASR_FatherAadharNo'
@@ -2749,7 +2728,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 />
                                                             )}
                                                         />
-                                                        {errors.PASR_FatherAadharNo && <FormError>{errors.PASR_FatherAadharNo.message}</FormError>}
+                                                        {errors.PASR_FatherAadharNo && (
+                                                            <FormError>{errors.PASR_FatherAadharNo.message}</FormError>
+                                                        )}
                                                     </div>
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Label htmlFor='PASR_FatherReligion'>
@@ -2777,7 +2758,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                             </SelectItem>
                                                                         ) : (
                                                                             religion?.data?.map((item) => (
-                                                                                <SelectItem key={item.ivrmmR_Id} value={item.ivrmmR_Id.toString()}>
+                                                                                <SelectItem
+                                                                                    key={item.ivrmmR_Id}
+                                                                                    value={item.ivrmmR_Id.toString()}>
                                                                                     {item.ivrmmR_Name}
                                                                                 </SelectItem>
                                                                             ))
@@ -2786,7 +2769,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 </Select>
                                                             )}
                                                         />
-                                                        {errors.PASR_FatherReligion && <FormError>{errors.PASR_FatherReligion.message}</FormError>}
+                                                        {errors.PASR_FatherReligion && (
+                                                            <FormError>{errors.PASR_FatherReligion.message}</FormError>
+                                                        )}
                                                     </div>
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Label htmlFor='PASR_FatherCaste'>
@@ -2815,7 +2800,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                             </SelectItem>
                                                                         ) : (
                                                                             caste?.data?.map((item) => (
-                                                                                <SelectItem key={item.imC_Id} value={item.imC_Id.toString()}>
+                                                                                <SelectItem
+                                                                                    key={item.imC_Id}
+                                                                                    value={item.imC_Id.toString()}>
                                                                                     {item.imC_CasteName}
                                                                                 </SelectItem>
                                                                             ))
@@ -2824,7 +2811,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 </Select>
                                                             )}
                                                         />
-                                                        {errors.PASR_FatherCaste && <FormError>{errors.PASR_FatherCaste.message}</FormError>}
+                                                        {errors.PASR_FatherCaste && (
+                                                            <FormError>{errors.PASR_FatherCaste.message}</FormError>
+                                                        )}
                                                     </div>
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Controller
@@ -2841,9 +2830,10 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 />
                                                             )}
                                                         />
-                                                        {errors.fatherSubCaste_Id && <FormError>{errors.fatherSubCaste_Id.message}</FormError>}
+                                                        {errors.fatherSubCaste_Id && (
+                                                            <FormError>{errors.fatherSubCaste_Id.message}</FormError>
+                                                        )}
                                                     </div>
-
 
                                                     <InputText
                                                         label='Phone Office'
@@ -2877,13 +2867,10 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                         error={errors.pasR_FatherOfficeAddr?.message}
                                                     />
 
-
-
-
                                                     <div className='flex '>
                                                         <label>
-                                                            Transferable job (Central/State Government employee only)<span className='ml-1 text-red-500'>*</span>
-
+                                                            Transferable job (Central/State Government employee only)
+                                                            <span className='ml-1 text-red-500'>*</span>
                                                         </label>
                                                         <Controller
                                                             name='PASR_BloodGroup'
@@ -2899,16 +2886,11 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     <SelectContent>
                                                                         <SelectItem value='1'>Yes</SelectItem>
                                                                         <SelectItem value='0'>No</SelectItem>
-
                                                                     </SelectContent>
                                                                 </Select>
                                                             )}
-
-
                                                         />
-
                                                     </div>
-
 
                                                     <div className='flex flex-col gap-1.5 '>
                                                         <Controller
@@ -2952,9 +2934,10 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     />
                                                                     {phoneExpectedInfo.pasR_FatherMobleNo?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_FatherMobleNo.expected} digits for ${phoneExpectedInfo.pasR_FatherMobleNo.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_FatherMobleNo.expected} digits for ${
+                                                                                phoneExpectedInfo.pasR_FatherMobleNo.name ??
                                                                                 'selected country'
-                                                                                }`}
+                                                                            }`}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -3192,13 +3175,15 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                             }
                                                                         }}
                                                                         value={
-                                                                            ['Government Employee', 'Private Employee', 'Self Employee'].includes(
-                                                                                field.value ?? ''
-                                                                            )
+                                                                            [
+                                                                                'Government Employee',
+                                                                                'Private Employee',
+                                                                                'Self Employee'
+                                                                            ].includes(field.value ?? '')
                                                                                 ? field.value
                                                                                 : field.value === undefined
-                                                                                    ? undefined
-                                                                                    : 'Others'
+                                                                                  ? undefined
+                                                                                  : 'Others'
                                                                         }
                                                                         className='flex flex-wrap gap-6'>
                                                                         <div className='flex items-center space-x-2'>
@@ -3228,9 +3213,11 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     </RadioGroup>
 
                                                                     {field.value !== undefined &&
-                                                                        !['Government Employee', 'Private Employee', 'Self Employee'].includes(
-                                                                            field.value
-                                                                        ) && (
+                                                                        ![
+                                                                            'Government Employee',
+                                                                            'Private Employee',
+                                                                            'Self Employee'
+                                                                        ].includes(field.value) && (
                                                                             <InputText
                                                                                 label='Specify Occupation'
                                                                                 placeholder='Enter occupation'
@@ -3242,7 +3229,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             )}
                                                         />
                                                     </div>
-
 
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Controller
@@ -3259,7 +3245,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 />
                                                             )}
                                                         />
-                                                        {errors.PASR_MotherAadharNo && <FormError>{errors.PASR_MotherAadharNo.message}</FormError>}
+                                                        {errors.PASR_MotherAadharNo && (
+                                                            <FormError>{errors.PASR_MotherAadharNo.message}</FormError>
+                                                        )}
                                                     </div>
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Label htmlFor='PASR_MotherReligion'>
@@ -3287,7 +3275,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                             </SelectItem>
                                                                         ) : (
                                                                             religion?.data?.map((item) => (
-                                                                                <SelectItem key={item.ivrmmR_Id} value={item.ivrmmR_Id.toString()}>
+                                                                                <SelectItem
+                                                                                    key={item.ivrmmR_Id}
+                                                                                    value={item.ivrmmR_Id.toString()}>
                                                                                     {item.ivrmmR_Name}
                                                                                 </SelectItem>
                                                                             ))
@@ -3296,7 +3286,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 </Select>
                                                             )}
                                                         />
-                                                        {errors.PASR_MotherReligion && <FormError>{errors.PASR_MotherReligion.message}</FormError>}
+                                                        {errors.PASR_MotherReligion && (
+                                                            <FormError>{errors.PASR_MotherReligion.message}</FormError>
+                                                        )}
                                                     </div>
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Label htmlFor='PASR_MotherCaste'>
@@ -3325,7 +3317,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                             </SelectItem>
                                                                         ) : (
                                                                             caste?.data?.map((item) => (
-                                                                                <SelectItem key={item.imC_Id} value={item.imC_Id.toString()}>
+                                                                                <SelectItem
+                                                                                    key={item.imC_Id}
+                                                                                    value={item.imC_Id.toString()}>
                                                                                     {item.imC_CasteName}
                                                                                 </SelectItem>
                                                                             ))
@@ -3334,7 +3328,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 </Select>
                                                             )}
                                                         />
-                                                        {errors.PASR_MotherCaste && <FormError>{errors.PASR_MotherCaste.message}</FormError>}
+                                                        {errors.PASR_MotherCaste && (
+                                                            <FormError>{errors.PASR_MotherCaste.message}</FormError>
+                                                        )}
                                                     </div>
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Controller
@@ -3351,7 +3347,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 />
                                                             )}
                                                         />
-                                                        {errors.motherSubCaste_Id && <FormError>{errors.motherSubCaste_Id.message}</FormError>}
+                                                        {errors.motherSubCaste_Id && (
+                                                            <FormError>{errors.motherSubCaste_Id.message}</FormError>
+                                                        )}
                                                     </div>
 
                                                     <InputText
@@ -3410,7 +3408,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                         )}
                                                     </div>
 
-
                                                     <InputText
                                                         label='Phone Office'
                                                         id='PASR_MotherOfficePhNo'
@@ -3434,8 +3431,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                         {...register('PASR_MotheremailId')}
                                                         error={errors.PASR_MotheremailId?.message}
                                                     />
-
-
 
                                                     <InputText
                                                         label='Office Address'
@@ -3486,9 +3481,10 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     />
                                                                     {phoneExpectedInfo.pasR_MotherMobleNo?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MotherMobleNo.expected} digits for ${phoneExpectedInfo.pasR_MotherMobleNo.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MotherMobleNo.expected} digits for ${
+                                                                                phoneExpectedInfo.pasR_MotherMobleNo.name ??
                                                                                 'selected country'
-                                                                                }`}
+                                                                            }`}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -3609,9 +3605,10 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                             </div>
 
                                             <div className='space-y-4'>
-                                                <h3 className='font-bold text-gray-800 text-lg'>Year of Passing of Mother/Father if they are Old Baldwinians</h3>
+                                                <h3 className='font-bold text-gray-800 text-lg'>
+                                                    Year of Passing of Mother/Father if they are Old Baldwinians
+                                                </h3>
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-
                                                     <InputText
                                                         label='Father'
                                                         id='PASR_FatherPassingYear'
@@ -3851,9 +3848,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                                     className='w-fit'
                                                                                     onClick={() => {
                                                                                         const path = uploadedDoc.document_Path;
-                                                                                        if (
-                                                                                            path.match(/\.(jpg|jpeg|png|gif|webp)$/i)
-                                                                                        ) {
+                                                                                        if (path.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
                                                                                             handleImagePreview(path);
                                                                                         } else {
                                                                                             window.open(path, '_blank');
@@ -4134,17 +4129,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                         />
                                                     )}
                                                 />
-
                                             </div>
                                         </div>
-
-
-
-
-
-
-
-
 
                                         {/* Previous School Details Section */}
                                         <div className='space-y-4'>
@@ -4310,7 +4296,10 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 Undertaking by the Parents/Guardian:
                                                             </span>
                                                             <p className='mt-3 text-gray-700 text-sm leading-relaxed'>
-                                                                I and my ward will abide by and accept the rules of the school. I shall pay all the school fees quarterly or annually. I am willing to pay all other dues as necessary. I have no objection to my child participating in any extra curricular activities run by the school.
+                                                                I and my ward will abide by and accept the rules of the school. I shall pay
+                                                                all the school fees quarterly or annually. I am willing to pay all other
+                                                                dues as necessary. I have no objection to my child participating in any
+                                                                extra curricular activities run by the school.
                                                             </p>
                                                         </Label>
                                                         <RadioGroup
@@ -4394,15 +4383,31 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                         toast.error(`Please fix errors in these fields: ${errorFields.join(', ')}`);
 
                                                         // Highlight where errors are if not on current step
-                                                        if (errorFields.some(field => [
-                                                            'pasR_FirstName', 'pasR_MiddleName', 'pasR_LastName', 'pasR_DOB', 'pasR_MobileNo'
-                                                        ].includes(field))) {
+                                                        if (
+                                                            errorFields.some((field) =>
+                                                                [
+                                                                    'pasR_FirstName',
+                                                                    'pasR_MiddleName',
+                                                                    'pasR_LastName',
+                                                                    'pasR_DOB',
+                                                                    'pasR_MobileNo'
+                                                                ].includes(field)
+                                                            )
+                                                        ) {
                                                             toast.info('There are errors in Student Information tab');
                                                         }
-                                                        if (errorFields.some(field => field.startsWith('pasR_Con') || field.startsWith('pasR_Per'))) {
+                                                        if (
+                                                            errorFields.some(
+                                                                (field) => field.startsWith('pasR_Con') || field.startsWith('pasR_Per')
+                                                            )
+                                                        ) {
                                                             toast.info('There are errors in Address Information tab');
                                                         }
-                                                        if (errorFields.some(field => field.includes('Father') || field.includes('Mother'))) {
+                                                        if (
+                                                            errorFields.some(
+                                                                (field) => field.includes('Father') || field.includes('Mother')
+                                                            )
+                                                        ) {
                                                             toast.info('There are errors in Parents Information tab');
                                                         }
                                                     }
@@ -4427,8 +4432,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                             classes={ineligibleClasses}
                             cutOffDate={
                                 masterConfig?.data &&
-                                    masterConfig.data.ispaC_ApplCutOffDateFlag === 1 &&
-                                    masterConfig.data.asmaY_Cut_Of_Date
+                                masterConfig.data.ispaC_ApplCutOffDateFlag === 1 &&
+                                masterConfig.data.asmaY_Cut_Of_Date
                                     ? new Date(masterConfig.data.asmaY_Cut_Of_Date)
                                     : new Date()
                             }
@@ -4442,17 +4447,10 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                         <DialogTitle>Image Preview</DialogTitle>
                     </DialogHeader>
                     <div className='flex items-center justify-center p-4'>
-                        {previewImage && (
-                            <img
-                                src={previewImage}
-                                alt='Preview'
-                                className='max-h-[70vh] w-auto rounded-lg shadow-lg'
-                            />
-                        )}
+                        {previewImage && <img src={previewImage} alt='Preview' className='max-h-[70vh] w-auto rounded-lg shadow-lg' />}
                     </div>
                 </DialogContent>
             </Dialog>
         </>
     );
 }
-

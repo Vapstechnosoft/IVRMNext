@@ -13,14 +13,12 @@ interface ClassWorkColumnProps {
     onView: (row: IClassWorkDetails) => void;
 }
 
-export const classWorkColumns = ({
-    onEdit,
-    onToggle,
-    onView
-}: ClassWorkColumnProps): ColumnDef<IClassWorkDetails>[] => [
+export const classWorkColumns = ({ onEdit, onToggle, onView }: ClassWorkColumnProps): ColumnDef<IClassWorkDetails>[] => [
     {
         accessorKey: 'icW_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='SLNO' className='text-xs font-black uppercase text-black justify-center' />,
+        header: ({ column }) => (
+            <DataTableColumnHeader column={column} title='SLNO' className='justify-center font-black text-black text-xs uppercase' />
+        ),
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -31,77 +29,116 @@ export const classWorkColumns = ({
     },
     {
         accessorKey: 'isms_SubjectName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Subject' className='text-xs font-black uppercase text-black justify-left' />,
-        cell: ({ row }) => <div className='text-[11px] font-bold text-slate-600 uppercase'>{row.getValue('isms_SubjectName')}</div>
+        header: ({ column }) => (
+            <DataTableColumnHeader column={column} title='Subject' className='justify-left font-black text-black text-xs uppercase' />
+        ),
+        cell: ({ row }) => <div className='font-bold text-[11px] text-slate-600 uppercase'>{row.getValue('isms_SubjectName')}</div>
     },
     {
         accessorKey: 'icW_Topic',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Topic' className='text-xs font-black uppercase text-black justify-left' />,
-        cell: ({ row }) => <div className='text-[11px] font-medium text-slate-600'>{row.getValue('icW_Topic')}</div>
+        header: ({ column }) => (
+            <DataTableColumnHeader column={column} title='Topic' className='justify-left font-black text-black text-xs uppercase' />
+        ),
+        cell: ({ row }) => <div className='font-medium text-[11px] text-slate-600'>{row.getValue('icW_Topic')}</div>
     },
     {
         accessorKey: 'icW_SubTopic',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sub Topic' className='text-xs font-black uppercase text-black justify-left' />,
-        cell: ({ row }) => <div className='text-[11px] font-medium text-slate-500 italic'>{row.getValue('icW_SubTopic')}</div>
+        header: ({ column }) => (
+            <DataTableColumnHeader column={column} title='Sub Topic' className='justify-left font-black text-black text-xs uppercase' />
+        ),
+        cell: ({ row }) => <div className='font-medium text-[11px] text-slate-500 italic'>{row.getValue('icW_SubTopic')}</div>
     },
     {
         accessorKey: 'icW_Content',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Content' className='text-xs font-black uppercase text-black justify-left' />,
-        cell: ({ row }) => <div className='text-[11px] text-slate-600 max-w-[200px] truncate' title={row.getValue('icW_Content')}>{row.getValue('icW_Content')}</div>
+        header: ({ column }) => (
+            <DataTableColumnHeader column={column} title='Content' className='justify-left font-black text-black text-xs uppercase' />
+        ),
+        cell: ({ row }) => (
+            <div className='max-w-[200px] truncate text-[11px] text-slate-600' title={row.getValue('icW_Content')}>
+                {row.getValue('icW_Content')}
+            </div>
+        )
     },
     {
         accessorKey: 'asmcL_ClassName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' className='text-xs font-black uppercase text-black justify-center' />,
-        cell: ({ row }) => <div className='text-[11px] font-black text-center text-slate-700'>{row.getValue('asmcL_ClassName')}</div>
+        header: ({ column }) => (
+            <DataTableColumnHeader column={column} title='Class' className='justify-center font-black text-black text-xs uppercase' />
+        ),
+        cell: ({ row }) => <div className='text-center font-black text-[11px] text-slate-700'>{row.getValue('asmcL_ClassName')}</div>
     },
     {
         accessorKey: 'asmC_SectionName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Section' className='text-xs font-black uppercase text-black justify-center' />,
-        cell: ({ row }) => <div className='text-[11px] font-black text-center text-slate-700'>{row.getValue('asmC_SectionName')}</div>
+        header: ({ column }) => (
+            <DataTableColumnHeader column={column} title='Section' className='justify-center font-black text-black text-xs uppercase' />
+        ),
+        cell: ({ row }) => <div className='text-center font-black text-[11px] text-slate-700'>{row.getValue('asmC_SectionName')}</div>
     },
     {
         id: 'updateDateTime',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Update Date / Time' className='text-xs font-black uppercase text-black justify-center' />,
+        header: ({ column }) => (
+            <DataTableColumnHeader
+                column={column}
+                title='Update Date / Time'
+                className='justify-center font-black text-black text-xs uppercase'
+            />
+        ),
         cell: ({ row }) => {
             const data = row.original as any;
-            return <div className='text-[10px] text-center text-slate-400 font-medium tracking-tighter'>{data.createdDate ? `${data.createdDate} ${data.createdTime || ''}` : '---'}</div>;
+            return (
+                <div className='text-center font-medium text-[10px] text-slate-400 tracking-tighter'>
+                    {data.createdDate ? `${data.createdDate} ${data.createdTime || ''}` : '---'}
+                </div>
+            );
         }
     },
     {
         accessorKey: 'icW_FromDate',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Start Date' className='text-xs font-black uppercase text-black justify-center' />,
+        header: ({ column }) => (
+            <DataTableColumnHeader column={column} title='Start Date' className='justify-center font-black text-black text-xs uppercase' />
+        ),
         cell: ({ row }) => {
             const date = row.getValue('icW_FromDate');
-            return <div className='text-[11px] font-bold text-center text-blue-600'>{date ? format(new Date(date as string), 'dd-MM-yyyy') : '---'}</div>;
+            return (
+                <div className='text-center font-bold text-[11px] text-blue-600'>
+                    {date ? format(new Date(date as string), 'dd-MM-yyyy') : '---'}
+                </div>
+            );
         }
     },
     {
         accessorKey: 'icW_ToDate',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='End Date' className='text-xs font-black uppercase text-black justify-center' />,
+        header: ({ column }) => (
+            <DataTableColumnHeader column={column} title='End Date' className='justify-center font-black text-black text-xs uppercase' />
+        ),
         cell: ({ row }) => {
             const date = row.getValue('icW_ToDate');
-            return <div className='text-[11px] font-bold text-center text-blue-600'>{date ? format(new Date(date as string), 'dd-MM-yyyy') : '---'}</div>;
+            return (
+                <div className='text-center font-bold text-[11px] text-blue-600'>
+                    {date ? format(new Date(date as string), 'dd-MM-yyyy') : '---'}
+                </div>
+            );
         }
     },
     {
         id: 'attachment',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Attachment' className='text-xs font-black uppercase text-black justify-center' />,
+        header: ({ column }) => (
+            <DataTableColumnHeader column={column} title='Attachment' className='justify-center font-black text-black text-xs uppercase' />
+        ),
         cell: ({ row }) => {
-             const rowData = row.original;
-             const hasAttachment = (rowData as any).filesCount > 0 || rowData.icW_Attachment || (rowData as any).attachementlist?.length > 0;
-             return (
+            const rowData = row.original;
+            const hasAttachment = (rowData as any).filesCount > 0 || rowData.icW_Attachment || (rowData as any).attachementlist?.length > 0;
+            return (
                 <div className='flex justify-center'>
                     {hasAttachment ? (
-                        <button 
-                            type='button' 
-                            onClick={() => onView(rowData)} 
-                            className='rounded-md p-1.5 bg-blue-50 text-blue-600 transition hover:bg-blue-600 hover:text-white shadow-sm ring-1 ring-blue-100 hover:ring-blue-600 transition-all duration-300' 
-                            title='View Attachments'
-                        >
+                        <button
+                            type='button'
+                            onClick={() => onView(rowData)}
+                            className='rounded-md bg-blue-50 p-1.5 text-blue-600 shadow-sm ring-1 ring-blue-100 transition transition-all duration-300 hover:bg-blue-600 hover:text-white hover:ring-blue-600'
+                            title='View Attachments'>
                             <Eye className='h-3.5 w-3.5 shadow-sm' />
                         </button>
                     ) : (
-                        <span className='text-slate-300 text-[10px] font-bold tracking-widest'>---</span>
+                        <span className='font-bold text-[10px] text-slate-300 tracking-widest'>---</span>
                     )}
                 </div>
             );
@@ -109,18 +146,19 @@ export const classWorkColumns = ({
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' className='text-xs font-black uppercase text-black justify-center' />,
+        header: ({ column }) => (
+            <DataTableColumnHeader column={column} title='Status' className='justify-center font-black text-black text-xs uppercase' />
+        ),
         cell: ({ row }) => {
             const rowData = row.original;
             return (
                 <div className='flex items-center justify-center gap-3'>
-                    <button 
-                        type='button' 
-                        onClick={() => onEdit(rowData)} 
-                        className='group rounded-md p-1.5 bg-slate-50 text-blue-600 transition hover:bg-blue-600 hover:text-white shadow-sm ring-1 ring-slate-100 hover:ring-blue-600 transition-all duration-300' 
-                        title='Edit'
-                    >
-                        <Pencil className='h-3.5 w-3.5 group-hover:scale-110 transition-transform' />
+                    <button
+                        type='button'
+                        onClick={() => onEdit(rowData)}
+                        className='group rounded-md bg-slate-50 p-1.5 text-blue-600 shadow-sm ring-1 ring-slate-100 transition transition-all duration-300 hover:bg-blue-600 hover:text-white hover:ring-blue-600'
+                        title='Edit'>
+                        <Pencil className='h-3.5 w-3.5 transition-transform group-hover:scale-110' />
                     </button>
                     <ActionButtons
                         rowData={rowData}

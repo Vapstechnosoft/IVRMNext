@@ -1,13 +1,13 @@
 'use client';
 
+import MarksEntryForm from '@/app/(root)/upload/transactions/ClassWork_Marks_Enter/_components/marks-entry-form';
+import SearchForm from '@/app/(root)/upload/transactions/ClassWork_Marks_Enter/_components/search-form';
+import VerifiedRecordsGrid from '@/app/(root)/upload/transactions/ClassWork_Marks_Enter/_components/verified-records-grid';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import type { IClassWorkMarksList } from '@/schemas/upload/transactions/ivrm-classwork.schema';
 import { Loader2 } from 'lucide-react';
-import { Suspense, useState, useCallback } from 'react';
-import MarksEntryForm from '@/app/(root)/upload/transactions/ClassWork_Marks_Enter/_components/marks-entry-form';
-import SearchForm from '@/app/(root)/upload/transactions/ClassWork_Marks_Enter/_components/search-form';
-import VerifiedRecordsGrid from '@/app/(root)/upload/transactions/ClassWork_Marks_Enter/_components/verified-records-grid';
+import { Suspense, useCallback, useState } from 'react';
 
 export default function VerifyClassWorkPage() {
     return (
@@ -54,7 +54,7 @@ function VerifyClassWorkContent() {
         <div className='container min-h-screen space-y-4 p-1'>
             <CollapsibleSection title='CLASSWORK MARKS UPDATE' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                 <div className='space-y-4'>
-                    <SearchForm 
+                    <SearchForm
                         onSearchResults={handleSearchResults}
                         onVerifiedList={handleVerifiedList}
                         onTopicsLoaded={handleTopicsLoaded}
@@ -74,7 +74,7 @@ function VerifyClassWorkContent() {
     );
 }
 
-function MarksEntrySection({ searchResults, topics }: { searchResults: any[], topics: any[] }) {
+function MarksEntrySection({ searchResults, topics }: { searchResults: any[]; topics: any[] }) {
     if (searchResults.length === 0 && topics.length === 0) return null;
 
     return (
@@ -92,7 +92,7 @@ function MarksEntrySection({ searchResults, topics }: { searchResults: any[], to
 function VerifiedRecordsSection({ records }: { records: any[] }) {
     const { isDetailsViewOpen } = useFormContext();
 
-    // If details view (MarksEntry) is open, maybe keep this collapsed? 
+    // If details view (MarksEntry) is open, maybe keep this collapsed?
     // Legacy shows it below.
     if (records.length === 0) return null;
 

@@ -2,49 +2,51 @@ import { deleteIdSchema } from '@/schemas/validationSchemas';
 import { z } from 'zod';
 
 export const masterStudentCountReportSchema = {
-    addOrUpdate: z.object({
-        type: z.string().default('between'), // between or yearwise
-        report_type: z.string().min(1, 'please select report type'),
-        from_date: z.string().optional(),
-        to_date: z.string().optional(),
-        asmaY_Id: z.number().int().optional(),
-        asmcL_Id: z.number().int().optional().default(0),
-    }).superRefine((data, ctx) => {
-        if (data.type === 'yearwise') {
-            if (!data.asmaY_Id || data.asmaY_Id === 0) {
-                ctx.addIssue({
-                    code: z.ZodIssueCode.custom,
-                    message: 'please select academic year',
-                    path: ['asmaY_Id'],
-                });
+    addOrUpdate: z
+        .object({
+            type: z.string().default('between'), // between or yearwise
+            report_type: z.string().min(1, 'please select report type'),
+            from_date: z.string().optional(),
+            to_date: z.string().optional(),
+            asmaY_Id: z.number().int().optional(),
+            asmcL_Id: z.number().int().optional().default(0)
+        })
+        .superRefine((data, ctx) => {
+            if (data.type === 'yearwise') {
+                if (!data.asmaY_Id || data.asmaY_Id === 0) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: 'please select academic year',
+                        path: ['asmaY_Id']
+                    });
+                }
+            } else if (data.type === 'between') {
+                if (!data.from_date) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: 'please select from date',
+                        path: ['from_date']
+                    });
+                }
+                if (!data.to_date) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: 'please select to date',
+                        path: ['to_date']
+                    });
+                }
             }
-        } else if (data.type === 'between') {
-            if (!data.from_date) {
-                ctx.addIssue({
-                    code: z.ZodIssueCode.custom,
-                    message: 'please select from date',
-                    path: ['from_date'],
-                });
-            }
-            if (!data.to_date) {
-                ctx.addIssue({
-                    code: z.ZodIssueCode.custom,
-                    message: 'please select to date',
-                    path: ['to_date'],
-                });
-            }
-        }
 
-        if (data.report_type && !['1', '2'].includes(data.report_type)) {
-            if (data.asmcL_Id === undefined) {
-                ctx.addIssue({
-                    code: z.ZodIssueCode.custom,
-                    message: 'please select class',
-                    path: ['asmcL_Id'],
-                });
+            if (data.report_type && !['1', '2'].includes(data.report_type)) {
+                if (data.asmcL_Id === undefined) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: 'please select class',
+                        path: ['asmcL_Id']
+                    });
+                }
             }
-        }
-    }),
+        }),
     delete: z.object({
         asmay_id: deleteIdSchema('asmay_id')
     })
@@ -98,7 +100,6 @@ export const TotalStrengthSchema = z
         }
     );
 
-
 export const STCS_TotalStrengthSchema = z
     .object({
         reportType: z.enum(['All', 'Individual']),
@@ -123,9 +124,6 @@ export const STCS_TotalStrengthSchema = z
             path: ['class']
         }
     );
-
-
-
 
 export const studyCertificateReportSchema = z.object({
     selectionMode: z.enum(['all', 'individual']),
@@ -153,10 +151,14 @@ export const StudentTcDetailsSchema = z.object({
     AllOrInd: z.number().min(1, 'Please select All or Individual'),
     ASMCL_Id: z.number().optional(),
     ASMC_Id: z.number().optional(),
-    TempararyArrayheadList: z.array(z.object({
-        columnID: z.string(),
-        columnName: z.string().optional()
-    })).min(1, 'Please select at least one column'),
+    TempararyArrayheadList: z
+        .array(
+            z.object({
+                columnID: z.string(),
+                columnName: z.string().optional()
+            })
+        )
+        .min(1, 'Please select at least one column'),
     PermOrTemp: z.number().optional(),
     AMC_Id: z.number().optional()
 });
@@ -180,46 +182,48 @@ export const ClassWiseDailyAttendanceSchema = z.object({
     })
 });
 
-export const scheduleReportSchema = z.object({
-    autostudent: z.boolean().default(false),
-    yearwiseorbtwdates: z.enum(['yearwise', 'btwdates']).default('yearwise'),
-    asmaY_Id: z.number().optional(),
-    from_date: z.string().optional(),
-    to_date: z.string().optional(),
-    asmcL_Id: z.number().int().min(0, 'Please select Class'), // 0 is "All"
-    oralwrittenschedule: z.enum(['oral', 'written', 'statusschedule']),
-    hrsrt: z.enum(['12hrrt', '24hrrt']).default('12hrrt'),
-    disid: z.string().optional()
-}).superRefine((data, ctx) => {
-    if (data.yearwiseorbtwdates === 'yearwise') {
-        if (!data.asmaY_Id || data.asmaY_Id === 0) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Please select academic year',
-                path: ['asmaY_Id'],
-            });
+export const scheduleReportSchema = z
+    .object({
+        autostudent: z.boolean().default(false),
+        yearwiseorbtwdates: z.enum(['yearwise', 'btwdates']).default('yearwise'),
+        asmaY_Id: z.number().optional(),
+        from_date: z.string().optional(),
+        to_date: z.string().optional(),
+        asmcL_Id: z.number().int().min(0, 'Please select Class'), // 0 is "All"
+        oralwrittenschedule: z.enum(['oral', 'written', 'statusschedule']),
+        hrsrt: z.enum(['12hrrt', '24hrrt']).default('12hrrt'),
+        disid: z.string().optional()
+    })
+    .superRefine((data, ctx) => {
+        if (data.yearwiseorbtwdates === 'yearwise') {
+            if (!data.asmaY_Id || data.asmaY_Id === 0) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Please select academic year',
+                    path: ['asmaY_Id']
+                });
+            }
+            if (!data.disid) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Please select schedule',
+                    path: ['disid']
+                });
+            }
+        } else {
+            if (!data.from_date) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Select from date',
+                    path: ['from_date']
+                });
+            }
+            if (!data.to_date) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Select to date',
+                    path: ['to_date']
+                });
+            }
         }
-        if (!data.disid) {
-             ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Please select schedule',
-                path: ['disid'],
-            });
-        }
-    } else {
-        if (!data.from_date) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Select from date',
-                path: ['from_date'],
-            });
-        }
-        if (!data.to_date) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Select to date',
-                path: ['to_date'],
-            });
-        }
-    }
-});
+    });

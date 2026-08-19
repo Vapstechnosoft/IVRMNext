@@ -4,9 +4,9 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useAppointmentStatus } from '@/hooks/visitors-management/transactions/useAppointmentStatus';
-import { AppointmentStatusVisitorData } from '@/types/visitors-management/transactions';
-import { visitorColumns } from './_components/columns';
+import type { AppointmentStatusVisitorData } from '@/types/visitors-management/transactions';
 import AppointmentStatusForm from './_components/appointment-status-form';
+import { visitorColumns } from './_components/columns';
 
 export default function AppointmentStatusPage() {
     const { data, isLoading, error, refetch } = useAppointmentStatus();
@@ -14,12 +14,7 @@ export default function AppointmentStatusPage() {
 
     return (
         <FormProvider<AppointmentStatusVisitorData>>
-            <AppointmentStatusPageContent
-                listData={listData}
-                isLoading={isLoading}
-                error={error}
-                refetch={refetch}
-            />
+            <AppointmentStatusPageContent listData={listData} isLoading={isLoading} error={error} refetch={refetch} />
         </FormProvider>
     );
 }
@@ -71,10 +66,12 @@ function AppointmentStatusPageContent({
                             variant='outline'
                             size='md'
                             className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                            <AppointmentStatusForm onSuccess={() => {
-                                closeAddForm();
-                                refetch();
-                            }} />
+                            <AppointmentStatusForm
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    refetch();
+                                }}
+                            />
                         </CollapsibleSection>
                     </div>
                 )}

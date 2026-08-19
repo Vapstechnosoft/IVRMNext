@@ -1,15 +1,15 @@
 'use client';
 
-import { useFormContext, Controller } from 'react-hook-form';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { InstitutionDTO, RoleTypeDTO, StaffDTO, TrustDTO } from '@/types/super-admin/user-creation/staff-user-creation';
 import { useState } from 'react';
-import type { RoleTypeDTO, TrustDTO, InstitutionDTO, StaffDTO } from '@/types/super-admin/user-creation/staff-user-creation';
+import { Controller, useFormContext } from 'react-hook-form';
 
 interface SelectionFormProps {
     roleTypes: RoleTypeDTO[];
@@ -42,38 +42,51 @@ export default function SelectionForm({
     onInstitutionCheckboxChange,
     onSelectAllInstitutions
 }: SelectionFormProps) {
-    const { control, watch, formState: { errors } } = useFormContext();
+    const {
+        control,
+        watch,
+        formState: { errors }
+    } = useFormContext();
     const [staffSearch, setStaffSearch] = useState('');
 
-    const filterData = watch('filterData');
-    const roleType = watch('roleType');
-    console.log('filterData', filterData);
-    const selectedRole = roleTypes.find(r => String(r.ivrmrT_Id) === roleType);
+    const watchRoleType = watch('roleType');
+    const watchInstitution = watch('institution');
+    const watchFilterData = watch('filterData');
+
+    const isRoleSelected = !!watchRoleType && watchRoleType !== '';
+    const selectedRole = roleTypes.find((r) => String(r.ivrmrT_Id) === watchRoleType);
     const roleName = selectedRole?.ivrmrT_Role || '';
-    const roleFlag = selectedRole?.flag || '';
     const isAdmin = roleName.toUpperCase() === 'ADMIN' || roleName.toUpperCase() === 'SUPER ADMIN';
-    const showStaffSelection = roleFlag ? roleFlag.toUpperCase() === 'S' : true;
+    const filterData = watchFilterData || 'Single';
 
+    const hasInstitutionSelected = isAdmin
+        ? filterData === 'Multiple'
+            ? institutions.some((i) => i.Selected)
+            : !!watchInstitution
+        : !!watchInstitution;
 
-    const filteredStaff = staffList.filter(s =>
-        s.stafname.toLowerCase().includes(staffSearch.toLowerCase()) ||
-        s.hrmE_EmployeeCode?.toLowerCase().includes(staffSearch.toLowerCase())
+    const filteredStaff = staffList.filter(
+        (s) =>
+            s.stafname.toLowerCase().includes(staffSearch.toLowerCase()) ||
+            s.hrmE_EmployeeCode?.toLowerCase().includes(staffSearch.toLowerCase())
     );
 
-    const allSelected = staffList.length > 0 && staffList.every(s => s.Selected);
+    const allSelected = staffList.length > 0 && staffList.every((s) => s.Selected);
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-6 rounded-lg border border-gray-200">
-            {/* Role Type */}
-            <div className="space-y-2">
-                <Label className="text-sm font-semibold">Select Role Type: <span className="text-red-500">*</span></Label>
+        <div className='grid grid-cols-1 gap-6 rounded-lg border border-gray-200 bg-gray-50 p-6 md:grid-cols-2'>
+            {/* Role Type (Always Visible) */}
+            <div className='col-span-1 space-y-2'>
+                <Label className='font-semibold text-sm'>
+                    Select Role Type: <span className='text-red-500'>*</span>
+                </Label>
                 <Controller
                     control={control}
-                    name="roleType"
+                    name='roleType'
                     render={({ field }) => (
                         <Select onValueChange={field.onChange} value={field.value} disabled={isOnloadLoading}>
-                            <SelectTrigger className="bg-white">
-                                <SelectValue placeholder={isOnloadLoading ? "Loading..." : "-- SELECT ROLE --"} />
+                            <SelectTrigger className='bg-white'>
+                                <SelectValue placeholder={isOnloadLoading ? 'Loading...' : '-- SELECT ROLE --'} />
                             </SelectTrigger>
                             <SelectContent>
                                 {roleTypes.map((role) => (
@@ -85,222 +98,281 @@ export default function SelectionForm({
                         </Select>
                     )}
                 />
-                {errors.roleType && <p className="text-xs text-red-500 font-medium">{errors.roleType.message as string}</p>}
+                {errors.roleType && <p className='font-medium text-red-500 text-xs'>{errors.roleType.message as string}</p>}
             </div>
 
-            {/* Selection Mode (Single/Multiple) */}
-            <div className="space-y-4">
-                <Label className="text-sm font-semibold ">Individual Or Multiple Staff Mapping:</Label>
-                <Controller
-                    control={control}
-                    name="filterData"
-                    render={({ field }) => (
-                        <RadioGroup onValueChange={field.onChange} value={field.value} className="flex gap-6 pt-2">
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="Single" id="r1" />
-                                <Label htmlFor="r1" className="cursor-pointer">Individual Staff</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="Multiple" id="r2" />
-                                <Label htmlFor="r2" className="cursor-pointer">Multiple Staff</Label>
-                            </div>
-                        </RadioGroup>
+            {/* Render rest of selection controls ONLY when Role Type is selected */}
+            {isRoleSelected && (
+                <>
+                    {/* Trust Selection (If trusts exist or required for role) */}
+                    {trusts.length > 0 && (
+                        <div className='space-y-2'>
+                            <Label className='font-semibold text-sm'>
+                                Trust Name: <span className='text-red-500'>*</span>
+                            </Label>
+                            <Controller
+                                control={control}
+                                name='trust'
+                                render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={isOnloadLoading}>
+                                        <SelectTrigger className='bg-white'>
+                                            <SelectValue placeholder={isOnloadLoading ? 'Loading...' : '-- SELECT TRUST --'} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {trusts.map((trust) => (
+                                                <SelectItem key={trust.mO_Id} value={String(trust.mO_Id)}>
+                                                    {trust.mO_Name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                        </div>
                     )}
-                />
-            </div>
 
-            {/* Add/Remove Pages (Only for Multiple) */}
-            {filterData === 'Multiple' && (
-                <div className="space-y-4 md:col-span-2 bg-blue-50/50 p-4 rounded border border-blue-100">
-                    <Label className="text-sm font-semibold text-blue-800">Permission Action:</Label>
-                    <Controller
-                        control={control}
-                        name="adddelte"
-                        render={({ field }) => (
-                            <RadioGroup onValueChange={field.onChange} value={field.value} className="flex gap-10 pt-1">
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="Add" id="a1" className="text-blue-600 border-blue-400" />
-                                    <Label htmlFor="a1" className="cursor-pointer font-medium">Add Pages / Permissions</Label>
+                    {/* Institution Selection */}
+                    <div className={`space-y-2 ${isAdmin && filterData === 'Multiple' ? 'md:col-span-2' : ''}`}>
+                        <Label className='font-semibold text-sm'>
+                            {isAdmin && filterData === 'Multiple' ? 'Institutions Name:' : 'Institution Name:'}{' '}
+                            <span className='text-red-500'>*</span>
+                        </Label>
+
+                        {isAdmin && filterData === 'Multiple' ? (
+                            <div className='rounded-md border bg-white'>
+                                <div className='flex items-center justify-between border-b bg-gray-50 p-3'>
+                                    <Label className='font-bold text-primary text-xs'>INSTITUTIONS LIST</Label>
+                                    <div className='flex items-center space-x-2'>
+                                        <Checkbox
+                                            id='all-inst'
+                                            checked={institutions.length > 0 && institutions.every((i) => i.Selected)}
+                                            onCheckedChange={onSelectAllInstitutions}
+                                        />
+                                        <Label htmlFor='all-inst' className='cursor-pointer font-bold text-xs'>
+                                            ALL
+                                        </Label>
+                                    </div>
                                 </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="Del" id="a2" className="text-red-500 border-red-400" />
-                                    <Label htmlFor="a2" className="cursor-pointer font-medium">Remove Pages / Permissions</Label>
-                                </div>
-                            </RadioGroup>
+                                <ScrollArea className='h-32'>
+                                    {isOnloadLoading ? (
+                                        <p className='p-4 text-center text-gray-500 text-xs'>Loading institutions...</p>
+                                    ) : (
+                                        <div className='grid grid-cols-1 gap-2 p-2 sm:grid-cols-2 lg:grid-cols-3'>
+                                            {institutions.map((inst) => (
+                                                <div
+                                                    key={inst.mI_Id}
+                                                    className='flex items-center space-x-2 rounded border border-gray-100 p-2 transition-colors hover:bg-gray-100'>
+                                                    <Checkbox
+                                                        id={`inst-${inst.mI_Id}`}
+                                                        checked={inst.Selected}
+                                                        onCheckedChange={(checked) => onInstitutionCheckboxChange?.(inst.mI_Id, !!checked)}
+                                                    />
+                                                    <Label
+                                                        htmlFor={`inst-${inst.mI_Id}`}
+                                                        className='cursor-pointer select-none text-xs leading-none'>
+                                                        {inst.mI_Name}
+                                                    </Label>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </ScrollArea>
+                            </div>
+                        ) : (
+                            <Controller
+                                control={control}
+                                name='institution'
+                                render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={isOnloadLoading}>
+                                        <SelectTrigger className='bg-white'>
+                                            <SelectValue placeholder={isOnloadLoading ? 'Loading...' : '-- SELECT INSTITUTION --'} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {institutions.map((inst) => (
+                                                <SelectItem key={inst.mI_Id} value={String(inst.mI_Id)}>
+                                                    {inst.mI_Name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
                         )}
-                    />
-                </div>
+                        {errors.institution && <p className='font-medium text-red-500 text-xs'>{errors.institution.message as string}</p>}
+
+                        {/* VIEW ADMIN USERNAMES!! or VIEW ROLE USERS!! */}
+                        {hasInstitutionSelected && (
+                            <div className='pt-1'>
+                                <Button
+                                    type='button'
+                                    variant='link'
+                                    onClick={onViewUsernames}
+                                    className='h-auto px-0 font-bold text-red-500 uppercase underline decoration-2 underline-offset-4 hover:text-red-700'>
+                                    {isAdmin ? 'VIEW ADMIN USERNAMES!!' : 'VIEW ROLE USERS!!'}
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Staff & Radio controls (Only for non-admin Staff role when institution is selected) */}
+                    {!isAdmin && watchInstitution && (
+                        <>
+                            {/* Selection Mode (Single/Multiple) */}
+                            <div className='col-span-1 space-y-4'>
+                                <Label className='font-semibold text-sm'>Individual Or Multiple Staff Mapping:</Label>
+                                <Controller
+                                    control={control}
+                                    name='filterData'
+                                    render={({ field }) => (
+                                        <RadioGroup onValueChange={field.onChange} value={field.value} className='flex gap-6 pt-2'>
+                                            <div className='flex items-center space-x-2'>
+                                                <RadioGroupItem value='Single' id='r1' />
+                                                <Label htmlFor='r1' className='cursor-pointer'>
+                                                    Individual Staff
+                                                </Label>
+                                            </div>
+                                            <div className='flex items-center space-x-2'>
+                                                <RadioGroupItem value='Multiple' id='r2' />
+                                                <Label htmlFor='r2' className='cursor-pointer'>
+                                                    Multiple Staff
+                                                </Label>
+                                            </div>
+                                        </RadioGroup>
+                                    )}
+                                />
+                            </div>
+
+                            {/* Add/Remove Pages (Only for Multiple) */}
+                            {filterData === 'Multiple' && (
+                                <div className='space-y-4 rounded border border-blue-100 bg-blue-50/50 p-4 md:col-span-2'>
+                                    <Label className='font-semibold text-blue-800 text-sm'>Permission Action:</Label>
+                                    <Controller
+                                        control={control}
+                                        name='adddelte'
+                                        render={({ field }) => (
+                                            <RadioGroup onValueChange={field.onChange} value={field.value} className='flex gap-10 pt-1'>
+                                                <div className='flex items-center space-x-2'>
+                                                    <RadioGroupItem value='Add' id='a1' className='border-blue-400 text-blue-600' />
+                                                    <Label htmlFor='a1' className='cursor-pointer font-medium'>
+                                                        Add Pages / Permissions
+                                                    </Label>
+                                                </div>
+                                                <div className='flex items-center space-x-2'>
+                                                    <RadioGroupItem value='Del' id='a2' className='border-red-400 text-red-500' />
+                                                    <Label htmlFor='a2' className='cursor-pointer font-medium'>
+                                                        Remove Pages / Permissions
+                                                    </Label>
+                                                </div>
+                                            </RadioGroup>
+                                        )}
+                                    />
+                                </div>
+                            )}
+
+                            {/* Staff Selection */}
+                            <div className='space-y-2 md:col-span-2'>
+                                <Label className='font-semibold text-sm'>
+                                    {filterData === 'Single' ? 'Select Staff Name:' : "Staff's Name:"}{' '}
+                                    <span className='text-red-500'>*</span>
+                                </Label>
+
+                                {filterData === 'Single' ? (
+                                    <Controller
+                                        control={control}
+                                        name='staffId'
+                                        render={({ field }) => (
+                                            <Select
+                                                onValueChange={field.onChange}
+                                                value={field.value}
+                                                disabled={isStaffListLoading || isStaffDataLoading || staffList?.length === 0}>
+                                                <SelectTrigger className='max-w-md bg-white'>
+                                                    <SelectValue
+                                                        placeholder={
+                                                            isStaffListLoading
+                                                                ? 'Loading list...'
+                                                                : isStaffDataLoading
+                                                                  ? 'Loading data...'
+                                                                  : '-- SELECT STAFF --'
+                                                        }
+                                                    />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {staffList.map((staff) => (
+                                                        <SelectItem key={staff.hrmE_Id} value={String(staff.hrmE_Id)}>
+                                                            {staff.stafname}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        )}
+                                    />
+                                ) : (
+                                    <div className='rounded-md border bg-white'>
+                                        <div className='flex items-center justify-between border-b bg-gray-50 p-3'>
+                                            <div className='relative max-w-sm flex-1'>
+                                                <Input
+                                                    placeholder='Search Employee here...'
+                                                    className='h-8 pl-8 text-xs'
+                                                    value={staffSearch}
+                                                    onChange={(e) => setStaffSearch(e.target.value)}
+                                                />
+                                                <div className='absolute top-2.5 left-2.5'>
+                                                    <svg
+                                                        xmlns='http://www.w3.org/2000/svg'
+                                                        width='14'
+                                                        height='14'
+                                                        viewBox='0 0 24 24'
+                                                        fill='none'
+                                                        stroke='currentColor'
+                                                        strokeWidth='2'
+                                                        strokeLinecap='round'
+                                                        strokeLinejoin='round'
+                                                        className='text-gray-400'>
+                                                        <circle cx='11' cy='11' r='8'></circle>
+                                                        <line x1='21' y1='21' x2='16.65' y2='16.65'></line>
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                            <div className='flex items-center space-x-2'>
+                                                <Checkbox id='all-staff' checked={allSelected} onCheckedChange={onSelectAllStaff} />
+                                                <Label htmlFor='all-staff' className='cursor-pointer font-bold text-xs'>
+                                                    ALL
+                                                </Label>
+                                            </div>
+                                        </div>
+                                        <ScrollArea className='h-48'>
+                                            {isStaffListLoading ? (
+                                                <p className='p-4 text-center text-gray-500 text-xs'>Loading staff...</p>
+                                            ) : (
+                                                <div className='grid grid-cols-1 gap-2 p-2 sm:grid-cols-2 lg:grid-cols-3'>
+                                                    {filteredStaff.map((staff) => (
+                                                        <div
+                                                            key={staff.hrmE_Id}
+                                                            className='flex items-center space-x-2 rounded border border-gray-100 p-2 transition-colors hover:bg-gray-100'>
+                                                            <Checkbox
+                                                                id={`staff-${staff.hrmE_Id}`}
+                                                                checked={staff.Selected}
+                                                                onCheckedChange={(checked) =>
+                                                                    onStaffCheckboxChange?.(staff.hrmE_Id, !!checked)
+                                                                }
+                                                            />
+                                                            <Label
+                                                                htmlFor={`staff-${staff.hrmE_Id}`}
+                                                                className='cursor-pointer select-none text-xs leading-none'>
+                                                                {staff.stafname}
+                                                            </Label>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </ScrollArea>
+                                    </div>
+                                )}
+                            </div>
+                        </>
+                    )}
+                </>
             )}
-
-            {/* Trust */}
-            {/* <div className="space-y-2">
-                <Label className="text-sm font-semibold">Select Trust Name:</Label>
-                <Controller
-                    control={control}
-                    name="trust"
-                    render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value} disabled={isOnloadLoading}>
-                            <SelectTrigger className="bg-white">
-                                <SelectValue placeholder={isOnloadLoading ? "Loading..." : "-- SELECT TRUST --"} />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {trusts.map((trust) => (
-                                    <SelectItem key={trust.mO_Id} value={String(trust.mO_Id)}>
-                                        {trust.mO_Name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    )}
-                />
-            </div> */}
-
-            {/* Institution */}
-            <div className={`space-y-2 ${isAdmin && filterData === 'Multiple' ? 'md:col-span-2' : ''}`}>
-                <Label className="text-sm font-semibold">Select Institution Name: <span className="text-red-500">*</span></Label>
-
-                {isAdmin && filterData === 'Multiple' ? (
-                    <div className="border rounded-md bg-white">
-                        <div className="p-3 border-b bg-gray-50 flex items-center justify-between">
-                            <Label className="text-xs font-bold text-primary">INSTITUTIONS LIST</Label>
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    id="all-inst"
-                                    checked={institutions.length > 0 && institutions.every(i => i.Selected)}
-                                    onCheckedChange={onSelectAllInstitutions}
-                                />
-                                <Label htmlFor="all-inst" className="text-xs font-bold cursor-pointer">ALL</Label>
-                            </div>
-                        </div>
-                        <ScrollArea className="h-32">
-                            {isOnloadLoading ? (
-                                <p className="text-center text-xs text-gray-500 p-4">Loading institutions...</p>
-                            ) : (
-                                <div className="p-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                                    {institutions.map((inst) => (
-                                        <div key={inst.mI_Id} className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded border border-gray-100 transition-colors">
-                                            <Checkbox
-                                                id={`inst-${inst.mI_Id}`}
-                                                checked={inst.Selected}
-                                                onCheckedChange={(checked) => onInstitutionCheckboxChange?.(inst.mI_Id, !!checked)}
-                                            />
-                                            <Label htmlFor={`inst-${inst.mI_Id}`} className="text-xs cursor-pointer select-none leading-none">
-                                                {inst.mI_Name}
-                                            </Label>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </ScrollArea>
-                    </div>
-                ) : (
-                    <Controller
-                        control={control}
-                        name="institution"
-                        render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value} disabled={isOnloadLoading}>
-                                <SelectTrigger className="bg-white">
-                                    <SelectValue placeholder={isOnloadLoading ? "Loading..." : "-- SELECT INSTITUTION --"} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {institutions.map((inst) => (
-                                        <SelectItem key={inst.mI_Id} value={String(inst.mI_Id)}>
-                                            {inst.mI_Name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
-                )}
-                {errors.institution && <p className="text-xs text-red-500 font-medium">{errors.institution.message as string}</p>}
-
-                {/* VIEW ADMIN USERNAMES!! - Strictly for Admin/Super Admin as requested */}
-                {isAdmin && watch('institution') && (
-                    <div className="pt-1">
-                        <Button
-                            type="button"
-                            variant="link"
-                            onClick={onViewUsernames}
-                            className="text-red-500 hover:text-red-700 px-0 h-auto font-bold uppercase underline decoration-2 underline-offset-4"
-                        >
-                            VIEW ADMIN USERNAMES!!
-                        </Button>
-                    </div>
-                )}
-            </div>
-
-            {/* Staff Selection */}
-            <div className="space-y-2 md:col-span-2">
-                <Label className="text-sm font-semibold">
-                    {filterData === 'Single' ? 'Select Staff Name:' : "Staff's Name:"} <span className="text-red-500">*</span>
-                </Label>
-
-                {filterData === 'Single' ? (
-                    <Controller
-                        control={control}
-                        name="staffId"
-                        render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value} disabled={isStaffListLoading || isStaffDataLoading || staffList?.length === 0}>
-                                <SelectTrigger className="bg-white max-w-md">
-                                    <SelectValue placeholder={isStaffListLoading ? "Loading list..." : isStaffDataLoading ? "Loading data..." : "-- SELECT STAFF --"} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {staffList.map((staff) => (
-                                        <SelectItem key={staff.hrmE_Id} value={String(staff.hrmE_Id)}>
-                                            {staff.stafname}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
-                ) : (
-                    <div className="border rounded-md bg-white">
-                        <div className="p-3 border-b bg-gray-50 flex items-center justify-between">
-                            <div className="relative flex-1 max-w-sm">
-                                <Input
-                                    placeholder="Search Employee here..."
-                                    className="h-8 pl-8 text-xs"
-                                    value={staffSearch}
-                                    onChange={(e) => setStaffSearch(e.target.value)}
-                                />
-                                <div className="absolute left-2.5 top-2.5">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                                </div>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    id="all-staff"
-                                    checked={allSelected}
-                                    onCheckedChange={onSelectAllStaff}
-                                />
-                                <Label htmlFor="all-staff" className="text-xs font-bold cursor-pointer">ALL</Label>
-                            </div>
-                        </div>
-                        <ScrollArea className="h-48">
-                            {isStaffListLoading ? (
-                                <p className="text-center text-xs text-gray-500 p-4">Loading staff...</p>
-                            ) : (
-                                <div className="p-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                                    {filteredStaff.map((staff) => (
-                                        <div key={staff.hrmE_Id} className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded border border-gray-100 transition-colors">
-                                            <Checkbox
-                                                id={`staff-${staff.hrmE_Id}`}
-                                                checked={staff.Selected}
-                                                onCheckedChange={(checked) => onStaffCheckboxChange?.(staff.hrmE_Id, !!checked)}
-                                            />
-                                            <Label htmlFor={`staff-${staff.hrmE_Id}`} className="text-xs cursor-pointer select-none leading-none">
-                                                {staff.stafname}
-                                            </Label>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </ScrollArea>
-                    </div>
-                )}
-            </div>
         </div>
     );
 }

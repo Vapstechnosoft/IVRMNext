@@ -1,7 +1,7 @@
 'use server';
 
-import { InwardInitialData, InwardTransactionData } from '@/types/visitors-management/transactions';
-import { InwardSchema } from '@/schemas/visitors-management/transactions';
+import type { InwardSchema } from '@/schemas/visitors-management/transactions';
+import type { InwardInitialData, InwardTransactionData } from '@/types/visitors-management/transactions';
 
 // Mock Data
 const mockEmployees = [

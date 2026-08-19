@@ -8,7 +8,6 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
 import {
     useChangeAcademicYearForCancel,
     useSaveTCCancelDetails,
@@ -16,15 +15,15 @@ import {
     useTCCancelInitialData
 } from '@/hooks/admission/preadmission/useStudentTc';
 import { cn } from '@/lib/utils';
+import { ensureArray } from '@/lib/utils';
 import { Check, ChevronsUpDown, Printer, Save, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
 import { type TCCancelDetail, tcCancelDetailsColumns } from './_components/columns';
 import { StudentDetails } from './_components/student-details';
 import { TCCancelPrint } from './_components/tc-cancel-print';
-import { ensureArray } from '@/lib/utils';
-import { useRef } from 'react';
 
 export default function StudentTCCancelPage() {
     const [isMounted, setIsMounted] = useState(false);
@@ -178,9 +177,8 @@ export default function StudentTCCancelPage() {
                 // However, since the body has a 'data' property, the previous check (response?.data || response)
                 // was grabbing the inner data array instead of the root object.
                 // We prioritize the root object if it has the success flag.
-                const actualResponse = (response?.success !== undefined || response?.returnval !== undefined)
-                    ? response
-                    : (response?.data || response);
+                const actualResponse =
+                    response?.success !== undefined || response?.returnval !== undefined ? response : response?.data || response;
 
                 if (actualResponse?.success === true || actualResponse?.returnval === true) {
                     toast.success(actualResponse?.message || 'TC Deleted Successfully');
@@ -216,24 +214,21 @@ export default function StudentTCCancelPage() {
     if (!isMounted) return null;
 
     // Helper for command list
-    const selectedStudent = studentList.find(s => s.amsT_Id === selectedStudentId);
+    const selectedStudent = studentList.find((s) => s.amsT_Id === selectedStudentId);
 
     return (
         <div className='min-h-screen space-y-4 p-1'>
             <CollapsibleSection title='STUDENT TC CANCEL' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                 <div className='grid grid-cols-1 items-start gap-6'>
-
                     {/* Top Row: Year and Student */}
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                    <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                         {/* Academic Year */}
                         <div className='grid grid-cols-[auto_1fr] items-center gap-4'>
-                            <Label htmlFor='academic-year-select' className='whitespace-nowrap text-right font-medium text-base w-[140px]'>
+                            <Label htmlFor='academic-year-select' className='w-[140px] whitespace-nowrap text-right font-medium text-base'>
                                 Academic Year:<span className='text-red-500'>*</span>
                             </Label>
                             <div>
-                                <Select
-                                    value={selectedYear}
-                                    onValueChange={handleYearChange}>
+                                <Select value={selectedYear} onValueChange={handleYearChange}>
                                     <SelectTrigger id='academic-year-select'>
                                         <SelectValue placeholder='Select Academic Year' />
                                     </SelectTrigger>
@@ -250,7 +245,7 @@ export default function StudentTCCancelPage() {
 
                         {/* Student Name */}
                         <div className='grid grid-cols-[auto_1fr] items-center gap-4'>
-                            <Label htmlFor='student-search' className='whitespace-nowrap text-right font-medium text-base w-[140px]'>
+                            <Label htmlFor='student-search' className='w-[140px] whitespace-nowrap text-right font-medium text-base'>
                                 Student Name :<span className='text-red-500'>*</span>
                             </Label>
                             <div className='relative w-full'>
@@ -264,7 +259,7 @@ export default function StudentTCCancelPage() {
                                             className='w-full justify-between'
                                             disabled={!selectedYear}>
                                             {selectedStudentId
-                                                ? (selectedStudent?.amsT_FirstName?.replace(/:$/, '') || 'Select Student')
+                                                ? selectedStudent?.amsT_FirstName?.replace(/:$/, '') || 'Select Student'
                                                 : 'Select Or Search Student'}
                                             <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
                                         </Button>
@@ -293,9 +288,10 @@ export default function StudentTCCancelPage() {
                                                                         selectedStudentId === student.amsT_Id ? 'opacity-100' : 'opacity-0'
                                                                     )}
                                                                 />
-                                                                {displayName}{displayAdmNo}
+                                                                {displayName}
+                                                                {displayAdmNo}
                                                             </CommandItem>
-                                                        )
+                                                        );
                                                     })}
                                                 </CommandGroup>
                                             </CommandList>
@@ -309,17 +305,21 @@ export default function StudentTCCancelPage() {
                     {/* Student Details Section (Conditional) */}
                     {studentDetails && (
                         <div className='mt-4 border-t pt-4'>
-                            <h3 className='text-lg font-semibold mb-4 text-blue-700'>Student Details</h3>
+                            <h3 className='mb-4 font-semibold text-blue-700 text-lg'>Student Details</h3>
 
-                            <div className='grid grid-cols-1 md:grid-cols-[200px_1fr] gap-6'>
+                            <div className='grid grid-cols-1 gap-6 md:grid-cols-[200px_1fr]'>
                                 {/* Left Column: Photo */}
                                 <div className='flex flex-col items-center gap-4'>
-                                    <div className='border border-blue-300 p-1 w-[150px] h-[150px] bg-white shadow-sm'>
+                                    <div className='h-[150px] w-[150px] border border-blue-300 bg-white p-1 shadow-sm'>
                                         {studentDetails.studentPhoto ? (
                                             // biome-ignore lint/a11y/useAltText: <explanation>
-                                            <img src={studentDetails.studentPhoto} className='w-full h-full object-cover' alt='Student Photo' />
+                                            <img
+                                                src={studentDetails.studentPhoto}
+                                                className='h-full w-full object-cover'
+                                                alt='Student Photo'
+                                            />
                                         ) : (
-                                            <div className='w-full h-full flex items-center justify-center bg-gray-100 text-xs text-gray-500 text-center uppercase'>
+                                            <div className='flex h-full w-full items-center justify-center bg-gray-100 text-center text-gray-500 text-xs uppercase'>
                                                 Photo Not Available
                                             </div>
                                         )}
@@ -331,10 +331,10 @@ export default function StudentTCCancelPage() {
                                     <StudentDetails details={studentDetails} />
 
                                     <div className='grid grid-cols-[140px_1fr] gap-2'>
-                                        <Label className='text-right font-medium pt-2'>
+                                        <Label className='pt-2 text-right font-medium'>
                                             Remarks :<span className='text-red-500'>*</span>
                                         </Label>
-                                        <div className='space-y-1 w-full'>
+                                        <div className='w-full space-y-1'>
                                             <Textarea
                                                 value={remarks}
                                                 onChange={(e) => setRemarks(e.target.value)}
@@ -342,7 +342,7 @@ export default function StudentTCCancelPage() {
                                                 rows={3}
                                             />
                                             {!remarks && saveMutation.isPending && (
-                                                <p className='text-xs text-red-500'>Remarks are required.</p>
+                                                <p className='text-red-500 text-xs'>Remarks are required.</p>
                                             )}
                                         </div>
                                     </div>
@@ -350,38 +350,23 @@ export default function StudentTCCancelPage() {
                             </div>
 
                             <div className='mt-6 flex justify-center gap-4'>
-                                <Button
-                                    onClick={handleSave}
-                                    className='bg-blue-600 hover:bg-blue-700'
-                                    disabled={saveMutation.isPending}
-                                >
+                                <Button onClick={handleSave} className='bg-blue-600 hover:bg-blue-700' disabled={saveMutation.isPending}>
                                     <Save className='mr-2 h-4 w-4' />
                                     {saveMutation.isPending ? 'Saving...' : 'Save'}
                                 </Button>
-                                <Button
-                                    onClick={handleClear}
-                                    variant='destructive'
-                                    disabled={saveMutation.isPending}
-                                >
+                                <Button onClick={handleClear} variant='destructive' disabled={saveMutation.isPending}>
                                     <X className='mr-2 h-4 w-4' />
                                     Clear
                                 </Button>
                             </div>
                         </div>
                     )}
-
                 </div>
             </CollapsibleSection>
 
             {/* Cancelled List Table */}
             {tableData.length > 0 && (
-                <CollapsibleSection
-                    title='STUDENT TC CANCEL DETAILS'
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg'>
-
+                <CollapsibleSection title='STUDENT TC CANCEL DETAILS' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                     <GenericDataTable<TCCancelDetail>
                         data={tableData}
                         totalItems={tableData.length}
@@ -402,7 +387,6 @@ export default function StudentTCCancelPage() {
                     <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
                         <TCCancelPrint ref={printRef} data={tableData} />
                     </div>
-
                 </CollapsibleSection>
             )}
         </div>

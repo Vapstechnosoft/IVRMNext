@@ -1,14 +1,14 @@
 'use client';
 
-import { useMutation, useQuery } from '@tanstack/react-query';
 import { ADMISSION_QUERY_KEYS } from '@/constants/query-keys';
 import {
-    getSamarthaTCLoadData,
-    changeYearSamarthaTC,
     changeClassSamarthaTC,
     changeSectionSamarthaTC,
-    getSamarthaTCDetails
+    changeYearSamarthaTC,
+    getSamarthaTCDetails,
+    getSamarthaTCLoadData
 } from '@/server/admission/preadmission/reports/samartha_tc';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const useSamarthaTCLoadData = () => {
     return useQuery({

@@ -61,15 +61,15 @@ export default function UpdateRegistrationNumberingForm({
                 prefix_type: selectedRow.imN_PrefixAcadYearCode
                     ? 'academic'
                     : selectedRow.imN_PrefixParticular
-                        ? 'particulars'
-                        : 'academic',
+                      ? 'particulars'
+                      : 'academic',
                 prefix_particulars: selectedRow.imN_PrefixParticular || '',
                 prefix_numeric_width: selectedRow.imN_WidthNumeric ? Number(selectedRow.imN_WidthNumeric) : undefined,
                 suffix_type: selectedRow.imN_SuffixAcadYearCode
                     ? 'academic'
                     : selectedRow.imN_SuffixParticular
-                        ? 'particulars'
-                        : 'academic',
+                      ? 'particulars'
+                      : 'academic',
                 suffix_particulars: selectedRow.imN_SuffixParticular || '',
                 suffix_starting_from: selectedRow.imN_StartingNo ? Number(selectedRow.imN_StartingNo) : undefined,
                 prefix_with_zero: selectedRow.imN_ZeroPrefixFlag === 'Yes' ? 'yes' : 'no',
@@ -121,15 +121,15 @@ export default function UpdateRegistrationNumberingForm({
                 prefix_type: selectedRow.imN_PrefixAcadYearCode
                     ? 'academic'
                     : selectedRow.imN_PrefixParticular
-                        ? 'particulars'
-                        : 'academic',
+                      ? 'particulars'
+                      : 'academic',
                 prefix_particulars: selectedRow.imN_PrefixParticular || '',
                 prefix_numeric_width: selectedRow.imN_WidthNumeric ? Number(selectedRow.imN_WidthNumeric) : undefined,
                 suffix_type: selectedRow.imN_SuffixAcadYearCode
                     ? 'academic'
                     : selectedRow.imN_SuffixParticular
-                        ? 'particulars'
-                        : 'academic',
+                      ? 'particulars'
+                      : 'academic',
                 suffix_particulars: selectedRow.imN_SuffixParticular || '',
                 suffix_starting_from: selectedRow.imN_StartingNo ? Number(selectedRow.imN_StartingNo) : undefined,
                 prefix_with_zero: selectedRow.imN_ZeroPrefixFlag === 'Yes' ? 'yes' : 'no',
@@ -189,7 +189,13 @@ export default function UpdateRegistrationNumberingForm({
                                 name='prefix_particulars'
                                 control={control}
                                 render={({ field }) => (
-                                    <Input {...field} value={field.value ?? ''} id='prefix_particulars' placeholder='e.g., INV, REG' className='w-full' />
+                                    <Input
+                                        {...field}
+                                        value={field.value ?? ''}
+                                        id='prefix_particulars'
+                                        placeholder='e.g., INV, REG'
+                                        className='w-full'
+                                    />
                                 )}
                             />
                             {errors.prefix_particulars && <FormError>{errors.prefix_particulars.message}</FormError>}
@@ -254,7 +260,13 @@ export default function UpdateRegistrationNumberingForm({
                                 name='suffix_particulars'
                                 control={control}
                                 render={({ field }) => (
-                                    <Input {...field} value={field.value ?? ''} id='suffix_particulars' placeholder='e.g., FY, SEM' className='w-full' />
+                                    <Input
+                                        {...field}
+                                        value={field.value ?? ''}
+                                        id='suffix_particulars'
+                                        placeholder='e.g., FY, SEM'
+                                        className='w-full'
+                                    />
                                 )}
                             />
                             {errors.suffix_particulars && <FormError>{errors.suffix_particulars.message}</FormError>}

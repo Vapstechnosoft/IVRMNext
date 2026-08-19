@@ -1,4 +1,4 @@
-import { type IClassTeacherReportList } from '@/types/admission/preadmission/reports';
+import type { IClassTeacherReportList } from '@/types/admission/preadmission/reports';
 import { format } from 'date-fns';
 import React from 'react';
 
@@ -7,23 +7,22 @@ interface ClassTeacherReportPrintProps {
     reportType: string;
 }
 
-export const ClassTeacherReportPrint = React.forwardRef<HTMLDivElement, ClassTeacherReportPrintProps>(
-    ({ data, reportType }, ref) => {
-        const currentDate = format(new Date(), 'dd/MM/yyyy');
+export const ClassTeacherReportPrint = React.forwardRef<HTMLDivElement, ClassTeacherReportPrintProps>(({ data, reportType }, ref) => {
+    const currentDate = format(new Date(), 'dd/MM/yyyy');
 
-        if (!data || data.length === 0) {
-            debugger;
-            return (
-                <div ref={ref} className='p-5 text-center bg-white text-black'>
-                    No data selected for printing.
-                </div>
-            );
-        }
-
+    if (!data || data.length === 0) {
+        debugger;
         return (
-            <div ref={ref} className='print-preview-container bg-white text-black min-h-full w-full'>
-                <style>
-                    {`
+            <div ref={ref} className='bg-white p-5 text-center text-black'>
+                No data selected for printing.
+            </div>
+        );
+    }
+
+    return (
+        <div ref={ref} className='print-preview-container min-h-full w-full bg-white text-black'>
+            <style>
+                {`
                         @media print {
                             @page {
                                 margin: 10mm;
@@ -84,74 +83,79 @@ export const ClassTeacherReportPrint = React.forwardRef<HTMLDivElement, ClassTea
                             }
                         }
                     `}
-                </style>
+            </style>
 
-                <table className='main-table no-border'>
-                    <thead>
-                        <tr>
-                            <td className='no-border'>
-                                {/* Header */}
-                                <div className='header-section text-center'>
-                                    <h2 className='text-lg font-bold uppercase'>Class Teacher Report</h2>
-                                    <p className='text-sm text-gray-600'>Date: {currentDate}</p>
-                                </div>
-                            </td>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td className='no-border'>
-                                {/* Table */}
-                                <table className='data-table w-full'>
-                                    <thead>
-                                        <tr className='bg-gray-100'>
-                                            <th className='w-16 text-center'>Sl.No</th>
-                                            <th>Staff Name</th>
-                                            <th>Class Name</th>
-                                            <th>Section</th>
-                                            {(reportType === 'subject_teacher_attendance' || reportType === 'subject_teacher') && <th>Subject</th>}
+            <table className='main-table no-border'>
+                <thead>
+                    <tr>
+                        <td className='no-border'>
+                            {/* Header */}
+                            <div className='header-section text-center'>
+                                <h2 className='font-bold text-lg uppercase'>Class Teacher Report</h2>
+                                <p className='text-gray-600 text-sm'>Date: {currentDate}</p>
+                            </div>
+                        </td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td className='no-border'>
+                            {/* Table */}
+                            <table className='data-table w-full'>
+                                <thead>
+                                    <tr className='bg-gray-100'>
+                                        <th className='w-16 text-center'>Sl.No</th>
+                                        <th>Staff Name</th>
+                                        <th>Class Name</th>
+                                        <th>Section</th>
+                                        {(reportType === 'subject_teacher_attendance' || reportType === 'subject_teacher') && (
+                                            <th>Subject</th>
+                                        )}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {data.map((item, index) => (
+                                        <tr key={index}>
+                                            <td className='text-center'>{index + 1}</td>
+                                            <td>{item.IVRMSTAUL_UserName || '-'}</td>
+                                            <td>{item.ASMCL_ClassName || '-'}</td>
+                                            <td>{item.ASMC_SectionName || '-'}</td>
+                                            {(reportType === 'subject_teacher_attendance' || reportType === 'subject_teacher') && (
+                                                <td>{item.PAMS_SubjectName || '-'}</td>
+                                            )}
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        {data.map((item, index) => (
-                                            <tr key={index}>
-                                                <td className='text-center'>{index + 1}</td>
-                                                <td>{item.IVRMSTAUL_UserName || '-'}</td>
-                                                <td>{item.ASMCL_ClassName || '-'}</td>
-                                                <td>{item.ASMC_SectionName || '-'}</td>
-                                                {(reportType === 'subject_teacher_attendance' || reportType === 'subject_teacher') && (
-                                                    <td>{item.PAMS_SubjectName || '-'}</td>
-                                                )}
-                                            </tr>
-                                        ))}
-                                        <tr className='bg-gray-100 font-bold'>
-                                            <td colSpan={reportType === 'subject_teacher_attendance' || reportType === 'subject_teacher' ? 4 : 3} className='text-right px-4'>
-                                                Total
-                                            </td>
-                                            <td colSpan={1} className='text-left px-4'>
-                                                {data.length}
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </td>
-                        </tr>
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td className='no-border'>
-                                {/* Footer */}
-                                <div className='footer-section'>
-                                    <div>Printed Date: {currentDate}</div>
-                                    <div>Signature</div>
-                                </div>
-                            </td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-        );
-    }
-);
+                                    ))}
+                                    <tr className='bg-gray-100 font-bold'>
+                                        <td
+                                            colSpan={
+                                                reportType === 'subject_teacher_attendance' || reportType === 'subject_teacher' ? 4 : 3
+                                            }
+                                            className='px-4 text-right'>
+                                            Total
+                                        </td>
+                                        <td colSpan={1} className='px-4 text-left'>
+                                            {data.length}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td className='no-border'>
+                            {/* Footer */}
+                            <div className='footer-section'>
+                                <div>Printed Date: {currentDate}</div>
+                                <div>Signature</div>
+                            </div>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    );
+});
 
 ClassTeacherReportPrint.displayName = 'ClassTeacherReportPrint';
