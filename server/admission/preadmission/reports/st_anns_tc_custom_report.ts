@@ -26,7 +26,6 @@ export async function changeStAnnsTcClass(data: {
     return await api.get<any>('admission', url);
 }
 
-
 export async function changeStAnnsTcSection(data: {
     ASMAY_Id: number;
     ASMCL_Id: number;

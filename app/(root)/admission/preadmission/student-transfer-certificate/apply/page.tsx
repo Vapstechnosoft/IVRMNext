@@ -1,7 +1,6 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -9,38 +8,43 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { cn } from '@/lib/utils';
-import { ensureArray } from '@/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
 import {
-    useAcademicYearDropdown
-} from '@/hooks/admission/preadmission/useMasters';
-import {
+    useCheckTCDuplication,
+    useSaveStudentTC,
+    useStudentNameList,
+    useStudentSearchFilter,
     // useStudentTCInitialData,
     // useStudentTCList,
     useStudentTCDetails,
-    useSaveStudentTC,
-    useStudentsByAcademicYear,
-    useCheckTCDuplication,
-    useStudentNameList,
-    useStudentSearchFilter
+    useStudentsByAcademicYear
     // useStudentDetailsOnNameChange
 } from '@/hooks/admission/preadmission/useStudentTc';
-import { Search, Save, XCircle, ChevronRight, ChevronLeft, Loader2, Info, Check, ChevronsUpDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { ensureArray } from '@/lib/utils';
+import { Check, ChevronLeft, ChevronRight, ChevronsUpDown, Loader2, Save, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
-import { type IStudentSearch, studentSearchColumns, generatedTCColumns, deletedTCColumns, type IGeneratedTC, type IDeletedTC } from './_components/columns';
 import {
-    StudentDetailsTab,
-    TCDetailsTab,
-    OtherDetailsTab,
     DueDetailsTab,
+    OtherDetailsTab,
+    StudentDetailsTab,
     StudentHeaderSummary,
-    StudentPersonalDetailsTab
+    StudentPersonalDetailsTab,
+    TCDetailsTab
 } from './_components';
+import {
+    type IDeletedTC,
+    type IGeneratedTC,
+    type IStudentSearch,
+    deletedTCColumns,
+    generatedTCColumns,
+    studentSearchColumns
+} from './_components/columns';
 
 export interface ITCFormData {
     tc_no: string;
@@ -202,10 +206,10 @@ export default function StudentTCApplyPage() {
                 }
 
                 const solMap: Record<string, string> = {
-                    'active': 'S',
-                    'left': 'L',
-                    'deactive': 'D',
-                    'temporary': 'T'
+                    active: 'S',
+                    left: 'L',
+                    deactive: 'D',
+                    temporary: 'T'
                 };
                 const sol = solMap[studentStatus] || 'S';
 
@@ -309,10 +313,10 @@ export default function StudentTCApplyPage() {
         setMaxEnabledTabIndex(0);
 
         const solMap: Record<string, string> = {
-            'active': 'S',
-            'left': 'L',
-            'deactive': 'D',
-            'temporary': 'T'
+            active: 'S',
+            left: 'L',
+            deactive: 'D',
+            temporary: 'T'
         };
         const statusFlag = solMap[studentStatus] || 'S';
 
@@ -330,13 +334,16 @@ export default function StudentTCApplyPage() {
         // Use detailsMutation (getStudentTCDetails POST)
         detailsMutation.mutate(payload, {
             onSuccess: (response: any) => {
-
                 // --- 1. Dues & Configuration Check ---
                 // Configuration flags should come from response, not initialDataMutation
                 // Default to checking dues (flag = 1) if not present
                 const actualData = response.data || response;
 
-                if (actualData?.studentList?.length > 0 || actualData?.studentListById?.length > 0 || actualData?.getjoineddetails?.length > 0) {
+                if (
+                    actualData?.studentList?.length > 0 ||
+                    actualData?.studentListById?.length > 0 ||
+                    actualData?.getjoineddetails?.length > 0
+                ) {
                     setSelectedStudentDetails(actualData);
 
                     // --- 1. Dues Check ---
@@ -350,10 +357,10 @@ export default function StudentTCApplyPage() {
                     // IF admC_TCAllowBalanceFlg is 0, it means balance is NOT allowed (paymentTcFlag = 1)
                     // IF it is 1, balance IS allowed (paymentTcFlag = 0)
                     const paymentTcFlag = config?.transnumconfigsettings_Payment_TC_Flag ?? (config?.admC_TCAllowBalanceFlg === 0 ? 1 : 0);
-                    const libraryTcFlag = config?.transnumconfigsettings_Library_TC_Flag ?? (config?.asC_LibraryAllowBalanceFlg === 0 ? 1 : 0);
+                    const libraryTcFlag =
+                        config?.transnumconfigsettings_Library_TC_Flag ?? (config?.asC_LibraryAllowBalanceFlg === 0 ? 1 : 0);
 
                     let blockMessage = '';
-
 
                     if (paymentTcFlag === 1) {
                         if (feeDueAmount > 0) {
@@ -380,7 +387,6 @@ export default function StudentTCApplyPage() {
 
                     // Store Config
                     setTcConfig(config || null);
-
 
                     // --- 2. Approval Workflow Check ---
                     // "acertapP_ApprovaReqlFlg"
@@ -413,7 +419,6 @@ export default function StudentTCApplyPage() {
                         }
                     }
 
-
                     // --- 3. Populate Form Data ---
                     const studentInfo = actualData.studentList?.[0];
                     const joinedInfo = actualData.getjoineddetails?.[0];
@@ -437,14 +442,24 @@ export default function StudentTCApplyPage() {
                             remarks: joinedInfo?.astC_Remarks || '',
                             conduct: joinedInfo?.astC_Conduct || 'Good',
                             last_class: studentInfo.asmcl_classname || '',
-                            academic_year_join: joinedInfo?.asmaY_Year ? joinedInfo.asmaY_Year.toString() : (studentInfo.asmay_year || ''),
+                            academic_year_join: joinedInfo?.asmaY_Year ? joinedInfo.asmaY_Year.toString() : studentInfo.asmay_year || '',
 
                             // Dates
-                            app_date: joinedInfo?.astC_TCApplicationDate ? new Date(joinedInfo.astC_TCApplicationDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-                            tc_date: joinedInfo?.astC_TCIssueDate ? new Date(joinedInfo.astC_TCIssueDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-                            last_date_attendance: actualData.todateatt ? new Date(actualData.todateatt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-                            left_date: joinedInfo?.astC_TCDate ? new Date(joinedInfo.astC_TCDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-                            promotion_date: joinedInfo?.astC_PromotionDate ? new Date(joinedInfo.astC_PromotionDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                            app_date: joinedInfo?.astC_TCApplicationDate
+                                ? new Date(joinedInfo.astC_TCApplicationDate).toISOString().split('T')[0]
+                                : new Date().toISOString().split('T')[0],
+                            tc_date: joinedInfo?.astC_TCIssueDate
+                                ? new Date(joinedInfo.astC_TCIssueDate).toISOString().split('T')[0]
+                                : new Date().toISOString().split('T')[0],
+                            last_date_attendance: actualData.todateatt
+                                ? new Date(actualData.todateatt).toISOString().split('T')[0]
+                                : new Date().toISOString().split('T')[0],
+                            left_date: joinedInfo?.astC_TCDate
+                                ? new Date(joinedInfo.astC_TCDate).toISOString().split('T')[0]
+                                : new Date().toISOString().split('T')[0],
+                            promotion_date: joinedInfo?.astC_PromotionDate
+                                ? new Date(joinedInfo.astC_PromotionDate).toISOString().split('T')[0]
+                                : new Date().toISOString().split('T')[0],
                             admission_date: studentInfo.amst_date ? new Date(studentInfo.amst_date).toISOString().split('T')[0] : '',
 
                             // Other Details
@@ -487,10 +502,9 @@ export default function StudentTCApplyPage() {
                             last_exam_details: joinedInfo?.astC_LastExamDetails || '',
                             result: joinedInfo?.astC_Result || '',
                             failed_details: joinedInfo?.astC_FailedDetails || '',
-                            ncc_cadet: joinedInfo?.astC_NCC || 'no',
+                            ncc_cadet: joinedInfo?.astC_NCC || 'no'
                         }));
                     }
-
                 } else {
                     toast.error('No details found for the selected student.');
                 }
@@ -516,8 +530,6 @@ export default function StudentTCApplyPage() {
         setMaxEnabledTabIndex(0);
     };
 
-
-
     // Parsing Qualified Class if it contains text like "Granted to Class X"
     useEffect(() => {
         if (formData.qual_class && formData.qual_class.includes('Granted to Class')) {
@@ -526,7 +538,7 @@ export default function StudentTCApplyPage() {
             // If strictly needed to match ID, we might need more logic, but for now we set the string
             // Assuming the simple string match works for the Select value
             if (parsed !== formData.qual_class) {
-                setFormData(prev => ({ ...prev, qual_class: parsed }));
+                setFormData((prev) => ({ ...prev, qual_class: parsed }));
             }
         }
     }, [formData.qual_class]);
@@ -593,7 +605,7 @@ export default function StudentTCApplyPage() {
         if (currentIndex < TABS.length - 1) {
             if (validateTab(activeTab)) {
                 const nextTab = TABS[currentIndex + 1];
-                setMaxEnabledTabIndex(prev => Math.max(prev, currentIndex + 1));
+                setMaxEnabledTabIndex((prev) => Math.max(prev, currentIndex + 1));
                 setActiveTab(nextTab);
             }
         }
@@ -609,56 +621,67 @@ export default function StudentTCApplyPage() {
     const handleSave = () => {
         const isAutoTC = tcConfig?.imN_AutoManualFlag === 'Auto';
 
-        if ((!isAutoTC && !formData.tc_no) || !formData.reason || !formData.app_date || !formData.tc_date || !formData.last_date_attendance || !formData.left_date) {
+        if (
+            (!isAutoTC && !formData.tc_no) ||
+            !formData.reason ||
+            !formData.app_date ||
+            !formData.tc_date ||
+            !formData.last_date_attendance ||
+            !formData.left_date
+        ) {
             toast.error('Please fill all required fields in TC Details tab');
             setActiveTab('tc-details');
             return;
         }
 
         const payload = {
-            "amst_Id": selectedStudent?.id,
-            "asmaY_Id": Number(asmayId),
-            "asmcL_Id": selectedStudent?.classId,
-            "asmS_Id": selectedStudent?.sectionId,
-            "astC_ActiveFlag": studentStatus === 'left' ? 'L' : 'S',
-            "astC_TemporaryFlag": isTemporaryTC ? 1 : 0,
-            "astC_TCNO": formData.tc_no,
-            "astC_LeavingReason": formData.reason,
-            "astC_TCDate": formData.tc_date,
-            "astC_LastAttendedDate": formData.last_date_attendance,
-            "astC_WorkingDays": formData.working_days,
-            "astC_AttendedDays": formData.present_days,
-            "astC_PromotionDate": formData.promotion_date,
-            "astC_MediumOfINStruction": formData.mediumOfInstruction,
-            "astC_LanguageStudied": formData.language_stud,
-            "astC_ElectivesStudied": formData.electives_stud,
-            "astC_Scholarship": formData.scholarship,
-            "astC_MedicallyExam": formData.Medically_Exam_Flag === 'yes' ? 'Fit' : (formData.Medically_Exam_Flag === 'no' ? 'Unfit' : formData.Medically_Exam_Flag),
-            "astC_NCCDetails": formData.ncc_cadet === 'yes' ? 'Yes' : 'No',
-            "astC_ExtraActivities": formData.extracurricular,
-            "astC_Conduct": formData.conduct,
-            "astC_Remarks": formData.remarks,
-            "astC_FeePaid": formData.Fee_Due_Flag === 'yes' ? 'Yes' : 'No',
-            "astC_FeeConcession": formData.fee_concession,
-            "astC_LastExamDetails": formData.last_exam_details,
-            "astC_Result": formData.result,
-            "astC_ResultDetails": formData.result,
-            "astC_Qual_Class": formData.qual_class,
-            "astC_Qual_PromotionFlag": formData.Promotion_Flag === 'qualified' ? 'Y' : 'N',
-            "astC_TCApplicationDate": formData.app_date,
-            "astC_TCIssueDate": formData.tc_date,
-            "astC_SubjectsStudied": formData.subjects_stud,
-            "last_Class_Studied": formData.last_class,
-            "returnval": true,
-            "email_flag": "Yes",
-            "transnumconfigsettings": tcConfig || { imN_AutoManualFlag: "Manual" }
+            amst_Id: selectedStudent?.id,
+            asmaY_Id: Number(asmayId),
+            asmcL_Id: selectedStudent?.classId,
+            asmS_Id: selectedStudent?.sectionId,
+            astC_ActiveFlag: studentStatus === 'left' ? 'L' : 'S',
+            astC_TemporaryFlag: isTemporaryTC ? 1 : 0,
+            astC_TCNO: formData.tc_no,
+            astC_LeavingReason: formData.reason,
+            astC_TCDate: formData.tc_date,
+            astC_LastAttendedDate: formData.last_date_attendance,
+            astC_WorkingDays: formData.working_days,
+            astC_AttendedDays: formData.present_days,
+            astC_PromotionDate: formData.promotion_date,
+            astC_MediumOfINStruction: formData.mediumOfInstruction,
+            astC_LanguageStudied: formData.language_stud,
+            astC_ElectivesStudied: formData.electives_stud,
+            astC_Scholarship: formData.scholarship,
+            astC_MedicallyExam:
+                formData.Medically_Exam_Flag === 'yes'
+                    ? 'Fit'
+                    : formData.Medically_Exam_Flag === 'no'
+                      ? 'Unfit'
+                      : formData.Medically_Exam_Flag,
+            astC_NCCDetails: formData.ncc_cadet === 'yes' ? 'Yes' : 'No',
+            astC_ExtraActivities: formData.extracurricular,
+            astC_Conduct: formData.conduct,
+            astC_Remarks: formData.remarks,
+            astC_FeePaid: formData.Fee_Due_Flag === 'yes' ? 'Yes' : 'No',
+            astC_FeeConcession: formData.fee_concession,
+            astC_LastExamDetails: formData.last_exam_details,
+            astC_Result: formData.result,
+            astC_ResultDetails: formData.result,
+            astC_Qual_Class: formData.qual_class,
+            astC_Qual_PromotionFlag: formData.Promotion_Flag === 'qualified' ? 'Y' : 'N',
+            astC_TCApplicationDate: formData.app_date,
+            astC_TCIssueDate: formData.tc_date,
+            astC_SubjectsStudied: formData.subjects_stud,
+            last_Class_Studied: formData.last_class,
+            returnval: true,
+            email_flag: 'Yes',
+            transnumconfigsettings: tcConfig || { imN_AutoManualFlag: 'Manual' }
         };
 
         saveMutation.mutate(payload, {
             onSuccess: (response: any) => {
-                const actualResponse = (response?.success !== undefined || response?.returnval !== undefined)
-                    ? response
-                    : (response?.data || response);
+                const actualResponse =
+                    response?.success !== undefined || response?.returnval !== undefined ? response : response?.data || response;
 
                 if (actualResponse?.success || actualResponse?.returnval) {
                     Swal.fire({
@@ -680,24 +703,27 @@ export default function StudentTCApplyPage() {
     const handleCheckDuplicateTC = (tcNo: string) => {
         if (!tcNo || !asmayId) return;
 
-        duplicateCheckMutation.mutate({
-            asmayId: Number(asmayId),
-            tcNo: tcNo
-        }, {
-            onSuccess: (response: any) => {
-                if (response?.data?.tcnoduplicate > 0) {
-                    Swal.fire({
-                        title: 'Duplicate TC Number',
-                        text: `The TC Number "${tcNo}" already exists. Please enter a different number.`,
-                        icon: 'warning'
-                    });
-                    setFormData((prev: any) => ({ ...prev, tc_no: '' }));
-                }
+        duplicateCheckMutation.mutate(
+            {
+                asmayId: Number(asmayId),
+                tcNo: tcNo
             },
-            onError: (error: any) => {
-                console.error('Duplicate check error:', error);
+            {
+                onSuccess: (response: any) => {
+                    if (response?.data?.tcnoduplicate > 0) {
+                        Swal.fire({
+                            title: 'Duplicate TC Number',
+                            text: `The TC Number "${tcNo}" already exists. Please enter a different number.`,
+                            icon: 'warning'
+                        });
+                        setFormData((prev: any) => ({ ...prev, tc_no: '' }));
+                    }
+                },
+                onError: (error: any) => {
+                    console.error('Duplicate check error:', error);
+                }
             }
-        });
+        );
     };
 
     const tableProps = {
@@ -716,33 +742,41 @@ export default function StudentTCApplyPage() {
                         {/* Left Side Group */}
                         <div className='space-y-6 p-4'>
                             {/* Search Type Radio */}
-                            <div className='flex justify-center mb-6'>
+                            <div className='mb-6 flex justify-center'>
                                 <RadioGroup value={searchType} onValueChange={setSearchType} className='flex items-center gap-8'>
                                     <div className='flex items-center space-x-2'>
                                         <RadioGroupItem value='all' id='st-all' />
-                                        <Label htmlFor='st-all' className="font-medium">All</Label>
+                                        <Label htmlFor='st-all' className='font-medium'>
+                                            All
+                                        </Label>
                                     </div>
                                     <div className='flex items-center space-x-2'>
                                         <RadioGroupItem value='individual' id='st-individual' />
-                                        <Label htmlFor='st-individual' className="font-medium">Individual</Label>
+                                        <Label htmlFor='st-individual' className='font-medium'>
+                                            Individual
+                                        </Label>
                                     </div>
                                 </RadioGroup>
                             </div>
 
                             {/* Academic Year */}
                             <div className='grid grid-cols-1 items-center gap-2 md:grid-cols-[140px_1fr] md:gap-4'>
-                                <Label htmlFor='academic-year-select' className='text-left font-medium text-sm md:text-right text-indigo-900'>
+                                <Label
+                                    htmlFor='academic-year-select'
+                                    className='text-left font-medium text-indigo-900 text-sm md:text-right'>
                                     Academic Year:<span className='text-red-500'>*</span>
                                 </Label>
                                 <Select value={asmayId} onValueChange={setAsmayId}>
-                                    <SelectTrigger id='academic-year-select' className="border-indigo-200">
+                                    <SelectTrigger id='academic-year-select' className='border-indigo-200'>
                                         <SelectValue placeholder='Select Academic Year' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {academicYearLoading ? (
-                                            <SelectItem value='loading' disabled>Loading...</SelectItem>
+                                            <SelectItem value='loading' disabled>
+                                                Loading...
+                                            </SelectItem>
                                         ) : (
-                                            (academicList.length > 0 ? academicList : (academicYears?.data || [])).map((item: any) => (
+                                            (academicList.length > 0 ? academicList : academicYears?.data || []).map((item: any) => (
                                                 <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
                                                     {item.asmaY_Year}
                                                 </SelectItem>
@@ -752,46 +786,43 @@ export default function StudentTCApplyPage() {
                                 </Select>
                             </div>
 
-
-
                             {/* Student Search Combobox */}
                             <div className='grid grid-cols-1 items-center gap-2 md:grid-cols-[140px_1fr] md:gap-4'>
-                                <Label className='text-left font-medium text-sm md:text-right text-indigo-900'>
+                                <Label className='text-left font-medium text-indigo-900 text-sm md:text-right'>
                                     Student Name:<span className='text-red-500'>*</span>
                                 </Label>
                                 <Popover open={openStudentSelect} onOpenChange={setOpenStudentSelect}>
                                     <PopoverTrigger asChild>
                                         <Button
-                                            variant="outline"
-                                            role="combobox"
+                                            variant='outline'
+                                            role='combobox'
                                             aria-expanded={openStudentSelect}
-                                            className="w-full justify-between border-indigo-200"
-                                            disabled={!asmayId}
-                                        >
+                                            className='w-full justify-between border-indigo-200'
+                                            disabled={!asmayId}>
                                             {selectedStudent
                                                 ? `${selectedStudent.studentName} (${selectedStudent.admNo})`
-                                                : "Select or search Student in the list..."}
-                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                : 'Select or search Student in the list...'}
+                                            <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-[400px] p-0">
+                                    <PopoverContent className='w-[400px] p-0'>
                                         <Command shouldFilter={false}>
                                             <CommandInput
-                                                placeholder="Search student..."
+                                                placeholder='Search student...'
                                                 value={searchText}
                                                 onValueChange={setSearchText}
                                             />
                                             <CommandList>
                                                 <CommandEmpty>
-                                                    {searchText.length === 0 
-                                                        ? "Please type to search student..." 
-                                                        : "No student found."}
+                                                    {searchText.length === 0 ? 'Please type to search student...' : 'No student found.'}
                                                 </CommandEmpty>
                                                 <CommandGroup>
                                                     {studentList?.map((student: any, index: number) => {
                                                         const displayName = student.amsT_FirstName || student.studentName;
                                                         const displayAdmNo = student.amsT_AdmNo || '';
-                                                        const fullLabel = student.amsT_FirstName ? student.amsT_FirstName : `${student.studentName} ${displayAdmNo}`;
+                                                        const fullLabel = student.amsT_FirstName
+                                                            ? student.amsT_FirstName
+                                                            : `${student.studentName} ${displayAdmNo}`;
 
                                                         return (
                                                             <CommandItem
@@ -809,12 +840,13 @@ export default function StudentTCApplyPage() {
                                                                     };
                                                                     handleSelect(mappedStudent);
                                                                     setOpenStudentSelect(false);
-                                                                }}
-                                                            >
+                                                                }}>
                                                                 <Check
                                                                     className={cn(
-                                                                        "mr-2 h-4 w-4",
-                                                                        selectedStudent?.id === student.amsT_Id ? "opacity-100" : "opacity-0"
+                                                                        'mr-2 h-4 w-4',
+                                                                        selectedStudent?.id === student.amsT_Id
+                                                                            ? 'opacity-100'
+                                                                            : 'opacity-0'
                                                                     )}
                                                                 />
                                                                 {fullLabel}
@@ -834,7 +866,7 @@ export default function StudentTCApplyPage() {
                             <div className='bg-[#2b589f] px-4 py-2 font-medium text-white'>Student Selection</div>
                             <div className='space-y-4 bg-white p-4'>
                                 {/* Student Status Radio */}
-                                <div className="space-y-2">
+                                <div className='space-y-2'>
                                     <RadioGroup
                                         value={studentStatus}
                                         onValueChange={setStudentStatus}
@@ -867,13 +899,15 @@ export default function StudentTCApplyPage() {
                                         checked={isTemporaryTC}
                                         onCheckedChange={(checked) => setIsTemporaryTC(checked as boolean)}
                                     />
-                                    <Label htmlFor='temp-tc' className="font-medium">Temporary TC</Label>
+                                    <Label htmlFor='temp-tc' className='font-medium'>
+                                        Temporary TC
+                                    </Label>
                                 </div>
 
                                 <div className='my-2 border-t' />
 
                                 {/* Search Order Radio */}
-                                <div className="space-y-2">
+                                <div className='space-y-2'>
                                     <RadioGroup value={searchOrder} onValueChange={setSearchOrder} className='flex items-center gap-6'>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='admno_name' id='so-adm' />
@@ -897,18 +931,15 @@ export default function StudentTCApplyPage() {
                             className='min-w-[120px] bg-indigo-600 px-8 text-white hover:bg-indigo-700'>
                             {searchMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className='mr-2 h-4 w-4' />} Search
                         </Button> */}
-                        <Button
-                            onClick={handleReset}
-                            variant="outline"
-                            className='min-w-[120px]'>
-                            <XCircle className="mr-2 h-4 w-4" /> Reset
+                        <Button onClick={handleReset} variant='outline' className='min-w-[120px]'>
+                            <XCircle className='mr-2 h-4 w-4' /> Reset
                         </Button>
                     </div>
                 </CollapsibleSection>
 
                 {/* Generated TC List */}
                 {generatedTCList.length > 0 && !selectedStudent && (
-                    <CollapsibleSection title="Generated TC List" defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
+                    <CollapsibleSection title='Generated TC List' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                         <GenericDataTable<IGeneratedTC>
                             data={generatedTCList}
                             totalItems={generatedTCList.length}
@@ -924,7 +955,12 @@ export default function StudentTCApplyPage() {
 
                 {/* Deleted TC List */}
                 {deletedTCList.length > 0 && !selectedStudent && (
-                    <CollapsibleSection title="Cancelled / Deleted TC List" defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
+                    <CollapsibleSection
+                        title='Cancelled / Deleted TC List'
+                        defaultOpen={true}
+                        variant='default'
+                        size='lg'
+                        className='shadow-lg'>
                         <GenericDataTable<IDeletedTC>
                             data={deletedTCList}
                             totalItems={deletedTCList.length}
@@ -939,7 +975,7 @@ export default function StudentTCApplyPage() {
                 )}
 
                 {data.length > 0 && !selectedStudent && (
-                    <CollapsibleSection title="Search Results" defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
+                    <CollapsibleSection title='Search Results' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                         <GenericDataTable<IStudentSearch>
                             {...tableProps}
                             columns={studentSearchColumns(handleSelect)}
@@ -956,45 +992,48 @@ export default function StudentTCApplyPage() {
                         defaultOpen={true}
                         variant='default'
                         size='lg'
-                        className='shadow-lg pb-6'>
+                        className='pb-6 shadow-lg'>
                         {selectedStudentDetails && selectedStudentDetails.studentList && (
-                            <div className="mb-4">
+                            <div className='mb-4'>
                                 <StudentHeaderSummary student={selectedStudentDetails.studentList[0]} />
                             </div>
                         )}
 
-                        <Tabs value={activeTab} onValueChange={(val) => {
-                            const idx = TABS.indexOf(val);
-                            if (idx <= maxEnabledTabIndex) {
-                                setActiveTab(val);
-                            }
-                        }} className="w-full">
-                            <TabsList className="grid w-full grid-cols-5 p-1 bg-muted/30">
+                        <Tabs
+                            value={activeTab}
+                            onValueChange={(val) => {
+                                const idx = TABS.indexOf(val);
+                                if (idx <= maxEnabledTabIndex) {
+                                    setActiveTab(val);
+                                }
+                            }}
+                            className='w-full'>
+                            <TabsList className='grid w-full grid-cols-5 bg-muted/30 p-1'>
                                 {TABS.map((tab, idx) => (
                                     <TabsTrigger
                                         key={tab}
                                         value={tab}
                                         disabled={idx > maxEnabledTabIndex}
-                                        className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white"
-                                    >
-                                        {tab.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                                        className='data-[state=active]:bg-indigo-600 data-[state=active]:text-white'>
+                                        {tab
+                                            .split('-')
+                                            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                                            .join(' ')}
                                     </TabsTrigger>
                                 ))}
                             </TabsList>
 
-                            <div className="mt-4 min-h-[400px] border rounded-lg p-2 bg-muted/5">
-                                <TabsContent value="student-details">
+                            <div className='mt-4 min-h-[400px] rounded-lg border bg-muted/5 p-2'>
+                                <TabsContent value='student-details'>
                                     {detailsMutation.isPending ? (
-                                        <div className="flex h-60 items-center justify-center"><Loader2 className="h-10 w-10 animate-spin text-indigo-600" /></div>
+                                        <div className='flex h-60 items-center justify-center'>
+                                            <Loader2 className='h-10 w-10 animate-spin text-indigo-600' />
+                                        </div>
                                     ) : (
-                                        <StudentDetailsTab
-                                            formData={formData}
-                                            setFormData={setFormData}
-                                            disabled={isBlocked}
-                                        />
+                                        <StudentDetailsTab formData={formData} setFormData={setFormData} disabled={isBlocked} />
                                     )}
                                 </TabsContent>
-                                <TabsContent value="tc-details">
+                                <TabsContent value='tc-details'>
                                     <TCDetailsTab
                                         formData={formData}
                                         setFormData={setFormData}
@@ -1004,14 +1043,10 @@ export default function StudentTCApplyPage() {
                                         disabled={isBlocked}
                                     />
                                 </TabsContent>
-                                <TabsContent value="personal-details">
-                                    <StudentPersonalDetailsTab
-                                        formData={formData}
-                                        setFormData={setFormData}
-                                        disabled={isBlocked}
-                                    />
+                                <TabsContent value='personal-details'>
+                                    <StudentPersonalDetailsTab formData={formData} setFormData={setFormData} disabled={isBlocked} />
                                 </TabsContent>
-                                <TabsContent value="other-details">
+                                <TabsContent value='other-details'>
                                     <OtherDetailsTab
                                         formData={formData}
                                         setFormData={setFormData}
@@ -1019,52 +1054,48 @@ export default function StudentTCApplyPage() {
                                         disabled={isBlocked}
                                     />
                                 </TabsContent>
-                                <TabsContent value="due-details">
-                                    <DueDetailsTab
-                                        data={selectedStudentDetails}
-                                        disabled={isBlocked}
-                                    />
+                                <TabsContent value='due-details'>
+                                    <DueDetailsTab data={selectedStudentDetails} disabled={isBlocked} />
                                 </TabsContent>
                             </div>
 
-                            <div className="flex justify-between items-center px-4 mt-6 border-t pt-4">
-                                <Button variant="ghost" className="text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => {
-                                    setSelectedStudent(null);
-                                    setMaxEnabledTabIndex(0);
-                                    setActiveTab('student-details');
-                                }}>
-                                    <XCircle className="mr-2 h-4 w-4" /> Cancel Selection
+                            <div className='mt-6 flex items-center justify-between border-t px-4 pt-4'>
+                                <Button
+                                    variant='ghost'
+                                    className='text-red-600 hover:bg-red-50 hover:text-red-700'
+                                    onClick={() => {
+                                        setSelectedStudent(null);
+                                        setMaxEnabledTabIndex(0);
+                                        setActiveTab('student-details');
+                                    }}>
+                                    <XCircle className='mr-2 h-4 w-4' /> Cancel Selection
                                 </Button>
-                                <div className="flex gap-4">
-                                    <Button
-                                        variant="outline"
-                                        disabled={activeTab === 'student-details'}
-                                        onClick={handlePrevious}
-                                    >
-                                        <ChevronLeft className="mr-2 h-4 w-4" /> Previous
+                                <div className='flex gap-4'>
+                                    <Button variant='outline' disabled={activeTab === 'student-details'} onClick={handlePrevious}>
+                                        <ChevronLeft className='mr-2 h-4 w-4' /> Previous
                                     </Button>
 
                                     {activeTab !== 'due-details' ? (
                                         <Button
-                                            variant="outline"
-                                            className="bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100"
-                                            onClick={handleNext}
-                                        >
-                                            Next <ChevronRight className="ml-2 h-4 w-4" />
+                                            variant='outline'
+                                            className='border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
+                                            onClick={handleNext}>
+                                            Next <ChevronRight className='ml-2 h-4 w-4' />
                                         </Button>
                                     ) : (
                                         <>
                                             <Button
                                                 onClick={handleSave}
                                                 disabled={saveMutation.isPending}
-                                                className="bg-green-600 hover:bg-green-700 text-white min-w-[140px]">
-                                                {saveMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />} Save Application
+                                                className='min-w-[140px] bg-green-600 text-white hover:bg-green-700'>
+                                                {saveMutation.isPending ? (
+                                                    <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                                                ) : (
+                                                    <Save className='mr-2 h-4 w-4' />
+                                                )}{' '}
+                                                Save Application
                                             </Button>
-                                            <Button
-                                                variant="secondary"
-                                                onClick={() => setOpenPreview(true)}
-                                                className="min-w-[100px]"
-                                            >
+                                            <Button variant='secondary' onClick={() => setOpenPreview(true)} className='min-w-[100px]'>
                                                 Preview
                                             </Button>
                                         </>
@@ -1075,56 +1106,80 @@ export default function StudentTCApplyPage() {
 
                         {/* Preview Modal */}
                         {openPreview && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-                                <div className="max-h-[80vh] w-[800px] overflow-y-auto rounded-lg bg-white p-6 shadow-xl">
-                                    <div className="mb-4 flex items-center justify-between border-b pb-2">
-                                        <h2 className="text-xl font-bold">Student TC Details - Preview</h2>
-                                        <Button variant="ghost" size="icon" onClick={() => setOpenPreview(false)}>
-                                            <XCircle className="h-5 w-5" />
+                            <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'>
+                                <div className='max-h-[80vh] w-[800px] overflow-y-auto rounded-lg bg-white p-6 shadow-xl'>
+                                    <div className='mb-4 flex items-center justify-between border-b pb-2'>
+                                        <h2 className='font-bold text-xl'>Student TC Details - Preview</h2>
+                                        <Button variant='ghost' size='icon' onClick={() => setOpenPreview(false)}>
+                                            <XCircle className='h-5 w-5' />
                                         </Button>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4 text-sm">
+                                    <div className='grid grid-cols-2 gap-4 text-sm'>
                                         {/* Row 1 */}
-                                        <div className="font-semibold">Class:</div><div>{formData.last_class}</div>
-                                        <div className="font-semibold">TC No.:</div><div>{formData.tc_no}</div>
+                                        <div className='font-semibold'>Class:</div>
+                                        <div>{formData.last_class}</div>
+                                        <div className='font-semibold'>TC No.:</div>
+                                        <div>{formData.tc_no}</div>
 
                                         {/* Row 2 */}
-                                        <div className="font-semibold">Section:</div><div>{selectedStudent?.section}</div>
-                                        <div className="font-semibold">TC Application Date:</div><div>{formData.app_date}</div>
+                                        <div className='font-semibold'>Section:</div>
+                                        <div>{selectedStudent?.section}</div>
+                                        <div className='font-semibold'>TC Application Date:</div>
+                                        <div>{formData.app_date}</div>
 
                                         {/* Row 3 */}
-                                        <div className="font-semibold">Father Name:</div><div>{selectedStudentDetails?.studentListById?.[0]?.father || '-'}</div>
-                                        <div className="font-semibold">Leaving Reason:</div><div>{formData.reason}</div>
+                                        <div className='font-semibold'>Father Name:</div>
+                                        <div>{selectedStudentDetails?.studentListById?.[0]?.father || '-'}</div>
+                                        <div className='font-semibold'>Leaving Reason:</div>
+                                        <div>{formData.reason}</div>
 
                                         {/* Row 4 */}
-                                        <div className="font-semibold">Category:</div><div>{selectedStudentDetails?.studentListById?.[0]?.AMC_Name || '-'}</div>
-                                        <div className="font-semibold">TC Date:</div><div>{formData.tc_date}</div>
+                                        <div className='font-semibold'>Category:</div>
+                                        <div>{selectedStudentDetails?.studentListById?.[0]?.AMC_Name || '-'}</div>
+                                        <div className='font-semibold'>TC Date:</div>
+                                        <div>{formData.tc_date}</div>
 
                                         {/* Row 5 */}
-                                        <div className="font-semibold">Admission Academic Year:</div><div>{formData.academic_year_join}</div>
-                                        <div className="font-semibold">Last Date Of Attendance:</div><div>{formData.last_date_attendance}</div>
+                                        <div className='font-semibold'>Admission Academic Year:</div>
+                                        <div>{formData.academic_year_join}</div>
+                                        <div className='font-semibold'>Last Date Of Attendance:</div>
+                                        <div>{formData.last_date_attendance}</div>
 
                                         {/* Row 6 */}
-                                        <div className="font-semibold">Registration No.:</div><div>{selectedStudentDetails?.studentListById?.[0]?.AMST_RegistrationNo || '-'}</div>
-                                        <div className="font-semibold">No. Of School Days:</div><div>{formData.working_days}</div>
+                                        <div className='font-semibold'>Registration No.:</div>
+                                        <div>{selectedStudentDetails?.studentListById?.[0]?.AMST_RegistrationNo || '-'}</div>
+                                        <div className='font-semibold'>No. Of School Days:</div>
+                                        <div>{formData.working_days}</div>
 
                                         {/* Row 7 */}
-                                        <div className="font-semibold">Date Of Admission:</div><div>{selectedStudentDetails?.studentListById?.[0]?.AMST_Date ? new Date(selectedStudentDetails.studentListById[0].AMST_Date).toLocaleDateString() : '-'}</div>
-                                        <div className="font-semibold">No. Of Attended Days:</div><div>{formData.present_days}</div>
+                                        <div className='font-semibold'>Date Of Admission:</div>
+                                        <div>
+                                            {selectedStudentDetails?.studentListById?.[0]?.AMST_Date
+                                                ? new Date(selectedStudentDetails.studentListById[0].AMST_Date).toLocaleDateString()
+                                                : '-'}
+                                        </div>
+                                        <div className='font-semibold'>No. Of Attended Days:</div>
+                                        <div>{formData.present_days}</div>
 
                                         {/* Row 8 */}
-                                        <div className="font-semibold">Date Of Promotion:</div><div>{formData.promotion_date}</div>
-                                        <div className="font-semibold">Qualified for which class:</div><div>{formData.qual_class}</div>
+                                        <div className='font-semibold'>Date Of Promotion:</div>
+                                        <div>{formData.promotion_date}</div>
+                                        <div className='font-semibold'>Qualified for which class:</div>
+                                        <div>{formData.qual_class}</div>
 
                                         {/* Row 9 */}
-                                        <div className="font-semibold">Last Class Studied:</div><div>{formData.last_class}</div>
-                                        <div className="font-semibold">Conduct / Character:</div><div>{formData.conduct}</div>
+                                        <div className='font-semibold'>Last Class Studied:</div>
+                                        <div>{formData.last_class}</div>
+                                        <div className='font-semibold'>Conduct / Character:</div>
+                                        <div>{formData.conduct}</div>
 
                                         {/* Row 10 */}
-                                        <div className="font-semibold">Caste:</div><div>{selectedStudentDetails?.studentListById?.[0]?.IMC_CasteName || '-'}</div>
-                                        <div className="font-semibold">Fee Due:</div><div>{selectedStudentDetails?.studentListById?.[0]?.feetobepaid || 0}</div>
+                                        <div className='font-semibold'>Caste:</div>
+                                        <div>{selectedStudentDetails?.studentListById?.[0]?.IMC_CasteName || '-'}</div>
+                                        <div className='font-semibold'>Fee Due:</div>
+                                        <div>{selectedStudentDetails?.studentListById?.[0]?.feetobepaid || 0}</div>
                                     </div>
-                                    <div className="mt-6 flex justify-end">
+                                    <div className='mt-6 flex justify-end'>
                                         <Button onClick={() => setOpenPreview(false)}>Close</Button>
                                     </div>
                                 </div>

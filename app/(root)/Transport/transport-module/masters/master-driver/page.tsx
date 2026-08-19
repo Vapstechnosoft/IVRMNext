@@ -23,12 +23,7 @@ export default function MasterDriverPage(props: { searchParams: SearchParams }) 
         <FormProvider<IMasterDriver>>
             <div className='min-h-screen'>
                 <div className='container space-y-4 p-1'>
-                    <MasterDriverPageContent
-                        response={response}
-                        isLoading={isLoading}
-                        error={error}
-                        refetchAll={refetchAll}
-                    />
+                    <MasterDriverPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
                 </div>
             </div>
         </FormProvider>

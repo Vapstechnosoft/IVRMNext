@@ -1,14 +1,14 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { GenericDataTable } from '@/components/ui/view-data-table/view-generic-data-table';
 import { handleFriendRequestAction } from '@/server/alumni/alumni-friend-request';
 import type { IAlumniFriendRequest } from '@/types/alumni/alumni-friend-request';
 import { CheckCircle, Loader2, XCircle } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { GenericDataTable } from '@/components/ui/view-data-table/view-generic-data-table';
-import ViewProfileModal from './view-profile-modal';
 import { getColumns } from './columns';
+import ViewProfileModal from './view-profile-modal';
 
 interface RequestAcceptListProps {
     data: IAlumniFriendRequest[];

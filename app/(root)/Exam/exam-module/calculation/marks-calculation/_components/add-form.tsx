@@ -12,13 +12,13 @@ import {
     getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/cumulative-report';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Calculator, RotateCcw } from 'lucide-react';
+import { Calculator, Loader2, RotateCcw } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import LoadingModal from './loading-modal';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 // biome-ignore lint/style/useImportType: <explanation>
 import { z } from 'zod';
+import LoadingModal from './loading-modal';
 
 type FormFields = z.infer<typeof examMarksCalculationSchemaSchema.addOrUpdate>;
 
@@ -300,7 +300,11 @@ export default function ExamMarksCalculationForm() {
 
                             <div className='flex justify-center gap-4'>
                                 <Button type='submit' disabled={isSubmitting} className='min-w-[160px]'>
-                                    {isSubmitting ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Calculator className='mr-2 h-4 w-4' />}
+                                    {isSubmitting ? (
+                                        <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                                    ) : (
+                                        <Calculator className='mr-2 h-4 w-4' />
+                                    )}
                                     {isSubmitting ? 'Calculating...' : 'Calculation'}
                                 </Button>
                                 <Button type='button' variant='outline' onClick={handleCancel}>

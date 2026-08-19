@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Spinner } from '@/components/ui/spinner';
 import { useStudentPrintData } from '@/hooks/admission/preadmission/useTransactions';
 import type { IPreadmissionDocumentView } from '@/types/admission/preadmission/transactions';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -10,7 +11,6 @@ import { Download, Eye, FileText } from 'lucide-react';
 import React, { useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import ApplicationPrintView from './application-print-view';
-import { Spinner } from '@/components/ui/spinner';
 
 export const documentViewReportColumns: ColumnDef<IPreadmissionDocumentView>[] = [
     {
@@ -19,7 +19,7 @@ export const documentViewReportColumns: ColumnDef<IPreadmissionDocumentView>[] =
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
-            return (pageIndex * pageSize) + row.index + 1;
+            return pageIndex * pageSize + row.index + 1;
         }
     },
     {
@@ -28,12 +28,14 @@ export const documentViewReportColumns: ColumnDef<IPreadmissionDocumentView>[] =
         cell: ({ row }) => {
             const photoPath = row.original.student_photo || row.original.pasR_Student_Pic_Path;
             return (
-                <div className="h-10 w-10 overflow-hidden rounded-full border">
+                <div className='h-10 w-10 overflow-hidden rounded-full border'>
                     <img
                         src={photoPath || '/placeholder-user.png'}
-                        alt="Student"
-                        className="h-full w-full object-cover"
-                        onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder-user.png'; }}
+                        alt='Student'
+                        className='h-full w-full object-cover'
+                        onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/placeholder-user.png';
+                        }}
                     />
                 </div>
             );
@@ -42,15 +44,15 @@ export const documentViewReportColumns: ColumnDef<IPreadmissionDocumentView>[] =
     {
         accessorKey: 'student_name',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Name' className='font-bold text-black' />,
-        cell: ({ row }) => <span className="uppercase">{row.original.student_name}</span>
+        cell: ({ row }) => <span className='uppercase'>{row.original.student_name}</span>
     },
     {
         accessorKey: 'pasR_RegistrationNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Registration No' className='font-bold text-black' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Registration No' className='font-bold text-black' />
     },
     {
         accessorKey: 'applied_class_name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' className='font-bold text-black' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' className='font-bold text-black' />
     },
     {
         id: 'application_form',
@@ -75,32 +77,34 @@ export const documentViewReportColumns: ColumnDef<IPreadmissionDocumentView>[] =
             return (
                 <Dialog open={open} onOpenChange={setOpen}>
                     <DialogTrigger asChild>
-                        <Button variant="link" className="p-0 text-blue-600 hover:underline h-auto">
-                            <Eye className="mr-1 h-4 w-4" /> View Application
+                        <Button variant='link' className='h-auto p-0 text-blue-600 hover:underline'>
+                            <Eye className='mr-1 h-4 w-4' /> View Application
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+                    <DialogContent className='flex max-h-[90vh] max-w-4xl flex-col overflow-hidden'>
                         <DialogHeader>
                             <DialogTitle>Pre-Admission Registration Form</DialogTitle>
                         </DialogHeader>
-                        <div className="flex-1 overflow-auto">
+                        <div className='flex-1 overflow-auto'>
                             {isLoading ? (
-                                <div className="flex items-center justify-center p-10">
+                                <div className='flex items-center justify-center p-10'>
                                     <Spinner />
                                 </div>
                             ) : (
-                                <ApplicationPrintView 
+                                <ApplicationPrintView
                                     printRef={printRef}
                                     data={{
                                         ...studentDetails?.data,
                                         academic_year: studentDetails?.data?.academic_year || row.original.academic_year || '',
                                         asmcL_ClassName: studentDetails?.data?.asmcL_ClassName || row.original.applied_class_name || ''
-                                    }} 
+                                    }}
                                 />
                             )}
                         </div>
-                        <div className="p-4 border-t flex justify-end">
-                            <Button onClick={() => handlePrint()} variant="outline">Print</Button>
+                        <div className='flex justify-end border-t p-4'>
+                            <Button onClick={() => handlePrint()} variant='outline'>
+                                Print
+                            </Button>
                         </div>
                     </DialogContent>
                 </Dialog>
@@ -113,16 +117,15 @@ export const documentViewReportColumns: ColumnDef<IPreadmissionDocumentView>[] =
         cell: ({ row }) => {
             const docs = row.original.doclist || [];
             return (
-                <div className="flex flex-col gap-1">
+                <div className='flex flex-col gap-1'>
                     {docs.map((doc: any, index: number) => (
                         <a
                             key={index}
                             href={doc.document_Path}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-blue-600 hover:underline flex items-center gap-1"
-                        >
-                            <FileText className="h-3 w-3" /> {doc.amsmD_DocumentName}
+                            target='_blank'
+                            rel='noopener noreferrer'
+                            className='flex items-center gap-1 text-blue-600 text-xs hover:underline'>
+                            <FileText className='h-3 w-3' /> {doc.amsmD_DocumentName}
                         </a>
                     ))}
                 </div>
@@ -135,15 +138,14 @@ export const documentViewReportColumns: ColumnDef<IPreadmissionDocumentView>[] =
         cell: ({ row }) => {
             const docs = row.original.doclist || [];
             return (
-                <div className="flex flex-col gap-1">
+                <div className='flex flex-col gap-1'>
                     {docs.map((doc: any, index: number) => (
                         <a
                             key={index}
                             href={doc.document_Path}
                             download
-                            className="text-xs text-blue-600 hover:underline flex items-center gap-1"
-                        >
-                            <Download className="h-3 w-3" /> {doc.amsmD_DocumentName}
+                            className='flex items-center gap-1 text-blue-600 text-xs hover:underline'>
+                            <Download className='h-3 w-3' /> {doc.amsmD_DocumentName}
                         </a>
                     ))}
                 </div>

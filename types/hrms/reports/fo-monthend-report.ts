@@ -137,4 +137,3 @@ export interface FOMonthEndReportApiResponse {
     page: number;
     page_size: number;
 }
-

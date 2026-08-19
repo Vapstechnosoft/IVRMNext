@@ -63,8 +63,7 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
     });
     const isEmployeeSelected = watchedEmployeeId && watchedEmployeeId > 0;
     const onSubmit: SubmitHandler<EmployeeLoanForm> = async (data: EmployeeLoanForm) => {
-
-        console.log(" form data", data);
+        console.log(' form data', data);
         const loanData = {
             HREL_Id: 0,
             MI_Id: HRMS_MI_ID,
@@ -79,7 +78,7 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
             HREL_ModeOfPayment: data.modeOfPayment || '',
             HREL_ReferenceNo: data.referenceNo || ''
         };
-        console.log("loanData", loanData)
+        console.log('loanData', loanData);
         saveLoan(loanData, {
             onSuccess: () => {
                 toast.success('Employee loan created successfully!');
@@ -100,7 +99,9 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                         control={control}
                         render={({ field }) => (
                             <div className='space-y-2'>
-                                <Label>Employee <span className='text-destructive'>*</span></Label>
+                                <Label>
+                                    Employee <span className='text-destructive'>*</span>
+                                </Label>
                                 <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
                                     <SelectTrigger
                                         className={cn(
@@ -128,7 +129,9 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                         )}
                     />
                     <div className='space-y-2'>
-                        <Label>Applied Date <span className='text-destructive'>*</span></Label>
+                        <Label>
+                            Applied Date <span className='text-destructive'>*</span>
+                        </Label>
                         <Controller
                             name='startDate'
                             control={control}
@@ -161,7 +164,9 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                 </div>
                 <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                     <div className='space-y-2'>
-                        <Label>Loan Type <span className='text-destructive'>*</span></Label>
+                        <Label>
+                            Loan Type <span className='text-destructive'>*</span>
+                        </Label>
                         <Select
                             key={`loan-type-${loanTypes.length}`}
                             onValueChange={(value) => {
@@ -194,7 +199,9 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                         control={control}
                         render={({ field }) => (
                             <div className='space-y-2'>
-                                <Label>Mode Of Payment <span className='text-destructive'>*</span></Label>
+                                <Label>
+                                    Mode Of Payment <span className='text-destructive'>*</span>
+                                </Label>
                                 <Select onValueChange={field.onChange} value={field.value}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='--Select--' />

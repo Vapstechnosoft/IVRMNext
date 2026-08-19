@@ -39,9 +39,7 @@ export const vehicleDriverMappingColumns: ColumnDef<IVehicleDriverMapping>[] = [
     {
         accessorKey: 'trvD_Date',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Date' />,
-        cell: ({ row }) => (
-            <div>{new Date(row.getValue('trvD_Date')).toLocaleDateString()}</div>
-        )
+        cell: ({ row }) => <div>{new Date(row.getValue('trvD_Date')).toLocaleDateString()}</div>
     },
     {
         accessorKey: 'trmS_SessionName',

@@ -96,7 +96,8 @@ export const gradeDetailsSchema = z
     .object({
         emgD_Id: z.number().default(0),
         emgR_Id: z.number().default(0),
-        emgD_Name: z.string({ required_error: 'Enter Grade' })
+        emgD_Name: z
+            .string({ required_error: 'Enter Grade' })
             .min(1, { message: 'Enter Grade' })
             .max(100, { message: 'Grade Name cannot exceed 100 characters' }),
 
@@ -128,12 +129,15 @@ export const gradeDetailsSchema = z
             .refine((v) => /^[0-9]{0,4}\.?[0-9]{1,}?$/.test(String(v).trim()), {
                 message: 'Enter valid Format[For Example 100.00,99.97,......]'
             })
-            .refine((v) => {
-                const num = Number(v);
-                return !isNaN(num) && num >= 0 && num <= 10;
-            }, {
-                message: 'Grade points must be between 0 and 10'
-            })
+            .refine(
+                (v) => {
+                    const num = Number(v);
+                    return !isNaN(num) && num >= 0 && num <= 10;
+                },
+                {
+                    message: 'Grade points must be between 0 and 10'
+                }
+            )
             .transform((v) => Number(v)),
 
         emgD_Remarks: z.string().optional(),
@@ -395,10 +399,7 @@ export const lifeSkillAreaMappingSchema = {
             .array(
                 z.object({
                     ecsA_Id: z.number().default(0),
-                    ecsA_SkillOrder: z
-                        .number()
-                        .int()
-                        .optional(),
+                    ecsA_SkillOrder: z.number().int().optional(),
                     ecsA_SkillArea: z.string().optional()
                 })
             )

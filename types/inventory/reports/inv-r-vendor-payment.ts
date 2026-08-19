@@ -1,8 +1,7 @@
-
 export interface IInvVendorPaymentReportPayload {
     Fromdate: string;
     Todate: string;
-    reporttype: "Overall" | "Vendor";
+    reporttype: 'Overall' | 'Vendor';
     page?: number;
     page_size?: number;
 }

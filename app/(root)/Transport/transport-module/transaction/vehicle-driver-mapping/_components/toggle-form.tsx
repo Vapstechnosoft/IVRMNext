@@ -42,8 +42,7 @@ export default function ToggleForm({ rowData, onClose }: ToggleFormProps) {
             <div className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'}  <strong>{rowData.trmV_VehicleName}</strong> record?
-
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.trmV_VehicleName}</strong> record?
                     </p>
                 </AdaptiveBody>
                 <AdaptiveFooter>

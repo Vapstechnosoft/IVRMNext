@@ -44,7 +44,6 @@ export interface IEventsStudentEntry extends IStudentValues {
     // Inherits common fields, ensures consistent handling
 }
 
-
 // Dropdowns
 export interface IEventsStudentMappingDropdowns {
     academicYear: { asmaY_Id: number; asmaY_Year: string }[];
@@ -70,29 +69,29 @@ export interface IStudentFilterParams {
     ASMS_Id?: number[]; // Section IDs
 }
 
-// Note: The main form is complex and deals with lists, so we might not use a single simple Zod schema for everything, 
+// Note: The main form is complex and deals with lists, so we might not use a single simple Zod schema for everything,
 // but we define schemas for the "Common Details" part and the "Student Entry" part.
 
 export const eventsStudentMappingSchema = z.object({
-    asmaY_Id: z.coerce.number().min(1, "Academic Year is required"),
-    spccmsccG_SCCFlag: z.enum(["Sports", "Co-Curricular"]),
-    spccesT_House_Class_Flag: z.enum(["CC", "House", "CS"]),
+    asmaY_Id: z.coerce.number().min(1, 'Academic Year is required'),
+    spccmsccG_SCCFlag: z.enum(['Sports', 'Co-Curricular']),
+    spccesT_House_Class_Flag: z.enum(['CC', 'House', 'CS']),
 
-    // Conditional validations would typically be handled in the component or via superRefine, 
+    // Conditional validations would typically be handled in the component or via superRefine,
     // but basic structure is:
     spccmcC_Id: z.coerce.number().optional(), // Category
-    spccmcL_Id: z.coerce.number().min(1, "Competition Level is required"),
-    spccmE_Id: z.coerce.number().min(1, "Event is required"),
-    spccmsccG_Id: z.coerce.number().min(1, "Group Name is required"),
-    spccmscC_Id: z.coerce.number().min(1, "Sports Name is required"),
-    spccmuoM_Id: z.coerce.number().min(1, "UOM is required"),
+    spccmcL_Id: z.coerce.number().min(1, 'Competition Level is required'),
+    spccmE_Id: z.coerce.number().min(1, 'Event is required'),
+    spccmsccG_Id: z.coerce.number().min(1, 'Group Name is required'),
+    spccmscC_Id: z.coerce.number().min(1, 'Sports Name is required'),
+    spccmuoM_Id: z.coerce.number().min(1, 'UOM is required'),
     spccesT_Remarks: z.string().optional(),
     spccesT_OldRecord: z.string().optional(),
 
     // Arrays for selected IDs (used for filtering students, not directly saved)
     selectedHouses: z.array(z.number()).optional(),
     selectedClasses: z.array(z.number()).optional(),
-    selectedSections: z.array(z.number()).optional(),
+    selectedSections: z.array(z.number()).optional()
 });
 
 export type EventsStudentMappingFormSchema = z.infer<typeof eventsStudentMappingSchema>;

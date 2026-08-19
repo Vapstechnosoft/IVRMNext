@@ -6,16 +6,15 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { usebifurcationAcademicYear } from '@/hooks/timetable/constraints/bifurcationconstraints';
 import { useDaySubjectGridData } from '@/hooks/timetable/constraints/fixingData';
-import { getdetailsAllFixing, getFixingDaySubjectDetails } from '@/server/timetable/constraints/fixing';
+import { getdetailsAllFixing } from '@/server/timetable/constraints/fixing';
 import { Plus, X } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { daySubjectColumns } from './daysubjectColumns';
-import DaySubjectAddForm from './daysubjectAddForm';
-import DaySubjectUpdate from './daysubjectUpdate';
-import DaySubjectToggle from './daysubjectToggle';
-import { FixingViewModal } from '../fixing-view-modal';
 import { filterData } from '../dayperiod/utils';
+import DaySubjectAddForm from './daysubjectAddForm';
+import { daySubjectColumns } from './daysubjectColumns';
+import DaySubjectToggle from './daysubjectToggle';
+import DaySubjectUpdate from './daysubjectUpdate';
 
 interface DaySubjectTabProps {
     initialData: any;
@@ -52,7 +51,7 @@ function DaySubjectTabContent({ initialData, searchParams }: DaySubjectTabProps)
     const [subjectList, setSubjectList] = useState<any[]>(initialData?.subjectlist || initialData?.data?.subjectlist || []);
 
     const { data: gridResponse, isLoading: isGridLoading, refetchAll } = useDaySubjectGridData(searchParams);
-    console.log("gridResponse", gridResponse);
+    console.log('gridResponse', gridResponse);
 
     const gridData = (gridResponse as any)?.data || [];
 
@@ -108,42 +107,42 @@ function DaySubjectTabContent({ initialData, searchParams }: DaySubjectTabProps)
                 <div ref={isAddFormOpen ? addFormRef : editFormRef}>
                     <CollapsibleSection
                         title={isEditFormOpen ? 'Edit Day Subject Constraint' : 'Add New Day Subject Constraint'}
-                    defaultOpen={true}
-                    variant='outline'
-                    size='md'
-                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                    <div className='relative'>
-                        <Button
-                            type='button'
-                            onClick={isEditFormOpen ? closeEditForm : closeAddForm}
-                            variant='ghost'
-                            size='sm'
-                            className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                            <X className='h-4 w-4 text-destructive' /> Close
-                        </Button>
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={isEditFormOpen ? closeEditForm : closeAddForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
 
-                        {isAddFormOpen && (
-                            <DaySubjectAddForm
-                                academicList={academicList}
-                                dayList={dayList}
-                                subjectList={subjectList}
-                                onSuccess={onFormSuccess}
-                                onCancel={closeAddForm}
-                            />
-                        )}
+                            {isAddFormOpen && (
+                                <DaySubjectAddForm
+                                    academicList={academicList}
+                                    dayList={dayList}
+                                    subjectList={subjectList}
+                                    onSuccess={onFormSuccess}
+                                    onCancel={closeAddForm}
+                                />
+                            )}
 
-                        {isEditFormOpen && selectedRow && (
-                            <DaySubjectUpdate
-                                academicList={academicList}
-                                dayList={dayList}
-                                subjectList={subjectList}
-                                selectedRow={selectedRow}
-                                onSuccess={onFormSuccess}
-                                onCancel={closeEditForm}
-                            />
-                        )}
-                    </div>
-                </CollapsibleSection>
+                            {isEditFormOpen && selectedRow && (
+                                <DaySubjectUpdate
+                                    academicList={academicList}
+                                    dayList={dayList}
+                                    subjectList={subjectList}
+                                    selectedRow={selectedRow}
+                                    onSuccess={onFormSuccess}
+                                    onCancel={closeEditForm}
+                                />
+                            )}
+                        </div>
+                    </CollapsibleSection>
                 </div>
             )}
         </div>

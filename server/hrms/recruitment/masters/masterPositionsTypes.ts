@@ -1,5 +1,5 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 
 export async function getMasterPositionTypeGridData(mi_id: number): Promise<ApiResponse<any>> {
     const url = `/api/MasterPositionType/get_position_type_grid/${mi_id}`;
@@ -8,7 +8,7 @@ export async function getMasterPositionTypeGridData(mi_id: number): Promise<ApiR
         return {
             success: response?.success ?? true,
             message: response?.message || 'Data fetched successfully',
-            data: response?.data || response,
+            data: response?.data || response
         };
     } catch (error) {
         console.error('Error fetching master position type grid data:', error);
@@ -30,7 +30,7 @@ export async function saveOrUpdatePositionType(payload: saveOrUpdatePositionType
         return {
             success: response?.success ?? true,
             message: response?.message || 'Data saved successfully',
-            data: response?.data || response,
+            data: response?.data || response
         };
     } catch (error) {
         console.error('Error saving or updating position type:', error);
@@ -45,7 +45,7 @@ export async function togglePositionTypeStatusData(hrmpT_Id: number): Promise<Ap
         return {
             success: response?.success ?? true,
             message: response?.message || 'Status toggled successfully',
-            data: response?.data || response,
+            data: response?.data || response
         };
     } catch (error) {
         console.error('Error toggling position type status:', error);

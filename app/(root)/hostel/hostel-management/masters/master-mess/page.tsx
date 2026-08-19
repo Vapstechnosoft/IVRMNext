@@ -6,13 +6,13 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
 import { useMasterMess } from '@/hooks/hostel/useMasterMess';
-import { deleteMess, IMess } from '@/server/hostel/hostel-management/masters/mess';
+import { type IMess, deleteMess } from '@/server/hostel/hostel-management/masters/mess';
 import { Plus, X } from 'lucide-react';
+import { use } from 'react';
 import { toast } from 'sonner';
 import AddMasterMessForm from './_components/add-form';
 import { masterMessColumns } from './_components/columns';
 import UpdateMasterMessForm from './_components/update-form';
-import { use } from 'react';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -22,11 +22,7 @@ export default function MasterMessPage(props: { searchParams: SearchParams }) {
 
     return (
         <FormProvider<IMess>>
-            <PageContent
-                response={response}
-                isLoading={isLoading}
-                refetchAll={refetchAll}
-            />
+            <PageContent response={response} isLoading={isLoading} refetchAll={refetchAll} />
         </FormProvider>
     );
 }
@@ -83,16 +79,14 @@ function PageContent({
                 </CollapsibleSection>
 
                 {/* Forms */}
-                <FormSections
-                    onSuccess={refetchAll}
-                />
+                <FormSections onSuccess={refetchAll} />
             </div>
         </div>
     );
 }
 
 function FormSections({
-    onSuccess,
+    onSuccess
 }: {
     onSuccess: () => void;
 }) {
@@ -130,7 +124,10 @@ function FormSections({
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                             <AddMasterMessForm
-                                onSuccess={() => { closeAddForm(); onSuccess(); }}
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    onSuccess();
+                                }}
                             />
                         </div>
                     </CollapsibleSection>
@@ -158,7 +155,10 @@ function FormSections({
                             </Button>
                             <UpdateMasterMessForm
                                 rowData={selectedRow}
-                                onSuccess={() => { closeEditForm(); onSuccess(); }}
+                                onSuccess={() => {
+                                    closeEditForm();
+                                    onSuccess();
+                                }}
                             />
                         </div>
                     </CollapsibleSection>
@@ -167,17 +167,13 @@ function FormSections({
 
             {/* Toggle Form */}
             {isToggleFormOpen && selectedRow && (
-                <ToggleMasterMessForm
-                    rowData={selectedRow}
-                    onClose={closeToggleForm}
-                    onSuccess={onSuccess}
-                />
+                <ToggleMasterMessForm rowData={selectedRow} onClose={closeToggleForm} onSuccess={onSuccess} />
             )}
         </>
     );
 }
 
-function ToggleMasterMessForm({ rowData, onClose, onSuccess }: { rowData: IMess, onClose: () => void, onSuccess: () => void }) {
+function ToggleMasterMessForm({ rowData, onClose, onSuccess }: { rowData: IMess; onClose: () => void; onSuccess: () => void }) {
     const onConfirm = async () => {
         try {
             const result = await deleteMess(rowData.hlmM_Id);

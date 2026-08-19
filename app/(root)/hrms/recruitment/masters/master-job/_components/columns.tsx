@@ -22,14 +22,18 @@ export const getMasterJobColumns = ({ onEdit, onToggle }: MasterJobColumnsProps)
     {
         id: 'sl',
         header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO' className='text-center ' />,
-        cell: ({ row }) => <div className='font-medium text-center'>{row.index + 1}</div>,
+        cell: ({ row }) => <div className='text-center font-medium'>{row.index + 1}</div>,
         size: 10,
         enableSorting: false
     },
     {
         accessorKey: 'hrmJ_JobCode',
-        header: ({ column }) => <div className='flex justify-center items-center' ><DataTableColumnHeader column={column} title='Job Code' /></div>,
-        cell: ({ row }) => <div className='font-medium flex justify-center'>{row.original.hrmJ_JobCode}</div>,
+        header: ({ column }) => (
+            <div className='flex items-center justify-center'>
+                <DataTableColumnHeader column={column} title='Job Code' />
+            </div>
+        ),
+        cell: ({ row }) => <div className='flex justify-center font-medium'>{row.original.hrmJ_JobCode}</div>
     },
     {
         header: ({ column }) => <DataTableColumnHeader column={column} title='Job Title' />,

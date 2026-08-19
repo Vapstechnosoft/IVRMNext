@@ -15,8 +15,7 @@
     --glass-border: rgba(255, 255, 255, 0.6);
 
     /* Shadows & Effects */
-    --card-shadow: 0 20px 45px -10px rgba(140, 107, 211, 0.12),
-        0 10px 25px -8px rgba(255, 122, 24, 0.08);
+    --card-shadow: 0 20px 45px -10px rgba(140, 107, 211, 0.12), 0 10px 25px -8px rgba(255, 122, 24, 0.08);
     --btn-glow: 0 10px 25px -5px rgba(255, 122, 24, 0.35);
 }
 
@@ -46,9 +45,15 @@
 }
 
 @keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
 }
 
 .bg-grid-premium {
@@ -63,7 +68,7 @@
 .bg-grain-texture {
     position: fixed;
     inset: 0;
-    background-image: url("https://www.transparenttextures.com/patterns/p6.png");
+    background-image: url('https://www.transparenttextures.com/patterns/p6.png');
     opacity: 0.06;
     z-index: 2;
     pointer-events: none;
@@ -107,8 +112,12 @@
 }
 
 @keyframes waveFlow {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .bg-blobs {
@@ -152,9 +161,16 @@
 }
 
 @keyframes blobMorph {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    33% { transform: translate(50px, -50px) scale(1.08); }
-    66% { transform: translate(-30px, 30px) scale(0.92); }
+    0%,
+    100% {
+        transform: translate(0, 0) scale(1);
+    }
+    33% {
+        transform: translate(50px, -50px) scale(1.08);
+    }
+    66% {
+        transform: translate(-30px, 30px) scale(0.92);
+    }
 }
 
 .bg-aura-glow {
@@ -293,8 +309,12 @@
 }
 
 @keyframes spinSlow {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .vt-text {
@@ -403,8 +423,7 @@
     background: #0f172a;
     border-radius: 36px;
     padding: 10px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35),
-        inset 0 0 0 2px rgba(255, 255, 255, 0.2);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35), inset 0 0 0 2px rgba(255, 255, 255, 0.2);
     position: relative;
     display: flex;
     flex-direction: column;
@@ -536,9 +555,15 @@
     align-items: center;
 }
 
-.card-purple { background: rgba(195, 180, 239, 0.3); }
-.card-peach { background: rgba(255, 238, 203, 0.5); }
-.card-orange { background: rgba(255, 122, 24, 0.15); }
+.card-purple {
+    background: rgba(195, 180, 239, 0.3);
+}
+.card-peach {
+    background: rgba(255, 238, 203, 0.5);
+}
+.card-orange {
+    background: rgba(255, 122, 24, 0.15);
+}
 
 .stat-val {
     font-size: 11px;
@@ -1212,8 +1237,14 @@
 }
 
 @keyframes entryFade {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .animate-fade-in {
@@ -1221,8 +1252,12 @@
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 /* --- RESPONSIVE MEDIA QUERIES --- */

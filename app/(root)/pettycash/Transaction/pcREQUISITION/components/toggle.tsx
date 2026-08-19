@@ -67,13 +67,10 @@ export default function TogglePcRequisitionForm({ rowData, onClose, onSuccess }:
             <form onSubmit={handleSubmit} className='space-y-6'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <Label>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'}{' '}
-                        <strong>{rowData.pcreqtN_RequisitionNo}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.pcreqtN_RequisitionNo}</strong>?
                     </Label>
                     {rowData.pcreqtN_RequisitionNo && (
-                        <div className='text-muted-foreground text-sm'>
-                            Description: {rowData.pcreqtN_RequisitionNo}
-                        </div>
+                        <div className='text-muted-foreground text-sm'>Description: {rowData.pcreqtN_RequisitionNo}</div>
                     )}
                 </AdaptiveBody>
 

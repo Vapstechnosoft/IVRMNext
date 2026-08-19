@@ -1,11 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-    getInvMasterCustomer,
-    saveInvMasterCustomer,
-    deactivateInvMasterCustomer
-} from '@/server/inventory/masters/inv-master-customer';
-import { toast } from 'sonner';
+import { deactivateInvMasterCustomer, getInvMasterCustomer, saveInvMasterCustomer } from '@/server/inventory/masters/inv-master-customer';
 import type { ApiSearchparams } from '@/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 export const INV_MASTER_CUSTOMER_QUERY_KEY = 'INV_MASTER_CUSTOMER';
 
@@ -14,7 +10,7 @@ export function useInvMasterCustomer(searchParams?: ApiSearchparams) {
 
     const query = useQuery({
         queryKey: [INV_MASTER_CUSTOMER_QUERY_KEY, searchParams],
-        queryFn: () => getInvMasterCustomer(searchParams),
+        queryFn: () => getInvMasterCustomer(searchParams)
     });
 
     const saveMutation = useMutation({
@@ -32,7 +28,7 @@ export function useInvMasterCustomer(searchParams?: ApiSearchparams) {
         onError: (error) => {
             toast.error('An error occurred while saving');
             console.error(error);
-        },
+        }
     });
 
     const deleteMutation = useMutation({
@@ -48,12 +44,12 @@ export function useInvMasterCustomer(searchParams?: ApiSearchparams) {
         onError: (error) => {
             toast.error('An error occurred while updating status');
             console.error(error);
-        },
+        }
     });
 
     return {
         ...query,
         saveMutation,
-        deleteMutation,
+        deleteMutation
     };
 }

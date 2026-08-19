@@ -1,11 +1,7 @@
 'use server';
 
-import { api, type ApiResponse } from '@/lib/apiService';
-import {
-    IEventsStudentSRKVSDropdowns,
-    IStudentSRKVSValues,
-    IEventsStudentSRKVSData
-} from "@/types/sports/events-student-srkvs"; // Ensure this path is correct
+import { type ApiResponse, api } from '@/lib/apiService';
+import type { IEventsStudentSRKVSData, IEventsStudentSRKVSDropdowns, IStudentSRKVSValues } from '@/types/sports/events-student-srkvs'; // Ensure this path is correct
 
 /**
  * Fetch All Initial Dropdowns
@@ -47,9 +43,8 @@ export async function getEventsStudentSRKVSDropdowns(): Promise<IEventsStudentSR
         if (categoryResponse.success && categoryResponse.data) {
             categoryList = Array.isArray(categoryResponse.data) ? categoryResponse.data : [];
         }
-
     } catch (error) {
-        console.error("Error fetching SRKVS dropdowns:", error);
+        console.error('Error fetching SRKVS dropdowns:', error);
     }
 
     // Mock Data for others (until API integration for them is confirmed)
@@ -62,7 +57,7 @@ export async function getEventsStudentSRKVSDropdowns(): Promise<IEventsStudentSR
     competitionLevelList = [
         { spccmcL_Id: 1, spccmcL_CompitionLevel: 'Inter-House' },
         { spccmcL_Id: 2, spccmcL_CompitionLevel: 'Inter-School' },
-        { spccmcL_Id: 3, spccmcL_CompitionLevel: 'State Level' },
+        { spccmcL_Id: 3, spccmcL_CompitionLevel: 'State Level' }
     ];
 
     uomList = [
@@ -98,18 +93,18 @@ export async function getClassHouse(asmaY_Id: number) {
             listof_class = Array.isArray(classResponse.data) ? classResponse.data : [];
         }
     } catch (error) {
-        console.error("Error fetching Class List:", error);
+        console.error('Error fetching Class List:', error);
     }
 
     return {
         listof_class: listof_class,
-        sectionList: [],
+        sectionList: []
         // houseList: [] // Removed
     };
 }
 
 // Fetch Sections based on Class Selection
-export async function getSectionList(data: { ASMAY_Id: number, classListArray: any[] }) {
+export async function getSectionList(data: { ASMAY_Id: number; classListArray: any[] }) {
     try {
         const response = await api.post<any>('sports', 'EventsStudentRecord/SectionList', data);
         if (response.success && response.data) {
@@ -117,7 +112,7 @@ export async function getSectionList(data: { ASMAY_Id: number, classListArray: a
         }
         return [];
     } catch (error) {
-        console.error("Error fetching Section List:", error);
+        console.error('Error fetching Section List:', error);
         return [];
     }
 }
@@ -131,7 +126,7 @@ export async function getSportsName(spccmsccG_Id: number) {
         }
         return [];
     } catch (error) {
-        console.error("Error fetching Sub Events:", error);
+        console.error('Error fetching Sub Events:', error);
         return [];
     }
 }
@@ -145,7 +140,7 @@ export async function getSubSubEvents(spccmscC_Id: number, spccmsccG_Id: number)
         }
         return [];
     } catch (error) {
-        console.error("Error fetching Sub Sub Events:", error);
+        console.error('Error fetching Sub Sub Events:', error);
         return [];
     }
 }
@@ -171,7 +166,7 @@ export async function getStudents(payload: any): Promise<ApiResponse<IStudentSRK
         }
         return { success: false, message: response.message || 'No students found', data: [] };
     } catch (error) {
-        console.error("Error fetching students:", error);
+        console.error('Error fetching students:', error);
         return { success: false, message: 'Failed to fetch students', data: [] };
     }
 }
@@ -180,41 +175,41 @@ export async function getStudents(payload: any): Promise<ApiResponse<IStudentSRK
 export async function getEventsStudentSRKVSList(): Promise<ApiResponse<IEventsStudentSRKVSData[]>> {
     try {
         const response = await api.get<any>('sports', 'EventsStudentRecord/EventsStudentGridSRKVS');
-        console.log("Grid Response:", JSON.stringify(response, null, 2));
+        console.log('Grid Response:', JSON.stringify(response, null, 2));
 
         // Handle case where backend returns success:false but still provides data
         // e.g. { success: false, message: "UOMList not found", data: [...records] }
         if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-            return { success: true, message: "Data fetched successfully", data: response.data };
+            return { success: true, message: 'Data fetched successfully', data: response.data };
         }
 
         if (response.success && response.data) {
             const data = Array.isArray(response.data) ? response.data : [];
-            return { success: true, message: "Data fetched successfully", data: data };
+            return { success: true, message: 'Data fetched successfully', data: data };
         }
-        return { success: false, message: response.message || "Failed to fetch grid data", data: [] };
+        return { success: false, message: response.message || 'Failed to fetch grid data', data: [] };
     } catch (error) {
-        console.error("Error fetching grid data:", error);
-        return { success: false, message: "Error fetching grid data", data: [] };
+        console.error('Error fetching grid data:', error);
+        return { success: false, message: 'Error fetching grid data', data: [] };
     }
 }
 
 // Save Record
 export async function saveEventsStudentSRKVS(data: any): Promise<ApiResponse<any>> {
-    console.log("saveEventsStudentSRKVS Payload:", JSON.stringify(data, null, 2));
+    console.log('saveEventsStudentSRKVS Payload:', JSON.stringify(data, null, 2));
     try {
         const response = await api.post<any>('sports', 'EventsStudentRecord/saveRecordSRKVS', data);
 
         // Assuming response.data contains the APIResponseDto from C#
         const returnVal = response.data?.returnVal || (response as any).returnVal;
 
-        if (response.success && (returnVal === "Saved!" || returnVal === "updated" || returnVal === "Saved successfully")) {
+        if (response.success && (returnVal === 'Saved!' || returnVal === 'updated' || returnVal === 'Saved successfully')) {
             return { success: true, message: returnVal, data: response.data };
-        } else if (response.success && response.message === "Saved successfully") {
-            return { success: true, message: "Saved successfully", data: response.data };
-        } else if (returnVal === "duplicate") {
+        } else if (response.success && response.message === 'Saved successfully') {
+            return { success: true, message: 'Saved successfully', data: response.data };
+        } else if (returnVal === 'duplicate') {
             return { success: false, message: 'Record already exists (Duplicate)', data: null };
-        } else if (returnVal === "Save Failed!") {
+        } else if (returnVal === 'Save Failed!') {
             return { success: false, message: 'Failed to save record', data: null };
         }
 
@@ -228,7 +223,7 @@ export async function saveEventsStudentSRKVS(data: any): Promise<ApiResponse<any
 
         return { success: false, message: response.message || returnVal || 'Failed to save record', data: null };
     } catch (error) {
-        console.error("Error saving SRKVS record:", error);
+        console.error('Error saving SRKVS record:', error);
         return { success: false, message: 'An error occurred while saving', data: null };
     }
 }
@@ -242,11 +237,15 @@ export async function getEventsStudentSRKVSDetails(spccesT_Id: number): Promise<
             return { success: true, message: 'Details fetched successfully', data: response.data };
         }
         if (response.success && response.data) {
-            return { success: true, message: 'Details fetched successfully', data: Array.isArray(response.data) ? response.data : [response.data] };
+            return {
+                success: true,
+                message: 'Details fetched successfully',
+                data: Array.isArray(response.data) ? response.data : [response.data]
+            };
         }
         return { success: false, message: response.message || 'No details found', data: [] };
     } catch (error) {
-        console.error("Error fetching View Details:", error);
+        console.error('Error fetching View Details:', error);
         return { success: false, message: 'Failed to fetch details', data: [] };
     }
 }
@@ -265,8 +264,8 @@ export async function updateStudentSRKVSDetails(data: any): Promise<ApiResponse<
                 spccestR_Rank: String(item.spccestR_Rank || '0'),
                 spccestR_Points: Number(item.spccestR_Points) || 0,
                 spccestR_Value: String(item.spccestR_Value || ''),
-                spccestR_RecordBrokenFlag: item.spccestR_RecordBrokenFlag ? "true" : "false",
-                spccestR_Remarks: item.spccestR_Remarks || "",
+                spccestR_RecordBrokenFlag: item.spccestR_RecordBrokenFlag ? 'true' : 'false',
+                spccestR_Remarks: item.spccestR_Remarks || '',
                 spccmuoM_Id: item.spccmuoM_Id || 0,
                 spccestR_EventRecordFlg: !!item.spccestR_EventRecordFlg,
                 spccmscC_MultiAttemptFlg: !!item.spccmscC_MultiAttemptFlg,
@@ -279,17 +278,17 @@ export async function updateStudentSRKVSDetails(data: any): Promise<ApiResponse<
         if (response.success) {
             return { success: true, message: response.message || 'Updated Successfully', data: response.data };
         }
-        
+
         return { success: false, message: response.message || 'Failed to update details', data: null };
     } catch (error) {
-        console.error("Error updating View Details:", error);
+        console.error('Error updating View Details:', error);
         return { success: false, message: 'An error occurred while updating', data: null };
     }
 }
 
 // Deactivate Record
-export async function deactivateEventsStudentSRKVS(data: { id: number, activeFlag: boolean }): Promise<ApiResponse<any>> {
-    console.log("Deactivating data:", data);
-    await new Promise(resolve => setTimeout(resolve, 500));
+export async function deactivateEventsStudentSRKVS(data: { id: number; activeFlag: boolean }): Promise<ApiResponse<any>> {
+    console.log('Deactivating data:', data);
+    await new Promise((resolve) => setTimeout(resolve, 500));
     return { success: true, message: `Record ${data.activeFlag ? 'Activated' : 'Deactivated'} Successfully`, data: null };
 }

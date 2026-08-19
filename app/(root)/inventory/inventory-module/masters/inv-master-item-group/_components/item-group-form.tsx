@@ -4,22 +4,16 @@ import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { INVENTORY_QUERY_KEYS } from '@/constants/query-keys';
 
-import { invMasterItemGroupSchema, type InvMasterItemGroupType } from '@/schemas/inventory/masters/inv-master-group';
+import { type InvMasterItemGroupType, invMasterItemGroupSchema } from '@/schemas/inventory/masters/inv-master-group';
 import { deactivateInvMasterGroup, saveInvMasterItemGroup } from '@/server/inventory/masters/inv-master-group';
 import type { IInvMasterItemGroup } from '@/types/inventory/masters/inv-master-group';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save, X } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { Save, X } from 'lucide-react';
+import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -72,7 +66,7 @@ function ItemGroupForm({ onSuccess, initialData, mode, userGroupOptions }: ItemG
                 if (mode === 'add') reset();
 
                 // If the user specifically meant a page reload:
-                // window.location.reload(); 
+                // window.location.reload();
                 // But generally data refresh (invalidation) is preferred. I will assume invalidation is sufficient unless explicitly told otherwise for a SPA.
             } else if (result.returnduplicatestatus === 'Duplicate') {
                 toast.error('Record already exists');
@@ -86,7 +80,7 @@ function ItemGroupForm({ onSuccess, initialData, mode, userGroupOptions }: ItemG
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                 <div className='flex flex-col gap-2'>
                     <Label htmlFor='invmG_ParentId'>
                         User Group <span className='ml-1 text-red-500'>*</span>
@@ -158,7 +152,10 @@ function ItemGroupForm({ onSuccess, initialData, mode, userGroupOptions }: ItemG
     );
 }
 
-export function AddItemGroupForm({ onSuccess, userGroupOptions }: { onSuccess: () => void; userGroupOptions: { label: string; value: string }[] }) {
+export function AddItemGroupForm({
+    onSuccess,
+    userGroupOptions
+}: { onSuccess: () => void; userGroupOptions: { label: string; value: string }[] }) {
     return <ItemGroupForm onSuccess={onSuccess} mode='add' userGroupOptions={userGroupOptions} />;
 }
 
@@ -227,7 +224,7 @@ export function ToggleItemGroupForm({ rowData, onClose }: ToggleItemGroupFormPro
                         type='submit'
                         isLoading={isSubmitting}
                         variant={isActive ? 'destructive' : 'default'}
-                        className={isActive ? 'bg-orange-500 hover:bg-orange-600 text-white' : ''}
+                        className={isActive ? 'bg-orange-500 text-white hover:bg-orange-600' : ''}
                         loadingText={isActive ? 'Deactivating...' : 'Activating...'}>
                         {isActive ? 'Deactivate' : 'Activate'}
                     </Button>

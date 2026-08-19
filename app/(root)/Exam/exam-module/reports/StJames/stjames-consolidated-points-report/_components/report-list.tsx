@@ -1,7 +1,6 @@
 'use client';
 
 import { Printer } from 'lucide-react';
-import React from 'react';
 
 interface StJamesConsolidatedPointsReportListProps {
     data: any;
@@ -31,10 +30,10 @@ export default function StJamesConsolidatedPointsReportList({ data, institution 
 
     return (
         <div className='mt-8 space-y-8 overflow-x-auto'>
-            <div className='flex justify-end gap-2 px-4 no-print'>
+            <div className='no-print flex justify-end gap-2 px-4'>
                 <button
                     onClick={handlePrint}
-                    className='flex items-center gap-2 rounded-md bg-sky-800 px-4 py-2 text-white hover:bg-sky-900 shadow-md transition-all'>
+                    className='flex items-center gap-2 rounded-md bg-sky-800 px-4 py-2 text-white shadow-md transition-all hover:bg-sky-900'>
                     <Printer className='h-4 w-4' /> Print
                 </button>
             </div>
@@ -79,11 +78,13 @@ export default function StJamesConsolidatedPointsReportList({ data, institution 
                 }
             `}</style>
 
-            <div id='Baldwin' className='bg-white p-4 Baldwin'>
-                <h5 className='text-center font-bold text-lg mb-4'>CONSOLIDATED FINAL REPORT</h5>
+            <div id='Baldwin' className='Baldwin bg-white p-4'>
+                <h5 className='mb-4 text-center font-bold text-lg'>CONSOLIDATED FINAL REPORT</h5>
 
-                <div className='flex justify-between uppercase font-bold text-sm mb-4'>
-                    <div>CLASS & SEC : {cla}-{sec}</div>
+                <div className='mb-4 flex justify-between font-bold text-sm uppercase'>
+                    <div>
+                        CLASS & SEC : {cla}-{sec}
+                    </div>
                     <div>ACADEMIC YEAR : {year}</div>
                 </div>
 
@@ -114,10 +115,18 @@ export default function StJamesConsolidatedPointsReportList({ data, institution 
                                 <tr key={gIdx}>
                                     {gIdx === 0 && (
                                         <>
-                                            <td rowSpan={getexamdetails.length} className='text-center font-bold'>{mn.rollno}</td>
-                                            <td rowSpan={getexamdetails.length} className='name-column font-bold'>{mn.studentname}</td>
-                                            <td rowSpan={getexamdetails.length} className='text-center font-bold vertical-header'>{mn.regno}</td>
-                                            <td rowSpan={getexamdetails.length} className='text-center font-bold'>{mn.spccmH_HouseName || mn.shortHouseName}</td>
+                                            <td rowSpan={getexamdetails.length} className='text-center font-bold'>
+                                                {mn.rollno}
+                                            </td>
+                                            <td rowSpan={getexamdetails.length} className='name-column font-bold'>
+                                                {mn.studentname}
+                                            </td>
+                                            <td rowSpan={getexamdetails.length} className='vertical-header text-center font-bold'>
+                                                {mn.regno}
+                                            </td>
+                                            <td rowSpan={getexamdetails.length} className='text-center font-bold'>
+                                                {mn.spccmH_HouseName || mn.shortHouseName}
+                                            </td>
                                         </>
                                     )}
                                     <td className='text-center font-bold'>{grp.empG_DistplayName}</td>
@@ -125,21 +134,34 @@ export default function StJamesConsolidatedPointsReportList({ data, institution 
                                     {/* Subject Marks */}
                                     {tempsubjectdetails.map((sub: any, subIdx: number) => {
                                         const subId = String(sub.subid ?? sub.ismS_Id ?? sub.ISMS_Id);
-                                        const subName = (sub.subjectname || sub.ismS_SubjectName || sub.ISMS_SubjectName)?.toLowerCase().trim();
+                                        const subName = (sub.subjectname || sub.ismS_SubjectName || sub.ISMS_SubjectName)
+                                            ?.toLowerCase()
+                                            .trim();
                                         const grpName = grp.empG_GroupName?.toLowerCase().trim();
 
                                         // Helper to get group name from mark object
                                         const getMarkGroupName = (m: any) => {
-                                            const name = m.empsG_GroupName || m.EMPSG_GroupName || m.empG_GroupName || m.EMPG_GroupName || m.groupname || m.GROUPNAME || m.mGroup || m.MGroup || m.emE_ExamName || m.EME_ExamName;
+                                            const name =
+                                                m.empsG_GroupName ||
+                                                m.EMPSG_GroupName ||
+                                                m.empG_GroupName ||
+                                                m.EMPG_GroupName ||
+                                                m.groupname ||
+                                                m.GROUPNAME ||
+                                                m.mGroup ||
+                                                m.MGroup ||
+                                                m.emE_ExamName ||
+                                                m.EME_ExamName;
                                             return name?.toLowerCase().trim();
                                         };
 
                                         // Filter marks for this subject
-                                        const subjectMarks = mn.marks?.filter((m: any) => {
-                                            const mSubId = String(m.ismS_Id ?? m.ISMS_Id);
-                                            const mSubName = (m.ismS_SubjectName ?? m.ISMS_SubjectName)?.toLowerCase().trim();
-                                            return mSubId === subId && mSubName === subName;
-                                        }) || [];
+                                        const subjectMarks =
+                                            mn.marks?.filter((m: any) => {
+                                                const mSubId = String(m.ismS_Id ?? m.ISMS_Id);
+                                                const mSubName = (m.ismS_SubjectName ?? m.ISMS_SubjectName)?.toLowerCase().trim();
+                                                return mSubId === subId && mSubName === subName;
+                                            }) || [];
 
                                         // Find mark for this group
                                         let markEntry = subjectMarks.find((m: any) => getMarkGroupName(m) === grpName);
@@ -163,7 +185,10 @@ export default function StJamesConsolidatedPointsReportList({ data, institution 
                                                 const obtGrade = markEntry.estmppsG_GroupObtGrade ?? markEntry.ESTMPPSG_GroupObtGrade;
 
                                                 if (sub.EYCES_AplResultFlg) {
-                                                    displayValue = (obtMarks !== null && obtMarks !== undefined && String(obtMarks) !== '0') ? obtMarks : 'AB';
+                                                    displayValue =
+                                                        obtMarks !== null && obtMarks !== undefined && String(obtMarks) !== '0'
+                                                            ? obtMarks
+                                                            : 'AB';
                                                 } else {
                                                     displayValue = sub.ISMS_SubjectCode === 'CCA' ? (obtMarks ?? '') : (obtGrade ?? '');
                                                 }
@@ -179,24 +204,54 @@ export default function StJamesConsolidatedPointsReportList({ data, institution 
 
                                     {/* Group Totals */}
                                     <td className='font-bold'>
-                                        {mn.markstotal?.find((mt: any) => (mt.GROUPNAME || mt.groupname)?.toLowerCase().trim() === grp.empG_GroupName?.toLowerCase().trim())?.TOTALOBTAINEDMARKS ?? ''}
+                                        {mn.markstotal?.find(
+                                            (mt: any) =>
+                                                (mt.GROUPNAME || mt.groupname)?.toLowerCase().trim() ===
+                                                grp.empG_GroupName?.toLowerCase().trim()
+                                        )?.TOTALOBTAINEDMARKS ?? ''}
                                     </td>
                                     <td className='font-bold'>
-                                        {mn.markstotal?.find((mt: any) => (mt.GROUPNAME || mt.groupname)?.toLowerCase().trim() === grp.empG_GroupName?.toLowerCase().trim())?.GRANDTOTALOBRAINEDMARKS ?? ''}
+                                        {mn.markstotal?.find(
+                                            (mt: any) =>
+                                                (mt.GROUPNAME || mt.groupname)?.toLowerCase().trim() ===
+                                                grp.empG_GroupName?.toLowerCase().trim()
+                                        )?.GRANDTOTALOBRAINEDMARKS ?? ''}
                                     </td>
                                     <td className='font-bold'>
-                                        {mn.markstotal?.find((mt: any) => (mt.GROUPNAME || mt.groupname)?.toLowerCase().trim() === grp.empG_GroupName?.toLowerCase().trim())?.PERCENTAGEOBTAINED ?? ''}
+                                        {mn.markstotal?.find(
+                                            (mt: any) =>
+                                                (mt.GROUPNAME || mt.groupname)?.toLowerCase().trim() ===
+                                                grp.empG_GroupName?.toLowerCase().trim()
+                                        )?.PERCENTAGEOBTAINED ?? ''}
                                     </td>
                                     {StjamesPoints && (
                                         <td className='font-bold'>
-                                            {mn.markstotal?.find((mt: any) => (mt.GROUPNAME || mt.groupname)?.toLowerCase().trim() === grp.empG_GroupName?.toLowerCase().trim())?.ESTMP_POINTS ?? mn.markstotal?.find((mt: any) => (mt.GROUPNAME || mt.groupname)?.toLowerCase().trim() === grp.empG_GroupName?.toLowerCase().trim())?.GRANDTOTALPOINT ?? ''}
+                                            {mn.markstotal?.find(
+                                                (mt: any) =>
+                                                    (mt.GROUPNAME || mt.groupname)?.toLowerCase().trim() ===
+                                                    grp.empG_GroupName?.toLowerCase().trim()
+                                            )?.ESTMP_POINTS ??
+                                                mn.markstotal?.find(
+                                                    (mt: any) =>
+                                                        (mt.GROUPNAME || mt.groupname)?.toLowerCase().trim() ===
+                                                        grp.empG_GroupName?.toLowerCase().trim()
+                                                )?.GRANDTOTALPOINT ??
+                                                ''}
                                         </td>
                                     )}
                                     <td className='font-bold'>
-                                        {mn.markstotal?.find((mt: any) => (mt.GROUPNAME || mt.groupname)?.toLowerCase().trim() === grp.empG_GroupName?.toLowerCase().trim())?.POSITION ?? ''}
+                                        {mn.markstotal?.find(
+                                            (mt: any) =>
+                                                (mt.GROUPNAME || mt.groupname)?.toLowerCase().trim() ===
+                                                grp.empG_GroupName?.toLowerCase().trim()
+                                        )?.POSITION ?? ''}
                                     </td>
                                     <td className='font-bold'>
-                                        {mn.attendance?.find((att: any) => (att.GROUPNAME || att.groupname)?.toLowerCase().trim() === grp.empG_GroupName?.toLowerCase().trim())?.PERCENTAGEOBTAINED ?? ''}
+                                        {mn.attendance?.find(
+                                            (att: any) =>
+                                                (att.GROUPNAME || att.groupname)?.toLowerCase().trim() ===
+                                                grp.empG_GroupName?.toLowerCase().trim()
+                                        )?.PERCENTAGEOBTAINED ?? ''}
                                     </td>
                                 </tr>
                             ))}

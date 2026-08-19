@@ -1,17 +1,17 @@
 import {
+    checkTCDuplication,
+    getStudentDetailsOnNameChange,
+    getStudentNameList,
     getStudentTCDetails,
     // getStudentTCInitialData,
     // getStudentTCList,
     getStudentsByAcademicYear,
-    getStudentDetailsOnNameChange,
     getTCCancelDetails,
-    saveStudentTC,
     getTCCancelInitialData,
     onChangeAcademicYearForCancel,
     onStudentNameChangeForCancel,
+    saveStudentTC,
     saveTCCancelDetails,
-    checkTCDuplication,
-    getStudentNameList,
     searchStudentFilter
 } from '@/server/admission/preadmission/transactions/student_tc';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -27,8 +27,7 @@ export const useStudentsByAcademicYear = (asmayId: number) => {
 
 export const useStudentDetailsOnNameChange = () => {
     return useMutation({
-        mutationFn: (params: { asmayId: number; amstId: number }) =>
-            getStudentDetailsOnNameChange(params.asmayId, params.amstId),
+        mutationFn: (params: { asmayId: number; amstId: number }) => getStudentDetailsOnNameChange(params.asmayId, params.amstId),
         mutationKey: ['student_tc_details_name_change']
     });
 };
@@ -89,8 +88,7 @@ export const useChangeAcademicYearForCancel = () => {
 
 export const useStudentNameChangeForCancel = () => {
     return useMutation({
-        mutationFn: (params: { asmayId: number; amstId: number }) =>
-            onStudentNameChangeForCancel(params.asmayId, params.amstId),
+        mutationFn: (params: { asmayId: number; amstId: number }) => onStudentNameChangeForCancel(params.asmayId, params.amstId),
         mutationKey: ['student_tc_cancel_student_change']
     });
 };

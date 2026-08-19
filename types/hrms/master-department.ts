@@ -1,9 +1,11 @@
 export interface MasterDepartmentResponse {
     success?: boolean;
     message?: string;
-    data?: DepartmentDetail[] | {
-        departmentList: DepartmentDetail[];
-    };
+    data?:
+        | DepartmentDetail[]
+        | {
+              departmentList: DepartmentDetail[];
+          };
     departmentList?: DepartmentDetail[];
     retrunMsg?: string;
     HRMDC_ID?: any;

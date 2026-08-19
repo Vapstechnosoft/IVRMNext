@@ -1,7 +1,10 @@
 'use server';
 
-import { api, type ApiResponse } from '@/lib/apiService';
-import type { IEligibilityCertificateReport, IEligibilityCertificateReportDetail } from '@/types/sports/reports/eligibility-certificate-report';
+import { type ApiResponse, api } from '@/lib/apiService';
+import type {
+    IEligibilityCertificateReport,
+    IEligibilityCertificateReportDetail
+} from '@/types/sports/reports/eligibility-certificate-report';
 
 export async function getEligibilityCertificateReport(): Promise<ApiResponse<any>> {
     return await api.post('sports', 'HSEligibilityCerficate/Getdetails', { asmaY_Id: 0 });
@@ -31,7 +34,9 @@ export async function getPUCertificate(data: any): Promise<ApiResponse<any>> {
     return await api.post('sports', 'HSEligibilityCerficate/get_PUcertificate', data);
 }
 
-export async function generateEligibilityCertificateReport(data: IEligibilityCertificateReport): Promise<ApiResponse<IEligibilityCertificateReportDetail[]>> {
+export async function generateEligibilityCertificateReport(
+    data: IEligibilityCertificateReport
+): Promise<ApiResponse<IEligibilityCertificateReportDetail[]>> {
     if (data.optionflag === 'SCHOOL') {
         return await api.post('sports', 'HSEligibilityCerficate/get_certificate', data);
     } else {

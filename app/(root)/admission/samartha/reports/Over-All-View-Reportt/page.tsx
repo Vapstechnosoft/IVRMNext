@@ -1,29 +1,18 @@
 'use client';
 
-import { useRef, useState, useMemo, Fragment } from 'react';
+import { FileDown, FileText, Loader2, Printer, RotateCcw, Search } from 'lucide-react';
+import { Fragment, useMemo, useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
-import { Search, Printer, FileDown, Loader2, RotateCcw, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/extension/field';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '@/components/ui/select';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
-import {
-    CollapsibleSection
-} from '@/components/ui/form/collapsible-section';
-import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-import {
-    useOverAllViewReportInitialDetails,
-    useOverAllViewReportData
-} from '@/hooks/admission/preadmission/reports/useOverAllViewReport';
+import { useOverAllViewReportData, useOverAllViewReportInitialDetails } from '@/hooks/admission/preadmission/reports/useOverAllViewReport';
 import { exportToExcel } from '@/lib/export-to-file';
 
 export default function OverAllViewReportPage() {
@@ -54,10 +43,7 @@ export default function OverAllViewReportPage() {
 
         const filtered = dataList.filter((item: any) => {
             const searchStr = searchValue.toLowerCase();
-            return (
-                item.asmcl_classname?.toLowerCase().includes(searchStr) ||
-                item.asmc_sectionname?.toLowerCase().includes(searchStr)
-            );
+            return item.asmcl_classname?.toLowerCase().includes(searchStr) || item.asmc_sectionname?.toLowerCase().includes(searchStr);
         });
 
         const groups: any[] = [];
@@ -65,9 +51,8 @@ export default function OverAllViewReportPage() {
 
         filtered.forEach((item: any) => {
             // Find overall gender counts for this section from studentList1
-            const sectionSummary = summaryList.find((s: any) =>
-                s.asmcl_id === item.asmcl_id &&
-                s.asmc_sectionname === item.asmc_sectionname
+            const sectionSummary = summaryList.find(
+                (s: any) => s.asmcl_id === item.asmcl_id && s.asmc_sectionname === item.asmc_sectionname
             );
 
             // Merge gender counts if found
@@ -94,7 +79,7 @@ export default function OverAllViewReportPage() {
 
     /* -------------------- Helper Functions -------------------- */
     const getClassTotal = (group: any, key: string) => {
-        return group.studentlistdetails.reduce((sum: number, item: any) => sum + (parseInt(item[key]) || 0), 0);
+        return group.studentlistdetails.reduce((sum: number, item: any) => sum + (Number.parseInt(item[key]) || 0), 0);
     };
 
     const getGrandTotal = (key: string) => {
@@ -238,26 +223,21 @@ export default function OverAllViewReportPage() {
     };
 
     return (
-        <div className="min-h-screen p-4 space-y-6">
+        <div className='min-h-screen space-y-6 p-4'>
             <CollapsibleSection
-                title="Over All View Report"
-                description="View and export attendance reports categorized by class, religion, and caste"
+                title='Over All View Report'
+                description='View and export attendance reports categorized by class, religion, and caste'
                 defaultOpen={true}
-                className="bg-white/80 backdrop-blur-sm border shadow-xl rounded-2xl overflow-hidden"
-            >
-                <div className="p-6 space-y-8">
-                    <div className="flex flex-col items-center justify-center space-y-4 max-w-md mx-auto">
-                        <div className="w-full flex flex-col space-y-2">
-                            <Label className="text-sm font-bold flex items-center">
-                                Academic Year <span className="text-red-500 ml-1">*</span>
+                className='overflow-hidden rounded-2xl border bg-white/80 shadow-xl backdrop-blur-sm'>
+                <div className='space-y-8 p-6'>
+                    <div className='mx-auto flex max-w-md flex-col items-center justify-center space-y-4'>
+                        <div className='flex w-full flex-col space-y-2'>
+                            <Label className='flex items-center font-bold text-sm'>
+                                Academic Year <span className='ml-1 text-red-500'>*</span>
                             </Label>
-                            <Select
-                                value={asmaY_Id?.toString()}
-                                onValueChange={(v) => setAsmaY_Id(Number(v))}
-                                disabled={isInitialLoading}
-                            >
-                                <SelectTrigger className="h-10 transition-all hover:border-blue-400 focus:ring-blue-100">
-                                    <SelectValue placeholder={isInitialLoading ? "Loading..." : "Select Academic Year"} />
+                            <Select value={asmaY_Id?.toString()} onValueChange={(v) => setAsmaY_Id(Number(v))} disabled={isInitialLoading}>
+                                <SelectTrigger className='h-10 transition-all hover:border-blue-400 focus:ring-blue-100'>
+                                    <SelectValue placeholder={isInitialLoading ? 'Loading...' : 'Select Academic Year'} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {yearDropdown.map((year: any) => (
@@ -340,37 +320,37 @@ export default function OverAllViewReportPage() {
                         </div> */}
                     </div>
 
-                    <div className="flex flex-wrap justify-center gap-4 pt-6 border-t">
+                    <div className='flex flex-wrap justify-center gap-4 border-t pt-6'>
                         <Button
                             onClick={handleShowReport}
                             disabled={reportMutation.isPending}
-                            className="w-40 bg-blue-600 hover:bg-blue-700 shadow-lg transition-all hover:scale-105"
-                        >
-                            {reportMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
+                            className='w-40 bg-blue-600 shadow-lg transition-all hover:scale-105 hover:bg-blue-700'>
+                            {reportMutation.isPending ? (
+                                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                            ) : (
+                                <FileText className='mr-2 h-4 w-4' />
+                            )}
                             REPORT
                         </Button>
                         <Button
-                            variant="outline"
+                            variant='outline'
                             onClick={handleClear}
-                            className="w-40 border-orange-200 text-orange-600 hover:bg-orange-50 transition-all hover:scale-105"
-                        >
-                            <RotateCcw className="mr-2 h-4 w-4" />
+                            className='w-40 border-orange-200 text-orange-600 transition-all hover:scale-105 hover:bg-orange-50'>
+                            <RotateCcw className='mr-2 h-4 w-4' />
                             CANCEL
                         </Button>
                         <Button
                             onClick={handleExport}
                             disabled={!showReport}
-                            className="w-40 bg-emerald-600 hover:bg-emerald-700 shadow-lg transition-all hover:scale-105"
-                        >
-                            <FileDown className="mr-2 h-4 w-4" />
+                            className='w-40 bg-emerald-600 shadow-lg transition-all hover:scale-105 hover:bg-emerald-700'>
+                            <FileDown className='mr-2 h-4 w-4' />
                             EXCEL
                         </Button>
                         <Button
                             onClick={handlePrint}
                             disabled={!showReport}
-                            className="w-40 bg-slate-800 hover:bg-slate-900 shadow-lg transition-all hover:scale-105"
-                        >
-                            <Printer className="mr-2 h-4 w-4" />
+                            className='w-40 bg-slate-800 shadow-lg transition-all hover:scale-105 hover:bg-slate-900'>
+                            <Printer className='mr-2 h-4 w-4' />
                             PRINT
                         </Button>
                     </div>
@@ -378,30 +358,30 @@ export default function OverAllViewReportPage() {
             </CollapsibleSection>
 
             {showReport && (
-                <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] border p-6">
-                    <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                        <div className="flex items-center space-x-4">
-                            <div className="flex flex-col">
-                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Records</span>
-                                <Badge variant="secondary" className="text-lg py-1 px-4 bg-blue-50 text-blue-700 border-blue-100">
+                <div className='rounded-2xl border bg-white/90 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.06)] backdrop-blur-md'>
+                    <div className='mb-6 flex flex-col items-center justify-between gap-4 md:flex-row'>
+                        <div className='flex items-center space-x-4'>
+                            <div className='flex flex-col'>
+                                <span className='font-bold text-slate-400 text-xs uppercase tracking-wider'>Total Records</span>
+                                <Badge variant='secondary' className='border-blue-100 bg-blue-50 px-4 py-1 text-blue-700 text-lg'>
                                     {reportData?.studentList3?.length || 0}
                                 </Badge>
                             </div>
                         </div>
 
-                        <div className="relative w-full max-w-sm">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <div className='relative w-full max-w-sm'>
+                            <Search className='-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-slate-400' />
                             <Input
-                                placeholder="Search here..."
-                                className="pl-10 h-10 rounded-xl border-slate-200 focus:ring-blue-100"
+                                placeholder='Search here...'
+                                className='h-10 rounded-xl border-slate-200 pl-10 focus:ring-blue-100'
                                 value={searchValue}
                                 onChange={(e) => setSearchValue(e.target.value)}
                             />
                         </div>
                     </div>
 
-                    <div className="rounded-xl border border-slate-100 shadow-inner overflow-hidden print:overflow-visible">
-                        <div ref={printRef} className="p-8 bg-white text-black printable-container">
+                    <div className='overflow-hidden rounded-xl border border-slate-100 shadow-inner print:overflow-visible'>
+                        <div ref={printRef} className='printable-container bg-white p-8 text-black'>
                             {/* Force visibility in the print iframe */}
                             <style>{`
                                 @media screen {
@@ -457,143 +437,189 @@ export default function OverAllViewReportPage() {
                                 }
                             `}</style>
                             {/* Institution Header for Print */}
-                            <div className="print-only mb-6 border-b-4 border-double border-slate-900 pb-4 flex items-center gap-6">
-                                <img
-                                    src={reportData?.masterCompany?.[0]?.logo}
-                                    alt="Logo"
-                                    className="h-24 w-auto object-contain"
-                                />
-                                <div className="flex-1 text-center">
-                                    <h1 className="text-3xl font-black uppercase tracking-tight text-slate-900 border-b border-slate-200 pb-1 mb-1">
+                            <div className='print-only mb-6 flex items-center gap-6 border-slate-900 border-b-4 border-double pb-4'>
+                                <img src={reportData?.masterCompany?.[0]?.logo} alt='Logo' className='h-24 w-auto object-contain' />
+                                <div className='flex-1 text-center'>
+                                    <h1 className='mb-1 border-slate-200 border-b pb-1 font-black text-3xl text-slate-900 uppercase tracking-tight'>
                                         {reportData?.masterCompany?.[0]?.companyname || reportData?.masterCompany?.[0]?.name}
                                     </h1>
-                                    <p className="text-sm font-bold text-slate-700 tracking-widest uppercase mb-1">OVER-ALL VIEW REPORT (CATEGORY-WISE)</p>
-                                    <div className="flex justify-center items-center gap-4 text-xs font-semibold text-slate-600">
+                                    <p className='mb-1 font-bold text-slate-700 text-sm uppercase tracking-widest'>
+                                        OVER-ALL VIEW REPORT (CATEGORY-WISE)
+                                    </p>
+                                    <div className='flex items-center justify-center gap-4 font-semibold text-slate-600 text-xs'>
                                         <span>Academic Year: {yearDropdown.find((y: any) => y.asmaY_Id === asmaY_Id)?.asmaY_Year}</span>
-                                        <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                                        <span className='h-1.5 w-1.5 rounded-full bg-slate-300' />
                                         <span>Report Date: {new Date().toLocaleDateString()}</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <h2 className="text-center text-xl font-bold mb-4 text-slate-800 print-only uppercase underline underline-offset-4 decoration-2">
+                            <h2 className='print-only mb-4 text-center font-bold text-slate-800 text-xl uppercase underline decoration-2 underline-offset-4'>
                                 Category-wise Strength Report
                             </h2>
-                            <table className="w-full border-collapse text-xs print-table">
+                            <table className='print-table w-full border-collapse text-xs'>
                                 <thead>
-                                    <tr className="bg-slate-50 text-slate-600 font-bold">
-                                        <th rowSpan={2} className="border p-2 text-center">Class</th>
-                                        <th rowSpan={2} className="border p-2 text-center">Section</th>
-                                        <th rowSpan={2} className="border p-2 text-center">Female</th>
-                                        <th rowSpan={2} className="border p-2 text-center">Male</th>
-                                        <th rowSpan={2} className="border p-2 text-center">Total</th>
-                                        <th colSpan={2} className="border p-2 text-center bg-blue-50/50">GENERAL</th>
-                                        <th colSpan={2} className="border p-2 text-center bg-orange-50/50">OBC</th>
-                                        <th colSpan={2} className="border p-2 text-center bg-green-50/50">SC</th>
-                                        <th colSpan={2} className="border p-2 text-center bg-red-50/50">ST</th>
-                                        <th rowSpan={2} className="border p-2 text-center">New(+)</th>
-                                        <th rowSpan={2} className="border p-2 text-center">Old</th>
-                                        <th colSpan={2} className="border p-2 text-center bg-amber-50/30">HINDU</th>
-                                        <th colSpan={2} className="border p-2 text-center bg-sky-50/30">CHRISTIAN</th>
-                                        <th colSpan={2} className="border p-2 text-center bg-emerald-50/30">ISLAM</th>
-                                        <th colSpan={2} className="border p-2 text-center bg-slate-50/30">Others</th>
+                                    <tr className='bg-slate-50 font-bold text-slate-600'>
+                                        <th rowSpan={2} className='border p-2 text-center'>
+                                            Class
+                                        </th>
+                                        <th rowSpan={2} className='border p-2 text-center'>
+                                            Section
+                                        </th>
+                                        <th rowSpan={2} className='border p-2 text-center'>
+                                            Female
+                                        </th>
+                                        <th rowSpan={2} className='border p-2 text-center'>
+                                            Male
+                                        </th>
+                                        <th rowSpan={2} className='border p-2 text-center'>
+                                            Total
+                                        </th>
+                                        <th colSpan={2} className='border bg-blue-50/50 p-2 text-center'>
+                                            GENERAL
+                                        </th>
+                                        <th colSpan={2} className='border bg-orange-50/50 p-2 text-center'>
+                                            OBC
+                                        </th>
+                                        <th colSpan={2} className='border bg-green-50/50 p-2 text-center'>
+                                            SC
+                                        </th>
+                                        <th colSpan={2} className='border bg-red-50/50 p-2 text-center'>
+                                            ST
+                                        </th>
+                                        <th rowSpan={2} className='border p-2 text-center'>
+                                            New(+)
+                                        </th>
+                                        <th rowSpan={2} className='border p-2 text-center'>
+                                            Old
+                                        </th>
+                                        <th colSpan={2} className='border bg-amber-50/30 p-2 text-center'>
+                                            HINDU
+                                        </th>
+                                        <th colSpan={2} className='border bg-sky-50/30 p-2 text-center'>
+                                            CHRISTIAN
+                                        </th>
+                                        <th colSpan={2} className='border bg-emerald-50/30 p-2 text-center'>
+                                            ISLAM
+                                        </th>
+                                        <th colSpan={2} className='border bg-slate-50/30 p-2 text-center'>
+                                            Others
+                                        </th>
                                     </tr>
-                                    <tr className="bg-slate-50/50 text-slate-500 font-semibold">
-                                        <th className="border p-1 text-center">Male</th><th className="border p-1 text-center">Fem.</th>
-                                        <th className="border p-1 text-center">Male</th><th className="border p-1 text-center">Fem.</th>
-                                        <th className="border p-1 text-center">Male</th><th className="border p-1 text-center">Fem.</th>
-                                        <th className="border p-1 text-center">Male</th><th className="border p-1 text-center">Fem.</th>
-                                        <th className="border p-1 text-center">Male</th><th className="border p-1 text-center">Fem.</th>
-                                        <th className="border p-1 text-center">Male</th><th className="border p-1 text-center">Fem.</th>
-                                        <th className="border p-1 text-center">Male</th><th className="border p-1 text-center">Fem.</th>
-                                        <th className="border p-1 text-center">Male</th><th className="border p-1 text-center">Fem.</th>
+                                    <tr className='bg-slate-50/50 font-semibold text-slate-500'>
+                                        <th className='border p-1 text-center'>Male</th>
+                                        <th className='border p-1 text-center'>Fem.</th>
+                                        <th className='border p-1 text-center'>Male</th>
+                                        <th className='border p-1 text-center'>Fem.</th>
+                                        <th className='border p-1 text-center'>Male</th>
+                                        <th className='border p-1 text-center'>Fem.</th>
+                                        <th className='border p-1 text-center'>Male</th>
+                                        <th className='border p-1 text-center'>Fem.</th>
+                                        <th className='border p-1 text-center'>Male</th>
+                                        <th className='border p-1 text-center'>Fem.</th>
+                                        <th className='border p-1 text-center'>Male</th>
+                                        <th className='border p-1 text-center'>Fem.</th>
+                                        <th className='border p-1 text-center'>Male</th>
+                                        <th className='border p-1 text-center'>Fem.</th>
+                                        <th className='border p-1 text-center'>Male</th>
+                                        <th className='border p-1 text-center'>Fem.</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {processedData.map((group) => (
                                         <Fragment key={group.ASMCL_Id}>
                                             {group.studentlistdetails.map((item: any, idx: number) => (
-                                                <tr key={`${group.ASMCL_Id}-${item.asmc_sectionname}-${idx}`} className="hover:bg-slate-50/30 transition-colors">
+                                                <tr
+                                                    key={`${group.ASMCL_Id}-${item.asmc_sectionname}-${idx}`}
+                                                    className='transition-colors hover:bg-slate-50/30'>
                                                     {idx === 0 && (
-                                                        <td rowSpan={group.studentlistdetails.length} className="border p-2 text-center font-bold text-slate-700 bg-slate-50/10 align-middle">
+                                                        <td
+                                                            rowSpan={group.studentlistdetails.length}
+                                                            className='border bg-slate-50/10 p-2 text-center align-middle font-bold text-slate-700'>
                                                             {group.ASMCL_ClassName}
                                                         </td>
                                                     )}
-                                                    <td className="border p-2 text-center">{item.asmc_sectionname}</td>
-                                                    <td className="border p-2 text-center">{item.female}</td>
-                                                    <td className="border p-2 text-center">{item.male}</td>
-                                                    <td className="border p-2 text-center font-bold">{item.total}</td>
-                                                    <td className="border p-2 text-center">{item.male_general}</td>
-                                                    <td className="border p-2 text-center">{item.female_general}</td>
-                                                    <td className="border p-2 text-center">{item.male_obc}</td>
-                                                    <td className="border p-2 text-center">{item.female_obc}</td>
-                                                    <td className="border p-2 text-center">{item.male_sc}</td>
-                                                    <td className="border p-2 text-center">{item.female_sc}</td>
-                                                    <td className="border p-2 text-center">{item.male_st}</td>
-                                                    <td className="border p-2 text-center">{item.female_st}</td>
-                                                    <td className="border p-2 text-center">{item.newst_totalcount}</td>
-                                                    <td className="border p-2 text-center">{item.oldst_totalcount}</td>
-                                                    <td className="border p-2 text-center">{item.male_hindu}</td>
-                                                    <td className="border p-2 text-center">{item.female_hindu}</td>
-                                                    <td className="border p-2 text-center">{item.male_christian}</td>
-                                                    <td className="border p-2 text-center">{item.female_christian}</td>
-                                                    <td className="border p-2 text-center">{item.male_islam}</td>
-                                                    <td className="border p-2 text-center">{item.female_islam}</td>
-                                                    <td className="border p-2 text-center">{item.male_other}</td>
-                                                    <td className="border p-2 text-center">{item.female_other}</td>
+                                                    <td className='border p-2 text-center'>{item.asmc_sectionname}</td>
+                                                    <td className='border p-2 text-center'>{item.female}</td>
+                                                    <td className='border p-2 text-center'>{item.male}</td>
+                                                    <td className='border p-2 text-center font-bold'>{item.total}</td>
+                                                    <td className='border p-2 text-center'>{item.male_general}</td>
+                                                    <td className='border p-2 text-center'>{item.female_general}</td>
+                                                    <td className='border p-2 text-center'>{item.male_obc}</td>
+                                                    <td className='border p-2 text-center'>{item.female_obc}</td>
+                                                    <td className='border p-2 text-center'>{item.male_sc}</td>
+                                                    <td className='border p-2 text-center'>{item.female_sc}</td>
+                                                    <td className='border p-2 text-center'>{item.male_st}</td>
+                                                    <td className='border p-2 text-center'>{item.female_st}</td>
+                                                    <td className='border p-2 text-center'>{item.newst_totalcount}</td>
+                                                    <td className='border p-2 text-center'>{item.oldst_totalcount}</td>
+                                                    <td className='border p-2 text-center'>{item.male_hindu}</td>
+                                                    <td className='border p-2 text-center'>{item.female_hindu}</td>
+                                                    <td className='border p-2 text-center'>{item.male_christian}</td>
+                                                    <td className='border p-2 text-center'>{item.female_christian}</td>
+                                                    <td className='border p-2 text-center'>{item.male_islam}</td>
+                                                    <td className='border p-2 text-center'>{item.female_islam}</td>
+                                                    <td className='border p-2 text-center'>{item.male_other}</td>
+                                                    <td className='border p-2 text-center'>{item.female_other}</td>
                                                 </tr>
                                             ))}
-                                            <tr key={`${group.ASMCL_Id}-total`} className="bg-green-50/40 font-bold border-t-2 border-slate-200">
-                                                <td colSpan={2} className="border p-2 text-center uppercase tracking-wider text-green-700">Total</td>
-                                                <td className="border p-2 text-center">{getClassTotal(group, 'female')}</td>
-                                                <td className="border p-2 text-center">{getClassTotal(group, 'male')}</td>
-                                                <td className="border p-2 text-center">{getClassTotal(group, 'total')}</td>
-                                                <td className="border p-2 text-center">{getClassTotal(group, 'male_general')}</td>
-                                                <td className="border p-2 text-center">{getClassTotal(group, 'female_general')}</td>
-                                                <td className="border p-2 text-center">{getClassTotal(group, 'male_obc')}</td>
-                                                <td className="border p-2 text-center">{getClassTotal(group, 'female_obc')}</td>
-                                                <td className="border p-2 text-center">{getClassTotal(group, 'male_sc')}</td>
-                                                <td className="border p-2 text-center">{getClassTotal(group, 'female_sc')}</td>
-                                                <td className="border p-2 text-center">{getClassTotal(group, 'male_st')}</td>
-                                                <td className="border p-2 text-center">{getClassTotal(group, 'female_st')}</td>
-                                                <td className="border p-2 text-center">{getClassTotal(group, 'newst_totalcount')}</td>
-                                                <td className="border p-2 text-center">{getClassTotal(group, 'oldst_totalcount')}</td>
-                                                <td className="border p-2 text-center">{getClassTotal(group, 'male_hindu')}</td>
-                                                <td className="border p-2 text-center">{getClassTotal(group, 'female_hindu')}</td>
-                                                <td className="border p-2 text-center">{getClassTotal(group, 'male_christian')}</td>
-                                                <td className="border p-2 text-center">{getClassTotal(group, 'female_christian')}</td>
-                                                <td className="border p-2 text-center">{getClassTotal(group, 'male_islam')}</td>
-                                                <td className="border p-2 text-center">{getClassTotal(group, 'female_islam')}</td>
-                                                <td className="border p-2 text-center">{getClassTotal(group, 'male_other')}</td>
-                                                <td className="border p-2 text-center">{getClassTotal(group, 'female_other')}</td>
+                                            <tr
+                                                key={`${group.ASMCL_Id}-total`}
+                                                className='border-slate-200 border-t-2 bg-green-50/40 font-bold'>
+                                                <td colSpan={2} className='border p-2 text-center text-green-700 uppercase tracking-wider'>
+                                                    Total
+                                                </td>
+                                                <td className='border p-2 text-center'>{getClassTotal(group, 'female')}</td>
+                                                <td className='border p-2 text-center'>{getClassTotal(group, 'male')}</td>
+                                                <td className='border p-2 text-center'>{getClassTotal(group, 'total')}</td>
+                                                <td className='border p-2 text-center'>{getClassTotal(group, 'male_general')}</td>
+                                                <td className='border p-2 text-center'>{getClassTotal(group, 'female_general')}</td>
+                                                <td className='border p-2 text-center'>{getClassTotal(group, 'male_obc')}</td>
+                                                <td className='border p-2 text-center'>{getClassTotal(group, 'female_obc')}</td>
+                                                <td className='border p-2 text-center'>{getClassTotal(group, 'male_sc')}</td>
+                                                <td className='border p-2 text-center'>{getClassTotal(group, 'female_sc')}</td>
+                                                <td className='border p-2 text-center'>{getClassTotal(group, 'male_st')}</td>
+                                                <td className='border p-2 text-center'>{getClassTotal(group, 'female_st')}</td>
+                                                <td className='border p-2 text-center'>{getClassTotal(group, 'newst_totalcount')}</td>
+                                                <td className='border p-2 text-center'>{getClassTotal(group, 'oldst_totalcount')}</td>
+                                                <td className='border p-2 text-center'>{getClassTotal(group, 'male_hindu')}</td>
+                                                <td className='border p-2 text-center'>{getClassTotal(group, 'female_hindu')}</td>
+                                                <td className='border p-2 text-center'>{getClassTotal(group, 'male_christian')}</td>
+                                                <td className='border p-2 text-center'>{getClassTotal(group, 'female_christian')}</td>
+                                                <td className='border p-2 text-center'>{getClassTotal(group, 'male_islam')}</td>
+                                                <td className='border p-2 text-center'>{getClassTotal(group, 'female_islam')}</td>
+                                                <td className='border p-2 text-center'>{getClassTotal(group, 'male_other')}</td>
+                                                <td className='border p-2 text-center'>{getClassTotal(group, 'female_other')}</td>
                                             </tr>
                                         </Fragment>
                                     ))}
                                 </tbody>
                                 <tfoot>
-                                    <tr className="bg-rose-50 font-black border-t-2 border-rose-200 text-rose-900">
-                                        <td colSpan={2} className="border p-3 text-center uppercase tracking-widest">Grand Total</td>
-                                        <td className="border p-2 text-center">{getGrandTotal('female')}</td>
-                                        <td className="border p-2 text-center">{getGrandTotal('male')}</td>
-                                        <td className="border p-2 text-center">{getGrandTotal('total')}</td>
-                                        <td className="border p-2 text-center">{getGrandTotal('male_general')}</td>
-                                        <td className="border p-2 text-center">{getGrandTotal('female_general')}</td>
-                                        <td className="border p-2 text-center">{getGrandTotal('male_obc')}</td>
-                                        <td className="border p-2 text-center">{getGrandTotal('female_obc')}</td>
-                                        <td className="border p-2 text-center">{getGrandTotal('male_sc')}</td>
-                                        <td className="border p-2 text-center">{getGrandTotal('female_sc')}</td>
-                                        <td className="border p-2 text-center">{getGrandTotal('male_st')}</td>
-                                        <td className="border p-2 text-center">{getGrandTotal('female_st')}</td>
-                                        <td className="border p-2 text-center">{getGrandTotal('newst_totalcount')}</td>
-                                        <td className="border p-2 text-center">{getGrandTotal('oldst_totalcount')}</td>
-                                        <td className="border p-2 text-center">{getGrandTotal('male_hindu')}</td>
-                                        <td className="border p-2 text-center">{getGrandTotal('female_hindu')}</td>
-                                        <td className="border p-2 text-center">{getGrandTotal('male_christian')}</td>
-                                        <td className="border p-2 text-center">{getGrandTotal('female_christian')}</td>
-                                        <td className="border p-2 text-center">{getGrandTotal('male_islam')}</td>
-                                        <td className="border p-2 text-center">{getGrandTotal('female_islam')}</td>
-                                        <td className="border p-2 text-center">{getGrandTotal('male_other')}</td>
-                                        <td className="border p-2 text-center">{getGrandTotal('female_other')}</td>
+                                    <tr className='border-rose-200 border-t-2 bg-rose-50 font-black text-rose-900'>
+                                        <td colSpan={2} className='border p-3 text-center uppercase tracking-widest'>
+                                            Grand Total
+                                        </td>
+                                        <td className='border p-2 text-center'>{getGrandTotal('female')}</td>
+                                        <td className='border p-2 text-center'>{getGrandTotal('male')}</td>
+                                        <td className='border p-2 text-center'>{getGrandTotal('total')}</td>
+                                        <td className='border p-2 text-center'>{getGrandTotal('male_general')}</td>
+                                        <td className='border p-2 text-center'>{getGrandTotal('female_general')}</td>
+                                        <td className='border p-2 text-center'>{getGrandTotal('male_obc')}</td>
+                                        <td className='border p-2 text-center'>{getGrandTotal('female_obc')}</td>
+                                        <td className='border p-2 text-center'>{getGrandTotal('male_sc')}</td>
+                                        <td className='border p-2 text-center'>{getGrandTotal('female_sc')}</td>
+                                        <td className='border p-2 text-center'>{getGrandTotal('male_st')}</td>
+                                        <td className='border p-2 text-center'>{getGrandTotal('female_st')}</td>
+                                        <td className='border p-2 text-center'>{getGrandTotal('newst_totalcount')}</td>
+                                        <td className='border p-2 text-center'>{getGrandTotal('oldst_totalcount')}</td>
+                                        <td className='border p-2 text-center'>{getGrandTotal('male_hindu')}</td>
+                                        <td className='border p-2 text-center'>{getGrandTotal('female_hindu')}</td>
+                                        <td className='border p-2 text-center'>{getGrandTotal('male_christian')}</td>
+                                        <td className='border p-2 text-center'>{getGrandTotal('female_christian')}</td>
+                                        <td className='border p-2 text-center'>{getGrandTotal('male_islam')}</td>
+                                        <td className='border p-2 text-center'>{getGrandTotal('female_islam')}</td>
+                                        <td className='border p-2 text-center'>{getGrandTotal('male_other')}</td>
+                                        <td className='border p-2 text-center'>{getGrandTotal('female_other')}</td>
                                     </tr>
                                 </tfoot>
                             </table>

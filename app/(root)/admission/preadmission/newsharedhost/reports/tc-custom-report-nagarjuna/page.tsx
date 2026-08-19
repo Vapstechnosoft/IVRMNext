@@ -1,14 +1,9 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { FormError } from '@/components/ui/extension/field';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { Printer, RotateCcw, FileText } from 'lucide-react';
-import { useMemo, useRef, useState } from 'react';
-import { toast } from 'sonner';
-import { useReactToPrint } from 'react-to-print';
 import {
     getBbkvCustomReportDetails,
     getBbkvCustomReportNameRegNo,
@@ -16,6 +11,11 @@ import {
     getBbkvCustomReportTcDetails,
     getBbkvCustomReportTempPerChange
 } from '@/server/admission/preadmission/reports/bbkv_custom_report';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { FileText, Printer, RotateCcw } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+import { useReactToPrint } from 'react-to-print';
+import { toast } from 'sonner';
 import { TcCustomReportNagarjunaPrint } from './_components/tc-custom-report-print';
 
 /**
@@ -81,7 +81,9 @@ export default function TcCustomReportNagarjunaPage() {
     const tempPerMutation = useMutation({
         mutationFn: getBbkvCustomReportTempPerChange,
         onSuccess: (r: any) => {
-            const list = (r?.studentlist ?? (Array.isArray(r?.data) ? r.data : r?.data?.studentlist) ?? (Array.isArray(r) ? r : [])) as any[];
+            const list = (r?.studentlist ??
+                (Array.isArray(r?.data) ? r.data : r?.data?.studentlist) ??
+                (Array.isArray(r) ? r : [])) as any[];
             if (list.length > 0) {
                 setStudentList(list);
             } else {
@@ -188,68 +190,68 @@ export default function TcCustomReportNagarjunaPage() {
     const handlePrint = useReactToPrint({
         contentRef: printRef,
         documentTitle: 'TC_Custom_Report',
-        suppressErrors: true,
+        suppressErrors: true
     });
 
     return (
-        <div className="min-h-screen bg-[#E7EBEE] p-4">
+        <div className='min-h-screen bg-[#E7EBEE] p-4'>
             {/* Header matching the screenshots */}
-            <div className="bg-white border-b border-[#3A5999] shadow-sm mb-4">
-                <div className="p-3">
-                    <h1 className="text-[#3A5999] text-sm font-bold uppercase tracking-tight">TC Custom Report</h1>
+            <div className='mb-4 border-[#3A5999] border-b bg-white shadow-sm'>
+                <div className='p-3'>
+                    <h1 className='font-bold text-[#3A5999] text-sm uppercase tracking-tight'>TC Custom Report</h1>
                 </div>
             </div>
 
-            <div className="bg-white border border-gray-300 shadow-sm rounded-sm">
-                <div className="p-6 space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-4">
+            <div className='rounded-sm border border-gray-300 bg-white shadow-sm'>
+                <div className='space-y-6 p-6'>
+                    <div className='grid grid-cols-1 gap-x-16 gap-y-4 md:grid-cols-2'>
                         {/* Student Type Selection (Left) */}
-                        <div className="flex flex-col gap-4">
-                            <div className="border border-gray-200 rounded p-3 bg-white flex justify-center gap-8">
-                                <label className="flex items-center gap-2 cursor-pointer text-xs font-medium">
+                        <div className='flex flex-col gap-4'>
+                            <div className='flex justify-center gap-8 rounded border border-gray-200 bg-white p-3'>
+                                <label className='flex cursor-pointer items-center gap-2 font-medium text-xs'>
                                     <input
-                                        type="radio"
-                                        name="tctemporper"
-                                        value="temp"
+                                        type='radio'
+                                        name='tctemporper'
+                                        value='temp'
                                         checked={tctemporper === 'temp'}
                                         onChange={() => handleTempPerChange('temp')}
-                                        className="accent-[#3A5999]"
+                                        className='accent-[#3A5999]'
                                     />
                                     Temp Student
                                 </label>
-                                <label className="flex items-center gap-2 cursor-pointer text-xs font-medium">
+                                <label className='flex cursor-pointer items-center gap-2 font-medium text-xs'>
                                     <input
-                                        type="radio"
-                                        name="tctemporper"
-                                        value="per"
+                                        type='radio'
+                                        name='tctemporper'
+                                        value='per'
                                         checked={tctemporper === 'per'}
                                         onChange={() => handleTempPerChange('per')}
-                                        className="accent-[#3A5999]"
+                                        className='accent-[#3A5999]'
                                     />
                                     Permanent Student
                                 </label>
                             </div>
 
-                            <div className="border border-gray-200 rounded p-3 bg-white flex justify-center gap-12">
-                                <label className="flex items-center gap-2 cursor-pointer text-xs font-medium">
+                            <div className='flex justify-center gap-12 rounded border border-gray-200 bg-white p-3'>
+                                <label className='flex cursor-pointer items-center gap-2 font-medium text-xs'>
                                     <input
-                                        type="radio"
-                                        name="admname"
-                                        value="regno"
+                                        type='radio'
+                                        name='admname'
+                                        value='regno'
                                         checked={admname === 'regno'}
                                         onChange={() => onclickregnoname('regno')}
-                                        className="accent-[#3A5999]"
+                                        className='accent-[#3A5999]'
                                     />
                                     Admno
                                 </label>
-                                <label className="flex items-center gap-2 cursor-pointer text-xs font-medium">
+                                <label className='flex cursor-pointer items-center gap-2 font-medium text-xs'>
                                     <input
-                                        type="radio"
-                                        name="admname"
-                                        value="stdname"
+                                        type='radio'
+                                        name='admname'
+                                        value='stdname'
                                         checked={admname === 'stdname'}
                                         onChange={() => onclickregnoname('stdname')}
-                                        className="accent-[#3A5999]"
+                                        className='accent-[#3A5999]'
                                     />
                                     Name
                                 </label>
@@ -257,42 +259,44 @@ export default function TcCustomReportNagarjunaPage() {
                         </div>
 
                         {/* Dropdowns (Right) */}
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-4">
-                                <Label className="text-xs font-bold whitespace-nowrap w-24">Academic Year:<span className="text-red-500">*</span></Label>
-                                <div className="flex-1">
+                        <div className='space-y-4'>
+                            <div className='flex items-center gap-4'>
+                                <Label className='w-24 whitespace-nowrap font-bold text-xs'>
+                                    Academic Year:<span className='text-red-500'>*</span>
+                                </Label>
+                                <div className='flex-1'>
                                     <Select value={asmaY_Id ? String(asmaY_Id) : undefined} onValueChange={onYearChange}>
-                                        <SelectTrigger className="h-8 text-xs border-gray-300 rounded-sm">
-                                            <SelectValue placeholder="Select Year" />
+                                        <SelectTrigger className='h-8 rounded-sm border-gray-300 text-xs'>
+                                            <SelectValue placeholder='Select Year' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {yearDropdown?.map((y: any) => (
-                                                <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)} className="text-xs">
+                                                <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)} className='text-xs'>
                                                     {y.asmaY_Year}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    {submitted && !asmaY_Id && (
-                                        <FormError className="mt-1">please select academic year</FormError>
-                                    )}
+                                    {submitted && !asmaY_Id && <FormError className='mt-1'>please select academic year</FormError>}
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-4 animate-in fade-in slide-in-from-top-1 duration-200">
-                                <Label className="text-xs font-bold whitespace-nowrap w-24">Student Name:<span className="text-red-500">*</span></Label>
-                                <div className="flex-1">
+                            <div className='fade-in slide-in-from-top-1 flex animate-in items-center gap-4 duration-200'>
+                                <Label className='w-24 whitespace-nowrap font-bold text-xs'>
+                                    Student Name:<span className='text-red-500'>*</span>
+                                </Label>
+                                <div className='flex-1'>
                                     <Select value={amsT_Id ? String(amsT_Id) : undefined} onValueChange={handleStudentChange}>
-                                        <SelectTrigger className="h-8 text-xs border-gray-300 rounded-sm">
+                                        <SelectTrigger className='h-8 rounded-sm border-gray-300 text-xs'>
                                             <SelectValue placeholder={nameRegNoMutation.isPending ? 'Loading...' : 'Select Student'} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {deduplicatedStudentList?.map((s: any) => (
-                                                <SelectItem key={s.amsT_Id} value={String(s.amsT_Id)} className="text-xs pb-2">
-                                                    <div className="flex flex-col">
-                                                        <span className="font-bold">{s.studentname}</span>
+                                                <SelectItem key={s.amsT_Id} value={String(s.amsT_Id)} className='pb-2 text-xs'>
+                                                    <div className='flex flex-col'>
+                                                        <span className='font-bold'>{s.studentname}</span>
                                                         {(s.amsT_RegistrationNo || s.asmcL_ClassName) && (
-                                                            <span className="text-[9px] text-gray-500">
+                                                            <span className='text-[9px] text-gray-500'>
                                                                 {s.amsT_RegistrationNo && `REG: ${s.amsT_RegistrationNo}`}
                                                                 {s.amsT_RegistrationNo && s.asmcL_ClassName && ' | '}
                                                                 {s.asmcL_ClassName && `${s.asmcL_ClassName} (${s.asmC_SectionName || ''})`}
@@ -303,36 +307,31 @@ export default function TcCustomReportNagarjunaPage() {
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    {submitted && !amsT_Id && (
-                                        <FormError className="mt-1">please select student name</FormError>
-                                    )}
+                                    {submitted && !amsT_Id && <FormError className='mt-1'>please select student name</FormError>}
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     {/* Button Row matching the screenshot */}
-                    <div className="flex justify-center gap-2 pt-4">
+                    <div className='flex justify-center gap-2 pt-4'>
                         <Button
                             onClick={handleGenerate}
-                            className="bg-[#3A5999] hover:bg-[#2F477A] text-white text-[10px] font-bold h-8 px-4 rounded-sm shadow-sm"
-                        >
-                            <FileText className="mr-2 h-3 w-3" />
+                            className='h-8 rounded-sm bg-[#3A5999] px-4 font-bold text-[10px] text-white shadow-sm hover:bg-[#2F477A]'>
+                            <FileText className='mr-2 h-3 w-3' />
                             REPORT
                         </Button>
                         <Button
                             onClick={handleClear}
-                            className="bg-[#FF5722] hover:bg-[#E64A19] text-white text-[10px] font-bold h-8 px-4 rounded-sm shadow-sm"
-                        >
-                            <RotateCcw className="mr-2 h-3 w-3" />
+                            className='h-8 rounded-sm bg-[#FF5722] px-4 font-bold text-[10px] text-white shadow-sm hover:bg-[#E64A19]'>
+                            <RotateCcw className='mr-2 h-3 w-3' />
                             CANCEL
                         </Button>
                         <Button
                             onClick={handlePrint}
                             disabled={!showReport}
-                            className="bg-[#3A5999] hover:bg-[#2F477A] text-white text-[10px] font-bold h-8 px-4 rounded-sm shadow-sm"
-                        >
-                            <Printer className="mr-2 h-3 w-3" />
+                            className='h-8 rounded-sm bg-[#3A5999] px-4 font-bold text-[10px] text-white shadow-sm hover:bg-[#2F477A]'>
+                            <Printer className='mr-2 h-3 w-3' />
                             PRINT
                         </Button>
                     </div>
@@ -341,8 +340,8 @@ export default function TcCustomReportNagarjunaPage() {
 
             {/* Preview Section */}
             {showReport && reportData && (
-                <div className="mt-8 flex justify-center overflow-x-auto p-4 bg-gray-100 rounded-sm border border-gray-300">
-                    <div className="bg-white shadow-lg p-0">
+                <div className='mt-8 flex justify-center overflow-x-auto rounded-sm border border-gray-300 bg-gray-100 p-4'>
+                    <div className='bg-white p-0 shadow-lg'>
                         <TcCustomReportNagarjunaPrint ref={printRef} reportData={reportData} />
                     </div>
                 </div>

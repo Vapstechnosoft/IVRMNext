@@ -11,10 +11,10 @@ import {
     getEmployeeShiftMapping,
     getEmployeeShiftMappingDepartments,
     getEmployeeShiftMappingDesignations,
+    getEmployeeShiftMappingDetailsById,
     getEmployeeShiftMappingDropdowns,
     getEmployeeShiftMappingEmployeesFiltered,
     getEmployeeShiftMappingEmployeesOld,
-    getEmployeeShiftMappingDetailsById,
     getEmployeeShiftMappingGroupTypes,
     getEmployeeShiftMappingHolidayTypes,
     getEmployeeShiftMappingShiftDetails,
@@ -34,15 +34,15 @@ import {
 } from '@/server/hrms/attendance-management/masters/master-holiday';
 import { addOrUpdateMasterShift, deleteMasterShift, getMasterShift } from '@/server/hrms/attendance-management/masters/master-shift';
 import {
-    addOrUpdateShiftSettingMaster,
-    deleteShiftSettingMaster,
-    getShiftSettingMaster
-} from '@/server/hrms/attendance-management/masters/shift-setting-master';
-import {
     addOrUpdateMasterTimeSetting,
     deleteMasterTimeSetting,
     getMasterTimeSettings
 } from '@/server/hrms/attendance-management/masters/master-time-setting';
+import {
+    addOrUpdateShiftSettingMaster,
+    deleteShiftSettingMaster,
+    getShiftSettingMaster
+} from '@/server/hrms/attendance-management/masters/shift-setting-master';
 import type { ApiSearchparams } from '@/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -115,7 +115,7 @@ export const useMasterHoliday = (searchParams?: ApiSearchparams) => {
             const result = queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_HOLIDAY]
             });
-            result.then(() => { }).catch((error) => { });
+            result.then(() => {}).catch((error) => {});
             return result;
         }
     };
@@ -169,11 +169,7 @@ export const useHolidayDatesForDays = (request?: { hrmlY_Id: number; days: strin
             }
             return await getHolidayDatesForDays(request);
         },
-        enabled:
-            enabled &&
-            !!request &&
-            !!request.hrmlY_Id &&
-            !!request.days,
+        enabled: enabled && !!request && !!request.hrmlY_Id && !!request.days,
         staleTime: 0
     });
 };

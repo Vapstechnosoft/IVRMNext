@@ -88,7 +88,9 @@ export interface IClgAlumniSearchFilter {
     ASMAY_Id: number;
 }
 
-export type ISearchFilterClgAlumniResponse = IClgAlumniApprovalDetails[] | {
-    retObject?: IClgAlumniApprovalDetails[];
-    data?: IClgAlumniApprovalDetails[];
-};
+export type ISearchFilterClgAlumniResponse =
+    | IClgAlumniApprovalDetails[]
+    | {
+          retObject?: IClgAlumniApprovalDetails[];
+          data?: IClgAlumniApprovalDetails[];
+      };

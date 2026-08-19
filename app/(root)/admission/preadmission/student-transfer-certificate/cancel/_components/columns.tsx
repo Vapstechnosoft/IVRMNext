@@ -14,7 +14,9 @@ export interface TCCancelDetail {
 export const tcCancelDetailsColumns: ColumnDef<TCCancelDetail>[] = [
     {
         accessorKey: 'slNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No.' className='w-[60px] text-center font-bold text-black' />,
+        header: ({ column }) => (
+            <DataTableColumnHeader column={column} title='Sl.No.' className='w-[60px] text-center font-bold text-black' />
+        ),
         cell: ({ row }) => <div className='text-center'>{row.getValue('slNo')}</div>
     },
     {

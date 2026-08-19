@@ -1,7 +1,7 @@
 'use server';
 
-import { auth } from '@/lib/auth';
 import { api } from '@/lib/apiService';
+import { auth } from '@/lib/auth';
 import type { ILibraryMonthEndReportInitialData, ILibraryMonthEndReportRequest } from '@/types/library/reports/library-month-end-report';
 
 const FACADE = 'LibraryMonthEndReport';
@@ -18,7 +18,7 @@ const extractList = (list: any) => {
 export async function getLibraryMonthEndReportInitialData() {
     const url = `${FACADE}/montheendreport_getdetails`;
     const response = await api.get<any>('library', url);
-    
+
     // Extremely robust parsing for nested data objects
     const data = response?.data?.data || response?.data || response;
 
@@ -45,11 +45,17 @@ export async function getLibraryMonthEndReportSearch(data: ILibraryMonthEndRepor
         griddata: null
     };
 
-    const url = `${FACADE}/monthendreport_Savedata`; 
+    const url = `${FACADE}/monthendreport_Savedata`;
     const response = await api.post<any>('library', url, payload);
     const responseData = response.data || response;
 
-    const rawList = extractList(responseData.data || responseData.griddata || responseData.reportlist || responseData.alldata || (Array.isArray(responseData) ? responseData : []));
+    const rawList = extractList(
+        responseData.data ||
+            responseData.griddata ||
+            responseData.reportlist ||
+            responseData.alldata ||
+            (Array.isArray(responseData) ? responseData : [])
+    );
 
     // Normalize keys to uppercase for frontend consistency
     return rawList.map((item: any) => {

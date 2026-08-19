@@ -1,25 +1,25 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
 import {
+    generateSchoolTpin,
     getSchoolTpinGenerationInitialDetails,
-    searchSchoolTpinGeneration,
-    generateSchoolTpin
+    searchSchoolTpinGeneration
 } from '@/server/admission/hutchings/master/schooltpingeneration';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const useSchoolTpinGenerationInitialDetails = () => {
     return useQuery({
         queryKey: ['schoolTpinGenerationInitialDetails'],
-        queryFn: getSchoolTpinGenerationInitialDetails,
+        queryFn: getSchoolTpinGenerationInitialDetails
     });
 };
 
 export const useSearchSchoolTpinGenerationMutation = () => {
     return useMutation({
-        mutationFn: searchSchoolTpinGeneration,
+        mutationFn: searchSchoolTpinGeneration
     });
 };
 
 export const useGenerateSchoolTpinMutation = () => {
     return useMutation({
-        mutationFn: generateSchoolTpin,
+        mutationFn: generateSchoolTpin
     });
 };

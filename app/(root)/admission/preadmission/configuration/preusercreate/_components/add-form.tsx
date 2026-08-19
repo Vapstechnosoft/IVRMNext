@@ -4,16 +4,25 @@ import { Input } from '@/components/ui/input';
 import { createPreUser } from '@/server/admission/preadmission/configuration/pre_user_create';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
 const preUserSchema = z.object({
-    pasR_FirstName: z.string().min(1, { message: 'Enter the field Name' }).regex(/^[\s|a-zA-Z]+$/, { message: 'The field contains only alphabets' }),
-    pasR_MobileNo: z.string().regex(/^[6-9]{1}[0-9]{9}$/, { message: 'Enter valid Mobile NO' }).min(10).max(10),
+    pasR_FirstName: z
+        .string()
+        .min(1, { message: 'Enter the field Name' })
+        .regex(/^[\s|a-zA-Z]+$/, { message: 'The field contains only alphabets' }),
+    pasR_MobileNo: z
+        .string()
+        .regex(/^[6-9]{1}[0-9]{9}$/, { message: 'Enter valid Mobile NO' })
+        .min(10)
+        .max(10),
     pasR_emailId: z.string().email({ message: 'Please enter valid email which contains "@" and "."' }),
-    username: z.string().min(1, { message: 'Enter the field User Name' }).regex(/^[\s|a-zA-Z]+$/, { message: 'The field contains only alphabets' })
+    username: z
+        .string()
+        .min(1, { message: 'Enter the field User Name' })
+        .regex(/^[\s|a-zA-Z]+$/, { message: 'The field contains only alphabets' })
 });
 
 type PreUserFormValues = z.infer<typeof preUserSchema>;

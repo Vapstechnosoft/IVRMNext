@@ -69,11 +69,6 @@ export const dayPeriodColumns: ColumnDef<TTDayPeriodGridData>[] = [
     {
         id: 'actions',
         header: 'Actions',
-        cell: ({ row }) => (
-            <ActionButtonsCell
-                row={row}
-                deleteFunc={deactivateFixingDayPeriod}
-            />
-        )
+        cell: ({ row }) => <ActionButtonsCell row={row} deleteFunc={deactivateFixingDayPeriod} />
     }
 ];

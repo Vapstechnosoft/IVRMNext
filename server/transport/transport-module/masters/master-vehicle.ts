@@ -30,5 +30,3 @@ export async function uploadVehicleFile(formData: FormData) {
     const url = '/master_vehicle/uploadUserFile'; // Assumed endpoint, adjusted to typical pattern
     return await api.postMultipart<any>('transport', url, formData);
 }
-
-

@@ -1,7 +1,7 @@
 'use server';
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
-import { ApiSearchparams } from '@/types';
+import type { ApiSearchparams } from '@/types';
 
 // GET LIST
 export async function getMessMenuList(searchParams?: ApiSearchparams) {
@@ -18,7 +18,7 @@ export async function saveMessMenu(data: any) {
         HLMM_Id: data.hlmM_Id,
         HLMMC_Id: data.hlmmC_Id,
         HLMMN_MenuName: data.hlmmN_MenuName,
-        HLMMN_MenuDesc: data.hlmmN_MenuDesc,
+        HLMMN_MenuDesc: data.hlmmN_MenuDesc
     };
 
     return await api.post<any>('hostel', url, payload);
@@ -30,7 +30,7 @@ export async function toggleMessMenuStatus(id: number, activeFlag: boolean) {
 
     const payload = {
         HLMMN_Id: id,
-        HLMMN_ActiveFlag: activeFlag,
+        HLMMN_ActiveFlag: activeFlag
     };
 
     return await api.put<any>('hostel', url, payload);

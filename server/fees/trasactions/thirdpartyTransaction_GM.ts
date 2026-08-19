@@ -18,7 +18,6 @@ export async function getThirdPartyTrasaction_GM(searchParams?: ApiSearchparams)
     return await api.get<GM_IFeeThirdPartyTransaction[]>('fees', url);
 }
 
-
 export async function getAcademicThirdPartyTrasaction_GM() {
     const url = '/fee_class_category/academicyearlist';
     return await api.get<GM_IFeeThirdPartyTransaction[]>('fees', url);

@@ -5,32 +5,26 @@
 // 3. Extract column definitions and form to the respective files
 // 4. Update handlers to use the new structure
 'use client';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { FormError, Label } from '@/components/ui/extension/field';
+import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useGetInstitutionByLogin, useGetMasterLocationGrid, useSaveOrUpdateLocation, useToggleLocationStatus } from '@/hooks/hrms/recruitment/masters/useMasters';
-
-import type { ColumnDef } from '@tanstack/react-table';
-import { Edit, MoreHorizontal, Plus, RefreshCw, Save, Trash2, X } from 'lucide-react';
-import { useRef, useState } from 'react';
-import { type SubmitHandler, useForm, Controller } from 'react-hook-form';
-import { toast } from 'sonner';
-import { getMasterLocationColumns, type MasterLocation } from './_components/columns';
-import ToggleMasterLocationModal from './_components/toggle-modal';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useGetInstitutionByLogin, useGetMasterLocationGrid, useSaveOrUpdateLocation } from '@/hooks/hrms/recruitment/masters/useMasters';
 import { recruitmentMasterLocationSchema } from '@/schemas/hrms/recruitment/masters';
-import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { RefreshCw, Save } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import type { z } from 'zod';
+import { type MasterLocation, getMasterLocationColumns } from './_components/columns';
+import ToggleMasterLocationModal from './_components/toggle-modal';
 
 type MasterLocationForm = z.infer<typeof recruitmentMasterLocationSchema>;
 
 export default function MasterLocationPage() {
-
     const [editingId, setEditingId] = useState<number | null>(null);
     const [isToggleOpen, setIsToggleOpen] = useState(false);
     const [selectedLocation, setSelectedLocation] = useState<MasterLocation | null>(null);
@@ -39,8 +33,7 @@ export default function MasterLocationPage() {
 
     const { data: institutionData, isLoading: institutionLoading } = useGetInstitutionByLogin();
     const { mutateAsync: saveMutation, isPending: isSubmittingMutation } = useSaveOrUpdateLocation();
-    console.log("institutionData", institutionData)
-
+    console.log('institutionData', institutionData);
 
     const {
         register,
@@ -63,16 +56,17 @@ export default function MasterLocationPage() {
     });
 
     const selectedInstitutionId = watch('hrmlO_Institution');
-    console.log("selectedInstitutionId", selectedInstitutionId)
+    console.log('selectedInstitutionId', selectedInstitutionId);
 
-    const { data: masterLocationGridData, isLoading: masterLocationDataLoading, refetchAll: refetchMasterLocationGrid } = useGetMasterLocationGrid(
-        selectedInstitutionId ? Number(selectedInstitutionId) : 0
-    );
+    const {
+        data: masterLocationGridData,
+        isLoading: masterLocationDataLoading,
+        refetchAll: refetchMasterLocationGrid
+    } = useGetMasterLocationGrid(selectedInstitutionId ? Number(selectedInstitutionId) : 0);
 
-    console.log("masterLocationGridData", masterLocationGridData)
+    console.log('masterLocationGridData', masterLocationGridData);
 
     const gridData = masterLocationGridData?.data ?? [];
-
 
     // Clears only name/desc fields — keeps institution so the grid query stays active
     const handleClear = () => {
@@ -81,18 +75,18 @@ export default function MasterLocationPage() {
         reset({
             hrmlO_Id: 0,
             hrmlO_ActiveFlg: true,
-            hrmlO_Institution: currentInstitution,   // preserve so grid stays visible
+            hrmlO_Institution: currentInstitution, // preserve so grid stays visible
             hrmlO_LocationName: '',
             hrmlO_LocationDesc: '',
             mi_Id: currentInstitution ? Number(currentInstitution) : 0
         });
-        setResetkey(prev => prev + 1);
+        setResetkey((prev) => prev + 1);
     };
 
     const handleFullClear = () => {
         setEditingId(null);
         reset({ hrmlO_Id: 0, hrmlO_ActiveFlg: true, hrmlO_Institution: '', hrmlO_LocationName: '', hrmlO_LocationDesc: '', mi_Id: 0 });
-        setResetkey(prev => prev + 1);
+        setResetkey((prev) => prev + 1);
     };
 
     const onSubmit: SubmitHandler<MasterLocationForm> = async (data: MasterLocationForm) => {
@@ -118,12 +112,10 @@ export default function MasterLocationPage() {
         }
     };
     const handleEdit = (location: MasterLocation) => {
-        console.log("edit location", location);
+        console.log('edit location', location);
         setEditingId(location.hrmlO_Id);
         // mi_Id is the institution id from the API; fall back to currently selected institution
-        const institutionId = location.mi_Id?.toString()
-            ?? location.hrmlO_Institution
-            ?? selectedInstitutionId;
+        const institutionId = location.mi_Id?.toString() ?? location.hrmlO_Institution ?? selectedInstitutionId;
         reset({
             hrmlO_Id: location.hrmlO_Id,
             hrmlO_Institution: institutionId,
@@ -170,11 +162,16 @@ export default function MasterLocationPage() {
                                                 name='hrmlO_Institution'
                                                 control={control}
                                                 render={({ field }) => (
-                                                    <Select value={field.value || ''} onValueChange={field.onChange}
-                                                        disabled={institutionLoading}
-                                                    >
+                                                    <Select
+                                                        value={field.value || ''}
+                                                        onValueChange={field.onChange}
+                                                        disabled={institutionLoading}>
                                                         <SelectTrigger>
-                                                            <SelectValue placeholder={institutionLoading ? 'Loading Institution...' : 'Select Institution'} />
+                                                            <SelectValue
+                                                                placeholder={
+                                                                    institutionLoading ? 'Loading Institution...' : 'Select Institution'
+                                                                }
+                                                            />
                                                         </SelectTrigger>
                                                         <SelectContent>
                                                             {institutionData?.data?.map((inst: any) => (
@@ -210,7 +207,6 @@ export default function MasterLocationPage() {
                                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                                             placeholder='Enter Location Description'
                                         />
-
                                     </div>
                                 </div>
                                 {/* Action Buttons */}
@@ -248,28 +244,24 @@ export default function MasterLocationPage() {
 
                 {/* Data Table Section - Collapsible but default open */}
                 <CollapsibleSection
-                    title="Master Location Details"
-                    description="Manage location details for different institutions"
+                    title='Master Location Details'
+                    description='Manage location details for different institutions'
                     defaultOpen={true}
                     size='lg'
-                    className='shadow-lg'
-
-                >
-                    {
-                        (masterLocationDataLoading || gridData?.length > 0 || selectedInstitutionId) ? (
-                            <GenericDataTable
-                                data={gridData || []}
-                                columns={getMasterLocationColumns({ onEdit: handleEdit, onToggle: handleToggle })}
-                                isLoading={masterLocationDataLoading}
-                                totalItems={gridData?.length || 0}
-                                showViewOptions={false}
-                            />
-                        ) : (
-                            <div className='flex items-center justify-center py-10'>
-                                <p className='text-muted-foreground text-md'>Please Select Institution to View Data</p>
-                            </div>
-                        )
-                    }
+                    className='shadow-lg'>
+                    {masterLocationDataLoading || gridData?.length > 0 || selectedInstitutionId ? (
+                        <GenericDataTable
+                            data={gridData || []}
+                            columns={getMasterLocationColumns({ onEdit: handleEdit, onToggle: handleToggle })}
+                            isLoading={masterLocationDataLoading}
+                            totalItems={gridData?.length || 0}
+                            showViewOptions={false}
+                        />
+                    ) : (
+                        <div className='flex items-center justify-center py-10'>
+                            <p className='text-md text-muted-foreground'>Please Select Institution to View Data</p>
+                        </div>
+                    )}
                 </CollapsibleSection>
                 {selectedLocation && (
                     <ToggleMasterLocationModal
@@ -279,7 +271,6 @@ export default function MasterLocationPage() {
                         onSuccess={() => refetchMasterLocationGrid()}
                     />
                 )}
-
             </div>
         </div>
     );

@@ -10,7 +10,6 @@ import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { type StJamesIX_XReportSchema, stJamesIX_XReportSchema } from '@/schemas/exam/exam-module/reports';
 import {
     getClassDropDownByAcademicYearlist,
-    getExamsDropDownByAcademicYearandClassandSectionlist,
     getExamsStjames,
     getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/cumulative-report';
@@ -123,8 +122,7 @@ export default function StJamesIVReportForm({
                     asmaY_Id: selectedYear,
                     asmcL_Id: selectedClass,
                     asmS_Id: selectedSection,
-                    reporttype: "indi",
-
+                    reporttype: 'indi'
                 };
                 setLoadingExams(true);
                 const { data } = await getExamsStjames(payload);
@@ -158,7 +156,7 @@ export default function StJamesIVReportForm({
             displayAttendance: data.displayAttendance
         };
         if (onSuccess) {
-            console.log("reportpayload", payload);
+            console.log('reportpayload', payload);
             await onSuccess(payload);
         }
     };

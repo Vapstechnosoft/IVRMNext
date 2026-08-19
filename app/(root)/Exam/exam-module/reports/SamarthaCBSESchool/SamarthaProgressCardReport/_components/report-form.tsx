@@ -5,13 +5,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import { getAcademicYearDropdown } from '@/server/fees/masters/class_yearly_category';
+import { getSamarthaProgressCardReport } from '@/server/exam/exam-module/reports/SamarthaCBSESchool/SamarthaProgressCardReport';
 import {
     getClassDropDownByAcademicYearlist,
     getSectionsDropDownByAcademicYearandClasslist,
-    getStudentsDropDownByAcademicYearandClassandSectionlist,
+    getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/cumulative-report';
-import { getSamarthaProgressCardReport } from '@/server/exam/exam-module/reports/SamarthaCBSESchool/SamarthaProgressCardReport';
+import { getAcademicYearDropdown } from '@/server/fees/masters/class_yearly_category';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
@@ -22,7 +22,7 @@ const formSchema = z.object({
     asmaY_Id: z.number().min(1, 'Select Academic Year'),
     asmcL_Id: z.number().min(1, 'Select Class'),
     asmS_Id: z.number().min(1, 'Select Section'),
-    studentList: z.array(z.object({ amsT_Id: z.number() })).min(1, 'Select at least one Student'),
+    studentList: z.array(z.object({ amsT_Id: z.number() })).min(1, 'Select at least one Student')
 });
 
 type FormSchema = z.infer<typeof formSchema>;
@@ -34,12 +34,18 @@ function parseArrayData(raw: any): any[] {
     if (raw.data?.$values && Array.isArray(raw.data.$values)) return raw.data.$values;
     if (raw.$values && Array.isArray(raw.$values)) return raw.$values;
 
-    const source = (raw.data && typeof raw.data === 'object' && !Array.isArray(raw.data)) ? { ...raw, ...raw.data } : raw;
+    const source = raw.data && typeof raw.data === 'object' && !Array.isArray(raw.data) ? { ...raw, ...raw.data } : raw;
     if (typeof source !== 'object') return [];
 
     for (const key of Object.keys(source)) {
         const lower = key.toLowerCase();
-        if (lower.includes('year') || lower.includes('class') || lower.includes('section') || lower.includes('student') || lower.includes('detail')) {
+        if (
+            lower.includes('year') ||
+            lower.includes('class') ||
+            lower.includes('section') ||
+            lower.includes('student') ||
+            lower.includes('detail')
+        ) {
             const val = source[key];
             if (Array.isArray(val) && val.length > 0) return val;
             if (val?.$values && Array.isArray(val.$values) && val.$values.length > 0) return val.$values;
@@ -162,10 +168,12 @@ export function ReportForm({
                 setLoadingClasses(true);
                 const res = await getClassDropDownByAcademicYearlist(selectedYear);
                 const list = parseArrayData(res?.data ?? res);
-                let formatted = list.map((c: any) => ({
-                    asmcL_Id: Number(c.asmcL_Id ?? c.ASMCL_Id ?? c.id ?? 0),
-                    asmcL_ClassName: String(c.asmcL_ClassName ?? c.ASMCL_ClassName ?? c.className ?? c.name ?? '')
-                })).filter((c: any) => c.asmcL_Id > 0 && c.asmcL_ClassName !== '');
+                let formatted = list
+                    .map((c: any) => ({
+                        asmcL_Id: Number(c.asmcL_Id ?? c.ASMCL_Id ?? c.id ?? 0),
+                        asmcL_ClassName: String(c.asmcL_ClassName ?? c.ASMCL_ClassName ?? c.className ?? c.name ?? '')
+                    }))
+                    .filter((c: any) => c.asmcL_Id > 0 && c.asmcL_ClassName !== '');
 
                 if (formatted.length === 0) {
                     formatted = FALLBACK_CLASSES;
@@ -191,10 +199,12 @@ export function ReportForm({
                 setLoadingSections(true);
                 const res = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass);
                 const list = parseArrayData(res?.data ?? res);
-                let formatted = list.map((s: any) => ({
-                    asmS_Id: Number(s.asmS_Id ?? s.ASMS_Id ?? s.id ?? 0),
-                    asmC_SectionName: String(s.asmC_SectionName ?? s.ASMC_SectionName ?? s.sectionName ?? s.name ?? '')
-                })).filter((s: any) => s.asmS_Id > 0 && s.asmC_SectionName !== '');
+                let formatted = list
+                    .map((s: any) => ({
+                        asmS_Id: Number(s.asmS_Id ?? s.ASMS_Id ?? s.id ?? 0),
+                        asmC_SectionName: String(s.asmC_SectionName ?? s.ASMC_SectionName ?? s.sectionName ?? s.name ?? '')
+                    }))
+                    .filter((s: any) => s.asmS_Id > 0 && s.asmC_SectionName !== '');
 
                 if (formatted.length === 0) {
                     formatted = FALLBACK_SECTIONS;
@@ -217,36 +227,39 @@ export function ReportForm({
         (async () => {
             try {
                 setLoadingStudents(true);
-                const res = await getStudentsDropDownByAcademicYearandClassandSectionlist(
-                    selectedYear,
-                    selectedClass,
-                    selectedSection
-                );
+                const res = await getStudentsDropDownByAcademicYearandClassandSectionlist(selectedYear, selectedClass, selectedSection);
                 const list = parseArrayData(res?.data ?? res);
-                let mappedList = list.map((s: any) => ({
-                    amsT_Id: Number(s.amsT_Id ?? s.AMST_Id ?? s.id ?? 0),
-                    studentname: s.studentName ||
-                        s.studentname ||
-                        `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
-                })).filter((s: any) => s.amsT_Id > 0 && s.studentname !== '');
+                let mappedList = list
+                    .map((s: any) => ({
+                        amsT_Id: Number(s.amsT_Id ?? s.AMST_Id ?? s.id ?? 0),
+                        studentname:
+                            s.studentName ||
+                            s.studentname ||
+                            `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
+                    }))
+                    .filter((s: any) => s.amsT_Id > 0 && s.studentname !== '');
 
                 if (mappedList.length === 0) {
                     mappedList = FALLBACK_STUDENTS;
                 }
                 setStudents(mappedList);
-                setValue('studentList', mappedList.map(s => ({ amsT_Id: s.amsT_Id })));
+                setValue(
+                    'studentList',
+                    mappedList.map((s) => ({ amsT_Id: s.amsT_Id }))
+                );
             } catch {
                 setStudents(FALLBACK_STUDENTS);
-                setValue('studentList', FALLBACK_STUDENTS.map(s => ({ amsT_Id: s.amsT_Id })));
+                setValue(
+                    'studentList',
+                    FALLBACK_STUDENTS.map((s) => ({ amsT_Id: s.amsT_Id }))
+                );
             } finally {
                 setLoadingStudents(false);
             }
         })();
     }, [selectedYear, selectedClass, selectedSection, setValue]);
 
-    const filteredStudents = students.filter(s =>
-        s.studentname.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredStudents = students.filter((s) => s.studentname.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const allSelected = students.length > 0 && selectedStudentsList?.length === students.length;
 
@@ -254,11 +267,9 @@ export function ReportForm({
         try {
             const response = await getSamarthaProgressCardReport(data);
 
-            console.log("Final Response", response);
+            console.log('Final Response', response);
 
-            const selectedStudentObjs = students.filter(s =>
-                data.studentList.some(sl => sl.amsT_Id === s.amsT_Id)
-            );
+            const selectedStudentObjs = students.filter((s) => data.studentList.some((sl) => sl.amsT_Id === s.amsT_Id));
 
             const MOCK_SUBJECTS = [
                 { ISMS_Id: 1, ISMS_SubjectName: 'ENGLISH', EMPS_AppToResultFlg: true },
@@ -266,43 +277,99 @@ export function ReportForm({
                 { ISMS_Id: 3, ISMS_SubjectName: 'MATHEMATICS', EMPS_AppToResultFlg: true },
                 { ISMS_Id: 4, ISMS_SubjectName: 'SOCIAL SCIENCE', EMPS_AppToResultFlg: true },
                 { ISMS_Id: 5, ISMS_SubjectName: 'SCIENCE', EMPS_AppToResultFlg: true },
-                { ISMS_Id: 6, ISMS_SubjectName: 'HINDI', EMPS_AppToResultFlg: true },
+                { ISMS_Id: 6, ISMS_SubjectName: 'HINDI', EMPS_AppToResultFlg: true }
             ];
             const MOCK_GROUPS = [
-                { empG_GroupName: 'Half Yearly', empG_DistplayName: 'Pen Paper Test I', empsG_GroupName: 'Pen Paper Test I', empsG_MarksValue: 5 },
-                { empG_GroupName: 'Half Yearly', empG_DistplayName: 'Multiple Assessment I', empsG_GroupName: 'Multiple Assessment I', empsG_MarksValue: 5 },
+                {
+                    empG_GroupName: 'Half Yearly',
+                    empG_DistplayName: 'Pen Paper Test I',
+                    empsG_GroupName: 'Pen Paper Test I',
+                    empsG_MarksValue: 5
+                },
+                {
+                    empG_GroupName: 'Half Yearly',
+                    empG_DistplayName: 'Multiple Assessment I',
+                    empsG_GroupName: 'Multiple Assessment I',
+                    empsG_MarksValue: 5
+                },
                 { empG_GroupName: 'Half Yearly', empG_DistplayName: 'Portfolio I', empsG_GroupName: 'Portfolio I', empsG_MarksValue: 5 },
-                { empG_GroupName: 'Half Yearly', empG_DistplayName: 'Subject Enrichment Activity I', empsG_GroupName: 'Subject Enrichment Activity I', empsG_MarksValue: 5 },
-                { empG_GroupName: 'Half Yearly', empG_DistplayName: 'Half Yearly', empsG_GroupName: 'Half Yearly', empsG_MarksValue: 80 },
+                {
+                    empG_GroupName: 'Half Yearly',
+                    empG_DistplayName: 'Subject Enrichment Activity I',
+                    empsG_GroupName: 'Subject Enrichment Activity I',
+                    empsG_MarksValue: 5
+                },
+                { empG_GroupName: 'Half Yearly', empG_DistplayName: 'Half Yearly', empsG_GroupName: 'Half Yearly', empsG_MarksValue: 80 }
             ];
-            const MOCK_TERMS = [
-                { ecT_Id: 1, ecT_TermName: 'Term I' },
-            ];
+            const MOCK_TERMS = [{ ecT_Id: 1, ecT_TermName: 'Term I' }];
 
             const sampleData: Record<string, { ppt: number; ma: number; port: number; sea: number; hy: number; t1: number; g: string }> = {
-                'ENGLISH': { ppt: 3, ma: 3, port: 3, sea: 4, hy: 43, t1: 56, g: 'C+' },
-                'TELUGU': { ppt: 2, ma: 5, port: 5, sea: 5, hy: 28, t1: 45, g: 'C' },
-                'MATHEMATICS': { ppt: 4, ma: 4, port: 5, sea: 5, hy: 56, t1: 73, g: 'B+' },
+                ENGLISH: { ppt: 3, ma: 3, port: 3, sea: 4, hy: 43, t1: 56, g: 'C+' },
+                TELUGU: { ppt: 2, ma: 5, port: 5, sea: 5, hy: 28, t1: 45, g: 'C' },
+                MATHEMATICS: { ppt: 4, ma: 4, port: 5, sea: 5, hy: 56, t1: 73, g: 'B+' },
                 'SOCIAL SCIENCE': { ppt: 4, ma: 5, port: 5, sea: 5, hy: 43, t1: 62, g: 'B' },
-                'SCIENCE': { ppt: 4, ma: 5, port: 5, sea: 5, hy: 45, t1: 64, g: 'B' },
-                'HINDI': { ppt: 1, ma: 5, port: 5, sea: 5, hy: 34, t1: 50, g: 'C' },
+                SCIENCE: { ppt: 4, ma: 5, port: 5, sea: 5, hy: 45, t1: 64, g: 'B' },
+                HINDI: { ppt: 1, ma: 5, port: 5, sea: 5, hy: 34, t1: 50, g: 'C' }
             };
 
-            const mockAllMarks = selectedStudentObjs.flatMap(s => {
+            const mockAllMarks = selectedStudentObjs.flatMap((s) => {
                 const amstId = s.amsT_Id;
                 const marks: any[] = [];
                 let totalSum = 0;
-                MOCK_SUBJECTS.forEach(sub => {
+                MOCK_SUBJECTS.forEach((sub) => {
                     const name = sub.ISMS_SubjectName.toUpperCase();
                     const d = sampleData[name] || { ppt: 4, ma: 4, port: 4, sea: 4, hy: 50, t1: 66, g: 'B' };
                     totalSum += d.t1;
                     marks.push(
-                        { AMST_Id: amstId, ISMS_Id: sub.ISMS_Id, EMPSG_DisplayName: 'Pen Paper Test I', ObtainedMarks: d.ppt, PassFailFlag: 'P', Flag: 0 },
-                        { AMST_Id: amstId, ISMS_Id: sub.ISMS_Id, EMPSG_DisplayName: 'Multiple Assessment I', ObtainedMarks: d.ma, PassFailFlag: 'P', Flag: 0 },
-                        { AMST_Id: amstId, ISMS_Id: sub.ISMS_Id, EMPSG_DisplayName: 'Portfolio I', ObtainedMarks: d.port, PassFailFlag: 'P', Flag: 0 },
-                        { AMST_Id: amstId, ISMS_Id: sub.ISMS_Id, EMPSG_DisplayName: 'Subject Enrichment Activity I', ObtainedMarks: d.sea, PassFailFlag: 'P', Flag: 0 },
-                        { AMST_Id: amstId, ISMS_Id: sub.ISMS_Id, EMPSG_DisplayName: 'Half Yearly', ObtainedMarks: d.hy, PassFailFlag: 'P', Flag: 0 },
-                        { AMST_Id: amstId, ISMS_Id: sub.ISMS_Id, EMPSG_DisplayName: 'Term I', ObtainedMarks: d.t1, ObtainedGrade: d.g, PassFailFlag: 'P', Flag: 11 },
+                        {
+                            AMST_Id: amstId,
+                            ISMS_Id: sub.ISMS_Id,
+                            EMPSG_DisplayName: 'Pen Paper Test I',
+                            ObtainedMarks: d.ppt,
+                            PassFailFlag: 'P',
+                            Flag: 0
+                        },
+                        {
+                            AMST_Id: amstId,
+                            ISMS_Id: sub.ISMS_Id,
+                            EMPSG_DisplayName: 'Multiple Assessment I',
+                            ObtainedMarks: d.ma,
+                            PassFailFlag: 'P',
+                            Flag: 0
+                        },
+                        {
+                            AMST_Id: amstId,
+                            ISMS_Id: sub.ISMS_Id,
+                            EMPSG_DisplayName: 'Portfolio I',
+                            ObtainedMarks: d.port,
+                            PassFailFlag: 'P',
+                            Flag: 0
+                        },
+                        {
+                            AMST_Id: amstId,
+                            ISMS_Id: sub.ISMS_Id,
+                            EMPSG_DisplayName: 'Subject Enrichment Activity I',
+                            ObtainedMarks: d.sea,
+                            PassFailFlag: 'P',
+                            Flag: 0
+                        },
+                        {
+                            AMST_Id: amstId,
+                            ISMS_Id: sub.ISMS_Id,
+                            EMPSG_DisplayName: 'Half Yearly',
+                            ObtainedMarks: d.hy,
+                            PassFailFlag: 'P',
+                            Flag: 0
+                        },
+                        {
+                            AMST_Id: amstId,
+                            ISMS_Id: sub.ISMS_Id,
+                            EMPSG_DisplayName: 'Term I',
+                            ObtainedMarks: d.t1,
+                            ObtainedGrade: d.g,
+                            PassFailFlag: 'P',
+                            Flag: 11
+                        }
                     );
                 });
                 marks.push({ AMST_Id: amstId, ISMS_Id: 0, EMPSG_DisplayName: 'Total', ObtainedMarks: totalSum, Flag: 900004 });
@@ -312,8 +379,8 @@ export function ReportForm({
             const mockStudentDetails = selectedStudentObjs.map((s, i) => ({
                 AMST_Id: s.amsT_Id,
                 studentname: (s.studentname || '').split(':')[0].trim(),
-                classname: classes.find(c => String(c.asmcL_Id) === String(data.asmcL_Id))?.asmcL_ClassName || 'Class',
-                sectionname: sections.find(sec => String(sec.asmS_Id) === String(data.asmS_Id))?.asmC_SectionName || 'Section',
+                classname: classes.find((c) => String(c.asmcL_Id) === String(data.asmcL_Id))?.asmcL_ClassName || 'Class',
+                sectionname: sections.find((sec) => String(sec.asmS_Id) === String(data.asmS_Id))?.asmC_SectionName || 'Section',
                 rollno: String(i + 1).padStart(2, '0'),
                 fathername: 'Parent Name',
                 mothername: 'Mother Name',
@@ -323,27 +390,40 @@ export function ReportForm({
                 AMST_APAARId: '224957007566',
                 AMST_PENNo: '22800306799',
                 AMST_Photoname: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
-                amsT_Photoname: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
+                amsT_Photoname: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'
             }));
 
-            const mockSubjectList = selectedStudentObjs.flatMap(s =>
-                MOCK_SUBJECTS.map(sub => ({ ...sub, AMST_Id: s.amsT_Id }))
-            );
+            const mockSubjectList = selectedStudentObjs.flatMap((s) => MOCK_SUBJECTS.map((sub) => ({ ...sub, AMST_Id: s.amsT_Id })));
             const getCoGrade = (sidx: number, offset: number) => {
                 const list = ['A1', 'A2', 'B1', 'B2', 'A', 'B+'];
                 return list[(sidx * 2 + offset) % list.length];
             };
 
-            const mockActivities = selectedStudentObjs.flatMap((s, sidx) => ([
-                { AMST_Id: s.amsT_Id, ECACTA_SkillArea: 'Health & Physical Education', ECACT_Id: 1, ECT_Id: 1, EMGD_Name: getCoGrade(sidx, 0) },
-                { AMST_Id: s.amsT_Id, ECACTA_SkillArea: 'Health & Physical Education', ECACT_Id: 1, ECT_Id: 2, EMGD_Name: getCoGrade(sidx, 1) },
+            const mockActivities = selectedStudentObjs.flatMap((s, sidx) => [
+                {
+                    AMST_Id: s.amsT_Id,
+                    ECACTA_SkillArea: 'Health & Physical Education',
+                    ECACT_Id: 1,
+                    ECT_Id: 1,
+                    EMGD_Name: getCoGrade(sidx, 0)
+                },
+                {
+                    AMST_Id: s.amsT_Id,
+                    ECACTA_SkillArea: 'Health & Physical Education',
+                    ECACT_Id: 1,
+                    ECT_Id: 2,
+                    EMGD_Name: getCoGrade(sidx, 1)
+                },
                 { AMST_Id: s.amsT_Id, ECACTA_SkillArea: 'Art & Craft', ECACT_Id: 1, ECT_Id: 1, EMGD_Name: getCoGrade(sidx, 2) },
                 { AMST_Id: s.amsT_Id, ECACTA_SkillArea: 'Art & Craft', ECACT_Id: 1, ECT_Id: 2, EMGD_Name: getCoGrade(sidx, 3) },
                 { AMST_Id: s.amsT_Id, ECACTA_SkillArea: 'Music', ECACT_Id: 1, ECT_Id: 1, EMGD_Name: getCoGrade(sidx, 4) },
-                { AMST_Id: s.amsT_Id, ECACTA_SkillArea: 'Music', ECACT_Id: 1, ECT_Id: 2, EMGD_Name: getCoGrade(sidx, 5) },
-            ]));
-            const mockAttendance = selectedStudentObjs.map(s => ({ AMST_Id: s.amsT_Id, TotalSchoolDays: 220 }));
-            const mockPresent = selectedStudentObjs.map(s => ({ AMST_Id: s.amsT_Id, TotalPresentDays: Math.floor(Math.random() * 20) + 200 }));
+                { AMST_Id: s.amsT_Id, ECACTA_SkillArea: 'Music', ECACT_Id: 1, ECT_Id: 2, EMGD_Name: getCoGrade(sidx, 5) }
+            ]);
+            const mockAttendance = selectedStudentObjs.map((s) => ({ AMST_Id: s.amsT_Id, TotalSchoolDays: 220 }));
+            const mockPresent = selectedStudentObjs.map((s) => ({
+                AMST_Id: s.amsT_Id,
+                TotalPresentDays: Math.floor(Math.random() * 20) + 200
+            }));
 
             const mockData = {
                 getstudentdetails: mockStudentDetails,
@@ -354,7 +434,7 @@ export function ReportForm({
                 getstudentwiseactiviteslistterm: mockActivities,
                 getpromotionremarksdetails: [],
                 work_attendence: mockAttendance,
-                present_attendence: mockPresent,
+                present_attendence: mockPresent
             };
 
             const resData = response?.data ?? response;
@@ -370,7 +450,10 @@ export function ReportForm({
                 : Boolean(rawMarks?.$values && Array.isArray(rawMarks.$values) && rawMarks.$values.length > 0);
 
             const isLive = hasStudents && hasMarks;
-            console.log(isLive ? '=== [REPORT] USING LIVE API DATA ===' : '=== [REPORT] USING PREVIEW DATA (DB MARKS UNPOPULATED) ===', isLive ? resData : mockData);
+            console.log(
+                isLive ? '=== [REPORT] USING LIVE API DATA ===' : '=== [REPORT] USING PREVIEW DATA (DB MARKS UNPOPULATED) ===',
+                isLive ? resData : mockData
+            );
 
             const finalData = isLive ? resData : mockData;
 
@@ -384,7 +467,7 @@ export function ReportForm({
     };
 
     return (
-        <div className='rounded-lg border bg-card text-card-foreground shadow-sm p-6'>
+        <div className='rounded-lg border bg-card p-6 text-card-foreground shadow-sm'>
             <FormProvider {...methods}>
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-6' noValidate>
                     <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
@@ -403,10 +486,11 @@ export function ReportForm({
                                             <Select
                                                 key={field.value}
                                                 onValueChange={(v) => field.onChange(Number(v))}
-                                                value={field.value ? String(field.value) : ''}
-                                            >
+                                                value={field.value ? String(field.value) : ''}>
                                                 <SelectTrigger className='w-full'>
-                                                    <SelectValue placeholder={academicYearLoading ? 'Loading...' : 'Select Academic Year'} />
+                                                    <SelectValue
+                                                        placeholder={academicYearLoading ? 'Loading...' : 'Select Academic Year'}
+                                                    />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {academicYears.map((y) => (
@@ -435,8 +519,7 @@ export function ReportForm({
                                             <Select
                                                 key={field.value}
                                                 onValueChange={(v) => field.onChange(Number(v))}
-                                                value={field.value ? String(field.value) : ''}
-                                            >
+                                                value={field.value ? String(field.value) : ''}>
                                                 <SelectTrigger className='w-full'>
                                                     <SelectValue placeholder={loadingClasses ? 'Loading...' : 'Select Class'} />
                                                 </SelectTrigger>
@@ -467,8 +550,7 @@ export function ReportForm({
                                             <Select
                                                 key={field.value}
                                                 onValueChange={(v) => field.onChange(Number(v))}
-                                                value={field.value ? String(field.value) : ''}
-                                            >
+                                                value={field.value ? String(field.value) : ''}>
                                                 <SelectTrigger className='w-full'>
                                                     <SelectValue placeholder={loadingSections ? 'Loading...' : 'Select Section'} />
                                                 </SelectTrigger>
@@ -494,11 +576,9 @@ export function ReportForm({
                                     <Checkbox
                                         checked={allSelected}
                                         onCheckedChange={(checked) => {
-                                            setValue(
-                                                'studentList',
-                                                checked ? students.map((s) => ({ amsT_Id: s.amsT_Id })) : [],
-                                                { shouldValidate: true }
-                                            );
+                                            setValue('studentList', checked ? students.map((s) => ({ amsT_Id: s.amsT_Id })) : [], {
+                                                shouldValidate: true
+                                            });
                                         }}
                                     />
                                     Students <span className='text-red-500'>*</span>
@@ -535,13 +615,22 @@ export function ReportForm({
                                                                         checked={isChecked}
                                                                         onCheckedChange={(checked) => {
                                                                             if (checked) {
-                                                                                field.onChange([...(field.value || []), { amsT_Id: s.amsT_Id }]);
+                                                                                field.onChange([
+                                                                                    ...(field.value || []),
+                                                                                    { amsT_Id: s.amsT_Id }
+                                                                                ]);
                                                                             } else {
-                                                                                field.onChange((field.value || []).filter((v) => v.amsT_Id !== s.amsT_Id));
+                                                                                field.onChange(
+                                                                                    (field.value || []).filter(
+                                                                                        (v) => v.amsT_Id !== s.amsT_Id
+                                                                                    )
+                                                                                );
                                                                             }
                                                                         }}
                                                                     />
-                                                                    <Label htmlFor={`stu-${s.amsT_Id}`} className='cursor-pointer text-sm font-medium'>
+                                                                    <Label
+                                                                        htmlFor={`stu-${s.amsT_Id}`}
+                                                                        className='cursor-pointer font-medium text-sm'>
                                                                         {s.studentname}
                                                                     </Label>
                                                                 </div>
@@ -565,16 +654,18 @@ export function ReportForm({
                             type='submit'
                             isLoading={isSubmitting}
                             disabled={isSubmitting || !selectedStudentsList?.length}
-                            className='min-w-[140px]'
-                        >
+                            className='min-w-[140px]'>
                             {isSubmitting ? 'Generating...' : 'Report'}
                         </Button>
                         <Button
                             type='button'
                             variant='outline'
-                            onClick={() => { reset(); setStudents([]); setSearchTerm(''); }}
-                            className='min-w-[100px]'
-                        >
+                            onClick={() => {
+                                reset();
+                                setStudents([]);
+                                setSearchTerm('');
+                            }}
+                            className='min-w-[100px]'>
                             Cancel
                         </Button>
                     </div>

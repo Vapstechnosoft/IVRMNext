@@ -1,19 +1,19 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
-import { toast } from 'sonner';
-import { Search, Loader2, Printer, X, FileSpreadsheet } from 'lucide-react';
-import { useForm, Controller } from 'react-hook-form';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
+import { FileSpreadsheet, Loader2, Printer, Search, X } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
+import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/extension/field';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 import {
     useStudentEmployeeSmartCardInitialDetails,
@@ -21,36 +21,38 @@ import {
 } from '@/hooks/admission/oldsharehost/reports/useStudentEmployeeSmartCard';
 
 // Add validation schema
-const formSchema = z.object({
-    flag1: z.enum(['Std', 'Emp']),
-    asmaY_Id: z.string().optional(),
-    asmcL_Id: z.string().optional(),
-    asmC_Id: z.string().optional(),
-}).superRefine((data, ctx) => {
-    if (data.flag1 === 'Std') {
-        if (!data.asmaY_Id) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Academic Year is required',
-                path: ['asmaY_Id']
-            });
+const formSchema = z
+    .object({
+        flag1: z.enum(['Std', 'Emp']),
+        asmaY_Id: z.string().optional(),
+        asmcL_Id: z.string().optional(),
+        asmC_Id: z.string().optional()
+    })
+    .superRefine((data, ctx) => {
+        if (data.flag1 === 'Std') {
+            if (!data.asmaY_Id) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Academic Year is required',
+                    path: ['asmaY_Id']
+                });
+            }
+            if (!data.asmcL_Id) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Class is required',
+                    path: ['asmcL_Id']
+                });
+            }
+            if (!data.asmC_Id) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Section is required',
+                    path: ['asmC_Id']
+                });
+            }
         }
-        if (!data.asmcL_Id) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Class is required',
-                path: ['asmcL_Id']
-            });
-        }
-        if (!data.asmC_Id) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Section is required',
-                path: ['asmC_Id']
-            });
-        }
-    }
-});
+    });
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -67,11 +69,11 @@ export default function StudentEmployeeSmartCardPage() {
     const [totalstength, setTotalStrength] = useState(0);
 
     const [isGenerating, setIsGenerating] = useState(false);
-    
+
     // For print layout
     const [std, setStd] = useState(false);
     const [emp, setEmp] = useState(false);
-    
+
     const printRef = useRef<HTMLDivElement>(null);
 
     const form = useForm<FormValues>({
@@ -120,7 +122,7 @@ export default function StudentEmployeeSmartCardPage() {
                 } else {
                     setClassTeacherName('');
                 }
-                
+
                 // Get labels
                 const years = initialData?.data?.accyear || [];
                 const classes = initialData?.data?.classlist || [];
@@ -133,7 +135,6 @@ export default function StudentEmployeeSmartCardPage() {
                 setAccyear(y ? y.asmaY_Year : '');
                 setClassname(c ? c.asmcL_ClassName : '');
                 setSectionname(s ? s.asmC_SectionName : '');
-
             } else {
                 setStd(false);
                 setEmp(true);
@@ -151,13 +152,13 @@ export default function StudentEmployeeSmartCardPage() {
 
     const handlePrint = () => {
         if (!printRef.current) {
-            toast.error("Nothing to print");
+            toast.error('Nothing to print');
             return;
         }
 
         const printContent = printRef.current.innerHTML;
         const printWindow = window.open('', '_blank', 'width=1000,height=800');
-        
+
         if (printWindow) {
             printWindow.document.write(`
                 <html>
@@ -184,21 +185,25 @@ export default function StudentEmployeeSmartCardPage() {
             `);
             printWindow.document.close();
         } else {
-            toast.error("Please allow popups to print");
+            toast.error('Please allow popups to print');
         }
     };
 
     const handleExportExcel = () => {
         if (items.length === 0) return;
-        
+
         let ws: XLSX.WorkSheet;
         if (std) {
             const dataToExport = items.map((item) => ({
-                'Name': item.name || item.AMST_FirstName,
+                Name: item.name || item.AMST_FirstName,
                 'Father Name': item.fathername || item.AMST_FatherName,
                 'Adm No': item.admno || item.AMST_AdmNo,
-                'DOB': item.dob ? format(new Date(item.dob), 'dd/MM/yyyy') : (item.AMST_DOB ? format(new Date(item.AMST_DOB), 'dd/MM/yyyy') : ''),
-                'Address': item.address,
+                DOB: item.dob
+                    ? format(new Date(item.dob), 'dd/MM/yyyy')
+                    : item.AMST_DOB
+                      ? format(new Date(item.AMST_DOB), 'dd/MM/yyyy')
+                      : '',
+                Address: item.address,
                 'Phone No': item.mobileno || item.AMST_MobileNo,
                 'Mobile No': item.mobileno || item.AMST_MobileNo,
                 'Email ID': item.email || item.AMST_emailId,
@@ -207,38 +212,40 @@ export default function StudentEmployeeSmartCardPage() {
             ws = XLSX.utils.json_to_sheet(dataToExport);
         } else {
             const dataToExport = items.map((item) => ({
-                'Name': item.name || item.hrme_employeefirstname,
+                Name: item.name || item.hrme_employeefirstname,
                 'Emp Code': item.employeecode || item.ecode,
-                'Joining Date': item.doj ? format(new Date(item.doj), 'dd-MM-yyyy') : (item.HRME_DOJ ? format(new Date(item.HRME_DOJ), 'dd-MM-yyyy') : ''),
-                'DOB': item.dob ? format(new Date(item.dob), 'dd-MM-yyyy') : (item.hrme_DOB ? format(new Date(item.hrme_DOB), 'dd-MM-yyyy') : ''),
-                'Address': item.address,
+                'Joining Date': item.doj
+                    ? format(new Date(item.doj), 'dd-MM-yyyy')
+                    : item.HRME_DOJ
+                      ? format(new Date(item.HRME_DOJ), 'dd-MM-yyyy')
+                      : '',
+                DOB: item.dob
+                    ? format(new Date(item.dob), 'dd-MM-yyyy')
+                    : item.hrme_DOB
+                      ? format(new Date(item.hrme_DOB), 'dd-MM-yyyy')
+                      : '',
+                Address: item.address,
                 'Blood Group': item.bloodgroup || item.HRME_BloodGroup
             }));
             ws = XLSX.utils.json_to_sheet(dataToExport);
         }
-        
+
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Smart_Card");
-        XLSX.writeFile(wb, "Student_Employee_Smart_Card.xlsx");
+        XLSX.utils.book_append_sheet(wb, ws, 'Smart_Card');
+        XLSX.writeFile(wb, 'Student_Employee_Smart_Card.xlsx');
     };
 
     const logoUrl = schooldetails?.[0]?.asC_Logo_Path || '';
 
     return (
-        <div className="min-h-screen p-4 space-y-6 bg-gray-50 print:bg-white print:p-0">
-            <div className="print:hidden">
-                <CollapsibleSection
-                    title="Student Employee Smart Card Details"
-                    defaultOpen={true}
-                    variant="outline"
-                    className="shadow-md"
-                >
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 bg-white p-6 rounded-lg">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                            
-                            <div className="space-y-4">
+        <div className='min-h-screen space-y-6 bg-gray-50 p-4 print:bg-white print:p-0'>
+            <div className='print:hidden'>
+                <CollapsibleSection title='Student Employee Smart Card Details' defaultOpen={true} variant='outline' className='shadow-md'>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6 rounded-lg bg-white p-6'>
+                        <div className='mx-auto grid max-w-4xl grid-cols-1 gap-8 md:grid-cols-2'>
+                            <div className='space-y-4'>
                                 <Controller
-                                    name="flag1"
+                                    name='flag1'
                                     control={form.control}
                                     render={({ field }) => (
                                         <RadioGroup
@@ -253,38 +260,36 @@ export default function StudentEmployeeSmartCardPage() {
                                             }}
                                             defaultValue={field.value}
                                             value={field.value}
-                                            className="flex flex-row space-x-4 bg-gray-100 p-4 rounded-md justify-center"
-                                        >
-                                            <div className="flex items-center space-x-2">
-                                                <RadioGroupItem value="Std" id="r-std" />
-                                                <Label htmlFor="r-std">Student</Label>
+                                            className='flex flex-row justify-center space-x-4 rounded-md bg-gray-100 p-4'>
+                                            <div className='flex items-center space-x-2'>
+                                                <RadioGroupItem value='Std' id='r-std' />
+                                                <Label htmlFor='r-std'>Student</Label>
                                             </div>
-                                            <div className="flex items-center space-x-2">
-                                                <RadioGroupItem value="Emp" id="r-emp" />
-                                                <Label htmlFor="r-emp">Employee</Label>
+                                            <div className='flex items-center space-x-2'>
+                                                <RadioGroupItem value='Emp' id='r-emp' />
+                                                <Label htmlFor='r-emp'>Employee</Label>
                                             </div>
                                         </RadioGroup>
                                     )}
                                 />
                                 {form.formState.errors.flag1 && (
-                                    <span className="text-red-500 text-sm">{form.formState.errors.flag1.message}</span>
+                                    <span className='text-red-500 text-sm'>{form.formState.errors.flag1.message}</span>
                                 )}
 
-                                <div className="space-y-2">
-                                    <Label className="text-sm font-bold">
-                                        Academic Year:{watchFlag === 'Std' && <span className="text-red-500">*</span>}
+                                <div className='space-y-2'>
+                                    <Label className='font-bold text-sm'>
+                                        Academic Year:{watchFlag === 'Std' && <span className='text-red-500'>*</span>}
                                     </Label>
                                     <Controller
-                                        name="asmaY_Id"
+                                        name='asmaY_Id'
                                         control={form.control}
                                         render={({ field }) => (
                                             <Select
                                                 value={field.value}
                                                 onValueChange={field.onChange}
-                                                disabled={isInitialLoading || watchFlag === 'Emp'}
-                                            >
-                                                <SelectTrigger className="w-full">
-                                                    <SelectValue placeholder="Select Academic Year" />
+                                                disabled={isInitialLoading || watchFlag === 'Emp'}>
+                                                <SelectTrigger className='w-full'>
+                                                    <SelectValue placeholder='Select Academic Year' />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {initialData?.data?.accyear?.map((item: any) => (
@@ -297,27 +302,26 @@ export default function StudentEmployeeSmartCardPage() {
                                         )}
                                     />
                                     {form.formState.errors.asmaY_Id && (
-                                        <span className="text-red-500 text-sm">{form.formState.errors.asmaY_Id.message}</span>
+                                        <span className='text-red-500 text-sm'>{form.formState.errors.asmaY_Id.message}</span>
                                     )}
                                 </div>
                             </div>
 
-                            <div className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label className="text-sm font-bold">
-                                        Class:{watchFlag === 'Std' && <span className="text-red-500">*</span>}
+                            <div className='space-y-4'>
+                                <div className='space-y-2'>
+                                    <Label className='font-bold text-sm'>
+                                        Class:{watchFlag === 'Std' && <span className='text-red-500'>*</span>}
                                     </Label>
                                     <Controller
-                                        name="asmcL_Id"
+                                        name='asmcL_Id'
                                         control={form.control}
                                         render={({ field }) => (
                                             <Select
                                                 value={field.value}
                                                 onValueChange={field.onChange}
-                                                disabled={isInitialLoading || watchFlag === 'Emp'}
-                                            >
-                                                <SelectTrigger className="w-full">
-                                                    <SelectValue placeholder="Select Class" />
+                                                disabled={isInitialLoading || watchFlag === 'Emp'}>
+                                                <SelectTrigger className='w-full'>
+                                                    <SelectValue placeholder='Select Class' />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {initialData?.data?.classlist?.map((item: any) => (
@@ -330,25 +334,24 @@ export default function StudentEmployeeSmartCardPage() {
                                         )}
                                     />
                                     {form.formState.errors.asmcL_Id && (
-                                        <span className="text-red-500 text-sm">{form.formState.errors.asmcL_Id.message}</span>
+                                        <span className='text-red-500 text-sm'>{form.formState.errors.asmcL_Id.message}</span>
                                     )}
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label className="text-sm font-bold">
-                                        Section:{watchFlag === 'Std' && <span className="text-red-500">*</span>}
+                                <div className='space-y-2'>
+                                    <Label className='font-bold text-sm'>
+                                        Section:{watchFlag === 'Std' && <span className='text-red-500'>*</span>}
                                     </Label>
                                     <Controller
-                                        name="asmC_Id"
+                                        name='asmC_Id'
                                         control={form.control}
                                         render={({ field }) => (
                                             <Select
                                                 value={field.value}
                                                 onValueChange={field.onChange}
-                                                disabled={isInitialLoading || watchFlag === 'Emp'}
-                                            >
-                                                <SelectTrigger className="w-full">
-                                                    <SelectValue placeholder="Select Section" />
+                                                disabled={isInitialLoading || watchFlag === 'Emp'}>
+                                                <SelectTrigger className='w-full'>
+                                                    <SelectValue placeholder='Select Section' />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {initialData?.data?.sectionlist?.map((item: any) => (
@@ -361,49 +364,41 @@ export default function StudentEmployeeSmartCardPage() {
                                         )}
                                     />
                                     {form.formState.errors.asmC_Id && (
-                                        <span className="text-red-500 text-sm">{form.formState.errors.asmC_Id.message}</span>
+                                        <span className='text-red-500 text-sm'>{form.formState.errors.asmC_Id.message}</span>
                                     )}
                                 </div>
                             </div>
                         </div>
 
-                        <div className="flex justify-center gap-4 pt-4 border-t">
+                        <div className='flex justify-center gap-4 border-t pt-4'>
                             <Button
-                                type="submit"
+                                type='submit'
                                 disabled={isGenerating}
-                                className="min-w-[120px] bg-indigo-600 hover:bg-indigo-700 text-white font-bold"
-                            >
-                                {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+                                className='min-w-[120px] bg-indigo-600 font-bold text-white hover:bg-indigo-700'>
+                                {isGenerating ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
                                 Submit
                             </Button>
-                            
-                            <Button
-                                type="button"
-                                onClick={handleClear}
-                                variant="destructive"
-                                className="min-w-[120px] font-bold"
-                            >
-                                <X className="mr-2 h-4 w-4" />
+
+                            <Button type='button' onClick={handleClear} variant='destructive' className='min-w-[120px] font-bold'>
+                                <X className='mr-2 h-4 w-4' />
                                 Clear
                             </Button>
 
                             {items.length > 0 && (
                                 <>
                                     <Button
-                                        type="button"
+                                        type='button'
                                         onClick={handleExportExcel}
-                                        className="min-w-[120px] bg-green-600 hover:bg-green-700 text-white font-bold"
-                                    >
-                                        <FileSpreadsheet className="mr-2 h-4 w-4" />
+                                        className='min-w-[120px] bg-green-600 font-bold text-white hover:bg-green-700'>
+                                        <FileSpreadsheet className='mr-2 h-4 w-4' />
                                         Excel
                                     </Button>
 
                                     <Button
-                                        type="button"
+                                        type='button'
                                         onClick={handlePrint}
-                                        className="min-w-[120px] bg-gray-600 hover:bg-gray-700 text-white font-bold"
-                                    >
-                                        <Printer className="mr-2 h-4 w-4" />
+                                        className='min-w-[120px] bg-gray-600 font-bold text-white hover:bg-gray-700'>
+                                        <Printer className='mr-2 h-4 w-4' />
                                         Print
                                     </Button>
                                 </>
@@ -415,60 +410,71 @@ export default function StudentEmployeeSmartCardPage() {
 
             {/* Print Section */}
             {items.length > 0 && (
-                <div ref={printRef} className="bg-white p-6 rounded-lg shadow-md print:shadow-none print:p-0">
-                    <div className="text-center mb-6">
-                        {logoUrl && (
-                            <img src={logoUrl} alt="School Logo" className="mx-auto h-24 object-contain" />
-                        )}
+                <div ref={printRef} className='rounded-lg bg-white p-6 shadow-md print:p-0 print:shadow-none'>
+                    <div className='mb-6 text-center'>
+                        {logoUrl && <img src={logoUrl} alt='School Logo' className='mx-auto h-24 object-contain' />}
                     </div>
-                    
+
                     {std && (
                         <div>
-                            <div className="text-center mb-6 space-y-2">
-                                <h2 className="text-xl font-bold">Student Details Smart Card - {accyear}</h2>
-                                <p className="font-semibold">Class: {classname}-{sectionname}</p>
-                                <p className="font-semibold">Class Teacher: {classteachername} | Class Strength: {totalstength}</p>
+                            <div className='mb-6 space-y-2 text-center'>
+                                <h2 className='font-bold text-xl'>Student Details Smart Card - {accyear}</h2>
+                                <p className='font-semibold'>
+                                    Class: {classname}-{sectionname}
+                                </p>
+                                <p className='font-semibold'>
+                                    Class Teacher: {classteachername} | Class Strength: {totalstength}
+                                </p>
                             </div>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 print:grid-cols-3 print:gap-4">
+
+                            <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 print:grid-cols-3 print:gap-4'>
                                 {items.map((user, idx) => (
-                                    <div key={idx} className="border-2 border-indigo-200 rounded-lg p-4 bg-indigo-50/30 break-inside-avoid shadow-sm print:shadow-none print:border-indigo-400">
-                                        <table className="w-full text-sm">
+                                    <div
+                                        key={idx}
+                                        className='break-inside-avoid rounded-lg border-2 border-indigo-200 bg-indigo-50/30 p-4 shadow-sm print:border-indigo-400 print:shadow-none'>
+                                        <table className='w-full text-sm'>
                                             <tbody>
                                                 <tr>
-                                                    <td className="font-bold w-1/3 py-1">NAME</td>
+                                                    <td className='w-1/3 py-1 font-bold'>NAME</td>
                                                     <td>: {user.name || user.AMST_FirstName}</td>
                                                 </tr>
                                                 <tr>
-                                                    <td className="font-bold py-1">FATHER NAME</td>
+                                                    <td className='py-1 font-bold'>FATHER NAME</td>
                                                     <td>: {user.fathername || user.AMST_FatherName}</td>
                                                 </tr>
                                                 <tr>
-                                                    <td className="font-bold py-1">ADM.NO</td>
+                                                    <td className='py-1 font-bold'>ADM.NO</td>
                                                     <td>: {user.admno || user.AMST_AdmNo}</td>
                                                 </tr>
                                                 <tr>
-                                                    <td className="font-bold py-1">DOB</td>
-                                                    <td>: {user.dob ? format(new Date(user.dob), 'dd/MM/yyyy') : (user.AMST_DOB ? format(new Date(user.AMST_DOB), 'dd/MM/yyyy') : '')}</td>
+                                                    <td className='py-1 font-bold'>DOB</td>
+                                                    <td>
+                                                        :{' '}
+                                                        {user.dob
+                                                            ? format(new Date(user.dob), 'dd/MM/yyyy')
+                                                            : user.AMST_DOB
+                                                              ? format(new Date(user.AMST_DOB), 'dd/MM/yyyy')
+                                                              : ''}
+                                                    </td>
                                                 </tr>
                                                 <tr>
-                                                    <td className="font-bold py-1 align-top">ADDRESS</td>
+                                                    <td className='py-1 align-top font-bold'>ADDRESS</td>
                                                     <td>: {user.address}</td>
                                                 </tr>
                                                 <tr>
-                                                    <td className="font-bold py-1">PHONE NO.</td>
+                                                    <td className='py-1 font-bold'>PHONE NO.</td>
                                                     <td>: {user.mobileno || user.AMST_MobileNo}</td>
                                                 </tr>
                                                 <tr>
-                                                    <td className="font-bold py-1">MOBILE NO.</td>
+                                                    <td className='py-1 font-bold'>MOBILE NO.</td>
                                                     <td>: {user.mobileno || user.AMST_MobileNo}</td>
                                                 </tr>
                                                 <tr>
-                                                    <td className="font-bold py-1">EMAIL ID</td>
-                                                    <td className="break-all">: {user.email || user.AMST_emailId}</td>
+                                                    <td className='py-1 font-bold'>EMAIL ID</td>
+                                                    <td className='break-all'>: {user.email || user.AMST_emailId}</td>
                                                 </tr>
                                                 <tr>
-                                                    <td className="font-bold py-1">BLOOD GROUP</td>
+                                                    <td className='py-1 font-bold'>BLOOD GROUP</td>
                                                     <td>: {user.bloodgroup || user.AMST_BloodGroup}</td>
                                                 </tr>
                                             </tbody>
@@ -481,37 +487,53 @@ export default function StudentEmployeeSmartCardPage() {
 
                     {emp && (
                         <div>
-                            <div className="text-center mb-6 space-y-2">
-                                <h2 className="text-xl font-bold">Employee Details Smart Card</h2>
+                            <div className='mb-6 space-y-2 text-center'>
+                                <h2 className='font-bold text-xl'>Employee Details Smart Card</h2>
                             </div>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 print:grid-cols-3 print:gap-4">
+
+                            <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 print:grid-cols-3 print:gap-4'>
                                 {items.map((user, idx) => (
-                                    <div key={idx} className="border-2 border-green-200 rounded-lg p-4 bg-green-50/30 break-inside-avoid shadow-sm print:shadow-none print:border-green-400">
-                                        <table className="w-full text-sm">
+                                    <div
+                                        key={idx}
+                                        className='break-inside-avoid rounded-lg border-2 border-green-200 bg-green-50/30 p-4 shadow-sm print:border-green-400 print:shadow-none'>
+                                        <table className='w-full text-sm'>
                                             <tbody>
                                                 <tr>
-                                                    <td className="font-bold w-1/3 py-1">NAME</td>
+                                                    <td className='w-1/3 py-1 font-bold'>NAME</td>
                                                     <td>: {user.name || user.hrme_employeefirstname}</td>
                                                 </tr>
                                                 <tr>
-                                                    <td className="font-bold py-1">EMP CODE</td>
+                                                    <td className='py-1 font-bold'>EMP CODE</td>
                                                     <td>: {user.employeecode || user.ecode}</td>
                                                 </tr>
                                                 <tr>
-                                                    <td className="font-bold py-1">JOINING DATE</td>
-                                                    <td>: {user.doj ? format(new Date(user.doj), 'dd-MM-yyyy') : (user.HRME_DOJ ? format(new Date(user.HRME_DOJ), 'dd-MM-yyyy') : '')}</td>
+                                                    <td className='py-1 font-bold'>JOINING DATE</td>
+                                                    <td>
+                                                        :{' '}
+                                                        {user.doj
+                                                            ? format(new Date(user.doj), 'dd-MM-yyyy')
+                                                            : user.HRME_DOJ
+                                                              ? format(new Date(user.HRME_DOJ), 'dd-MM-yyyy')
+                                                              : ''}
+                                                    </td>
                                                 </tr>
                                                 <tr>
-                                                    <td className="font-bold py-1">DOB</td>
-                                                    <td>: {user.dob ? format(new Date(user.dob), 'dd-MM-yyyy') : (user.hrme_DOB ? format(new Date(user.hrme_DOB), 'dd-MM-yyyy') : '')}</td>
+                                                    <td className='py-1 font-bold'>DOB</td>
+                                                    <td>
+                                                        :{' '}
+                                                        {user.dob
+                                                            ? format(new Date(user.dob), 'dd-MM-yyyy')
+                                                            : user.hrme_DOB
+                                                              ? format(new Date(user.hrme_DOB), 'dd-MM-yyyy')
+                                                              : ''}
+                                                    </td>
                                                 </tr>
                                                 <tr>
-                                                    <td className="font-bold py-1 align-top">ADDRESS</td>
+                                                    <td className='py-1 align-top font-bold'>ADDRESS</td>
                                                     <td>: {user.address}</td>
                                                 </tr>
                                                 <tr>
-                                                    <td className="font-bold py-1">BLOOD GROUP</td>
+                                                    <td className='py-1 font-bold'>BLOOD GROUP</td>
                                                     <td>: {user.bloodgroup || user.HRME_BloodGroup}</td>
                                                 </tr>
                                             </tbody>

@@ -10,10 +10,10 @@ import { getSubjectRestrictionDetailsRestrictions } from '@/server/timetable/con
 import { Plus, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { dayStaffColumns } from './daystaffColumns';
 import DayStaffAddForm from './daystaffAddForm';
-import DayStaffUpdate from './daystaffUpdate';
+import { dayStaffColumns } from './daystaffColumns';
 import DayStaffToggle from './daystaffToggle';
+import DayStaffUpdate from './daystaffUpdate';
 
 interface DayStaffTabProps {
     initialData: any;
@@ -47,12 +47,17 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
     const [dayList, setDayList] = useState<any[]>([]);
     const [staffList, setStaffList] = useState<any[]>([]);
 
-    const { data: gridResponse, isLoading: isGridLoading, refetchAll } = useSubjectRestrictionDayStaffGridData({
+    const {
+        data: gridResponse,
+        isLoading: isGridLoading,
+        refetchAll
+    } = useSubjectRestrictionDayStaffGridData({
         ASMAY_Id: Number(searchParams?.asmaY_Id) || 0,
         TTMC_Id: 0
     });
 
-    const gridData = (gridResponse as any)?.data || (gridResponse as any)?.daystafflist || (Array.isArray(gridResponse) ? gridResponse : []);
+    const gridData =
+        (gridResponse as any)?.data || (gridResponse as any)?.daystafflist || (Array.isArray(gridResponse) ? gridResponse : []);
     const totalItems = (gridResponse as any)?.total || gridData.length;
 
     useEffect(() => {

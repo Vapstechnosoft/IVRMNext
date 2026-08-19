@@ -167,7 +167,8 @@ export default function ProgressCardReportPage() {
                     amsT_FatherName: `Father ${i}`,
                     amsT_MotherName: `Mother ${i}`,
                     amsT_DOB: '2016-01-01T00:00:00',
-                    amsT_Photoname: 'https://dcampusstrg.blob.core.windows.net/files/17/NAACDocumentsUpload/6a4bad20-fd91-45ff-b0cd-b152f3d07edc.jpg',
+                    amsT_Photoname:
+                        'https://dcampusstrg.blob.core.windows.net/files/17/NAACDocumentsUpload/6a4bad20-fd91-45ff-b0cd-b152f3d07edc.jpg',
                     amaY_RollNo: i,
                     amsT_AdmNo: `ADM${i}`,
                     amsT_RegistrationNo: `REG${i}`,

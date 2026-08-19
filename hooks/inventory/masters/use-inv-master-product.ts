@@ -1,17 +1,17 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-    getInvMasterProductLoadData,
-    saveInvMasterProduct,
-    saveInvMasterProductQty,
     deactiveInvMasterProduct,
     deactiveInvMasterProductQty,
-    getInvMasterProductTax,
     deactiveInvMasterProductTax,
-    getInvMasterTaxList,
-    getInvMasterProductList,
     getInvMasterItemList,
-    getInvMasterProductItemList
+    getInvMasterProductItemList,
+    getInvMasterProductList,
+    getInvMasterProductLoadData,
+    getInvMasterProductTax,
+    getInvMasterTaxList,
+    saveInvMasterProduct,
+    saveInvMasterProductQty
 } from '@/server/inventory/masters/inv-master-product';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 export const useInvMasterProduct = (searchParams?: any, itemSearchParams?: any) => {
@@ -122,7 +122,13 @@ export const useInvMasterProduct = (searchParams?: any, itemSearchParams?: any) 
         onSuccess: (res: any, variables: any) => {
             if (res.returnval === true) {
                 const isActive = variables.INVMPT_ActiveFlg ?? variables.invmpT_ActiveFlg ?? variables.active;
-                toast.success(isActive ? 'Deactivated successfully' : (isActive === false ? 'Activated successfully' : 'Record Status Updated Successfully'));
+                toast.success(
+                    isActive
+                        ? 'Deactivated successfully'
+                        : isActive === false
+                          ? 'Activated successfully'
+                          : 'Record Status Updated Successfully'
+                );
             } else {
                 toast.error('Failed to update record status');
             }

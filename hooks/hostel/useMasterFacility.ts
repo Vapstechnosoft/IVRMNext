@@ -1,5 +1,5 @@
 import { fetchMasterFacilityData } from '@/server/hostel/hostel-management/masters/facility';
-import { ApiSearchparams } from '@/types';
+import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 // Define a key for the query

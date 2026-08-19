@@ -1,9 +1,7 @@
 'use client';
-
-import React from 'react';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
 import { Edit } from 'lucide-react';
 
 interface SavedRemarksListProps {
@@ -18,14 +16,16 @@ export default function SavedRemarksList({ savedList, onEdit }: SavedRemarksList
     if (!savedList || savedList.length === 0) return null;
 
     return (
-        <Card className="mt-6">
-            <CardHeader><CardTitle>Exam Student Wise Remarks Details</CardTitle></CardHeader>
+        <Card className='mt-6'>
+            <CardHeader>
+                <CardTitle>Exam Student Wise Remarks Details</CardTitle>
+            </CardHeader>
             <CardContent>
-                <div className="rounded-md border">
+                <div className='rounded-md border'>
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead className="w-[50px]">SL NO</TableHead>
+                                <TableHead className='w-[50px]'>SL NO</TableHead>
                                 <TableHead>Academic Year</TableHead>
                                 <TableHead>Class</TableHead>
                                 <TableHead>Section</TableHead>
@@ -42,8 +42,8 @@ export default function SavedRemarksList({ savedList, onEdit }: SavedRemarksList
                                     <TableCell>{item.asmC_SectionName}</TableCell>
                                     <TableCell>{item.emE_ExamName}</TableCell>
                                     <TableCell>
-                                        <Button variant="ghost" size="sm" onClick={() => onEdit(item)}>
-                                            <Edit className="h-4 w-4 text-blue-600" />
+                                        <Button variant='ghost' size='sm' onClick={() => onEdit(item)}>
+                                            <Edit className='h-4 w-4 text-blue-600' />
                                         </Button>
                                     </TableCell>
                                 </TableRow>

@@ -11,7 +11,7 @@ export const masterBoardSchema = z.object({
         .string()
         .min(1, 'Board Description is required')
         .max(100, 'Maximum 100 characters allowed')
-        .regex(/^[a-zA-Z\s]+$/, 'Only alphabets and spaces are allowed'),
+        .regex(/^[a-zA-Z\s]+$/, 'Only alphabets and spaces are allowed')
 });
 
 export type MasterBoardFormValues = z.infer<typeof masterBoardSchema>;

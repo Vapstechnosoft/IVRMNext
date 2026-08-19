@@ -16,15 +16,7 @@ interface GenericInputFieldProps {
     className?: string;
 }
 
-export function GenericInputField({
-    name,
-    label,
-    placeholder,
-    required,
-    disabled,
-    type = 'text',
-    className
-}: GenericInputFieldProps) {
+export function GenericInputField({ name, label, placeholder, required, disabled, type = 'text', className }: GenericInputFieldProps) {
     const {
         register,
         formState: { errors }
@@ -44,7 +36,7 @@ export function GenericInputField({
                 className={cn(error && 'border-destructive focus-visible:ring-destructive')}
                 {...register(name)}
             />
-            {error && <span className='text-xs text-destructive'>{error.message as string}</span>}
+            {error && <span className='text-destructive text-xs'>{error.message as string}</span>}
         </div>
     );
 }
@@ -59,15 +51,7 @@ interface GenericTextAreaFieldProps {
     rows?: number;
 }
 
-export function GenericTextAreaField({
-    name,
-    label,
-    placeholder,
-    required,
-    disabled,
-    className,
-    rows
-}: GenericTextAreaFieldProps) {
+export function GenericTextAreaField({ name, label, placeholder, required, disabled, className, rows }: GenericTextAreaFieldProps) {
     const {
         register,
         formState: { errors }
@@ -87,7 +71,7 @@ export function GenericTextAreaField({
                 {...register(name)}
                 rows={rows}
             />
-            {error && <span className='text-xs text-destructive'>{error.message as string}</span>}
+            {error && <span className='text-destructive text-xs'>{error.message as string}</span>}
         </div>
     );
 }
@@ -129,20 +113,21 @@ export function GenericSelectField({
                 id={name}
                 disabled={disabled}
                 className={cn(
-                    "flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+                    'flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
                     error && 'border-destructive focus-visible:ring-destructive'
                 )}
                 value={value || ''}
-                onChange={(e) => setValue(name, e.target.value ? Number(e.target.value) : 0, { shouldValidate: true })}
-            >
-                <option value="" disabled hidden>{placeholder}</option>
+                onChange={(e) => setValue(name, e.target.value ? Number(e.target.value) : 0, { shouldValidate: true })}>
+                <option value='' disabled hidden>
+                    {placeholder}
+                </option>
                 {options.map((opt) => (
                     <option key={opt.value} value={opt.value}>
                         {opt.label}
                     </option>
                 ))}
             </select>
-            {error && <span className='text-xs text-destructive'>{error.message as string}</span>}
+            {error && <span className='text-destructive text-xs'>{error.message as string}</span>}
         </div>
     );
 }

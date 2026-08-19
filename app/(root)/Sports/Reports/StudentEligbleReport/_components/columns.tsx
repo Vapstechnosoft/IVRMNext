@@ -1,7 +1,7 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
-import { IStudentEligibleReportDetail } from '@/types/sports/reports/student-eligible-report';
+import type { IStudentEligibleReportDetail } from '@/types/sports/reports/student-eligible-report';
+import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 
 import * as XLSX from 'xlsx';
@@ -17,27 +17,27 @@ export const columns: ColumnDef<IStudentEligibleReportDetail>[] = [
             const pageSize = table.getState().pagination.pageSize;
             return pageIndex * pageSize + row.index + 1;
         },
-        enableSorting: false,
+        enableSorting: false
     },
     {
         accessorKey: 'adm_no',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Adm. No.' />,
-        enableSorting: true,
+        enableSorting: true
     },
     {
         accessorKey: 'studentname',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
-        enableSorting: true,
+        enableSorting: true
     },
     {
         accessorKey: 'classname',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />,
-        enableSorting: true,
+        enableSorting: true
     },
     {
         accessorKey: 'sectionname',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Section' />,
-        enableSorting: true,
+        enableSorting: true
     },
     {
         id: 'SPCCE_StartDate',
@@ -47,31 +47,31 @@ export const columns: ColumnDef<IStudentEligibleReportDetail>[] = [
             const date = row.original.spccE_StartDate;
             return date ? format(new Date(date), 'dd/MM/yyyy') : '-';
         },
-        enableSorting: true,
+        enableSorting: true
     },
     {
         id: 'PASR_Age',
         accessorKey: 'pasR_Age',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Age' />,
-        enableSorting: true,
+        enableSorting: true
     },
     {
         id: 'AMST_FatherName',
         accessorKey: 'amsT_FatherName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Father Name' />,
-        enableSorting: true,
+        enableSorting: true
     },
     {
         id: 'AMST_MotherName',
         accessorKey: 'amsT_MotherName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Mother Name' />,
-        enableSorting: true,
+        enableSorting: true
     },
     {
         id: 'Address',
         accessorKey: 'address',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Address' />,
-        enableSorting: true,
+        enableSorting: true
     }
 ];
 
@@ -130,4 +130,3 @@ export function exportToExcel(rows: any[], fileName: string) {
 
     XLSX.writeFile(workbook, `${fileName}.xlsx`);
 }
-

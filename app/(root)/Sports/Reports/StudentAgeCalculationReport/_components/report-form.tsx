@@ -1,16 +1,14 @@
 'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useWatch, Controller } from "react-hook-form";
-import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
     Form,
-    FormControl,
-    FormItem,
-    FormLabel,
-    FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
     Select,
     SelectContent,
@@ -18,16 +16,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, List, X, Search } from "lucide-react";
-import { toast } from "sonner";
-import { StudentAgeReportSchema, type StudentAgeReportFormSchema, type IStudentAgeReport, type IStudentAgeCalculationDropdowns, type IReportRequest } from "@/types/sports/reports/student-age-calculation";
 import { useStudentAgeCalculationReport } from "@/hooks/sports/useStudentAgeCalculationReport";
 import { getClassesForYear, getSectionsForClass } from "@/server/sports/reports/student-age-calculation";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { type IReportRequest, type IStudentAgeCalculationDropdowns, type IStudentAgeReport, type StudentAgeReportFormSchema, StudentAgeReportSchema } from "@/types/sports/reports/student-age-calculation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { List, Loader2, Search, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Controller, useForm, useWatch } from "react-hook-form";
+import { toast } from "sonner";
 
 interface ReportFormProps {
     onReportGenerated: (data: IStudentAgeReport[], payload: IReportRequest) => void;
@@ -165,9 +161,9 @@ export default function ReportForm({ onReportGenerated, onReset, isPending }: Re
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 border p-6 rounded-lg bg-card shadow-sm">
-                <div className="flex items-center justify-between border-b pb-4 mb-4">
-                    <h2 className="text-xl font-bold">Student Age Calculation Report</h2>
+            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6 rounded-lg border bg-card p-6 shadow-sm'>
+                <div className='mb-4 flex items-center justify-between border-b pb-4'>
+                    <h2 className='font-bold text-xl'>Student Age Calculation Report</h2>
                 </div>
 
                 {/* Type Selection */}
@@ -180,33 +176,33 @@ export default function ReportForm({ onReportGenerated, onReset, isPending }: Re
                                 <RadioGroup
                                     onValueChange={field.onChange}
                                     defaultValue={field.value}
-                                    className="flex justify-center space-x-8 p-4 border rounded-md bg-muted/20"
+                                    className='flex justify-center space-x-8 rounded-md border bg-muted/20 p-4'
                                 >
                                     <div className="flex items-center space-x-3">
                                         <RadioGroupItem value="House" id="type-house" />
-                                        <label htmlFor="type-house" className="font-medium cursor-pointer">
+                                        <label htmlFor="type-house" className='cursor-pointer font-medium'>
                                             By House
                                         </label>
                                     </div>
                                     <div className="flex items-center space-x-3">
                                         <RadioGroupItem value="CS" id="type-cs" />
-                                        <label htmlFor="type-cs" className="font-medium cursor-pointer">
+                                        <label htmlFor="type-cs" className='cursor-pointer font-medium'>
                                             By Class/Section
                                         </label>
                                     </div>
                                 </RadioGroup>
-                                {errors.type && <span className="text-xs font-medium text-destructive">{errors.type.message}</span>}
+                                {errors.type && <span className='font-medium text-destructive text-xs'>{errors.type.message}</span>}
                             </div>
                         )}
                     />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
                     {/* Left Column */}
                     <div className="space-y-6">
                         {/* Academic Year */}
                         <div className="flex flex-col gap-2">
-                            <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Academic Year</Label>
+                            <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Academic Year</Label>
                             <Controller
                                 control={control}
                                 name="asmaY_Id"
@@ -228,7 +224,7 @@ export default function ReportForm({ onReportGenerated, onReset, isPending }: Re
                                                 ))}
                                             </SelectContent>
                                         </Select>
-                                        {errors.asmaY_Id && <span className="text-xs font-medium text-destructive">{errors.asmaY_Id.message}</span>}
+                                        {errors.asmaY_Id && <span className='font-medium text-destructive text-xs'>{errors.asmaY_Id.message}</span>}
                                     </div>
                                 )}
                             />
@@ -259,7 +255,7 @@ export default function ReportForm({ onReportGenerated, onReset, isPending }: Re
                                                     ))}
                                                 </SelectContent>
                                             </Select>
-                                            {errors.spccmcC_Id && <span className="text-xs font-medium text-destructive">{errors.spccmcC_Id.message}</span>}
+                                            {errors.spccmcC_Id && <span className='font-medium text-destructive text-xs'>{errors.spccmcC_Id.message}</span>}
                                         </div>
                                     )}
                                 />
@@ -269,7 +265,7 @@ export default function ReportForm({ onReportGenerated, onReset, isPending }: Re
                         {/* Class (CS Only) */}
                         {watchedType === 'CS' && (
                             <div className="flex flex-col gap-2">
-                                <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Class</Label>
+                                <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Class</Label>
                                 <Controller
                                     control={control}
                                     name="asmcL_Id"
@@ -290,7 +286,7 @@ export default function ReportForm({ onReportGenerated, onReset, isPending }: Re
                                                     ))}
                                                 </SelectContent>
                                             </Select>
-                                            {errors.asmcL_Id && <span className="text-xs font-medium text-destructive">{errors.asmcL_Id.message}</span>}
+                                            {errors.asmcL_Id && <span className='font-medium text-destructive text-xs'>{errors.asmcL_Id.message}</span>}
                                         </div>
                                     )}
                                 />
@@ -302,22 +298,22 @@ export default function ReportForm({ onReportGenerated, onReset, isPending }: Re
                     <div className="space-y-6">
                         {/* House Selection */}
                         <div className="flex flex-col gap-2">
-                            <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">House Name</Label>
+                            <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">House Name</Label>
                             <Controller
                                 control={control}
                                 name="selectedhouselist"
                                 render={({ field }) => (
                                     <div className="flex flex-col gap-1">
-                                        <div className={`border rounded-md p-2 bg-background ${errors.selectedhouselist ? 'border-destructive' : ''}`}>
-                                            <div className="flex items-center space-x-2 p-2 border-b bg-muted/30">
+                                        <div className={`rounded-md border bg-background p-2 ${errors.selectedhouselist ? 'border-destructive' : ''}`}>
+                                            <div className='flex items-center space-x-2 border-b bg-muted/30 p-2'>
                                                 <Checkbox
                                                     id="select-all-houses"
                                                     checked={houseList && houseList.length > 0 && field.value?.length === houseList.length}
                                                     onCheckedChange={(checked) => toggleAll(houseList || [], 'spccmH_Id', 'selectedhouselist', !!checked)}
                                                 />
-                                                <label htmlFor="select-all-houses" className="text-sm font-medium">All</label>
+                                                <label htmlFor="select-all-houses" className='font-medium text-sm'>All</label>
                                                 <div className="relative ml-auto w-1/2">
-                                                    <Search className="absolute left-2 top-2 h-3.5 w-3.5 text-muted-foreground" />
+                                                    <Search className='absolute top-2 left-2 h-3.5 w-3.5 text-muted-foreground' />
                                                     <Input
                                                         placeholder="Search..."
                                                         className="h-7 pl-8 text-xs"
@@ -328,7 +324,7 @@ export default function ReportForm({ onReportGenerated, onReset, isPending }: Re
                                             </div>
                                             <ScrollArea className="h-[150px] w-full p-2">
                                                 {filteredHouses.length > 0 ? filteredHouses.map((item) => (
-                                                    <div key={item.spccmH_Id} className="flex items-center space-x-3 mb-2">
+                                                    <div key={item.spccmH_Id} className='mb-2 flex items-center space-x-3'>
                                                         <Checkbox
                                                             id={`house-${item.spccmH_Id}`}
                                                             checked={field.value?.some(val => val.spccmH_Id === item.spccmH_Id)}
@@ -341,14 +337,14 @@ export default function ReportForm({ onReportGenerated, onReset, isPending }: Re
                                                                 }
                                                             }}
                                                         />
-                                                        <label htmlFor={`house-${item.spccmH_Id}`} className="text-sm cursor-pointer hover:text-primary">
+                                                        <label htmlFor={`house-${item.spccmH_Id}`} className='cursor-pointer text-sm hover:text-primary'>
                                                             {item.spccmH_HouseName}
                                                         </label>
                                                     </div>
-                                                )) : <div className="text-muted-foreground text-sm p-4 text-center">No houses found</div>}
+                                                )) : <div className='p-4 text-center text-muted-foreground text-sm'>No houses found</div>}
                                             </ScrollArea>
                                         </div>
-                                        {errors.selectedhouselist && <span className="text-xs font-medium text-destructive">{errors.selectedhouselist.message}</span>}
+                                        {errors.selectedhouselist && <span className='font-medium text-destructive text-xs'>{errors.selectedhouselist.message}</span>}
                                     </div>
                                 )}
                             />
@@ -357,22 +353,22 @@ export default function ReportForm({ onReportGenerated, onReset, isPending }: Re
                         {/* Section Selection (CS Only) */}
                         {watchedType === 'CS' && (
                             <div className="flex flex-col gap-2">
-                                <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Section Name</Label>
+                                <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Section Name</Label>
                                 <Controller
                                     control={control}
                                     name="selectedSectionlist"
                                     render={({ field }) => (
                                         <div className="flex flex-col gap-1">
-                                            <div className={`border rounded-md p-2 bg-background ${errors.selectedSectionlist ? 'border-destructive' : ''}`}>
-                                                <div className="flex items-center space-x-2 p-2 border-b bg-muted/30">
+                                            <div className={`rounded-md border bg-background p-2 ${errors.selectedSectionlist ? 'border-destructive' : ''}`}>
+                                                <div className='flex items-center space-x-2 border-b bg-muted/30 p-2'>
                                                     <Checkbox
                                                         id="select-all-sections"
                                                         checked={sectionList && sectionList.length > 0 && field.value?.length === sectionList.length}
                                                         onCheckedChange={(checked) => toggleAll(sectionList || [], 'asmS_Id', 'selectedSectionlist', !!checked)}
                                                     />
-                                                    <label htmlFor="select-all-sections" className="text-sm font-medium">All</label>
+                                                    <label htmlFor="select-all-sections" className='font-medium text-sm'>All</label>
                                                     <div className="relative ml-auto w-1/2">
-                                                        <Search className="absolute left-2 top-2 h-3.5 w-3.5 text-muted-foreground" />
+                                                        <Search className='absolute top-2 left-2 h-3.5 w-3.5 text-muted-foreground' />
                                                         <Input
                                                             placeholder="Search..."
                                                             className="h-7 pl-8 text-xs"
@@ -383,7 +379,7 @@ export default function ReportForm({ onReportGenerated, onReset, isPending }: Re
                                                 </div>
                                                 <ScrollArea className="h-[150px] w-full p-2">
                                                     {filteredSections.length > 0 ? filteredSections.map((item) => (
-                                                        <div key={item.asmS_Id} className="flex items-center space-x-3 mb-2">
+                                                        <div key={item.asmS_Id} className='mb-2 flex items-center space-x-3'>
                                                             <Checkbox
                                                                 id={`section-${item.asmS_Id}`}
                                                                 checked={field.value?.some(val => val.asmS_Id === item.asmS_Id)}
@@ -396,14 +392,14 @@ export default function ReportForm({ onReportGenerated, onReset, isPending }: Re
                                                                     }
                                                                 }}
                                                             />
-                                                            <label htmlFor={`section-${item.asmS_Id}`} className="text-sm cursor-pointer hover:text-primary">
+                                                            <label htmlFor={`section-${item.asmS_Id}`} className='cursor-pointer text-sm hover:text-primary'>
                                                                 {item.asmC_SectionName}
                                                             </label>
                                                         </div>
-                                                    )) : <div className="text-muted-foreground text-sm p-4 text-center">No sections found</div>}
+                                                    )) : <div className='p-4 text-center text-muted-foreground text-sm'>No sections found</div>}
                                                 </ScrollArea>
                                             </div>
-                                            {errors.selectedSectionlist && <span className="text-xs font-medium text-destructive">{errors.selectedSectionlist.message}</span>}
+                                            {errors.selectedSectionlist && <span className='font-medium text-destructive text-xs'>{errors.selectedSectionlist.message}</span>}
                                         </div>
                                     )}
                                 />
@@ -412,7 +408,7 @@ export default function ReportForm({ onReportGenerated, onReset, isPending }: Re
                     </div>
                 </div>
 
-                <div className="flex justify-center gap-4 pt-6 border-t">
+                <div className='flex justify-center gap-4 border-t pt-6'>
                     <Button type="submit" disabled={isPending} className="px-10">
                         {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <List className="mr-2 h-4 w-4" />}
                         Report

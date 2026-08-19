@@ -1,15 +1,13 @@
 'use client';
-
-import React, { use } from 'react';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { Plus, X } from 'lucide-react';
+import { useGetGeneralConfiguration } from '@/hooks/preconfiguration/useGeneralConfig';
+import type { IGeneralConfiguration, IPageList, IUsernameArray } from '@/types/preconfiguration/general-config';
+import { X } from 'lucide-react';
 import GenConfigAddForm from './_components/add-form';
 import { columns } from './_components/columns';
-import { useGetGeneralConfiguration } from '@/hooks/preconfiguration/useGeneralConfig';
-import { IGeneralConfiguration, IPageList, IUsernameArray } from '@/types/preconfiguration/general-config';
 import { useConfigStore } from './_components/genconfig-store';
 
 export default function GeneralConfigurationPage() {
@@ -17,12 +15,7 @@ export default function GeneralConfigurationPage() {
 
     return (
         <FormProvider<IGeneralConfiguration>>
-            <GeneralConfigurationPageContent
-                response={response}
-                isLoading={isLoading}
-                error={error}
-                onRefresh={refetch}
-            />
+            <GeneralConfigurationPageContent response={response} isLoading={isLoading} error={error} onRefresh={refetch} />
         </FormProvider>
     );
 }
@@ -54,9 +47,9 @@ function GeneralConfigurationPageContent({
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                <div className="flex-1 space-y-2 pt-6 pb-2">
-                    <h2 className="text-3xl font-bold tracking-tight">General Configuration</h2>
-                    <p className="text-muted-foreground">Manage general settings for the institution.</p>
+                <div className='flex-1 space-y-2 pt-6 pb-2'>
+                    <h2 className='font-bold text-3xl tracking-tight'>General Configuration</h2>
+                    <p className='text-muted-foreground'>Manage general settings for the institution.</p>
                 </div>
 
                 {/* <div className='flex justify-end'>
@@ -95,15 +88,8 @@ function GeneralConfigurationPageContent({
 }
 
 function FormSections({ response, onRefresh }: { response: any; onRefresh: () => void }) {
-    const {
-        isAddFormOpen,
-        isEditFormOpen,
-        selectedRow,
-        closeAddForm,
-        closeEditForm,
-        addFormRef,
-        editFormRef
-    } = useFormContext<IGeneralConfiguration>();
+    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
+        useFormContext<IGeneralConfiguration>();
     const { setEditId } = useConfigStore();
 
     const handleCloseAdd = () => {
@@ -126,14 +112,14 @@ function FormSections({ response, onRefresh }: { response: any; onRefresh: () =>
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='slide-in-from-top-4 animate-in shadow-lg duration-300 relative'>
+                        className='slide-in-from-top-4 relative animate-in shadow-lg duration-300'>
                         <Button
                             type='button'
                             onClick={handleCloseAdd}
                             variant='ghost'
                             size='sm'
                             className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                            <X className='h-4 w-4 text-destructive mr-1' /> Close
+                            <X className='mr-1 h-4 w-4 text-destructive' /> Close
                         </Button>
                         <GenConfigAddForm
                             pagelist={(response?.pagelist || []) as IPageList[]}
@@ -150,14 +136,14 @@ function FormSections({ response, onRefresh }: { response: any; onRefresh: () =>
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300 relative'>
+                        className='slide-in-from-top-4 relative animate-in border-primary/20 shadow-lg duration-300'>
                         <Button
                             type='button'
                             onClick={handleCloseEdit}
                             variant='ghost'
                             size='sm'
                             className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                            <X className='h-4 w-4 text-destructive mr-1' /> Close
+                            <X className='mr-1 h-4 w-4 text-destructive' /> Close
                         </Button>
                         <GenConfigAddForm
                             pagelist={(response?.pagelist || []) as IPageList[]}

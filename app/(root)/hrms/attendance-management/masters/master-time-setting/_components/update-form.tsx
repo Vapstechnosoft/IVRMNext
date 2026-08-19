@@ -31,11 +31,7 @@ export default function UpdateMasterTimeSettingForm({ selectedRow, onSuccess, cl
 
     return (
         <div className={className}>
-            <MasterTimeSettingForm 
-                editingData={selectedRow} 
-                onSubmit={onSubmit} 
-                onCancel={() => onSuccess?.()} 
-            />
+            <MasterTimeSettingForm editingData={selectedRow} onSubmit={onSubmit} onCancel={() => onSuccess?.()} />
         </div>
     );
 }

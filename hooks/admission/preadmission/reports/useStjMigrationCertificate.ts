@@ -1,10 +1,10 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { 
-    getMigrationLoadData, 
-    getMigrationStudentStatusChange, 
-    getMigrationAcademicYearChange, 
-    getMigrationSearchFilter, 
-    getMigrationStudDetails 
+import { useMutation, useQuery } from '@tanstack/react-query';
+import {
+    getMigrationAcademicYearChange,
+    getMigrationLoadData,
+    getMigrationSearchFilter,
+    getMigrationStudDetails,
+    getMigrationStudentStatusChange
 } from '../../../../server/admission/preadmission/reports/stj_migration_certificate';
 
 export const useStjMigrationCertificate = () => {

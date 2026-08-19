@@ -1,6 +1,6 @@
 'use server';
 
-import { api, ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import { revalidatePath } from 'next/cache';
 
 const URL_GET_DATA = '/Room_Tariff/get_tariff_grid_data';
@@ -10,19 +10,19 @@ const URL_DEACTIVATE = '/Room_Tariff/ydeactivate';
 const URL_GET_BED_COUNT = '/Room_Tariff/get_bedcount';
 
 export interface IRoomTariff {
-  hlmrtF_Id: number;
-  asmaY_Id: number;
-  hrmrM_Id: number;
-  hlmrtF_SORate: number;
-  hlmrtF_RoomRate: number;
-  hlmrtF_ActiveFlag: boolean;
-  asmaY_Year?: string;
-  hrmrM_RoomNo?: string;
-  hrmrM_BedCapacity?: number;
+    hlmrtF_Id: number;
+    asmaY_Id: number;
+    hrmrM_Id: number;
+    hlmrtF_SORate: number;
+    hlmrtF_RoomRate: number;
+    hlmrtF_ActiveFlag: boolean;
+    asmaY_Year?: string;
+    hrmrM_RoomNo?: string;
+    hrmrM_BedCapacity?: number;
 }
 
 export interface IRoomTariffEditData {
-  editlist: IRoomTariff[];
+    editlist: IRoomTariff[];
 }
 
 /**

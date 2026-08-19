@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { useInvMasterProduct } from '@/hooks/inventory/masters/use-inv-master-product';
-import { useForm, type SubmitHandler } from 'react-hook-form';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 interface ToggleProductFormProps {
@@ -29,13 +29,15 @@ export default function ToggleProductForm({ rowData, onClose }: ToggleProductFor
 
     const onSubmit: SubmitHandler<any> = async () => {
         try {
-            const payload = isProductQty ? {
-                INVMPI_Id: rowData.invmpI_Id || rowData.invmPI_Id || rowData.INVMPI_Id,
-                INVMPI_ActiveFlg: rowData.invmpI_ActiveFlg ?? rowData.INVMPI_ActiveFlg
-            } : {
-                INVMP_Id: rowData.invmP_Id || rowData.invmP_Id || rowData.INVMP_Id,
-                INVMP_ActiveFlg: rowData.invmP_ActiveFlg ?? rowData.INVMP_ActiveFlg
-            };
+            const payload = isProductQty
+                ? {
+                      INVMPI_Id: rowData.invmpI_Id || rowData.invmPI_Id || rowData.INVMPI_Id,
+                      INVMPI_ActiveFlg: rowData.invmpI_ActiveFlg ?? rowData.INVMPI_ActiveFlg
+                  }
+                : {
+                      INVMP_Id: rowData.invmP_Id || rowData.invmP_Id || rowData.INVMP_Id,
+                      INVMP_ActiveFlg: rowData.invmP_ActiveFlg ?? rowData.INVMP_ActiveFlg
+                  };
 
             mutation.mutate(payload, {
                 onSuccess: (res: any) => {
@@ -71,7 +73,7 @@ export default function ToggleProductForm({ rowData, onClose }: ToggleProductFor
                         type='submit'
                         isLoading={mutation.isPending}
                         variant={isActive ? 'destructive' : 'default'}
-                        className={isActive ? 'bg-orange-500 hover:bg-orange-600 text-white' : ''}
+                        className={isActive ? 'bg-orange-500 text-white hover:bg-orange-600' : ''}
                         loadingText={isActive ? 'Deactivating...' : 'Activating...'}>
                         {isActive ? 'Deactivate' : 'Activate'}
                     </Button>
@@ -80,4 +82,3 @@ export default function ToggleProductForm({ rowData, onClose }: ToggleProductFor
         </AdaptiveDialog>
     );
 }
-

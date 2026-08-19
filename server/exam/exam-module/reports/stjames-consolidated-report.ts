@@ -1,7 +1,5 @@
 'use server';
 
-
-
 import { api } from '@/lib/apiService';
 
 export async function getStjamesConsolidatedReport(payload: any) {

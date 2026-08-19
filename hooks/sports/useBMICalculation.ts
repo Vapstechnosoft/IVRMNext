@@ -1,7 +1,7 @@
-import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs';
 import { tableSearchVariables } from '@/lib/data-table.config';
-import { getBMILoadGrid, saveBMIRecord, editBMIRecord, deactivateBMIRecord } from '@/server/sports/transactions/bmi-calculation';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { deactivateBMIRecord, editBMIRecord, getBMILoadGrid, saveBMIRecord } from '@/server/sports/transactions/bmi-calculation';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs';
 import { toast } from 'sonner';
 
 export const useBMICalculation = (searchParams?: any) => {
@@ -10,7 +10,12 @@ export const useBMICalculation = (searchParams?: any) => {
     const [page] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
     const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
     const [sortBy] = useQueryState(tableSearchVariables.sort_column, parseAsString.withOptions({ shallow: false }).withDefault(''));
-    const [order] = useQueryState(tableSearchVariables.sort_direction, parseAsStringLiteral(['asc', 'desc'] as const).withOptions({ shallow: false }).withDefault('asc'));
+    const [order] = useQueryState(
+        tableSearchVariables.sort_direction,
+        parseAsStringLiteral(['asc', 'desc'] as const)
+            .withOptions({ shallow: false })
+            .withDefault('asc')
+    );
     const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
 
     const params = {
@@ -18,7 +23,7 @@ export const useBMICalculation = (searchParams?: any) => {
         page_size: pageSize,
         sort_column: sortBy,
         sort_direction: order,
-        search_query: searchQuery,
+        search_query: searchQuery
     };
 
     const loadData = useQuery({
@@ -36,7 +41,7 @@ export const useBMICalculation = (searchParams?: any) => {
                 toast.error(response.message || 'Failed to save');
             }
             queryClient.invalidateQueries({ queryKey: ['bmi-calculation'] });
-        },
+        }
     });
 
     const edit = useMutation({
@@ -52,7 +57,7 @@ export const useBMICalculation = (searchParams?: any) => {
                 toast.error(response.message || 'Failed to update status');
             }
             queryClient.invalidateQueries({ queryKey: ['bmi-calculation'] });
-        },
+        }
     });
 
     return {

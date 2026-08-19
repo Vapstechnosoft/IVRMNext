@@ -1,10 +1,10 @@
 'use client';
 
+import { useBMICalculation } from '@/hooks/sports/useBMICalculation';
+import type { IBMICalculation, IStudentBMIEntry } from '@/types/sports/transactions/bmi-calculation';
+import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import BMICalculationForm from './add-form';
-import { IBMICalculation, IStudentBMIEntry } from '@/types/sports/transactions/bmi-calculation';
-import { useBMICalculation } from '@/hooks/sports/useBMICalculation';
-import { Loader2 } from 'lucide-react';
 
 interface UpdateBMICalculationFormProps {
     onSuccess?: () => void;
@@ -88,7 +88,11 @@ export default function UpdateBMICalculationForm({ onSuccess, selectedRow }: Upd
     }, [selectedRow]);
 
     if (isLoading) {
-        return <div className="flex h-40 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+        return (
+            <div className='flex h-40 items-center justify-center'>
+                <Loader2 className='h-8 w-8 animate-spin' />
+            </div>
+        );
     }
 
     if (!fetchedData) {

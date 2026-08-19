@@ -14,7 +14,7 @@ import {
 
 import { cn } from '@/lib/utils';
 
-import { FieldError, FieldGroup, Label } from '@/components/ui/extension/field';
+import { FieldGroup, Label } from '@/components/ui/extension/field';
 import { Button } from './button';
 
 const NumberField = AriaNumberField;
@@ -115,7 +115,9 @@ function InputNumber({
                     {description}
                 </Text>
             )}
-            {error && <div className='font-medium text-[0.8rem] text-destructive'>{typeof error === 'function' ? 'Invalid input' : error}</div>}
+            {error && (
+                <div className='font-medium text-[0.8rem] text-destructive'>{typeof error === 'function' ? 'Invalid input' : error}</div>
+            )}
         </NumberField>
     );
 }

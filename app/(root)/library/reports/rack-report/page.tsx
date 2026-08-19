@@ -1,14 +1,14 @@
 'use client';
 
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useRackReportSearch } from '@/hooks/library/reports/useRackReport';
 import type { IRackReportGridData, IRackReportRequest } from '@/types/library/reports/rack-report';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { RackReportColumns } from './_components/columns';
 import { ReportForm } from './_components/report-form';
-import { toast } from 'sonner';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function RackReportPage() {
     const [view, setView] = useState<'form' | 'grid'>('form');
@@ -23,7 +23,7 @@ export default function RackReportPage() {
                 const list = response.reportlist || [];
                 setReportData(list);
                 setHasSearched(true);
-                
+
                 if (list.length > 0) {
                     setView('grid');
                     toast.success(`Found ${list.length} records`);
@@ -51,8 +51,8 @@ export default function RackReportPage() {
 
             {hasSearched && (
                 <Card className='border border-muted shadow-sm'>
-                    <CardHeader className='pb-3 border-b'>
-                        <CardTitle className='text-sm font-semibold text-primary'>
+                    <CardHeader className='border-b pb-3'>
+                        <CardTitle className='font-semibold text-primary text-sm'>
                             Rack Report Grid {reportData.length > 0 && `(${reportData.length} Records)`}
                         </CardTitle>
                     </CardHeader>

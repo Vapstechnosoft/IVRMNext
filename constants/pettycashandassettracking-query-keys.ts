@@ -13,6 +13,5 @@ export const PETTYCASH_QUERY_KEYS = {
 export const PAD_QUERY_KEYS = {
     ASSET_MASTER: 'asset_master',
     ASSET_REQUISITION: 'asset_requisition',
-    ASSET_DEPARTMENT_NAME: 'asset_department_name',
+    ASSET_DEPARTMENT_NAME: 'asset_department_name'
 };
-

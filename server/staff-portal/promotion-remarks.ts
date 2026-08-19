@@ -1,19 +1,19 @@
 'use server';
 
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type {
-    IPromotionRemarksInitialData,
     IClass,
-    ISection,
-    IStudentPromotion,
-    IStudentMarks,
+    IPromotionRemarksSave,
     ISavedDetail,
-    IPromotionRemarksSave
+    ISection,
+    IStudentMarks,
+    IStudentPromotion
 } from '@/types/staff-portal/promotion-remarks';
 
 const BASE_URL = '/ExamPromotionRemarks';
 
-export async function getInitialData(id: number = 1): Promise<ApiResponse<any>> { // Returns object with getyear, etc.
+export async function getInitialData(id = 1): Promise<ApiResponse<any>> {
+    // Returns object with getyear, etc.
     return await api.get('portal', `${BASE_URL}/Getdetails/${id}`);
 }
 
@@ -32,11 +32,13 @@ export async function searchStudent(data: {
     ASMS_Id: number;
     EME_Id: number;
     examtype: number;
-}): Promise<ApiResponse<{
-    getstudentdetails: IStudentPromotion[];
-    getstudentmarks: IStudentMarks[];
-    getsavedetails: ISavedDetail[];
-}>> {
+}): Promise<
+    ApiResponse<{
+        getstudentdetails: IStudentPromotion[];
+        getstudentmarks: IStudentMarks[];
+        getsavedetails: ISavedDetail[];
+    }>
+> {
     return await api.post('portal', `${BASE_URL}/search_student`, data);
 }
 

@@ -126,4 +126,3 @@ export interface LoanReportResponse {
     CreatedDate?: string;
     UpdatedDate?: string;
 }
-

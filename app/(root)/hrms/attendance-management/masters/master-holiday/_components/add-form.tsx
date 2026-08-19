@@ -9,12 +9,16 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useHolidayDatesForDays, useMasterHoliday, useEmployeeShiftMappingHolidayTypes } from '@/hooks/hrms/attendance-management/useMasters';
-import { useMasterDepartment, useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
+import {
+    useEmployeeShiftMappingHolidayTypes,
+    useHolidayDatesForDays,
+    useMasterHoliday
+} from '@/hooks/hrms/attendance-management/useMasters';
+import { useLeaveYearDropdown, useMasterDepartment } from '@/hooks/hrms/useMasters';
 import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
 import { addOrUpdateMasterHoliday } from '@/server/hrms/attendance-management/masters/master-holiday';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { format, isValid, parse } from 'date-fns';
+import { format } from 'date-fns';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Save } from 'lucide-react';
 import { useEffect, useId, useMemo, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
@@ -37,14 +41,14 @@ export default function AddMasterHolidayForm({ onSuccess, className = '' }: AddM
 
     useEffect(() => {
         if (holidayTypeStatus === 'error') {
-            console.error("❌ [HOLIDAY TYPE ERROR]:", holidayTypeError);
+            console.error('❌ [HOLIDAY TYPE ERROR]:', holidayTypeError);
         }
     }, [holidayTypeError, holidayTypeStatus]);
     // Mapping Leave Year options
     const leaveYearOptions = useMemo(() => {
         const rawData = leaveYearData as any;
         if (!rawData) return [];
-        const list = Array.isArray(rawData) ? rawData : (Array.isArray(rawData.data) ? rawData.data : []);
+        const list = Array.isArray(rawData) ? rawData : Array.isArray(rawData.data) ? rawData.data : [];
 
         return list.map((year: any) => ({
             label: year.hrmlY_LeaveYear || '',
@@ -81,11 +85,13 @@ export default function AddMasterHolidayForm({ onSuccess, className = '' }: AddM
             list = rawData.$values;
         }
 
-        return list.map((type: any) => ({
-            label: type.value || type.Value || '',
-            value: String(type.key || type.Key || ''),
-            name: type.value || type.Value || ''
-        })).filter((opt: any) => opt.value && opt.value !== 'undefined');
+        return list
+            .map((type: any) => ({
+                label: type.value || type.Value || '',
+                value: String(type.key || type.Key || ''),
+                name: type.value || type.Value || ''
+            }))
+            .filter((opt: any) => opt.value && opt.value !== 'undefined');
     }, [holidayTypeData]);
 
     const leaveYearId = useId();
@@ -130,7 +136,9 @@ export default function AddMasterHolidayForm({ onSuccess, className = '' }: AddM
     // Handle holiday type change logic from legacy
     useEffect(() => {
         if (fohwdT_Id && holidayTypeOptions.length > 0) {
-            const selectedType = holidayTypeOptions.find((o: { label: string; value: string; name: string }) => o.value === String(fohwdT_Id));
+            const selectedType = holidayTypeOptions.find(
+                (o: { label: string; value: string; name: string }) => o.value === String(fohwdT_Id)
+            );
             if (selectedType) {
                 const typeName = selectedType.name.toUpperCase();
                 const isDateBased = typeName === 'PUBLIC HOLIDAY' || typeName === 'WEEK END' || typeName === 'PAID HOLIDAY';
@@ -154,9 +162,9 @@ export default function AddMasterHolidayForm({ onSuccess, className = '' }: AddM
     const { data: datesData, isLoading: isLoadingDates } = useHolidayDatesForDays(
         hrmlY_Id && selectedDays.length > 0 && day_flag
             ? {
-                hrmlY_Id: Number(hrmlY_Id),
-                days: selectedDays.join(',')
-            }
+                  hrmlY_Id: Number(hrmlY_Id),
+                  days: selectedDays.join(',')
+              }
             : undefined,
         true
     );
@@ -221,7 +229,7 @@ export default function AddMasterHolidayForm({ onSuccess, className = '' }: AddM
                 hrmD_Id: Number(data.hrmD_Id) || 0,
                 // Ensure dates are stringified if present and formatted without 'Z' to avoid backend conversion issues
                 fO_Start_Date: data.fO_Start_Date ? format(new Date(data.fO_Start_Date), "yyyy-MM-dd'T'HH:mm:ss.SSS") : undefined,
-                fomhwdD_ToDate: data.fomhwdD_ToDate ? format(new Date(data.fomhwdD_ToDate), "yyyy-MM-dd'T'HH:mm:ss.SSS") : undefined,
+                fomhwdD_ToDate: data.fomhwdD_ToDate ? format(new Date(data.fomhwdD_ToDate), "yyyy-MM-dd'T'HH:mm:ss.SSS") : undefined
             };
 
             const response = await addOrUpdateMasterHoliday(payload);
@@ -245,7 +253,9 @@ export default function AddMasterHolidayForm({ onSuccess, className = '' }: AddM
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <div className='space-y-2'>
-                            <Label htmlFor={leaveYearId}>Calendar Year <span className='text-red-500'>*</span></Label>
+                            <Label htmlFor={leaveYearId}>
+                                Calendar Year <span className='text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 name='hrmlY_Id'
                                 control={control}
@@ -256,7 +266,9 @@ export default function AddMasterHolidayForm({ onSuccess, className = '' }: AddM
                                         </SelectTrigger>
                                         <SelectContent>
                                             {leaveYearOptions.map((opt: any) => (
-                                                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                                <SelectItem key={opt.value} value={opt.value}>
+                                                    {opt.label}
+                                                </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
@@ -278,7 +290,9 @@ export default function AddMasterHolidayForm({ onSuccess, className = '' }: AddM
                                         <SelectContent>
                                             <SelectItem value='0'>All</SelectItem>
                                             {departmentOptions.map((dept: any) => (
-                                                <SelectItem key={dept.value} value={dept.value}>{dept.label}</SelectItem>
+                                                <SelectItem key={dept.value} value={dept.value}>
+                                                    {dept.label}
+                                                </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
@@ -287,21 +301,22 @@ export default function AddMasterHolidayForm({ onSuccess, className = '' }: AddM
                         </div>
 
                         <div className='space-y-2'>
-                            <Label htmlFor={holidayTypeId}>Holiday Type <span className='text-red-500'>*</span></Label>
+                            <Label htmlFor={holidayTypeId}>
+                                Holiday Type <span className='text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 name='fohwdT_Id'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select
-                                        value={String(field.value || '')}
-                                        onValueChange={(val) => field.onChange(Number(val))}
-                                    >
+                                    <Select value={String(field.value || '')} onValueChange={(val) => field.onChange(Number(val))}>
                                         <SelectTrigger id={holidayTypeId}>
                                             <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {holidayTypeOptions.map((type: { label: string; value: string; name: string }) => (
-                                                <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                                                <SelectItem key={type.value} value={type.value}>
+                                                    {type.label}
+                                                </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
@@ -312,7 +327,9 @@ export default function AddMasterHolidayForm({ onSuccess, className = '' }: AddM
 
                         {day_flag && (
                             <div className='space-y-2'>
-                                <Label htmlFor={selectedDaysId}>Select Day <span className='text-red-500'>*</span></Label>
+                                <Label htmlFor={selectedDaysId}>
+                                    Select Day <span className='text-red-500'>*</span>
+                                </Label>
                                 <Controller
                                     name='selectedDays'
                                     control={control}
@@ -335,59 +352,49 @@ export default function AddMasterHolidayForm({ onSuccess, className = '' }: AddM
                         <div className='space-y-4'>
                             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                 <div className='space-y-2'>
-                                    <Label htmlFor={startDateId}>Start Date <span className='text-red-500'>*</span></Label>
+                                    <Label htmlFor={startDateId}>
+                                        Start Date <span className='text-red-500'>*</span>
+                                    </Label>
                                     <Controller
                                         name='fO_Start_Date'
                                         control={control}
-                                        
-                                        render={({ field, fieldState }) => (
-                                            <DateField field={field} fieldState={fieldState} label='' />
-                                        )}
+                                        render={({ field, fieldState }) => <DateField field={field} fieldState={fieldState} label='' />}
                                     />
-                                   
                                 </div>
                                 <div className='space-y-2'>
-                                    <Label htmlFor={endDateId}>End Date <span className='text-red-500'>*</span></Label>
+                                    <Label htmlFor={endDateId}>
+                                        End Date <span className='text-red-500'>*</span>
+                                    </Label>
                                     <Controller
                                         name='fomhwdD_ToDate'
                                         control={control}
-                                        render={({ field, fieldState }) => (
-                                            <DateField field={field} fieldState={fieldState} label='' />
-                                        )}
+                                        render={({ field, fieldState }) => <DateField field={field} fieldState={fieldState} label='' />}
                                     />
-                                    
                                 </div>
                             </div>
 
                             <div className='space-y-2'>
-                                <Label htmlFor={holidayNameId}>Holiday Name <span className='text-red-500'>*</span></Label>
+                                <Label htmlFor={holidayNameId}>
+                                    Holiday Name <span className='text-red-500'>*</span>
+                                </Label>
                                 <Controller
                                     name='fomhwD_HolidayWDName'
                                     control={control}
                                     render={({ field }) => (
-                                        <InputText
-                                            {...field}
-                                            id={holidayNameId}
-                                            placeholder='Enter holiday name'
-                                            maxLength={30}
-                                        />
+                                        <InputText {...field} id={holidayNameId} placeholder='Enter holiday name' maxLength={30} />
                                     )}
                                 />
                                 {errors.fomhwD_HolidayWDName && <FormError>{errors.fomhwD_HolidayWDName.message}</FormError>}
                             </div>
 
                             <div className='space-y-2'>
-                                <Label htmlFor={remarksId}>Remarks <span className='text-red-500'>*</span></Label>
+                                <Label htmlFor={remarksId}>
+                                    Remarks <span className='text-red-500'>*</span>
+                                </Label>
                                 <Controller
                                     name='fO_Remark'
                                     control={control}
-                                    render={({ field }) => (
-                                        <InputTextarea
-                                            {...field}
-                                            id={remarksId}
-                                            placeholder='Enter remarks'
-                                        />
-                                    )}
+                                    render={({ field }) => <InputTextarea {...field} id={remarksId} placeholder='Enter remarks' />}
                                 />
                                 {errors.fO_Remark && <FormError>{errors.fO_Remark.message}</FormError>}
                             </div>
@@ -399,14 +406,14 @@ export default function AddMasterHolidayForm({ onSuccess, className = '' }: AddM
                     <div className='space-y-4 rounded-md border border-input bg-background p-4'>
                         <h3 className='font-semibold text-sm'>Holiday List</h3>
                         {isLoadingDates ? (
-                            <div className='text-center py-4'>Loading dates...</div>
+                            <div className='py-4 text-center'>Loading dates...</div>
                         ) : holidayDates.length === 0 ? (
-                            <div className='text-center py-4'>No dates found for selected days in this year.</div>
+                            <div className='py-4 text-center'>No dates found for selected days in this year.</div>
                         ) : (
                             <div className='space-y-4'>
-                                <div className='overflow-x-auto overflow-y-auto max-h-[400px] border rounded-md'>
+                                <div className='max-h-[400px] overflow-x-auto overflow-y-auto rounded-md border'>
                                     <Table>
-                                        <TableHeader className='sticky top-0 bg-background z-10'>
+                                        <TableHeader className='sticky top-0 z-10 bg-background'>
                                             <TableRow>
                                                 <TableHead className='w-12'>
                                                     <Checkbox
@@ -428,18 +435,15 @@ export default function AddMasterHolidayForm({ onSuccess, className = '' }: AddM
                                                         />
                                                     </TableCell>
                                                     <TableCell>{item.dayname}</TableCell>
-                                                    <TableCell>
-                                                        {item.date ?? '-'}
-                                                    </TableCell>
+                                                    <TableCell>{item.date ?? '-'}</TableCell>
                                                 </TableRow>
                                             ))}
                                         </TableBody>
                                     </Table>
                                 </div>
-                                
 
                                 {/* Pagination Footer */}
-                                <div className='flex items-center justify-between px-2 py-1 bg-muted/20 rounded-md border text-xs'>
+                                <div className='flex items-center justify-between rounded-md border bg-muted/20 px-2 py-1 text-xs'>
                                     <div className='text-muted-foreground'>
                                         Showing {Math.min((currentPage - 1) * pageSize + 1, holidayDates.length)} to{' '}
                                         {Math.min(currentPage * pageSize, holidayDates.length)} of {holidayDates.length} entries
@@ -505,8 +509,10 @@ export default function AddMasterHolidayForm({ onSuccess, className = '' }: AddM
                     </div>
                 )}
 
-                <div className='flex gap-3 justify-start border-t pt-4'>
-                    <Button type='button' variant='outline' onClick={() => reset()} disabled={isSubmitting}>Cancel</Button>
+                <div className='flex justify-start gap-3 border-t pt-4'>
+                    <Button type='button' variant='outline' onClick={() => reset()} disabled={isSubmitting}>
+                        Cancel
+                    </Button>
                     <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting}>
                         <Save className='mr-2 h-4 w-4' /> Save
                     </Button>

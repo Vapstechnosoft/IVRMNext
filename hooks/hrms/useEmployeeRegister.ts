@@ -3,6 +3,7 @@
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
 import {
     deleteEmployee,
+    getArrearsList,
     getBankDropdown,
     getBloodGroupDropdown,
     getCasteCategoryDropdown,
@@ -10,11 +11,15 @@ import {
     getContactTypeDropdown,
     getCountryDropdown,
     getCourseDropdown,
+    getDeductionList,
     getDepartmentDropdown,
     getDesignationDropdown,
+    getEarningList,
     getEmployeeById,
+    getEmployeeEarningsDeductions,
     getEmployeeList,
     getEmployeeRegisterOnload,
+    getEmployeeSalaryDetailsByHead,
     getEmployeeTypeDropdown,
     getGenderDropdown,
     getGradeDropdown,
@@ -29,6 +34,7 @@ import {
     getSpecializationDropdown,
     getStateDropdown,
     getTeachingTypeDropdown,
+    saveBankDetails,
     saveEmployee,
     saveEmployeeArrears,
     saveEmployeeDeductions,
@@ -38,16 +44,10 @@ import {
     saveEmployeeMedical,
     saveEmployeeOtherDetails,
     saveEmployeeQualification,
-    saveBankDetails,
-    toggleEmployee,
-    uploadStaffPhoto,
-    getEmployeeSalaryDetailsByHead,
-    getEarningList,
-    getDeductionList,
-    getArrearsList,
-    updateEmployeeSalaryDetailsByHead,
     saveEmployeeSalaryDetails,
-    getEmployeeEarningsDeductions
+    toggleEmployee,
+    updateEmployeeSalaryDetailsByHead,
+    uploadStaffPhoto
 } from '@/server/hrms/hrmsConfig/employee/register';
 import type { ApiSearchparams } from '@/types';
 import type { IEmployeeSaveRequest } from '@/types/hrms/hrms-config/employee';
@@ -510,12 +510,12 @@ export function useEmployeeRegisterOnload(MI_Id: number, HRME_Id?: number) {
             // Explicitly check for qualification array existence in raw response
             if (data) {
                 const keys = Object.keys(data);
-                const qualKeys = keys.filter(k => k.toLowerCase().includes('qual') || k.toLowerCase().includes('educ'));
+                const qualKeys = keys.filter((k) => k.toLowerCase().includes('qual') || k.toLowerCase().includes('educ'));
                 console.log('📡 [HOOK] Potential Qualification Keys found in root:', qualKeys);
 
                 if (data.data) {
                     const dataKeys = Object.keys(data.data);
-                    const dataQualKeys = dataKeys.filter(k => k.toLowerCase().includes('qual') || k.toLowerCase().includes('educ'));
+                    const dataQualKeys = dataKeys.filter((k) => k.toLowerCase().includes('qual') || k.toLowerCase().includes('educ'));
                     console.log('📡 [HOOK] Potential Qualification Keys found in data.data:', dataQualKeys);
                 }
             }
@@ -562,15 +562,15 @@ export function useEmployeeById(id: number | null) {
             console.log('📡 [HOOK] RAW useEmployeeById RESPONSE:', data);
             if (data) {
                 const keys = Object.keys(data);
-                const qualKeys = keys.filter(k => k.toLowerCase().includes('qual') || k.toLowerCase().includes('educ'));
+                const qualKeys = keys.filter((k) => k.toLowerCase().includes('qual') || k.toLowerCase().includes('educ'));
                 console.log('📡 [HOOK - ById] Potential Qualification Keys found in root:', qualKeys);
 
                 // Check inside potential wrappers like 'employeeDetails' or 'data'
                 const possibleWrappers = ['data', 'employeeDetails', 'employeedetails', 'editEmployee'];
-                possibleWrappers.forEach(wrapper => {
+                possibleWrappers.forEach((wrapper) => {
                     if ((data as any)[wrapper]) {
                         const wKeys = Object.keys((data as any)[wrapper]);
-                        const wQualKeys = wKeys.filter(k => k.toLowerCase().includes('qual'));
+                        const wQualKeys = wKeys.filter((k) => k.toLowerCase().includes('qual'));
                         if (wQualKeys.length > 0) console.log(`📡 [HOOK - ById] Found qualification keys inside '${wrapper}':`, wQualKeys);
                     }
                 });
@@ -946,5 +946,3 @@ export function useEmployeeEarningsDeductions(hrme_id: number | null) {
         enabled: !!hrme_id && hrme_id > 0
     });
 }
-
-

@@ -5,10 +5,10 @@ import { DateField } from '@/components/ui/dateField';
 import { InputText } from '@/components/ui/extension/input-text';
 import { useMasterLeaveYear } from '@/hooks/hrms/useMasters';
 import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
-import { format } from 'date-fns';
 import { addOrUpdateMasterLeaveYear } from '@/server/hrms/hrmsConfig/master/leave-year';
 import type { IMasterLeaveYearList } from '@/types/hrms/hrms-config/master';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm, useWatch } from 'react-hook-form';
@@ -67,17 +67,17 @@ export default function UpdateLeaveYearForm({ onSuccess, className = '', selecte
 
     useEffect(() => {
         // Only automatically populate if the user types a new valid year.
-        // It won't overwrite the initial row data because the initial set is done via reset(), 
+        // It won't overwrite the initial row data because the initial set is done via reset(),
         // and if it's the exact same year, it may re-set the same dates or we can just let it run.
         if (leaveYear && leaveYear.length === 4 && !isNaN(Number(leaveYear))) {
-            const year = parseInt(leaveYear, 10);
+            const year = Number.parseInt(leaveYear, 10);
             const fromD = new Date(year, 0, 1);
             fromD.setHours(12, 0, 0, 0); // avoid timezone shifts
             const toD = new Date(year, 11, 31);
             toD.setHours(12, 0, 0, 0);
 
             // only set it if it's changing the value, to avoid marking as dirty unnecessarily,
-            // though setValue should be okay. 
+            // though setValue should be okay.
             // We'll just run it as requested.
             setValue('hrmlY_FromDate', fromD.toISOString(), { shouldValidate: true });
             setValue('hrmlY_ToDate', toD.toISOString(), { shouldValidate: true });
@@ -123,7 +123,7 @@ export default function UpdateLeaveYearForm({ onSuccess, className = '', selecte
         reset();
     };
 
-    const yearLimit = leaveYear && leaveYear.length === 4 && !isNaN(Number(leaveYear)) ? parseInt(leaveYear, 10) : undefined;
+    const yearLimit = leaveYear && leaveYear.length === 4 && !isNaN(Number(leaveYear)) ? Number.parseInt(leaveYear, 10) : undefined;
     const minYearDate = yearLimit ? new Date(yearLimit, 0, 1) : undefined;
     const maxYearDate = yearLimit ? new Date(yearLimit, 11, 31) : undefined;
 

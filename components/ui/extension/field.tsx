@@ -30,7 +30,7 @@ interface LabelProps extends AriaLabelProps {
 const Label = ({ className, isRequired, children, ...props }: LabelProps) => (
     <AriaLabel className={cn(labelVariants(), className)} {...props}>
         {children}
-        {isRequired && <span className="text-destructive ml-1">*</span>}
+        {isRequired && <span className='ml-1 text-destructive'>*</span>}
     </AriaLabel>
 );
 
@@ -64,7 +64,7 @@ const fieldGroupVariants = cva('', {
     }
 });
 
-interface GroupProps extends AriaGroupProps, VariantProps<typeof fieldGroupVariants> { }
+interface GroupProps extends AriaGroupProps, VariantProps<typeof fieldGroupVariants> {}
 
 function FieldGroup({ className, variant, ...props }: GroupProps) {
     return (

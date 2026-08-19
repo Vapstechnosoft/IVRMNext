@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-import { ttMonthEndReportSchema } from '@/schemas/timetable/reports';
+import type { ttMonthEndReportSchema } from '@/schemas/timetable/reports';
 import { getTTMonthEndReport, getTTMonthEndReportDetails } from '@/server/timetable/reports/ttmonthendreport';
 
 import ReportChart from './_components/report-chart';
@@ -57,9 +57,9 @@ export default function TTMonthEndReportPage() {
                 const rawData: any = response.data?.data || response.data || response;
 
                 if (rawData) {
-                    const acdlist = Array.isArray(rawData) ? rawData : (rawData.acdlist || rawData.academicYears || []);
-                    
-                    let monthlist = Array.isArray(rawData) ? [] : (rawData.monthlist || rawData.months || []);
+                    const acdlist = Array.isArray(rawData) ? rawData : rawData.acdlist || rawData.academicYears || [];
+
+                    let monthlist = Array.isArray(rawData) ? [] : rawData.monthlist || rawData.months || [];
                     if (!monthlist || monthlist.length === 0) {
                         monthlist = [
                             { ivrM_Month_Id: 4, ivrM_Month_Name: 'April' },

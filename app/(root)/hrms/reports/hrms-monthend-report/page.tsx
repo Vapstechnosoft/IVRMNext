@@ -3,32 +3,35 @@
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Input } from '@/components/ui/input';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import {
-    useReportDepartments,
-    useReportDesignations,
-    useReportGroupTypes,
-    useMonthEndReport
-} from '@/hooks/hrms/useReports';
 import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
-import { Loader2, Search, Printer, X } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { toast } from 'sonner';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis, Cell } from 'recharts';
-import { format } from 'date-fns';
+import { useMonthEndReport, useReportDepartments, useReportDesignations, useReportGroupTypes } from '@/hooks/hrms/useReports';
 import { getMasterInstitution } from '@/server/hrms/master-dropdown';
 import type { Institution } from '@/types/exam/exam-module/report';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import { Loader2, Printer, Search, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { Bar, BarChart, CartesianGrid, Cell, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { toast } from 'sonner';
+import * as z from 'zod';
 
 const MONTH_LIST = [
-    { id: 1, name: 'January' }, { id: 2, name: 'February' }, { id: 3, name: 'March' },
-    { id: 4, name: 'April' }, { id: 5, name: 'May' }, { id: 6, name: 'June' },
-    { id: 7, name: 'July' }, { id: 8, name: 'August' }, { id: 9, name: 'September' },
-    { id: 10, name: 'October' }, { id: 11, name: 'November' }, { id: 12, name: 'December' }
+    { id: 1, name: 'January' },
+    { id: 2, name: 'February' },
+    { id: 3, name: 'March' },
+    { id: 4, name: 'April' },
+    { id: 5, name: 'May' },
+    { id: 6, name: 'June' },
+    { id: 7, name: 'July' },
+    { id: 8, name: 'August' },
+    { id: 9, name: 'September' },
+    { id: 10, name: 'October' },
+    { id: 11, name: 'November' },
+    { id: 12, name: 'December' }
 ];
 
 const MonthEndReportSchema = z.object({
@@ -86,8 +89,13 @@ export default function HRMSMonthEndReportPage() {
     const watchedDepartments = watch('department');
 
     const { data: groupTypesData, isLoading: groupTypesLoading } = useReportGroupTypes();
-    const { data: departmentsData, isLoading: departmentsLoading } = useReportDepartments((Array.isArray(watchedGroupTypes) ? watchedGroupTypes : []).join(','));
-    const { data: designationsData, isLoading: designationsLoading } = useReportDesignations((Array.isArray(watchedGroupTypes) ? watchedGroupTypes : []).join(','), (Array.isArray(watchedDepartments) ? watchedDepartments : []).join(','));
+    const { data: departmentsData, isLoading: departmentsLoading } = useReportDepartments(
+        (Array.isArray(watchedGroupTypes) ? watchedGroupTypes : []).join(',')
+    );
+    const { data: designationsData, isLoading: designationsLoading } = useReportDesignations(
+        (Array.isArray(watchedGroupTypes) ? watchedGroupTypes : []).join(','),
+        (Array.isArray(watchedDepartments) ? watchedDepartments : []).join(',')
+    );
     const { data: yearsData, isLoading: yearsLoading } = useLeaveYearDropdown();
 
     const { mutate: generateReport, isPending: isSearching } = useMonthEndReport();
@@ -102,23 +110,26 @@ export default function HRMSMonthEndReportPage() {
             ieName: data.ieName
         });
 
-        generateReport({
-            hreS_Year: Number(yearStr),
-            hreS_Month: data.month,
-            hrmd_ids: (data.department || []).map(Number),
-            hrmgt_ids: (data.groupType || []).map(Number),
-            hrmdes_ids: (data.designation || []).map(Number)
-        }, {
-            onSuccess: (res) => {
-                if (res.success && res.data) {
-                    setReportData(res.data);
-                    toast.success('Report generated successfully');
-                } else {
-                    toast.error(res.message || 'No data found');
-                    setReportData(null);
+        generateReport(
+            {
+                hreS_Year: Number(yearStr),
+                hreS_Month: data.month,
+                hrmd_ids: (data.department || []).map(Number),
+                hrmgt_ids: (data.groupType || []).map(Number),
+                hrmdes_ids: (data.designation || []).map(Number)
+            },
+            {
+                onSuccess: (res) => {
+                    if (res.success && res.data) {
+                        setReportData(res.data);
+                        toast.success('Report generated successfully');
+                    } else {
+                        toast.error(res.message || 'No data found');
+                        setReportData(null);
+                    }
                 }
             }
-        });
+        );
     };
 
     const handleReset = () => {
@@ -297,25 +308,33 @@ export default function HRMSMonthEndReportPage() {
         }
     };
 
-    const chartData = reportData ? [
-        { name: 'workingEmployee', count: reportData.workingEmployeeCount || 0, color: '#36a2b5' },
-        { name: 'leftEmployee', count: reportData.leftEmployeeCount || 0, color: '#be4a41' },
-        { name: 'newEmployee', count: reportData.newEmployeeCount || 0, color: '#cccccc' },
-        { name: 'salaryGenerated', count: reportData.salaryGenerated || 0, color: '#94bc02' },
-        { name: 'salaryslipGenerated', count: reportData.salarySlipGenerated || 0, color: '#a8d4d4' }
-    ] : [];
+    const chartData = reportData
+        ? [
+              { name: 'workingEmployee', count: reportData.workingEmployeeCount || 0, color: '#36a2b5' },
+              { name: 'leftEmployee', count: reportData.leftEmployeeCount || 0, color: '#be4a41' },
+              { name: 'newEmployee', count: reportData.newEmployeeCount || 0, color: '#cccccc' },
+              { name: 'salaryGenerated', count: reportData.salaryGenerated || 0, color: '#94bc02' },
+              { name: 'salaryslipGenerated', count: reportData.salarySlipGenerated || 0, color: '#a8d4d4' }
+          ]
+        : [];
 
     return (
-        <div className='container min-h-screen space-y-6 p-4 max-w-7xl mx-auto'>
+        <div className='container mx-auto min-h-screen max-w-7xl space-y-6 p-4'>
             {/* <div className='flex items-center justify-between print:hidden'>
                 <h2 className='text-3xl font-bold tracking-tight'>HRMS Month End Report</h2>
             </div> */}
 
-            <CollapsibleSection title='Report Criteria' defaultOpen={true} variant='outline' className='shadow-md border-primary/20 bg-card/50 backdrop-blur-sm print:hidden'>
+            <CollapsibleSection
+                title='Report Criteria'
+                defaultOpen={true}
+                variant='outline'
+                className='border-primary/20 bg-card/50 shadow-md backdrop-blur-sm print:hidden'>
                 <form onSubmit={handleSubmit(onSearch)} className='space-y-6'>
                     <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
                         <div className='space-y-2'>
-                            <Label>Group Type <span className='text-destructive'>*</span></Label>
+                            <Label>
+                                Group Type <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 key={resetKey}
                                 name='groupType'
@@ -337,7 +356,9 @@ export default function HRMSMonthEndReportPage() {
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>Department <span className='text-destructive'>*</span></Label>
+                            <Label>
+                                Department <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 key={resetKey}
                                 name='department'
@@ -359,7 +380,9 @@ export default function HRMSMonthEndReportPage() {
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>Designation <span className='text-destructive'>*</span></Label>
+                            <Label>
+                                Designation <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 key={resetKey}
                                 name='designation'
@@ -381,7 +404,9 @@ export default function HRMSMonthEndReportPage() {
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>Year <span className='text-destructive'>*</span></Label>
+                            <Label>
+                                Year <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 key={resetKey}
                                 name='year'
@@ -405,7 +430,9 @@ export default function HRMSMonthEndReportPage() {
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>Month <span className='text-destructive'>*</span></Label>
+                            <Label>
+                                Month <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 key={resetKey}
                                 name='month'
@@ -429,21 +456,24 @@ export default function HRMSMonthEndReportPage() {
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>IE Name <span className='text-destructive'>*</span></Label>
+                            <Label>
+                                IE Name <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 key={resetKey}
                                 name='ieName'
                                 control={control}
-                                render={({ field }) => (
-                                    <Input {...field} placeholder='Enter IE Name' maxLength={30} />
-                                )}
+                                render={({ field }) => <Input {...field} placeholder='Enter IE Name' maxLength={30} />}
                             />
                             {errors.ieName && <FormError>{errors.ieName.message}</FormError>}
                         </div>
                     </div>
 
                     <div className='flex justify-center gap-3'>
-                        <Button type='submit' disabled={isSearching} className='bg-primary hover:bg-primary/90 transition-all duration-200 shadow-md'>
+                        <Button
+                            type='submit'
+                            disabled={isSearching}
+                            className='bg-primary shadow-md transition-all duration-200 hover:bg-primary/90'>
                             {isSearching ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
                             Search
                         </Button>
@@ -457,29 +487,21 @@ export default function HRMSMonthEndReportPage() {
 
             {reportData && (
                 <CollapsibleSection title='HRMS MonthEnd Report' defaultOpen={true}>
-                        <div className='flex justify-end gap-3 print:hidden mb-4'>
-                            <Button
-                                variant='default'
-                                onClick={handlePrint}
-                                className='gap-2 w-40 transition-transform hover:scale-105'
-                            >
-                                <Printer className='h-4 w-4' />
-                                Print
-                            </Button>
-                            <Button
-                                variant='outline'
-                                onClick={() => setReportData(null)}
-                                className='gap-2 w-fit'
-                            >
-                                <X className='h-4 w-4' />
-                                Close Report
-                            </Button>
-                        </div>
-                    <div className='space-y-6 animate-in fade-in duration-500'>
+                    <div className='mb-4 flex justify-end gap-3 print:hidden'>
+                        <Button variant='default' onClick={handlePrint} className='w-40 gap-2 transition-transform hover:scale-105'>
+                            <Printer className='h-4 w-4' />
+                            Print
+                        </Button>
+                        <Button variant='outline' onClick={() => setReportData(null)} className='w-fit gap-2'>
+                            <X className='h-4 w-4' />
+                            Close Report
+                        </Button>
+                    </div>
+                    <div className='fade-in animate-in space-y-6 duration-500'>
                         {/* Print Preview Header (Only visible on screen, matching legacy feel) */}
 
                         {/* Printable Report Content */}
-                        <div ref={printRef} className='bg-white p-6 rounded-lg shadow-sm border overflow-x-auto text-black '>
+                        <div ref={printRef} className='overflow-x-auto rounded-lg border bg-white p-6 text-black shadow-sm '>
                             <div className='space-y-4'>
                                 {/* Institution Logo & Name */}
                                 <div className='flex justify-center'>
@@ -487,17 +509,16 @@ export default function HRMSMonthEndReportPage() {
                                         <img
                                             src={institution.mI_Logo}
                                             alt='Institution Logo'
-                                            className='max-h-[200px] object-contain mb-2'
+                                            className='mb-2 max-h-[200px] object-contain'
                                         />
                                     )}
-
                                 </div>
 
-                                <h2 className='text-xl font-bold text-center underline uppercase mb-4'>
+                                <h2 className='mb-4 text-center font-bold text-xl uppercase underline'>
                                     HRMS Month End Report of {selectedFilters.month} - {selectedFilters.year}
                                 </h2>
 
-                                <table className='w-full border-collapse border border-gray-400 mb-6'>
+                                <table className='mb-6 w-full border-collapse border border-gray-400'>
                                     <thead>
                                         <tr>
                                             <th className='border border-gray-400 bg-gray-50 p-2 text-center uppercase' colSpan={2}>
@@ -507,33 +528,45 @@ export default function HRMSMonthEndReportPage() {
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td className='border border-gray-400 bg-gray-50 p-2 font-bold w-1/3 text-left'>Name</td>
+                                            <td className='w-1/3 border border-gray-400 bg-gray-50 p-2 text-left font-bold'>Name</td>
                                             <td className='border border-gray-400 p-2 text-left'>{selectedFilters.ieName}</td>
                                         </tr>
                                         <tr>
-                                            <td className='border border-gray-400 bg-gray-50 p-2 font-bold text-left'>Date</td>
+                                            <td className='border border-gray-400 bg-gray-50 p-2 text-left font-bold'>Date</td>
                                             <td className='border border-gray-400 p-2 text-left'>{format(new Date(), 'dd-MM-yyyy')}</td>
                                         </tr>
                                         <tr>
-                                            <td className='border border-gray-400 bg-gray-50 p-2 font-bold text-left'>Designation</td>
+                                            <td className='border border-gray-400 bg-gray-50 p-2 text-left font-bold'>Designation</td>
                                             <td className='border border-gray-400 p-2 text-left'>Implementation Engineer</td>
                                         </tr>
                                         <tr>
-                                            <td className='border border-gray-400 bg-gray-50 p-2 font-bold text-left'>Module Name</td>
+                                            <td className='border border-gray-400 bg-gray-50 p-2 text-left font-bold'>Module Name</td>
                                             <td className='border border-gray-400 p-2 text-left'>HRMS</td>
                                         </tr>
                                     </tbody>
                                 </table>
 
-                                <table className='w-full border-collapse border border-gray-400 mt-6'>
+                                <table className='mt-6 w-full border-collapse border border-gray-400'>
                                     <thead>
                                         <tr className='bg-gray-100'>
-                                            <th className='border border-gray-400 p-2' rowSpan={2}>Sno</th>
-                                            <th className='border border-gray-400 p-2' rowSpan={2}>Description</th>
-                                            <th className='border border-gray-400 p-2' rowSpan={2}>Count</th>
-                                            <th className='border border-gray-400 p-2' rowSpan={2}>SMS</th>
-                                            <th className='border border-gray-400 p-2' rowSpan={2}>Email</th>
-                                            <th className='border border-gray-400 p-2 text-center font-bold' colSpan={3}>Missing Details</th>
+                                            <th className='border border-gray-400 p-2' rowSpan={2}>
+                                                Sno
+                                            </th>
+                                            <th className='border border-gray-400 p-2' rowSpan={2}>
+                                                Description
+                                            </th>
+                                            <th className='border border-gray-400 p-2' rowSpan={2}>
+                                                Count
+                                            </th>
+                                            <th className='border border-gray-400 p-2' rowSpan={2}>
+                                                SMS
+                                            </th>
+                                            <th className='border border-gray-400 p-2' rowSpan={2}>
+                                                Email
+                                            </th>
+                                            <th className='border border-gray-400 p-2 text-center font-bold' colSpan={3}>
+                                                Missing Details
+                                            </th>
                                         </tr>
                                         <tr className='bg-gray-100'>
                                             <th className='border border-gray-400 p-1 text-sm'>Photo</th>
@@ -619,14 +652,13 @@ export default function HRMSMonthEndReportPage() {
                                 </div>
 
                                 {/* Bar Chart Section */}
-                                <div className='mt-12 pt-8 border-t'>
-                                    <h3 className='text-center font-bold mb-6 uppercase text-sm tracking-widest'>HRMS Month End Report Chart</h3>
-                                    <div ref={chartRef} className='h-[400px] w-full border border-gray-200 p-6 rounded-sm bg-white'>
+                                <div className='mt-12 border-t pt-8'>
+                                    <h3 className='mb-6 text-center font-bold text-sm uppercase tracking-widest'>
+                                        HRMS Month End Report Chart
+                                    </h3>
+                                    <div ref={chartRef} className='h-[400px] w-full rounded-sm border border-gray-200 bg-white p-6'>
                                         <ResponsiveContainer width='100%' height='100%'>
-                                            <BarChart
-                                                data={chartData}
-                                                margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-                                            >
+                                            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
                                                 <CartesianGrid strokeDasharray='3 3' vertical={false} stroke='#e5e7eb' />
                                                 <XAxis
                                                     dataKey='name'
@@ -646,13 +678,11 @@ export default function HRMSMonthEndReportPage() {
                                                     align='center'
                                                     iconType='square'
                                                     iconSize={14}
-                                                    formatter={(value) => <span className='text-xs font-semibold text-gray-700 ml-1'>{value}</span>}
+                                                    formatter={(value) => (
+                                                        <span className='ml-1 font-semibold text-gray-700 text-xs'>{value}</span>
+                                                    )}
                                                 />
-                                                <Bar
-                                                    name='Count'
-                                                    dataKey='count'
-                                                    barSize={45}
-                                                >
+                                                <Bar name='Count' dataKey='count' barSize={45}>
                                                     {chartData.map((entry, index) => (
                                                         <Cell key={`cell-${index}`} fill={entry.color} />
                                                     ))}

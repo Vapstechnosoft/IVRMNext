@@ -1,6 +1,6 @@
 'use server';
 
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import { format } from 'date-fns';
 
@@ -37,7 +37,7 @@ export const getClassWiseDailyAttendanceReport = async (
 ): Promise<ApiResponse<any>> => {
     const fromDateStr = format(fromDate, 'yyyy-MM-dd');
     const url = `/ClassWiseDailyAttendance/Getdetailsreport?FromDate=${fromDateStr}&ASMS_Id=${asmS_Id}&ASMAY_Id=${asmaY_Id}&ASMCL_Id=${asmcL_Id}`;
-    
+
     return api.post('admission', url, {});
 };
 
@@ -64,5 +64,3 @@ export const sendClassWiseDailyAttendanceSMS = async (
 
     return api.post('admission', '/ClassWiseDailyAttendance/absentsendsms', payload);
 };
-
-

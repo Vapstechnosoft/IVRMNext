@@ -47,7 +47,14 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
         }
     });
 
-    const { setValue, watch, handleSubmit, formState: { isSubmitting }, control, reset } = form;
+    const {
+        setValue,
+        watch,
+        handleSubmit,
+        formState: { isSubmitting },
+        control,
+        reset
+    } = form;
     const asmaY_Id = watch('asmaY_Id');
     const ttfdsU_SUbSelcFlag = watch('ttfdsU_SUbSelcFlag');
 
@@ -157,8 +164,7 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
 
     const onSubmit = async (data: FixingDaySubjectSchema) => {
         try {
-
-            console.log("Payload sent to API:", data);   // 👈 payload
+            console.log('Payload sent to API:', data); // 👈 payload
 
             if (!data.ttfdsU_SUbSelcFlag) {
                 data.tempararyArrayList = [];
@@ -178,7 +184,7 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
 
             const res = await saveFixingDaySubject(data);
 
-            console.log("API Response:", res);
+            console.log('API Response:', res);
 
             if (res?.returnval === true || res?.success === true) {
                 toast.success(res.message);
@@ -187,7 +193,6 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
             } else {
                 toast.error(res.message);
             }
-
         } catch (error: any) {
             toast.error(error.message);
         }
@@ -206,12 +211,18 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
                         name='asmaY_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Academic Year <span className='text-red-500'>*</span></FormLabel>
+                                <FormLabel>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => handleAcademicYearChange(Number(v))}
                                     value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
                                     <SelectContent>
                                         {academicList?.map((item: any) => (
                                             <SelectItem key={item.asmaY_Id} value={item.asmaY_Id?.toString()}>
@@ -230,9 +241,18 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
                         name='ttmD_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Day <span className='text-red-500'>*</span></FormLabel>
-                                <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
+                                <FormLabel>
+                                    Day <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <Select
+                                    key={field.value?.toString() || 'empty'}
+                                    onValueChange={(v) => field.onChange(Number(v))}
+                                    value={field.value?.toString()}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
                                     <SelectContent>
                                         {dayList.map((item: any) => {
                                             const id = item.ttmD_Id ?? item.ttmd_id ?? item.TTMD_Id;
@@ -254,12 +274,18 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
                         name='ismS_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Subject <span className='text-red-500'>*</span></FormLabel>
+                                <FormLabel>
+                                    Subject <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => handleSubjectChange(Number(v))}
                                     value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
                                     <SelectContent>
                                         {subjectList
                                             .filter((item: any) => item.ismS_Id || item.isms_id || item.ISMS_Id)
@@ -301,12 +327,16 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
                         <h4 className='font-semibold'>Add Class Details</h4>
                         <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-5'>
                             <div className='space-y-2'>
-                                <FormLabel>Class <span className='text-red-500'>*</span></FormLabel>
+                                <FormLabel>
+                                    Class <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={selectedClass?.toString() || 'empty'}
                                     onValueChange={(v) => handleClassChange(Number(v))}
                                     value={selectedClass?.toString()}>
-                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select' />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {isClassLoading ? (
                                             <SelectItem value='loading'>Loading...</SelectItem>
@@ -322,15 +352,19 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
                                         )}
                                     </SelectContent>
                                 </Select>
-                                {gridErrors?.class && <p className='text-[0.8rem] font-medium text-destructive mt-1'>{gridErrors.class}</p>}
+                                {gridErrors?.class && <p className='mt-1 font-medium text-[0.8rem] text-destructive'>{gridErrors.class}</p>}
                             </div>
                             <div className='space-y-2'>
-                                <FormLabel>Section <span className='text-red-500'>*</span></FormLabel>
+                                <FormLabel>
+                                    Section <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={selectedSection?.toString() || 'empty'}
                                     onValueChange={(v) => handleSectionChange(Number(v))}
                                     value={selectedSection?.toString()}>
-                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select' />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {sectionList.map((item: any) => {
                                             const id = item.asmS_Id ?? item.asms_id ?? item.ASMS_Id;
@@ -342,15 +376,21 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
                                         })}
                                     </SelectContent>
                                 </Select>
-                                {gridErrors?.section && <p className='text-[0.8rem] font-medium text-destructive mt-1'>{gridErrors.section}</p>}
+                                {gridErrors?.section && (
+                                    <p className='mt-1 font-medium text-[0.8rem] text-destructive'>{gridErrors.section}</p>
+                                )}
                             </div>
                             <div className='space-y-2'>
-                                <FormLabel>Staff <span className='text-red-500'>*</span></FormLabel>
+                                <FormLabel>
+                                    Staff <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={selectedStaff?.toString() || 'empty'}
                                     onValueChange={(v) => setSelectedStaff(Number(v))}
                                     value={selectedStaff?.toString()}>
-                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select' />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {subStaffList.map((item: any) => {
                                             const id = item.hrmE_Id ?? item.hrme_id ?? item.HRME_Id;
@@ -362,13 +402,19 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
                                         })}
                                     </SelectContent>
                                 </Select>
-                                {gridErrors?.staff && <p className='text-[0.8rem] font-medium text-destructive mt-1'>{gridErrors.staff}</p>}
+                                {gridErrors?.staff && <p className='mt-1 font-medium text-[0.8rem] text-destructive'>{gridErrors.staff}</p>}
                             </div>
                             <div className='space-y-2'>
-                                <FormLabel>Periods <span className='text-red-500'>*</span></FormLabel>
-                                <Input type='number' value={nop} onChange={(e) => setNop(e.target.value)}
-                                    placeholder='Enter No Of Periods' />
-                                {gridErrors.nop && <p className='text-[0.8rem] font-medium text-destructive mt-1'>{gridErrors.nop}</p>}
+                                <FormLabel>
+                                    Periods <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <Input
+                                    type='number'
+                                    value={nop}
+                                    onChange={(e) => setNop(e.target.value)}
+                                    placeholder='Enter No Of Periods'
+                                />
+                                {gridErrors.nop && <p className='mt-1 font-medium text-[0.8rem] text-destructive'>{gridErrors.nop}</p>}
                             </div>
                         </div>
                         <Button type='button' onClick={addToGrid}>
@@ -390,4 +436,3 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
         </Form>
     );
 }
-

@@ -2,7 +2,6 @@
 
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
-import React from 'react';
 
 export default function SopiaExamReportTermExamView({ data }: { data: any }) {
     if (!data || !data.getstudentdetails || data.getstudentdetails.length === 0) {
@@ -68,7 +67,7 @@ export default function SopiaExamReportTermExamView({ data }: { data: any }) {
             `}</style>
 
             {/* Print Button */}
-            <div className='no-print flex justify-end pb-1 pr-4 pt-2'>
+            <div className='no-print flex justify-end pt-2 pr-4 pb-1'>
                 <Button onClick={handlePrint} size='sm' className='flex w-auto items-center gap-1 px-3 py-1 text-xs'>
                     <Printer className='h-3 w-3' /> Print
                 </Button>
@@ -76,25 +75,33 @@ export default function SopiaExamReportTermExamView({ data }: { data: any }) {
 
             <div id='sopia-print-area'>
                 {students.map((student: any, index: number) => (
-                    <div key={student.amsT_Id} className={index < students.length - 1 ? 'page-break' : ''} style={{ padding: '10px 20px', marginTop: '40px' }}>
+                    <div
+                        key={student.amsT_Id}
+                        className={index < students.length - 1 ? 'page-break' : ''}
+                        style={{ padding: '10px 20px', marginTop: '40px' }}>
                         {/* ── HEADER ── */}
                         <div style={{ position: 'relative', textAlign: 'center', marginBottom: '4px' }}>
-                             {institution.mI_Logo && (
-                                <img 
-                                    src={institution.mI_Logo} 
-                                    alt="School Logo" 
-                                    style={{ 
-                                        position: 'absolute', 
-                                        left: '50%', 
-                                        transform: 'translateX(-50%)', 
+                            {institution.mI_Logo && (
+                                <img
+                                    src={institution.mI_Logo}
+                                    alt='School Logo'
+                                    style={{
+                                        position: 'absolute',
+                                        left: '50%',
+                                        transform: 'translateX(-50%)',
                                         top: '-60px',
                                         maxHeight: '100px'
-                                    }} 
+                                    }}
                                 />
                             )}
-                            <br /><br /><br /><br />
+                            <br />
+                            <br />
+                            <br />
+                            <br />
                             <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{institution.mI_Name}</div>
-                            <div style={{ fontSize: '14px' }}>{institution.mI_Address1}, {institution.mI_Address2}, {institution.ivrmmcT_Name} - {institution.mI_Pincode}</div>
+                            <div style={{ fontSize: '14px' }}>
+                                {institution.mI_Address1}, {institution.mI_Address2}, {institution.ivrmmcT_Name} - {institution.mI_Pincode}
+                            </div>
                             <div style={{ fontWeight: 'bold', textAlign: 'center', marginTop: '10px' }}>PROMOTION REPORT</div>
                             <div style={{ position: 'absolute', top: 50, right: 0 }}>2025-2026</div>
                         </div>
@@ -113,7 +120,9 @@ export default function SopiaExamReportTermExamView({ data }: { data: any }) {
                                                 </div>
                                                 <div style={{ display: 'flex', lineHeight: '1.6' }}>
                                                     <div style={{ width: '35%' }}>Class &amp; Division</div>
-                                                    <div style={{ marginLeft: '-5%' }}>: {student.className} {student.sectionName}</div>
+                                                    <div style={{ marginLeft: '-5%' }}>
+                                                        : {student.className} {student.sectionName}
+                                                    </div>
                                                 </div>
                                                 <div style={{ display: 'flex', lineHeight: '1.6' }}>
                                                     <div style={{ width: '35%' }}>Date of Birth</div>
@@ -136,7 +145,9 @@ export default function SopiaExamReportTermExamView({ data }: { data: any }) {
                                                 </div>
                                                 <div style={{ display: 'flex', lineHeight: '1.6' }}>
                                                     <div style={{ width: '60%' }}>Attendance</div>
-                                                    <div>: {student.presentDays || '-'}/{student.totalWorkingDays || '-'}</div>
+                                                    <div>
+                                                        : {student.presentDays || '-'}/{student.totalWorkingDays || '-'}
+                                                    </div>
                                                 </div>
                                                 <div style={{ display: 'flex', lineHeight: '1.6' }}>
                                                     <div style={{ width: '60%' }}>Attendance %</div>
@@ -154,18 +165,59 @@ export default function SopiaExamReportTermExamView({ data }: { data: any }) {
                             {/* Header */}
                             <tbody className='table-bordered'>
                                 <tr>
-                                    <td rowSpan={2} width='20' style={{ textAlign: 'center', height: '40px', fontWeight: 'bold' }}>Sl.No</td>
-                                    <td width='400' rowSpan={2} style={{ textAlign: 'center', height: '40px', fontWeight: 'bold' }}>Subjects</td>
-                                    <td colSpan={3} style={{ textAlign: 'center', height: '40px', fontWeight: 'bold', verticalAlign: 'bottom', paddingBottom: '0' }}>Marks</td>
-                                    <td colSpan={2} style={{ textAlign: 'center', fontWeight: 'bold', verticalAlign: 'bottom', paddingBottom: '0' }}>Highest</td>
-                                    <td colSpan={2} style={{ textAlign: 'center', fontWeight: 'bold', verticalAlign: 'bottom', paddingBottom: '0' }}>Average</td>
-                                    <td colSpan={2} style={{ textAlign: 'center', fontWeight: 'bold', verticalAlign: 'bottom', paddingBottom: '0' }}>Position</td>
-                                    <td width='180' rowSpan={2} style={{ textAlign: 'center', height: '40px', fontWeight: 'bold' }}>Percentile</td>
-                                    <td width='180' rowSpan={2} style={{ textAlign: 'center', height: '40px', fontWeight: 'bold' }}>Remarks</td>
+                                    <td rowSpan={2} width='20' style={{ textAlign: 'center', height: '40px', fontWeight: 'bold' }}>
+                                        Sl.No
+                                    </td>
+                                    <td width='400' rowSpan={2} style={{ textAlign: 'center', height: '40px', fontWeight: 'bold' }}>
+                                        Subjects
+                                    </td>
+                                    <td
+                                        colSpan={3}
+                                        style={{
+                                            textAlign: 'center',
+                                            height: '40px',
+                                            fontWeight: 'bold',
+                                            verticalAlign: 'bottom',
+                                            paddingBottom: '0'
+                                        }}>
+                                        Marks
+                                    </td>
+                                    <td
+                                        colSpan={2}
+                                        style={{ textAlign: 'center', fontWeight: 'bold', verticalAlign: 'bottom', paddingBottom: '0' }}>
+                                        Highest
+                                    </td>
+                                    <td
+                                        colSpan={2}
+                                        style={{ textAlign: 'center', fontWeight: 'bold', verticalAlign: 'bottom', paddingBottom: '0' }}>
+                                        Average
+                                    </td>
+                                    <td
+                                        colSpan={2}
+                                        style={{ textAlign: 'center', fontWeight: 'bold', verticalAlign: 'bottom', paddingBottom: '0' }}>
+                                        Position
+                                    </td>
+                                    <td width='180' rowSpan={2} style={{ textAlign: 'center', height: '40px', fontWeight: 'bold' }}>
+                                        Percentile
+                                    </td>
+                                    <td width='180' rowSpan={2} style={{ textAlign: 'center', height: '40px', fontWeight: 'bold' }}>
+                                        Remarks
+                                    </td>
                                 </tr>
                                 <tr>
                                     {['Max', 'Min', 'Obtained', 'Std.', 'Div.', 'Std.', 'Div.', 'Std.', 'Div.'].map((h, i) => (
-                                        <td key={i} width='70' style={{ textAlign: 'center', height: '40px', fontWeight: 'bold', verticalAlign: 'bottom', paddingBottom: '0' }}>{h}</td>
+                                        <td
+                                            key={i}
+                                            width='70'
+                                            style={{
+                                                textAlign: 'center',
+                                                height: '40px',
+                                                fontWeight: 'bold',
+                                                verticalAlign: 'bottom',
+                                                paddingBottom: '0'
+                                            }}>
+                                            {h}
+                                        </td>
                                     ))}
                                 </tr>
                             </tbody>
@@ -176,11 +228,17 @@ export default function SopiaExamReportTermExamView({ data }: { data: any }) {
                                 .map((r: any, rIdx: number) => (
                                     <tbody key={rIdx}>
                                         <tr style={{ lineHeight: '0.5em', height: '1em' }}>
-                                            <td style={{ textAlign: 'center' }}><b>{rIdx + 1}</b></td>
-                                            <td style={{ textAlign: 'left' }}><b>{r.subjectName}</b></td>
+                                            <td style={{ textAlign: 'center' }}>
+                                                <b>{rIdx + 1}</b>
+                                            </td>
+                                            <td style={{ textAlign: 'left' }}>
+                                                <b>{r.subjectName}</b>
+                                            </td>
                                             <td style={{ textAlign: 'center' }}>{r.subjectMaxMarks}</td>
                                             <td style={{ textAlign: 'center' }}>{r.subjectMinMarks || '-'}</td>
-                                            <td style={{ textAlign: 'center' }}><b>{r.subjectObtainedMarks}</b></td>
+                                            <td style={{ textAlign: 'center' }}>
+                                                <b>{r.subjectObtainedMarks}</b>
+                                            </td>
                                             <td style={{ textAlign: 'center' }}>{r.stdHighest || '-'}</td>
                                             <td style={{ textAlign: 'center' }}>{r.divHighest || '-'}</td>
                                             <td style={{ textAlign: 'center' }}>{r.stdAverage || '-'}</td>
@@ -197,8 +255,16 @@ export default function SopiaExamReportTermExamView({ data }: { data: any }) {
                             <tbody>
                                 <tr style={{ height: '50px' }}>
                                     <td>&nbsp;</td>
-                                    <td style={{ textAlign: 'right' }}><b>&nbsp;</b></td>
-                                    {Array(11).fill(0).map((_, i) => <td key={i} style={{ textAlign: 'center' }}>&nbsp;</td>)}
+                                    <td style={{ textAlign: 'right' }}>
+                                        <b>&nbsp;</b>
+                                    </td>
+                                    {Array(11)
+                                        .fill(0)
+                                        .map((_, i) => (
+                                            <td key={i} style={{ textAlign: 'center' }}>
+                                                &nbsp;
+                                            </td>
+                                        ))}
                                 </tr>
                             </tbody>
 
@@ -206,7 +272,9 @@ export default function SopiaExamReportTermExamView({ data }: { data: any }) {
                             <tbody className='table-bordered' style={{ borderBottom: '1px solid black' }}>
                                 <tr style={{ height: '40px' }}>
                                     <td style={{ verticalAlign: 'bottom' }}>&nbsp;</td>
-                                    <td style={{ textAlign: 'right', verticalAlign: 'bottom' }}><b>TOTAL</b></td>
+                                    <td style={{ textAlign: 'right', verticalAlign: 'bottom' }}>
+                                        <b>TOTAL</b>
+                                    </td>
                                     <td style={{ textAlign: 'center', verticalAlign: 'bottom' }}>{student.overallMaxMarks || '-'}</td>
                                     <td style={{ textAlign: 'center', verticalAlign: 'bottom' }}>-</td>
                                     <td style={{ textAlign: 'center', verticalAlign: 'bottom' }}>{student.overallObtainedMarks || '-'}</td>
@@ -229,7 +297,9 @@ export default function SopiaExamReportTermExamView({ data }: { data: any }) {
                                             <td style={{ borderRight: '1px solid grey', textAlign: 'center' }}>&nbsp;</td>
                                             <td style={{ borderRight: '1px solid grey', textAlign: 'center' }}>&nbsp;</td>
                                             <td style={{ borderRight: '1px solid grey', textAlign: 'center' }}>{r.subjectGrade}</td>
-                                            <td style={{ borderRight: '1px solid grey' }} colSpan={8}>&nbsp;</td>
+                                            <td style={{ borderRight: '1px solid grey' }} colSpan={8}>
+                                                &nbsp;
+                                            </td>
                                         </tr>
                                     ))}
                             </tbody>
@@ -237,8 +307,20 @@ export default function SopiaExamReportTermExamView({ data }: { data: any }) {
 
                         {/* ── PERFORMANCE OF THE YEAR ── */}
                         <div style={{ marginTop: '6px' }}>
-                            <p style={{ textAlign: 'center', fontWeight: 'bold', marginBottom: '0', fontSize: '13px' }}>PERFORMANCE OF THE YEAR</p>
-                            <table style={{ width: '100%', border: '1px solid grey', borderTop: '1px solid black', borderLeft: '1px solid black', borderRight: '1px solid black', fontSize: '15px', borderCollapse: 'collapse', textAlign: 'center' }}>
+                            <p style={{ textAlign: 'center', fontWeight: 'bold', marginBottom: '0', fontSize: '13px' }}>
+                                PERFORMANCE OF THE YEAR
+                            </p>
+                            <table
+                                style={{
+                                    width: '100%',
+                                    border: '1px solid grey',
+                                    borderTop: '1px solid black',
+                                    borderLeft: '1px solid black',
+                                    borderRight: '1px solid black',
+                                    fontSize: '15px',
+                                    borderCollapse: 'collapse',
+                                    textAlign: 'center'
+                                }}>
                                 {/* Header */}
                                 <thead>
                                     <tr style={{ fontWeight: 'bold', borderBottom: '1px solid black', borderTop: '1px solid black' }}>
@@ -248,21 +330,46 @@ export default function SopiaExamReportTermExamView({ data }: { data: any }) {
                                         {scholasticData
                                             .filter((s: any) => s.amsT_Id === student.amsT_Id && s.subjectMaxMarks > 0)
                                             .map((s: any) => (
-                                                <td key={s.subjectName} style={{ border: '1px solid grey', fontSize: '10px' }}>{s.subjectName.substring(0, 4).toUpperCase()}</td>
+                                                <td key={s.subjectName} style={{ border: '1px solid grey', fontSize: '10px' }}>
+                                                    {s.subjectName.substring(0, 4).toUpperCase()}
+                                                </td>
                                             ))}
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {/* Group performance marks by exam */}
-                                    {Array.from(new Set(performanceMarks.filter((pm: any) => pm.amsT_Id === student.amsT_Id).map((pm: any) => pm.emE_ExamName))).map((examName: any, eIdx: number) => {
-                                        const examMarks = performanceMarks.filter((pm: any) => pm.amsT_Id === student.amsT_Id && pm.emE_ExamName === examName);
+                                    {Array.from(
+                                        new Set(
+                                            performanceMarks
+                                                .filter((pm: any) => pm.amsT_Id === student.amsT_Id)
+                                                .map((pm: any) => pm.emE_ExamName)
+                                        )
+                                    ).map((examName: any, eIdx: number) => {
+                                        const examMarks = performanceMarks.filter(
+                                            (pm: any) => pm.amsT_Id === student.amsT_Id && pm.emE_ExamName === examName
+                                        );
                                         const weight = examMarks[0]?.empS_ConvertForMarks || '';
-                                        
+
                                         return (
                                             <tr key={eIdx}>
-                                                <td style={{ border: '1px solid grey', borderBottom: 'none', borderTop: 'none' }}>{eIdx + 1}</td>
-                                                <td style={{ textAlign: 'left', border: '1px solid grey', borderBottom: 'none', borderTop: 'none', padding: '0 10px' }}>
-                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                                                <td style={{ border: '1px solid grey', borderBottom: 'none', borderTop: 'none' }}>
+                                                    {eIdx + 1}
+                                                </td>
+                                                <td
+                                                    style={{
+                                                        textAlign: 'left',
+                                                        border: '1px solid grey',
+                                                        borderBottom: 'none',
+                                                        borderTop: 'none',
+                                                        padding: '0 10px'
+                                                    }}>
+                                                    <div
+                                                        style={{
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            alignItems: 'center',
+                                                            width: '100%'
+                                                        }}>
                                                         <span>{examName}</span>
                                                         <span>{weight}</span>
                                                     </div>
@@ -272,7 +379,13 @@ export default function SopiaExamReportTermExamView({ data }: { data: any }) {
                                                     .map((s: any) => {
                                                         const mark = examMarks.find((pm: any) => pm.ismS_SubjectName === s.subjectName);
                                                         return (
-                                                            <td key={s.subjectName} style={{ border: '1px solid grey', borderBottom: 'none', borderTop: 'none' }}>
+                                                            <td
+                                                                key={s.subjectName}
+                                                                style={{
+                                                                    border: '1px solid grey',
+                                                                    borderBottom: 'none',
+                                                                    borderTop: 'none'
+                                                                }}>
                                                                 {mark ? mark.obtainedMarks : '-'}
                                                             </td>
                                                         );
@@ -288,7 +401,8 @@ export default function SopiaExamReportTermExamView({ data }: { data: any }) {
                                 <tbody>
                                     <tr style={{ height: '60px', borderTop: 'none', verticalAlign: 'top' }}>
                                         <td style={{ padding: '4px 6px' }}>
-                                            Teacher&apos;s Remarks : <strong>{remarksData.find((r: any) => r.amsT_Id === student.amsT_Id)?.remarks || ''}</strong>
+                                            Teacher&apos;s Remarks :{' '}
+                                            <strong>{remarksData.find((r: any) => r.amsT_Id === student.amsT_Id)?.remarks || ''}</strong>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -299,7 +413,9 @@ export default function SopiaExamReportTermExamView({ data }: { data: any }) {
                                 <tbody>
                                     <tr style={{ height: '60px' }}>
                                         <td style={{ verticalAlign: 'bottom', textAlign: 'center', width: '33.33%' }}>
-                                            <div style={{ fontWeight: 'bold' }}>{classTeacherData[0]?.hrmE_EmployeeFirstName || 'CLASS TEACHER'}</div>
+                                            <div style={{ fontWeight: 'bold' }}>
+                                                {classTeacherData[0]?.hrmE_EmployeeFirstName || 'CLASS TEACHER'}
+                                            </div>
                                             <div>CLASS TEACHER</div>
                                         </td>
                                         <td style={{ verticalAlign: 'bottom', textAlign: 'center', width: '33.33%' }}>PRINCIPAL</td>

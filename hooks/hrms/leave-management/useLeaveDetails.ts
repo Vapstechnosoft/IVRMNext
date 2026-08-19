@@ -1,12 +1,12 @@
 'use client';
 
+import { addLeaveCredit, getOnloadGridLeaveCredit } from '@/server/hrms/leave-management/transactions/leave-details';
+import type { ApiSearchparams } from '@/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { getOnloadGridLeaveCredit, addLeaveCredit } from '@/server/hrms/leave-management/transactions/leave-details';
-import type { ApiSearchparams } from '@/types';
 
 const LEAVE_DETAILS_QUERY_KEYS = {
-    GRID: 'leave-details-grid',
+    GRID: 'leave-details-grid'
 };
 
 export const useLeaveDetailsGrid = (params?: ApiSearchparams) => {

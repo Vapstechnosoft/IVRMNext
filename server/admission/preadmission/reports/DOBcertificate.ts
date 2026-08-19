@@ -28,9 +28,7 @@ export async function getDobCertificateStudentList(data: {
     ASMC_Id: number;
 }) {
     // Keep URL format consistent with other report endpoints (see `custom_tc_report.ts`)
-    const url = withApiPrefix(
-        `/DOBcertificate/getstudbyclass?ASMAY_Id=${data.ASMAY_Id}&ASMCL_Id=${data.ASMCL_Id}&ASMC_Id=${data.ASMC_Id}`
-    );
+    const url = withApiPrefix(`/DOBcertificate/getstudbyclass?ASMAY_Id=${data.ASMAY_Id}&ASMCL_Id=${data.ASMCL_Id}&ASMC_Id=${data.ASMC_Id}`);
 
     // Some deployments expose this endpoint as GET, others as POST.
     // Our ApiService may throw a plain string without status, so fall back to POST on any GET failure.

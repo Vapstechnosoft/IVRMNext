@@ -59,12 +59,7 @@ export const masterVendorSchema = {
             .min(5, 'Email must be at least 5 characters')
             .email('Invalid email address'),
 
-        lmV_PhoneNo: z
-            .string()
-            .trim()
-            .optional()
-            .nullable()
-            .or(z.literal(''))
+        lmV_PhoneNo: z.string().trim().optional().nullable().or(z.literal(''))
     }),
 
     delete: z.object({
@@ -132,7 +127,11 @@ export const masterAuthorSchema = {
     addOrUpdate: z.object({
         lmaU_Id: z.number().nonnegative().optional(),
 
-        lmaU_AuthorFirstName: z.string({ required_error: 'Author Name is required' }).trim().min(2, 'Author Name must be at least 2 characters').max(100),
+        lmaU_AuthorFirstName: z
+            .string({ required_error: 'Author Name is required' })
+            .trim()
+            .min(2, 'Author Name must be at least 2 characters')
+            .max(100),
 
         lmaU_AuthorMiddleName: z.string().trim().optional().nullable().or(z.literal('')),
         lmaU_AuthorLastName: z.string().trim().optional().nullable().or(z.literal('')),
@@ -280,7 +279,9 @@ export const masterSubjectSchema = {
         lmS_SubjectName: z.string().optional(),
         lmS_ParentId: z.preprocess(
             (val) => (val === undefined || val === '' ? undefined : Number(val)),
-            z.number({ required_error: 'Please Select Parent Subject', invalid_type_error: 'Please Select Parent Subject' }).min(1, 'Please Select Parent Subject')
+            z
+                .number({ required_error: 'Please Select Parent Subject', invalid_type_error: 'Please Select Parent Subject' })
+                .min(1, 'Please Select Parent Subject')
         ),
         lmS_Level: z
             .string()

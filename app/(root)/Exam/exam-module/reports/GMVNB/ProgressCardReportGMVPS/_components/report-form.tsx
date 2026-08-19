@@ -1,22 +1,22 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { FormError, Label } from '@/components/ui/extension/field';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DateField } from '@/components/ui/dateField';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { z } from 'zod';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import {
     getClassDropDownByAcademicYearlist,
-    getSectionsDropDownByAcademicYearandClasslist,
+    getExamReportCard,
     getExamsDropDownByAcademicYearandClassandSectionlist,
-    getStudentsDropDownByAcademicYearandClassandSectionlist,
-    getExamReportCard
+    getSectionsDropDownByAcademicYearandClasslist,
+    getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/cumulative-report';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 
 const formSchema = z.object({
     ASMAY_Id: z.string().min(1, 'Academic Year is required'),
@@ -28,17 +28,13 @@ const formSchema = z.object({
 });
 
 type FormSchema = z.infer<typeof formSchema>;
-import { Loader2, RefreshCcw, FileText, Search } from 'lucide-react';
+import { FileText, Loader2, RefreshCcw, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 
 interface ReportFormProps {
-    onReportGenerated: (
-        data: any,
-        academicYear: string,
-        generatedDate?: Date
-    ) => void;
+    onReportGenerated: (data: any, academicYear: string, generatedDate?: Date) => void;
     onReset: () => void;
     onLoading?: (isLoading: boolean) => void;
 }
@@ -128,10 +124,7 @@ export const ReportForm = ({ onReportGenerated, onReset, onLoading }: ReportForm
             (async () => {
                 try {
                     setLoadingSections(true);
-                    const { data } = await getSectionsDropDownByAcademicYearandClasslist(
-                        Number(watchYear),
-                        Number(watchClass)
-                    );
+                    const { data } = await getSectionsDropDownByAcademicYearandClasslist(Number(watchYear), Number(watchClass));
                     setSections(data || []);
                 } catch (err) {
                     console.error(err);
@@ -193,7 +186,10 @@ export const ReportForm = ({ onReportGenerated, onReset, onLoading }: ReportForm
                     setStudents(mapped);
 
                     if (Array.isArray(mapped)) {
-                        setValue('selectedStudents', mapped.map((s: any) => String(s.amsT_Id)));
+                        setValue(
+                            'selectedStudents',
+                            mapped.map((s: any) => String(s.amsT_Id))
+                        );
                     }
                 } catch (err) {
                     console.error(err);
@@ -228,7 +224,7 @@ export const ReportForm = ({ onReportGenerated, onReset, onLoading }: ReportForm
             };
 
             const response = await getExamReportCard(payload);
-            console.log("GMVNB ProgressCardReportGMVPS response:", response);
+            console.log('GMVNB ProgressCardReportGMVPS response:', response);
 
             const flatRows = response?.data?.list || (Array.isArray(response?.data) ? response.data : []);
 
@@ -258,13 +254,14 @@ export const ReportForm = ({ onReportGenerated, onReset, onLoading }: ReportForm
         onReset();
     };
 
-    const filteredStudents = students.filter(s =>
-        (s.studentname || s.studentName)?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredStudents = students.filter((s) => (s.studentname || s.studentName)?.toLowerCase().includes(searchQuery.toLowerCase()));
 
     const toggleSelectAll = (checked: boolean) => {
         if (checked) {
-            setValue('selectedStudents', students.map(s => String(s.amsT_Id)));
+            setValue(
+                'selectedStudents',
+                students.map((s) => String(s.amsT_Id))
+            );
         } else {
             setValue('selectedStudents', []);
         }
@@ -272,39 +269,39 @@ export const ReportForm = ({ onReportGenerated, onReset, onLoading }: ReportForm
 
     if (loading) {
         return (
-            <div className="flex justify-center p-8">
-                <Loader2 className="animate-spin text-primary h-8 w-8" />
+            <div className='flex justify-center p-8'>
+                <Loader2 className='h-8 w-8 animate-spin text-primary' />
             </div>
         );
     }
 
     return (
-        <div className="w-full bg-white rounded-lg border border-gray-200 p-4 shadow-md transition-all duration-300 hover:shadow-lg">
-            <div className="mb-4 flex items-center justify-between border-b pb-2">
-                <h3 className="font-semibold text-gray-800 text-lg flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
+        <div className='w-full rounded-lg border border-gray-200 bg-white p-4 shadow-md transition-all duration-300 hover:shadow-lg'>
+            <div className='mb-4 flex items-center justify-between border-b pb-2'>
+                <h3 className='flex items-center gap-2 font-semibold text-gray-800 text-lg'>
+                    <FileText className='h-5 w-5' />
                     Progress Card Report
                 </h3>
             </div>
 
             <FormProvider {...methods}>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                    <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
                         {/* Left Column: Dropdowns */}
-                        <div className="space-y-4">
+                        <div className='space-y-4'>
                             {/* Academic Year */}
-                            <div className="space-y-2">
-                                <Label className="text-sm font-medium">
-                                    Academic Year <span className="text-red-500">*</span>
+                            <div className='space-y-2'>
+                                <Label className='font-medium text-sm'>
+                                    Academic Year <span className='text-red-500'>*</span>
                                 </Label>
                                 <Controller
                                     control={control}
-                                    name="ASMAY_Id"
+                                    name='ASMAY_Id'
                                     render={({ field, fieldState }) => (
                                         <>
                                             <Select onValueChange={field.onChange} value={field.value}>
-                                                <SelectTrigger className="w-full">
-                                                    <SelectValue placeholder="--Select--" />
+                                                <SelectTrigger className='w-full'>
+                                                    <SelectValue placeholder='--Select--' />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {years.map((year) => (
@@ -321,25 +318,24 @@ export const ReportForm = ({ onReportGenerated, onReset, onLoading }: ReportForm
                             </div>
 
                             {/* Class */}
-                            <div className="space-y-2">
-                                <Label className="text-sm font-medium">
-                                    Class <span className="text-red-500">*</span>
+                            <div className='space-y-2'>
+                                <Label className='font-medium text-sm'>
+                                    Class <span className='text-red-500'>*</span>
                                 </Label>
                                 <Controller
                                     control={control}
-                                    name="ASMCL_Id"
+                                    name='ASMCL_Id'
                                     render={({ field, fieldState }) => (
                                         <>
                                             <Select
                                                 onValueChange={field.onChange}
                                                 value={field.value}
-                                                disabled={!watchYear || loadingClasses}
-                                            >
-                                                <SelectTrigger className="w-full">
+                                                disabled={!watchYear || loadingClasses}>
+                                                <SelectTrigger className='w-full'>
                                                     {loadingClasses ? (
-                                                        <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                                                        <Loader2 className='mx-auto h-4 w-4 animate-spin' />
                                                     ) : (
-                                                        <SelectValue placeholder="--Select--" />
+                                                        <SelectValue placeholder='--Select--' />
                                                     )}
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -357,25 +353,24 @@ export const ReportForm = ({ onReportGenerated, onReset, onLoading }: ReportForm
                             </div>
 
                             {/* Section */}
-                            <div className="space-y-2">
-                                <Label className="text-sm font-medium">
-                                    Section <span className="text-red-500">*</span>
+                            <div className='space-y-2'>
+                                <Label className='font-medium text-sm'>
+                                    Section <span className='text-red-500'>*</span>
                                 </Label>
                                 <Controller
                                     control={control}
-                                    name="ASMS_Id"
+                                    name='ASMS_Id'
                                     render={({ field, fieldState }) => (
                                         <>
                                             <Select
                                                 onValueChange={field.onChange}
                                                 value={field.value}
-                                                disabled={!watchClass || loadingSections}
-                                            >
-                                                <SelectTrigger className="w-full">
+                                                disabled={!watchClass || loadingSections}>
+                                                <SelectTrigger className='w-full'>
                                                     {loadingSections ? (
-                                                        <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                                                        <Loader2 className='mx-auto h-4 w-4 animate-spin' />
                                                     ) : (
-                                                        <SelectValue placeholder="--Select--" />
+                                                        <SelectValue placeholder='--Select--' />
                                                     )}
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -393,25 +388,24 @@ export const ReportForm = ({ onReportGenerated, onReset, onLoading }: ReportForm
                             </div>
 
                             {/* Exam Name */}
-                            <div className="space-y-2">
-                                <Label className="text-sm font-medium">
-                                    Exam Name <span className="text-red-500">*</span>
+                            <div className='space-y-2'>
+                                <Label className='font-medium text-sm'>
+                                    Exam Name <span className='text-red-500'>*</span>
                                 </Label>
                                 <Controller
                                     control={control}
-                                    name="EME_Id"
+                                    name='EME_Id'
                                     render={({ field, fieldState }) => (
                                         <>
                                             <Select
                                                 onValueChange={field.onChange}
                                                 value={field.value}
-                                                disabled={!watchSection || loadingExams}
-                                            >
-                                                <SelectTrigger className="w-full">
+                                                disabled={!watchSection || loadingExams}>
+                                                <SelectTrigger className='w-full'>
                                                     {loadingExams ? (
-                                                        <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                                                        <Loader2 className='mx-auto h-4 w-4 animate-spin' />
                                                     ) : (
-                                                        <SelectValue placeholder="--Select--" />
+                                                        <SelectValue placeholder='--Select--' />
                                                     )}
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -427,124 +421,111 @@ export const ReportForm = ({ onReportGenerated, onReset, onLoading }: ReportForm
                                     )}
                                 />
                             </div>
- 
+
                             {/* Date Picker */}
-                            <div className="pt-4">
+                            <div className='pt-4'>
                                 <Controller
                                     control={control}
-                                    name="date"
+                                    name='date'
                                     render={({ field, fieldState }) => (
-                                        <DateField
-                                            field={field}
-                                            fieldState={fieldState}
-                                            label="Date"
-                                            placeholder="Select Date"
-                                        />
+                                        <DateField field={field} fieldState={fieldState} label='Date' placeholder='Select Date' />
                                     )}
                                 />
                             </div>
                         </div>
- 
+
                         {/* Right Column: Student Selection */}
-                        <div className="space-y-3 border rounded-lg p-4 bg-slate-50/50">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
+                        <div className='space-y-3 rounded-lg border bg-slate-50/50 p-4'>
+                            <div className='flex items-center justify-between'>
+                                <div className='flex items-center gap-2'>
                                     <Checkbox
-                                        id="selectAll"
+                                        id='selectAll'
                                         checked={students.length > 0 && watchSelectedStudents.length === students.length}
                                         onCheckedChange={(checked) => toggleSelectAll(!!checked)}
                                         disabled={students.length === 0}
                                     />
-                                    <Label htmlFor="selectAll" className="text-sm font-semibold cursor-pointer">
-                                        Student : <span className="text-destructive">*</span>
+                                    <Label htmlFor='selectAll' className='cursor-pointer font-semibold text-sm'>
+                                        Student : <span className='text-destructive'>*</span>
                                     </Label>
                                 </div>
-                                <div className="relative w-48">
-                                    <Search className="absolute left-2 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                                <div className='relative w-48'>
+                                    <Search className='absolute top-2.5 left-2 h-3.5 w-3.5 text-muted-foreground' />
                                     <Input
-                                        placeholder="search here..."
+                                        placeholder='search here...'
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="pl-8 h-8 text-xs font-normal"
+                                        className='h-8 pl-8 font-normal text-xs'
                                     />
                                 </div>
                             </div>
- 
-                            <ScrollArea className="h-[200px] w-full border rounded-md bg-white shadow-inner">
-                                <div className="p-2 space-y-1">
+
+                            <ScrollArea className='h-[200px] w-full rounded-md border bg-white shadow-inner'>
+                                <div className='space-y-1 p-2'>
                                     {loadingStudents ? (
-                                        <div className="flex flex-col items-center justify-center h-[180px] text-muted-foreground">
-                                            <Loader2 className="h-6 w-6 animate-spin mb-2" />
-                                            <span className="text-xs">Loading students...</span>
+                                        <div className='flex h-[180px] flex-col items-center justify-center text-muted-foreground'>
+                                            <Loader2 className='mb-2 h-6 w-6 animate-spin' />
+                                            <span className='text-xs'>Loading students...</span>
                                         </div>
                                     ) : students.length > 0 ? (
-                                        students.filter(s =>
-                                            (s.studentname || s.studentName || s.amsT_FirstName || '')
-                                                .toLowerCase()
-                                                .includes(searchQuery.toLowerCase())
-                                        ).map((student) => (
-                                            <div key={student.amsT_Id} className="flex items-center space-x-2 p-1.5 hover:bg-slate-50 rounded-sm transition-colors">
-                                                <Controller
-                                                    control={control}
-                                                    name="selectedStudents"
-                                                    render={({ field }) => (
-                                                        <Checkbox
-                                                            id={`student-${student.amsT_Id}`}
-                                                            checked={field.value?.includes(String(student.amsT_Id))}
-                                                            onCheckedChange={(checked) => {
-                                                                const current = field.value || [];
-                                                                const updated = checked
-                                                                    ? [...current, String(student.amsT_Id)]
-                                                                    : current.filter((id) => id !== String(student.amsT_Id));
-                                                                field.onChange(updated);
-                                                            }}
-                                                        />
-                                                    )}
-                                                />
-                                                <Label
-                                                    htmlFor={`student-${student.amsT_Id}`}
-                                                    className="text-xs font-medium cursor-pointer flex-1 py-1"
-                                                >
-                                                    {student.studentname || student.studentName || student.amsT_FirstName || 'Unknown'} {student.amsT_AdmNo ? `/ ${student.amsT_AdmNo}` : ''}
-                                                </Label>
-                                            </div>
-                                        ))
+                                        students
+                                            .filter((s) =>
+                                                (s.studentname || s.studentName || s.amsT_FirstName || '')
+                                                    .toLowerCase()
+                                                    .includes(searchQuery.toLowerCase())
+                                            )
+                                            .map((student) => (
+                                                <div
+                                                    key={student.amsT_Id}
+                                                    className='flex items-center space-x-2 rounded-sm p-1.5 transition-colors hover:bg-slate-50'>
+                                                    <Controller
+                                                        control={control}
+                                                        name='selectedStudents'
+                                                        render={({ field }) => (
+                                                            <Checkbox
+                                                                id={`student-${student.amsT_Id}`}
+                                                                checked={field.value?.includes(String(student.amsT_Id))}
+                                                                onCheckedChange={(checked) => {
+                                                                    const current = field.value || [];
+                                                                    const updated = checked
+                                                                        ? [...current, String(student.amsT_Id)]
+                                                                        : current.filter((id) => id !== String(student.amsT_Id));
+                                                                    field.onChange(updated);
+                                                                }}
+                                                            />
+                                                        )}
+                                                    />
+                                                    <Label
+                                                        htmlFor={`student-${student.amsT_Id}`}
+                                                        className='flex-1 cursor-pointer py-1 font-medium text-xs'>
+                                                        {student.studentname || student.studentName || student.amsT_FirstName || 'Unknown'}{' '}
+                                                        {student.amsT_AdmNo ? `/ ${student.amsT_AdmNo}` : ''}
+                                                    </Label>
+                                                </div>
+                                            ))
                                     ) : (
-                                        <div className="flex items-center justify-center h-[180px] text-muted-foreground text-xs italic">
-                                            {watchExam ? "No students found" : "Select Exam to load students"}
+                                        <div className='flex h-[180px] items-center justify-center text-muted-foreground text-xs italic'>
+                                            {watchExam ? 'No students found' : 'Select Exam to load students'}
                                         </div>
                                     )}
                                 </div>
                             </ScrollArea>
                             <Controller
                                 control={control}
-                                name="selectedStudents"
-                                render={({ fieldState }) => (
-                                    fieldState.error ? <FormError className="text-xs">{fieldState.error.message}</FormError> : <></>
-                                )}
+                                name='selectedStudents'
+                                render={({ fieldState }) =>
+                                    fieldState.error ? <FormError className='text-xs'>{fieldState.error.message}</FormError> : <></>
+                                }
                             />
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-center gap-4 pt-6 border-t">
-                        <Button
-                            type="submit"
-                            disabled={isSubmitting}
-                        >
-                            {isSubmitting ? (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                                <FileText className="mr-2 h-4 w-4" />
-                            )}
+                    <div className='flex items-center justify-center gap-4 border-t pt-6'>
+                        <Button type='submit' disabled={isSubmitting}>
+                            {isSubmitting ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <FileText className='mr-2 h-4 w-4' />}
                             REPORT
                         </Button>
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={handleClear}
-                            disabled={isSubmitting}
-                        >
-                            <RefreshCcw className="mr-2 h-4 w-4" />
+                        <Button type='button' variant='outline' onClick={handleClear} disabled={isSubmitting}>
+                            <RefreshCcw className='mr-2 h-4 w-4' />
                             CANCEL
                         </Button>
                     </div>

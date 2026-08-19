@@ -1,34 +1,26 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, Controller } from 'react-hook-form';
-import { useState, useMemo, useRef, useEffect } from 'react';
-import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { FileText, Printer, RotateCcw, X, Search, CheckSquare, Square, FileSpreadsheet } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import { FileSpreadsheet, FileText, Printer, X } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { useReactToPrint } from 'react-to-print';
+import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
 
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { DatePicker } from '@/components/ui/date-picker';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '@/components/ui/select';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { DatePicker } from '@/components/ui/date-picker';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-import { CategoryWiseAttendanceSchema } from '@/schemas/admission/preadmission/reports';
 import {
     useCategoryWiseAttendanceInitialDetails,
     useCategoryWiseAttendanceReport
 } from '@/hooks/admission/preadmission/useCategoryWiseAttendance';
+import { CategoryWiseAttendanceSchema } from '@/schemas/admission/preadmission/reports';
 import { CategoryWiseAttendancePrint } from './_components/category-wise-attendance-print';
 
 export default function CategoryWiseAttendancePage() {
@@ -72,27 +64,19 @@ export default function CategoryWiseAttendancePage() {
     const innerData = initialData?.data?.data || initialData?.data || initialData;
 
     const years = useMemo(() => {
-        return (
-            innerData?.academicList ||
-            innerData?.yearList ||
-            innerData?.academicYearList ||
-            innerData?.yearlist ||
-            []
-        );
+        return innerData?.academicList || innerData?.yearList || innerData?.academicYearList || innerData?.yearlist || [];
     }, [innerData]);
 
     const categories = useMemo(() => {
-        return (
-            innerData?.category_list ||
-            innerData?.categoryList ||
-            innerData?.categories ||
-            []
-        );
+        return innerData?.category_list || innerData?.categoryList || innerData?.categories || [];
     }, [innerData]);
 
     const categoryFlag = !!innerData?.categoryflag;
 
-    const logoUrl = (reportResponse?.data as any)?.logo?.[0]?.logo || (reportResponse?.data as any)?.AMC_logo?.[0]?.amC_FilePath || (initialData?.data as any)?.imgname;
+    const logoUrl =
+        (reportResponse?.data as any)?.logo?.[0]?.logo ||
+        (reportResponse?.data as any)?.AMC_logo?.[0]?.amC_FilePath ||
+        (initialData?.data as any)?.imgname;
 
     const selectedYearData = useMemo(() => {
         return years.find((y: any) => y.asmaY_Id === watchedYear);
@@ -114,8 +98,8 @@ export default function CategoryWiseAttendancePage() {
         if (yearStr) {
             const parts = yearStr.split('-');
             if (parts.length === 2) {
-                const startYear = parseInt(parts[0]);
-                const endYear = parseInt(parts[1]);
+                const startYear = Number.parseInt(parts[0]);
+                const endYear = Number.parseInt(parts[1]);
                 return {
                     min: new Date(startYear, 0, 1),
                     max: new Date(endYear, 11, 31)
@@ -126,9 +110,7 @@ export default function CategoryWiseAttendancePage() {
     }, [selectedYearData]);
 
     const filteredCategories = useMemo(() => {
-        return categories.filter((cat: any) =>
-            (cat.amC_Name || cat.amc_name || '').toLowerCase().includes(categorySearch.toLowerCase())
-        );
+        return categories.filter((cat: any) => (cat.amC_Name || cat.amc_name || '').toLowerCase().includes(categorySearch.toLowerCase()));
     }, [categories, categorySearch]);
 
     const reportData = useMemo(() => {
@@ -151,7 +133,10 @@ export default function CategoryWiseAttendancePage() {
 
     const handleSelectAllCategories = (checked: boolean) => {
         if (checked) {
-            setValue('categoryList', filteredCategories.map((c: any) => c.amC_Id));
+            setValue(
+                'categoryList',
+                filteredCategories.map((c: any) => c.amC_Id)
+            );
         } else {
             setValue('categoryList', []);
         }
@@ -237,11 +222,7 @@ export default function CategoryWiseAttendancePage() {
                 />
             ),
             cell: ({ row }: any) => (
-                <Checkbox
-                    checked={row.getIsSelected()}
-                    onCheckedChange={(value) => row.toggleSelected(!!value)}
-                    aria-label='Select row'
-                />
+                <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
             ),
             enableSorting: false,
             enableHiding: false,
@@ -338,8 +319,9 @@ export default function CategoryWiseAttendancePage() {
 
     return (
         <div className='container min-h-screen space-y-4 p-2'>
-            <style dangerouslySetInnerHTML={{
-                __html: `
+            <style
+                dangerouslySetInnerHTML={{
+                    __html: `
                 .vaps-table thead th {
                     background-color: #337ab7 !important;
                     color: white !important;
@@ -360,19 +342,20 @@ export default function CategoryWiseAttendancePage() {
                     text-transform: uppercase;
                 }
                 `
-            }} />
+                }}
+            />
 
-            <div className='bg-white shadow border border-t-4 border-t-[#3c8dbc] rounded-sm'>
-                <div className='p-3 border-b flex justify-between items-center'>
-                    <h3 className='text-sm font-bold uppercase'>Categorywise Attendance Report</h3>
+            <div className='rounded-sm border border-t-4 border-t-[#3c8dbc] bg-white shadow'>
+                <div className='flex items-center justify-between border-b p-3'>
+                    <h3 className='font-bold text-sm uppercase'>Categorywise Attendance Report</h3>
                 </div>
-                <form onSubmit={handleSubmit(onSubmit)} className='p-4 space-y-6'>
+                <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 p-4'>
                     {/* ... (existing form content) ... */}
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto'>
+                    <div className='mx-auto grid max-w-4xl grid-cols-1 gap-8 md:grid-cols-2'>
                         <div className='space-y-4'>
                             {/* Academic Year */}
                             <div className='space-y-2'>
-                                <Label className='flex items-center gap-1 text-[13px] font-bold'>
+                                <Label className='flex items-center gap-1 font-bold text-[13px]'>
                                     Academic Year <span className='text-red-500'>*</span>
                                 </Label>
                                 <Controller
@@ -381,9 +364,8 @@ export default function CategoryWiseAttendancePage() {
                                     render={({ field }) => (
                                         <Select
                                             onValueChange={(val) => field.onChange(Number(val))}
-                                            value={field.value ? field.value.toString() : ''}
-                                        >
-                                            <SelectTrigger className='w-full rounded-none h-9 border-gray-300'>
+                                            value={field.value ? field.value.toString() : ''}>
+                                            <SelectTrigger className='h-9 w-full rounded-none border-gray-300'>
                                                 <SelectValue placeholder='--Select--' />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -396,12 +378,12 @@ export default function CategoryWiseAttendancePage() {
                                         </Select>
                                     )}
                                 />
-                                {errors.asmaY_Id && <p className='text-xs text-red-500 font-medium'>{errors.asmaY_Id.message}</p>}
+                                {errors.asmaY_Id && <p className='font-medium text-red-500 text-xs'>{errors.asmaY_Id.message}</p>}
                             </div>
 
                             {/* Select Date */}
                             <div className='space-y-2'>
-                                <Label className='flex items-center gap-1 text-[13px] font-bold'>
+                                <Label className='flex items-center gap-1 font-bold text-[13px]'>
                                     Select Date <span className='text-red-500'>*</span>
                                 </Label>
                                 <Controller
@@ -411,13 +393,13 @@ export default function CategoryWiseAttendancePage() {
                                         <DatePicker
                                             date={field.value}
                                             setDate={field.onChange}
-                                            className='w-full rounded-none h-9 border-gray-300'
+                                            className='h-9 w-full rounded-none border-gray-300'
                                             fromDate={dateRestrictions.min}
                                             toDate={dateRestrictions.max}
                                         />
                                     )}
                                 />
-                                {errors.date && <p className='text-xs text-red-500 font-medium'>{errors.date.message}</p>}
+                                {errors.date && <p className='font-medium text-red-500 text-xs'>{errors.date.message}</p>}
                             </div>
                         </div>
 
@@ -477,20 +459,37 @@ export default function CategoryWiseAttendancePage() {
                         </div> */}
                     </div>
 
-                    <div className='flex justify-center gap-3 pt-6 border-t'>
-                        <Button type='submit' isLoading={isReportLoading} className='min-w-[120px] bg-[#3c8dbc] hover:bg-[#367fa9] text-white uppercase font-bold rounded-sm'>
+                    <div className='flex justify-center gap-3 border-t pt-6'>
+                        <Button
+                            type='submit'
+                            isLoading={isReportLoading}
+                            className='min-w-[120px] rounded-sm bg-[#3c8dbc] font-bold text-white uppercase hover:bg-[#367fa9]'>
                             <FileText className='mr-2 h-4 w-4' />
                             Report
                         </Button>
-                        <Button variant='destructive' type='button' onClick={handleReset} className='min-w-[120px] bg-[#f39c12] hover:bg-[#e08e0b] text-white uppercase font-bold rounded-sm'>
+                        <Button
+                            variant='destructive'
+                            type='button'
+                            onClick={handleReset}
+                            className='min-w-[120px] rounded-sm bg-[#f39c12] font-bold text-white uppercase hover:bg-[#e08e0b]'>
                             <X className='mr-2 h-4 w-4' />
                             Cancel
                         </Button>
-                        <Button variant='outline' type='button' disabled={!showReport || !reportData.length} onClick={exportToExcel} className='min-w-[120px] bg-[#3c8dbc] hover:bg-[#367fa9] text-white border-0 uppercase font-bold rounded-sm disabled:opacity-50'>
+                        <Button
+                            variant='outline'
+                            type='button'
+                            disabled={!showReport || !reportData.length}
+                            onClick={exportToExcel}
+                            className='min-w-[120px] rounded-sm border-0 bg-[#3c8dbc] font-bold text-white uppercase hover:bg-[#367fa9] disabled:opacity-50'>
                             <FileSpreadsheet className='mr-2 h-4 w-4' />
                             Export
                         </Button>
-                        <Button variant='outline' type='button' disabled={!showReport || !reportData.length} onClick={handlePrint} className='min-w-[120px] bg-[#dd4b39] hover:bg-[#d73925] text-white border-0 uppercase font-bold rounded-sm disabled:opacity-50'>
+                        <Button
+                            variant='outline'
+                            type='button'
+                            disabled={!showReport || !reportData.length}
+                            onClick={handlePrint}
+                            className='min-w-[120px] rounded-sm border-0 bg-[#dd4b39] font-bold text-white uppercase hover:bg-[#d73925] disabled:opacity-50'>
                             <Printer className='mr-2 h-4 w-4' />
                             Print
                         </Button>
@@ -499,19 +498,23 @@ export default function CategoryWiseAttendancePage() {
             </div>
 
             {showReport && (
-                <div className='bg-white shadow border border-t-4 border-t-[#3c8dbc] rounded-sm mt-4'>
-                    <div className='p-3 border-b flex justify-between items-center'>
-                        <h3 className='text-sm font-bold uppercase'>Categorywise Attendance Report</h3>
+                <div className='mt-4 rounded-sm border border-t-4 border-t-[#3c8dbc] bg-white shadow'>
+                    <div className='flex items-center justify-between border-b p-3'>
+                        <h3 className='font-bold text-sm uppercase'>Categorywise Attendance Report</h3>
                     </div>
                     <div className='p-4'>
-                        <div className='flex justify-between items-center mb-4 px-2 py-2 bg-gray-50 border rounded-sm'>
+                        <div className='mb-4 flex items-center justify-between rounded-sm border bg-gray-50 px-2 py-2'>
                             <div className='flex gap-4'>
-                                <div className='text-sm font-bold flex items-center gap-2'>
-                                    Total Grid Records : <span className='bg-[#337ab7] text-white px-2 py-0.5 rounded-full text-xs'>{reportData.length}</span>
+                                <div className='flex items-center gap-2 font-bold text-sm'>
+                                    Total Grid Records :{' '}
+                                    <span className='rounded-full bg-[#337ab7] px-2 py-0.5 text-white text-xs'>{reportData.length}</span>
                                 </div>
                                 {selectedRows.length > 0 && (
-                                    <div className='text-sm font-bold flex items-center gap-2'>
-                                        Selected : <span className='bg-green-600 text-white px-2 py-0.5 rounded-full text-xs'>{selectedRows.length}</span>
+                                    <div className='flex items-center gap-2 font-bold text-sm'>
+                                        Selected :{' '}
+                                        <span className='rounded-full bg-green-600 px-2 py-0.5 text-white text-xs'>
+                                            {selectedRows.length}
+                                        </span>
                                     </div>
                                 )}
                             </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
-import { CalendarDays, ChevronRight, GraduationCap, HeartHandshake, Images, Megaphone, UserCircle, UserRoundPlus } from 'lucide-react';
+import { CalendarDays, ChevronRight, GraduationCap, Images, Megaphone, UserCircle, UserRoundPlus } from 'lucide-react';
 import Image from 'next/image';
 
 interface QuickLinkCardsProps {

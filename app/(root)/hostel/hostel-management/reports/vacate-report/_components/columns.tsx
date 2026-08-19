@@ -40,12 +40,12 @@ export const studentReportColumns: ColumnDef<any>[] = [
     {
         accessorKey: 'HLHSALT_VacatedDate',
         header: ({ column }) => <ColumnHeader column={column} title='Vacate Date' />,
-        cell: ({ row }) => row.original.HLHSALT_VacatedDate ? format(new Date(row.original.HLHSALT_VacatedDate), 'dd/MM/yyyy') : '-'
+        cell: ({ row }) => (row.original.HLHSALT_VacatedDate ? format(new Date(row.original.HLHSALT_VacatedDate), 'dd/MM/yyyy') : '-')
     },
     {
         accessorKey: 'HLHSALT_AllotmentDate',
         header: ({ column }) => <ColumnHeader column={column} title='Allot Date' />,
-        cell: ({ row }) => row.original.HLHSALT_AllotmentDate ? format(new Date(row.original.HLHSALT_AllotmentDate), 'dd/MM/yyyy') : '-'
+        cell: ({ row }) => (row.original.HLHSALT_AllotmentDate ? format(new Date(row.original.HLHSALT_AllotmentDate), 'dd/MM/yyyy') : '-')
     },
     {
         accessorKey: 'HLHSALT_VacateRemarks',
@@ -89,12 +89,12 @@ export const staffReportColumns: ColumnDef<any>[] = [
     {
         accessorKey: 'HLHSTALT_VacatedDate',
         header: ({ column }) => <ColumnHeader column={column} title='Vacate Date' />,
-        cell: ({ row }) => row.original.HLHSTALT_VacatedDate ? format(new Date(row.original.HLHSTALT_VacatedDate), 'dd/MM/yyyy') : '-'
+        cell: ({ row }) => (row.original.HLHSTALT_VacatedDate ? format(new Date(row.original.HLHSTALT_VacatedDate), 'dd/MM/yyyy') : '-')
     },
     {
         accessorKey: 'HLHSTALT_AllotmentDate',
         header: ({ column }) => <ColumnHeader column={column} title='Allot Date' />,
-        cell: ({ row }) => row.original.HLHSTALT_AllotmentDate ? format(new Date(row.original.HLHSTALT_AllotmentDate), 'dd/MM/yyyy') : '-'
+        cell: ({ row }) => (row.original.HLHSTALT_AllotmentDate ? format(new Date(row.original.HLHSTALT_AllotmentDate), 'dd/MM/yyyy') : '-')
     },
     {
         accessorKey: 'HLHSTALT_VacateRemarks',
@@ -134,12 +134,13 @@ export const guestReportColumns: ColumnDef<any>[] = [
     {
         accessorKey: 'HLHGSTALT_VacatedDate',
         header: ({ column }) => <ColumnHeader column={column} title='Vacate Date' />,
-        cell: ({ row }) => row.original.HLHGSTALT_VacatedDate ? format(new Date(row.original.HLHGSTALT_VacatedDate), 'dd/MM/yyyy') : '-'
+        cell: ({ row }) => (row.original.HLHGSTALT_VacatedDate ? format(new Date(row.original.HLHGSTALT_VacatedDate), 'dd/MM/yyyy') : '-')
     },
     {
         accessorKey: 'HLHGSTALT_AllotmentDate',
         header: ({ column }) => <ColumnHeader column={column} title='Allot Date' />,
-        cell: ({ row }) => row.original.HLHGSTALT_AllotmentDate ? format(new Date(row.original.HLHGSTALT_AllotmentDate), 'dd/MM/yyyy') : '-'
+        cell: ({ row }) =>
+            row.original.HLHGSTALT_AllotmentDate ? format(new Date(row.original.HLHGSTALT_AllotmentDate), 'dd/MM/yyyy') : '-'
     },
     {
         accessorKey: 'HLHGSTALT_VacateRemarks',

@@ -17,12 +17,10 @@ export default function MultipleExamProgressCardReport2Page() {
     };
 
     return (
-        <div className="container p-4 space-y-6">
+        <div className='container space-y-6 p-4'>
             <ReportForm onReportGenerated={handleReportGenerated} />
-            
-            {reportData && (
-                <ReportView reportData={reportData} reportParams={reportParams} />
-            )}
+
+            {reportData && <ReportView reportData={reportData} reportParams={reportParams} />}
         </div>
     );
 }

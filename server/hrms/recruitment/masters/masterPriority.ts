@@ -1,6 +1,6 @@
 'use server';
 
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 
 export async function getMasterPriorityGridData(): Promise<ApiResponse<any>> {
     const url = `/api/MasterPriority/get_master_priority_grid`;
@@ -9,7 +9,7 @@ export async function getMasterPriorityGridData(): Promise<ApiResponse<any>> {
         return {
             success: response?.success ?? true,
             message: response?.message || 'Data fetched successfully',
-            data: response?.data || response,
+            data: response?.data || response
         };
     } catch (error) {
         console.error('Error fetching master priority grid data:', error);
@@ -31,7 +31,7 @@ export async function saveOrUpdatePriority(payload: saveOrUpdatePriorityPayload)
         return {
             success: response?.success ?? true,
             message: response?.message || 'Data saved successfully',
-            data: response?.data || response,
+            data: response?.data || response
         };
     } catch (error) {
         console.error('Error saving or updating priority:', error);
@@ -46,7 +46,7 @@ export async function togglePriorityStatusData(hrmpr_Id: number): Promise<ApiRes
         return {
             success: response?.success ?? true,
             message: response?.message || 'Status toggled successfully',
-            data: response?.data || response,
+            data: response?.data || response
         };
     } catch (error) {
         console.error('Error toggling priority status:', error);

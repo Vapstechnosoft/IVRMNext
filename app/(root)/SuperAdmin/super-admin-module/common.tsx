@@ -1,4 +1,3 @@
-
 export const countries = [
     { ivrmmC_Id: 101, ivrmmC_CountryName: 'India' },
     { ivrmmC_Id: 102, ivrmmC_CountryName: 'USA' }

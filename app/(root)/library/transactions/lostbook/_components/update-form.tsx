@@ -118,7 +118,7 @@ export default function UpdateLostBookForm({ selectedRow, onSuccess, onCancel, c
             setLoading(true);
             const response = await saveLostBookRecord(data);
             // Handle multiple success indicators common in this project
-            if (response.success || (response as any).returnval === true || (response as any).returnval === "true") {
+            if (response.success || (response as any).returnval === true || (response as any).returnval === 'true') {
                 toast.success('Lost book record updated successfully');
                 refetchAll();
                 onSuccess?.();
@@ -133,18 +133,18 @@ export default function UpdateLostBookForm({ selectedRow, onSuccess, onCancel, c
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className={`space-y-8 p-6 bg-card rounded-xl border shadow-sm ${className}`}>
-            <div className='text-center border-b pb-4'>
-                <h2 className='font-bold text-2xl text-primary tracking-tight uppercase'>Update Lost Book</h2>
+        <form onSubmit={handleSubmit(onSubmit)} className={`space-y-8 rounded-xl border bg-card p-6 shadow-sm ${className}`}>
+            <div className='border-b pb-4 text-center'>
+                <h2 className='font-bold text-2xl text-primary uppercase tracking-tight'>Update Lost Book</h2>
             </div>
 
             {/* Middle 2 Columns */}
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
+            <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
                 {/* Left Column */}
                 <div className='space-y-6'>
                     {/* Book Title */}
                     <div className='space-y-2'>
-                        <Label htmlFor='LMBANO_Id' className='text-sm font-semibold'>
+                        <Label htmlFor='LMBANO_Id' className='font-semibold text-sm'>
                             Book Title: <span className='text-red-500'>*</span>
                         </Label>
                         <Select
@@ -167,7 +167,7 @@ export default function UpdateLostBookForm({ selectedRow, onSuccess, onCancel, c
 
                     {/* Delete Date (Lost Date) */}
                     <div className='space-y-2'>
-                        <Label htmlFor='LMBANO_LostDamagedDate' className='text-sm font-semibold'>
+                        <Label htmlFor='LMBANO_LostDamagedDate' className='font-semibold text-sm'>
                             Delete Date: <span className='text-red-500'>*</span>
                         </Label>
                         <Input id='LMBANO_LostDamagedDate' type='date' {...register('LMBANO_LostDamagedDate')} className='w-full' />
@@ -176,10 +176,15 @@ export default function UpdateLostBookForm({ selectedRow, onSuccess, onCancel, c
 
                     {/* Price */}
                     <div className='space-y-2'>
-                        <Label htmlFor='LMBANO_AmountCollected' className='text-sm font-semibold'>
+                        <Label htmlFor='LMBANO_AmountCollected' className='font-semibold text-sm'>
                             Price: <span className='text-red-500'>*</span>
                         </Label>
-                        <Input id='LMBANO_AmountCollected' placeholder='Enter Lost/Damage Price' {...register('LMBANO_AmountCollected')} className='w-full' />
+                        <Input
+                            id='LMBANO_AmountCollected'
+                            placeholder='Enter Lost/Damage Price'
+                            {...register('LMBANO_AmountCollected')}
+                            className='w-full'
+                        />
                         {errors.LMBANO_AmountCollected && <p className='text-red-500 text-xs'>{errors.LMBANO_AmountCollected.message}</p>}
                     </div>
                 </div>
@@ -188,7 +193,9 @@ export default function UpdateLostBookForm({ selectedRow, onSuccess, onCancel, c
                 <div className='space-y-6'>
                     {/* Author Name */}
                     <div className='space-y-2'>
-                        <Label htmlFor='AuthorId' className='text-sm font-semibold'>Author Name:</Label>
+                        <Label htmlFor='AuthorId' className='font-semibold text-sm'>
+                            Author Name:
+                        </Label>
                         <Select disabled={authorOptions.length === 0}>
                             <SelectTrigger className='w-full bg-muted/50'>
                                 <SelectValue placeholder={authorOptions.length === 0 ? 'Select book first' : 'Select author...'} />
@@ -210,25 +217,28 @@ export default function UpdateLostBookForm({ selectedRow, onSuccess, onCancel, c
 
                     {/* Delete Reason (Remarks) */}
                     <div className='space-y-2'>
-                        <Label htmlFor='LMBANO_LostDamagedReason' className='text-sm font-semibold'>Delete Reason:</Label>
+                        <Label htmlFor='LMBANO_LostDamagedReason' className='font-semibold text-sm'>
+                            Delete Reason:
+                        </Label>
                         <Textarea
                             id='LMBANO_LostDamagedReason'
                             placeholder='Enter the Remarks'
                             {...register('LMBANO_LostDamagedReason')}
-                            className='w-full min-h-[80px]'
+                            className='min-h-[80px] w-full'
                         />
-                        {errors.LMBANO_LostDamagedReason && <p className='text-red-500 text-xs'>{errors.LMBANO_LostDamagedReason.message}</p>}
+                        {errors.LMBANO_LostDamagedReason && (
+                            <p className='text-red-500 text-xs'>{errors.LMBANO_LostDamagedReason.message}</p>
+                        )}
                     </div>
 
                     {/* Book Status */}
                     <div className='space-y-2'>
-                        <Label htmlFor='LMBANO_AvialableStatus' className='text-sm font-semibold'>
+                        <Label htmlFor='LMBANO_AvialableStatus' className='font-semibold text-sm'>
                             Book Status: <span className='text-red-500'>*</span>
                         </Label>
-                        <Select 
+                        <Select
                             onValueChange={(value) => setValue('LMBANO_AvialableStatus', value as 'lost' | 'damaged')}
-                            defaultValue={selectedRow?.lmbanO_AvialableStatus?.toLowerCase() || 'lost'}
-                        >
+                            defaultValue={selectedRow?.lmbanO_AvialableStatus?.toLowerCase() || 'lost'}>
                             <SelectTrigger className='w-full'>
                                 <SelectValue placeholder='Select Status' />
                             </SelectTrigger>
@@ -243,8 +253,8 @@ export default function UpdateLostBookForm({ selectedRow, onSuccess, onCancel, c
             </div>
 
             {/* Bottom Centered - Mode of Payment */}
-            <div className='flex flex-col items-center gap-4 bg-muted/20 p-4 rounded-lg border'>
-                <Label className='text-sm font-bold text-primary uppercase'>
+            <div className='flex flex-col items-center gap-4 rounded-lg border bg-muted/20 p-4'>
+                <Label className='font-bold text-primary text-sm uppercase'>
                     Mode Of Payment: <span className='text-red-500'>*</span>
                 </Label>
                 <RadioGroup
@@ -253,23 +263,26 @@ export default function UpdateLostBookForm({ selectedRow, onSuccess, onCancel, c
                     className='flex space-x-12'>
                     <div className='flex items-center space-x-3'>
                         <RadioGroupItem value='Cash' id='edit-cash' />
-                        <Label htmlFor='edit-cash' className='font-medium cursor-pointer'>Cash</Label>
+                        <Label htmlFor='edit-cash' className='cursor-pointer font-medium'>
+                            Cash
+                        </Label>
                     </div>
                     <div className='flex items-center space-x-3'>
                         <RadioGroupItem value='Bank' id='edit-bank' />
-                        <Label htmlFor='edit-bank' className='font-medium cursor-pointer'>Bank</Label>
+                        <Label htmlFor='edit-bank' className='cursor-pointer font-medium'>
+                            Bank
+                        </Label>
                     </div>
                 </RadioGroup>
                 {errors.LMBANO_ModeOfPayment && <p className='text-red-500 text-xs'>{errors.LMBANO_ModeOfPayment.message}</p>}
             </div>
 
             {/* Buttons */}
-            <div className='flex justify-center items-center gap-4 pt-6 border-t'>
-                <Button 
-                    type='submit' 
-                    disabled={isSubmitting || loading} 
-                    className='min-w-[140px] h-11 bg-primary hover:bg-primary/90 transition-all'
-                >
+            <div className='flex items-center justify-center gap-4 border-t pt-6'>
+                <Button
+                    type='submit'
+                    disabled={isSubmitting || loading}
+                    className='h-11 min-w-[140px] bg-primary transition-all hover:bg-primary/90'>
                     {isSubmitting || loading ? (
                         <>
                             <Loader2 className='mr-2 h-4 w-4 animate-spin' />
@@ -283,12 +296,7 @@ export default function UpdateLostBookForm({ selectedRow, onSuccess, onCancel, c
                     )}
                 </Button>
 
-                <Button 
-                    type='button' 
-                    variant='destructive' 
-                    onClick={onCancel} 
-                    className='min-w-[140px] h-11'
-                >
+                <Button type='button' variant='destructive' onClick={onCancel} className='h-11 min-w-[140px]'>
                     <X className='mr-2 h-4 w-4' />
                     CANCEL
                 </Button>

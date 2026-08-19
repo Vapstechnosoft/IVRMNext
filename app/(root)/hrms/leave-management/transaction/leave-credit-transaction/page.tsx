@@ -6,20 +6,16 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import {
     useLeaveTransactionManualList,
     useSaveLeaveTransactionManual,
-    useUpdateLeaveTransactionManual,
-    useDeleteLeaveTransactionManual
+    useUpdateLeaveTransactionManual
 } from '@/hooks/hrms/leave-management/useLeaveTransactionManual';
-import { useReportGroupTypes, useReportDepartments, useReportDesignations, usePeriodLeaveReportEmployees } from '@/hooks/hrms/useReports';
-import {
-    useMasterLeaveYear
-} from '@/hooks/hrms/leave-management/useMasters';
+import { useMasterLeaveYear } from '@/hooks/hrms/leave-management/useMasters';
+import { usePeriodLeaveReportEmployees, useReportDepartments, useReportDesignations, useReportGroupTypes } from '@/hooks/hrms/useReports';
 import { Plus, X } from 'lucide-react';
+import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { use, useMemo, useState } from 'react';
-import { toast } from 'sonner';
 import { type LeaveCreditTransaction, getLeaveCreditTransactionColumns } from './_components/columns';
 import { LeaveCreditTransactionForm } from './_components/leave-credit-transaction-form';
 import { ToggleLeaveTransactionManualForm } from './_components/toggle-transaction-form';
-import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -38,14 +34,17 @@ export default function LeaveCreditTransactionPage(props: { searchParams: Search
     });
 
     // Normalize params for useLeaveTransactionManualList
-    const normalizedParams = useMemo(() => ({
-        page: params.page,
-        page_size: params.page_size,
-        search_query: params.search_query || '',
-        sort_column: params.sort_column || '',
-        sort_direction: (params.sort_direction as 'asc' | 'desc') || 'asc',
-        search_columns: params.search_columns || params.search_column || ''
-    }), [params]);
+    const normalizedParams = useMemo(
+        () => ({
+            page: params.page,
+            page_size: params.page_size,
+            search_query: params.search_query || '',
+            sort_column: params.sort_column || '',
+            sort_direction: (params.sort_direction as 'asc' | 'desc') || 'asc',
+            search_columns: params.search_columns || params.search_column || ''
+        }),
+        [params]
+    );
 
     const { data: response, isLoading, error, refetchAll } = useLeaveTransactionManualList(normalizedParams);
     return (
@@ -54,7 +53,6 @@ export default function LeaveCreditTransactionPage(props: { searchParams: Search
         </FormProvider>
     );
 }
-
 
 function LeaveCreditTransactionPageContent({
     response,
@@ -97,7 +95,7 @@ function LeaveCreditTransactionPageContent({
 
     // Leave Year Data
     const { data: yearData } = useMasterLeaveYear();
-    console.log("yearData", yearData);
+    console.log('yearData', yearData);
     const years = useMemo(() => {
         return (yearData?.data || []).map((y: any) => ({
             id: Number(y.hrmlY_Id || y.id || 0),
@@ -109,52 +107,59 @@ function LeaveCreditTransactionPageContent({
     }, [yearData]);
 
     const activeYearId = useMemo(() => {
-        const active = years.find(y => y.isActive);
+        const active = years.find((y) => y.isActive);
         return active?.id || 0;
     }, [years]);
 
     // --- Mapped Data ---
     const types = useMemo(() => {
-        return (groupTypesData?.data || []).map((item: any) => ({
-            id: Number(item.key || item.hrmgT_Id || item.id),
-            name: item.value || item.hrmgT_EmployeeGroupType || item.name || ''
-        })).filter((i: any) => i.id);
+        return (groupTypesData?.data || [])
+            .map((item: any) => ({
+                id: Number(item.key || item.hrmgT_Id || item.id),
+                name: item.value || item.hrmgT_EmployeeGroupType || item.name || ''
+            }))
+            .filter((i: any) => i.id);
     }, [groupTypesData]);
 
     const departments = useMemo(() => {
-        return (departmentsData?.data || []).map((item: any) => ({
-            id: Number(item.hrmD_Id || item.hrmd_id || item.key || item.id),
-            name: item.hrmD_DepartmentName || item.hrmd_departmentName || item.value || item.name || ''
-        })).filter((i: any) => i.id);
+        return (departmentsData?.data || [])
+            .map((item: any) => ({
+                id: Number(item.hrmD_Id || item.hrmd_id || item.key || item.id),
+                name: item.hrmD_DepartmentName || item.hrmd_departmentName || item.value || item.name || ''
+            }))
+            .filter((i: any) => i.id);
     }, [departmentsData]);
 
     const designations = useMemo(() => {
-        return (designationsData?.data || []).map((item: any) => ({
-            id: Number(item.hrmdeS_Id || item.hrmdes_id || item.key || item.id),
-            name: item.hrmdeS_DesignationName || item.hrmdes_designationName || item.value || item.name || ''
-        })).filter((i: any) => i.id);
+        return (designationsData?.data || [])
+            .map((item: any) => ({
+                id: Number(item.hrmdeS_Id || item.hrmdes_id || item.key || item.id),
+                name: item.hrmdeS_DesignationName || item.hrmdes_designationName || item.value || item.name || ''
+            }))
+            .filter((i: any) => i.id);
     }, [designationsData]);
 
     const employees = useMemo(() => {
         if (!employeesData || !Array.isArray(employeesData)) return [];
 
-        return employeesData.map((item: any) => {
-            const id = item.HRME_Id || item.hrmE_Id || item.id || item.key;
-            if (id == null) return null;
+        return employeesData
+            .map((item: any) => {
+                const id = item.HRME_Id || item.hrmE_Id || item.id || item.key;
+                if (id == null) return null;
 
-            const firstName = item.HRME_EmployeeFirstName || item.hrmE_EmployeeFirstName || '';
-            const middleName = item.HRME_EmployeeMiddleName || item.hrmE_EmployeeMiddleName || '';
-            const lastName = item.HRME_EmployeeLastName || item.hrmE_EmployeeLastName || '';
-            const fullName = `${firstName} ${middleName} ${lastName}`.trim().replace(/\s+/g, ' ');
+                const firstName = item.HRME_EmployeeFirstName || item.hrmE_EmployeeFirstName || '';
+                const middleName = item.HRME_EmployeeMiddleName || item.hrmE_EmployeeMiddleName || '';
+                const lastName = item.HRME_EmployeeLastName || item.hrmE_EmployeeLastName || '';
+                const fullName = `${firstName} ${middleName} ${lastName}`.trim().replace(/\s+/g, ' ');
 
-            return {
-                id: Number(id),
-                employeeCode: item.HRME_EmployeeCode || item.hrmE_EmployeeCode || item.employeeCode || '',
-                employeeName: fullName || item.value || item.employeeName || 'Unknown'
-            };
-        }).filter((i: any) => i !== null) as { id: number; employeeCode: string; employeeName: string }[];
+                return {
+                    id: Number(id),
+                    employeeCode: item.HRME_EmployeeCode || item.hrmE_EmployeeCode || item.employeeCode || '',
+                    employeeName: fullName || item.value || item.employeeName || 'Unknown'
+                };
+            })
+            .filter((i: any) => i !== null) as { id: number; employeeCode: string; employeeName: string }[];
     }, [employeesData]);
-
 
     const handleFilterChange = (type: 'types' | 'departments' | 'designations', values: number[]) => {
         if (type === 'types') {
@@ -270,7 +275,6 @@ function FormSections({
     const { mutate: updateTransaction } = useUpdateLeaveTransactionManual();
 
     const handleFormSubmit = (formData: LeaveCreditTransaction) => {
-
         console.log('formData', formData);
         // Inject Active Year ID if missing
         const dataToSave = {

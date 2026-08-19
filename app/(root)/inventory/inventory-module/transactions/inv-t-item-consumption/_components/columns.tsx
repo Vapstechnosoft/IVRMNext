@@ -1,17 +1,17 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useInvTItemConsumption } from '@/hooks/inventory/transactions/use-inv-t-item-consumption';
 import type { InvTItemConsumption } from '@/types/inventory/transactions/inv-t-item-consumption';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { List, Users } from 'lucide-react';
 import { useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export const invTItemConsumptionColumns: ColumnDef<InvTItemConsumption>[] = [
     {
@@ -85,7 +85,7 @@ function ActionButtonsClient({ rowData }: { rowData: InvTItemConsumption }) {
 
     const handleViewItems = useCallback(() => {
         if (openDetailsView) {
-            // We use 'invmiC_Remarks' or a similar dummy field to distinguish view types if needed, 
+            // We use 'invmiC_Remarks' or a similar dummy field to distinguish view types if needed,
             // but for now we'll rely on the modal management in page.tsx
             openDetailsView({ ...rowData, invmiC_Remarks: 'VIEW_ITEMS' });
         }
@@ -100,34 +100,36 @@ function ActionButtonsClient({ rowData }: { rowData: InvTItemConsumption }) {
     return (
         <div className='flex justify-center gap-2'>
             <TooltipProvider>
-                <div className="flex items-center gap-2">
+                <div className='flex items-center gap-2'>
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Button
-                                variant="ghost"
-                                size="icon"
+                                variant='ghost'
+                                size='icon'
                                 onClick={handleViewItems}
-                                className="h-8 w-8 p-0 text-blue-600 hover:bg-blue-50"
-                            >
-                                <List className="h-4 w-4" />
+                                className='h-8 w-8 p-0 text-blue-600 hover:bg-blue-50'>
+                                <List className='h-4 w-4' />
                             </Button>
                         </TooltipTrigger>
-                        <TooltipContent><p>View Items</p></TooltipContent>
+                        <TooltipContent>
+                            <p>View Items</p>
+                        </TooltipContent>
                     </Tooltip>
 
                     {rowData.invmiC_StuOtherFlg === 'Staff' && (
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <Button
-                                    variant="ghost"
-                                    size="icon"
+                                    variant='ghost'
+                                    size='icon'
                                     onClick={handleViewStaff}
-                                    className="h-8 w-8 p-0 text-green-600 hover:bg-green-50"
-                                >
-                                    <Users className="h-4 w-4" />
+                                    className='h-8 w-8 p-0 text-green-600 hover:bg-green-50'>
+                                    <Users className='h-4 w-4' />
                                 </Button>
                             </TooltipTrigger>
-                            <TooltipContent><p>View Staff</p></TooltipContent>
+                            <TooltipContent>
+                                <p>View Staff</p>
+                            </TooltipContent>
                         </Tooltip>
                     )}
 

@@ -73,7 +73,7 @@ export const ReportForm = ({ onReportGenerated, onReset, onPrint }: ReportFormPr
         (async () => {
             try {
                 setLoadingClasses(true);
-                const response = await getClassDropDownByAcademicYearlist(Number(watchYear)) as any;
+                const response = (await getClassDropDownByAcademicYearlist(Number(watchYear))) as any;
                 const data = response?.data || response;
                 const classList = Array.isArray(data) ? data : data?.classlist || data?.classList || data?.getclass || [];
                 setClasses(classList);
@@ -101,7 +101,7 @@ export const ReportForm = ({ onReportGenerated, onReset, onPrint }: ReportFormPr
         (async () => {
             try {
                 setLoadingSections(true);
-                const response = await getSectionsDropDownByAcademicYearandClasslist(Number(watchYear), Number(watchClass)) as any;
+                const response = (await getSectionsDropDownByAcademicYearandClasslist(Number(watchYear), Number(watchClass))) as any;
                 const data = response?.data || response;
                 const sectionList = Array.isArray(data) ? data : data?.sectionlist || data?.sectionList || data?.getsection || [];
                 setSections(sectionList);
@@ -126,11 +126,11 @@ export const ReportForm = ({ onReportGenerated, onReset, onPrint }: ReportFormPr
         (async () => {
             try {
                 setLoadingStudents(true);
-                const response = await getStudentsDropDownByAcademicYearandClassandSectionlist(
+                const response = (await getStudentsDropDownByAcademicYearandClassandSectionlist(
                     Number(watchYear),
                     Number(watchClass),
                     Number(watchSection)
-                ) as any;
+                )) as any;
                 const data = response?.data || response;
                 const studentList = Array.isArray(data) ? data : data?.studentlist || data?.studentList || data?.getstudent || [];
                 const mapped = studentList.map((s: any) => ({
@@ -317,12 +317,15 @@ export const ReportForm = ({ onReportGenerated, onReset, onPrint }: ReportFormPr
                                         <Label className='font-medium text-sm'>
                                             Section <span className='text-red-500'>*</span>
                                         </Label>
-                                        <Select onValueChange={field.onChange} value={field.value} disabled={!watchClass || loadingSections}>
+                                        <Select
+                                            onValueChange={field.onChange}
+                                            value={field.value}
+                                            disabled={!watchClass || loadingSections}>
                                             <SelectTrigger className='w-full'>
                                                 <SelectValue placeholder={loadingSections ? 'Loading Sections...' : 'Select Section'} />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="0">All</SelectItem>
+                                                <SelectItem value='0'>All</SelectItem>
                                                 {sections.map((sec) => (
                                                     <SelectItem key={sec.asmS_Id} value={String(sec.asmS_Id)}>
                                                         {sec.asmC_SectionName}
@@ -344,7 +347,10 @@ export const ReportForm = ({ onReportGenerated, onReset, onPrint }: ReportFormPr
                                         <Label className='font-medium text-sm'>
                                             Student Name <span className='text-red-500'>*</span>
                                         </Label>
-                                        <Select onValueChange={field.onChange} value={field.value} disabled={!watchSection || loadingStudents}>
+                                        <Select
+                                            onValueChange={field.onChange}
+                                            value={field.value}
+                                            disabled={!watchSection || loadingStudents}>
                                             <SelectTrigger className='w-full'>
                                                 <SelectValue placeholder={loadingStudents ? 'Loading Students...' : 'Select Student'} />
                                             </SelectTrigger>
@@ -407,8 +413,7 @@ export const ReportForm = ({ onReportGenerated, onReset, onPrint }: ReportFormPr
                             <Button
                                 type='submit'
                                 disabled={isSubmitting}
-                                className='min-w-[120px] bg-primary text-primary-foreground hover:bg-primary/90'
-                            >
+                                className='min-w-[120px] bg-primary text-primary-foreground hover:bg-primary/90'>
                                 {isSubmitting ? (
                                     <span className='flex items-center gap-2'>
                                         <Loader2 className='h-4 w-4 animate-spin' /> Generating...

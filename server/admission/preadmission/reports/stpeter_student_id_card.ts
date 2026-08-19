@@ -25,7 +25,6 @@ export async function changeSectionStpeterStudentIdCard(data: { ASMAY_Id: number
     return res?.data || res;
 }
 
-
 export async function getStpeterStudentIdCardReport(data: {
     ASMAY_Id: number;
     ASMCL_Id: number;

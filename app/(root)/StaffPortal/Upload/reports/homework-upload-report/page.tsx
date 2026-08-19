@@ -263,7 +263,7 @@ export default function HomeWorkUploadReportPage() {
                                         </thead>
 
                                         <tbody>
-                                             {homeWorkReport.map((row, index) => (
+                                            {homeWorkReport.map((row, index) => (
                                                 <tr key={index + 1}>
                                                     <td className='border px-2 py-2 text-center'>{index + 1}</td>
                                                     <td className='border px-2 py-2 font-semibold'>{row.Topic}</td>

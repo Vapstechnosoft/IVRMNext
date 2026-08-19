@@ -1,4 +1,3 @@
-
 export interface IMasterArea {
     trmA_Id: number;
     trmA_AreaName: string;

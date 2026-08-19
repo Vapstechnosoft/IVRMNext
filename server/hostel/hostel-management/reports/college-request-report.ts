@@ -32,7 +32,7 @@ export async function getCollegeRequestReport(values: any): Promise<CollegeReque
         if (res.data) return res.data;
     } catch (error) {
         console.warn('Primary CLGHostelRequestReport/getreport failed, attempting fallback...', error);
-        
+
         // Attempt fallback endpoint
         try {
             const resFallback = await api.post<CollegeRequestReportDto>('default', 'CLGHostelRequestReport/get_report', payload);
@@ -41,6 +41,6 @@ export async function getCollegeRequestReport(values: any): Promise<CollegeReque
             console.error('Fallback CLGHostelRequestReport/get_report also failed:', fallbackError);
         }
     }
-    
+
     return { grid_list: [] };
 }

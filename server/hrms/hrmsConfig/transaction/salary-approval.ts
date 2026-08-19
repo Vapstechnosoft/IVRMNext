@@ -18,20 +18,20 @@ export async function getSalaryApprovalOnload(payload: SalaryApprovalOnloadReque
     const mid = payload.MI_Id || 30;
     const url = `/api/HRMS_Trans_SalaryApprovalProcess/onloadgetdetails/${mid}`;
     try {
-        const response = await api.get<SalaryApprovalOnloadResponse>('hrms', url        );
+        const response = await api.get<SalaryApprovalOnloadResponse>('hrms', url);
         // The backend returns raw data, not wrapped in ApiResponse format
         // Wrap it to match the expected ApiResponse structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped
             console.log('📊 [SALARY APPROVAL - BACKEND] Response data summary:', {
-                hasGroupTypes: !!(response.data?.groupTypedropdownlist?.length),
+                hasGroupTypes: !!response.data?.groupTypedropdownlist?.length,
                 groupTypesCount: response.data?.groupTypedropdownlist?.length || 0,
-                hasDepartments: !!(response.data?.departmentdropdownlist?.length),
+                hasDepartments: !!response.data?.departmentdropdownlist?.length,
                 departmentsCount: response.data?.departmentdropdownlist?.length || 0,
-                hasDesignations: !!(response.data?.designationdropdownlist?.length),
+                hasDesignations: !!response.data?.designationdropdownlist?.length,
                 designationsCount: response.data?.designationdropdownlist?.length || 0,
-                hasMonths: !!(response.data?.monthdropdown),
-                hasLeaveYears: !!(response.data?.leaveyeardropdown?.length),
+                hasMonths: !!response.data?.monthdropdown,
+                hasLeaveYears: !!response.data?.leaveyeardropdown?.length,
                 leaveYearsCount: response.data?.leaveyeardropdown?.length || 0
             });
             console.log('🔵 [SALARY APPROVAL - BACKEND] getSalaryApprovalOnload - END (Success)');
@@ -44,14 +44,14 @@ export async function getSalaryApprovalOnload(payload: SalaryApprovalOnloadReque
             data: response as unknown as SalaryApprovalOnloadResponse
         };
         console.log('📊 [SALARY APPROVAL - BACKEND] Response data summary:', {
-            hasGroupTypes: !!(wrappedResponse.data?.groupTypedropdownlist?.length),
+            hasGroupTypes: !!wrappedResponse.data?.groupTypedropdownlist?.length,
             groupTypesCount: wrappedResponse.data?.groupTypedropdownlist?.length || 0,
-            hasDepartments: !!(wrappedResponse.data?.departmentdropdownlist?.length),
+            hasDepartments: !!wrappedResponse.data?.departmentdropdownlist?.length,
             departmentsCount: wrappedResponse.data?.departmentdropdownlist?.length || 0,
-            hasDesignations: !!(wrappedResponse.data?.designationdropdownlist?.length),
+            hasDesignations: !!wrappedResponse.data?.designationdropdownlist?.length,
             designationsCount: wrappedResponse.data?.designationdropdownlist?.length || 0,
-            hasMonths: !!(wrappedResponse.data?.monthdropdown),
-            hasLeaveYears: !!(wrappedResponse.data?.leaveyeardropdown?.length),
+            hasMonths: !!wrappedResponse.data?.monthdropdown,
+            hasLeaveYears: !!wrappedResponse.data?.leaveyeardropdown?.length,
             leaveYearsCount: wrappedResponse.data?.leaveyeardropdown?.length || 0
         });
         console.log('🔵 [SALARY APPROVAL - BACKEND] getSalaryApprovalOnload - END (Success)');
@@ -62,7 +62,10 @@ export async function getSalaryApprovalOnload(payload: SalaryApprovalOnloadReque
         // This allows the frontend to handle the error gracefully
         return {
             success: false,
-            message: error?.message || error?.response?.data?.message || 'Failed to load salary approval data. Please check if the API endpoint is available.',
+            message:
+                error?.message ||
+                error?.response?.data?.message ||
+                'Failed to load salary approval data. Please check if the API endpoint is available.',
             data: null
         } as ApiResponse<SalaryApprovalOnloadResponse>;
     }
@@ -93,14 +96,20 @@ export async function searchSalaryApprovalEmployees(payload: SalaryApprovalSearc
     };
     console.log('📤 [SALARY APPROVAL - BACKEND] Request body prepared:', JSON.stringify(requestBody, null, 2));
     try {
-        const response = await api.post<SalaryApprovalSearchResponse>('hrms', url, requestBody        );
+        const response = await api.post<SalaryApprovalSearchResponse>('hrms', url, requestBody);
         // The backend returns raw data, not wrapped in ApiResponse format
         // Wrap it to match the expected ApiResponse structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped
             const employeeCount = (response.data as SalaryApprovalSearchResponse)?.ReportData?.length || 0;
-            console.log('🔍 [SALARY APPROVAL - BACKEND] ReportData type:', typeof (response.data as SalaryApprovalSearchResponse)?.ReportData);
-            console.log('🔍 [SALARY APPROVAL - BACKEND] ReportData value:', JSON.stringify((response.data as SalaryApprovalSearchResponse)?.ReportData, null, 2));
+            console.log(
+                '🔍 [SALARY APPROVAL - BACKEND] ReportData type:',
+                typeof (response.data as SalaryApprovalSearchResponse)?.ReportData
+            );
+            console.log(
+                '🔍 [SALARY APPROVAL - BACKEND] ReportData value:',
+                JSON.stringify((response.data as SalaryApprovalSearchResponse)?.ReportData, null, 2)
+            );
             console.log('🔵 [SALARY APPROVAL - BACKEND] searchSalaryApprovalEmployees - END (Success)');
             return response;
         }
@@ -158,7 +167,7 @@ export async function approveSalaries(payload: SalaryApprovalRequest) {
 /**
  * Test API connection for salary approval process
  */
-export async function testSalaryApprovalProcessAPI(miId: number = 30) {
+export async function testSalaryApprovalProcessAPI(miId = 30) {
     const url = `/api/HRMS_Trans_SalaryApprovalProcess/onloadgetdetails/${miId}`;
     return await api.get<SalaryApprovalOnloadResponse>('hrms', url);
 }

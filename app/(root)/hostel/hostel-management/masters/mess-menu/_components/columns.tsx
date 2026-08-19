@@ -1,12 +1,12 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
-import { Check, X } from 'lucide-react';
-import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import type { IMessMenu } from '@/types/hostel/hostel-management/masters';
+import type { ColumnDef } from '@tanstack/react-table';
+import { Check, X } from 'lucide-react';
 import { useCallback } from 'react';
-import { IMessMenu } from '@/types/hostel/hostel-management/masters';
 
 export const messMenuColumns: ColumnDef<IMessMenu, any>[] = [
     {
@@ -22,30 +22,30 @@ export const messMenuColumns: ColumnDef<IMessMenu, any>[] = [
     },
     {
         accessorKey: 'hlmM_Name',
-        header: ({ column }) => <ColumnHeader column={column} title='Mess Name' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Mess Name' />
     },
     {
         accessorKey: 'hlmmC_Name',
-        header: ({ column }) => <ColumnHeader column={column} title='Mess Category' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Mess Category' />
     },
     {
         accessorKey: 'hlmmN_MenuName',
-        header: ({ column }) => <ColumnHeader column={column} title='Menu Name' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Menu Name' />
     },
     {
         accessorKey: 'hlmmN_MenuDesc',
-        header: ({ column }) => <ColumnHeader column={column} title='Description' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Description' />
     },
     {
         accessorKey: 'hlmmN_ActiveFlag',
         header: ({ column }) => <ColumnHeader column={column} title='Status' />,
         cell: ({ row }) =>
             row.original.hlmmN_ActiveFlag ? (
-                <span className='flex items-center text-green-600 font-medium'>
+                <span className='flex items-center font-medium text-green-600'>
                     <Check className='mr-1 h-4 w-4' /> Active
                 </span>
             ) : (
-                <span className='flex items-center text-red-600 font-medium'>
+                <span className='flex items-center font-medium text-red-600'>
                     <X className='mr-1 h-4 w-4' /> Inactive
                 </span>
             )

@@ -54,7 +54,7 @@ export interface IBMIReportRequest {
 export const bmiReportSchema = z.object({
     ASMAY_Id: z.coerce.number().min(1, 'Academic Year is required'),
     ASMCL_Id: z.coerce.number().min(1, 'Class is required'),
-    selectedSectionlist: z.array(z.object({ asmS_Id: z.number() })).min(1, 'At least one section is required'),
+    selectedSectionlist: z.array(z.object({ asmS_Id: z.number() })).min(1, 'At least one section is required')
 });
 
 export type BMIReportFormSchema = z.infer<typeof bmiReportSchema>;

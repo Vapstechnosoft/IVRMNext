@@ -3,15 +3,15 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { tableSearchVariables } from '@/lib/data-table.config';
 import { createUsername, getInitialData } from '@/server/alumni/user-password-creation';
 import type { IClass, ISection, IStudent, IYear } from '@/types/alumni/user-password-creation';
 import { KeyRound, Loader2, RefreshCcw } from 'lucide-react';
+import { parseAsInteger, useQueryState } from 'nuqs';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { userPasswordCreationColumns } from './_components/columns';
 import FilterForm from './_components/filter-form';
-import { parseAsInteger, useQueryState } from 'nuqs';
-import { tableSearchVariables } from '@/lib/data-table.config';
 
 export default function UserPasswordCreationPage() {
     const [years, setYears] = useState<IYear[]>([]);
@@ -25,14 +25,8 @@ export default function UserPasswordCreationPage() {
     const [filterData, setFilterData] = useState<string>('');
     const [totalItems, setTotalItems] = useState<number>(0);
 
-    const [currentPage] = useQueryState(
-        tableSearchVariables.page,
-        parseAsInteger.withOptions({ shallow: false }).withDefault(1)
-    );
-    const [pageSize] = useQueryState(
-        tableSearchVariables.page_size,
-        parseAsInteger.withOptions({ shallow: false }).withDefault(10)
-    );
+    const [currentPage] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
+    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
 
     const paginatedStudents = students.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
@@ -129,7 +123,7 @@ export default function UserPasswordCreationPage() {
             {students.length > 0 && (
                 <Card className='w-full border-t-4 border-t-primary shadow-lg'>
                     <CardHeader className='flex flex-row items-center justify-between pb-2'>
-                        <CardTitle className='font-bold text-xl text-primary'>Student List ({totalItems})</CardTitle>
+                        <CardTitle className='font-bold text-primary text-xl'>Student List ({totalItems})</CardTitle>
                     </CardHeader>
                     <CardContent className='space-y-6 pt-2'>
                         <GenericDataTable<IStudent>
@@ -144,11 +138,11 @@ export default function UserPasswordCreationPage() {
                         />
 
                         {selectedStudents.length > 0 && (
-                            <div className='flex justify-center gap-4 pt-4 border-t'>
+                            <div className='flex justify-center gap-4 border-t pt-4'>
                                 <Button
                                     onClick={handleCreateUsername}
                                     disabled={isCreating}
-                                    className='h-10 w-52 font-semibold shadow-lg transition-all hover:scale-105 bg-primary hover:bg-primary/90'>
+                                    className='h-10 w-52 bg-primary font-semibold shadow-lg transition-all hover:scale-105 hover:bg-primary/90'>
                                     {isCreating ? (
                                         <>
                                             <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Creating...
@@ -159,10 +153,7 @@ export default function UserPasswordCreationPage() {
                                         </>
                                     )}
                                 </Button>
-                                <Button
-                                    onClick={() => setSelectedStudents([])}
-                                    variant='outline'
-                                    className='h-10 w-32 font-semibold'>
+                                <Button onClick={() => setSelectedStudents([])} variant='outline' className='h-10 w-32 font-semibold'>
                                     <RefreshCcw className='mr-2 h-4 w-4' /> Clear
                                 </Button>
                             </div>

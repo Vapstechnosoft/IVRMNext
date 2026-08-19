@@ -6,7 +6,7 @@ import { FormError } from '@/components/ui/extension/field';
 import { useGenerationMasters } from '@/hooks/timetable/useTransactions';
 import { ttGenerationSchema } from '@/schemas/timetable/transactions';
 import { toggleTimeTableGeneration } from '@/server/timetable/transactions/timetablegeneration';
-import { TTGenerationGridData } from '@/types/timetable/Transaction/timetablegeneration';
+import type { TTGenerationGridData } from '@/types/timetable/Transaction/timetablegeneration';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -85,5 +85,3 @@ export default function ToggleTTGeneration({ rowData, onClose }: ToggleTTGenerat
         </AdaptiveDialog>
     );
 }
-
-

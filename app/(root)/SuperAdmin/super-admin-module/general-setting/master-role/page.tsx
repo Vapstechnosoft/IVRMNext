@@ -4,12 +4,12 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { tableSearchVariables } from '@/lib/data-table.config';
 import { getMasterRoles } from '@/server/super-admin/super-admin-module/general-setting/master-role';
 import type { IMasterRole } from '@/types/super-admin/super-admin-module/general-setting/master-role';
 import { Plus, X } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
 import { parseAsInteger, useQueryState } from 'nuqs';
-import { tableSearchVariables } from '@/lib/data-table.config';
+import React, { useEffect, useState } from 'react';
 import AddMasterRoleForm from './_components/add-form';
 import { masterRoleColumns } from './_components/columns';
 import { PageProvider } from './_components/page-context';
@@ -28,14 +28,8 @@ function MasterRolePageContent() {
     const [isLoading, setIsLoading] = useState(true);
 
     // Pagination State
-    const [page] = useQueryState(
-        tableSearchVariables.page,
-        parseAsInteger.withOptions({ shallow: false }).withDefault(1)
-    );
-    const [pageSize] = useQueryState(
-        tableSearchVariables.page_size,
-        parseAsInteger.withOptions({ shallow: false }).withDefault(10)
-    );
+    const [page] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
+    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
     const [totalItems, setTotalItems] = useState(0);
 
     const fetchData = React.useCallback(async () => {
@@ -70,18 +64,12 @@ function MasterRolePageContent() {
                         type='button'
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='h-4 w-4 mr-2' />
+                        <Plus className='mr-2 h-4 w-4' />
                         Add Master Role
                     </Button>
                 </div>
 
-                <CollapsibleSection
-                    title='Master Roles'
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg'
-                >
+                <CollapsibleSection title='Master Roles' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                     <div className='p-4'>
                         <GenericDataTable
                             data={data}
@@ -119,8 +107,7 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
                     defaultOpen={true}
                     variant='outline'
                     size='lg'
-                    className='shadow-lg animate-in slide-in-from-top-2'
-                >
+                    className='slide-in-from-top-2 animate-in shadow-lg'>
                     <div className='relative'>
                         <Button
                             type='button'

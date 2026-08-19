@@ -1,5 +1,4 @@
 'use client';
-import { useMemo } from 'react';
 /**
  * Unified HRMS Master Hooks
  * All master-related hooks consolidated in one file
@@ -17,6 +16,7 @@ import {
 } from '@/server/hrms/hrmsConfig/master/course';
 import { getDepartmentSetOrder, getMasterDepartment, getMasterDepartmentById } from '@/server/hrms/hrmsConfig/master/department';
 import { getDesignationSetOrder, getMasterDesignation, getMasterDesignationById } from '@/server/hrms/hrmsConfig/master/designation';
+import { useMemo } from 'react';
 // ... previous imports ...
 
 // ... (skipping to line 128 where useMasterDesignation is defined)
@@ -52,8 +52,8 @@ import { getGroupTypeSetOrder, getMasterGroupType, getMasterGroupTypeById } from
 
 // ... (skipping to line 433 where useMasterGroupType is defined)
 
-import { getLeaveYearDropdown, getLeaveYearSetOrder, getMasterLeaveYear } from '@/server/hrms/hrmsConfig/master/leave-year';
 import { getLeaveDropdown } from '@/server/hrms/hrmsConfig/master/leave-dropdown';
+import { getLeaveYearDropdown, getLeaveYearSetOrder, getMasterLeaveYear } from '@/server/hrms/hrmsConfig/master/leave-year';
 import { getMasterLoan, getMasterLoanById } from '@/server/hrms/hrmsConfig/master/loan';
 import { getMasterMaritalStatus, getMasterMaritalStatusById } from '@/server/hrms/hrmsConfig/master/marital-status';
 import {
@@ -71,10 +71,10 @@ import {
     toggleReligionCategoryMapping
 } from '@/server/hrms/hrmsConfig/master/religion-category-mapping';
 import { getMasterSpecialization, getMasterSpecializationById } from '@/server/hrms/hrmsConfig/master/specialization';
+import { getEmployees, getFinancialYearDropdown, getLeave, getLeaveNameCodeDropdown } from '@/server/hrms/master-dropdown';
 import type { ApiSearchparams } from '@/types';
 import type { MasterEarningsDeductionsInput } from '@/types/hrms/master-earnings-deductions';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getEmployees, getFinancialYearDropdown, getLeave, getLeaveNameCodeDropdown } from '@/server/hrms/master-dropdown';
 // ============================================================================
 // DEPARTMENT
 // ============================================================================
@@ -274,7 +274,7 @@ export function useMasterCourseLegacy(roleId: number, searchParams?: ApiSearchpa
                 queryKey: [HRMS_QUERY_KEYS.MASTER_COURSE]
             });
         },
-        onError: (error: any) => { }
+        onError: (error: any) => {}
     });
     const toggleMutation = useMutation({
         mutationFn: (data: { HRMC_Id: number; HRMC_ActiveFlag: boolean; MI_Id?: number }) => {
@@ -288,7 +288,7 @@ export function useMasterCourseLegacy(roleId: number, searchParams?: ApiSearchpa
                 queryKey: [HRMS_QUERY_KEYS.MASTER_COURSE]
             });
         },
-        onError: (error: any) => { }
+        onError: (error: any) => {}
     });
     const refetchAll = () => {
         queryClient.invalidateQueries({
@@ -505,14 +505,17 @@ export function useLeaveYearDropdown() {
         staleTime: 1000 * 60 * 5
     });
 
-    return useMemo(() => ({
-        ...query,
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR, 'dropdown']
-            });
-        }
-    }), [query, queryClient]);
+    return useMemo(
+        () => ({
+            ...query,
+            refetchAll: () => {
+                return queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR, 'dropdown']
+                });
+            }
+        }),
+        [query, queryClient]
+    );
 }
 
 export function useLeaveYearSetOrder() {
@@ -694,14 +697,17 @@ export function useMonthDropdown() {
         staleTime: 1000 * 60 * 5
     });
 
-    return useMemo(() => ({
-        ...query,
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: [HRMS_QUERY_KEYS.MASTER_PAYROLL_STANDARD, 'dropdown', 'months']
-            });
-        }
-    }), [query, queryClient]);
+    return useMemo(
+        () => ({
+            ...query,
+            refetchAll: () => {
+                return queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.MASTER_PAYROLL_STANDARD, 'dropdown', 'months']
+                });
+            }
+        }),
+        [query, queryClient]
+    );
 }
 // ============================================================================
 // PAYROLL STANDARD
@@ -814,14 +820,17 @@ export function useLeaveDropdown() {
         staleTime: 1000 * 60 * 5
     });
 
-    return useMemo(() => ({
-        ...query,
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR, 'dropdown', 'leave']
-            });
-        }
-    }), [query, queryClient]);
+    return useMemo(
+        () => ({
+            ...query,
+            refetchAll: () => {
+                return queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR, 'dropdown', 'leave']
+                });
+            }
+        }),
+        [query, queryClient]
+    );
 }
 // ============================================================================
 // GROUP DEPT DESSG MAPPING
@@ -952,14 +961,17 @@ export function useMasterLeaveCodeDropdown() {
         staleTime: 1000 * 60 * 5
     });
 
-    return useMemo(() => ({
-        ...query,
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: ['MASTER_LEAVE', 'dropdown']
-            });
-        }
-    }), [query, queryClient]);
+    return useMemo(
+        () => ({
+            ...query,
+            refetchAll: () => {
+                return queryClient.invalidateQueries({
+                    queryKey: ['MASTER_LEAVE', 'dropdown']
+                });
+            }
+        }),
+        [query, queryClient]
+    );
 }
 
 export function useMasterLeaveDropdown() {
@@ -971,14 +983,17 @@ export function useMasterLeaveDropdown() {
         staleTime: 1000 * 60 * 5
     });
 
-    return useMemo(() => ({
-        ...query,
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: ['MASTER_LEAVE', 'dropdown']
-            });
-        }
-    }), [query, queryClient]);
+    return useMemo(
+        () => ({
+            ...query,
+            refetchAll: () => {
+                return queryClient.invalidateQueries({
+                    queryKey: ['MASTER_LEAVE', 'dropdown']
+                });
+            }
+        }),
+        [query, queryClient]
+    );
 }
 
 /**
@@ -1004,4 +1019,3 @@ export function useFinancialYearDropdown() {
         staleTime: 1000 * 60 * 5
     });
 }
-

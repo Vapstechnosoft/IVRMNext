@@ -111,17 +111,17 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                 );
                 const valid = Array.isArray(data)
                     ? (data as any[]).filter(
-                        (
-                            s
-                        ): s is {
-                            amsT_AdmNo: number;
-                            amsT_Id: number;
-                            studentName?: string;
-                            amsT_FirstName?: string;
-                            amsT_MiddleName?: string;
-                            amsT_LastName?: string;
-                        } => !!s?.amsT_Id
-                    )
+                          (
+                              s
+                          ): s is {
+                              amsT_AdmNo: number;
+                              amsT_Id: number;
+                              studentName?: string;
+                              amsT_FirstName?: string;
+                              amsT_MiddleName?: string;
+                              amsT_LastName?: string;
+                          } => !!s?.amsT_Id
+                      )
                     : [];
 
                 // Map to consistent format if needed, but the cumulative report logic returns objects with amsT_Id and studentName/amsT_FirstName

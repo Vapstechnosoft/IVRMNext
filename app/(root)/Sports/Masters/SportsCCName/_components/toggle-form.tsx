@@ -8,10 +8,10 @@ import {
     AlertDialogDescription,
     AlertDialogFooter,
     AlertDialogHeader,
-    AlertDialogTitle,
+    AlertDialogTitle
 } from '@/components/ui/alert-dialog';
-import { toast } from 'sonner';
 import { deactivateSportsCCName } from '@/server/sports/masters/sports-cc-name';
+import { toast } from 'sonner';
 
 interface ToggleFormProps {
     id: number;
@@ -43,15 +43,11 @@ export const ToggleForm = ({ id, activeFlag, onSuccess, onCancel }: ToggleFormPr
             <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        This action will {activeFlag ? 'deactivate' : 'activate'} the record.
-                    </AlertDialogDescription>
+                    <AlertDialogDescription>This action will {activeFlag ? 'deactivate' : 'activate'} the record.</AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel onClick={onCancel}>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleConfirm}>
-                        {activeFlag ? 'Deactivate' : 'Activate'}
-                    </AlertDialogAction>
+                    <AlertDialogAction onClick={handleConfirm}>{activeFlag ? 'Deactivate' : 'Activate'}</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>

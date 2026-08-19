@@ -1,7 +1,7 @@
 'use server';
 
-import { auth } from '@/lib/auth';
 import { api, getSearchParamsUrl } from '@/lib/apiService';
+import { auth } from '@/lib/auth';
 import type { ApiSearchparams } from '@/types';
 import type { IMasterAuthorList } from '@/types/library/masters/masters';
 
@@ -18,10 +18,10 @@ export async function addOrUpdateMasterAuthor(data: any) {
             data.lmaU_Id !== undefined && data.lmaU_Id !== null
                 ? Number(data.lmaU_Id)
                 : data.LMAU_Id !== undefined && data.LMAU_Id !== null
-                ? Number(data.LMAU_Id)
-                : data.lmaU_ID !== undefined && data.lmaU_ID !== null
-                ? Number(data.lmaU_ID)
-                : 0;
+                  ? Number(data.LMAU_Id)
+                  : data.lmaU_ID !== undefined && data.lmaU_ID !== null
+                    ? Number(data.lmaU_ID)
+                    : 0;
 
         const payload = {
             LMAU_Id: isNaN(authorId) ? 0 : authorId,
@@ -52,11 +52,21 @@ export async function addOrUpdateMasterAuthor(data: any) {
                 (typeof res.message === 'string' && res.message.toLowerCase().includes('save')) ||
                 (typeof res.message === 'string' && res.message.toLowerCase().includes('update')) ||
                 (typeof res.message === 'string' && res.message.toLowerCase().includes('success')) ||
-                (res.returnval !== false && res.returnval !== 'duplicate' && res.returnval !== 'Failed' && !res.message?.toLowerCase().includes('duplicate') && !res.message?.toLowerCase().includes('fail')));
+                (res.returnval !== false &&
+                    res.returnval !== 'duplicate' &&
+                    res.returnval !== 'Failed' &&
+                    !res.message?.toLowerCase().includes('duplicate') &&
+                    !res.message?.toLowerCase().includes('fail')));
 
         return {
             success: !!isSuccess,
-            message: res?.message || (isSuccess ? (payload.LMAU_Id > 0 ? 'Master Author updated successfully' : 'Master Author saved successfully') : 'Failed to save Master Author'),
+            message:
+                res?.message ||
+                (isSuccess
+                    ? payload.LMAU_Id > 0
+                        ? 'Master Author updated successfully'
+                        : 'Master Author saved successfully'
+                    : 'Failed to save Master Author'),
             data: res
         };
     } catch (error: any) {
@@ -73,4 +83,3 @@ export async function deleteMasterAuthor(id: number) {
     const url = `/MasterAuthor/delete/${id}`;
     return await api.delete('library', url);
 }
-

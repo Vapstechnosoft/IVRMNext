@@ -1,16 +1,21 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Textarea } from '@/components/ui/textarea';
+import type {
+    IExamConfig,
+    IExamwiseRemarksSave,
+    IStudentExamRemarks,
+    ISubjectWiseRemark
+} from '@/types/staff-portal/examwise-student-remarks';
 import { Eye, Loader2 } from 'lucide-react';
-import type { IStudentExamRemarks, IExamwiseRemarksSave, ISubjectWiseRemark, IExamConfig } from '@/types/staff-portal/examwise-student-remarks';
-import SubjectWiseRemarksModal from './subject-wise-remarks-modal';
+import React, { useState } from 'react';
 import { toast } from 'sonner';
+import SubjectWiseRemarksModal from './subject-wise-remarks-modal';
 
 interface ExamwiseRemarksGridProps {
     studentList: IStudentExamRemarks[];
@@ -20,13 +25,7 @@ interface ExamwiseRemarksGridProps {
     onViewSubjectRemarks: (studentId: number) => Promise<{ get_viewsubjectwiseremarks: ISubjectWiseRemark[] }>;
 }
 
-export default function ExamwiseRemarksGrid({
-    studentList,
-    config,
-    onSave,
-    filterData,
-    onViewSubjectRemarks
-}: ExamwiseRemarksGridProps) {
+export default function ExamwiseRemarksGrid({ studentList, config, onSave, filterData, onViewSubjectRemarks }: ExamwiseRemarksGridProps) {
     const [students, setStudents] = useState<IStudentExamRemarks[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectAll, setSelectAll] = useState(false);
@@ -43,14 +42,14 @@ export default function ExamwiseRemarksGrid({
 
     const handleCheckAll = (checked: boolean) => {
         setSelectAll(checked);
-        setStudents(students.map(s => ({ ...s, checked: checked })));
+        setStudents(students.map((s) => ({ ...s, checked: checked })));
     };
 
     const handleCheck = (index: number, checked: boolean) => {
         const newStudents = [...students];
         newStudents[index].checked = checked;
         setStudents(newStudents);
-        setSelectAll(newStudents.every(s => s.checked));
+        setSelectAll(newStudents.every((s) => s.checked));
     };
 
     const handleRemarkChange = (index: number, val: string) => {
@@ -65,11 +64,13 @@ export default function ExamwiseRemarksGrid({
             setSubjectRemarks(res.get_viewsubjectwiseremarks || []);
             setModalStudent(student.studentname);
             setModalOpen(true);
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            console.error(e);
+        }
     };
 
     const handleSave = async () => {
-        const selected = students.filter(s => s.checked);
+        const selected = students.filter((s) => s.checked);
         if (selected.length === 0) {
             toast.error('Please Select Check Box & Then Enter Remarks');
             return;
@@ -87,7 +88,7 @@ export default function ExamwiseRemarksGrid({
         try {
             await onSave({
                 ...filterData,
-                Temp_studentdata_Remarks: selected.map(s => ({
+                Temp_studentdata_Remarks: selected.map((s) => ({
                     AMST_Id: s.amsT_Id,
                     EMER_Remarks: s.remarks || ''
                 }))
@@ -103,37 +104,40 @@ export default function ExamwiseRemarksGrid({
     const showRegNo = config?.[0]?.exmConfig_RegnoColumnDisplay ?? false;
 
     // Sort order based on config
-    const sortType = config?.[0]?.exmConfig_Recordsearchtype || "Name";
+    const sortType = config?.[0]?.exmConfig_Recordsearchtype || 'Name';
 
-    const filteredStudents = students.filter(s =>
-        s.studentname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.amsT_AdmNo.toLowerCase().includes(searchTerm.toLowerCase())
-    ).sort((a, b) => {
-        if (sortType === "AdmNo") return a.amsT_AdmNo.localeCompare(b.amsT_AdmNo);
-        if (sortType === "RollNo") return (a.amaY_RollNo || 0) - (b.amaY_RollNo || 0);
-        if (sortType === "RegNo") return a.amsT_RegistrationNo.localeCompare(b.amsT_RegistrationNo);
-        return a.studentname.localeCompare(b.studentname);
-    });
+    const filteredStudents = students
+        .filter(
+            (s) =>
+                s.studentname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                s.amsT_AdmNo.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        .sort((a, b) => {
+            if (sortType === 'AdmNo') return a.amsT_AdmNo.localeCompare(b.amsT_AdmNo);
+            if (sortType === 'RollNo') return (a.amaY_RollNo || 0) - (b.amaY_RollNo || 0);
+            if (sortType === 'RegNo') return a.amsT_RegistrationNo.localeCompare(b.amsT_RegistrationNo);
+            return a.studentname.localeCompare(b.studentname);
+        });
 
     return (
         <Card>
             <CardHeader>
-                <div className="flex justify-between items-center">
+                <div className='flex items-center justify-between'>
                     <CardTitle>Student List</CardTitle>
-                    <div className="w-1/3">
-                        <Input placeholder="Search here..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                    <div className='w-1/3'>
+                        <Input placeholder='Search here...' value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                     </div>
                 </div>
             </CardHeader>
             <CardContent>
-                <div className="rounded-md border overflow-x-auto">
+                <div className='overflow-x-auto rounded-md border'>
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead className="text-center w-[50px]">
+                                <TableHead className='w-[50px] text-center'>
                                     <Checkbox checked={selectAll} onCheckedChange={(c) => handleCheckAll(c as boolean)} />
                                 </TableHead>
-                                <TableHead className="w-[50px]">SL.NO.</TableHead>
+                                <TableHead className='w-[50px]'>SL.NO.</TableHead>
                                 <TableHead>Student Name</TableHead>
                                 <TableHead>Marks</TableHead>
                                 <TableHead>Remarks</TableHead>
@@ -142,37 +146,61 @@ export default function ExamwiseRemarksGrid({
                         <TableBody>
                             {filteredStudents.map((s, i) => (
                                 <TableRow key={s.amsT_Id}>
-                                    <TableCell className="text-center">
+                                    <TableCell className='text-center'>
                                         <Checkbox checked={s.checked} onCheckedChange={(c) => handleCheck(i, c as boolean)} />
                                     </TableCell>
                                     <TableCell>{i + 1}</TableCell>
                                     <TableCell>
-                                        <div className="flex flex-col gap-1">
-                                            <div className="font-bold flex"><span className="w-20">Name</span>: {s.studentname}</div>
-                                            {showAdmNo && <div className="text-xs flex"><span className="w-20">Adm.No.</span>: {s.amsT_AdmNo}</div>}
-                                            {showRegNo && <div className="text-xs flex"><span className="w-20">Reg.No.</span>: {s.amsT_RegistrationNo}</div>}
-                                            {showRollNo && <div className="text-xs flex"><span className="w-20">Roll.No.</span>: {s.amaY_RollNo}</div>}
+                                        <div className='flex flex-col gap-1'>
+                                            <div className='flex font-bold'>
+                                                <span className='w-20'>Name</span>: {s.studentname}
+                                            </div>
+                                            {showAdmNo && (
+                                                <div className='flex text-xs'>
+                                                    <span className='w-20'>Adm.No.</span>: {s.amsT_AdmNo}
+                                                </div>
+                                            )}
+                                            {showRegNo && (
+                                                <div className='flex text-xs'>
+                                                    <span className='w-20'>Reg.No.</span>: {s.amsT_RegistrationNo}
+                                                </div>
+                                            )}
+                                            {showRollNo && (
+                                                <div className='flex text-xs'>
+                                                    <span className='w-20'>Roll.No.</span>: {s.amaY_RollNo}
+                                                </div>
+                                            )}
 
                                             {s.flag === 1 && (
-                                                <Button size="sm" variant="link" className="p-0 h-auto text-blue-600 justify-start" onClick={() => handleViewSubjectRemarks(s)}>
-                                                    <Eye className="w-3 h-3 mr-1" /> View Subject Wise Remarks
+                                                <Button
+                                                    size='sm'
+                                                    variant='link'
+                                                    className='h-auto justify-start p-0 text-blue-600'
+                                                    onClick={() => handleViewSubjectRemarks(s)}>
+                                                    <Eye className='mr-1 h-3 w-3' /> View Subject Wise Remarks
                                                 </Button>
                                             )}
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <div className="text-xs space-y-1">
-                                            <div className="flex"><span className="w-24 font-bold">Obtained Marks</span>: {s.obtainedmarks}</div>
-                                            <div className="flex"><span className="w-24 font-bold">Max Marks</span>: {s.totalmaxmarks}</div>
-                                            <div className="flex"><span className="w-24 font-bold">Percentage</span>: {s.percentage}</div>
+                                        <div className='space-y-1 text-xs'>
+                                            <div className='flex'>
+                                                <span className='w-24 font-bold'>Obtained Marks</span>: {s.obtainedmarks}
+                                            </div>
+                                            <div className='flex'>
+                                                <span className='w-24 font-bold'>Max Marks</span>: {s.totalmaxmarks}
+                                            </div>
+                                            <div className='flex'>
+                                                <span className='w-24 font-bold'>Percentage</span>: {s.percentage}
+                                            </div>
                                         </div>
                                     </TableCell>
                                     <TableCell>
                                         <Textarea
                                             value={s.remarks || ''}
-                                            onChange={e => handleRemarkChange(i, e.target.value)}
+                                            onChange={(e) => handleRemarkChange(i, e.target.value)}
                                             disabled={!s.checked}
-                                            placeholder="Enter Remarks"
+                                            placeholder='Enter Remarks'
                                         />
                                     </TableCell>
                                 </TableRow>
@@ -181,9 +209,9 @@ export default function ExamwiseRemarksGrid({
                     </Table>
                 </div>
 
-                <div className="flex justify-center mt-4">
+                <div className='mt-4 flex justify-center'>
                     <Button onClick={handleSave} disabled={isSaving}>
-                        {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <i className="fa fa-floppy-o mr-2" />}
+                        {isSaving ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <i className='fa fa-floppy-o mr-2' />}
                         Save
                     </Button>
                 </div>

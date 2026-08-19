@@ -1,10 +1,10 @@
 'use client';
 
+import { feeReceiptLogo } from '@/hooks/fees/useReports';
 import { cn } from '@/lib/utils';
+import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useSession } from 'next-auth/react';
-import { feeReceiptLogo } from '@/hooks/fees/useReports';
 
 interface LogoProps {
     className?: string;
@@ -22,11 +22,12 @@ export default function Logo({ className = '', herf = '', size = 'text', src: cu
     const payload = (logoData as any)?.data !== undefined ? (logoData as any)?.data : logoData;
     const rawList = Array.isArray(payload)
         ? payload
-        : (payload?.institutionlist || payload?.logoList || payload?.data || (payload ? [payload] : []));
+        : payload?.institutionlist || payload?.logoList || payload?.data || (payload ? [payload] : []);
 
-    const matchedItem = Array.isArray(rawList) && rawList.length > 0
-        ? (rawList.find((item: any) => Number(item.mI_Id || item.mi_id || item.MI_Id) === Number(session?.mi_id)) || rawList[0])
-        : null;
+    const matchedItem =
+        Array.isArray(rawList) && rawList.length > 0
+            ? rawList.find((item: any) => Number(item.mI_Id || item.mi_id || item.MI_Id) === Number(session?.mi_id)) || rawList[0]
+            : null;
 
     const apiLogo =
         matchedItem?.mI_logo ||
@@ -64,7 +65,7 @@ export default function Logo({ className = '', herf = '', size = 'text', src: cu
                 alt={session?.mi_name || 'Institution Logo'}
                 width={200}
                 height={50}
-                className="h-10 w-auto object-contain brightness-110 contrast-110 drop-shadow-sm transition-all duration-300 hover:scale-[1.02]"
+                className='h-10 w-auto object-contain brightness-110 contrast-110 drop-shadow-sm transition-all duration-300 hover:scale-[1.02]'
                 priority
                 unoptimized
             />

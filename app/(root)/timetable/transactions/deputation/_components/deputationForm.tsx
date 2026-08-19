@@ -273,5 +273,3 @@ export default function DeputationForm({ onFetch }: DeputationFormProps) {
         </CollapsibleSection>
     );
 }
-
-

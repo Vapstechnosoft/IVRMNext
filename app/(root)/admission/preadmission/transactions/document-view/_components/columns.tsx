@@ -4,13 +4,12 @@ import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Spinner } from '@/components/ui/spinner';
-import { getDocumentpdf } from '@/server/admission/preadmission/transactions/document-view';
 import { getStudentPrintData } from '@/server/admission/preadmission/transactions/application_form';
+import { getDocumentpdf } from '@/server/admission/preadmission/transactions/document-view';
 import type { IPreadmissionDocumentView } from '@/types/admission/preadmission/transactions';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Download, Printer } from 'lucide-react';
-import Image from 'next/image';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 
 function parseDocumentResponse(res: any): { type: 'pdf' | 'html' | 'url' | 'printData'; content: any } | null {
@@ -41,7 +40,12 @@ function parseDocumentResponse(res: any): { type: 'pdf' | 'html' | 'url' | 'prin
         if (trimmed.startsWith('data:text/html')) {
             return { type: 'html', content: trimmed };
         }
-        if (trimmed.startsWith('<') || trimmed.toLowerCase().includes('<html') || trimmed.toLowerCase().includes('<div') || trimmed.toLowerCase().includes('<table')) {
+        if (
+            trimmed.startsWith('<') ||
+            trimmed.toLowerCase().includes('<html') ||
+            trimmed.toLowerCase().includes('<div') ||
+            trimmed.toLowerCase().includes('<table')
+        ) {
             return { type: 'html', content: trimmed };
         }
         // Base64 PDF string
@@ -57,7 +61,16 @@ function parseDocumentResponse(res: any): { type: 'pdf' | 'html' | 'url' | 'prin
         }
 
         // Check for URL or file path
-        const pdfUrl = data.pdf_path || data.pdfPath || data.document_download || data.document_Path || data.document_path || data.filepath || data.filePath || data.url || data.file_path;
+        const pdfUrl =
+            data.pdf_path ||
+            data.pdfPath ||
+            data.document_download ||
+            data.document_Path ||
+            data.document_path ||
+            data.filepath ||
+            data.filePath ||
+            data.url ||
+            data.file_path;
         if (pdfUrl && typeof pdfUrl === 'string') {
             const trimmedUrl = pdfUrl.trim();
             if (trimmedUrl.startsWith('<')) {
@@ -74,7 +87,7 @@ function parseDocumentResponse(res: any): { type: 'pdf' | 'html' | 'url' | 'prin
 
         // Check for student print data structure
         if (data.studentReg_DTObj || data.pasR_RegistrationNo || data.pasR_FirstName || data.student_name) {
-            const printObj = Array.isArray(data.studentReg_DTObj) ? data.studentReg_DTObj[0] : (data.studentReg_DTObj || data);
+            const printObj = Array.isArray(data.studentReg_DTObj) ? data.studentReg_DTObj[0] : data.studentReg_DTObj || data;
             return { type: 'printData', content: printObj };
         }
     }
@@ -95,7 +108,13 @@ function getPropValue(obj: any, keys: string[]): string {
     for (const key of keys) {
         const lowerKey = key.toLowerCase();
         const foundKey = objKeys.find((k) => k.toLowerCase() === lowerKey);
-        if (foundKey && obj[foundKey] !== undefined && obj[foundKey] !== null && String(obj[foundKey]).trim() !== '' && String(obj[foundKey]).trim() !== 'null') {
+        if (
+            foundKey &&
+            obj[foundKey] !== undefined &&
+            obj[foundKey] !== null &&
+            String(obj[foundKey]).trim() !== '' &&
+            String(obj[foundKey]).trim() !== 'null'
+        ) {
             return String(obj[foundKey]).trim();
         }
     }
@@ -127,7 +146,10 @@ function resolvePrintData(printObj: any, fullRes: any) {
     };
 
     // Resolve Religion
-    if (!getPropValue(merged, ['pasR_Religion', 'religion', 'religionName', 'ivrmmR_ReligionName', 'religion_name']) || getPropValue(merged, ['pasR_Religion', 'religion', 'religionName', 'ivrmmR_ReligionName', 'religion_name']) === '-') {
+    if (
+        !getPropValue(merged, ['pasR_Religion', 'religion', 'religionName', 'ivrmmR_ReligionName', 'religion_name']) ||
+        getPropValue(merged, ['pasR_Religion', 'religion', 'religionName', 'ivrmmR_ReligionName', 'religion_name']) === '-'
+    ) {
         const religionList = unwrapList(fullRes?.religion || fullRes?.religionlist || fullRes?.religionList || fullRes?.religions);
         const relId = merged.ivrmmR_Id || merged.IVRMMR_Id;
         if (relId && religionList.length > 0) {
@@ -137,7 +159,10 @@ function resolvePrintData(printObj: any, fullRes: any) {
     }
 
     // Resolve Nationality
-    if (!getPropValue(merged, ['pasR_Nationality', 'nationality', 'nationalityName', 'ivrmmN_NationalityName', 'nationality_name']) || getPropValue(merged, ['pasR_Nationality', 'nationality', 'nationalityName', 'ivrmmN_NationalityName', 'nationality_name']) === '-') {
+    if (
+        !getPropValue(merged, ['pasR_Nationality', 'nationality', 'nationalityName', 'ivrmmN_NationalityName', 'nationality_name']) ||
+        getPropValue(merged, ['pasR_Nationality', 'nationality', 'nationalityName', 'ivrmmN_NationalityName', 'nationality_name']) === '-'
+    ) {
         const natList = unwrapList(fullRes?.nationality || fullRes?.nationalitylist || fullRes?.nationalityList || fullRes?.nationalities);
         const natId = merged.ivrmmN_Id || merged.IVRMMN_Id;
         if (natId && natList.length > 0) {
@@ -147,7 +172,10 @@ function resolvePrintData(printObj: any, fullRes: any) {
     }
 
     // Resolve Caste
-    if (!getPropValue(merged, ['pasR_Caste', 'caste', 'casteName', 'imC_CasteName', 'caste_name']) || getPropValue(merged, ['pasR_Caste', 'caste', 'casteName', 'imC_CasteName', 'caste_name']) === '-') {
+    if (
+        !getPropValue(merged, ['pasR_Caste', 'caste', 'casteName', 'imC_CasteName', 'caste_name']) ||
+        getPropValue(merged, ['pasR_Caste', 'caste', 'casteName', 'imC_CasteName', 'caste_name']) === '-'
+    ) {
         const casteList = unwrapList(fullRes?.caste || fullRes?.castelist || fullRes?.casteList || fullRes?.castes);
         const casteId = merged.imC_Id || merged.IMC_Id;
         if (casteId && casteList.length > 0) {
@@ -157,7 +185,10 @@ function resolvePrintData(printObj: any, fullRes: any) {
     }
 
     // Resolve Category
-    if (!getPropValue(merged, ['pasR_Category', 'category', 'categoryName', 'casteCategory', 'imcC_CategoryName', 'category_name']) || getPropValue(merged, ['pasR_Category', 'category', 'categoryName', 'casteCategory', 'imcC_CategoryName', 'category_name']) === '-') {
+    if (
+        !getPropValue(merged, ['pasR_Category', 'category', 'categoryName', 'casteCategory', 'imcC_CategoryName', 'category_name']) ||
+        getPropValue(merged, ['pasR_Category', 'category', 'categoryName', 'casteCategory', 'imcC_CategoryName', 'category_name']) === '-'
+    ) {
         const catList = unwrapList(fullRes?.casteCategory || fullRes?.categorylist || fullRes?.categoryList || fullRes?.categories);
         const catId = merged.imcC_Id || merged.IMCC_Id;
         if (catId && catList.length > 0) {
@@ -167,7 +198,10 @@ function resolvePrintData(printObj: any, fullRes: any) {
     }
 
     // Resolve Mother Tongue
-    if (!getPropValue(merged, ['pasR_MotherTongue', 'motherTongue', 'mother_tongue', 'ivrmmL_LanguageName', 'language_name']) || getPropValue(merged, ['pasR_MotherTongue', 'motherTongue', 'mother_tongue', 'ivrmmL_LanguageName', 'language_name']) === '-') {
+    if (
+        !getPropValue(merged, ['pasR_MotherTongue', 'motherTongue', 'mother_tongue', 'ivrmmL_LanguageName', 'language_name']) ||
+        getPropValue(merged, ['pasR_MotherTongue', 'motherTongue', 'mother_tongue', 'ivrmmL_LanguageName', 'language_name']) === '-'
+    ) {
         const langList = unwrapList(fullRes?.motherTongue || fullRes?.motherTonguelist || fullRes?.motherTongueList || fullRes?.languages);
         const langId = merged.ivrmmL_Id || merged.IVRMML_Id;
         if (langId && langList.length > 0) {
@@ -177,7 +211,10 @@ function resolvePrintData(printObj: any, fullRes: any) {
     }
 
     // Resolve Sex / Gender
-    if (!getPropValue(merged, ['pasR_Sex', 'student_sex', 'sex', 'gender', 'ivrmmG_GenderName', 'genderName']) || getPropValue(merged, ['pasR_Sex', 'student_sex', 'sex', 'gender', 'ivrmmG_GenderName', 'genderName']) === '-') {
+    if (
+        !getPropValue(merged, ['pasR_Sex', 'student_sex', 'sex', 'gender', 'ivrmmG_GenderName', 'genderName']) ||
+        getPropValue(merged, ['pasR_Sex', 'student_sex', 'sex', 'gender', 'ivrmmG_GenderName', 'genderName']) === '-'
+    ) {
         const genderList = unwrapList(fullRes?.gender || fullRes?.genderlist || fullRes?.genderList || fullRes?.genders);
         const genId = merged.ivrmmG_Id || merged.IVRMMG_Id;
         if (genId && genderList.length > 0) {
@@ -199,7 +236,7 @@ const ApplicationFormCell = ({ pasrId, rowData }: { pasrId: number; rowData: IPr
 
     const handlePrint = useReactToPrint({
         contentRef: printRef,
-        documentTitle: `Application_Form_${rowData.pasR_RegistrationNo || pasrId}`,
+        documentTitle: `Application_Form_${rowData.pasR_RegistrationNo || pasrId}`
     });
 
     const handleViewClick = async () => {
@@ -221,14 +258,15 @@ const ApplicationFormCell = ({ pasrId, rowData }: { pasrId: number; rowData: IPr
 
             // If not a direct PDF/HTML file or if it's dynamic application data, ALWAYS fetch full registration print data
             const printRes = await getStudentPrintData(pasrId, rowData.asmcl_id || 0, rowData.asmaY_Id || 0, 0);
-            const dtObj = (printRes?.studentReg_DTObj && Array.isArray(printRes.studentReg_DTObj) && printRes.studentReg_DTObj.length > 0)
-                ? printRes.studentReg_DTObj[0]
-                : (printRes?.studentReg_DTObj || printRes?.data || printRes || {});
+            const dtObj =
+                printRes?.studentReg_DTObj && Array.isArray(printRes.studentReg_DTObj) && printRes.studentReg_DTObj.length > 0
+                    ? printRes.studentReg_DTObj[0]
+                    : printRes?.studentReg_DTObj || printRes?.data || printRes || {};
 
             const merged = {
                 ...rowData,
                 ...(typeof extracted?.content === 'object' ? extracted.content : {}),
-                ...(typeof dtObj === 'object' ? dtObj : {}),
+                ...(typeof dtObj === 'object' ? dtObj : {})
             };
 
             const resolved = resolvePrintData(merged, printRes);
@@ -268,7 +306,7 @@ const ApplicationFormCell = ({ pasrId, rowData }: { pasrId: number; rowData: IPr
                             e.preventDefault();
                         }}>
                         <DialogHeader className='flex flex-row items-center justify-between border-b px-6 py-4'>
-                            <DialogTitle className='font-semibold text-lg text-blue-900'>
+                            <DialogTitle className='font-semibold text-blue-900 text-lg'>
                                 Pre Admission Application Form - {rowData.student_name || rowData.pasR_RegistrationNo || ''}
                             </DialogTitle>
                             {docType === 'printData' && printData && (
@@ -289,9 +327,13 @@ const ApplicationFormCell = ({ pasrId, rowData }: { pasrId: number; rowData: IPr
 
                             {!loading && (docType === 'url' || docType === 'pdf') && docSource && (
                                 <iframe
-                                    src={docSource.startsWith('data:') || docSource.startsWith('http') ? docSource : `data:application/pdf;base64,${docSource}`}
+                                    src={
+                                        docSource.startsWith('data:') || docSource.startsWith('http')
+                                            ? docSource
+                                            : `data:application/pdf;base64,${docSource}`
+                                    }
                                     title='Pre Admission Application Form'
-                                    className='h-full w-full border-0 rounded-md bg-white shadow'
+                                    className='h-full w-full rounded-md border-0 bg-white shadow'
                                 />
                             )}
 
@@ -299,132 +341,233 @@ const ApplicationFormCell = ({ pasrId, rowData }: { pasrId: number; rowData: IPr
                                 <iframe
                                     srcDoc={docSource}
                                     title='Pre Admission Application Form'
-                                    className='h-full w-full border-0 rounded-md bg-white shadow'
+                                    className='h-full w-full rounded-md border-0 bg-white shadow'
                                 />
                             )}
 
                             {!loading && docType === 'printData' && printData && (
-                                <div ref={printRef} className='mx-auto max-w-4xl min-h-[900px] border bg-white p-8 shadow-sm print:border-none print:m-0 print:p-0 print:shadow-none font-sans text-slate-800'>
+                                <div
+                                    ref={printRef}
+                                    className='mx-auto min-h-[900px] max-w-4xl border bg-white p-8 font-sans text-slate-800 shadow-sm print:m-0 print:border-none print:p-0 print:shadow-none'>
                                     {/* Header Section */}
-                                    <div className='flex flex-col items-center border-b border-slate-400 pb-3 text-center'>
-                                        <div className='flex items-center justify-center gap-4 mb-1'>
+                                    <div className='flex flex-col items-center border-slate-400 border-b pb-3 text-center'>
+                                        <div className='mb-1 flex items-center justify-center gap-4'>
                                             {(printData.logo_path || printData.logoPath || printData.mI_Logo) && (
-                                                <div className='h-16 w-16 flex-shrink-0 rounded-full border border-slate-300 p-1 flex items-center justify-center bg-slate-50'>
-                                                    <img src={printData.logo_path || printData.logoPath || printData.mI_Logo} alt="Logo" className="h-full w-full object-contain" />
+                                                <div className='flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full border border-slate-300 bg-slate-50 p-1'>
+                                                    <img
+                                                        src={printData.logo_path || printData.logoPath || printData.mI_Logo}
+                                                        alt='Logo'
+                                                        className='h-full w-full object-contain'
+                                                    />
                                                 </div>
                                             )}
                                             <div>
-                                                <h1 className='text-2xl font-bold uppercase tracking-wide text-slate-900'>
-                                                    {printData.mI_Name || printData.institute_name || printData.institution_name || 'STUDENT APPLICATION FORM'}
+                                                <h1 className='font-bold text-2xl text-slate-900 uppercase tracking-wide'>
+                                                    {printData.mI_Name ||
+                                                        printData.institute_name ||
+                                                        printData.institution_name ||
+                                                        'STUDENT APPLICATION FORM'}
                                                 </h1>
                                                 {(printData.mI_Address1 || printData.address) && (
-                                                    <p className='text-xs text-slate-600'>{[printData.mI_Address1, printData.mI_Address2, printData.mI_Address3].filter(Boolean).join(', ')}</p>
+                                                    <p className='text-slate-600 text-xs'>
+                                                        {[printData.mI_Address1, printData.mI_Address2, printData.mI_Address3]
+                                                            .filter(Boolean)
+                                                            .join(', ')}
+                                                    </p>
                                                 )}
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* App Registration & Class Header */}
-                                    <div className='my-3 flex items-center justify-between border-b border-slate-300 pb-2'>
-                                        <div className='text-base font-bold uppercase text-slate-900'>
-                                            {getPropValue(printData, ['pasR_RegistrationNo', 'registrationNo', 'pasR_Registration_No'])} : {printData.student_name || `${printData.pasR_FirstName || ''} ${printData.pasR_MiddleName || ''} ${printData.pasR_LastName || ''}`.trim() || rowData.student_name || ''}
+                                    <div className='my-3 flex items-center justify-between border-slate-300 border-b pb-2'>
+                                        <div className='font-bold text-base text-slate-900 uppercase'>
+                                            {getPropValue(printData, ['pasR_RegistrationNo', 'registrationNo', 'pasR_Registration_No'])} :{' '}
+                                            {printData.student_name ||
+                                                `${printData.pasR_FirstName || ''} ${printData.pasR_MiddleName || ''} ${printData.pasR_LastName || ''}`.trim() ||
+                                                rowData.student_name ||
+                                                ''}
                                         </div>
-                                        <div className='border border-slate-700 px-6 py-1 font-bold text-slate-900 text-sm rounded-sm bg-slate-50'>
+                                        <div className='rounded-sm border border-slate-700 bg-slate-50 px-6 py-1 font-bold text-slate-900 text-sm'>
                                             {getPropValue(printData, ['applied_class_name', 'class_name', 'classname', 'asmcL_ClassName'])}
                                         </div>
                                     </div>
 
                                     {/* Section Heading */}
                                     <div className='mb-4'>
-                                        <h2 className='text-lg font-bold text-slate-700 border-b border-slate-300 pb-1'>Applicant details</h2>
+                                        <h2 className='border-slate-300 border-b pb-1 font-bold text-lg text-slate-700'>
+                                            Applicant details
+                                        </h2>
                                     </div>
 
                                     {/* Photos Row */}
-                                    <div className='mb-6 flex items-center justify-center gap-10 border-b border-slate-300 pb-6'>
+                                    <div className='mb-6 flex items-center justify-center gap-10 border-slate-300 border-b pb-6'>
                                         <div className='flex flex-col items-center'>
-                                            <div className='h-32 w-28 border border-slate-400 p-1 flex items-center justify-center bg-slate-50 mb-2 shadow-sm'>
-                                                {printData.pasR_Student_Pic_Path || printData.student_photo || printData.pasR_Student_Pic ? (
-                                                    <img src={printData.pasR_Student_Pic_Path || printData.student_photo || printData.pasR_Student_Pic} alt="Student" className="h-full w-full object-cover" />
+                                            <div className='mb-2 flex h-32 w-28 items-center justify-center border border-slate-400 bg-slate-50 p-1 shadow-sm'>
+                                                {printData.pasR_Student_Pic_Path ||
+                                                printData.student_photo ||
+                                                printData.pasR_Student_Pic ? (
+                                                    <img
+                                                        src={
+                                                            printData.pasR_Student_Pic_Path ||
+                                                            printData.student_photo ||
+                                                            printData.pasR_Student_Pic
+                                                        }
+                                                        alt='Student'
+                                                        className='h-full w-full object-cover'
+                                                    />
                                                 ) : (
-                                                    <span className="text-xs text-slate-400">Student Photo</span>
+                                                    <span className='text-slate-400 text-xs'>Student Photo</span>
                                                 )}
                                             </div>
-                                            <span className='border border-slate-800 px-3 py-0.5 text-xs font-semibold text-slate-900 rounded-sm bg-slate-100'>Student Photo</span>
+                                            <span className='rounded-sm border border-slate-800 bg-slate-100 px-3 py-0.5 font-semibold text-slate-900 text-xs'>
+                                                Student Photo
+                                            </span>
                                         </div>
 
                                         <div className='flex flex-col items-center'>
-                                            <div className='h-32 w-28 border border-slate-400 p-1 flex items-center justify-center bg-slate-50 mb-2 shadow-sm'>
+                                            <div className='mb-2 flex h-32 w-28 items-center justify-center border border-slate-400 bg-slate-50 p-1 shadow-sm'>
                                                 {printData.pasR_FatherPhoto || printData.father_photo ? (
-                                                    <img src={printData.pasR_FatherPhoto || printData.father_photo} alt="Father" className="h-full w-full object-cover" />
+                                                    <img
+                                                        src={printData.pasR_FatherPhoto || printData.father_photo}
+                                                        alt='Father'
+                                                        className='h-full w-full object-cover'
+                                                    />
                                                 ) : (
-                                                    <span className="text-xs text-slate-400">Father Photo</span>
+                                                    <span className='text-slate-400 text-xs'>Father Photo</span>
                                                 )}
                                             </div>
-                                            <span className='border border-slate-800 px-3 py-0.5 text-xs font-semibold text-slate-900 rounded-sm bg-slate-100'>Father Photo</span>
+                                            <span className='rounded-sm border border-slate-800 bg-slate-100 px-3 py-0.5 font-semibold text-slate-900 text-xs'>
+                                                Father Photo
+                                            </span>
                                         </div>
 
                                         <div className='flex flex-col items-center'>
-                                            <div className='h-32 w-28 border border-slate-400 p-1 flex items-center justify-center bg-slate-50 mb-2 shadow-sm'>
+                                            <div className='mb-2 flex h-32 w-28 items-center justify-center border border-slate-400 bg-slate-50 p-1 shadow-sm'>
                                                 {printData.pasR_MotherPhoto || printData.mother_photo ? (
-                                                    <img src={printData.pasR_MotherPhoto || printData.mother_photo} alt="Mother" className="h-full w-full object-cover" />
+                                                    <img
+                                                        src={printData.pasR_MotherPhoto || printData.mother_photo}
+                                                        alt='Mother'
+                                                        className='h-full w-full object-cover'
+                                                    />
                                                 ) : (
-                                                    <span className="text-xs text-slate-400">Mother Photo</span>
+                                                    <span className='text-slate-400 text-xs'>Mother Photo</span>
                                                 )}
                                             </div>
-                                            <span className='border border-slate-800 px-3 py-0.5 text-xs font-semibold text-slate-900 rounded-sm bg-slate-100'>Mother Photo</span>
+                                            <span className='rounded-sm border border-slate-800 bg-slate-100 px-3 py-0.5 font-semibold text-slate-900 text-xs'>
+                                                Mother Photo
+                                            </span>
                                         </div>
                                     </div>
 
                                     {/* Applicant Key-Value Table */}
-                                    <div className='max-w-xl space-y-3.5 text-sm font-medium text-slate-800 ml-4'>
+                                    <div className='ml-4 max-w-xl space-y-3.5 font-medium text-slate-800 text-sm'>
                                         <div className='flex items-center'>
-                                            <span className='w-48 text-right font-bold text-slate-900 pr-2'>Applicant's Full Name :</span>
-                                            <span className='font-bold uppercase text-slate-900 pl-4'>
+                                            <span className='w-48 pr-2 text-right font-bold text-slate-900'>Applicant's Full Name :</span>
+                                            <span className='pl-4 font-bold text-slate-900 uppercase'>
                                                 {getPropValue(printData, ['student_name', 'pasR_Student_Name', 'pasR_FirstName']) !== '-'
-                                                    ? (printData.student_name || `${printData.pasR_FirstName || ''} ${printData.pasR_MiddleName || ''} ${printData.pasR_LastName || ''}`.trim())
+                                                    ? printData.student_name ||
+                                                      `${printData.pasR_FirstName || ''} ${printData.pasR_MiddleName || ''} ${printData.pasR_LastName || ''}`.trim()
                                                     : rowData.student_name || '-'}
                                             </span>
                                         </div>
                                         <div className='flex items-center'>
-                                            <span className='w-48 text-right font-bold text-slate-900 pr-2'>Date of birth :</span>
-                                            <span className='text-slate-900 pl-4'>
-                                                {formatDateVal(getPropValue(printData, ['pasR_DOB', 'pasR_DateOfBirth', 'date_of_birth', 'dob', 'dateOfBirth', 'pasr_dob', 'pasR_Date']))}
+                                            <span className='w-48 pr-2 text-right font-bold text-slate-900'>Date of birth :</span>
+                                            <span className='pl-4 text-slate-900'>
+                                                {formatDateVal(
+                                                    getPropValue(printData, [
+                                                        'pasR_DOB',
+                                                        'pasR_DateOfBirth',
+                                                        'date_of_birth',
+                                                        'dob',
+                                                        'dateOfBirth',
+                                                        'pasr_dob',
+                                                        'pasR_Date'
+                                                    ])
+                                                )}
                                             </span>
                                         </div>
                                         <div className='flex items-center'>
-                                            <span className='w-48 text-right font-bold text-slate-900 pr-2'>Sex :</span>
-                                            <span className='text-slate-900 pl-4 capitalize'>
-                                                {getPropValue(printData, ['pasR_Sex', 'student_sex', 'sex', 'gender', 'ivrmmG_GenderName', 'genderName', 'IVRMMG_GenderName'])}
+                                            <span className='w-48 pr-2 text-right font-bold text-slate-900'>Sex :</span>
+                                            <span className='pl-4 text-slate-900 capitalize'>
+                                                {getPropValue(printData, [
+                                                    'pasR_Sex',
+                                                    'student_sex',
+                                                    'sex',
+                                                    'gender',
+                                                    'ivrmmG_GenderName',
+                                                    'genderName',
+                                                    'IVRMMG_GenderName'
+                                                ])}
                                             </span>
                                         </div>
                                         <div className='flex items-center'>
-                                            <span className='w-48 text-right font-bold text-slate-900 pr-2'>Nationality :</span>
-                                            <span className='text-slate-900 pl-4'>
-                                                {getPropValue(printData, ['pasR_Nationality', 'nationality', 'nationalityName', 'ivrmmN_NationalityName', 'IVRMMN_NationalityName', 'ivrmmN_Mode', 'nationality_name'])}
+                                            <span className='w-48 pr-2 text-right font-bold text-slate-900'>Nationality :</span>
+                                            <span className='pl-4 text-slate-900'>
+                                                {getPropValue(printData, [
+                                                    'pasR_Nationality',
+                                                    'nationality',
+                                                    'nationalityName',
+                                                    'ivrmmN_NationalityName',
+                                                    'IVRMMN_NationalityName',
+                                                    'ivrmmN_Mode',
+                                                    'nationality_name'
+                                                ])}
                                             </span>
                                         </div>
                                         <div className='flex items-center'>
-                                            <span className='w-48 text-right font-bold text-slate-900 pr-2'>Religion :</span>
-                                            <span className='text-slate-900 pl-4'>
-                                                {getPropValue(printData, ['pasR_Religion', 'religion', 'religionName', 'ivrmmR_ReligionName', 'IVRMMR_ReligionName', 'ivrmmR_Name', 'religion_name'])}
+                                            <span className='w-48 pr-2 text-right font-bold text-slate-900'>Religion :</span>
+                                            <span className='pl-4 text-slate-900'>
+                                                {getPropValue(printData, [
+                                                    'pasR_Religion',
+                                                    'religion',
+                                                    'religionName',
+                                                    'ivrmmR_ReligionName',
+                                                    'IVRMMR_ReligionName',
+                                                    'ivrmmR_Name',
+                                                    'religion_name'
+                                                ])}
                                             </span>
                                         </div>
                                         <div className='flex items-center'>
-                                            <span className='w-48 text-right font-bold text-slate-900 pr-2'>Caste :</span>
-                                            <span className='text-slate-900 pl-4'>
-                                                {getPropValue(printData, ['pasR_Caste', 'caste', 'casteName', 'imC_CasteName', 'IMC_CasteName', 'caste_name'])}
+                                            <span className='w-48 pr-2 text-right font-bold text-slate-900'>Caste :</span>
+                                            <span className='pl-4 text-slate-900'>
+                                                {getPropValue(printData, [
+                                                    'pasR_Caste',
+                                                    'caste',
+                                                    'casteName',
+                                                    'imC_CasteName',
+                                                    'IMC_CasteName',
+                                                    'caste_name'
+                                                ])}
                                             </span>
                                         </div>
                                         <div className='flex items-center'>
-                                            <span className='w-48 text-right font-bold text-slate-900 pr-2'>Category :</span>
-                                            <span className='text-slate-900 pl-4'>
-                                                {getPropValue(printData, ['pasR_Category', 'category', 'categoryName', 'casteCategory', 'imcC_CategoryName', 'IMCC_CategoryName', 'category_name'])}
+                                            <span className='w-48 pr-2 text-right font-bold text-slate-900'>Category :</span>
+                                            <span className='pl-4 text-slate-900'>
+                                                {getPropValue(printData, [
+                                                    'pasR_Category',
+                                                    'category',
+                                                    'categoryName',
+                                                    'casteCategory',
+                                                    'imcC_CategoryName',
+                                                    'IMCC_CategoryName',
+                                                    'category_name'
+                                                ])}
                                             </span>
                                         </div>
                                         <div className='flex items-center'>
-                                            <span className='w-48 text-right font-bold text-slate-900 pr-2'>Mother tongue :</span>
-                                            <span className='text-slate-900 pl-4'>
-                                                {getPropValue(printData, ['pasR_MotherTongue', 'motherTongue', 'mother_tongue', 'ivrmmL_LanguageName', 'IVRMML_LanguageName', 'languageName', 'language_name'])}
+                                            <span className='w-48 pr-2 text-right font-bold text-slate-900'>Mother tongue :</span>
+                                            <span className='pl-4 text-slate-900'>
+                                                {getPropValue(printData, [
+                                                    'pasR_MotherTongue',
+                                                    'motherTongue',
+                                                    'mother_tongue',
+                                                    'ivrmmL_LanguageName',
+                                                    'IVRMML_LanguageName',
+                                                    'languageName',
+                                                    'language_name'
+                                                ])}
                                             </span>
                                         </div>
                                     </div>
@@ -473,7 +616,7 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
             return (
                 <div className='flex flex-col gap-1'>
                     <span>{regNo}</span>
-                    {formattedDate && <span className='text-sm text-gray-500'>{formattedDate}</span>}
+                    {formattedDate && <span className='text-gray-500 text-sm'>{formattedDate}</span>}
                 </div>
             );
         },
@@ -487,7 +630,9 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
     },
     {
         accessorKey: 'application_form',
-        header: ({ column }) => <DataTableColumnHeader className='text-nowrap font-bold text-black' column={column} title='Application Form' />,
+        header: ({ column }) => (
+            <DataTableColumnHeader className='text-nowrap font-bold text-black' column={column} title='Application Form' />
+        ),
         cell: ({ row }) => <ApplicationFormCell pasrId={row.original.pasr_id} rowData={row.original} />,
         enableSorting: false
     },
@@ -496,9 +641,20 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
         header: ({ column }) => <DataTableColumnHeader column={column} title='View' className='text-center font-bold text-black' />,
         cell: ({ row }) => {
             const data = row.original;
-            const studentPhoto = data.student_photo || data.pasR_Student_Pic_Path || (data as any).studentPhoto || (data as any).pasr_student_pic_path;
-            let fatherPhoto = data.pasR_FatherPhoto || (data as any).father_photo || (data as any).fatherPhoto || (data as any).pasr_father_photo || (data as any).pasR_Father_Photo;
-            let motherPhoto = data.pasR_MotherPhoto || (data as any).mother_photo || (data as any).motherPhoto || (data as any).pasr_mother_photo || (data as any).pasR_Mother_Photo;
+            const studentPhoto =
+                data.student_photo || data.pasR_Student_Pic_Path || (data as any).studentPhoto || (data as any).pasr_student_pic_path;
+            let fatherPhoto =
+                data.pasR_FatherPhoto ||
+                (data as any).father_photo ||
+                (data as any).fatherPhoto ||
+                (data as any).pasr_father_photo ||
+                (data as any).pasR_Father_Photo;
+            let motherPhoto =
+                data.pasR_MotherPhoto ||
+                (data as any).mother_photo ||
+                (data as any).motherPhoto ||
+                (data as any).pasr_mother_photo ||
+                (data as any).pasR_Mother_Photo;
             const doclist = data.doclist || [];
 
             // If not found in primary properties, try to find in doclist by name
@@ -599,11 +755,7 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
                                             />
                                         </div>
                                     ) : (
-                                        <iframe
-                                            src={selectedDoc.path}
-                                            title={selectedDoc.name}
-                                            className='h-full w-full border-none'
-                                        />
+                                        <iframe src={selectedDoc.path} title={selectedDoc.name} className='h-full w-full border-none' />
                                     )}
                                 </div>
                             </DialogContent>
@@ -619,9 +771,20 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
         header: ({ column }) => <DataTableColumnHeader column={column} title='Download' className='font-bold text-black' />,
         cell: ({ row }) => {
             const data = row.original;
-            const studentPhoto = data.student_photo || data.pasR_Student_Pic_Path || (data as any).studentPhoto || (data as any).pasr_student_pic_path;
-            let fatherPhoto = data.pasR_FatherPhoto || (data as any).father_photo || (data as any).fatherPhoto || (data as any).pasr_father_photo || (data as any).pasR_Father_Photo;
-            let motherPhoto = data.pasR_MotherPhoto || (data as any).mother_photo || (data as any).motherPhoto || (data as any).pasr_mother_photo || (data as any).pasR_Mother_Photo;
+            const studentPhoto =
+                data.student_photo || data.pasR_Student_Pic_Path || (data as any).studentPhoto || (data as any).pasr_student_pic_path;
+            let fatherPhoto =
+                data.pasR_FatherPhoto ||
+                (data as any).father_photo ||
+                (data as any).fatherPhoto ||
+                (data as any).pasr_father_photo ||
+                (data as any).pasR_Father_Photo;
+            let motherPhoto =
+                data.pasR_MotherPhoto ||
+                (data as any).mother_photo ||
+                (data as any).motherPhoto ||
+                (data as any).pasr_mother_photo ||
+                (data as any).pasR_Mother_Photo;
             const doclist = data.doclist || [];
 
             // If not found in primary properties, try to find in doclist by name
@@ -679,14 +842,8 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
                         <button
                             type='button'
                             className='flex items-center gap-2 text-blue-600 transition-colors hover:text-blue-800'
-                            onClick={() =>
-                                handleDownload(studentPhoto, `Student_Photo_${row.original.pasr_id}.jpg`, 'student')
-                            }>
-                            {downloading === 'student' ? (
-                                <Spinner size='sm' />
-                            ) : (
-                                <Download className='h-4 w-4' />
-                            )}
+                            onClick={() => handleDownload(studentPhoto, `Student_Photo_${row.original.pasr_id}.jpg`, 'student')}>
+                            {downloading === 'student' ? <Spinner size='sm' /> : <Download className='h-4 w-4' />}
                             <span className='text-sm'>Download</span>
                         </button>
                     )}
@@ -695,11 +852,7 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
                             type='button'
                             className='flex items-center gap-2 text-blue-600 transition-colors hover:text-blue-800'
                             onClick={() => handleDownload(fatherPhoto, `Father_Photo_${row.original.pasr_id}.jpg`, 'father')}>
-                            {downloading === 'father' ? (
-                                <Spinner size='sm' />
-                            ) : (
-                                <Download className='h-4 w-4' />
-                            )}
+                            {downloading === 'father' ? <Spinner size='sm' /> : <Download className='h-4 w-4' />}
                             <span className='text-sm'>Download</span>
                         </button>
                     )}
@@ -708,11 +861,7 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
                             type='button'
                             className='flex items-center gap-2 text-blue-600 transition-colors hover:text-blue-800'
                             onClick={() => handleDownload(motherPhoto, `Mother_Photo_${row.original.pasr_id}.jpg`, 'mother')}>
-                            {downloading === 'mother' ? (
-                                <Spinner size='sm' />
-                            ) : (
-                                <Download className='h-4 w-4' />
-                            )}
+                            {downloading === 'mother' ? <Spinner size='sm' /> : <Download className='h-4 w-4' />}
                             <span className='text-sm'>Download</span>
                         </button>
                     )}
@@ -732,11 +881,7 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
                                         `doc-${index}`
                                     )
                                 }>
-                                {downloading === `doc-${index}` ? (
-                                    <Spinner size='sm' />
-                                ) : (
-                                    <Download className='h-4 w-4' />
-                                )}
+                                {downloading === `doc-${index}` ? <Spinner size='sm' /> : <Download className='h-4 w-4' />}
                                 <span className='text-sm'>Download {doc.amsmD_DocumentName}</span>
                             </button>
                         );

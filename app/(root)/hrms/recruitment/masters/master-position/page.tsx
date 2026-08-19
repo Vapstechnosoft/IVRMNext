@@ -4,22 +4,17 @@ import { GenericDataTable } from '@/components/ui/data-table/generic-data-table'
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import {
-    useGetInstitutionByLogin,
-    useGetMasterPositionGrid,
-    useSaveOrUpdatePosition,
-    useTogglePositionStatus
-} from '@/hooks/hrms/recruitment/masters/useMasters';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useGetInstitutionByLogin, useGetMasterPositionGrid, useSaveOrUpdatePosition } from '@/hooks/hrms/recruitment/masters/useMasters';
 import { recruitmentMasterPositionSchema } from '@/schemas/hrms/recruitment/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RefreshCw, Save } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z } from 'zod';
-import { getMasterPositionColumns, type MasterPosition } from './_components/columns';
+import type { z } from 'zod';
+import { type MasterPosition, getMasterPositionColumns } from './_components/columns';
 import ToggleMasterPositionModal from './_components/toggle-modal';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type MasterPositionForm = z.infer<typeof recruitmentMasterPositionSchema>;
 
@@ -55,9 +50,11 @@ export default function MasterPositionPage() {
 
     const selectedInstitutionId = watch('hrmP_Institution');
 
-    const { data: positionGridData, isLoading: isLoadingMasterPosition, refetchAll: refetchMasterPosition } = useGetMasterPositionGrid(
-        selectedInstitutionId ? Number(selectedInstitutionId) : 0
-    );
+    const {
+        data: positionGridData,
+        isLoading: isLoadingMasterPosition,
+        refetchAll: refetchMasterPosition
+    } = useGetMasterPositionGrid(selectedInstitutionId ? Number(selectedInstitutionId) : 0);
 
     const gridData = positionGridData?.data ?? [];
 
@@ -68,19 +65,19 @@ export default function MasterPositionPage() {
         reset({
             hrmP_Id: 0,
             hrmP_ActiveFlg: true,
-            hrmP_Institution: currentInstitution,  // preserve so grid stays visible
+            hrmP_Institution: currentInstitution, // preserve so grid stays visible
             hrmP_Position: '',
             hrmP_Skills: '',
             hrmP_Desc: '',
             mi_Id: currentInstitution ? Number(currentInstitution) : 0
         });
-        setResetkey(prev => prev + 1);
+        setResetkey((prev) => prev + 1);
     };
 
     const handleFullClear = () => {
         setEditingId(null);
         reset({ hrmP_Id: 0, hrmP_ActiveFlg: true, hrmP_Institution: '', hrmP_Position: '', hrmP_Skills: '', hrmP_Desc: '', mi_Id: 0 });
-        setResetkey(prev => prev + 1);
+        setResetkey((prev) => prev + 1);
     };
 
     const onSubmit: SubmitHandler<MasterPositionForm> = async (data) => {
@@ -153,11 +150,16 @@ export default function MasterPositionPage() {
                                                 name='hrmP_Institution'
                                                 control={control}
                                                 render={({ field }) => (
-                                                    <Select value={field.value || ''} onValueChange={field.onChange}
-                                                        disabled={institutionLoading}
-                                                    >
+                                                    <Select
+                                                        value={field.value || ''}
+                                                        onValueChange={field.onChange}
+                                                        disabled={institutionLoading}>
                                                         <SelectTrigger>
-                                                            <SelectValue placeholder={institutionLoading ? 'Loading Institution...' : 'Select Institution'} />
+                                                            <SelectValue
+                                                                placeholder={
+                                                                    institutionLoading ? 'Loading Institution...' : 'Select Institution'
+                                                                }
+                                                            />
                                                         </SelectTrigger>
                                                         <SelectContent>
                                                             {institutionData?.data?.map((inst: any) => (
@@ -244,23 +246,20 @@ export default function MasterPositionPage() {
                     description='Manage position details with skills and descriptions'
                     defaultOpen={true}
                     size='lg'
-                    className='shadow-lg'
-                >
-                    {
-                        (isLoadingMasterPosition || gridData.length > 0 || selectedInstitutionId) ? (
-                            <GenericDataTable
-                                data={gridData || []}
-                                columns={getMasterPositionColumns({ onEdit: handleEdit, onToggle: handleToggle })}
-                                isLoading={isLoadingMasterPosition}
-                                totalItems={gridData?.length || 0}
-                                showViewOptions={false}
-                            />
-                        ) : (
-                            <div className='flex items-center justify-center py-10'>
-                                <p className='text-muted-foreground text-md'>Please Select Institution to View Data</p>
-                            </div>
-                        )
-                    }
+                    className='shadow-lg'>
+                    {isLoadingMasterPosition || gridData.length > 0 || selectedInstitutionId ? (
+                        <GenericDataTable
+                            data={gridData || []}
+                            columns={getMasterPositionColumns({ onEdit: handleEdit, onToggle: handleToggle })}
+                            isLoading={isLoadingMasterPosition}
+                            totalItems={gridData?.length || 0}
+                            showViewOptions={false}
+                        />
+                    ) : (
+                        <div className='flex items-center justify-center py-10'>
+                            <p className='text-md text-muted-foreground'>Please Select Institution to View Data</p>
+                        </div>
+                    )}
                 </CollapsibleSection>
 
                 {/* Toggle Modal */}
@@ -272,7 +271,6 @@ export default function MasterPositionPage() {
                         onSuccess={() => refetchMasterPosition()}
                     />
                 )}
-
             </div>
         </div>
     );

@@ -53,11 +53,19 @@ export const authConfig: NextAuthConfig = {
             if (user) {
                 token.mi_id = user.mi_id;
                 const loginUsername = (user as any).login_username || '';
-                const rawName = user.name || (user as any).username || (user as any).userName || (user as any).user_name || (user as any).user || (user as any).fullName || '';
-                const isDefaultPlaceholder = !rawName || rawName.trim().toUpperCase() === 'DEFAULT USER' || rawName.trim().toUpperCase() === 'DEFAULTUSER';
+                const rawName =
+                    user.name ||
+                    (user as any).username ||
+                    (user as any).userName ||
+                    (user as any).user_name ||
+                    (user as any).user ||
+                    (user as any).fullName ||
+                    '';
+                const isDefaultPlaceholder =
+                    !rawName || rawName.trim().toUpperCase() === 'DEFAULT USER' || rawName.trim().toUpperCase() === 'DEFAULTUSER';
                 const cleanName = !isDefaultPlaceholder
                     ? rawName
-                    : ((user as any).username || (user as any).userName || (user as any).user_name || loginUsername || user.email || '');
+                    : (user as any).username || (user as any).userName || (user as any).user_name || loginUsername || user.email || '';
 
                 token.name = cleanName;
                 token.email = user.email || '';
@@ -66,11 +74,18 @@ export const authConfig: NextAuthConfig = {
                 token.roleId = user.roleId;
 
                 const rawDesig = user.designation || (user as any).role || (user as any).roleName || '';
-                const isDesigPlaceholder = !rawDesig || rawDesig.trim().toUpperCase() === 'ACTIVE USER' || rawDesig.trim().toUpperCase() === 'ACTIVEUSER';
-                token.designation = isDesigPlaceholder ? (user.role || (user as any).roleName || '') : rawDesig;
+                const isDesigPlaceholder =
+                    !rawDesig || rawDesig.trim().toUpperCase() === 'ACTIVE USER' || rawDesig.trim().toUpperCase() === 'ACTIVEUSER';
+                token.designation = isDesigPlaceholder ? user.role || (user as any).roleName || '' : rawDesig;
 
                 token.amst_id = user.amst_id;
-                token.mi_name = user.mi_name || (user as any).mI_Name || (user as any).mi_Name || (user as any).MI_Name || (user as any).institution_name || '';
+                token.mi_name =
+                    user.mi_name ||
+                    (user as any).mI_Name ||
+                    (user as any).mi_Name ||
+                    (user as any).MI_Name ||
+                    (user as any).institution_name ||
+                    '';
                 token.username = (user as any).username || (user as any).userName || loginUsername || '';
                 token.mi_logo =
                     user.mi_logo ||

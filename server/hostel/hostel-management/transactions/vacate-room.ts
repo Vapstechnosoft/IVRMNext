@@ -69,9 +69,9 @@ export const saveVacate = async (data: any) => {
             revalidatePath('/hostel/transactions/vacate-room');
             return { success: true, message: 'Record Updated Successfully' };
         } else {
-             // Handle raw response if it lacks data wrapper in some helper cases, but usually we access .data
-             // If api.post returns Axios response, then response.data is the payload.
-             // If response.data.returnval...
+            // Handle raw response if it lacks data wrapper in some helper cases, but usually we access .data
+            // If api.post returns Axios response, then response.data is the payload.
+            // If response.data.returnval...
             return { success: false, message: response?.data?.msg || 'Failed to update' };
         }
     } catch (error) {

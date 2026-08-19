@@ -7,11 +7,11 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 interface ToggleLostBookFormProps {
-    configId: number; 
-    isActive: boolean; 
-    configName?: string; 
+    configId: number;
+    isActive: boolean;
+    configName?: string;
     onClose: () => void;
-    onSuccess?: () => void; 
+    onSuccess?: () => void;
 }
 
 export default function ToggleLostBookForm({
@@ -63,9 +63,7 @@ export default function ToggleLostBookForm({
                         <strong className={isActive ? 'text-destructive' : 'text-green-600'}>{isActive ? 'deactivate' : 'activate'}</strong>{' '}
                         <span className='font-medium text-foreground'>"{configName}"</span>?
                     </p>
-                    <p className='text-muted-foreground text-xs'>
-                        This will {isActive ? 'deactivate' : 'activate'} the lost book record.
-                    </p>
+                    <p className='text-muted-foreground text-xs'>This will {isActive ? 'deactivate' : 'activate'} the lost book record.</p>
                 </AdaptiveBody>
 
                 <AdaptiveFooter>

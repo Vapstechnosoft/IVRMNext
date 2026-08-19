@@ -3,17 +3,17 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CollapsibleContent } from '@/components/ui/collapsible';
+import { DatePicker } from '@/components/ui/date-picker';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DatePicker } from '@/components/ui/date-picker';
-import { type PromotionReportCardSophiaSchema, promotionReportCardSophiaSchema } from '@/schemas/exam/exam-module/reports';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import { type PromotionReportCardSophiaSchema, promotionReportCardSophiaSchema } from '@/schemas/exam/exam-module/reports';
+import { getPromotionReportSophia } from '@/server/exam/exam-module/reports/PromotionReportCardSophia';
 import {
     getClassDropDownByAcademicYearlist,
     getSectionsDropDownByAcademicYearandClasslist,
     getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/cumulative-report';
-import { getPromotionReportSophia } from '@/server/exam/exam-module/reports/PromotionReportCardSophia';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
@@ -290,11 +290,7 @@ export default function PromotionReportCardSophiaForm({
                                                 <Label className='font-medium text-sm'>
                                                     From Date <span className='text-red-500'>*</span>
                                                 </Label>
-                                                <DatePicker
-                                                    date={field.value}
-                                                    setDate={field.onChange}
-                                                    placeholder='Pick From Date'
-                                                />
+                                                <DatePicker date={field.value} setDate={field.onChange} placeholder='Pick From Date' />
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </div>
                                         )}
@@ -307,11 +303,7 @@ export default function PromotionReportCardSophiaForm({
                                                 <Label className='font-medium text-sm'>
                                                     To Date <span className='text-red-500'>*</span>
                                                 </Label>
-                                                <DatePicker
-                                                    date={field.value}
-                                                    setDate={field.onChange}
-                                                    placeholder='Pick To Date'
-                                                />
+                                                <DatePicker date={field.value} setDate={field.onChange} placeholder='Pick To Date' />
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </div>
                                         )}
@@ -404,11 +396,7 @@ export default function PromotionReportCardSophiaForm({
                                 className='min-w-[140px]'>
                                 {isSubmitting ? 'Generating...' : 'Report'}
                             </Button>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                onClick={() => reset()}
-                                className='min-w-[100px]'>
+                            <Button type='button' variant='outline' onClick={() => reset()} className='min-w-[100px]'>
                                 Clear
                             </Button>
                         </div>

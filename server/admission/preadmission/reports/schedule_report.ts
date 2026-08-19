@@ -2,9 +2,9 @@
 
 import { api } from '@/lib/apiService';
 import type {
-    IScheduleReportInitialDetailsResponse,
     IScheduleListResponse,
-    IScheduleReportDetailsResponse
+    IScheduleReportDetailsResponse,
+    IScheduleReportInitialDetailsResponse
 } from '@/types/admission/preadmission/reports';
 
 /**

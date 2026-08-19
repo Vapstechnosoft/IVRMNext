@@ -1,13 +1,13 @@
 'use client';
 
-import React from 'react';
-import { Dancing_Script } from 'next/font/google';
 import { cn } from '@/lib/utils';
+import { Dancing_Script } from 'next/font/google';
+import React from 'react';
 
 const dancingScript = Dancing_Script({
     subsets: ['latin'],
     weight: ['400', '700'],
-    variable: '--font-dancing-script',
+    variable: '--font-dancing-script'
 });
 
 type CertificateProps = {
@@ -22,14 +22,13 @@ type CertificateProps = {
     awardName: string;
 };
 
-const AppreciationCertificate = React.forwardRef<HTMLDivElement, CertificateProps>(
-    ({ student, purpose, heldOnDate, awardName }, ref) => {
-        const fullName = student ? `${student.stuFN} ${student.stuMN || ''} ${student.stuLN || ''}`.trim() : '';
+const AppreciationCertificate = React.forwardRef<HTMLDivElement, CertificateProps>(({ student, purpose, heldOnDate, awardName }, ref) => {
+    const fullName = student ? `${student.stuFN} ${student.stuMN || ''} ${student.stuLN || ''}`.trim() : '';
 
-        return (
-            <div ref={ref} className={cn("printable-content", dancingScript.variable)}>
-                <style>
-                    {`
+    return (
+        <div ref={ref} className={cn('printable-content', dancingScript.variable)}>
+            <style>
+                {`
                     @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap');
                     
                     @media print {
@@ -245,91 +244,94 @@ const AppreciationCertificate = React.forwardRef<HTMLDivElement, CertificateProp
                         margin: 0 10px;
                     }
                 `}
-                </style>
-                
-                <div className="outer-wrap">
-                    <div className="certificate-container">
-                        <div className="certificate-watermark">
-                            <img
-                                src="https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/702a1ff2-e331-4897-ab85-d33ad299fd4c.jpg"
-                                alt="Watermark"
-                            />
-                        </div>
+            </style>
 
-                        <div className="certificate-header">
-                            <img
-                                src="https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/a4c9e310-b5a5-4a2c-acb3-340b83b14297.jpg"
-                                alt="School Header"
-                                className="header-image"
-                            />
-                        </div>
+            <div className='outer-wrap'>
+                <div className='certificate-container'>
+                    <div className='certificate-watermark'>
+                        <img
+                            src='https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/702a1ff2-e331-4897-ab85-d33ad299fd4c.jpg'
+                            alt='Watermark'
+                        />
+                    </div>
 
-                        <div className="certificate-title-box">
-                            <img
-                                src="https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/fb143acd-e266-4646-acaa-f6d51e0090e2.png"
-                                alt="Certificate Title"
-                                className="title-image"
-                            />
-                        </div>
+                    <div className='certificate-header'>
+                        <img
+                            src='https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/a4c9e310-b5a5-4a2c-acb3-340b83b14297.jpg'
+                            alt='School Header'
+                            className='header-image'
+                        />
+                    </div>
 
-                        <div className="certificate-body">
-                            <div className="rows">
-                                <div className="row">
-                                    <span className="label">This is to certify that Master/Miss</span>
-                                    <span className="blank">
-                                        <span className="highlight-text">{fullName}</span>
-                                    </span>
-                                </div>
+                    <div className='certificate-title-box'>
+                        <img
+                            src='https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/fb143acd-e266-4646-acaa-f6d51e0090e2.png'
+                            alt='Certificate Title'
+                            className='title-image'
+                        />
+                    </div>
 
-                                <div className="row">
-                                    <span className="label">has participated in</span>
-                                    <span className="blank">
-                                        <span className="highlight-text">{purpose}</span>
-                                    </span>
-                                </div>
-
-                                <div className="row">
-                                    <span className="label">for the session {student?.acadamicyear || '____'} held on</span>
-                                    <span className="blank">
-                                        <span className="highlight-text" style={{ fontSize: '30px' }}>{heldOnDate}</span>
-                                    </span>
-                                </div>
-
-                                <div className="row">
-                                    <span className="label">and has been awarded</span>
-                                    <span className="blank">
-                                        <span className="highlight-text" style={{ fontSize: '30px' }}>{awardName}</span>
-                                    </span>
-                                    <span className="label">.</span>
-                                </div>
+                    <div className='certificate-body'>
+                        <div className='rows'>
+                            <div className='row'>
+                                <span className='label'>This is to certify that Master/Miss</span>
+                                <span className='blank'>
+                                    <span className='highlight-text'>{fullName}</span>
+                                </span>
                             </div>
-                        </div>
 
-                        <div className="certificate-footer">
-                            <div className="signature-box">
-                                <img
-                                    src="https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/89e83cbd-ca37-49f2-b3ee-1e3ba0d7798d.png"
-                                    alt="Rector Signature"
-                                    className="rector-sign"
-                                />
-                                <div className="signature-line" />
-                                <p className="signature-title">Rector</p>
+                            <div className='row'>
+                                <span className='label'>has participated in</span>
+                                <span className='blank'>
+                                    <span className='highlight-text'>{purpose}</span>
+                                </span>
+                            </div>
+
+                            <div className='row'>
+                                <span className='label'>for the session {student?.acadamicyear || '____'} held on</span>
+                                <span className='blank'>
+                                    <span className='highlight-text' style={{ fontSize: '30px' }}>
+                                        {heldOnDate}
+                                    </span>
+                                </span>
+                            </div>
+
+                            <div className='row'>
+                                <span className='label'>and has been awarded</span>
+                                <span className='blank'>
+                                    <span className='highlight-text' style={{ fontSize: '30px' }}>
+                                        {awardName}
+                                    </span>
+                                </span>
+                                <span className='label'>.</span>
                             </div>
                         </div>
                     </div>
 
-                    <div className="bottom-bar">
-                        <span>4000+ Happy Students</span>
-                        <span className="bottom-sep">|</span>
-                        <span>350+ Dedicated Teachers</span>
-                        <span className="bottom-sep">|</span>
-                        <span>55+ Years of Excellence</span>
+                    <div className='certificate-footer'>
+                        <div className='signature-box'>
+                            <img
+                                src='https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/89e83cbd-ca37-49f2-b3ee-1e3ba0d7798d.png'
+                                alt='Rector Signature'
+                                className='rector-sign'
+                            />
+                            <div className='signature-line' />
+                            <p className='signature-title'>Rector</p>
+                        </div>
                     </div>
                 </div>
+
+                <div className='bottom-bar'>
+                    <span>4000+ Happy Students</span>
+                    <span className='bottom-sep'>|</span>
+                    <span>350+ Dedicated Teachers</span>
+                    <span className='bottom-sep'>|</span>
+                    <span>55+ Years of Excellence</span>
+                </div>
             </div>
-        );
-    }
-);
+        </div>
+    );
+});
 
 AppreciationCertificate.displayName = 'AppreciationCertificate';
 

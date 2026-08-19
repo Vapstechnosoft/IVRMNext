@@ -19,12 +19,18 @@ interface SalarySlipColumnsProps {
     isAllSelected: boolean;
     isSomeSelected: boolean;
 }
-export const getSalarySlipColumns = ({ onSelectAll, onSelectEmployee, selectedEmployeeIds, isAllSelected, isSomeSelected }: SalarySlipColumnsProps): ColumnDef<EmployeeSalarySlipDisplay>[] => [
+export const getSalarySlipColumns = ({
+    onSelectAll,
+    onSelectEmployee,
+    selectedEmployeeIds,
+    isAllSelected,
+    isSomeSelected
+}: SalarySlipColumnsProps): ColumnDef<EmployeeSalarySlipDisplay>[] => [
     {
         id: 'select',
         header: ({ table }) => (
             <Checkbox
-                checked={isAllSelected ? true : (isSomeSelected ? 'indeterminate' : false)}
+                checked={isAllSelected ? true : isSomeSelected ? 'indeterminate' : false}
                 onCheckedChange={(value) => {
                     onSelectAll(!!value);
                 }}

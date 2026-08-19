@@ -1,10 +1,10 @@
 'use client';
 
 import { Checkbox } from '@/components/ui/checkbox';
-import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
-import { ColumnDef } from '@tanstack/react-table';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
 export type GuestAllotmentColumn = {
@@ -24,20 +24,13 @@ export const guestAllotmentColumns: ColumnDef<GuestAllotmentColumn, any>[] = [
         id: 'select',
         header: ({ table }) => (
             <Checkbox
-                checked={
-                    table.getIsAllPageRowsSelected() ||
-                    (table.getIsSomePageRowsSelected() && 'indeterminate')
-                }
+                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
                 onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
                 aria-label='Select all'
             />
         ),
         cell: ({ row }) => (
-            <Checkbox
-                checked={row.getIsSelected()}
-                onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label='Select row'
-            />
+            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
         ),
         enableSorting: false,
         enableHiding: false

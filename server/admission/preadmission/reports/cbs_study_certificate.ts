@@ -25,7 +25,6 @@ export async function getCbsStudyCertSearchFilter(data: {
     return await api.post<any>('admission', url, {});
 }
 
-
 export async function getCbsStudyCertDetails(data: {
     ASMAY_Id: number;
     ASMCL_Id: number;

@@ -1,14 +1,13 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
 import { getHouseInchargeReport, getHouseInchargeReportLoadData, getHousesByYear } from '@/server/sports/reports/house-incharge-report';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 export const useHouseInchargeReport = () => {
-
     // Initial Data (Academic Years)
     const initialData = useQuery({
         queryKey: ['houseInchargeReportInitial'],
         queryFn: () => getHouseInchargeReportLoadData(),
-        staleTime: Infinity,
+        staleTime: Number.POSITIVE_INFINITY
     });
 
     // Fetch Houses
@@ -16,7 +15,7 @@ export const useHouseInchargeReport = () => {
         mutationFn: getHousesByYear,
         onError: (error) => {
             toast.error(error.message || 'Failed to fetch houses');
-        },
+        }
     });
 
     // Generate Report
@@ -31,12 +30,12 @@ export const useHouseInchargeReport = () => {
         },
         onError: (error) => {
             toast.error(error.message || 'Failed to generate report');
-        },
+        }
     });
 
     return {
         initialData,
         houseMutation,
-        reportMutation,
+        reportMutation
     };
 };

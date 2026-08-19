@@ -5,12 +5,11 @@ export const printLeaveStatusReport = (reportData: any) => {
         return;
     }
 
+    const tableRows = reportData
+        .map((record: any, index: number) => {
+            // Calculate totals for this row
 
-
-    const tableRows = reportData.map((record: any, index: number) => {
-        // Calculate totals for this row
-
-        return `
+            return `
             <tr>
                 <td class="text-center">${index + 1}</td>
                 <td>${record.hrmE_EmployeeCode || ''}</td>
@@ -22,7 +21,8 @@ export const printLeaveStatusReport = (reportData: any) => {
                
             </tr>
         `;
-    }).join('');
+        })
+        .join('');
 
     printWindow.document.write(`
         <html>
@@ -163,4 +163,4 @@ export const printLeaveStatusReport = (reportData: any) => {
     setTimeout(() => {
         printWindow.print();
     }, 250);
-}
+};

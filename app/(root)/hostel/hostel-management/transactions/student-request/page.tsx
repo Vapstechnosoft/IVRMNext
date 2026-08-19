@@ -1,12 +1,15 @@
 'use client';
 
+import { Heading } from '@/components/layout/heading';
+import { Separator } from '@/components/ui/separator';
+import {
+    getStudentRequestLoadData,
+    toggleStudentRequestStatus
+} from '@/server/hostel/hostel-management/transactions/student-request-actions';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import StudentRequestForm from './_components/add-form';
 import StudentRequestList from './_components/list';
-import { Separator } from '@/components/ui/separator';
-import { toast } from 'sonner';
-import { getStudentRequestLoadData, toggleStudentRequestStatus } from '@/server/hostel/hostel-management/transactions/student-request-actions';
-import { Heading } from '@/components/layout/heading';
 
 export default function StudentRequestPage() {
     const [listData, setListData] = useState<any[]>([]);
@@ -31,27 +34,25 @@ export default function StudentRequestPage() {
     const handleToggle = async (data: any) => {
         const res = await toggleStudentRequestStatus(data);
         if (res?.ret) {
-            toast.success("Status updated!");
+            toast.success('Status updated!');
             loadData();
         }
     };
 
     return (
-        <div className="flex-col">
-            <div className="flex-1 space-y-4 p-8 pt-6">
-
+        <div className='flex-col'>
+            <div className='flex-1 space-y-4 p-8 pt-6'>
                 <Separator />
                 <StudentRequestForm
-                    onSaveSuccess={() => { loadData(); setEditData(null); }}
+                    onSaveSuccess={() => {
+                        loadData();
+                        setEditData(null);
+                    }}
                     editData={editData}
                 />
                 <Separator />
-                <Heading title="Your Requests" description="" />
-                <StudentRequestList
-                    data={listData}
-                    onEdit={handleEdit}
-                    onToggle={handleToggle}
-                />
+                <Heading title='Your Requests' description='' />
+                <StudentRequestList data={listData} onEdit={handleEdit} onToggle={handleToggle} />
             </div>
         </div>
     );

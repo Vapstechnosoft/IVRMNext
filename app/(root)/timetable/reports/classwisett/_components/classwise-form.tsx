@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useClassDetails, useSectionDropDown, useTimeTableCategoryDropDownClassWise } from '@/hooks/timetable/reports';
-import { useTimeTableAcademicYear, useTimeTableCategoryDropDownData } from '@/hooks/timetable/useMasters';
+import { useTimeTableAcademicYear } from '@/hooks/timetable/useMasters';
 import { classWiseReportSchema } from '@/schemas/timetable/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Search, X } from 'lucide-react';
@@ -22,23 +22,15 @@ interface ClassWiseFormProps {
 }
 
 export default function ClassWiseForm({ onReportGenerated }: ClassWiseFormProps) {
-    const {
-        data: academicyeardata,
-    } = useTimeTableAcademicYear();
+    const { data: academicyeardata } = useTimeTableAcademicYear();
 
-    const {
-        data: categorydropdowndata,
-    } = useTimeTableCategoryDropDownClassWise();
+    const { data: categorydropdowndata } = useTimeTableCategoryDropDownClassWise();
 
     // Using new hook for classes
-    const {
-        data: classdata,
-    } = useClassDetails();
+    const { data: classdata } = useClassDetails();
 
     // Using new hook for sections
-    const {
-        data: sectiondata,
-    } = useSectionDropDown();
+    const { data: sectiondata } = useSectionDropDown();
 
     const academicList = (academicyeardata as any)?.data || [];
     const categoryList = (categorydropdowndata as any)?.data || [];
@@ -73,9 +65,9 @@ export default function ClassWiseForm({ onReportGenerated }: ClassWiseFormProps)
         };
 
         try {
-            console.log("class wise tt payload", JSON.stringify(payload));
+            console.log('class wise tt payload', JSON.stringify(payload));
             const response = await getClassWiseReport(payload);
-            console.log("class wise tt response", response);
+            console.log('class wise tt response', response);
             onReportGenerated(response, payload);
         } catch (error: any) {
             console.error('Error generating class wise report:', error);
@@ -101,11 +93,8 @@ export default function ClassWiseForm({ onReportGenerated }: ClassWiseFormProps)
                         render={({ field }) => (
                             <Select
                                 key={field.value ?? 'empty'}
-                                value={field.value && field.value !== 0
-                                    ? field.value.toString()
-                                    : undefined}
-                                onValueChange={(val) => field.onChange(Number(val))}
-                            >
+                                value={field.value && field.value !== 0 ? field.value.toString() : undefined}
+                                onValueChange={(val) => field.onChange(Number(val))}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
@@ -133,11 +122,8 @@ export default function ClassWiseForm({ onReportGenerated }: ClassWiseFormProps)
                         render={({ field }) => (
                             <Select
                                 key={field.value ?? 'empty'}
-                                value={field.value && field.value !== 0
-                                    ? field.value.toString()
-                                    : undefined}
-                                onValueChange={(val) => field.onChange(Number(val))}
-                            >
+                                value={field.value && field.value !== 0 ? field.value.toString() : undefined}
+                                onValueChange={(val) => field.onChange(Number(val))}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>

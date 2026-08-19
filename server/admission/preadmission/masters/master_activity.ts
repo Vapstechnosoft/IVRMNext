@@ -1,8 +1,8 @@
 'use server';
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
+import type { IMasterActivity } from '@/schemas/admission/preadmission/master_activity';
 import type { ApiSearchparams } from '@/types';
-import type { IMasterActivity, IMasterActivityList } from '@/schemas/admission/preadmission/master_activity';
 
 /**
  * Get all master activities

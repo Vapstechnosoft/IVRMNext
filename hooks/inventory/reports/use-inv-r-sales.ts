@@ -1,21 +1,20 @@
-
-import { useMutation, useQuery } from '@tanstack/react-query';
 import {
-    getInvRSalesLoadData,
-    getInvRSalesDetails,
     getInvRSalesClassData,
-    getInvRSalesStudentList,
-    getInvRSalesReport,
+    getInvRSalesDetails,
     getInvRSalesItemLoadData,
-    getInvRSalesStaffLoadData
+    getInvRSalesLoadData,
+    getInvRSalesReport,
+    getInvRSalesStaffLoadData,
+    getInvRSalesStudentList
 } from '@/server/inventory/reports/inv-r-sales';
+import type { IInvRSalesPayload } from '@/types/inventory/reports/inv-r-sales';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { IInvRSalesPayload } from '@/types/inventory/reports/inv-r-sales';
 
 export const useInvRSalesLoadData = () => {
     return useQuery({
         queryKey: ['invRSalesLoadData'],
-        queryFn: getInvRSalesLoadData,
+        queryFn: getInvRSalesLoadData
     });
 };
 
@@ -23,7 +22,7 @@ export const useInvRSalesItemLoadData = (optionflag: string) => {
     return useQuery({
         queryKey: ['invRSalesItemLoadData', optionflag],
         queryFn: () => getInvRSalesItemLoadData(optionflag),
-        enabled: !!optionflag,
+        enabled: !!optionflag
     });
 };
 
@@ -31,7 +30,7 @@ export const useInvRSalesStaffLoadData = (enabled: boolean) => {
     return useQuery({
         queryKey: ['invRSalesStaffLoadData'],
         queryFn: getInvRSalesStaffLoadData,
-        enabled,
+        enabled
     });
 };
 
@@ -39,7 +38,7 @@ export const useInvRSalesDetails = (optionflag: string | undefined, typeflag?: s
     return useQuery({
         queryKey: ['invRSalesDetails', optionflag, typeflag],
         queryFn: () => getInvRSalesDetails(optionflag!, typeflag),
-        enabled: !!optionflag,
+        enabled: !!optionflag
     });
 };
 
@@ -47,7 +46,7 @@ export const useInvRSalesClassData = (individualflag: string | undefined) => {
     return useQuery({
         queryKey: ['invRSalesClassData', individualflag],
         queryFn: () => getInvRSalesClassData(individualflag!),
-        enabled: !!individualflag && (individualflag === 'C' || individualflag === 'CS'),
+        enabled: !!individualflag && (individualflag === 'C' || individualflag === 'CS')
     });
 };
 
@@ -55,7 +54,7 @@ export const useInvRSalesSectionList = (asmcL_Id: string | undefined, individual
     return useQuery({
         queryKey: ['invRSalesSectionList', asmcL_Id],
         queryFn: () => getInvRSalesStudentList({ ASMCL_Id: Number(asmcL_Id), ASMS_Id: 0, type: 'CS' }),
-        enabled: !!asmcL_Id && individualflag === 'CS',
+        enabled: !!asmcL_Id && individualflag === 'CS'
     });
 };
 
@@ -75,10 +74,8 @@ export const useInvRSalesStudentList = (
             };
             return getInvRSalesStudentList(payload);
         },
-        enabled: optionflag === 'Student' && (
-            (individualflag === 'C' && !!asmcL_Id) || 
-            (individualflag === 'CS' && !!asmcL_Id && !!asmS_Id)
-        ),
+        enabled:
+            optionflag === 'Student' && ((individualflag === 'C' && !!asmcL_Id) || (individualflag === 'CS' && !!asmcL_Id && !!asmS_Id))
     });
 };
 

@@ -1,8 +1,7 @@
 'use client';
 
-import React from 'react';
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import React from 'react';
 
 interface StudyCertificateGMVPSPrintProps {
     data: any;
@@ -14,7 +13,8 @@ interface StudyCertificateGMVPSPrintProps {
 }
 
 const getOrdinalSuffix = (day: number) => {
-    const j = day % 10, k = day % 100;
+    const j = day % 10,
+        k = day % 100;
     if (j === 1 && k !== 11) return 'st';
     if (j === 2 && k !== 12) return 'nd';
     if (j === 3 && k !== 13) return 'rd';
@@ -23,17 +23,28 @@ const getOrdinalSuffix = (day: number) => {
 
 const mapClassToWords = (className: string) => {
     switch (className?.toUpperCase()) {
-        case 'I': return 'FIRST';
-        case 'II': return 'SECOND';
-        case 'III': return 'THIRD';
-        case 'IV': return 'FOURTH';
-        case 'V': return 'FIFTH';
-        case 'VI': return 'SIXTH';
-        case 'VII': return 'SEVENTH';
-        case 'VIII': return 'EIGHTH';
-        case 'IX': return 'NINTH';
-        case 'X': return 'TENTH';
-        default: return className?.toUpperCase() || '';
+        case 'I':
+            return 'FIRST';
+        case 'II':
+            return 'SECOND';
+        case 'III':
+            return 'THIRD';
+        case 'IV':
+            return 'FOURTH';
+        case 'V':
+            return 'FIFTH';
+        case 'VI':
+            return 'SIXTH';
+        case 'VII':
+            return 'SEVENTH';
+        case 'VIII':
+            return 'EIGHTH';
+        case 'IX':
+            return 'NINTH';
+        case 'X':
+            return 'TENTH';
+        default:
+            return className?.toUpperCase() || '';
     }
 };
 
@@ -45,9 +56,10 @@ export const StudyCertificateGMVPSPrint = React.forwardRef<HTMLDivElement, Study
         const formattedCurrentDate = selectedDate ? format(selectedDate, 'dd/MM/yyyy') : format(new Date(), 'dd/MM/yyyy');
 
         return (
-            <div ref={ref} id="printable-area" className="bg-white text-black font-serif">
-                <style dangerouslySetInnerHTML={{
-                    __html: `
+            <div ref={ref} id='printable-area' className='bg-white font-serif text-black'>
+                <style
+                    dangerouslySetInnerHTML={{
+                        __html: `
                     @media print {
                         @page { size: A4; margin: 0; }
                         body * {
@@ -107,104 +119,150 @@ export const StudyCertificateGMVPSPrint = React.forwardRef<HTMLDivElement, Study
                     .text-bold { font-weight: bold !important; }
                     .header-margin { margin-top: 20px; }
                     .certificate-content { line-height: 2.2; font-size: 18px; margin-top: 35px; }
-                ` }} />
+                `
+                    }}
+                />
 
                 {students.map((student: any, index: number) => (
-                    <div key={index} className="page-container">
-                        <div className="outer-border">
-                            <div className="inner-border">
+                    <div key={index} className='page-container'>
+                        <div className='outer-border'>
+                            <div className='inner-border'>
                                 {certificateType === 'study' ? (
                                     <>
-                                        <div className="header-margin text-center mb-8">
-                                            <h3 className="text-xl font-bold uppercase underline tracking-wider">TO WHOMSOEVER IT MAY CONCERN</h3>
+                                        <div className='header-margin mb-8 text-center'>
+                                            <h3 className='font-bold text-xl uppercase tracking-wider underline'>
+                                                TO WHOMSOEVER IT MAY CONCERN
+                                            </h3>
                                         </div>
 
-                                        <div className="flex justify-end mb-6">
-                                            <div className="font-bold text-lg">
+                                        <div className='mb-6 flex justify-end'>
+                                            <div className='font-bold text-lg'>
                                                 Date: <span>{formattedCurrentDate}</span>
                                             </div>
                                         </div>
 
-                                        <div className="certificate-content space-y-4">
-                                            <div className="flex items-end leading-relaxed">
-                                                <span className="font-bold whitespace-nowrap">This is to certify that {student.gender?.toLowerCase() === 'female' ? 'Kum' : 'Sri'}</span>
-                                                <span className="flex-1 border-bottom border-black text-center font-bold px-2">{student.studentName}</span>
-                                                <span className="font-bold whitespace-nowrap ml-2">{student.gender?.toLowerCase() === 'female' ? 'D/o' : 'S/o'}</span>
+                                        <div className='certificate-content space-y-4'>
+                                            <div className='flex items-end leading-relaxed'>
+                                                <span className='whitespace-nowrap font-bold'>
+                                                    This is to certify that {student.gender?.toLowerCase() === 'female' ? 'Kum' : 'Sri'}
+                                                </span>
+                                                <span className='flex-1 border-black border-bottom px-2 text-center font-bold'>
+                                                    {student.studentName}
+                                                </span>
+                                                <span className='ml-2 whitespace-nowrap font-bold'>
+                                                    {student.gender?.toLowerCase() === 'female' ? 'D/o' : 'S/o'}
+                                                </span>
                                             </div>
 
-                                            <div className="flex items-end leading-relaxed">
-                                                <span className="flex-1 border-bottom border-black text-center font-bold px-2">{student.fatherName}</span>
-                                                <span className="font-bold whitespace-nowrap ml-2">has studied from Class</span>
-                                                <span className="w-[120px] border-bottom border-black text-center font-bold px-2">{mapClassToWords(student.joinedClass)}</span>
+                                            <div className='flex items-end leading-relaxed'>
+                                                <span className='flex-1 border-black border-bottom px-2 text-center font-bold'>
+                                                    {student.fatherName}
+                                                </span>
+                                                <span className='ml-2 whitespace-nowrap font-bold'>has studied from Class</span>
+                                                <span className='w-[120px] border-black border-bottom px-2 text-center font-bold'>
+                                                    {mapClassToWords(student.joinedClass)}
+                                                </span>
                                             </div>
 
-                                            <div className="flex items-end leading-relaxed">
-                                                <span className="font-bold whitespace-nowrap">to</span>
-                                                <span className="w-[120px] border-bottom border-black text-center font-bold px-2">{mapClassToWords(student.className)}</span>
-                                                <span className="font-bold whitespace-nowrap ml-2">in our institution from</span>
-                                                <span className="border-bottom border-black text-center font-bold px-2 w-[120px]">{student.joinedYear}</span>
-                                                <span className="font-bold whitespace-nowrap ml-2">To</span>
-                                                <span className="border-bottom border-black text-center font-bold px-2 flex-1">{student.academicYear}</span>
+                                            <div className='flex items-end leading-relaxed'>
+                                                <span className='whitespace-nowrap font-bold'>to</span>
+                                                <span className='w-[120px] border-black border-bottom px-2 text-center font-bold'>
+                                                    {mapClassToWords(student.className)}
+                                                </span>
+                                                <span className='ml-2 whitespace-nowrap font-bold'>in our institution from</span>
+                                                <span className='w-[120px] border-black border-bottom px-2 text-center font-bold'>
+                                                    {student.joinedYear}
+                                                </span>
+                                                <span className='ml-2 whitespace-nowrap font-bold'>To</span>
+                                                <span className='flex-1 border-black border-bottom px-2 text-center font-bold'>
+                                                    {student.academicYear}
+                                                </span>
                                             </div>
 
-                                            <div className="font-bold">academic years.</div>
+                                            <div className='font-bold'>academic years.</div>
 
-                                            <div className="flex items-end leading-relaxed pt-2">
-                                                <span className="font-bold whitespace-nowrap">{student.gender?.toLowerCase() === 'female' ? 'She' : 'He'} belongs to</span>
-                                                <span className="border-bottom border-black text-center font-bold px-4 flex-1">{student.caste?.toUpperCase()}</span>
-                                                <span className="font-bold whitespace-nowrap ml-2">Religion/Caste and mother tongue of the</span>
+                                            <div className='flex items-end pt-2 leading-relaxed'>
+                                                <span className='whitespace-nowrap font-bold'>
+                                                    {student.gender?.toLowerCase() === 'female' ? 'She' : 'He'} belongs to
+                                                </span>
+                                                <span className='flex-1 border-black border-bottom px-4 text-center font-bold'>
+                                                    {student.caste?.toUpperCase()}
+                                                </span>
+                                                <span className='ml-2 whitespace-nowrap font-bold'>
+                                                    Religion/Caste and mother tongue of the
+                                                </span>
                                             </div>
 
-                                            <div className="flex items-end leading-relaxed">
-                                                <span className="font-bold whitespace-nowrap">Candidate is</span>
-                                                <span className="border-bottom border-black text-center font-bold px-4 w-[200px]">{student.motherTongue?.toUpperCase()}</span>
-                                                <span className="font-bold whitespace-nowrap ml-2">as per the Admission register of the Institution.</span>
+                                            <div className='flex items-end leading-relaxed'>
+                                                <span className='whitespace-nowrap font-bold'>Candidate is</span>
+                                                <span className='w-[200px] border-black border-bottom px-4 text-center font-bold'>
+                                                    {student.motherTongue?.toUpperCase()}
+                                                </span>
+                                                <span className='ml-2 whitespace-nowrap font-bold'>
+                                                    as per the Admission register of the Institution.
+                                                </span>
                                             </div>
 
-                                            <div className="font-bold pt-6">The above details are true and correct to the best of my knowledge.</div>
+                                            <div className='pt-6 font-bold'>
+                                                The above details are true and correct to the best of my knowledge.
+                                            </div>
                                         </div>
 
-                                        <div className="mt-auto grid grid-cols-2 pt-16">
-                                            <div className="flex flex-col justify-end">
-                                                <div className="font-bold mb-10 text-lg">Institution Seal</div>
+                                        <div className='mt-auto grid grid-cols-2 pt-16'>
+                                            <div className='flex flex-col justify-end'>
+                                                <div className='mb-10 font-bold text-lg'>Institution Seal</div>
                                                 {(student.qrCode || qrCode) && (
-                                                    <div className="mb-4">
-                                                        <img src={student.qrCode || qrCode} alt="QR Code" className="w-24 h-24" />
+                                                    <div className='mb-4'>
+                                                        <img src={student.qrCode || qrCode} alt='QR Code' className='h-24 w-24' />
                                                     </div>
                                                 )}
                                             </div>
-                                            <div className="flex flex-col items-center text-center">
-                                                <div className="font-bold whitespace-nowrap leading-tight text-lg">Signature Head of the<br />Institution</div>
-                                                <div className="font-bold mt-6">Name in block letters</div>
-                                                <div className="font-bold border-bottom border-black mt-1 px-4 min-w-[180px]">({student.area?.toUpperCase() || student.headName?.toUpperCase() || '__________'})</div>
+                                            <div className='flex flex-col items-center text-center'>
+                                                <div className='whitespace-nowrap font-bold text-lg leading-tight'>
+                                                    Signature Head of the
+                                                    <br />
+                                                    Institution
+                                                </div>
+                                                <div className='mt-6 font-bold'>Name in block letters</div>
+                                                <div className='mt-1 min-w-[180px] border-black border-bottom px-4 font-bold'>
+                                                    ({student.area?.toUpperCase() || student.headName?.toUpperCase() || '__________'})
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <div className="mt-12 pt-4 text-center border-t-2 border-black">
-                                            <div className="font-bold uppercase tracking-widest text-lg mb-1">COUNTER SIGNED BY ME</div>
-                                            <div className="text-base font-bold">Address, Seal & Office Telephone Number</div>
-                                            <div className="text-base font-bold">Of the Block Educational officer / DDPI</div>
+                                        <div className='mt-12 border-black border-t-2 pt-4 text-center'>
+                                            <div className='mb-1 font-bold text-lg uppercase tracking-widest'>COUNTER SIGNED BY ME</div>
+                                            <div className='font-bold text-base'>Address, Seal & Office Telephone Number</div>
+                                            <div className='font-bold text-base'>Of the Block Educational officer / DDPI</div>
                                         </div>
                                     </>
                                 ) : (
-                                    <div className="pt-10">
-                                        <div className="text-center">
-                                            <h2 className="text-2xl font-bold underline mb-2">CHARACTER CERTIFICATE</h2>
-                                            <div className="text-lg font-bold">TO WHOMSOEVER IT MAY CONCERN</div>
+                                    <div className='pt-10'>
+                                        <div className='text-center'>
+                                            <h2 className='mb-2 font-bold text-2xl underline'>CHARACTER CERTIFICATE</h2>
+                                            <div className='font-bold text-lg'>TO WHOMSOEVER IT MAY CONCERN</div>
                                         </div>
-                                        <div className="flex justify-end mt-6">
-                                            <h4 className="font-bold text-lg">Date : {formattedCurrentDate}</h4>
+                                        <div className='mt-6 flex justify-end'>
+                                            <h4 className='font-bold text-lg'>Date : {formattedCurrentDate}</h4>
                                         </div>
-                                        <div className="mt-12 leading-relaxed text-xl space-y-8">
-                                            <p className="indent-12">
-                                                This is certified that {student.gender?.toLowerCase() === 'female' ? 'Kumari' : 'Kumar'} <span className="font-bold uppercase">{student.studentName}</span> {student.gender?.toLowerCase() === 'female' ? 'daughter' : 'son'} of Sri. <span className="font-bold">{student.fatherName}</span> is a bonafide student of class <span className="font-bold">{student.className}</span> for the academic year <span className="font-bold">{student.academicYear}</span>. {student.gender?.toLowerCase() === 'female' ? 'Her' : 'His'} admission number is <b>{student.admNo}.</b> {student.gender?.toLowerCase() === 'female' ? 'She' : 'He'} is good in studies, sports as well as in co-curricular activities.
+                                        <div className='mt-12 space-y-8 text-xl leading-relaxed'>
+                                            <p className='indent-12'>
+                                                This is certified that {student.gender?.toLowerCase() === 'female' ? 'Kumari' : 'Kumar'}{' '}
+                                                <span className='font-bold uppercase'>{student.studentName}</span>{' '}
+                                                {student.gender?.toLowerCase() === 'female' ? 'daughter' : 'son'} of Sri.{' '}
+                                                <span className='font-bold'>{student.fatherName}</span> is a bonafide student of class{' '}
+                                                <span className='font-bold'>{student.className}</span> for the academic year{' '}
+                                                <span className='font-bold'>{student.academicYear}</span>.{' '}
+                                                {student.gender?.toLowerCase() === 'female' ? 'Her' : 'His'} admission number is{' '}
+                                                <b>{student.admNo}.</b> {student.gender?.toLowerCase() === 'female' ? 'She' : 'He'} is good
+                                                in studies, sports as well as in co-curricular activities.
                                             </p>
-                                            <p className="mt-12">
+                                            <p className='mt-12'>
                                                 {student.gender?.toLowerCase() === 'female' ? 'She' : 'He'} bears a good moral character.
                                             </p>
                                         </div>
-                                        <div className="mt-24 flex flex-col items-end">
-                                            <div className="pt-2 font-bold text-lg">Signature of Head of the School</div>
+                                        <div className='mt-24 flex flex-col items-end'>
+                                            <div className='pt-2 font-bold text-lg'>Signature of Head of the School</div>
                                         </div>
                                     </div>
                                 )}

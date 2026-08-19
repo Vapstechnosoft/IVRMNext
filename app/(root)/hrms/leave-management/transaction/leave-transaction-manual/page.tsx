@@ -3,14 +3,11 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import {
-    useLeaveTransactionManualList,
-    useDeleteLeaveTransactionManual
-} from '@/hooks/hrms/leave-management/useLeaveTransactionManual';
+import { useDeleteLeaveTransactionManual, useLeaveTransactionManualList } from '@/hooks/hrms/leave-management/useLeaveTransactionManual';
 import { Plus, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { type LeaveTransactionManual, getLeaveTransactionManualColumns } from './_components/columns';
 import { AddLeaveTransactionManualForm } from './_components/add-form';
+import { type LeaveTransactionManual, getLeaveTransactionManualColumns } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -33,12 +30,7 @@ export default function LeaveTransactionManualPage(props: { searchParams: Search
 
     return (
         <FormProvider<LeaveTransactionManual>>
-            <LeaveTransactionManualPageContent
-                response={response}
-                isLoading={isLoading}
-                error={error}
-                refetch={refetchAll}
-            />
+            <LeaveTransactionManualPageContent response={response} isLoading={isLoading} error={error} refetch={refetchAll} />
         </FormProvider>
     );
 }
@@ -74,9 +66,7 @@ function LeaveTransactionManualPageContent({
                 <div className='flex items-center justify-between'>
                     <div>
                         <h1 className='font-bold text-2xl tracking-tight'>Leave Transaction Manual</h1>
-                        <p className='text-muted-foreground text-sm'>
-                            Manage manual leave transactions for employees
-                        </p>
+                        <p className='text-muted-foreground text-sm'>Manage manual leave transactions for employees</p>
                     </div>
                     <Button
                         type='button'
@@ -199,9 +189,7 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                             <div className='rounded-lg border bg-muted/50 p-6'>
-                                <p className='text-center text-muted-foreground'>
-                                    Edit form component will be implemented here
-                                </p>
+                                <p className='text-center text-muted-foreground'>Edit form component will be implemented here</p>
                             </div>
                         </div>
                     </CollapsibleSection>

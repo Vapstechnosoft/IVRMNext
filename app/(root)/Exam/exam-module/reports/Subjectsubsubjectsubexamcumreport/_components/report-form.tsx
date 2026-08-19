@@ -1,20 +1,20 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import { 
-    getClassDropDownByAcademicYearlist, 
-    getSectionsDropDownByAcademicYearandClasslist, 
+import { getSubjectSubCumulativeReport } from '@/server/exam/exam-module/reports/SubjectsubsubjectsubexamcumreportController';
+import {
+    getClassDropDownByAcademicYearlist,
     getExamsDropDownByAcademicYearandClassandSectionlist,
+    getSectionsDropDownByAcademicYearandClasslist,
     getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/cumulative-report';
-import { getSubjectSubCumulativeReport } from '@/server/exam/exam-module/reports/SubjectsubsubjectsubexamcumreportController';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, List } from 'lucide-react';
+import { List, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -29,7 +29,7 @@ const formSchema = z.object({
     Left_Flag: z.boolean().default(false),
     Deactive_Flag: z.boolean().default(false),
     sectionrank: z.boolean().default(false),
-    DisplayGrade: z.boolean().default(false),
+    DisplayGrade: z.boolean().default(false)
 });
 
 type FormSchema = z.infer<typeof formSchema>;
@@ -60,7 +60,7 @@ export const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
             Left_Flag: false,
             Deactive_Flag: false,
             sectionrank: false,
-            DisplayGrade: false,
+            DisplayGrade: false
         }
     });
 
@@ -81,7 +81,11 @@ export const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
                 if (response?.success) setClasses(response.data || []);
                 setValue('ASMCL_Id', '');
                 setValue('ASMS_Id', '');
-            } catch { toast.error('Failed to load classes'); } finally { setLoadingClasses(false); }
+            } catch {
+                toast.error('Failed to load classes');
+            } finally {
+                setLoadingClasses(false);
+            }
         })();
     }, [selectedYear, setValue]);
 
@@ -94,7 +98,11 @@ export const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
                 const response = await getSectionsDropDownByAcademicYearandClasslist(Number(selectedYear), Number(selectedClass));
                 if (response?.success) setSections(response.data || []);
                 setValue('ASMS_Id', '');
-            } catch { toast.error('Failed to load sections'); } finally { setLoadingSections(false); }
+            } catch {
+                toast.error('Failed to load sections');
+            } finally {
+                setLoadingSections(false);
+            }
         })();
     }, [selectedYear, selectedClass, setValue]);
 
@@ -104,7 +112,11 @@ export const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
         (async () => {
             try {
                 setLoadingExams(true);
-                const response = await getExamsDropDownByAcademicYearandClassandSectionlist(Number(selectedYear), Number(selectedClass), Number(selectedSection));
+                const response = await getExamsDropDownByAcademicYearandClassandSectionlist(
+                    Number(selectedYear),
+                    Number(selectedClass),
+                    Number(selectedSection)
+                );
                 if (response?.success) {
                     const mappedExams = (response.data || []).map((e: any) => ({
                         emE_Id: e.emE_Id || e.EME_Id,
@@ -113,7 +125,11 @@ export const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
                     setExams(mappedExams);
                 }
                 setValue('EME_Id', '');
-            } catch { toast.error('Failed to load exams'); } finally { setLoadingExams(false); }
+            } catch {
+                toast.error('Failed to load exams');
+            } finally {
+                setLoadingExams(false);
+            }
         })();
     }, [selectedYear, selectedClass, selectedSection, setValue]);
 
@@ -123,7 +139,11 @@ export const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
         (async () => {
             try {
                 setLoadingStudents(true);
-                const response = await getStudentsDropDownByAcademicYearandClassandSectionlist(Number(selectedYear), Number(selectedClass), Number(selectedSection));
+                const response = await getStudentsDropDownByAcademicYearandClassandSectionlist(
+                    Number(selectedYear),
+                    Number(selectedClass),
+                    Number(selectedSection)
+                );
                 if (response?.success) {
                     const mappedStudents = (response.data || []).map((s: any) => ({
                         amsT_Id: s.amsT_Id || s.AMST_Id,
@@ -132,7 +152,11 @@ export const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
                     setStudents(mappedStudents);
                 }
                 setValue('selectedStudents', []);
-            } catch { toast.error('Failed to load students'); } finally { setLoadingStudents(false); }
+            } catch {
+                toast.error('Failed to load students');
+            } finally {
+                setLoadingStudents(false);
+            }
         })();
     }, [selectedYear, selectedClass, selectedSection, setValue]);
 
@@ -143,19 +167,21 @@ export const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
                 ASMAY_Id: Number(data.ASMAY_Id),
                 ASMCL_Id: Number(data.ASMCL_Id),
                 ASMS_Id: Number(data.ASMS_Id),
-                AMST_Ids: data.selectedStudents.map(id => Number(id)),
+                AMST_Ids: data.selectedStudents.map((id) => Number(id))
             };
 
             const response = await getSubjectSubCumulativeReport(payload);
 
-            const selectedStudentsDetails = students.filter(s => data.selectedStudents.includes(String(s.amsT_Id)));
+            const selectedStudentsDetails = students.filter((s) => data.selectedStudents.includes(String(s.amsT_Id)));
 
             const extraParams = {
                 ...data,
-                year: academicYears.find((y: any) => String(y.asmaY_Id || y.ASMAY_Id) === data.ASMAY_Id)?.asmaY_Year || academicYears.find((y: any) => String(y.asmaY_Id || y.ASMAY_Id) === data.ASMAY_Id)?.ASMAY_Year,
-                class: classes.find(c => String(c.asmcL_Id) === data.ASMCL_Id)?.asmcL_ClassName,
-                section: sections.find(s => String(s.asmS_Id) === data.ASMS_Id)?.asmC_SectionName,
-                exam: exams.find(e => String(e.emE_Id) === data.EME_Id)?.emE_ExamName,
+                year:
+                    academicYears.find((y: any) => String(y.asmaY_Id || y.ASMAY_Id) === data.ASMAY_Id)?.asmaY_Year ||
+                    academicYears.find((y: any) => String(y.asmaY_Id || y.ASMAY_Id) === data.ASMAY_Id)?.ASMAY_Year,
+                class: classes.find((c) => String(c.asmcL_Id) === data.ASMCL_Id)?.asmcL_ClassName,
+                section: sections.find((s) => String(s.asmS_Id) === data.ASMS_Id)?.asmC_SectionName,
+                exam: exams.find((e) => String(e.emE_Id) === data.EME_Id)?.emE_ExamName,
                 selectedStudentsDetails
             };
 
@@ -185,13 +211,25 @@ export const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
                                 name='ASMAY_Id'
                                 render={({ field, fieldState }) => (
                                     <div className='space-y-2'>
-                                        <Label>Academic Year <span className='text-red-500'>*</span></Label>
+                                        <Label>
+                                            Academic Year <span className='text-red-500'>*</span>
+                                        </Label>
                                         <Select onValueChange={field.onChange} value={field.value}>
-                                            <SelectTrigger><SelectValue placeholder='Select Year' /></SelectTrigger>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='Select Year' />
+                                            </SelectTrigger>
                                             <SelectContent>
-                                                {academicYearLoading ? <SelectItem value='0' disabled>Loading...</SelectItem> : 
-                                                    academicYears.map((y: any) => <SelectItem key={y.asmaY_Id || y.ASMAY_Id} value={String(y.asmaY_Id || y.ASMAY_Id)}>{y.asmaY_Year || y.ASMAY_Year}</SelectItem>)
-                                                }
+                                                {academicYearLoading ? (
+                                                    <SelectItem value='0' disabled>
+                                                        Loading...
+                                                    </SelectItem>
+                                                ) : (
+                                                    academicYears.map((y: any) => (
+                                                        <SelectItem key={y.asmaY_Id || y.ASMAY_Id} value={String(y.asmaY_Id || y.ASMAY_Id)}>
+                                                            {y.asmaY_Year || y.ASMAY_Year}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                         {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -204,13 +242,25 @@ export const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
                                 name='ASMCL_Id'
                                 render={({ field, fieldState }) => (
                                     <div className='space-y-2'>
-                                        <Label>Class <span className='text-red-500'>*</span></Label>
+                                        <Label>
+                                            Class <span className='text-red-500'>*</span>
+                                        </Label>
                                         <Select onValueChange={field.onChange} value={field.value}>
-                                            <SelectTrigger><SelectValue placeholder='Select Class' /></SelectTrigger>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='Select Class' />
+                                            </SelectTrigger>
                                             <SelectContent>
-                                                {loadingClasses ? <SelectItem value='0' disabled>Loading...</SelectItem> : 
-                                                    classes.map((c) => <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>{c.asmcL_ClassName}</SelectItem>)
-                                                }
+                                                {loadingClasses ? (
+                                                    <SelectItem value='0' disabled>
+                                                        Loading...
+                                                    </SelectItem>
+                                                ) : (
+                                                    classes.map((c) => (
+                                                        <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
+                                                            {c.asmcL_ClassName}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                         {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -223,13 +273,25 @@ export const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
                                 name='ASMS_Id'
                                 render={({ field, fieldState }) => (
                                     <div className='space-y-2'>
-                                        <Label>Section <span className='text-red-500'>*</span></Label>
+                                        <Label>
+                                            Section <span className='text-red-500'>*</span>
+                                        </Label>
                                         <Select onValueChange={field.onChange} value={field.value}>
-                                            <SelectTrigger><SelectValue placeholder='Select Section' /></SelectTrigger>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='Select Section' />
+                                            </SelectTrigger>
                                             <SelectContent>
-                                                {loadingSections ? <SelectItem value='0' disabled>Loading...</SelectItem> : 
-                                                    sections.map((s) => <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>{s.asmC_SectionName}</SelectItem>)
-                                                }
+                                                {loadingSections ? (
+                                                    <SelectItem value='0' disabled>
+                                                        Loading...
+                                                    </SelectItem>
+                                                ) : (
+                                                    sections.map((s) => (
+                                                        <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
+                                                            {s.asmC_SectionName}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                         {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -242,13 +304,25 @@ export const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
                                 name='EME_Id'
                                 render={({ field, fieldState }) => (
                                     <div className='space-y-2'>
-                                        <Label>Exam Name <span className='text-red-500'>*</span></Label>
+                                        <Label>
+                                            Exam Name <span className='text-red-500'>*</span>
+                                        </Label>
                                         <Select onValueChange={field.onChange} value={field.value}>
-                                            <SelectTrigger><SelectValue placeholder='Select Exam' /></SelectTrigger>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='Select Exam' />
+                                            </SelectTrigger>
                                             <SelectContent>
-                                                {loadingExams ? <SelectItem value='0' disabled>Loading...</SelectItem> : 
-                                                    exams.map((e) => <SelectItem key={e.emE_Id} value={String(e.emE_Id)}>{e.emE_ExamName}</SelectItem>)
-                                                }
+                                                {loadingExams ? (
+                                                    <SelectItem value='0' disabled>
+                                                        Loading...
+                                                    </SelectItem>
+                                                ) : (
+                                                    exams.map((e) => (
+                                                        <SelectItem key={e.emE_Id} value={String(e.emE_Id)}>
+                                                            {e.emE_ExamName}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                         {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -259,13 +333,15 @@ export const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
 
                         <div className='space-y-4'>
                             <div className='space-y-2'>
-                                <Label className='font-medium text-sm'>Students <span className='text-red-500'>*</span></Label>
+                                <Label className='font-medium text-sm'>
+                                    Students <span className='text-red-500'>*</span>
+                                </Label>
                                 <Controller
                                     control={control}
                                     name='selectedStudents'
                                     render={({ field, fieldState }) => (
                                         <CustomMultiSelectBox
-                                            options={students.map(s => ({ label: s.studentName, value: String(s.amsT_Id) }))}
+                                            options={students.map((s) => ({ label: s.studentName, value: String(s.amsT_Id) }))}
                                             onChange={(vals) => setValue('selectedStudents', vals, { shouldValidate: true })}
                                             value={field.value ?? []}
                                             placeholder={loadingStudents ? 'Loading students...' : 'Select Students'}
@@ -279,32 +355,56 @@ export const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
                         </div>
 
                         <div className='space-y-6'>
-                            <div className='rounded-lg border bg-gray-50 p-4 space-y-4'>
-                                <Label className='text-xs font-bold uppercase tracking-wider text-gray-500'>Report Settings</Label>
+                            <div className='space-y-4 rounded-lg border bg-gray-50 p-4'>
+                                <Label className='font-bold text-gray-500 text-xs uppercase tracking-wider'>Report Settings</Label>
                                 <div className='grid grid-cols-1 gap-4 pt-2'>
                                     <div className='flex items-center space-x-3'>
-                                        <Controller control={control} name="Left_Flag" render={({ field }) => (
-                                            <Checkbox id="left" checked={field.value} onCheckedChange={field.onChange} />
-                                        )} />
-                                        <Label htmlFor="left" className='text-sm cursor-pointer'>Include Left Students</Label>
+                                        <Controller
+                                            control={control}
+                                            name='Left_Flag'
+                                            render={({ field }) => (
+                                                <Checkbox id='left' checked={field.value} onCheckedChange={field.onChange} />
+                                            )}
+                                        />
+                                        <Label htmlFor='left' className='cursor-pointer text-sm'>
+                                            Include Left Students
+                                        </Label>
                                     </div>
                                     <div className='flex items-center space-x-3'>
-                                        <Controller control={control} name="Deactive_Flag" render={({ field }) => (
-                                            <Checkbox id="deactive" checked={field.value} onCheckedChange={field.onChange} />
-                                        )} />
-                                        <Label htmlFor="deactive" className='text-sm cursor-pointer'>Include Deactive Students</Label>
+                                        <Controller
+                                            control={control}
+                                            name='Deactive_Flag'
+                                            render={({ field }) => (
+                                                <Checkbox id='deactive' checked={field.value} onCheckedChange={field.onChange} />
+                                            )}
+                                        />
+                                        <Label htmlFor='deactive' className='cursor-pointer text-sm'>
+                                            Include Deactive Students
+                                        </Label>
                                     </div>
                                     <div className='flex items-center space-x-3'>
-                                        <Controller control={control} name="sectionrank" render={({ field }) => (
-                                            <Checkbox id="rank" checked={field.value} onCheckedChange={field.onChange} />
-                                        )} />
-                                        <Label htmlFor="rank" className='text-sm cursor-pointer'>Display Rank</Label>
+                                        <Controller
+                                            control={control}
+                                            name='sectionrank'
+                                            render={({ field }) => (
+                                                <Checkbox id='rank' checked={field.value} onCheckedChange={field.onChange} />
+                                            )}
+                                        />
+                                        <Label htmlFor='rank' className='cursor-pointer text-sm'>
+                                            Display Rank
+                                        </Label>
                                     </div>
                                     <div className='flex items-center space-x-3'>
-                                        <Controller control={control} name="DisplayGrade" render={({ field }) => (
-                                            <Checkbox id="grade" checked={field.value} onCheckedChange={field.onChange} />
-                                        )} />
-                                        <Label htmlFor="grade" className='text-sm cursor-pointer'>Display Grade</Label>
+                                        <Controller
+                                            control={control}
+                                            name='DisplayGrade'
+                                            render={({ field }) => (
+                                                <Checkbox id='grade' checked={field.value} onCheckedChange={field.onChange} />
+                                            )}
+                                        />
+                                        <Label htmlFor='grade' className='cursor-pointer text-sm'>
+                                            Display Grade
+                                        </Label>
                                     </div>
                                 </div>
                             </div>
@@ -312,11 +412,21 @@ export const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
                     </div>
 
                     <div className='flex justify-center gap-4 border-t pt-8'>
-                        <Button type='submit' disabled={isSubmitting} size="lg" className="px-8 bg-sky-800 hover:bg-sky-900 text-white">
-                            {isSubmitting ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <List className="mr-2 h-4 w-4" />}
+                        <Button type='submit' disabled={isSubmitting} size='lg' className='bg-sky-800 px-8 text-white hover:bg-sky-900'>
+                            {isSubmitting ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <List className='mr-2 h-4 w-4' />}
                             Report
                         </Button>
-                        <Button type='button' variant='outline' onClick={() => { reset(); onReset(); }} size="lg" className="px-8">Cancel</Button>
+                        <Button
+                            type='button'
+                            variant='outline'
+                            onClick={() => {
+                                reset();
+                                onReset();
+                            }}
+                            size='lg'
+                            className='px-8'>
+                            Cancel
+                        </Button>
                     </div>
                 </form>
             </FormProvider>

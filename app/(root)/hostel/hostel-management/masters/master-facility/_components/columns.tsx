@@ -1,15 +1,14 @@
 'use client';
 
 import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
-import { Check, X } from 'lucide-react';
-import type { IMasterFacility } from '@/schemas/hostel/masters';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import type { IMasterFacility } from '@/schemas/hostel/masters';
+import { type ColumnDef, createColumnHelper } from '@tanstack/react-table';
+import { Check, X } from 'lucide-react';
 import { useCallback } from 'react';
 
 const columnHelper = createColumnHelper<IMasterFacility>();
-
 
 export const masterFacilityColumns: ColumnDef<IMasterFacility, any>[] = [
     {
@@ -36,11 +35,11 @@ export const masterFacilityColumns: ColumnDef<IMasterFacility, any>[] = [
         header: ({ column }) => <ColumnHeader column={column} title='Status' />,
         cell: ({ row }) =>
             row.original.hlmftY_ActiveFlag ? (
-                <span className='flex items-center text-green-600 font-medium'>
+                <span className='flex items-center font-medium text-green-600'>
                     <Check className='mr-1 h-4 w-4' /> Active
                 </span>
             ) : (
-                <span className='flex items-center text-red-600 font-medium'>
+                <span className='flex items-center font-medium text-red-600'>
                     <X className='mr-1 h-4 w-4' /> Inactive
                 </span>
             )

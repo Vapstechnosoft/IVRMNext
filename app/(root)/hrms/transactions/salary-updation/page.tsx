@@ -26,7 +26,7 @@ import type {
     HeadDropdown,
     SalaryUpdationItem
 } from '@/types/hrms/salary-updation';
-import { Loader2, RefreshCw, X, RefreshCcw } from 'lucide-react';
+import { RefreshCcw, RefreshCw, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -267,7 +267,6 @@ function SalaryUpdationPageContent({
                     if (initializedEmps?.length > 0) {
                         toast.success('Search completed successfully');
                     } else {
-
                         toast.error('No data found');
                     }
                 },
@@ -336,9 +335,8 @@ function SalaryUpdationPageContent({
 
     // Save Handler
     const handleSave = () => {
-
-        console.log("Grid Data:", gridData);
-        console.log("Selected Employees:", selectedEmployees);
+        console.log('Grid Data:', gridData);
+        console.log('Selected Employees:', selectedEmployees);
 
         const rowsToSave = gridData.filter((emp) => selectedEmployees.includes(emp.HRME_Id));
 
@@ -354,8 +352,8 @@ function SalaryUpdationPageContent({
             if (emp.earningResult) allEarnings.push(...emp.earningResult);
             if (emp.deductionResult) allDeductions.push(...emp.deductionResult);
         });
-        console.log("All Earnings", allEarnings);
-        console.log("All Deductions", allDeductions);
+        console.log('All Earnings', allEarnings);
+        console.log('All Deductions', allDeductions);
 
         updateEarningsDeductions(
             {
@@ -440,7 +438,6 @@ function SalaryUpdationPageContent({
                                     render={({ field }) => (
                                         <MultiSelect
                                             options={[
-
                                                 ...groupTypes.map((gt: any) => ({
                                                     label: gt.HRMGT_EmployeeGroupType,
                                                     value: gt.HRMGT_Id?.toString() || ''
@@ -466,7 +463,6 @@ function SalaryUpdationPageContent({
                                     render={({ field }) => (
                                         <MultiSelect
                                             options={[
-
                                                 ...departments.map((d: any) => ({
                                                     label: d.HRMD_DepartmentName,
                                                     value: d.HRMD_Id?.toString() || ''
@@ -492,7 +488,6 @@ function SalaryUpdationPageContent({
                                     render={({ field }) => (
                                         <MultiSelect
                                             options={[
-
                                                 ...designations.map((d: any) => ({
                                                     label: d.HRMDES_DesignationName,
                                                     value: d.HRMDES_Id?.toString() || ''
@@ -614,7 +609,6 @@ function SalaryUpdationPageContent({
                                             <>
                                                 <MultiSelect
                                                     options={[
-
                                                         ...filteredHeads.map((h: any) => ({
                                                             label: h.HRMED_Name || '',
                                                             value: h.HRMED_Id?.toString() || ''
@@ -626,16 +620,11 @@ function SalaryUpdationPageContent({
                                                     maxHeight={240}
                                                     className='w-full'
                                                 />
-                                                {fieldState.error && (
-                                                    <p className="text-sm text-destructive">
-                                                        {fieldState.error.message}
-                                                    </p>
-                                                )}
+                                                {fieldState.error && <p className='text-destructive text-sm'>{fieldState.error.message}</p>}
                                             </>
                                         );
                                     }}
                                 />
-
                             </div>
                         </div>
 
@@ -643,14 +632,19 @@ function SalaryUpdationPageContent({
                             <Button
                                 type='submit'
                                 className='w-32'
-                                disabled={watchedGroupType?.length === 0 || watchedDepartment?.length === 0 || watchedDesignation?.length === 0 || headsData?.length === 0}>
-                                {isFiltering ? <RefreshCcw className='w-4 h-4 animate-spin' /> : <RefreshCw className='w-4 h-4' />} Search
+                                disabled={
+                                    watchedGroupType?.length === 0 ||
+                                    watchedDepartment?.length === 0 ||
+                                    watchedDesignation?.length === 0 ||
+                                    headsData?.length === 0
+                                }>
+                                {isFiltering ? <RefreshCcw className='h-4 w-4 animate-spin' /> : <RefreshCw className='h-4 w-4' />} Search
                             </Button>
                             <Button
                                 type='button'
                                 variant='outline'
                                 onClick={handleCancel}
-                                className='w-32 text-orange-600 hover:bg-orange-50 hover:text-orange-700 shadow-md hover:shadow-orange-200/50 transition-all rounded-xl'>
+                                className='w-32 rounded-xl text-orange-600 shadow-md transition-all hover:bg-orange-50 hover:text-orange-700 hover:shadow-orange-200/50'>
                                 CANCEL
                             </Button>
                         </div>
@@ -676,7 +670,6 @@ function SalaryUpdationPageContent({
                                         noDataTitle='No Employees Found'
                                         isPaginationRequired={true}
                                         isSearchRequired={false}
-
                                         scrollable={true}
                                         maxHeight='400px'
                                     />

@@ -26,7 +26,13 @@ export async function changeBranchDanvantariTC(data: { ASMAY_Id: number; AMCO_Id
 }
 
 // DCPS_TransferCertificate api/CollegeStudentTCReport/onchangesemester
-export async function changeSemesterDanvantariTC(data: { ASMAY_Id: number; AMCO_Id: number; AMB_Id: number; AMSE_Id: number; tctemporper: string }) {
+export async function changeSemesterDanvantariTC(data: {
+    ASMAY_Id: number;
+    AMCO_Id: number;
+    AMB_Id: number;
+    AMSE_Id: number;
+    tctemporper: string;
+}) {
     const url = `/CollegeStudentTCReport/onchangesemester?ASMAY_Id=${data.ASMAY_Id}&AMCO_Id=${data.AMCO_Id}&AMB_Id=${data.AMB_Id}&AMSE_Id=${data.AMSE_Id}&tctemporper=${data.tctemporper}`;
     return await api.post<any>('admission', url, {});
 }
@@ -82,7 +88,6 @@ export async function getDanvantariTCDetails(data: {
     }
 }
 
-
 export async function getDanvantariStudentName(data: {
     AMCO_Id: number;
     ASMAY_Id: number;
@@ -93,4 +98,3 @@ export async function getDanvantariStudentName(data: {
     const url = `/CollegeStudyCertificateReport/searchfilter?AMCO_Id=${data.AMCO_Id}&ASMAY_Id=${data.ASMAY_Id}&AMB_Id=${data.AMB_Id}&searchfilter=${data.searchfilter}&AMCST_SOL=${data.AMCST_SOL}`;
     return await api.post<any>('admission', url, {});
 }
-

@@ -19,7 +19,7 @@ export const StudentAttendancePrint = React.forwardRef<HTMLDivElement, StudentAt
 
         if (!studentList || studentList.length === 0) {
             return (
-                <div ref={ref} className='p-5 text-center bg-white text-black'>
+                <div ref={ref} className='bg-white p-5 text-center text-black'>
                     No data available for printing.
                 </div>
             );
@@ -29,7 +29,7 @@ export const StudentAttendancePrint = React.forwardRef<HTMLDivElement, StudentAt
         const days = monthList.length > 0 ? monthList.map((m: any) => m.day) : Array.from({ length: 31 }, (_, i) => i + 1);
 
         return (
-            <div ref={ref} className='print-preview-container bg-white text-black min-h-full w-full'>
+            <div ref={ref} className='print-preview-container min-h-full w-full bg-white text-black'>
                 <style>
                     {`
                         @media print {
@@ -101,11 +101,11 @@ export const StudentAttendancePrint = React.forwardRef<HTMLDivElement, StudentAt
                                 <div className='header-section'>
                                     {institution && (
                                         <>
-                                            <div className='flex flex-col items-center mb-2'>
+                                            <div className='mb-2 flex flex-col items-center'>
                                                 {institution.mI_Logo && (
                                                     <img src={institution.mI_Logo} alt='Logo' style={{ height: '60px' }} />
                                                 )}
-                                                <h1 className='text-xl font-bold uppercase'>{institution.mI_Name}</h1>
+                                                <h1 className='font-bold text-xl uppercase'>{institution.mI_Name}</h1>
                                                 <p className='text-xs'>
                                                     {institution.mI_Address1}
                                                     {institution.mI_Address2 && `, ${institution.mI_Address2}`}
@@ -114,8 +114,8 @@ export const StudentAttendancePrint = React.forwardRef<HTMLDivElement, StudentAt
                                             </div>
                                         </>
                                     )}
-                                    <h2 className='text-lg font-bold uppercase underline'>Student Attendance Report</h2>
-                                    <div className='mt-2 flex justify-center gap-4 text-xs font-semibold'>
+                                    <h2 className='font-bold text-lg uppercase underline'>Student Attendance Report</h2>
+                                    <div className='mt-2 flex justify-center gap-4 font-semibold text-xs'>
                                         <span>Academic Year: {academicYear}</span>
                                         <span>Class: {className}</span>
                                         <span>Section: {sectionName}</span>
@@ -146,37 +146,39 @@ export const StudentAttendancePrint = React.forwardRef<HTMLDivElement, StudentAt
                                         {studentList.map((student: any, index: number) => (
                                             <tr key={index}>
                                                 <td>{student.RowNo || index + 1}</td>
-                                                <td style={{ textAlign: 'left', minWidth: monthDateWise ? '100px' : 'auto' }}>{student.name}</td>
+                                                <td style={{ textAlign: 'left', minWidth: monthDateWise ? '100px' : 'auto' }}>
+                                                    {student.name}
+                                                </td>
                                                 <td>{student.AMST_AdmNo}</td>
                                                 <td>{student.AMAY_RollNo}</td>
-                                                {monthDateWise && days.map((d: any) => (
-                                                    <td key={d}>{student[`_${d}`] || ''}</td>
-                                                ))}
+                                                {monthDateWise && days.map((d: any) => <td key={d}>{student[`_${d}`] || ''}</td>)}
                                                 <td>{student.ASA_ClassHeld}</td>
                                                 <td>{student.ASA_Class_Attended}</td>
                                                 <td>{Number(student.Percentage).toFixed(2)}</td>
                                                 <td>
-                                                    {student.Remarks || student.remarks || (
-                                                        Number(student.Percentage) >= 75 ? 'Very Good Attendance' :
-                                                        Number(student.Percentage) >= 50 ? 'Good Attendance' :
-                                                        Number(student.Percentage) >= 35 ? 'Average Attendance' : 'Poor Attendance'
-                                                    )}
+                                                    {student.Remarks ||
+                                                        student.remarks ||
+                                                        (Number(student.Percentage) >= 75
+                                                            ? 'Very Good Attendance'
+                                                            : Number(student.Percentage) >= 50
+                                                              ? 'Good Attendance'
+                                                              : Number(student.Percentage) >= 35
+                                                                ? 'Average Attendance'
+                                                                : 'Poor Attendance')}
                                                 </td>
                                             </tr>
                                         ))}
                                         <tr className='bg-gray-100 font-bold'>
-                                            <td colSpan={monthDateWise ? (days.length + 4) : 6} className='text-right px-4 uppercase'>
+                                            <td colSpan={monthDateWise ? days.length + 4 : 6} className='px-4 text-right uppercase'>
                                                 Total Records
                                             </td>
-                                            <td className='px-4'>
-                                                {totalRecords}
-                                            </td>
+                                            <td className='px-4'>{totalRecords}</td>
                                             <td colSpan={2}></td>
                                         </tr>
                                         {monthDateWise && (
                                             <tr>
-                                                <td colSpan={days.length + 7} className='text-left p-2'>
-                                                    <div className='flex gap-4 text-[10px] font-bold'>
+                                                <td colSpan={days.length + 7} className='p-2 text-left'>
+                                                    <div className='flex gap-4 font-bold text-[10px]'>
                                                         <span>Legend:</span>
                                                         <span style={{ color: '#16a34a' }}>P: Present</span>
                                                         <span style={{ color: '#dc2626' }}>A: Absent</span>

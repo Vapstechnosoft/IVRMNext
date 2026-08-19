@@ -1,45 +1,45 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
 import {
-    getBonafiedLoadData,
-    getBonafiedStudentStatusChange,
     getBonafiedAcademicYearChange,
+    getBonafiedLoadData,
     getBonafiedSearchFilter,
-    getBonafiedStudDetails
+    getBonafiedStudDetails,
+    getBonafiedStudentStatusChange
 } from '@/server/admission/preadmission/reports/stjames_bonafied_report';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const bonafiedReportKeys = {
     all: ['stjames-bonafied-report'] as const,
-    load: () => [...bonafiedReportKeys.all, 'load'] as const,
+    load: () => [...bonafiedReportKeys.all, 'load'] as const
 };
 
 export const useBonafiedLoadData = () => {
     return useQuery({
         queryKey: bonafiedReportKeys.load(),
         queryFn: getBonafiedLoadData,
-        staleTime: 1000 * 60 * 5,
+        staleTime: 1000 * 60 * 5
     });
 };
 
 export const useBonafiedStudentStatusChange = () => {
     return useMutation({
-        mutationFn: getBonafiedStudentStatusChange,
+        mutationFn: getBonafiedStudentStatusChange
     });
 };
 
 export const useBonafiedAcademicYearChange = () => {
     return useMutation({
-        mutationFn: getBonafiedAcademicYearChange,
+        mutationFn: getBonafiedAcademicYearChange
     });
 };
 
 export const useBonafiedSearchFilter = () => {
     return useMutation({
-        mutationFn: getBonafiedSearchFilter,
+        mutationFn: getBonafiedSearchFilter
     });
 };
 
 export const useBonafiedStudDetails = () => {
     return useMutation({
-        mutationFn: getBonafiedStudDetails,
+        mutationFn: getBonafiedStudDetails
     });
 };

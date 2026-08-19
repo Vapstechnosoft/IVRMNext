@@ -1,22 +1,22 @@
 'use client';
 
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import type { IInvMasterTax, IInvMasterTaxLedger } from '@/types/inventory/masters/inv-master-tax';
-import { useInvMasterTaxDetails, useLedgerUnder, useInvMasterTax } from '@/hooks/inventory/masters/use-inv-master-tax';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { invMasterTaxLedgerSchema, type InvMasterTaxLedgerSchema } from '@/schemas/inventory/masters/inv-master-tax';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { useInvMasterTax, useInvMasterTaxDetails, useLedgerUnder } from '@/hooks/inventory/masters/use-inv-master-tax';
+import { type InvMasterTaxLedgerSchema, invMasterTaxLedgerSchema } from '@/schemas/inventory/masters/inv-master-tax';
 import { saveInvMasterTaxLedger } from '@/server/inventory/masters/inv-master-tax';
-import { toast } from 'sonner';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { ColumnDef } from '@tanstack/react-table';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import type { IInvMasterTax, IInvMasterTaxLedger } from '@/types/inventory/masters/inv-master-tax';
+import { zodResolver } from '@hookform/resolvers/zod';
+import type { ColumnDef } from '@tanstack/react-table';
 import { useMemo } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 interface TaxLedgerSheetProps {
     isOpen: boolean;
@@ -110,25 +110,21 @@ export default function TaxLedgerSheet({ isOpen, onClose, tax }: TaxLedgerSheetP
 
     return (
         <Sheet open={isOpen} onOpenChange={onClose}>
-            <SheetContent className="sm:max-w-2xl overflow-y-auto">
+            <SheetContent className='overflow-y-auto sm:max-w-2xl'>
                 <SheetHeader>
                     <SheetTitle>Tax Ledger Mapping</SheetTitle>
-                    <SheetDescription>
-                        Manage ledger mappings for tax: {tax?.invmT_TaxName || 'N/A'}
-                    </SheetDescription>
+                    <SheetDescription>Manage ledger mappings for tax: {tax?.invmT_TaxName || 'N/A'}</SheetDescription>
                 </SheetHeader>
 
-                <div className="mt-6 space-y-6">
+                <div className='mt-6 space-y-6'>
                     {/* Form */}
-                    <form onSubmit={handleSubmit(onSubmit)} className='space-y-4 border p-4 rounded-md'>
+                    <form onSubmit={handleSubmit(onSubmit)} className='space-y-4 rounded-md border p-4'>
                         <div className='space-y-2'>
                             <Label htmlFor='invmtleD_TaxName'>Ledger Tax Name</Label>
                             <Controller
                                 name='invmtleD_TaxName'
                                 control={control}
-                                render={({ field }) => (
-                                    <Input {...field} id='invmtleD_TaxName' placeholder='Enter Ledger Tax Name' />
-                                )}
+                                render={({ field }) => <Input {...field} id='invmtleD_TaxName' placeholder='Enter Ledger Tax Name' />}
                             />
                             {errors.invmtleD_TaxName && <p className='text-red-500 text-xs'>{errors.invmtleD_TaxName.message}</p>}
                         </div>
@@ -141,7 +137,7 @@ export default function TaxLedgerSheet({ isOpen, onClose, tax }: TaxLedgerSheetP
                                 render={({ field }) => (
                                     <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                         <SelectTrigger id='famcomP_Id'>
-                                            <SelectValue placeholder="Select Company" />
+                                            <SelectValue placeholder='Select Company' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {companies.map((c) => (
@@ -164,7 +160,7 @@ export default function TaxLedgerSheet({ isOpen, onClose, tax }: TaxLedgerSheetP
                                 render={({ field }) => (
                                     <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                         <SelectTrigger id='famleD_Id'>
-                                            <SelectValue placeholder="Select Ledger" />
+                                            <SelectValue placeholder='Select Ledger' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {ledgers.map((l) => (
@@ -189,8 +185,8 @@ export default function TaxLedgerSheet({ isOpen, onClose, tax }: TaxLedgerSheetP
                                         options={ledgerUnderOptions.map((l) => ({ label: l.famgrP_GroupName, value: l.famgrP_Id }))}
                                         onValueChange={(vals) => field.onChange(vals.map(Number))}
                                         value={field.value?.map(String) || []}
-                                        placeholder="Select Ledger Under"
-                                        variant="inverted"
+                                        placeholder='Select Ledger Under'
+                                        variant='inverted'
                                         animation={2}
                                         maxCount={3}
                                     />
@@ -205,13 +201,9 @@ export default function TaxLedgerSheet({ isOpen, onClose, tax }: TaxLedgerSheetP
                     </form>
 
                     {/* Table */}
-                    <div className='border rounded-md p-4'>
-                        <h3 className='text-lg font-medium mb-4'>Existing Mappings</h3>
-                        <GenericDataTable
-                            data={taxLedgers}
-                            columns={ledgerColumns}
-                            isLoading={isLoadingAll || isLoadingDetails}
-                        />
+                    <div className='rounded-md border p-4'>
+                        <h3 className='mb-4 font-medium text-lg'>Existing Mappings</h3>
+                        <GenericDataTable data={taxLedgers} columns={ledgerColumns} isLoading={isLoadingAll || isLoadingDetails} />
                     </div>
                 </div>
             </SheetContent>
