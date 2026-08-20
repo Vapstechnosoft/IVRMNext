@@ -17,8 +17,44 @@ export async function getStudents(data: any) {
 }
 
 export async function getExamReport(data: any) {
-    const url = '/BaldwinAllReport/savedetails';
-    return await api.post<any>('exam', url, data);
+    const endpoints = [
+        '/individual_exam_report_card/exam_report_card',
+        '/BaldwinAllReport/savedetails',
+        '/JSHSExamReports_/nds_6_8_report',
+        '/JSHSExamReports_/promotion_report_card',
+        '/JSHSExamReportsFacade/promotion_report_card',
+        '/JSHSExamReports/GetStudentDetails',
+        '/BaldwinAllReport/studentDetails'
+    ];
+
+    let lastResponse: any = null;
+
+    for (const ep of endpoints) {
+        try {
+            console.log(`[MES getExamReport] Attempting POST to: ${ep}`);
+            const response = await api.post<any>('exam', ep, data);
+            lastResponse = response;
+            const resData = response?.data || response;
+            const hasDetails =
+                (resData?.getsavedetails && resData.getsavedetails.length > 0) ||
+                (resData?.savelist && resData.savelist.length > 0) ||
+                (resData?.getstudentmarksdetails && resData.getstudentmarksdetails.length > 0) ||
+                (resData?.getstudentdetails && resData.getstudentdetails.length > 0) ||
+                (resData?.studentdetails && resData.studentdetails.length > 0) ||
+                (resData?.studentlist && resData.studentlist.length > 0) ||
+                (resData?.list && resData.list.length > 0) ||
+                (Array.isArray(resData) && resData.length > 0);
+
+            if (hasDetails) {
+                console.log(`[MES getExamReport] Found records from endpoint: ${ep}`);
+                return response;
+            }
+        } catch (err) {
+            console.warn(`[MES getExamReport] POST ${ep} failed:`, err);
+        }
+    }
+
+    return lastResponse || { success: false, data: null, message: 'No records found' };
 }
 
 export async function onchangeYear(data: any) {

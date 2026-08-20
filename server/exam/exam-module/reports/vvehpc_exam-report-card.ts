@@ -4,10 +4,15 @@ import { api } from '@/lib/apiService';
 import { IMasterInstitution } from '@/types/exam/exam-module/report';
 
 export async function getExamReportCard(data: any) {
-    const url = '/individual_exam_report_card/exam_report_card';
-    console.info('url', url);
-    console.info('data', data);
-    return await api.post<any>('exam', url, data);
+    try {
+        const url = '/individual_exam_report_card/exam_report_card';
+        console.info('url', url);
+        console.info('data', data);
+        return await api.post<any>('exam', url, data);
+    } catch (error) {
+        console.warn('getExamReportCard error:', error);
+        return { success: false, data: null };
+    }
 }
 
 //Elective Subject Report

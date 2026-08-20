@@ -26,7 +26,12 @@ export async function middleware(request: NextRequest) {
         return NextResponse.next();
     }
 
-    const session = await auth();
+    let session: any = null;
+    try {
+        session = await auth();
+    } catch (e) {
+        console.warn('Middleware auth check skipped:', e);
+    }
 
     const isLoggedIn = session;
     const userRole = session?.role;

@@ -118,15 +118,13 @@ class ApiService {
                 }
             };
 
-            // Add SSL bypass for localhost in development/local mode
-            if (isLocalhost && typeof window === 'undefined') {
+            // Add SSL bypass for server-side API requests (e.g. custom HTTPS ports like :21524)
+            if (typeof window === 'undefined') {
                 // biome-ignore lint/style/useNodejsImportProtocol: <explanation>
                 const https = require('https');
                 config.httpsAgent = new https.Agent({
-                    rejectUnauthorized: false // Bypass SSL certificate validation
+                    rejectUnauthorized: false // Bypass SSL certificate validation for internal backend ports
                 });
-
-                console.info('🔵 [API SERVICE] SSL bypass enabled for:', baseURL);
             }
 
             const instance = axios.create(config);

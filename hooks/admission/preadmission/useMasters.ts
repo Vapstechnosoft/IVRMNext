@@ -104,7 +104,10 @@ export const useAcademicYearDropdown = () => {
     return {
         ...useQuery({
             queryKey: [ADMISSION_QUERY_KEYS.ACADEMIC_DROPDOWN],
-            queryFn: async () => getAcademicYearDropdown(),
+            queryFn: async () => {
+                const res = await getAcademicYearDropdown();
+                return res ?? null;
+            },
             staleTime: 0
         }),
         refetchAll: () => {
