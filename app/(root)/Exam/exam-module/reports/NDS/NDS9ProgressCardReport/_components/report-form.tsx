@@ -62,30 +62,25 @@ export default function NDS9ProgressCardForm({ onSuccess }: { onSuccess?: (data:
         if (!selectedYear) return;
         (async () => {
             setLoadingCls(true);
-<<<<<<< HEAD
-            try { 
-                const res: any = await getClassDropDownByAcademicYearlist(selectedYear); 
-                const list = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : Array.isArray(res?.$values) ? res.$values : [];
-                setClasses(list); 
-            } catch { 
-                toast.error('Failed to load classes'); 
-            } finally {
-                setValue('asmcL_Id', 0); setValue('asmS_Id', 0); setValue('studentList', []); setStudents([]);
-                setLoadingCls(false);
-            }
-=======
             try {
-                const { data } = await getClassDropDownByAcademicYearlist(selectedYear);
-                setClasses(Array.isArray(data) ? data : []);
+                const res: any = await getClassDropDownByAcademicYearlist(selectedYear);
+                const list = Array.isArray(res)
+                    ? res
+                    : Array.isArray(res?.data)
+                      ? res.data
+                      : Array.isArray(res?.$values)
+                        ? res.$values
+                        : [];
+                setClasses(list);
             } catch {
                 toast.error('Failed to load classes');
+            } finally {
+                setValue('asmcL_Id', 0);
+                setValue('asmS_Id', 0);
+                setValue('studentList', []);
+                setStudents([]);
+                setLoadingCls(false);
             }
-            setValue('asmcL_Id', 0);
-            setValue('asmS_Id', 0);
-            setValue('studentList', []);
-            setStudents([]);
-            setLoadingCls(false);
->>>>>>> 1d9fd3531e889cf28673455feaa1ffcd21c146af
         })();
     }, [selectedYear, setValue]);
 
@@ -93,29 +88,24 @@ export default function NDS9ProgressCardForm({ onSuccess }: { onSuccess?: (data:
         if (!selectedYear || !selectedClass) return;
         (async () => {
             setLoadingSec(true);
-<<<<<<< HEAD
-            try { 
-                const res: any = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass); 
-                const list = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : Array.isArray(res?.$values) ? res.$values : [];
-                setSections(list); 
-            } catch { 
-                toast.error('Failed to load sections'); 
-            } finally {
-                setValue('asmS_Id', 0); setValue('studentList', []); setStudents([]);
-                setLoadingSec(false);
-            }
-=======
             try {
-                const { data } = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass);
-                setSections(Array.isArray(data) ? data : []);
+                const res: any = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass);
+                const list = Array.isArray(res)
+                    ? res
+                    : Array.isArray(res?.data)
+                      ? res.data
+                      : Array.isArray(res?.$values)
+                        ? res.$values
+                        : [];
+                setSections(list);
             } catch {
                 toast.error('Failed to load sections');
+            } finally {
+                setValue('asmS_Id', 0);
+                setValue('studentList', []);
+                setStudents([]);
+                setLoadingSec(false);
             }
-            setValue('asmS_Id', 0);
-            setValue('studentList', []);
-            setStudents([]);
-            setLoadingSec(false);
->>>>>>> 1d9fd3531e889cf28673455feaa1ffcd21c146af
         })();
     }, [selectedYear, selectedClass, setValue]);
 
@@ -124,63 +114,47 @@ export default function NDS9ProgressCardForm({ onSuccess }: { onSuccess?: (data:
         (async () => {
             setLoadingStu(true);
             try {
-<<<<<<< HEAD
-                const res: any = await getStudentsDropDownByAcademicYearandClassandSectionlist(selectedYear, selectedClass, selectedSection);
-                const list = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : Array.isArray(res?.$values) ? res.$values : [];
-                setStudents(list.map((item: any) => ({
-                    amsT_Id: item.amsT_Id,
-                    studentName: item.studentName || item.studentname || `${item.amsT_FirstName || ''} ${item.amsT_MiddleName || ''} ${item.amsT_LastName || ''}`.trim(),
-                    amsT_AdmNo: item.amsT_AdmNo || ''
-                })));
-            } catch { 
-                toast.error('Failed to load students'); 
-            } finally {
-                setValue('studentList', []);
-                setLoadingStu(false);
-            }
-=======
-                const { data } = await getStudentsDropDownByAcademicYearandClassandSectionlist(
+                const res: any = await getStudentsDropDownByAcademicYearandClassandSectionlist(
                     selectedYear,
                     selectedClass,
                     selectedSection
                 );
+                const list = Array.isArray(res)
+                    ? res
+                    : Array.isArray(res?.data)
+                      ? res.data
+                      : Array.isArray(res?.$values)
+                        ? res.$values
+                        : [];
                 setStudents(
-                    Array.isArray(data)
-                        ? data.map((item: any) => ({
-                              amsT_Id: item.amsT_Id,
-                              studentName:
-                                  item.studentName ||
-                                  `${item.amsT_FirstName || ''} ${item.amsT_MiddleName || ''} ${item.amsT_LastName || ''}`.trim(),
-                              amsT_AdmNo: item.amsT_AdmNo || ''
-                          }))
-                        : []
+                    list.map((item: any) => ({
+                        amsT_Id: item.amsT_Id,
+                        studentName:
+                            item.studentName ||
+                            item.studentname ||
+                            `${item.amsT_FirstName || ''} ${item.amsT_MiddleName || ''} ${item.amsT_LastName || ''}`.trim(),
+                        amsT_AdmNo: item.amsT_AdmNo || ''
+                    }))
                 );
-                setValue('studentList', []);
             } catch {
                 toast.error('Failed to load students');
+            } finally {
+                setValue('studentList', []);
+                setLoadingStu(false);
             }
-            setLoadingStu(false);
->>>>>>> 1d9fd3531e889cf28673455feaa1ffcd21c146af
         })();
     }, [selectedYear, selectedClass, selectedSection, setValue]);
 
     const onSubmit = async (data: Schema) => {
         try {
             const payload = {
-<<<<<<< HEAD
                 ASMAY_Id: data.asmaY_Id,
                 ASMCL_Id: data.asmcL_Id,
                 ASMS_Id: data.asmS_Id,
                 Temp_AmstIds: data.studentList.map((s) => ({
                     amsT_Id: s.amsT_Id,
-                    AMST_Id: s.amsT_Id,
-                })),
-=======
-                asmaY_Id: data.asmaY_Id,
-                asmcL_Id: data.asmcL_Id,
-                asmS_Id: data.asmS_Id,
-                temp_AmstIds: data.studentList
->>>>>>> 1d9fd3531e889cf28673455feaa1ffcd21c146af
+                    AMST_Id: s.amsT_Id
+                }))
             };
             const response: any = await getNDS9ProgressCardReport(payload as any);
             console.log('nds9 progressCardReport', response);

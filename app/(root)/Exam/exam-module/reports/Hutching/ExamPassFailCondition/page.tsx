@@ -39,9 +39,19 @@ export default function ExamPassFailConditionPage() {
                     raw.yearlist ||
                     raw.yearList ||
                     raw.year_List ||
+                    raw.academicList ||
+                    raw.academicYearList ||
+                    raw.academic_year_list ||
+                    raw.academicyearlist ||
+                    raw.acdlist ||
+                    raw.allAcademicYear ||
+                    raw.getyear ||
+                    raw.getyears ||
                     raw.years ||
                     raw.data?.year_list ||
-                    raw.data?.yearlist
+                    raw.data?.yearlist ||
+                    raw.data?.academicList ||
+                    raw.data?.acdlist
                 );
                 console.log('[ExamPassFailConditionPage] Extracted years:', years);
                 setYearList(years);
@@ -51,8 +61,11 @@ export default function ExamPassFailConditionPage() {
                     raw.passfailranklist ||
                     raw.passfailrankList ||
                     raw.passfail_list ||
+                    raw.griddata ||
+                    raw.gridData ||
                     raw.data?.passfailrank_list ||
-                    raw.data
+                    raw.data?.griddata ||
+                    (Array.isArray(raw) ? raw : [])
                 );
                 setGridData(grid);
 
@@ -60,6 +73,8 @@ export default function ExamPassFailConditionPage() {
                     raw.examconditionlist ||
                     raw.examcondition_list ||
                     raw.examconditionList ||
+                    raw.conditionlist ||
+                    raw.condition_list ||
                     raw.data?.examconditionlist
                 );
                 setExamConditionList(conditions);
@@ -100,8 +115,45 @@ export default function ExamPassFailConditionPage() {
         setEditingRecord(null);
     };
 
-    const handleFormSubmitted = () => {
+    const handleFormSubmitted = (savedData?: any, optimisticRecord?: any) => {
         setEditingRecord(null);
+
+        if (savedData) {
+            const raw = savedData?.data ?? savedData;
+            const updatedGrid = parseArray(
+                raw.passfailrank_list ||
+                raw.passfailranklist ||
+                raw.passfailrankList ||
+                raw.passfail_list ||
+                raw.griddata ||
+                raw.gridData ||
+                raw.data?.passfailrank_list ||
+                raw.data?.griddata ||
+                (Array.isArray(raw) ? raw : [])
+            );
+
+            if (updatedGrid.length > 0) {
+                setGridData(updatedGrid);
+                return;
+            }
+        }
+
+        if (optimisticRecord) {
+            setGridData((prev) => {
+                const existingIndex = prev.findIndex(
+                    (item) =>
+                        (item.epfrC_Id && item.epfrC_Id === optimisticRecord.epfrC_Id) ||
+                        (item.EPFRC_Id && item.EPFRC_Id === optimisticRecord.epfrC_Id)
+                );
+                if (existingIndex >= 0) {
+                    const next = [...prev];
+                    next[existingIndex] = { ...next[existingIndex], ...optimisticRecord };
+                    return next;
+                }
+                return [optimisticRecord, ...prev];
+            });
+        }
+
         loadInitialData();
     };
 

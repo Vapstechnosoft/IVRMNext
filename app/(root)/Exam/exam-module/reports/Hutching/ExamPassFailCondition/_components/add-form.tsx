@@ -43,9 +43,17 @@ interface AddFormProps {
     yearList: any[];
     examConditionList: any[];
     editingRecord: any | null;
-    onFormSubmitted: () => void;
+    onFormSubmitted: (savedData?: any, optimisticRecord?: any) => void;
     onCancelEdit: () => void;
 }
+
+const DEFAULT_CONDITIONS = [
+    { ecM_Id: 1, ecM_ConditionName: 'Condition 1' },
+    { ecM_Id: 2, ecM_ConditionName: 'Condition 2' },
+    { ecM_Id: 3, ecM_ConditionName: 'Condition 3' },
+    { ecM_Id: 4, ecM_ConditionName: 'Condition 4' },
+    { ecM_Id: 5, ecM_ConditionName: 'Condition 5' }
+];
 
 export function AddForm({
     yearList,
@@ -56,7 +64,9 @@ export function AddForm({
 }: AddFormProps) {
     const [categoryList, setCategoryList] = useState<any[]>([]);
     const [examList, setExamList] = useState<any[]>([]);
-    const [examConditionList, setExamConditionList] = useState<any[]>(initialExamConditions || []);
+    const [examConditionList, setExamConditionList] = useState<any[]>(
+        initialExamConditions && initialExamConditions.length > 0 ? initialExamConditions : DEFAULT_CONDITIONS
+    );
     
     const [loadingCategories, setLoadingCategories] = useState(false);
     const [loadingExams, setLoadingExams] = useState(false);
@@ -97,6 +107,8 @@ export function AddForm({
     useEffect(() => {
         if (initialExamConditions && initialExamConditions.length > 0) {
             setExamConditionList(initialExamConditions);
+        } else {
+            setExamConditionList(DEFAULT_CONDITIONS);
         }
     }, [initialExamConditions]);
 
@@ -121,9 +133,16 @@ export function AddForm({
                 const raw = res?.data ?? res;
                 const list = Array.isArray(raw)
                     ? raw
-                    : (raw?.categorylist || raw?.categoryList || raw?.data || []);
-                setCategoryList(Array.isArray(list) ? list : []);
-                if (list.length === 0) {
+                    : Array.isArray(raw?.$values)
+                      ? raw.$values
+                      : Array.isArray(raw?.data)
+                        ? raw.data
+                        : Array.isArray(raw?.data?.$values)
+                          ? raw.data.$values
+                          : (raw?.categorylist || raw?.categoryList || raw?.category_list || raw?.data || []);
+                const parsedList = Array.isArray(list) ? list : (Array.isArray(list?.$values) ? list.$values : []);
+                setCategoryList(parsedList);
+                if (parsedList.length === 0) {
                     toast.info('No Categories mapped to selected Academic Year');
                 }
             } catch (err) {
@@ -148,10 +167,32 @@ export function AddForm({
                 const raw = res?.data ?? res;
                 const list = Array.isArray(raw)
                     ? raw
-                    : (raw?.examlist || raw?.examList || raw?.data || []);
-                setExamList(Array.isArray(list) ? list : []);
-                if (list.length === 0) {
-                    toast.info('All Exams are Mapped to Selected Category');
+                    : Array.isArray(raw?.$values)
+                      ? raw.$values
+                      : Array.isArray(raw?.data)
+                        ? raw.data
+                        : Array.isArray(raw?.data?.$values)
+                          ? raw.data.$values
+                          : (
+                                raw?.examlist ||
+                                raw?.examList ||
+                                raw?.exam_list ||
+                                raw?.get_exam ||
+                                raw?.getexam ||
+                                raw?.get_exams ||
+                                raw?.get_subjects ||
+                                raw?.subjectlist ||
+                                raw?.masterExam ||
+                                raw?.examMasterList ||
+                                raw?.data?.examlist ||
+                                raw?.data?.get_exam ||
+                                raw?.data ||
+                                []
+                            );
+                const parsedList = Array.isArray(list) ? list : (Array.isArray(list?.$values) ? list.$values : []);
+                setExamList(parsedList);
+                if (parsedList.length === 0) {
+                    toast.info('No Exams found for selected Category');
                 }
             } catch (err) {
                 toast.error('Failed to load exams');
@@ -163,25 +204,55 @@ export function AddForm({
 
     // Fetch exam conditions on Exam change
     useEffect(() => {
-        if (!watchYear || !watchExam || watchExamFlag === 'PE') return;
+        if (!watchYear || !watchExam || watchExamFlag === 'PE') {
+            if (initialExamConditions && initialExamConditions.length > 0) {
+                setExamConditionList(initialExamConditions);
+            } else {
+                setExamConditionList(DEFAULT_CONDITIONS);
+            }
+            return;
+        }
         (async () => {
             try {
                 setLoadingConditions(true);
-                const res = await getExamConditionByExam(Number(watchYear), Number(watchExam));
+                const res = await getExamConditionByExam(Number(watchYear), Number(watchExam), Number(watchCategory));
                 const raw = res?.data ?? res;
                 const list = Array.isArray(raw)
                     ? raw
-                    : (raw?.examconditionlist || raw?.examconditionList || raw?.data || []);
-                if (Array.isArray(list) && list.length > 0) {
-                    setExamConditionList(list);
+                    : Array.isArray(raw?.$values)
+                      ? raw.$values
+                      : Array.isArray(raw?.data)
+                        ? raw.data
+                        : (
+                            raw?.examconditionlist ||
+                            raw?.examconditionList ||
+                            raw?.examcondition_list ||
+                            raw?.conditionlist ||
+                            raw?.condition_list ||
+                            raw?.get_condition ||
+                            raw?.data?.examconditionlist ||
+                            []
+                        );
+                const parsedList = Array.isArray(list) ? list : (Array.isArray(list?.$values) ? list.$values : []);
+                if (parsedList.length > 0) {
+                    setExamConditionList(parsedList);
+                } else if (initialExamConditions && initialExamConditions.length > 0) {
+                    setExamConditionList(initialExamConditions);
+                } else {
+                    setExamConditionList(DEFAULT_CONDITIONS);
                 }
             } catch (err) {
                 console.error('Failed to load exam conditions:', err);
+                if (initialExamConditions && initialExamConditions.length > 0) {
+                    setExamConditionList(initialExamConditions);
+                } else {
+                    setExamConditionList(DEFAULT_CONDITIONS);
+                }
             } finally {
                 setLoadingConditions(false);
             }
         })();
-    }, [watchYear, watchExam, watchExamFlag]);
+    }, [watchYear, watchExam, watchExamFlag, initialExamConditions]);
 
     // Populate form when editingRecord changes
     useEffect(() => {
@@ -232,32 +303,81 @@ export function AddForm({
     const onSubmit = async (values: FormValues) => {
         try {
             setIsSaving(true);
-            const payload = {
+            const rankFlagBool = values.rdo_rank === '1';
+            const percentageNum = parseFloat(values.oppercentage) || 0;
+            const payload: any = {
                 ASMAY_Id: Number(values.ASMAY_Id),
-                EME_Id: values.rdo_ipe === 'PE' ? null : Number(values.EME_Id || 0),
+                asmaY_Id: Number(values.ASMAY_Id),
+                EME_Id: values.rdo_ipe === 'PE' ? 0 : Number(values.EME_Id || 0),
+                emE_Id: values.rdo_ipe === 'PE' ? 0 : Number(values.EME_Id || 0),
                 EPFRC_From: Number(values.fromno),
-                EPFRC_PassFailFlag: values.rdo_passfail,
-                EPFRC_ExamFlag: values.rdo_ipe,
-                EPFRC_Percentage: values.oppercentage,
-                ECM_Id: Number(values.ECM_Id),
-                EMCA_Id: Number(values.EMCA_Id),
-                EPFRC_Condition: Number(values.ECM_Id),
+                epfrC_From: Number(values.fromno),
                 EPFRC_To: Number(values.tono),
-                EPFRC_RankFlag: values.rdo_rank === '1',
-                EPFRC_Id: values.EPFRC_Id || 0,
-                EPFRC_OverallPercentage: values.oppercentage
+                epfrC_To: Number(values.tono),
+                EPFRC_PassFailFlag: values.rdo_passfail,
+                epfrC_PassFailFlag: values.rdo_passfail,
+                EPFRC_ExamFlag: values.rdo_ipe,
+                epfrC_ExamFlag: values.rdo_ipe,
+                EPFRC_Percentage: percentageNum,
+                epfrC_Percentage: percentageNum,
+                ECM_Id: Number(values.ECM_Id),
+                ecM_Id: Number(values.ECM_Id),
+                EMCA_Id: Number(values.EMCA_Id),
+                emcA_Id: Number(values.EMCA_Id),
+                EPFRC_Condition: Number(values.ECM_Id),
+                epfrC_Condition: Number(values.ECM_Id),
+                EPFRC_RankFlag: rankFlagBool,
+                epfrC_RankFlag: rankFlagBool ? 1 : 0,
+                EPFRC_RankFlg: rankFlagBool,
+                epfrC_RankFlg: rankFlagBool,
+                EPFRC_Id: Number(values.EPFRC_Id || 0),
+                epfrC_Id: Number(values.EPFRC_Id || 0),
+                EPFRC_OverallPercentage: percentageNum,
+                epfrC_OverallPercentage: percentageNum
             };
 
             const res = await savePassFailCondition(payload);
             const data = res?.data ?? res;
 
-            if (data?.returnval === true || res?.success) {
+            if (
+                data?.already_cnt === true ||
+                data?.returnval === false ||
+                data?.message?.toLowerCase()?.includes('already') ||
+                data?.message?.toLowerCase()?.includes('duplicate')
+            ) {
+                toast.error(data?.message || 'This condition combination already exists in the system.');
+            } else if (data?.returnval === true || res?.success) {
                 toast.success(
                     values.EPFRC_Id > 0
                         ? 'Record updated successfully'
                         : 'Record saved successfully'
                 );
-                onFormSubmitted();
+
+                const selectedYear = yearList.find((y: any) => String(y.asmaY_Id || y.ASMAY_Id || y.id) === String(values.ASMAY_Id));
+                const selectedExam = examList.find((e: any) => String(e.emE_Id || e.EME_Id || e.id) === String(values.EME_Id));
+                const selectedCat = categoryList.find((c: any) => String(c.emcA_Id || c.EMCA_Id || c.id) === String(values.EMCA_Id));
+                const selectedCond = examConditionList.find((ec: any) => String(ec.ecM_Id || ec.ECM_Id || ec.id) === String(values.ECM_Id));
+
+                const optimisticRecord = {
+                    epfrC_Id: values.EPFRC_Id || (data?.epfrC_Id || data?.EPFRC_Id || Date.now()),
+                    asmaY_Id: Number(values.ASMAY_Id),
+                    asmaY_Year: selectedYear?.asmaY_Year || selectedYear?.ASMAY_Year || selectedYear?.year || '',
+                    emE_Id: values.rdo_ipe === 'PE' ? 0 : Number(values.EME_Id || 0),
+                    emE_ExamName: values.rdo_ipe === 'PE' ? '-' : (selectedExam?.emE_ExamName || selectedExam?.EME_ExamName || selectedExam?.examName || '-'),
+                    epfrC_ExamFlag: values.rdo_ipe,
+                    emcA_Id: Number(values.EMCA_Id),
+                    emcA_CategoryName: selectedCat?.emcA_CategoryName || selectedCat?.EMCA_CategoryName || selectedCat?.categoryName || '',
+                    ecM_Id: Number(values.ECM_Id),
+                    ecM_ConditionName: selectedCond?.ecM_ConditionName || selectedCond?.ECM_ConditionName || selectedCond?.conditionName || '',
+                    epfrC_From: Number(values.fromno),
+                    epfrC_To: Number(values.tono),
+                    epfrC_RankFlag: values.rdo_rank === '1',
+                    epfrC_PassFailFlag: values.rdo_passfail,
+                    epfrC_OverallPercentage: percentageNum,
+                    epfrC_ActiveFlag: true
+                };
+
+                onFormSubmitted(data, optimisticRecord);
                 reset({
                     EPFRC_Id: 0,
                     rdo_ipe: 'IE',
@@ -360,15 +480,21 @@ export function AddForm({
                                                 <SelectValue placeholder="-- Select Academic Year --" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {yearList.map((y: any, idx: number) => {
-                                                    const id = y.asmaY_Id ?? y.ASMAY_Id ?? y.asmaY_id ?? y.id;
-                                                    const name = y.asmaY_Year ?? y.ASMAY_Year ?? y.year ?? '';
-                                                    return (
-                                                        <SelectItem key={id || idx} value={String(id)}>
-                                                            {name}
-                                                        </SelectItem>
-                                                    );
-                                                })}
+                                                {yearList.length === 0 ? (
+                                                    <div className="p-2 text-center text-xs text-muted-foreground">
+                                                        No Academic Years Found
+                                                    </div>
+                                                ) : (
+                                                    yearList.map((y: any, idx: number) => {
+                                                        const id = y.asmaY_Id ?? y.ASMAY_Id ?? y.asmaY_id ?? y.id ?? y.ASMAY_ID;
+                                                        const name = y.asmaY_Year ?? y.ASMAY_Year ?? y.year ?? y.academicYear ?? y.asmaY_YearName ?? y.academic_year ?? '';
+                                                        return (
+                                                            <SelectItem key={id || idx} value={String(id)}>
+                                                                {name}
+                                                            </SelectItem>
+                                                        );
+                                                    })
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     )}
@@ -399,15 +525,21 @@ export function AddForm({
                                                 <SelectValue placeholder={loadingExams ? 'Loading exams...' : '-- Select Exam --'} />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {examList.map((e: any, idx: number) => {
-                                                    const id = e.emE_Id ?? e.EME_Id ?? e.id;
-                                                    const name = e.emE_ExamName ?? e.EME_ExamName ?? e.examName ?? '';
-                                                    return (
-                                                        <SelectItem key={id || idx} value={String(id)}>
-                                                            {name}
-                                                        </SelectItem>
-                                                    );
-                                                })}
+                                                {examList.length === 0 ? (
+                                                    <div className="p-2 text-center text-xs text-muted-foreground">
+                                                        No Exams Available
+                                                    </div>
+                                                ) : (
+                                                    examList.map((e: any, idx: number) => {
+                                                        const id = e.emE_Id ?? e.EME_Id ?? e.id ?? e.eme_id ?? e.exm_id ?? e.ismS_Id ?? e.ISMS_Id;
+                                                        const name = e.emE_ExamName ?? e.EME_ExamName ?? e.examName ?? e.exam_name ?? e.name ?? e.emE_ExamCode ?? e.EME_ExamCode ?? e.ismS_SubjectName ?? e.subjectName ?? '';
+                                                        return (
+                                                            <SelectItem key={id || idx} value={String(id)}>
+                                                                {name}
+                                                            </SelectItem>
+                                                        );
+                                                    })
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     )}
@@ -532,16 +664,22 @@ export function AddForm({
                                             <SelectTrigger id="EMCA_Id">
                                                 <SelectValue placeholder={loadingCategories ? 'Loading categories...' : '-- Select Category --'} />
                                             </SelectTrigger>
-                                            <SelectContent>
-                                                {categoryList.map((c: any, idx: number) => {
-                                                    const id = c.emcA_Id ?? c.EMCA_Id ?? c.id;
-                                                    const name = c.emcA_CategoryName ?? c.EMCA_CategoryName ?? c.categoryName ?? '';
-                                                    return (
-                                                        <SelectItem key={id || idx} value={String(id)}>
-                                                            {name}
-                                                        </SelectItem>
-                                                    );
-                                                })}
+                                             <SelectContent>
+                                                {categoryList.length === 0 ? (
+                                                    <div className="p-2 text-center text-xs text-muted-foreground">
+                                                        No Categories Available
+                                                    </div>
+                                                ) : (
+                                                    categoryList.map((c: any, idx: number) => {
+                                                        const id = c.emcA_Id ?? c.EMCA_Id ?? c.id ?? c.emca_id ?? c.emC_Id;
+                                                        const name = c.emcA_CategoryName ?? c.EMCA_CategoryName ?? c.categoryName ?? c.category_name ?? c.emC_CategoryName ?? c.name ?? '';
+                                                        return (
+                                                            <SelectItem key={id || idx} value={String(id)}>
+                                                                {name}
+                                                            </SelectItem>
+                                                        );
+                                                    })
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     )}
@@ -570,15 +708,21 @@ export function AddForm({
                                                 <SelectValue placeholder="-- Select Exam Condition --" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {examConditionList.map((ec: any, idx: number) => {
-                                                    const id = ec.ecM_Id ?? ec.ECM_Id ?? ec.id;
-                                                    const name = ec.ecM_ConditionName ?? ec.ECM_ConditionName ?? ec.conditionName ?? '';
-                                                    return (
-                                                        <SelectItem key={id || idx} value={String(id)}>
-                                                            {name}
-                                                        </SelectItem>
-                                                    );
-                                                })}
+                                                {examConditionList.length === 0 ? (
+                                                    <div className="p-2 text-center text-xs text-muted-foreground">
+                                                        No Conditions Available
+                                                    </div>
+                                                ) : (
+                                                    examConditionList.map((ec: any, idx: number) => {
+                                                        const id = ec.ecM_Id ?? ec.ECM_Id ?? ec.id ?? ec.ecm_id;
+                                                        const name = ec.ecM_ConditionName ?? ec.ECM_ConditionName ?? ec.conditionName ?? ec.condition_name ?? ec.name ?? '';
+                                                        return (
+                                                            <SelectItem key={id || idx} value={String(id)}>
+                                                                {name}
+                                                            </SelectItem>
+                                                        );
+                                                    })
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     )}

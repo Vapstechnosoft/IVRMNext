@@ -376,7 +376,8 @@ export const EXAM_QUERY_KEYS = {
     PROMOTIONAL_GROUP_DETAILS: 'promotional-group-details',
     PROMOTIONAL_GROUP_MAPPED_EXAMS_DETAILS: 'promotional-group-mapped-exams-details',
     EXAM_TT_SESSION_MASTER: 'exam_tt_session_master',
-    EXAM_TT_TRANS_SETTINGS: 'exam_tt_trans_settings'
+    EXAM_TT_TRANS_SETTINGS: 'exam_tt_trans_settings',
+    COUNT_STATUS_REPORT: 'exam_count_status_report'
 };
 
 export const HRMS_QUERY_KEYS = {
