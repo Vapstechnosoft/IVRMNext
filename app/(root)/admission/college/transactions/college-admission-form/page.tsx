@@ -1,4 +1,4 @@
-import { getInitialData } from '@/server/admission/college/admission-form';
+import { getInitialData } from '@/server/college/CollegeAdmission/Transactions/clgadmission-form';
 import { AdmissionFormWrapper } from './_components/admission-form-wrapper';
 
 export const dynamic = 'force-dynamic';
@@ -12,7 +12,7 @@ export default async function CollegeAdmissionFormPage() {
                 <h1 className="text-3xl font-bold tracking-tight">College Student Admission Form</h1>
                 <p className="text-muted-foreground">Fill in the details to enroll a new student.</p>
             </div>
-            
+
             <AdmissionFormWrapper initialData={initialData?.data || {}} />
         </div>
     );

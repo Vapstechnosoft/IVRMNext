@@ -675,3 +675,24 @@ export const RECRUITMENT_QUERY_KEYS = {
     TRANSACTION_JOB_LIST_VMS: 'transaction_job_list_vms'
 };
 export const PRE_LIVE_MEETING_SCHEDULE = { DETAILS: () => ['PRE_LIVE_MEETING_SCHEDULE_DETAILS'] };
+
+export const COLLEGE_QUERY_KEYS = {
+    MASTER_CASTE_CATEGORY: 'college_master_caste_category',
+    MASTER_COURSE_CATEGORY_MAP: 'college_master_course_category_map',
+    MASTER_COURSE_BRANCH_MAP: 'college_master_course_branch_map',
+    MASTER_BATCH: 'college_master_batch',
+    MASTER_BRANCH: 'college_master_branch',
+    MASTER_CATEGORY: 'college_master_category',
+    MASTER_COURSE: 'college_master_course',
+    MASTER_QUOTA: 'college_master_quota',
+    MASTER_SECTION: 'college_master_section',
+    MASTER_SEMESTER: 'college_master_semester',
+    MASTER_SCHEME_TYPE: 'college_master_scheme_type',
+    MASTER_SCHEME_NAME: 'college_master_scheme_name',
+    MASTER_COMBINATION: 'college_master_combination',
+    REGISTER_REPORT: 'college_register_report',
+    REGISTER_REPORT_YEAR_LIST: 'college_register_report_year_list',
+    TRANSACTION_ADMISSION_FORM: 'college_transaction_admission_form',
+    TRANSACTION_PREADMISSION_STATUS: 'college_transaction_preadmission_status',
+    TRANSACTION_TRANSFER_LOAD_DATA: 'college_transaction_transfer_load_data',
+};

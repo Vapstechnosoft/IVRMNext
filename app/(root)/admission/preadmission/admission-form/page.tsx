@@ -20,7 +20,7 @@ export default function StudentApplicationPage(props: {
     searchParams: SearchParams;
 }) {
     const searchParams = (React as any).use(props.searchParams);
-    
+
     // Only pass asmay_id to the API so client-side changes don't trigger refetches or backend errors
     const apiSearchParams = React.useMemo(() => {
         return {
@@ -62,7 +62,7 @@ function StudentApplicationPageContent({
     searchParams: any;
 }) {
     const { openAddForm } = useFormContext();
-    
+
     const searchQuery = (searchParams?.search_query as string) || '';
     const page = parseInt(searchParams?.page as string) || 1;
     const pageSize = parseInt(searchParams?.page_size as string) || 10;
@@ -71,7 +71,7 @@ function StudentApplicationPageContent({
         let result = response?.data?.studentList || [];
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
-            result = result.filter((row: any) => 
+            result = result.filter((row: any) =>
                 String(row.studentName || '').toLowerCase().includes(query) ||
                 String(row.className || '').toLowerCase().includes(query) ||
                 String(row.sectionName || '').toLowerCase().includes(query) ||
@@ -90,8 +90,8 @@ function StudentApplicationPageContent({
     }, [filteredData, page, pageSize]);
 
     const tableProps = useDataTableProps(
-        response?.data && response.data.studentList 
-            ? { ...response, data: paginatedData, total: filteredData.length } 
+        response?.data && response.data.studentList
+            ? { ...response, data: paginatedData, total: filteredData.length }
             : response
     );
     const [isSuccessOpen, setSuccessOpen] = useState(false);
@@ -144,7 +144,7 @@ function StudentApplicationPageContent({
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
-                        Admission Application
+                        Add AdmissionForm
                     </Button>
                 </div>
                 {isSuccessOpen && (

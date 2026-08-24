@@ -1,12 +1,12 @@
 'use client';
 
 import { useFormContext } from 'react-hook-form';
-import { 
-    FormControl, 
-    FormField, 
-    FormItem, 
-    FormLabel, 
-    FormMessage 
+import {
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -14,14 +14,14 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ChevronRight, ChevronLeft, MapPin } from 'lucide-react';
-import { onSelectGetStateApi } from '@/server/admission/college/admission-form'; // I should add this if not exists
+import { onSelectGetStateApi } from '@/server/college/CollegeAdmission/Transactions/clgadmission-form'; // I should add this if not exists
 import { useState, useEffect } from 'react';
 
 export function AddressTab({ initialData, onNext, onBack }: { initialData: any, onNext: () => void, onBack: () => void }) {
     const { control, watch, setValue } = useFormContext();
     const [pStates, setPStates] = useState<any[]>([]);
     const [cStates, setCStates] = useState<any[]>([]);
-    
+
     const sameAsPermanent = watch('chkbox_address');
     const pCountry = watch('IVRMMC_Id');
     const cCountry = watch('AMCST_ConCountryId');
@@ -52,7 +52,7 @@ export function AddressTab({ initialData, onNext, onBack }: { initialData: any, 
                             <MapPin className="h-5 w-5" />
                             Permanent Address
                         </div>
-                        
+
                         <FormField
                             control={control}
                             name="AMCST_PerStreet"
@@ -142,13 +142,13 @@ export function AddressTab({ initialData, onNext, onBack }: { initialData: any, 
                     {/* Communication Address */}
                     <div className="space-y-6">
                         <div className="flex items-center justify-between border-b pb-2">
-                             <div className="flex items-center gap-2 text-primary font-semibold">
+                            <div className="flex items-center gap-2 text-primary font-semibold">
                                 <MapPin className="h-5 w-5" />
                                 Communication Address
                             </div>
                             <div className="flex items-center space-x-2">
-                                <Checkbox 
-                                    id="same-as-p" 
+                                <Checkbox
+                                    id="same-as-p"
                                     checked={sameAsPermanent}
                                     onCheckedChange={(checked) => setValue('chkbox_address', checked)}
                                 />

@@ -19,7 +19,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon, ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { onCourseChange, onBranchChange, getCasteByCategory } from '@/server/admission/college/admission-form';
+import { onCourseChange, onBranchChange, getCasteByCategory } from '@/server/college/CollegeAdmission/Transactions/clgadmission-form';
 
 export function StudentDetailsTab({ initialData, onNext }: { initialData: any, onNext: () => void }) {
     const { control, watch, setValue } = useFormContext();

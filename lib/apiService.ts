@@ -33,6 +33,7 @@ export type ApiBaseUrlKey =
     | 'default'
     | 'preadmission'
     | 'admission'
+    | 'college'
     | 'fees'
     | 'exam'
     | 'hrms'
@@ -50,7 +51,8 @@ export type ApiBaseUrlKey =
     | 'lessonplanner'
     | 'transport'
     | 'pettycashandassettracking'
-    | 'hrmsrecruitment';
+    | 'hrmsrecruitment'
+    | 'collegepreadmission';
 
 class ApiService {
     private instances: Map<string, AxiosInstance>;
@@ -82,7 +84,10 @@ class ApiService {
             lessonplanner: process.env.NEXT_PUBLIC_LESSONPLANNER_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             transport: process.env.NEXT_PUBLIC_TRANSPORT_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             pettycashandassettracking: process.env.NEXT_PUBLIC_PETTYCASH_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
-            hrmsrecruitment: process.env.NEXT_PUBLIC_HRMS_RECRUITMENT_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || ''
+            hrmsrecruitment: process.env.NEXT_PUBLIC_HRMS_RECRUITMENT_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            college: process.env.NEXT_PUBLIC_COLLEGE_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            collegepreadmission: process.env.NEXT_PUBLIC_COLLEGEPREADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+
         };
 
         // Debug: info base URLs in development
