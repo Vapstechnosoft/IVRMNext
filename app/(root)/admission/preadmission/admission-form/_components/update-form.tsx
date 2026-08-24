@@ -2275,6 +2275,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 // New fields for Nationality/State
                 amsT_Nationality: Number(formData.amsT_Nationality ?? 0),
                 amsT_State: Number(formData.amsT_State ?? 0),
+                mobileNos: formData.mobileNos && formData.mobileNos.length > 0 ? formData.mobileNos : (getValues('mobileNos') || []),
+                adm_M_Student_EmailIdDTO: formData.adm_M_Student_EmailIdDTO && formData.adm_M_Student_EmailIdDTO.length > 0 ? formData.adm_M_Student_EmailIdDTO : (getValues('adm_M_Student_EmailIdDTO') || []),
                 mobileCountryCode: (() => {
                     const src = (
                         Array.isArray(formData.mobileNos ?? getValues('mobileNos')) ? (formData.mobileNos ?? getValues('mobileNos')) : []

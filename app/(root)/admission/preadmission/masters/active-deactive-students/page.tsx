@@ -85,13 +85,13 @@ export default function MasterActiveDeactiveStudentPage(props: {
 
     const apiSearchParams: ApiSearchparams | undefined = searchParams
         ? {
-              page: Number(searchParams.page) || 1,
-              page_size: Number(searchParams.page_size) || 10,
-              sort_column: String(searchParams.sort_column || ''),
-              sort_direction: String(searchParams.sort_direction || 'asc'),
-              search_query: String(searchParams.search_query || ''),
-              search_columns: String(searchParams.search_columns || '')
-          }
+            page: Number(searchParams.page) || 1,
+            page_size: Number(searchParams.page_size) || 10,
+            sort_column: String(searchParams.sort_column || ''),
+            sort_direction: String(searchParams.sort_direction || 'asc'),
+            search_query: String(searchParams.search_query || ''),
+            search_columns: String(searchParams.search_columns || '')
+        }
         : undefined;
 
     const {
@@ -199,7 +199,7 @@ export default function MasterActiveDeactiveStudentPage(props: {
             asmaY_Id: academicYearId,
             asmcL_Id: classId,
             asmS_Id: sectionId,
-            amsT_SOL: amst_sol as any,
+            amsT_SOL: amsT_SOL_activate as any,
             students: studentsArray
         };
 

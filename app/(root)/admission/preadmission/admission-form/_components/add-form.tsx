@@ -906,6 +906,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 amsT_RFCardNo: formData.amsT_RFCardNo ?? '',
                 isEmisBpl: !!formData.isEmisBpl,
                 amsT_BPLCardNo: formData.amsT_BPLCardNo ?? '',
+                mobileNos: formData.mobileNos && formData.mobileNos.length > 0 ? formData.mobileNos : (getValues('mobileNos') || []),
+                adm_M_Student_EmailIdDTO: formData.adm_M_Student_EmailIdDTO && formData.adm_M_Student_EmailIdDTO.length > 0 ? formData.adm_M_Student_EmailIdDTO : (getValues('adm_M_Student_EmailIdDTO') || []),
                 mobileCountryCode: (() => {
                     const mobileNos = (formData.mobileNos ?? getValues('mobileNos')) as any[];
                     return Array.isArray(mobileNos) && mobileNos.length > 0 ? String(mobileNos[0]?.amstsmS_CountryCode ?? '') : '';
