@@ -132,7 +132,7 @@ export function PrincipalAssistant() {
                     </div>
                     <div>
                         <CardTitle className='flex items-center gap-2 font-black text-lg text-slate-800 tracking-tight'>
-                            VAPS Principal Advisor{' '}
+                            Principal Assistant{' '}
                             <Badge className='border border-indigo-100 bg-indigo-50 px-1.5 py-0.5 font-bold text-[9px] text-indigo-700'>
                                 AI Insights
                             </Badge>
