@@ -3,8 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TimePicker } from '@/components/ui/time-picker/time-picker';
+import { SpinnerTimePicker } from '../../breaktimesettings/_components/SpinnerTimePicker';
 import {
     useAcademicYearPeriodDistrubution,
     useCategtoryPeriodDistrubution,
@@ -23,6 +22,7 @@ import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type FormFields = z.infer<typeof periodTimeSettingSchema.save>;
 
@@ -299,9 +299,9 @@ export default function UpdatePeriodTimeSettingForm({ onSuccess, selectedRow: ro
                         control={control}
                         name='startTime'
                         render={({ field }) => (
-                            <TimePicker
-                                date={field.value}
-                                setDate={(date) => {
+                            <SpinnerTimePicker
+                                value={field.value}
+                                onChange={(date) => {
                                     field.onChange(date);
                                     setValue('endTime', undefined as any);
                                 }}
@@ -318,7 +318,7 @@ export default function UpdatePeriodTimeSettingForm({ onSuccess, selectedRow: ro
                     <Controller
                         control={control}
                         name='endTime'
-                        render={({ field }) => <TimePicker date={field.value} setDate={field.onChange} />}
+                        render={({ field }) => <SpinnerTimePicker value={field.value} onChange={field.onChange} />}
                     />
                     {errors.endTime && <p className='text-red-500 text-xs'>{errors.endTime.message}</p>}
                 </div>
