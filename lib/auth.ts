@@ -13,7 +13,21 @@ export class CustomAuthError extends AuthError {
     }
 }
 
+// Detect if running locally / in development environment
+const isLocalEnv =
+    process.env.NODE_ENV !== 'production' ||
+    process.env.AUTH_URL?.includes('localhost') ||
+    process.env.AUTH_URL?.includes('127.0.0.1') ||
+    (typeof process.argv !== 'undefined' &&
+        process.argv.some((arg) => arg === 'dev' || arg.includes('turbopack') || arg.includes('next-dev')));
+
+// In local development, normalize AUTH_URL if it was set to an external URL by an env file
+if (isLocalEnv && process.env.AUTH_URL && !process.env.AUTH_URL.includes('localhost') && !process.env.AUTH_URL.includes('127.0.0.1')) {
+    process.env.AUTH_URL = `http://localhost:${process.env.PORT || 3000}`;
+}
+
 export const authConfig: NextAuthConfig = {
+    secret: process.env.AUTH_SECRET,
     trustHost: true,
     session: {
         strategy: 'jwt'
@@ -112,7 +126,8 @@ export const authConfig: NextAuthConfig = {
 
                 // Add token expiration logically based on backend response
                 const u = user as any;
-                const expiresIn = u.expires_in ? Number(u.expires_in) : 3600; // Default to 1 hour if not provided
+                const rawExpiresIn = u.expires_in ? Number(u.expires_in) : Number.NaN;
+                const expiresIn = !Number.isNaN(rawExpiresIn) && rawExpiresIn > 0 ? rawExpiresIn : 86400; // Default to 24 hours if not provided or invalid
                 token.expires_at = Math.round(Date.now() / 1000) + expiresIn;
             }
             if (trigger === 'update' && session) {
@@ -134,7 +149,7 @@ export const authConfig: NextAuthConfig = {
             name: 'aivrm-session-1.0',
             options: {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
+                secure: !isLocalEnv && process.env.NODE_ENV === 'production',
                 sameSite: 'lax',
                 path: '/'
             }
