@@ -93,6 +93,14 @@ export const authConfig: NextAuthConfig = {
                 token.designation = isDesigPlaceholder ? user.role || (user as any).roleName || '' : rawDesig;
 
                 token.amst_id = user.amst_id;
+                token.asmay_id =
+                    user.asmay_id ||
+                    (user as any).ASMAY_Id ||
+                    (user as any).asmaY_Id ||
+                    (user as any).ASMAY_ID ||
+                    (user as any).asmaY_ID ||
+                    0;
+                token.hrme_id = user.hrme_id || (user as any).hrmE_Id || (user as any).HRME_Id || (user as any).HRME_ID || 0;
                 token.mi_name =
                     user.mi_name ||
                     (user as any).mI_Name ||
