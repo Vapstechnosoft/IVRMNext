@@ -6,7 +6,7 @@ import { auth } from '@/lib/auth';
 export async function getDashboardCounts() {
     try {
         const url = '/configuration/dashboard';
-        return await api.get('preadmission', url);
+        return await api.get<any>('preadmission', url);
     } catch (err) {
         console.error('getDashboardCounts Error', err);
         return { success: false, data: [] };
@@ -22,7 +22,7 @@ export async function GetChairmanDashBoardFeesdata(ASMAY_ID?: number) {
         }
         const url = `/FeesCommon/GetChairmanDashBoardFeesdata?ASMAY_ID=${activeAsmayId}`;
         // Try with standard path, if it fails backend will be logged
-        return await api.get('fees', url);
+        return await api.get<any>('fees', url);
     } catch (err) {
         console.error('GetChairmanDashBoardFeesdata Error', err);
         return { success: false, data: [] };
@@ -37,7 +37,7 @@ export async function GetTeacherCount(mi_id?: number) {
             activeMiId = session?.mi_id || (session as any)?.user?.mi_id || 2;
         }
         const url = `/api/MasterDropDown/get_today_employee_punch_counts?MI_Id=${activeMiId}`;
-        return await api.get('hmslms', url);
+        return await api.get<any>('hmslms', url);
     } catch (err) {
         console.error('GetTeacherCount Error', err);
         return { success: false, data: [] };
