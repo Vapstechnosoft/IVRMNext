@@ -47,30 +47,32 @@ export interface IEventMappingDetails {
     eventmappingList: any[]; // Define specific type if needed for grid
 }
 
-export const eventMappingSchema = z.object({
-    SPCCE_Id: z.coerce.number().optional().nullable(),
-    ASMAY_Id: z.coerce.number().min(1, 'Academic Year is required'),
-    SPCCME_Id: z.coerce.number().min(1, 'Event is required'),
-    SPCCMEV_Id: z.coerce.number().min(1, 'Venue is required'),
-    SPCCE_StartDate: z.date({ required_error: 'Start Date is required' }),
-    SPCCE_StartTime: z.string().min(1, 'Start Time is required'),
-    SPCCE_EndDate: z.date({ required_error: 'End Date is required' }),
-    SPCCE_EndTime: z.string().min(1, 'End Time is required'),
-    SPCCE_Remarks: z.string().optional().nullable(),
-    SPCCE_SponsorFlag: z.boolean().optional(),
-    sponsorData: z.array(z.any()).optional()
-}).refine(
-    (data) => {
-        if (!data.SPCCE_StartDate || !data.SPCCE_EndDate) return true;
-        // Compare dates (setting time to zero to safely compare just the dates)
-        const start = new Date(data.SPCCE_StartDate);
-        start.setHours(0, 0, 0, 0);
-        const end = new Date(data.SPCCE_EndDate);
-        end.setHours(0, 0, 0, 0);
-        return end >= start;
-    },
-    {
-        message: 'End Date cannot be less than Start Date',
-        path: ['SPCCE_EndDate']
-    }
-);
+export const eventMappingSchema = z
+    .object({
+        SPCCE_Id: z.coerce.number().optional().nullable(),
+        ASMAY_Id: z.coerce.number().min(1, 'Academic Year is required'),
+        SPCCME_Id: z.coerce.number().min(1, 'Event is required'),
+        SPCCMEV_Id: z.coerce.number().min(1, 'Venue is required'),
+        SPCCE_StartDate: z.date({ required_error: 'Start Date is required' }),
+        SPCCE_StartTime: z.string().min(1, 'Start Time is required'),
+        SPCCE_EndDate: z.date({ required_error: 'End Date is required' }),
+        SPCCE_EndTime: z.string().min(1, 'End Time is required'),
+        SPCCE_Remarks: z.string().optional().nullable(),
+        SPCCE_SponsorFlag: z.boolean().optional(),
+        sponsorData: z.array(z.any()).optional()
+    })
+    .refine(
+        (data) => {
+            if (!data.SPCCE_StartDate || !data.SPCCE_EndDate) return true;
+            // Compare dates (setting time to zero to safely compare just the dates)
+            const start = new Date(data.SPCCE_StartDate);
+            start.setHours(0, 0, 0, 0);
+            const end = new Date(data.SPCCE_EndDate);
+            end.setHours(0, 0, 0, 0);
+            return end >= start;
+        },
+        {
+            message: 'End Date cannot be less than Start Date',
+            path: ['SPCCE_EndDate']
+        }
+    );

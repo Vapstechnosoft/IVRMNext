@@ -4,16 +4,16 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { IadmissionStudentApplicationList } from '@/types/admission/admission';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Plus, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
+import { useQueryState } from 'nuqs';
 import React, { useEffect, useState } from 'react';
 import AddStudentAdmissionForm from './_components/add-form';
 import { studentApplicationColumns } from './_components/columns';
 import ApplicationFormSuccessDialog from './_components/success-dialog';
-import { useQueryState } from 'nuqs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function StudentApplicationPage(props: {
@@ -64,8 +64,8 @@ function StudentApplicationPageContent({
     const { openAddForm } = useFormContext();
 
     const searchQuery = (searchParams?.search_query as string) || '';
-    const page = parseInt(searchParams?.page as string) || 1;
-    const pageSize = parseInt(searchParams?.page_size as string) || 10;
+    const page = Number.parseInt(searchParams?.page as string) || 1;
+    const pageSize = Number.parseInt(searchParams?.page_size as string) || 10;
 
     const filteredData = React.useMemo(() => {
         let result = response?.data?.studentList || [];
@@ -98,8 +98,6 @@ function StudentApplicationPageContent({
     const [successType, setSuccessType] = useState<'create' | 'update'>('create');
     const session = useSession();
 
-
-
     useEffect(() => {
         // Don't force a full page reload when session role is temporarily undefined.
         // Session handling should be addressed centrally; avoid reloads here.
@@ -124,10 +122,10 @@ function StudentApplicationPageContent({
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Header */}
-                <div className='flex justify-between items-center'>
+                <div className='flex items-center justify-between'>
                     <div className='w-64'>
                         <Select value={selectedYear} onValueChange={setSelectedYear}>
-                            <SelectTrigger className="w-full bg-background">
+                            <SelectTrigger className='w-full bg-background'>
                                 <SelectValue placeholder='Select Academic Year' />
                             </SelectTrigger>
                             <SelectContent>

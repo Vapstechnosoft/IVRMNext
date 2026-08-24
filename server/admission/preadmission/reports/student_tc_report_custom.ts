@@ -15,7 +15,6 @@ export async function getStudentTcInitialData() {
  * Fetches student list based on search criteria
  */
 export async function getStudentTcStudentList(data: {
-
     ASMAY_Id: number;
     ASMCL_Id?: number;
     ASMC_Id?: number;

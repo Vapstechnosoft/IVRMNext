@@ -4,15 +4,20 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useLeaveOpeningBalanceGrid, useSaveLeaveOpeningBalance, useDeleteLeaveOpeningBalance, useGetLeaveOB } from '@/hooks/hrms/leave-management/transaction/useLeaveOpeningBalance';
-import { useReportDepartments, useReportDesignations, useReportGroupTypes, usePeriodLeaveReportEmployees } from '@/hooks/hrms/useReports';
+import {
+    useDeleteLeaveOpeningBalance,
+    useGetLeaveOB,
+    useLeaveOpeningBalanceGrid,
+    useSaveLeaveOpeningBalance
+} from '@/hooks/hrms/leave-management/transaction/useLeaveOpeningBalance';
+import { usePeriodLeaveReportEmployees, useReportDepartments, useReportDesignations, useReportGroupTypes } from '@/hooks/hrms/useReports';
 // import { useMasterLeaveDropdowns } from '@/hooks/hrms/leave-management/useMasters'; // Removed
 import { Plus, X } from 'lucide-react';
-import { use, useState, useMemo, useRef, useEffect } from 'react';
+import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
+import { use, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { type LeaveOpeningBalance, getLeaveOpeningBalanceColumns } from './_components/columns';
 import { LeaveOpeningBalanceForm, type LeaveOpeningBalanceFormData } from './_components/leave-opening-balance-form';
-import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -31,14 +36,17 @@ export default function LeaveOpeningBalancePage(props: { searchParams: SearchPar
     });
 
     // Normalize params for useLeaveOpeningBalanceGrid
-    const normalizedParams = useMemo(() => ({
-        page: params.page,
-        page_size: params.page_size,
-        search_query: params.search_query || '',
-        sort_column: params.sort_column || '',
-        sort_direction: (params.sort_direction as 'asc' | 'desc') || 'asc',
-        search_columns: params.search_columns || params.search_column || ''
-    }), [params]);
+    const normalizedParams = useMemo(
+        () => ({
+            page: params.page,
+            page_size: params.page_size,
+            search_query: params.search_query || '',
+            sort_column: params.sort_column || '',
+            sort_direction: (params.sort_direction as 'asc' | 'desc') || 'asc',
+            search_columns: params.search_columns || params.search_column || ''
+        }),
+        [params]
+    );
 
     // Fetch Grid Data
     const { data: gridResponse, isLoading: isLoadingGrid, refetch: refetchGrid } = useLeaveOpeningBalanceGrid(normalizedParams);
@@ -106,44 +114,52 @@ function LeaveOpeningBalancePageContent({
 
     // --- Mapped Data ---
     const types = useMemo(() => {
-        return (groupTypesData?.data || []).map((item: any) => ({
-            id: Number(item.key || item.hrmgT_Id || item.id),
-            name: item.value || item.hrmgT_EmployeeGroupType || item.name || ''
-        })).filter((i: any) => i.id);
+        return (groupTypesData?.data || [])
+            .map((item: any) => ({
+                id: Number(item.key || item.hrmgT_Id || item.id),
+                name: item.value || item.hrmgT_EmployeeGroupType || item.name || ''
+            }))
+            .filter((i: any) => i.id);
     }, [groupTypesData]);
 
     const departments = useMemo(() => {
-        return (departmentsData?.data || []).map((item: any) => ({
-            id: Number(item.hrmD_Id || item.hrmd_id || item.key || item.id),
-            name: item.hrmD_DepartmentName || item.hrmd_departmentName || item.value || item.name || ''
-        })).filter((i: any) => i.id);
+        return (departmentsData?.data || [])
+            .map((item: any) => ({
+                id: Number(item.hrmD_Id || item.hrmd_id || item.key || item.id),
+                name: item.hrmD_DepartmentName || item.hrmd_departmentName || item.value || item.name || ''
+            }))
+            .filter((i: any) => i.id);
     }, [departmentsData]);
 
     const designations = useMemo(() => {
-        return (designationsData?.data || []).map((item: any) => ({
-            id: Number(item.hrmdeS_Id || item.hrmdes_id || item.key || item.id),
-            name: item.hrmdeS_DesignationName || item.hrmdes_designationName || item.value || item.name || ''
-        })).filter((i: any) => i.id);
+        return (designationsData?.data || [])
+            .map((item: any) => ({
+                id: Number(item.hrmdeS_Id || item.hrmdes_id || item.key || item.id),
+                name: item.hrmdeS_DesignationName || item.hrmdes_designationName || item.value || item.name || ''
+            }))
+            .filter((i: any) => i.id);
     }, [designationsData]);
 
     const employees = useMemo(() => {
         if (!employeesData || !Array.isArray(employeesData)) return [];
 
-        return employeesData.map((item: any) => {
-            const id = item.HRME_Id || item.hrmE_Id || item.id || item.key;
-            if (id == null) return null;
+        return employeesData
+            .map((item: any) => {
+                const id = item.HRME_Id || item.hrmE_Id || item.id || item.key;
+                if (id == null) return null;
 
-            const firstName = item.HRME_EmployeeFirstName || item.hrmE_EmployeeFirstName || '';
-            const middleName = item.HRME_EmployeeMiddleName || item.hrmE_EmployeeMiddleName || '';
-            const lastName = item.HRME_EmployeeLastName || item.hrmE_EmployeeLastName || '';
-            const fullName = `${firstName} ${middleName} ${lastName}`.trim().replace(/\s+/g, ' ');
+                const firstName = item.HRME_EmployeeFirstName || item.hrmE_EmployeeFirstName || '';
+                const middleName = item.HRME_EmployeeMiddleName || item.hrmE_EmployeeMiddleName || '';
+                const lastName = item.HRME_EmployeeLastName || item.hrmE_EmployeeLastName || '';
+                const fullName = `${firstName} ${middleName} ${lastName}`.trim().replace(/\s+/g, ' ');
 
-            return {
-                id: Number(id),
-                employeeCode: id,
-                employeeName: fullName || item.value || item.employeeName || 'Unknown'
-            };
-        }).filter((i: any) => i !== null) as { id: number; employeeCode: string; employeeName: string }[];
+                return {
+                    id: Number(id),
+                    employeeCode: id,
+                    employeeName: fullName || item.value || item.employeeName || 'Unknown'
+                };
+            })
+            .filter((i: any) => i !== null) as { id: number; employeeCode: string; employeeName: string }[];
     }, [employeesData]);
 
     // Extract leave types from the GetLeaveOB response
@@ -161,38 +177,40 @@ function LeaveOpeningBalancePageContent({
         return Array.from(unique.values());
     }, [leaveOBResponse]);
 
-
     const handleFormSubmit = async (formData: LeaveOpeningBalanceFormData) => {
         if (!formData.selectedEmployeeId) {
             toast.error('Please select an employee');
             return;
         }
 
-        const employeeLeaveOB = Object.entries(formData.leaveBalances).map(([leaveName, balance]) => {
-            const leave = leaveTypes.find(l => l.name === leaveName);
-            return {
-                hrmL_Id: leave?.id || 0,
-                hreobL_OBLeaves: Number(balance)
-            };
-        }).filter(item => item.hrmL_Id !== 0);
+        const employeeLeaveOB = Object.entries(formData.leaveBalances)
+            .map(([leaveName, balance]) => {
+                const leave = leaveTypes.find((l) => l.name === leaveName);
+                return {
+                    hrmL_Id: leave?.id || 0,
+                    hreobL_OBLeaves: Number(balance)
+                };
+            })
+            .filter((item) => item.hrmL_Id !== 0);
         // Note: allowing 0 checks if needed, but usually we just send what was entered.
 
-
-
-        saveMutation.mutate({
-            hrmE_Id: formData.selectedEmployeeId,
-            employeeLeaveOB: employeeLeaveOB
-        }, {
-            onSuccess: () => {
-                refetchGrid();
-                closeAddForm();
-                closeEditForm();
-                // Reset internal state if needed
-                setSelectedTypeIds([]);
-                setSelectedDeptIds([]);
-                setSelectedDesignationIds([]);
+        saveMutation.mutate(
+            {
+                hrmE_Id: formData.selectedEmployeeId,
+                employeeLeaveOB: employeeLeaveOB
+            },
+            {
+                onSuccess: () => {
+                    refetchGrid();
+                    closeAddForm();
+                    closeEditForm();
+                    // Reset internal state if needed
+                    setSelectedTypeIds([]);
+                    setSelectedDeptIds([]);
+                    setSelectedDesignationIds([]);
+                }
             }
-        });
+        );
     };
 
     const handleFilterChange = (type: 'types' | 'departments' | 'designations', values: number[]) => {
@@ -220,8 +238,8 @@ function LeaveOpeningBalancePageContent({
         onEdit: (row) => {
             // Edit logic is tricky due to filters required to re-select employee.
             // For now we disable or support limitededit?
-            // Since API supports Upsert, maybe just open Add form if we can pre-select. 
-            // But we don't have filters. 
+            // Since API supports Upsert, maybe just open Add form if we can pre-select.
+            // But we don't have filters.
             // For now, let's keep it simple: Add New Entry. If Edit needed, user deletes and re-adds or adds again to update.
             // But I'll leave the hook there.
             openEditForm(row);
@@ -266,7 +284,6 @@ function LeaveOpeningBalancePageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-
                     <GenericDataTable<LeaveOpeningBalance>
                         {...tableProps}
                         columns={columns}
@@ -279,7 +296,6 @@ function LeaveOpeningBalancePageContent({
                         noDataDescription='Get started by creating your first leave opening balance'
                         errorTitle='Error Loading Leave Opening Balance'
                     />
-
                 </CollapsibleSection>
 
                 {/* Forms - Rendered conditionally by FormProvider state */}
@@ -289,14 +305,14 @@ function LeaveOpeningBalancePageContent({
                         departments={departments}
                         designations={designations}
                         employees={employees}
-                    leaveTypes={leaveTypes}
-                    isLoadingTypes={isLoadingTypes}
-                    isLoadingDepartments={isLoadingDepartments}
-                    isLoadingDesignations={isLoadingDesignations}
-                    isLoadingEmployees={isLoadingEmployees}
-                    onFilterChange={handleFilterChange}
-                    onSubmit={handleFormSubmit}
-                />
+                        leaveTypes={leaveTypes}
+                        isLoadingTypes={isLoadingTypes}
+                        isLoadingDepartments={isLoadingDepartments}
+                        isLoadingDesignations={isLoadingDesignations}
+                        isLoadingEmployees={isLoadingEmployees}
+                        onFilterChange={handleFilterChange}
+                        onSubmit={handleFormSubmit}
+                    />
                 </div>
             </div>
         </div>
@@ -333,7 +349,7 @@ function FormSections({
     return (
         <>
             {isAddFormOpen && (
-                <div className="mb-4">
+                <div className='mb-4'>
                     <CollapsibleSection
                         title='LEAVE OPENING BALANCE'
                         description='Fill in the details to set leave opening balance'

@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Edit, Eye, Trash2 } from 'lucide-react';
+import { Edit, Eye } from 'lucide-react';
 
 export interface JobPostingListItem {
     hrmrfr_Id: number;
@@ -50,7 +50,7 @@ export const jobPostingListColumns: ColumnDef<any>[] = [
     {
         accessorKey: 'hrmrfR_Skill',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Skills' />,
-        cell: ({ row }) => <div className='truncate max-w-[200px]'>{row.getValue('hrmrfR_Skill') || '-'}</div>
+        cell: ({ row }) => <div className='max-w-[200px] truncate'>{row.getValue('hrmrfR_Skill') || '-'}</div>
     },
     {
         accessorKey: 'hrmrfR_Status',
@@ -58,7 +58,9 @@ export const jobPostingListColumns: ColumnDef<any>[] = [
         cell: ({ row }) => {
             const active = row.getValue('hrmrfR_Status');
             return (
-                <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold ${active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                <span
+                    className={`inline-flex items-center rounded-full px-2 py-1 font-semibold text-xs ${
+                        active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                     }`}>
                     {active ? 'Active' : 'Inactive'}
                 </span>
@@ -78,7 +80,7 @@ export const jobPostingListColumns: ColumnDef<any>[] = [
                         variant='ghost'
                         size='sm'
                         className={hrmrfR_Status ? 'text-blue-600 hover:text-blue-800' : 'text-red-600 hover:text-red-800'}
-                    // onClick={() => handleToggleStatus(hrmrfr_Id, hrmrfR_Status)}
+                        // onClick={() => handleToggleStatus(hrmrfr_Id, hrmrfR_Status)}
                     >
                         {hrmrfR_Status ? <Eye className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
                     </Button>
@@ -91,4 +93,3 @@ export const jobPostingListColumns: ColumnDef<any>[] = [
         size: 50
     }
 ];
-

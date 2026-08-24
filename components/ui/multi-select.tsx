@@ -264,7 +264,7 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
                                 <CommandItem key='all' onSelect={toggleAll} className='cursor-pointer'>
                                     <div
                                         className={cn(
-                                            'mr-2 flex h-4 w-4 items-center justify-center  border border-primary',
+                                            'mr-2 flex h-4 w-4 items-center justify-center border border-primary',
                                             selectedValues.length === options.length
                                                 ? 'bg-primary text-primary-foreground'
                                                 : 'opacity-50 [&_svg]:invisible'
@@ -285,7 +285,7 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
                                             {!option.disabled && ( // Hide checkbox if the option is disabled
                                                 <div
                                                     className={cn(
-                                                        'mr-2 flex h-4 w-4 items-center justify-center  border border-primary',
+                                                        'mr-2 flex h-4 w-4 items-center justify-center border border-primary',
                                                         isSelected ? 'bg-primary text-primary-foreground' : 'opacity-50 [&_svg]:invisible'
                                                     )}>
                                                     <CheckIcon className='h-4 w-4' />

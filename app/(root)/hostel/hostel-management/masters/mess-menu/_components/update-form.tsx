@@ -6,9 +6,9 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMessDropdownList } from '@/hooks/hostel/useMasterHostel';
 import { useMasterMessCategoryDropdown } from '@/hooks/hostel/useMasterMessCategory';
-import { MessMenuSchema, MessMenuSchemaType } from '@/schemas/hostel/mess-menu.schema';
+import { MessMenuSchema, type MessMenuSchemaType } from '@/schemas/hostel/mess-menu.schema';
 import { saveMessMenu } from '@/server/hostel/hostel-management/masters/menu';
-import { IMessMenu } from '@/types/hostel/hostel-management/masters';
+import type { IMessMenu } from '@/types/hostel/hostel-management/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RefreshCw, Save } from 'lucide-react';
 import { useEffect } from 'react';
@@ -37,8 +37,8 @@ export default function UpdateMessMenuForm({ rowData, onSuccess, className = '' 
             hlmM_Id: rowData.hlmM_Id,
             hlmmC_Id: rowData.hlmmC_Id,
             hlmmN_MenuName: rowData.hlmmN_MenuName,
-            hlmmN_MenuDesc: rowData.hlmmN_MenuDesc,
-        },
+            hlmmN_MenuDesc: rowData.hlmmN_MenuDesc
+        }
     });
 
     // Reset form when rowData changes
@@ -49,7 +49,7 @@ export default function UpdateMessMenuForm({ rowData, onSuccess, className = '' 
                 hlmM_Id: rowData.hlmM_Id,
                 hlmmC_Id: rowData.hlmmC_Id,
                 hlmmN_MenuName: rowData.hlmmN_MenuName,
-                hlmmN_MenuDesc: rowData.hlmmN_MenuDesc,
+                hlmmN_MenuDesc: rowData.hlmmN_MenuDesc
             });
         }
     }, [rowData, reset]);
@@ -78,7 +78,7 @@ export default function UpdateMessMenuForm({ rowData, onSuccess, className = '' 
             hlmM_Id: rowData.hlmM_Id,
             hlmmC_Id: rowData.hlmmC_Id,
             hlmmN_MenuName: rowData.hlmmN_MenuName,
-            hlmmN_MenuDesc: rowData.hlmmN_MenuDesc,
+            hlmmN_MenuDesc: rowData.hlmmN_MenuDesc
         });
         toast.info('Form reset to original values');
     };
@@ -93,12 +93,9 @@ export default function UpdateMessMenuForm({ rowData, onSuccess, className = '' 
                             <Label htmlFor='hlmM_Id'>
                                 Mess Name <span className='ml-1 text-red-500'>*</span>
                             </Label>
-                            <Select
-                                onValueChange={(val) => setValue('hlmM_Id', Number(val))}
-                                value={watch('hlmM_Id')?.toString() || ''}
-                            >
+                            <Select onValueChange={(val) => setValue('hlmM_Id', Number(val))} value={watch('hlmM_Id')?.toString() || ''}>
                                 <SelectTrigger className={errors.hlmM_Id ? 'border-red-500' : ''}>
-                                    <SelectValue placeholder="Select Mess" />
+                                    <SelectValue placeholder='Select Mess' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {messes?.data?.map((mess) => (
@@ -116,12 +113,9 @@ export default function UpdateMessMenuForm({ rowData, onSuccess, className = '' 
                             <Label htmlFor='hlmmC_Id'>
                                 Mess Category <span className='ml-1 text-red-500'>*</span>
                             </Label>
-                            <Select
-                                onValueChange={(val) => setValue('hlmmC_Id', Number(val))}
-                                value={watch('hlmmC_Id')?.toString() || ''}
-                            >
+                            <Select onValueChange={(val) => setValue('hlmmC_Id', Number(val))} value={watch('hlmmC_Id')?.toString() || ''}>
                                 <SelectTrigger className={errors.hlmmC_Id ? 'border-red-500' : ''}>
-                                    <SelectValue placeholder="Select Category" />
+                                    <SelectValue placeholder='Select Category' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {messcategories?.data?.map((cat: any) => (
@@ -148,9 +142,7 @@ export default function UpdateMessMenuForm({ rowData, onSuccess, className = '' 
 
                         {/* Description */}
                         <div className='group flex flex-col gap-2'>
-                            <Label htmlFor='hlmmN_MenuDesc'>
-                                Description
-                            </Label>
+                            <Label htmlFor='hlmmN_MenuDesc'>Description</Label>
                             <textarea
                                 id='hlmmN_MenuDesc'
                                 {...register('hlmmN_MenuDesc')}

@@ -71,9 +71,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
-            const submerchants = data.submerchantIds
-                ?.filter((item) => item.id.trim() !== '')
-                .map((item) => item.id) ?? [];
+            const submerchants = data.submerchantIds?.filter((item) => item.id.trim() !== '').map((item) => item.id) ?? [];
 
             const payload = {
                 fpgD_Id: 0,
@@ -83,11 +81,11 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                 fpgD_SaltKey: data.fpgD_SaltKey,
                 fpgD_AuthorisationKey: data.fpgD_MerchantKey,
                 fpgD_URL: data.fpgD_URL,
-                fpgD_SubMerchantId: submerchants.length > 0 ? submerchants[0] : "",
+                fpgD_SubMerchantId: submerchants.length > 0 ? submerchants[0] : '',
                 impG_Id: data.impG_Id,
                 fpgD_Image: data.fpgD_Image,
-                fpgD_PGName: "",
-                fmpG_PGName: "",
+                fpgD_PGName: '',
+                fmpG_PGName: '',
                 fpgD_MobileActiveFlag: data.fpgD_MobileActiveFlag,
                 fpgD_AccNo: data.fpgD_AccNo,
                 submerchantIds: submerchants
@@ -455,8 +453,9 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                                             type='text'
                                             placeholder='Enter Sub Merchant Id'
                                             {...register(`submerchantIds.${index}.id`)}
-                                            className={`w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary ${errors.submerchantIds?.[index]?.id ? '' : ''
-                                                }`}
+                                            className={`w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary ${
+                                                errors.submerchantIds?.[index]?.id ? '' : ''
+                                            }`}
                                             onKeyDown={(e) => {
                                                 // Block minus, plus, special chars used in number inputs
                                                 if (['-', '+', ' '].includes(e.key)) {
@@ -543,7 +542,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                         isLoading={isSubmitting}
                         loadingText='Saving...'>
                         <div className='flex items-center'>
-                            Save Payment  <Save className='ml-2 h-4 w-4' />
+                            Save Payment <Save className='ml-2 h-4 w-4' />
                             {/* Details */}
                         </div>
                     </Button>

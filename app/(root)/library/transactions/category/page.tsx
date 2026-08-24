@@ -93,7 +93,7 @@ function FormSections({ refetch }: { refetch: () => void }) {
         closeAddForm,
         closeDeleteForm,
         //closeEditForm,
-        addFormRef,
+        addFormRef
         //editFormRef
     } = useFormContext<IMasterClassYearlyList>();
 

@@ -74,8 +74,8 @@ export async function getYearwiseList(asmaY_Id: number) {
                 item.noofstudents !== undefined
                     ? item.noofstudents
                     : item.NOofstudents !== undefined
-                        ? item.NOofstudents
-                        : item.studentcount,
+                      ? item.NOofstudents
+                      : item.studentcount,
             ASMAY_Id: item.asmay_id || item.ASMAY_Id || asmaY_Id,
             ASMCL_Id: item.asmcL_Id || item.asmcl_id || item.ASMCL_Id || 0
         })) as IYearwiseCount[];

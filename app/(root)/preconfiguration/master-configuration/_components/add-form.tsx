@@ -1,19 +1,19 @@
 'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { useSaveMasterConfiguration } from '@/hooks/preconfiguration/useMasterConfiguration';
 import type { IMasterConfigurationResponse } from '@/types/preconfiguration/master-configuration';
-import { Save, RefreshCcw } from 'lucide-react';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { RefreshCcw, Save } from 'lucide-react';
 import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 
 const formSchema = z.object({
     ispaC_Id: z.number().default(0),
@@ -68,7 +68,7 @@ const formSchema = z.object({
     ispaC_AdmissionTransfer: z.number().default(0),
     ispaC_FeePaymentFlag: z.number().default(0),
     ispaC_Transfer_Settings_Flag: z.number().default(0),
-    ispaC_OfflineFee_Flag: z.number().default(0),
+    ispaC_OfflineFee_Flag: z.number().default(0)
 });
 
 export default function MasterConfigurationForm({
@@ -154,7 +154,7 @@ export default function MasterConfigurationForm({
             ISPAC_Id: values.ispaC_Id,
             ASMAY_Id: values.asmaY_Id,
             AMC_Id: response?.mI_SchoolCollegeFlag === 'S' ? values.amC_Id : undefined,
-            AMCOC_Id: (response?.mI_SchoolCollegeFlag === 'U' || response?.mI_SchoolCollegeFlag === 'C') ? values.amcoC_Id : undefined,
+            AMCOC_Id: response?.mI_SchoolCollegeFlag === 'U' || response?.mI_SchoolCollegeFlag === 'C' ? values.amcoC_Id : undefined,
 
             ISPAC_EnquiryApplFlag: values.ispaC_EnquiryApplFlag,
             ISPAC_EnqSMSFlag: values.ispaC_EnqSMSFlag,
@@ -218,21 +218,23 @@ export default function MasterConfigurationForm({
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4 p-4'>
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                     {/* General Settings */}
-                    <div className="space-y-4">
-                        <CollapsibleSection title="General Settings" defaultOpen variant="outline">
+                    <div className='space-y-4'>
+                        <CollapsibleSection title='General Settings' defaultOpen variant='outline'>
                             <FormField
                                 control={form.control}
-                                name="asmaY_Id"
+                                name='asmaY_Id'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Academic Year <span className="text-red-500">*</span></FormLabel>
+                                        <FormLabel>
+                                            Academic Year <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select Academic Year" />
+                                                    <SelectValue placeholder='Select Academic Year' />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
@@ -251,18 +253,18 @@ export default function MasterConfigurationForm({
                             {response?.mI_SchoolCollegeFlag === 'S' && (
                                 <FormField
                                     control={form.control}
-                                    name="amC_Id"
+                                    name='amC_Id'
                                     render={({ field }) => (
-                                        <FormItem className="mt-4">
+                                        <FormItem className='mt-4'>
                                             <FormLabel>Category</FormLabel>
-                                            <div className="flex flex-col space-y-2 border p-2 rounded-md max-h-32 overflow-y-auto">
+                                            <div className='flex max-h-32 flex-col space-y-2 overflow-y-auto rounded-md border p-2'>
                                                 {response?.studentlicategorylist?.map((cat) => (
-                                                    <div key={cat.amC_Id} className="flex items-center space-x-2">
+                                                    <div key={cat.amC_Id} className='flex items-center space-x-2'>
                                                         <Checkbox
                                                             checked={field.value === cat.amC_Id}
                                                             onCheckedChange={(checked) => field.onChange(checked ? cat.amC_Id : undefined)}
                                                         />
-                                                        <label className="text-sm">{cat.amC_Name}</label>
+                                                        <label className='text-sm'>{cat.amC_Name}</label>
                                                     </div>
                                                 ))}
                                             </div>
@@ -275,18 +277,20 @@ export default function MasterConfigurationForm({
                             {(response?.mI_SchoolCollegeFlag === 'U' || response?.mI_SchoolCollegeFlag === 'C') && (
                                 <FormField
                                     control={form.control}
-                                    name="amcoC_Id"
+                                    name='amcoC_Id'
                                     render={({ field }) => (
-                                        <FormItem className="mt-4">
+                                        <FormItem className='mt-4'>
                                             <FormLabel>Category</FormLabel>
-                                            <div className="flex flex-col space-y-2 border p-2 rounded-md max-h-32 overflow-y-auto">
+                                            <div className='flex max-h-32 flex-col space-y-2 overflow-y-auto rounded-md border p-2'>
                                                 {response?.studentlicategorylist?.map((cat) => (
-                                                    <div key={cat.amcoC_Id} className="flex items-center space-x-2">
+                                                    <div key={cat.amcoC_Id} className='flex items-center space-x-2'>
                                                         <Checkbox
                                                             checked={field.value === cat.amcoC_Id}
-                                                            onCheckedChange={(checked) => field.onChange(checked ? cat.amcoC_Id : undefined)}
+                                                            onCheckedChange={(checked) =>
+                                                                field.onChange(checked ? cat.amcoC_Id : undefined)
+                                                            }
                                                         />
-                                                        <label className="text-sm">{cat.amcoC_Name}</label>
+                                                        <label className='text-sm'>{cat.amcoC_Name}</label>
                                                     </div>
                                                 ))}
                                             </div>
@@ -298,140 +302,216 @@ export default function MasterConfigurationForm({
                         </CollapsibleSection>
 
                         {/* Enquiry & Prospectus Settings */}
-                        <CollapsibleSection title="Enquiry & Prospectus Settings" defaultOpen variant="outline">
-                            <FormField control={form.control} name="ispaC_EnquiryApplFlag" render={({ field }) => (
-                                <FormItem className="flex flex-row items-center space-x-3 space-y-0 p-2">
-                                    <FormControl>
-                                        <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
-                                    </FormControl>
-                                    <FormLabel className="font-normal">Enquiry Applicable</FormLabel>
-                                </FormItem>
-                            )} />
+                        <CollapsibleSection title='Enquiry & Prospectus Settings' defaultOpen variant='outline'>
+                            <FormField
+                                control={form.control}
+                                name='ispaC_EnquiryApplFlag'
+                                render={({ field }) => (
+                                    <FormItem className='flex flex-row items-center space-x-3 space-y-0 p-2'>
+                                        <FormControl>
+                                            <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
+                                        </FormControl>
+                                        <FormLabel className='font-normal'>Enquiry Applicable</FormLabel>
+                                    </FormItem>
+                                )}
+                            />
 
                             {isEnquiryApplicable && (
-                                <div className="ml-6 space-y-2 border-l-2 pl-4">
-                                    <FormField control={form.control} name="ispaC_EnqSMSFlag" render={({ field }) => (
-                                        <FormItem className="flex flex-row items-center space-x-3 space-y-0">
-                                            <FormControl>
-                                                <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
-                                            </FormControl>
-                                            <FormLabel className="font-normal">Enquiry SMS</FormLabel>
-                                        </FormItem>
-                                    )} />
-                                    <FormField control={form.control} name="ispaC_EnqMailFlag" render={({ field }) => (
-                                        <FormItem className="flex flex-row items-center space-x-3 space-y-0">
-                                            <FormControl>
-                                                <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
-                                            </FormControl>
-                                            <FormLabel className="font-normal">Enquiry Email</FormLabel>
-                                        </FormItem>
-                                    )} />
+                                <div className='ml-6 space-y-2 border-l-2 pl-4'>
+                                    <FormField
+                                        control={form.control}
+                                        name='ispaC_EnqSMSFlag'
+                                        render={({ field }) => (
+                                            <FormItem className='flex flex-row items-center space-x-3 space-y-0'>
+                                                <FormControl>
+                                                    <Checkbox
+                                                        checked={field.value === 1}
+                                                        onCheckedChange={(c) => field.onChange(c ? 1 : 0)}
+                                                    />
+                                                </FormControl>
+                                                <FormLabel className='font-normal'>Enquiry SMS</FormLabel>
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name='ispaC_EnqMailFlag'
+                                        render={({ field }) => (
+                                            <FormItem className='flex flex-row items-center space-x-3 space-y-0'>
+                                                <FormControl>
+                                                    <Checkbox
+                                                        checked={field.value === 1}
+                                                        onCheckedChange={(c) => field.onChange(c ? 1 : 0)}
+                                                    />
+                                                </FormControl>
+                                                <FormLabel className='font-normal'>Enquiry Email</FormLabel>
+                                            </FormItem>
+                                        )}
+                                    />
                                 </div>
                             )}
 
-                            <FormField control={form.control} name="ispaC_ProsptFeeApp" render={({ field }) => (
-                                <FormItem className="flex flex-row items-center space-x-3 space-y-0 p-2">
-                                    <FormControl>
-                                        <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
-                                    </FormControl>
-                                    <FormLabel className="font-normal">Prospectus Fees Applicable</FormLabel>
-                                </FormItem>
-                            )} />
-                            <FormField control={form.control} name="ispaC_ProspectusFlag" render={({ field }) => (
-                                <FormItem className="flex flex-row items-center space-x-3 space-y-0 p-2">
-                                    <FormControl>
-                                        <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
-                                    </FormControl>
-                                    <FormLabel className="font-normal">Prospectus Download</FormLabel>
-                                </FormItem>
-                            )} />
+                            <FormField
+                                control={form.control}
+                                name='ispaC_ProsptFeeApp'
+                                render={({ field }) => (
+                                    <FormItem className='flex flex-row items-center space-x-3 space-y-0 p-2'>
+                                        <FormControl>
+                                            <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
+                                        </FormControl>
+                                        <FormLabel className='font-normal'>Prospectus Fees Applicable</FormLabel>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name='ispaC_ProspectusFlag'
+                                render={({ field }) => (
+                                    <FormItem className='flex flex-row items-center space-x-3 space-y-0 p-2'>
+                                        <FormControl>
+                                            <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
+                                        </FormControl>
+                                        <FormLabel className='font-normal'>Prospectus Download</FormLabel>
+                                    </FormItem>
+                                )}
+                            />
                         </CollapsibleSection>
 
                         {/* General Registration Settings */}
-                        <CollapsibleSection title="General Registration Settings" defaultOpen variant="outline">
-                            <FormField control={form.control} name="ispaC_RegFeeFlag" render={({ field }) => (
-                                <FormItem className="flex flex-row items-center space-x-3 space-y-0 p-2">
-                                    <FormControl>
-                                        <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
-                                    </FormControl>
-                                    <FormLabel className="font-normal">Prospectus Fee</FormLabel>
-                                </FormItem>
-                            )} />
+                        <CollapsibleSection title='General Registration Settings' defaultOpen variant='outline'>
+                            <FormField
+                                control={form.control}
+                                name='ispaC_RegFeeFlag'
+                                render={({ field }) => (
+                                    <FormItem className='flex flex-row items-center space-x-3 space-y-0 p-2'>
+                                        <FormControl>
+                                            <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
+                                        </FormControl>
+                                        <FormLabel className='font-normal'>Prospectus Fee</FormLabel>
+                                    </FormItem>
+                                )}
+                            />
 
                             {/* Even if prospectus fee is unchecked, these show up in the AngularJS view but they don't seem conditionally hidden except by a bug in angular (ng-hide="Reg") which usually hides them, let's just show them */}
-                            <FormField control={form.control} name="ispaC_RegSMSFlag" render={({ field }) => (
-                                <FormItem className="flex flex-row items-center space-x-3 space-y-0 p-2 pl-6">
-                                    <FormControl>
-                                        <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
-                                    </FormControl>
-                                    <FormLabel className="font-normal">Registration SMS</FormLabel>
-                                </FormItem>
-                            )} />
-                            <FormField control={form.control} name="ispaC_RegMailFlag" render={({ field }) => (
-                                <FormItem className="flex flex-row items-center space-x-3 space-y-0 p-2 pl-6">
-                                    <FormControl>
-                                        <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
-                                    </FormControl>
-                                    <FormLabel className="font-normal">Registration Email</FormLabel>
-                                </FormItem>
-                            )} />
+                            <FormField
+                                control={form.control}
+                                name='ispaC_RegSMSFlag'
+                                render={({ field }) => (
+                                    <FormItem className='flex flex-row items-center space-x-3 space-y-0 p-2 pl-6'>
+                                        <FormControl>
+                                            <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
+                                        </FormControl>
+                                        <FormLabel className='font-normal'>Registration SMS</FormLabel>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name='ispaC_RegMailFlag'
+                                render={({ field }) => (
+                                    <FormItem className='flex flex-row items-center space-x-3 space-y-0 p-2 pl-6'>
+                                        <FormControl>
+                                            <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
+                                        </FormControl>
+                                        <FormLabel className='font-normal'>Registration Email</FormLabel>
+                                    </FormItem>
+                                )}
+                            />
 
-                            <FormField control={form.control} name="ispaC_ApplFeeFlag" render={({ field }) => (
-                                <FormItem className="flex flex-row items-center space-x-3 space-y-0 p-2">
-                                    <FormControl>
-                                        <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
-                                    </FormControl>
-                                    <FormLabel className="font-normal">Application Fee Applicable</FormLabel>
-                                </FormItem>
-                            )} />
-                            <FormField control={form.control} name="ispaC_ApplSMSFlag" render={({ field }) => (
-                                <FormItem className="flex flex-row items-center space-x-3 space-y-0 p-2 pl-6">
-                                    <FormControl>
-                                        <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
-                                    </FormControl>
-                                    <FormLabel className="font-normal">Application SMS</FormLabel>
-                                </FormItem>
-                            )} />
-                            <FormField control={form.control} name="ispaC_ApplMailFlag" render={({ field }) => (
-                                <FormItem className="flex flex-row items-center space-x-3 space-y-0 p-2 pl-6">
-                                    <FormControl>
-                                        <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
-                                    </FormControl>
-                                    <FormLabel className="font-normal">Application Email</FormLabel>
-                                </FormItem>
-                            )} />
-                            <FormField control={form.control} name="ispaC_Healthapp" render={({ field }) => (
-                                <FormItem className="flex flex-row items-center space-x-3 space-y-0 p-2">
-                                    <FormControl>
-                                        <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
-                                    </FormControl>
-                                    <FormLabel className="font-normal">Health Certificate Applicable</FormLabel>
-                                </FormItem>
-                            )} />
+                            <FormField
+                                control={form.control}
+                                name='ispaC_ApplFeeFlag'
+                                render={({ field }) => (
+                                    <FormItem className='flex flex-row items-center space-x-3 space-y-0 p-2'>
+                                        <FormControl>
+                                            <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
+                                        </FormControl>
+                                        <FormLabel className='font-normal'>Application Fee Applicable</FormLabel>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name='ispaC_ApplSMSFlag'
+                                render={({ field }) => (
+                                    <FormItem className='flex flex-row items-center space-x-3 space-y-0 p-2 pl-6'>
+                                        <FormControl>
+                                            <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
+                                        </FormControl>
+                                        <FormLabel className='font-normal'>Application SMS</FormLabel>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name='ispaC_ApplMailFlag'
+                                render={({ field }) => (
+                                    <FormItem className='flex flex-row items-center space-x-3 space-y-0 p-2 pl-6'>
+                                        <FormControl>
+                                            <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
+                                        </FormControl>
+                                        <FormLabel className='font-normal'>Application Email</FormLabel>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name='ispaC_Healthapp'
+                                render={({ field }) => (
+                                    <FormItem className='flex flex-row items-center space-x-3 space-y-0 p-2'>
+                                        <FormControl>
+                                            <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
+                                        </FormControl>
+                                        <FormLabel className='font-normal'>Health Certificate Applicable</FormLabel>
+                                    </FormItem>
+                                )}
+                            />
 
-                            <FormField control={form.control} name="ispaC_NoofApplications" render={({ field }) => (
-                                <FormItem className="flex flex-row items-center space-x-4 mt-2">
-                                    <FormLabel className="flex-1">Maximum application can be filled by a user per class for this year:</FormLabel>
-                                    <FormControl>
-                                        <Input type="number" className="w-20" min={0} {...field} onChange={e => field.onChange(Number(e.target.value))} />
-                                    </FormControl>
-                                </FormItem>
-                            )} />
-                            <FormField control={form.control} name="ispaC_ApplNoIncrementBy" render={({ field }) => (
-                                <FormItem className="flex flex-row items-center space-x-4 mt-2">
-                                    <FormLabel className="flex-1">Increment Application No. By:</FormLabel>
-                                    <FormControl>
-                                        <Input type="number" className="w-20" min={0} {...field} onChange={e => field.onChange(Number(e.target.value))} />
-                                    </FormControl>
-                                </FormItem>
-                            )} />
+                            <FormField
+                                control={form.control}
+                                name='ispaC_NoofApplications'
+                                render={({ field }) => (
+                                    <FormItem className='mt-2 flex flex-row items-center space-x-4'>
+                                        <FormLabel className='flex-1'>
+                                            Maximum application can be filled by a user per class for this year:
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type='number'
+                                                className='w-20'
+                                                min={0}
+                                                {...field}
+                                                onChange={(e) => field.onChange(Number(e.target.value))}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name='ispaC_ApplNoIncrementBy'
+                                render={({ field }) => (
+                                    <FormItem className='mt-2 flex flex-row items-center space-x-4'>
+                                        <FormLabel className='flex-1'>Increment Application No. By:</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type='number'
+                                                className='w-20'
+                                                min={0}
+                                                {...field}
+                                                onChange={(e) => field.onChange(Number(e.target.value))}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
                         </CollapsibleSection>
                     </div>
 
                     {/* Student Application Form Settings */}
-                    <div className="space-y-4">
-                        <CollapsibleSection title="Student Application Form Settings" defaultOpen variant="outline">
-                            <div className="grid grid-cols-2 gap-2">
+                    <div className='space-y-4'>
+                        <CollapsibleSection title='Student Application Form Settings' defaultOpen variant='outline'>
+                            <div className='grid grid-cols-2 gap-2'>
                                 <div>
                                     {[
                                         { name: 'ispaC_ApplCutOffDateFlag', label: 'Online Application Cut Off Date' },
@@ -439,16 +519,24 @@ export default function MasterConfigurationForm({
                                         { name: 'ispaC_DOBMinAgeFlag', label: 'Admission minimum age' },
                                         { name: 'ispaC_HostelFlag', label: 'Hostel Applicable' },
                                         { name: 'ispaC_TransaportFlag', label: 'Transport Applicable' },
-                                        { name: 'ispaC_SibblingConcessionFlag', label: 'Sibling concession' },
+                                        { name: 'ispaC_SibblingConcessionFlag', label: 'Sibling concession' }
                                     ].map((item) => (
-                                        <FormField key={item.name} control={form.control} name={item.name as any} render={({ field }) => (
-                                            <FormItem className="flex flex-row items-center space-x-3 space-y-0 p-2">
-                                                <FormControl>
-                                                    <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
-                                                </FormControl>
-                                                <FormLabel className="font-normal">{item.label}</FormLabel>
-                                            </FormItem>
-                                        )} />
+                                        <FormField
+                                            key={item.name}
+                                            control={form.control}
+                                            name={item.name as any}
+                                            render={({ field }) => (
+                                                <FormItem className='flex flex-row items-center space-x-3 space-y-0 p-2'>
+                                                    <FormControl>
+                                                        <Checkbox
+                                                            checked={field.value === 1}
+                                                            onCheckedChange={(c) => field.onChange(c ? 1 : 0)}
+                                                        />
+                                                    </FormControl>
+                                                    <FormLabel className='font-normal'>{item.label}</FormLabel>
+                                                </FormItem>
+                                            )}
+                                        />
                                     ))}
                                 </div>
                                 <div>
@@ -458,137 +546,194 @@ export default function MasterConfigurationForm({
                                         { name: 'ispaC_GymFlag', label: 'Gym Applicable' },
                                         { name: 'ispaC_FatherAliveFlag', label: 'Father Alive' },
                                         { name: 'ispaC_MotherAliveFlag', label: 'Mother Alive' },
-                                        { name: 'ispaC_MaritalStatusFlag', label: 'Marital Status' },
+                                        { name: 'ispaC_MaritalStatusFlag', label: 'Marital Status' }
                                     ].map((item) => (
-                                        <FormField key={item.name} control={form.control} name={item.name as any} render={({ field }) => (
-                                            <FormItem className="flex flex-row items-center space-x-3 space-y-0 p-2">
-                                                <FormControl>
-                                                    <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
-                                                </FormControl>
-                                                <FormLabel className="font-normal">{item.label}</FormLabel>
-                                            </FormItem>
-                                        )} />
+                                        <FormField
+                                            key={item.name}
+                                            control={form.control}
+                                            name={item.name as any}
+                                            render={({ field }) => (
+                                                <FormItem className='flex flex-row items-center space-x-3 space-y-0 p-2'>
+                                                    <FormControl>
+                                                        <Checkbox
+                                                            checked={field.value === 1}
+                                                            onCheckedChange={(c) => field.onChange(c ? 1 : 0)}
+                                                        />
+                                                    </FormControl>
+                                                    <FormLabel className='font-normal'>{item.label}</FormLabel>
+                                                </FormItem>
+                                            )}
+                                        />
                                     ))}
                                 </div>
                             </div>
                         </CollapsibleSection>
 
                         {/* General Scheduling */}
-                        <CollapsibleSection title="General Scheduling" defaultOpen variant="outline">
-                            <FormField control={form.control} name="ispaC_OralTestSchApplFlag" render={({ field }) => (
-                                <FormItem className="flex flex-row items-center space-x-3 space-y-0 p-2">
-                                    <FormControl>
-                                        <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
-                                    </FormControl>
-                                    <FormLabel className="font-normal">Oraltest Applicable</FormLabel>
-                                </FormItem>
-                            )} />
+                        <CollapsibleSection title='General Scheduling' defaultOpen variant='outline'>
+                            <FormField
+                                control={form.control}
+                                name='ispaC_OralTestSchApplFlag'
+                                render={({ field }) => (
+                                    <FormItem className='flex flex-row items-center space-x-3 space-y-0 p-2'>
+                                        <FormControl>
+                                            <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
+                                        </FormControl>
+                                        <FormLabel className='font-normal'>Oraltest Applicable</FormLabel>
+                                    </FormItem>
+                                )}
+                            />
 
                             {isOralTestApplicable && (
-                                <div className="pl-6 space-y-2 border-l-2 ml-4">
-                                    <FormField control={form.control} name="ispaC_OralTestBy" render={({ field }) => (
-                                        <FormItem className="flex flex-row items-center space-x-4 mt-2">
-                                            <FormLabel className="flex-1 font-normal">Oral test By (Numbers):</FormLabel>
-                                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || '0'}>
-                                                <FormControl>
-                                                    <SelectTrigger className="w-24">
-                                                        <SelectValue placeholder="Select" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    <SelectItem value="0">Select</SelectItem>
-                                                    <SelectItem value="1">1</SelectItem>
-                                                    <SelectItem value="2">2</SelectItem>
-                                                    <SelectItem value="3">3</SelectItem>
-                                                    <SelectItem value="4">4</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </FormItem>
-                                    )} />
+                                <div className='ml-4 space-y-2 border-l-2 pl-6'>
+                                    <FormField
+                                        control={form.control}
+                                        name='ispaC_OralTestBy'
+                                        render={({ field }) => (
+                                            <FormItem className='mt-2 flex flex-row items-center space-x-4'>
+                                                <FormLabel className='flex-1 font-normal'>Oral test By (Numbers):</FormLabel>
+                                                <Select
+                                                    onValueChange={(val) => field.onChange(Number(val))}
+                                                    value={field.value?.toString() || '0'}>
+                                                    <FormControl>
+                                                        <SelectTrigger className='w-24'>
+                                                            <SelectValue placeholder='Select' />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        <SelectItem value='0'>Select</SelectItem>
+                                                        <SelectItem value='1'>1</SelectItem>
+                                                        <SelectItem value='2'>2</SelectItem>
+                                                        <SelectItem value='3'>3</SelectItem>
+                                                        <SelectItem value='4'>4</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </FormItem>
+                                        )}
+                                    />
 
-                                    <FormField control={form.control} name="ispaC_OralMarksFlag" render={({ field }) => (
-                                        <FormItem className="flex flex-row items-center space-x-3 space-y-0 p-2">
-                                            <FormControl>
-                                                <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
-                                            </FormControl>
-                                            <FormLabel className="font-normal">Oraltest Marksentry</FormLabel>
-                                        </FormItem>
-                                    )} />
+                                    <FormField
+                                        control={form.control}
+                                        name='ispaC_OralMarksFlag'
+                                        render={({ field }) => (
+                                            <FormItem className='flex flex-row items-center space-x-3 space-y-0 p-2'>
+                                                <FormControl>
+                                                    <Checkbox
+                                                        checked={field.value === 1}
+                                                        onCheckedChange={(c) => field.onChange(c ? 1 : 0)}
+                                                    />
+                                                </FormControl>
+                                                <FormLabel className='font-normal'>Oraltest Marksentry</FormLabel>
+                                            </FormItem>
+                                        )}
+                                    />
 
                                     {isOralMarksApplicable && (
-                                        <FormField control={form.control} name="ispaC_OralByMax_Marks" render={({ field }) => (
-                                            <FormItem className="flex flex-row items-center space-x-4 pl-6 mt-2">
-                                                <FormLabel className="flex-1 font-normal">Oral Max Marks:</FormLabel>
-                                                <FormControl>
-                                                    <Input type="number" className="w-24" min={0} {...field} onChange={e => field.onChange(Number(e.target.value))} />
-                                                </FormControl>
-                                            </FormItem>
-                                        )} />
+                                        <FormField
+                                            control={form.control}
+                                            name='ispaC_OralByMax_Marks'
+                                            render={({ field }) => (
+                                                <FormItem className='mt-2 flex flex-row items-center space-x-4 pl-6'>
+                                                    <FormLabel className='flex-1 font-normal'>Oral Max Marks:</FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            type='number'
+                                                            className='w-24'
+                                                            min={0}
+                                                            {...field}
+                                                            onChange={(e) => field.onChange(Number(e.target.value))}
+                                                        />
+                                                    </FormControl>
+                                                </FormItem>
+                                            )}
+                                        />
                                     )}
                                 </div>
                             )}
 
-                            <div className="flex space-x-6 mt-4">
-                                <FormField control={form.control} name="ispaC_WrittenTestSchApplFlag" render={({ field }) => (
-                                    <FormItem className="flex flex-row items-center space-x-3 space-y-0 p-2">
-                                        <FormControl>
-                                            <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
-                                        </FormControl>
-                                        <FormLabel className="font-normal">Writtentest Applicable</FormLabel>
-                                    </FormItem>
-                                )} />
-                                <FormField control={form.control} name="ispaC_CommonScheduleFlag" render={({ field }) => (
-                                    <FormItem className="flex flex-row items-center space-x-3 space-y-0 p-2">
-                                        <FormControl>
-                                            <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
-                                        </FormControl>
-                                        <FormLabel className="font-normal">CommonSchedule Flag</FormLabel>
-                                    </FormItem>
-                                )} />
+                            <div className='mt-4 flex space-x-6'>
+                                <FormField
+                                    control={form.control}
+                                    name='ispaC_WrittenTestSchApplFlag'
+                                    render={({ field }) => (
+                                        <FormItem className='flex flex-row items-center space-x-3 space-y-0 p-2'>
+                                            <FormControl>
+                                                <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
+                                            </FormControl>
+                                            <FormLabel className='font-normal'>Writtentest Applicable</FormLabel>
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name='ispaC_CommonScheduleFlag'
+                                    render={({ field }) => (
+                                        <FormItem className='flex flex-row items-center space-x-3 space-y-0 p-2'>
+                                            <FormControl>
+                                                <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
+                                            </FormControl>
+                                            <FormLabel className='font-normal'>CommonSchedule Flag</FormLabel>
+                                        </FormItem>
+                                    )}
+                                />
                             </div>
                         </CollapsibleSection>
 
                         {/* Preadmission Settings */}
-                        <CollapsibleSection title="Preadmission Settings" defaultOpen variant="outline">
+                        <CollapsibleSection title='Preadmission Settings' defaultOpen variant='outline'>
                             {[
-                                { name: 'ispaC_Transfer_Settings_after_payment_Flag', label: 'Transfer To Admission directly while making full Payment' },
-                                { name: 'ispaC_AdmissionTransfer', label: 'Transfer To Admission Without Partial/Full payment Confirmation' },
+                                {
+                                    name: 'ispaC_Transfer_Settings_after_payment_Flag',
+                                    label: 'Transfer To Admission directly while making full Payment'
+                                },
+                                {
+                                    name: 'ispaC_AdmissionTransfer',
+                                    label: 'Transfer To Admission Without Partial/Full payment Confirmation'
+                                },
                                 { name: 'ispaC_FeePaymentFlag', label: 'Option for fee Payment Without Admission Confirmation' },
                                 { name: 'ispaC_Transfer_Settings_Flag', label: 'Admission Confirmation' },
-                                { name: 'ispaC_OfflineFee_Flag', label: 'Offline Fee Applicable' },
+                                { name: 'ispaC_OfflineFee_Flag', label: 'Offline Fee Applicable' }
                             ].map((item) => (
-                                <FormField key={item.name} control={form.control} name={item.name as any} render={({ field }) => (
-                                    <FormItem className="flex flex-row items-center space-x-3 space-y-0 p-2">
-                                        <FormControl>
-                                            <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
-                                        </FormControl>
-                                        <FormLabel className="font-normal">{item.label}</FormLabel>
-                                    </FormItem>
-                                )} />
+                                <FormField
+                                    key={item.name}
+                                    control={form.control}
+                                    name={item.name as any}
+                                    render={({ field }) => (
+                                        <FormItem className='flex flex-row items-center space-x-3 space-y-0 p-2'>
+                                            <FormControl>
+                                                <Checkbox checked={field.value === 1} onCheckedChange={(c) => field.onChange(c ? 1 : 0)} />
+                                            </FormControl>
+                                            <FormLabel className='font-normal'>{item.label}</FormLabel>
+                                        </FormItem>
+                                    )}
+                                />
                             ))}
                         </CollapsibleSection>
                     </div>
                 </div>
 
-                <div className="flex justify-center space-x-4 mt-6">
-                    <Button type="submit" disabled={saveMutation.isPending} className="min-w-32">
+                <div className='mt-6 flex justify-center space-x-4'>
+                    <Button type='submit' disabled={saveMutation.isPending} className='min-w-32'>
                         {saveMutation.isPending ? (
-                            <><Spinner className="mr-2 h-4 w-4" /> Saving...</>
+                            <>
+                                <Spinner className='mr-2 h-4 w-4' /> Saving...
+                            </>
                         ) : (
-                            <><Save className="mr-2 h-4 w-4" /> Save</>
+                            <>
+                                <Save className='mr-2 h-4 w-4' /> Save
+                            </>
                         )}
                     </Button>
                     <Button
-                        type="button"
-                        variant="outline"
+                        type='button'
+                        variant='outline'
                         onClick={() => {
                             if (initialData) form.reset(initialData);
                             else form.reset();
                         }}
                         disabled={saveMutation.isPending}
-                        className="min-w-32"
-                    >
-                        <RefreshCcw className="mr-2 h-4 w-4" /> Cancel
+                        className='min-w-32'>
+                        <RefreshCcw className='mr-2 h-4 w-4' /> Cancel
                     </Button>
                 </div>
             </form>

@@ -737,8 +737,7 @@ export const GMthirdPartyTransactionSchema = {
 
 export const studentFeeEnablePartialPaymentSchema = {
     addOrUpdate: z.object({
-        asmaY_Id: z
-            .coerce
+        asmaY_Id: z.coerce
             .number({ required_error: 'Academic Year is required', invalid_type_error: 'Academic Year is required' })
             .min(1, 'Academic Year is required'),
         asmcL_Id: z
@@ -757,8 +756,7 @@ export const studentFeeEnablePartialPaymentSchema = {
             .refine((val) => val !== '' && val !== undefined && val !== null, {
                 message: 'Section is required'
             }),
-        amsT_Id: z
-            .coerce
+        amsT_Id: z.coerce
             .number({ required_error: 'Student is required', invalid_type_error: 'Student is required' })
             .min(1, 'Student is required'),
         fsepP_RemarksDate: z

@@ -1,9 +1,9 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { 
-    getAlexanderStudyCertificateLoadData, 
-    getAlexanderStudyCertificateSearchFilter, 
-    getAlexanderStudyCertDetails 
+import {
+    getAlexanderStudyCertDetails,
+    getAlexanderStudyCertificateLoadData,
+    getAlexanderStudyCertificateSearchFilter
 } from '@/server/admission/preadmission/reports/alexander_study_certificate';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const useAlexanderStudyCertLoadData = () => {
     return useQuery({

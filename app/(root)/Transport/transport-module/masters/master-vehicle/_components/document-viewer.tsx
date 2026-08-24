@@ -1,9 +1,9 @@
 'use client';
 
-import { AdaptiveDialog } from '@/components/ui/extension/adaptive-dialog';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { type IMasterVehicle, type IMasterVehicleDocument } from '@/types/transport/transport-module/masters';
+import { AdaptiveDialog } from '@/components/ui/extension/adaptive-dialog';
+import type { IMasterVehicle, IMasterVehicleDocument } from '@/types/transport/transport-module/masters';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Eye, FileText } from 'lucide-react';
 import { useState } from 'react';
@@ -31,11 +31,11 @@ export default function DocumentViewer({ isOpen, onClose, rowData }: DocumentVie
     const columns: ColumnDef<IMasterVehicleDocument>[] = [
         {
             accessorKey: 'cfilename',
-            header: 'File Name',
+            header: 'File Name'
         },
         {
             accessorKey: 'cfiledesc',
-            header: 'Description',
+            header: 'Description'
         },
         {
             id: 'actions',
@@ -44,8 +44,8 @@ export default function DocumentViewer({ isOpen, onClose, rowData }: DocumentVie
                 <Button variant='ghost' size='sm' onClick={() => handleViewDocument(row.original)}>
                     <Eye className='mr-2 h-4 w-4' /> View
                 </Button>
-            ),
-        },
+            )
+        }
     ];
 
     return (
@@ -61,7 +61,7 @@ export default function DocumentViewer({ isOpen, onClose, rowData }: DocumentVie
                     />
                 ) : (
                     <div className='flex flex-col items-center justify-center p-8 text-muted-foreground'>
-                        <FileText className='h-12 w-12 mb-2 opacity-20' />
+                        <FileText className='mb-2 h-12 w-12 opacity-20' />
                         <p>No documents attached to this vehicle.</p>
                     </div>
                 )}

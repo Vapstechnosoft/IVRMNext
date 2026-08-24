@@ -1,7 +1,7 @@
 'use server';
 
+import type { IBed, IBedDisplay, IFloor, IHostel, IRoom, IRoomCategory } from '@/types/hostel/hostel-management/masters';
 import { revalidatePath } from 'next/cache';
-import { IBed, IBedDisplay, IFloor, IHostel, IRoom, IRoomCategory } from '@/types/hostel/hostel-management/masters';
 
 // --- Mock Data ---
 

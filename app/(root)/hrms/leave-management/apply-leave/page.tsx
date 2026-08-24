@@ -4,11 +4,15 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useEmployeeLeaveDetails, useEmployeeLeaveStatusDetails, useDeleteEmployeeLeaveById } from '@/hooks/hrms/leave-management/useOnlineLeaveApplication';
+import {
+    useDeleteEmployeeLeaveById,
+    useEmployeeLeaveDetails,
+    useEmployeeLeaveStatusDetails
+} from '@/hooks/hrms/leave-management/useOnlineLeaveApplication';
 import { Plus, X } from 'lucide-react';
 import { useMemo } from 'react';
 import AddApplyLeaveForm from './_components/add-form';
-import { type LeaveHistoryRow, createLeaveHistoryColumns, leaveBalanceColumns } from './_components/columns';
+import { type LeaveHistoryRow, createLeaveHistoryColumns } from './_components/columns';
 
 export default function ApplyLeavePage() {
     const { data: statusData, isLoading: isStatusLoading, error: statusError, refetchAll } = useEmployeeLeaveStatusDetails();
@@ -108,13 +112,11 @@ function ApplyLeavePageContent({
             <div className='container space-y-6 py-6'>
                 {/* Header with Title and Action */}
                 <div className='flex items-center justify-between'>
-
-                    <div className="flex justify-end w-full">
+                    <div className='flex w-full justify-end'>
                         <Button
                             type='button'
                             onClick={openAddForm}
-                            className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'
-                        >
+                            className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                             <Plus className='mr-2 h-4 w-4' />
                             Apply Leave
                         </Button>
@@ -122,11 +124,7 @@ function ApplyLeavePageContent({
                 </div>
 
                 {/* Box 1: Leave History */}
-                <CollapsibleSection
-                    title='Employee Leave History'
-                    defaultOpen={true}
-                    variant='default'
-                    className='bg-white shadow-lg'>
+                <CollapsibleSection title='Employee Leave History' defaultOpen={true} variant='default' className='bg-white shadow-lg'>
                     <GenericDataTable<LeaveHistoryRow>
                         {...tableProps}
                         columns={columns}
@@ -141,10 +139,7 @@ function ApplyLeavePageContent({
                 </CollapsibleSection>
 
                 {/* Box 2: Form Sections (Appears on click) */}
-                <FormSections
-                    refetchAll={refetchAll}
-                    defaultEmployee={defaultEmployee}
-                />
+                <FormSections refetchAll={refetchAll} defaultEmployee={defaultEmployee} />
             </div>
         </div>
     );
@@ -156,16 +151,12 @@ interface FormSectionsProps {
 }
 
 function FormSections({ refetchAll, defaultEmployee }: FormSectionsProps) {
-    const {
-        isAddFormOpen,
-        closeAddForm,
-        addFormRef,
-    } = useFormContext<LeaveHistoryRow>();
+    const { isAddFormOpen, closeAddForm, addFormRef } = useFormContext<LeaveHistoryRow>();
 
     if (!isAddFormOpen) return null;
 
     return (
-        <div ref={addFormRef} className='space-y-6 animate-in slide-in-from-top-4 duration-300'>
+        <div ref={addFormRef} className='slide-in-from-top-4 animate-in space-y-6 duration-300'>
             {/* Add Application Form */}
             <CollapsibleSection
                 title='New Leave Application'
@@ -194,33 +185,31 @@ function FormSections({ refetchAll, defaultEmployee }: FormSectionsProps) {
             </CollapsibleSection>
 
             {/* Box 1: Employee Information */}
-            <CollapsibleSection
-                title='Employee Information'
-                defaultOpen={true}
-                variant='outline'
-                className='bg-white shadow-sm'>
+            <CollapsibleSection title='Employee Information' defaultOpen={true} variant='outline' className='bg-white shadow-sm'>
                 <div className='grid grid-cols-1 gap-6 p-2 md:grid-cols-2'>
                     <div className='space-y-4'>
                         <div className='flex items-center gap-3 border-b pb-2'>
-                            <span className='font-semibold text-muted-foreground min-w-[120px]'>Employee Name</span>
+                            <span className='min-w-[120px] font-semibold text-muted-foreground'>Employee Name</span>
                             <span className='text-foreground'>: {defaultEmployee.name || '-'}</span>
                         </div>
                         <div className='flex items-center gap-3 border-b pb-2'>
-                            <span className='font-semibold text-muted-foreground min-w-[120px]'>DOJ</span>
-                            <span className='text-foreground'>: {defaultEmployee.doj ? new Date(defaultEmployee.doj).toLocaleDateString('en-GB') : '-'}</span>
+                            <span className='min-w-[120px] font-semibold text-muted-foreground'>DOJ</span>
+                            <span className='text-foreground'>
+                                : {defaultEmployee.doj ? new Date(defaultEmployee.doj).toLocaleDateString('en-GB') : '-'}
+                            </span>
                         </div>
                     </div>
                     <div className='space-y-4'>
                         <div className='flex items-center gap-3 border-b pb-2'>
-                            <span className='font-semibold text-muted-foreground min-w-[120px]'>Designation</span>
+                            <span className='min-w-[120px] font-semibold text-muted-foreground'>Designation</span>
                             <span className='text-foreground'>: {defaultEmployee.designation || '-'}</span>
                         </div>
                         <div className='flex items-center gap-3 border-b pb-2'>
-                            <span className='font-semibold text-muted-foreground min-w-[120px]'>Email</span>
+                            <span className='min-w-[120px] font-semibold text-muted-foreground'>Email</span>
                             <span className='text-foreground'>: {defaultEmployee.email || '-'}</span>
                         </div>
                         <div className='flex items-center gap-3 border-b pb-2'>
-                            <span className='font-semibold text-muted-foreground min-w-[120px]'>Phone</span>
+                            <span className='min-w-[120px] font-semibold text-muted-foreground'>Phone</span>
                             <span className='text-foreground'>: {defaultEmployee.phone || '-'}</span>
                         </div>
                     </div>

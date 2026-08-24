@@ -40,7 +40,10 @@ export default function AlumniSearchResults({
                 (item.amsT_FirstName || item.studentname || '').toLowerCase().includes(lower) ||
                 (item.ALMST_MembershipId || item.amst_admno || '').toLowerCase().includes(lower) ||
                 (showEmail && (item.amsT_emailId || item.amst_emailid || '').toLowerCase().includes(lower)) ||
-                (showPhone && (String(item.amsT_MobileNo || item.amst_mobileno || '')).toLowerCase().includes(lower))
+                (showPhone &&
+                    String(item.amsT_MobileNo || item.amst_mobileno || '')
+                        .toLowerCase()
+                        .includes(lower))
         );
     }, [data, searchValue, showEmail, showPhone]);
 
@@ -209,7 +212,7 @@ export default function AlumniSearchResults({
 
     if (showAddressBook) {
         return (
-            <div className='fade-in animate-in space-y-4 duration-500 print-root pagelayout'>
+            <div className='fade-in print-root pagelayout animate-in space-y-4 duration-500'>
                 {PrintStyles}
                 <div className='flex items-center justify-between px-2'>
                     <div className='flex items-center gap-3'>
@@ -228,7 +231,7 @@ export default function AlumniSearchResults({
                         .map((item, index) => (
                             <div
                                 key={item.almst_id || item.student_id || index}
-                                className='address-card flex flex-col justify-between break-inside-avoid rounded-xl border border-dashed border-muted-foreground/30 p-5 transition-all hover:bg-muted/10 print:mb-6 print:min-h-[160px]'>
+                                className='address-card flex break-inside-avoid flex-col justify-between rounded-xl border border-muted-foreground/30 border-dashed p-5 transition-all hover:bg-muted/10 print:mb-6 print:min-h-[160px]'>
                                 <div>
                                     <div className='mb-2 flex items-center justify-between'>
                                         <span className='font-mono font-semibold text-[10px] text-muted-foreground uppercase tracking-tight'>
@@ -238,9 +241,12 @@ export default function AlumniSearchResults({
                                             {item.ALMMC_MembershipCategory || 'Standard'}
                                         </span>
                                     </div>
-                                    <h4 className='font-bold text-foreground text-lg leading-snug'>{item.amsT_FirstName || item.studentname}</h4>
+                                    <h4 className='font-bold text-foreground text-lg leading-snug'>
+                                        {item.amsT_FirstName || item.studentname}
+                                    </h4>
                                     <p className='mt-2 font-medium text-muted-foreground text-sm uppercase'>
-                                        Class {(item.Leftclass || item.asmcl_classname) || 'N/A'} • {item.ASMAY_Id_NEW_Left || item.ASMAY_Id_Left || item.asmay_year}
+                                        Class {item.Leftclass || item.asmcl_classname || 'N/A'} •{' '}
+                                        {item.ASMAY_Id_NEW_Left || item.ASMAY_Id_Left || item.asmay_year}
                                     </p>
                                     <p className='mt-3 line-clamp-3 text-muted-foreground text-sm leading-relaxed'>
                                         {item.ALMST_FullAddess || 'Address Not Available'}
@@ -280,22 +286,14 @@ export default function AlumniSearchResults({
                     <span className='font-semibold text-muted-foreground text-xs uppercase tracking-wider'>Display Options:</span>
                     <div className='flex items-center gap-6'>
                         <div className='flex items-center gap-2'>
-                            <Checkbox
-                                id='email_toggle'
-                                checked={showEmail}
-                                onCheckedChange={(v) => handleVisibilityChange('email', !!v)}
-                            />
-                            <label htmlFor='email_toggle' className='cursor-pointer font-medium text-sm select-none'>
+                            <Checkbox id='email_toggle' checked={showEmail} onCheckedChange={(v) => handleVisibilityChange('email', !!v)} />
+                            <label htmlFor='email_toggle' className='cursor-pointer select-none font-medium text-sm'>
                                 Email
                             </label>
                         </div>
                         <div className='flex items-center gap-2'>
-                            <Checkbox
-                                id='ph_toggle'
-                                checked={showPhone}
-                                onCheckedChange={(v) => handleVisibilityChange('phone', !!v)}
-                            />
-                            <label htmlFor='ph_toggle' className='cursor-pointer font-medium text-sm select-none'>
+                            <Checkbox id='ph_toggle' checked={showPhone} onCheckedChange={(v) => handleVisibilityChange('phone', !!v)} />
+                            <label htmlFor='ph_toggle' className='cursor-pointer select-none font-medium text-sm'>
                                 Phone No.
                             </label>
                         </div>
@@ -334,7 +332,9 @@ export default function AlumniSearchResults({
                     <TableBody>
                         {filteredData.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={showEmail && showPhone ? 11 : showEmail || showPhone ? 10 : 9} className='h-48 text-center'>
+                                <TableCell
+                                    colSpan={showEmail && showPhone ? 11 : showEmail || showPhone ? 10 : 9}
+                                    className='h-48 text-center'>
                                     <div className='flex flex-col items-center justify-center space-y-2 opacity-50'>
                                         <Search className='h-12 w-12' />
                                         <p className='text-muted-foreground'>No matching records found in the database.</p>
@@ -345,23 +345,43 @@ export default function AlumniSearchResults({
                             filteredData.map((item, index) => (
                                 <TableRow
                                     key={item.almst_id || item.student_id || index}
-                                    className={selectedIds.includes(item.almst_id || item.amst_admno || item.student_id || 0) ? 'bg-primary/5 hover:bg-primary/10' : ''}>
+                                    className={
+                                        selectedIds.includes(item.almst_id || item.amst_admno || item.student_id || 0)
+                                            ? 'bg-primary/5 hover:bg-primary/10'
+                                            : ''
+                                    }>
                                     <TableCell className='text-center'>
                                         <Checkbox
                                             checked={selectedIds.includes(item.almst_id || item.amst_admno || item.student_id || 0)}
-                                            onCheckedChange={(v) => handleToggleOne(item.almst_id || item.amst_admno || item.student_id || 0, !!v)}
+                                            onCheckedChange={(v) =>
+                                                handleToggleOne(item.almst_id || item.amst_admno || item.student_id || 0, !!v)
+                                            }
                                         />
                                     </TableCell>
                                     <TableCell className='text-center font-medium text-muted-foreground'>{index + 1}</TableCell>
                                     <TableCell className='font-bold text-foreground'>{item.amsT_FirstName || item.studentname}</TableCell>
-                                    <TableCell className='text-[11px] text-muted-foreground whitespace-nowrap'>{item.amsT_DOB || item.amst_dob}</TableCell>
-                                    {showPhone && <TableCell className='font-mono text-xs text-primary'>{item.amsT_MobileNo || item.amst_mobileno}</TableCell>}
-                                    {showEmail && <TableCell className='text-[11px] text-primary transition-colors hover:underline cursor-default'>{item.amsT_emailId || item.amst_emailid}</TableCell>}
+                                    <TableCell className='whitespace-nowrap text-[11px] text-muted-foreground'>
+                                        {item.amsT_DOB || item.amst_dob}
+                                    </TableCell>
+                                    {showPhone && (
+                                        <TableCell className='font-mono text-primary text-xs'>
+                                            {item.amsT_MobileNo || item.amst_mobileno}
+                                        </TableCell>
+                                    )}
+                                    {showEmail && (
+                                        <TableCell className='cursor-default text-[11px] text-primary transition-colors hover:underline'>
+                                            {item.amsT_emailId || item.amst_emailid}
+                                        </TableCell>
+                                    )}
                                     <TableCell className='text-center text-xs'>{item.ASMAY_Id_Join || item.asmay_year}</TableCell>
                                     <TableCell className='text-center text-xs'>{item.ASMAY_Id_Left}</TableCell>
-                                    <TableCell className='font-mono text-[11px] font-bold text-muted-foreground'>{item.ALMST_MembershipId || item.amst_admno || item.student_id}</TableCell>
-                                    <TableCell className='text-[11px] font-medium'>{item.ALMMC_MembershipCategory}</TableCell>
-                                    <TableCell className='max-w-[250px] truncate text-[11px] text-muted-foreground leading-relaxed' title={item.ALMST_FullAddess}>
+                                    <TableCell className='font-bold font-mono text-[11px] text-muted-foreground'>
+                                        {item.ALMST_MembershipId || item.amst_admno || item.student_id}
+                                    </TableCell>
+                                    <TableCell className='font-medium text-[11px]'>{item.ALMMC_MembershipCategory}</TableCell>
+                                    <TableCell
+                                        className='max-w-[250px] truncate text-[11px] text-muted-foreground leading-relaxed'
+                                        title={item.ALMST_FullAddess}>
                                         {item.ALMST_FullAddess}
                                     </TableCell>
                                 </TableRow>
@@ -390,18 +410,23 @@ export default function AlumniSearchResults({
                         </tr>
                     </thead>
                     <tbody>
-                        {(selectedIds.length > 0 ? data.filter((item) => selectedIds.includes(item.almst_id || item.amst_admno || item.student_id || 0)) : filteredData).map(
-                            (item, index) => (
-                                <tr key={item.almst_id || item.student_id || index} className='break-inside-avoid'>
-                                    <td className='border border-black p-2 text-center'>{index + 1}</td>
-                                    <td className='border border-black p-2 font-bold'>{item.amsT_FirstName || item.studentname}</td>
-                                    <td className='border border-black p-2 text-center'>{item.amsT_DOB || item.amst_dob}</td>
-                                    {showPhone && <td className='border border-black p-2 text-center'>{item.amsT_MobileNo || item.amst_mobileno}</td>}
-                                    {showEmail && <td className='border border-black p-2 truncate'>{item.amsT_emailId || item.amst_emailid}</td>}
-                                    <td className='border border-black p-2 leading-tight'>{item.ALMST_FullAddess}</td>
-                                </tr>
-                            )
-                        )}
+                        {(selectedIds.length > 0
+                            ? data.filter((item) => selectedIds.includes(item.almst_id || item.amst_admno || item.student_id || 0))
+                            : filteredData
+                        ).map((item, index) => (
+                            <tr key={item.almst_id || item.student_id || index} className='break-inside-avoid'>
+                                <td className='border border-black p-2 text-center'>{index + 1}</td>
+                                <td className='border border-black p-2 font-bold'>{item.amsT_FirstName || item.studentname}</td>
+                                <td className='border border-black p-2 text-center'>{item.amsT_DOB || item.amst_dob}</td>
+                                {showPhone && (
+                                    <td className='border border-black p-2 text-center'>{item.amsT_MobileNo || item.amst_mobileno}</td>
+                                )}
+                                {showEmail && (
+                                    <td className='truncate border border-black p-2'>{item.amsT_emailId || item.amst_emailid}</td>
+                                )}
+                                <td className='border border-black p-2 leading-tight'>{item.ALMST_FullAddess}</td>
+                            </tr>
+                        ))}
                     </tbody>
                 </table>
             </div>

@@ -129,7 +129,7 @@ export default function StJamesI_IIIReportForm({
     const onSubmit = async (data: StJamesI_IIIReportSchema) => {
         const selectedYearObj = academicYears.find((y) => y.asmaY_Id === data.asmaY_Id);
         const selectedExamObj = exams.find((e) => e.emE_Id === data.emE_Id);
-        
+
         const payload = {
             ...data,
             asmaY_Year: selectedYearObj?.asmaY_Year || '',
@@ -309,11 +309,11 @@ export default function StJamesI_IIIReportForm({
                                 <Controller
                                     control={control}
                                     name='readmit'
-                                    render={({ field }) => (
-                                        <Checkbox id='readmit' checked={field.value} onCheckedChange={field.onChange} />
-                                    )}
+                                    render={({ field }) => <Checkbox id='readmit' checked={field.value} onCheckedChange={field.onChange} />}
                                 />
-                                <Label htmlFor='readmit' className='cursor-pointer'>Display Promotion</Label>
+                                <Label htmlFor='readmit' className='cursor-pointer'>
+                                    Display Promotion
+                                </Label>
                             </div>
                             <div className='flex items-center gap-2'>
                                 <Controller
@@ -323,7 +323,9 @@ export default function StJamesI_IIIReportForm({
                                         <Checkbox id='displayattendance' checked={field.value} onCheckedChange={field.onChange} />
                                     )}
                                 />
-                                <Label htmlFor='displayattendance' className='cursor-pointer'>Display Attendance</Label>
+                                <Label htmlFor='displayattendance' className='cursor-pointer'>
+                                    Display Attendance
+                                </Label>
                             </div>
                             <div className='flex items-center gap-2'>
                                 <Controller
@@ -333,7 +335,9 @@ export default function StJamesI_IIIReportForm({
                                         <Checkbox id='displayMarks' checked={field.value} onCheckedChange={field.onChange} />
                                     )}
                                 />
-                                <Label htmlFor='displayMarks' className='cursor-pointer'>Display Marks Display</Label>
+                                <Label htmlFor='displayMarks' className='cursor-pointer'>
+                                    Display Marks Display
+                                </Label>
                             </div>
                         </div>
 
@@ -345,11 +349,7 @@ export default function StJamesI_IIIReportForm({
                                 className='min-w-[140px]'>
                                 Report
                             </Button>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                onClick={() => reset()}
-                                className='min-w-[100px]'>
+                            <Button type='button' variant='outline' onClick={() => reset()} className='min-w-[100px]'>
                                 Cancel
                             </Button>
                         </div>

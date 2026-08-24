@@ -4,13 +4,13 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { pdaMasterHeadSchema, type PDAMasterHeadFormValues } from '@/schemas/pda/master/master-head';
+import { type PDAMasterHeadFormValues, pdaMasterHeadSchema } from '@/schemas/pda/master/master-head';
 import { savePDAMasterHead } from '@/server/pda/master/master-head';
 import type { IPDAMasterHead } from '@/types/pda/master/master-head';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { type SubmitHandler, useForm, Controller } from 'react-hook-form';
+import { useEffect, useState } from 'react';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 interface UpdatePDAMasterHeadFormProps {
@@ -20,12 +20,7 @@ interface UpdatePDAMasterHeadFormProps {
     className?: string;
 }
 
-export default function UpdatePDAMasterHeadForm({
-    selectedRow,
-    feeHeads,
-    onSuccess,
-    className = ''
-}: UpdatePDAMasterHeadFormProps) {
+export default function UpdatePDAMasterHeadForm({ selectedRow, feeHeads, onSuccess, className = '' }: UpdatePDAMasterHeadFormProps) {
     const [hasSubmitted, setHasSubmitted] = useState(false);
 
     const {
@@ -94,9 +89,7 @@ export default function UpdatePDAMasterHeadForm({
                                 {...register('pdamH_HeadName')}
                                 className={hasSubmitted && errors.pdamH_HeadName ? 'border-red-500' : ''}
                             />
-                            {hasSubmitted && errors.pdamH_HeadName && (
-                                <FormError>{errors.pdamH_HeadName.message}</FormError>
-                            )}
+                            {hasSubmitted && errors.pdamH_HeadName && <FormError>{errors.pdamH_HeadName.message}</FormError>}
                         </div>
 
                         {/* Fee Head Type */}
@@ -135,7 +128,7 @@ export default function UpdatePDAMasterHeadForm({
                         disabled={isSubmitting}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
                         <div className='flex items-center'>
-                            <Save className='mr-2 font-bold h-4 w-4' />
+                            <Save className='mr-2 h-4 w-4 font-bold' />
                             {isSubmitting ? 'Updating...' : 'Update'}
                         </div>
                     </Button>

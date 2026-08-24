@@ -1,17 +1,14 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { ndaStudentTcFilterSchema, type NdaStudentTcFilterFields } from '@/schemas/admission/preadmission/reports/nda-student-tc';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, RotateCcw, Loader2 } from 'lucide-react';
-import { 
-    useNdaStudentTcInitialData, 
-    useNdaStudentTcSections 
-} from '@/hooks/admission/preadmission/useNdaStudentTc';
+import { useNdaStudentTcInitialData, useNdaStudentTcSections } from '@/hooks/admission/preadmission/useNdaStudentTc';
+import { type NdaStudentTcFilterFields, ndaStudentTcFilterSchema } from '@/schemas/admission/preadmission/reports/nda-student-tc';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2, RotateCcw, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 
 interface FilterFormProps {
     onSearch: (data: any) => void;
@@ -24,8 +21,8 @@ export function FilterForm({ onSearch, onReset }: FilterFormProps) {
         defaultValues: {
             academic_year: '',
             classname: '',
-            sectionname: '',
-        },
+            sectionname: ''
+        }
     });
 
     const { watch, setValue, reset } = form;
@@ -47,17 +44,20 @@ export function FilterForm({ onSearch, onReset }: FilterFormProps) {
     // Handle Class Change to load Sections
     useEffect(() => {
         if (academicYear && className) {
-            sectionMutation.mutate({
-                ASMAY_Id: Number(academicYear),
-                ASMCL_Id: Number(className)
-            }, {
-                onSuccess: (response: any) => {
-                    const data = response?.data || response;
-                    const sectionList = Array.isArray(data) ? data : (data.sectionList || []);
-                    setSections(sectionList);
-                    setValue('sectionname', '');
+            sectionMutation.mutate(
+                {
+                    ASMAY_Id: Number(academicYear),
+                    ASMCL_Id: Number(className)
+                },
+                {
+                    onSuccess: (response: any) => {
+                        const data = response?.data || response;
+                        const sectionList = Array.isArray(data) ? data : data.sectionList || [];
+                        setSections(sectionList);
+                        setValue('sectionname', '');
+                    }
                 }
-            });
+            );
         }
     }, [academicYear, className]);
 
@@ -69,18 +69,20 @@ export function FilterForm({ onSearch, onReset }: FilterFormProps) {
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSearch)} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <form onSubmit={form.handleSubmit(onSearch)} className='space-y-6'>
+                <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
                     <FormField
                         control={form.control}
-                        name="academic_year"
+                        name='academic_year'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="text-sm font-bold text-slate-700 uppercase">Academic Year <span className="text-red-500">*</span></FormLabel>
+                                <FormLabel className='font-bold text-slate-700 text-sm uppercase'>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value}>
                                     <FormControl>
-                                        <SelectTrigger className="bg-white border-slate-200 h-11 rounded-xl shadow-sm focus:ring-indigo-500/20">
-                                            <SelectValue placeholder={isLoading ? "Loading..." : "Select Year"} />
+                                        <SelectTrigger className='h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:ring-indigo-500/20'>
+                                            <SelectValue placeholder={isLoading ? 'Loading...' : 'Select Year'} />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
@@ -98,14 +100,16 @@ export function FilterForm({ onSearch, onReset }: FilterFormProps) {
 
                     <FormField
                         control={form.control}
-                        name="classname"
+                        name='classname'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="text-sm font-bold text-slate-700 uppercase">Class <span className="text-red-500">*</span></FormLabel>
+                                <FormLabel className='font-bold text-slate-700 text-sm uppercase'>
+                                    Class <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value}>
                                     <FormControl>
-                                        <SelectTrigger className="bg-white border-slate-200 h-11 rounded-xl shadow-sm focus:ring-indigo-500/20">
-                                            <SelectValue placeholder="Select Class" />
+                                        <SelectTrigger className='h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:ring-indigo-500/20'>
+                                            <SelectValue placeholder='Select Class' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
@@ -123,14 +127,16 @@ export function FilterForm({ onSearch, onReset }: FilterFormProps) {
 
                     <FormField
                         control={form.control}
-                        name="sectionname"
+                        name='sectionname'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="text-sm font-bold text-slate-700 uppercase">Section <span className="text-red-500">*</span></FormLabel>
+                                <FormLabel className='font-bold text-slate-700 text-sm uppercase'>
+                                    Section <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value} disabled={!className}>
                                     <FormControl>
-                                        <SelectTrigger className="bg-white border-slate-200 h-11 rounded-xl shadow-sm focus:ring-indigo-500/20 disabled:bg-slate-50">
-                                            <SelectValue placeholder={sectionMutation.isPending ? "Loading..." : "Select Section"} />
+                                        <SelectTrigger className='h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:ring-indigo-500/20 disabled:bg-slate-50'>
+                                            <SelectValue placeholder={sectionMutation.isPending ? 'Loading...' : 'Select Section'} />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
@@ -147,20 +153,24 @@ export function FilterForm({ onSearch, onReset }: FilterFormProps) {
                     />
                 </div>
 
-                <div className="flex items-center justify-center gap-4 pt-4">
-                    <Button 
-                        type="submit" 
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white min-w-[140px] px-8 h-11 rounded-full shadow-lg shadow-indigo-100 transition-all font-bold"
-                    >
-                        {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <><Search className="mr-2 h-4 w-4" /> SEARCH</>}
+                <div className='flex items-center justify-center gap-4 pt-4'>
+                    <Button
+                        type='submit'
+                        className='h-11 min-w-[140px] rounded-full bg-indigo-600 px-8 font-bold text-white shadow-indigo-100 shadow-lg transition-all hover:bg-indigo-700'>
+                        {isLoading ? (
+                            <Loader2 className='h-5 w-5 animate-spin' />
+                        ) : (
+                            <>
+                                <Search className='mr-2 h-4 w-4' /> SEARCH
+                            </>
+                        )}
                     </Button>
-                    <Button 
-                        type="button" 
-                        variant="outline" 
-                        onClick={handleReset} 
-                        className="min-w-[140px] px-8 h-11 rounded-full border-slate-200 text-slate-600 hover:bg-slate-50 font-bold"
-                    >
-                        <RotateCcw className="mr-2 h-4 w-4" /> CANCEL
+                    <Button
+                        type='button'
+                        variant='outline'
+                        onClick={handleReset}
+                        className='h-11 min-w-[140px] rounded-full border-slate-200 px-8 font-bold text-slate-600 hover:bg-slate-50'>
+                        <RotateCcw className='mr-2 h-4 w-4' /> CANCEL
                     </Button>
                 </div>
             </form>

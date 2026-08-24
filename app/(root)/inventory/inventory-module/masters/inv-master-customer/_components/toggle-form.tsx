@@ -1,16 +1,16 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import {
     AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
     AlertDialogContent,
     AlertDialogDescription,
     AlertDialogFooter,
     AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogCancel,
-    AlertDialogAction
+    AlertDialogTitle
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 import { useInvMasterCustomer } from '@/hooks/inventory/masters/use-inv-master-customer';
 
 interface ToggleCustomerModalProps {
@@ -28,7 +28,7 @@ export function ToggleCustomerModal({ rowData, onClose }: ToggleCustomerModalPro
             {
                 onSuccess: () => {
                     onClose();
-                },
+                }
             }
         );
     };
@@ -37,23 +37,17 @@ export function ToggleCustomerModal({ rowData, onClose }: ToggleCustomerModalPro
         <AlertDialog open={true} onOpenChange={onClose}>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>
-                        {isActive ? 'Deactivate Record' : 'Activate Record'}
-                    </AlertDialogTitle>
+                    <AlertDialogTitle>{isActive ? 'Deactivate Record' : 'Activate Record'}</AlertDialogTitle>
                     <AlertDialogDescription>
                         Are you sure you want to {isActive ? 'deactivate' : 'activate'} this customer record?
                     </AlertDialogDescription>
                 </AlertDialogHeader>
-                <AlertDialogFooter className="flex gap-2">
-                    <AlertDialogCancel className="text-black dark:text-white hover:bg-transparent" disabled={deleteMutation.isPending}>
+                <AlertDialogFooter className='flex gap-2'>
+                    <AlertDialogCancel className='text-black hover:bg-transparent dark:text-white' disabled={deleteMutation.isPending}>
                         Cancel
                     </AlertDialogCancel>
                     <AlertDialogAction asChild>
-                        <Button
-                            variant={isActive ? 'destructive' : 'default'}
-                            onClick={handleConfirm}
-                            isLoading={deleteMutation.isPending}
-                        >
+                        <Button variant={isActive ? 'destructive' : 'default'} onClick={handleConfirm} isLoading={deleteMutation.isPending}>
                             Yes, {isActive ? 'Deactivate' : 'Activate'} it
                         </Button>
                     </AlertDialogAction>

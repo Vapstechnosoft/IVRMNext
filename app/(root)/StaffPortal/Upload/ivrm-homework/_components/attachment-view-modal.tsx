@@ -1,16 +1,10 @@
 'use client';
 
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Eye, Download, ExternalLink, FileText, Music, Video, Image as ImageIcon, X } from 'lucide-react';
+import { Download, ExternalLink, Eye, FileText, Music } from 'lucide-react';
 import { useState } from 'react';
-import { toast } from 'sonner';
 
 interface Attachment {
     ihwatT_FileName: string;
@@ -75,9 +69,9 @@ export default function AttachmentViewModal({
     return (
         <>
             <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-                <DialogContent className='max-w-4xl max-h-[80vh] overflow-y-auto'>
+                <DialogContent className='max-h-[80vh] max-w-4xl overflow-y-auto'>
                     <DialogHeader>
-                        <DialogTitle className='text-blue-700 font-bold'>{title}</DialogTitle>
+                        <DialogTitle className='font-bold text-blue-700'>{title}</DialogTitle>
                     </DialogHeader>
 
                     <div className='mt-4'>
@@ -97,17 +91,14 @@ export default function AttachmentViewModal({
                                         return (
                                             <TableRow key={index}>
                                                 <TableCell className='text-center'>{index + 1}</TableCell>
-                                                <TableCell className='max-w-xs truncate'>
-                                                    {item.ihwatT_FileName}
-                                                </TableCell>
+                                                <TableCell className='max-w-xs truncate'>{item.ihwatT_FileName}</TableCell>
                                                 <TableCell className='text-center'>
                                                     {isLink ? (
                                                         <a
                                                             href={item.ihwatT_Attachment}
                                                             target='_blank'
                                                             rel='noreferrer'
-                                                            className='text-blue-600 hover:underline flex items-center justify-center gap-1'
-                                                        >
+                                                            className='flex items-center justify-center gap-1 text-blue-600 hover:underline'>
                                                             Click Here <ExternalLink className='h-3 w-3' />
                                                         </a>
                                                     ) : (
@@ -115,9 +106,8 @@ export default function AttachmentViewModal({
                                                             variant='ghost'
                                                             size='sm'
                                                             onClick={() => handlePreview(item)}
-                                                            className='text-blue-600 hover:text-blue-800'
-                                                        >
-                                                            <Eye className='h-4 w-4 mr-1' /> View
+                                                            className='text-blue-600 hover:text-blue-800'>
+                                                            <Eye className='mr-1 h-4 w-4' /> View
                                                         </Button>
                                                     )}
                                                 </TableCell>
@@ -129,8 +119,7 @@ export default function AttachmentViewModal({
                                                             variant='ghost'
                                                             size='sm'
                                                             onClick={() => handleDownload(item.ihwatT_Attachment, item.ihwatT_FileName)}
-                                                            className='text-blue-600 hover:text-blue-800'
-                                                        >
+                                                            className='text-blue-600 hover:text-blue-800'>
                                                             <Download className='h-4 w-4' />
                                                         </Button>
                                                     )}
@@ -140,7 +129,7 @@ export default function AttachmentViewModal({
                                     })
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={4} className='text-center py-8 text-gray-500'>
+                                        <TableCell colSpan={4} className='py-8 text-center text-gray-500'>
                                             No attachments found.
                                         </TableCell>
                                     </TableRow>
@@ -149,80 +138,69 @@ export default function AttachmentViewModal({
                         </Table>
                     </div>
 
-                    <div className='mt-6 border-t pt-4 text-xs italic text-gray-600'>
-                        <span className='font-bold text-red-500'>Note:</span> Excel, PPT, and Word documents cannot be viewed online. They will be downloaded or opened in a new tab.
+                    <div className='mt-6 border-t pt-4 text-gray-600 text-xs italic'>
+                        <span className='font-bold text-red-500'>Note:</span> Excel, PPT, and Word documents cannot be viewed online. They
+                        will be downloaded or opened in a new tab.
                     </div>
                 </DialogContent>
             </Dialog>
 
             {/* In-browser Preview Modal */}
             <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-                <DialogContent className='max-w-5xl h-[85vh] flex flex-col p-2 bg-slate-900 border-none'>
-                    <DialogHeader className='p-4 flex flex-row items-center justify-between border-b border-white/10'>
-                        <DialogTitle className='text-white truncate pr-8'>
-                            {previewItem?.ihwatT_FileName}
-                        </DialogTitle>
+                <DialogContent className='flex h-[85vh] max-w-5xl flex-col border-none bg-slate-900 p-2'>
+                    <DialogHeader className='flex flex-row items-center justify-between border-white/10 border-b p-4'>
+                        <DialogTitle className='truncate pr-8 text-white'>{previewItem?.ihwatT_FileName}</DialogTitle>
                     </DialogHeader>
-                    
-                    <div className='flex-1 relative overflow-hidden flex items-center justify-center'>
+
+                    <div className='relative flex flex-1 items-center justify-center overflow-hidden'>
                         {previewItem && (
                             <>
                                 {getFileType(previewItem.ihwatT_Attachment) === 'image' && (
-                                    <div className='w-full h-full p-4 flex items-center justify-center bg-checkered'>
-                                        <img 
-                                            src={previewItem.ihwatT_Attachment} 
-                                            alt={previewItem.ihwatT_FileName} 
-                                            className='max-h-full max-w-full object-contain shadow-2xl rounded-sm'
+                                    <div className='flex h-full w-full items-center justify-center bg-checkered p-4'>
+                                        <img
+                                            src={previewItem.ihwatT_Attachment}
+                                            alt={previewItem.ihwatT_FileName}
+                                            className='max-h-full max-w-full rounded-sm object-contain shadow-2xl'
                                         />
                                     </div>
                                 )}
-                                
+
                                 {getFileType(previewItem.ihwatT_Attachment) === 'video' && (
-                                    <div className='w-full max-w-4xl aspect-video bg-black rounded-lg shadow-2xl overflow-hidden'>
-                                        <video 
-                                            controls 
-                                            autoPlay 
-                                            className='w-full h-full'
-                                            key={previewItem.ihwatT_Attachment}
-                                        >
+                                    <div className='aspect-video w-full max-w-4xl overflow-hidden rounded-lg bg-black shadow-2xl'>
+                                        <video controls autoPlay className='h-full w-full' key={previewItem.ihwatT_Attachment}>
                                             <source src={previewItem.ihwatT_Attachment} type='video/mp4' />
                                             Your browser does not support the video tag.
                                         </video>
                                     </div>
                                 )}
-                                
+
                                 {getFileType(previewItem.ihwatT_Attachment) === 'audio' && (
-                                    <div className='bg-white/10 p-12 rounded-3xl backdrop-blur-md border border-white/20 shadow-2xl flex flex-col items-center gap-6'>
-                                        <div className='w-24 h-24 bg-blue-500 rounded-full flex items-center justify-center animate-pulse'>
+                                    <div className='flex flex-col items-center gap-6 rounded-3xl border border-white/20 bg-white/10 p-12 shadow-2xl backdrop-blur-md'>
+                                        <div className='flex h-24 w-24 animate-pulse items-center justify-center rounded-full bg-blue-500'>
                                             <Music className='h-12 w-12 text-white' />
                                         </div>
-                                        <audio 
-                                            controls 
-                                            autoPlay 
-                                            className='w-80 shadow-lg'
-                                            key={previewItem.ihwatT_Attachment}
-                                        >
+                                        <audio controls autoPlay className='w-80 shadow-lg' key={previewItem.ihwatT_Attachment}>
                                             <source src={previewItem.ihwatT_Attachment} type='audio/mpeg' />
                                             Your browser does not support the audio element.
                                         </audio>
                                     </div>
                                 )}
-                                
+
                                 {getFileType(previewItem.ihwatT_Attachment) === 'pdf' && (
-                                    <iframe 
+                                    <iframe
                                         src={`${previewItem.ihwatT_Attachment}#toolbar=0`}
-                                        className='w-full h-full rounded-sm'
+                                        className='h-full w-full rounded-sm'
                                         title='PDF Preview'
                                     />
                                 )}
 
                                 {getFileType(previewItem.ihwatT_Attachment) === 'other' && (
-                                    <div className='text-white flex flex-col items-center gap-4'>
+                                    <div className='flex flex-col items-center gap-4 text-white'>
                                         <FileText className='h-20 w-20 text-blue-400' />
                                         <p className='text-lg'>Preview not supported for this file type.</p>
                                         <Button asChild>
                                             <a href={previewItem.ihwatT_Attachment} download>
-                                                <Download className='h-4 w-4 mr-2' /> Download to View
+                                                <Download className='mr-2 h-4 w-4' /> Download to View
                                             </a>
                                         </Button>
                                     </div>
@@ -230,14 +208,13 @@ export default function AttachmentViewModal({
                             </>
                         )}
                     </div>
-                    
-                    <div className='p-4 border-t border-white/10 flex justify-end gap-2'>
-                        <Button 
-                            variant='outline' 
-                            size='sm' 
+
+                    <div className='flex justify-end gap-2 border-white/10 border-t p-4'>
+                        <Button
+                            variant='outline'
+                            size='sm'
                             onClick={() => setIsPreviewOpen(false)}
-                            className='bg-transparent text-white border-white/20 hover:bg-white/10 hover:text-white'
-                        >
+                            className='border-white/20 bg-transparent text-white hover:bg-white/10 hover:text-white'>
                             Close Preview
                         </Button>
                     </div>

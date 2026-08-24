@@ -1,9 +1,9 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type {
+    FOMonthEndReportApiResponse,
     FOMonthEndReportGetDataRequest,
-    FOMonthEndReportGetDataResponse,
-    FOMonthEndReportApiResponse
+    FOMonthEndReportGetDataResponse
 } from '@/types/hrms/reports/fo-monthend-report';
 /**
  * Get month end report data (classes, sections, months, years)
@@ -32,10 +32,10 @@ export async function getFOMonthEndReportData(
     try {
         const response = await api.post<FOMonthEndReportApiResponse>('hrmsfrontoffice', url, requestBody);
         console.log('📥 [SERVER] Raw API Response:', JSON.stringify(response, null, 2));
-        const responseData = (response?.data as unknown) as FOMonthEndReportGetDataResponse | undefined;
+        const responseData = response?.data as unknown as FOMonthEndReportGetDataResponse | undefined;
         // The API returns: { success: boolean, message: string, data: { classes, sections, months, years }, total: number, page: number, page_size: number }
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
-            const responseData = (response.data as unknown) as FOMonthEndReportGetDataResponse;
+            const responseData = response.data as unknown as FOMonthEndReportGetDataResponse;
             if (responseData) {
                 return {
                     success: response.success,

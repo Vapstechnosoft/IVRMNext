@@ -16,18 +16,13 @@ export default function LibBookTransactionPage() {
 
     return (
         <div className='mx-auto max-w-7xl space-y-6 py-6'>
-            
-            <div className='bg-white rounded-lg shadow-sm border border-t-4 border-t-orange-400 overflow-hidden'>
-                <div className='bg-[#4251b1] text-white px-4 py-2 font-semibold text-sm'>
-                    BOOK TRANSACTION
-                </div>
+            <div className='overflow-hidden rounded-lg border border-t-4 border-t-orange-400 bg-white shadow-sm'>
+                <div className='bg-[#4251b1] px-4 py-2 font-semibold text-sm text-white'>BOOK TRANSACTION</div>
                 <IssueForm onSuccess={() => {}} />
             </div>
 
-            <div className='bg-white rounded-lg shadow-sm border border-t-4 border-t-orange-400 overflow-hidden'>
-                <div className='bg-[#4251b1] text-white px-4 py-2 font-semibold text-sm'>
-                    TRANSACTION LIST
-                </div>
+            <div className='overflow-hidden rounded-lg border border-t-4 border-t-orange-400 bg-white shadow-sm'>
+                <div className='bg-[#4251b1] px-4 py-2 font-semibold text-sm text-white'>TRANSACTION LIST</div>
                 <div className='p-6'>
                     <GenericDataTable
                         columns={BookIssueColumns}

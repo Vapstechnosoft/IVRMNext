@@ -1,9 +1,6 @@
 'use server';
 import { type ApiResponse, api } from '@/lib/apiService';
-import type {
-    PFForm3AReportSearchRequest,
-    PFForm3AReportSearchResponse,
-} from '@/types/hrms/reports/pf-form-3a-report';
+import type { PFForm3AReportSearchRequest, PFForm3AReportSearchResponse } from '@/types/hrms/reports/pf-form-3a-report';
 
 export async function searchPFForm3AReport(request: PFForm3AReportSearchRequest): Promise<ApiResponse<PFForm3AReportSearchResponse>> {
     const url = '/api/ReportPFForm3A/getEmployeedetailsBySelection';
@@ -67,4 +64,3 @@ export async function getPFForm3ABasicData(): Promise<ApiResponse<any>> {
         };
     }
 }
-

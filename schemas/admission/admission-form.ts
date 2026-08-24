@@ -256,7 +256,11 @@ export const studentAdmissionFormSchema = {
         fatherAliveFlag: z.boolean().optional(),
         fatherName: z.string().optional().nullable(),
         fatherSurname: z.string().optional().nullable(),
-        fatherAadharNo: z.string().optional().nullable().refine((val) => !val || /^\d{12}$/.test(val), { message: 'Aadhar number must be exactly 12 digits' }),
+        fatherAadharNo: z
+            .string()
+            .optional()
+            .nullable()
+            .refine((val) => !val || /^\d{12}$/.test(val), { message: 'Aadhar number must be exactly 12 digits' }),
 
         FatherEducation: z.string().optional().nullable(),
         fatherPAN: z.string().optional().nullable(),
@@ -333,13 +337,16 @@ export const studentAdmissionFormSchema = {
         fatherBankBranch: z.string().optional().nullable(),
         fatherOfficePhone: z.string().optional().nullable(),
 
-
         // Mother Details
         motherAliveFlag: z.boolean().optional(),
         MotherAliveFlag: z.boolean().optional(),
         motherName: z.string().optional().nullable(),
         motherSurname: z.string().optional().nullable(),
-        motherAadharNo: z.string().optional().nullable().refine((val) => !val || /^\d{12}$/.test(val), { message: 'Aadhar number must be exactly 12 digits' }),
+        motherAadharNo: z
+            .string()
+            .optional()
+            .nullable()
+            .refine((val) => !val || /^\d{12}$/.test(val), { message: 'Aadhar number must be exactly 12 digits' }),
         motherMaritalStatus: z.string().optional().nullable(),
 
         motherMobileNumbers: z.preprocess((val: any) => {
@@ -416,7 +423,6 @@ export const studentAdmissionFormSchema = {
         motherCasteCertificateNo: z.string().optional().nullable(),
         motherPAN: z.string().optional().nullable(),
         motherSelfEmployedFlg: z.boolean().optional(),
-
 
         //Step=4
 
@@ -551,7 +557,6 @@ export const studentAdmissionFormSchema = {
         electivelist_Groups: z.array(z.number()).optional(),
         amsT_Remarks: createOptionalStringSchema('Remarks', 0, 500).optional()
     }),
-
 
     delete: z.object({
         pasr_id: deleteIdSchema('pasr_id')

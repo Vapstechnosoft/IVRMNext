@@ -1,23 +1,17 @@
 'use client';
 
-import { useFormContext } from 'react-hook-form';
-import {
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ChevronRight, ChevronLeft, MapPin } from 'lucide-react';
-import { onSelectGetStateApi } from '@/server/college/CollegeAdmission/Transactions/clgadmission-form'; // I should add this if not exists
-import { useState, useEffect } from 'react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ChevronLeft, ChevronRight, MapPin } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useFormContext } from 'react-hook-form';
+import { onSelectGetStateApi } from '@/server/college/CollegeAdmission/Transactions/clgadmission-form';
 
-export function AddressTab({ initialData, onNext, onBack }: { initialData: any, onNext: () => void, onBack: () => void }) {
+export function AddressTab({ initialData, onNext, onBack }: { initialData: any; onNext: () => void; onBack: () => void }) {
     const { control, watch, setValue } = useFormContext();
     const [pStates, setPStates] = useState<any[]>([]);
     const [cStates, setCStates] = useState<any[]>([]);
@@ -43,41 +37,45 @@ export function AddressTab({ initialData, onNext, onBack }: { initialData: any, 
     }, [sameAsPermanent, pAddress, pCountry, pState, pCity, pPin]);
 
     return (
-        <Card className="border-none shadow-none bg-transparent">
-            <CardContent className="grid gap-8 p-0">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+        <Card className='border-none bg-transparent shadow-none'>
+            <CardContent className='grid gap-8 p-0'>
+                <div className='grid grid-cols-1 gap-12 md:grid-cols-2'>
                     {/* Permanent Address */}
-                    <div className="space-y-6">
-                        <div className="flex items-center gap-2 text-primary font-semibold border-b pb-2">
-                            <MapPin className="h-5 w-5" />
+                    <div className='space-y-6'>
+                        <div className='flex items-center gap-2 border-b pb-2 font-semibold text-primary'>
+                            <MapPin className='h-5 w-5' />
                             Permanent Address
                         </div>
 
                         <FormField
                             control={control}
-                            name="AMCST_PerStreet"
+                            name='AMCST_PerStreet'
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Street Address <span className="text-destructive">*</span></FormLabel>
+                                    <FormLabel>
+                                        Street Address <span className='text-destructive'>*</span>
+                                    </FormLabel>
                                     <FormControl>
-                                        <Input placeholder="House No, Building, Street" {...field} />
+                                        <Input placeholder='House No, Building, Street' {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className='grid grid-cols-2 gap-4'>
                             <FormField
                                 control={control}
-                                name="IVRMMC_Id"
+                                name='IVRMMC_Id'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Country <span className="text-destructive">*</span></FormLabel>
+                                        <FormLabel>
+                                            Country <span className='text-destructive'>*</span>
+                                        </FormLabel>
                                         <Select onValueChange={field.onChange} value={field.value}>
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select Country" />
+                                                    <SelectValue placeholder='Select Country' />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
@@ -95,12 +93,14 @@ export function AddressTab({ initialData, onNext, onBack }: { initialData: any, 
 
                             <FormField
                                 control={control}
-                                name="AMCST_PerCity"
+                                name='AMCST_PerCity'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>City <span className="text-destructive">*</span></FormLabel>
+                                        <FormLabel>
+                                            City <span className='text-destructive'>*</span>
+                                        </FormLabel>
                                         <FormControl>
-                                            <Input placeholder="City" {...field} />
+                                            <Input placeholder='City' {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -108,15 +108,17 @@ export function AddressTab({ initialData, onNext, onBack }: { initialData: any, 
                             />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className='grid grid-cols-2 gap-4'>
                             <FormField
                                 control={control}
-                                name="AMCST_PerState"
+                                name='AMCST_PerState'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>State <span className="text-destructive">*</span></FormLabel>
+                                        <FormLabel>
+                                            State <span className='text-destructive'>*</span>
+                                        </FormLabel>
                                         <FormControl>
-                                            <Input placeholder="State" {...field} />
+                                            <Input placeholder='State' {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -125,12 +127,14 @@ export function AddressTab({ initialData, onNext, onBack }: { initialData: any, 
 
                             <FormField
                                 control={control}
-                                name="AMCST_PerPincode"
+                                name='AMCST_PerPincode'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Pincode <span className="text-destructive">*</span></FormLabel>
+                                        <FormLabel>
+                                            Pincode <span className='text-destructive'>*</span>
+                                        </FormLabel>
                                         <FormControl>
-                                            <Input placeholder="6 digits" maxLength={6} {...field} />
+                                            <Input placeholder='6 digits' maxLength={6} {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -140,19 +144,19 @@ export function AddressTab({ initialData, onNext, onBack }: { initialData: any, 
                     </div>
 
                     {/* Communication Address */}
-                    <div className="space-y-6">
-                        <div className="flex items-center justify-between border-b pb-2">
-                            <div className="flex items-center gap-2 text-primary font-semibold">
-                                <MapPin className="h-5 w-5" />
+                    <div className='space-y-6'>
+                        <div className='flex items-center justify-between border-b pb-2'>
+                            <div className='flex items-center gap-2 font-semibold text-primary'>
+                                <MapPin className='h-5 w-5' />
                                 Communication Address
                             </div>
-                            <div className="flex items-center space-x-2">
+                            <div className='flex items-center space-x-2'>
                                 <Checkbox
-                                    id="same-as-p"
+                                    id='same-as-p'
                                     checked={sameAsPermanent}
                                     onCheckedChange={(checked) => setValue('chkbox_address', checked)}
                                 />
-                                <label htmlFor="same-as-p" className="text-xs font-medium cursor-pointer">
+                                <label htmlFor='same-as-p' className='cursor-pointer font-medium text-xs'>
                                     Same as Permanent
                                 </label>
                             </div>
@@ -160,29 +164,33 @@ export function AddressTab({ initialData, onNext, onBack }: { initialData: any, 
 
                         <FormField
                             control={control}
-                            name="AMCST_ConStreet"
+                            name='AMCST_ConStreet'
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Street Address <span className="text-destructive">*</span></FormLabel>
+                                    <FormLabel>
+                                        Street Address <span className='text-destructive'>*</span>
+                                    </FormLabel>
                                     <FormControl>
-                                        <Input placeholder="House No, Building, Street" {...field} disabled={sameAsPermanent} />
+                                        <Input placeholder='House No, Building, Street' {...field} disabled={sameAsPermanent} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className='grid grid-cols-2 gap-4'>
                             <FormField
                                 control={control}
-                                name="AMCST_ConCountryId"
+                                name='AMCST_ConCountryId'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Country <span className="text-destructive">*</span></FormLabel>
+                                        <FormLabel>
+                                            Country <span className='text-destructive'>*</span>
+                                        </FormLabel>
                                         <Select onValueChange={field.onChange} value={field.value} disabled={sameAsPermanent}>
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select Country" />
+                                                    <SelectValue placeholder='Select Country' />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
@@ -200,12 +208,14 @@ export function AddressTab({ initialData, onNext, onBack }: { initialData: any, 
 
                             <FormField
                                 control={control}
-                                name="AMCST_ConCity"
+                                name='AMCST_ConCity'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>City <span className="text-destructive">*</span></FormLabel>
+                                        <FormLabel>
+                                            City <span className='text-destructive'>*</span>
+                                        </FormLabel>
                                         <FormControl>
-                                            <Input placeholder="City" {...field} disabled={sameAsPermanent} />
+                                            <Input placeholder='City' {...field} disabled={sameAsPermanent} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -213,15 +223,17 @@ export function AddressTab({ initialData, onNext, onBack }: { initialData: any, 
                             />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className='grid grid-cols-2 gap-4'>
                             <FormField
                                 control={control}
-                                name="AMCST_ConState"
+                                name='AMCST_ConState'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>State <span className="text-destructive">*</span></FormLabel>
+                                        <FormLabel>
+                                            State <span className='text-destructive'>*</span>
+                                        </FormLabel>
                                         <FormControl>
-                                            <Input placeholder="State" {...field} disabled={sameAsPermanent} />
+                                            <Input placeholder='State' {...field} disabled={sameAsPermanent} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -230,12 +242,14 @@ export function AddressTab({ initialData, onNext, onBack }: { initialData: any, 
 
                             <FormField
                                 control={control}
-                                name="AMCST_ConPincode"
+                                name='AMCST_ConPincode'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Pincode <span className="text-destructive">*</span></FormLabel>
+                                        <FormLabel>
+                                            Pincode <span className='text-destructive'>*</span>
+                                        </FormLabel>
                                         <FormControl>
-                                            <Input placeholder="6 digits" maxLength={6} {...field} disabled={sameAsPermanent} />
+                                            <Input placeholder='6 digits' maxLength={6} {...field} disabled={sameAsPermanent} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -245,14 +259,14 @@ export function AddressTab({ initialData, onNext, onBack }: { initialData: any, 
                     </div>
                 </div>
 
-                <div className="flex justify-between pt-6">
-                    <Button type="button" variant="outline" onClick={onBack}>
-                        <ChevronLeft className="mr-2 h-4 w-4" />
+                <div className='flex justify-between pt-6'>
+                    <Button type='button' variant='outline' onClick={onBack}>
+                        <ChevronLeft className='mr-2 h-4 w-4' />
                         Previous
                     </Button>
-                    <Button type="button" onClick={onNext}>
+                    <Button type='button' onClick={onNext}>
                         Save and Proceed
-                        <ChevronRight className="ml-2 h-4 w-4" />
+                        <ChevronRight className='ml-2 h-4 w-4' />
                     </Button>
                 </div>
             </CardContent>

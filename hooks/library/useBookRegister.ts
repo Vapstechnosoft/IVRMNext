@@ -1,6 +1,13 @@
 'use client';
 
-import { deactivateBookRegister, getBookRegisterList, getInitialData, saveBookRegister, saveBookRegisterTable1, saveBookRegisterTable2 } from '@/server/library/masters/bookRegister';
+import {
+    deactivateBookRegister,
+    getBookRegisterList,
+    getInitialData,
+    saveBookRegister,
+    saveBookRegisterTable1,
+    saveBookRegisterTable2
+} from '@/server/library/masters/bookRegister';
 import type { ApiSearchparams } from '@/types';
 import type { BookRegisterPayload } from '@/types/library/masters/bookRegister';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';

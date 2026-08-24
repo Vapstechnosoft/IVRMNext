@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import VacateForm from './_components/vacate-form';
-import VacateRoomList from './_components/list';
-import { toast } from 'sonner';
+import { Heading } from '@/components/layout/heading';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getDetailsOnType, getVacateLoadData } from '@/server/hostel/hostel-management/transactions/vacate-room';
 import { Minus } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Heading } from '@/components/layout/heading';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import VacateRoomList from './_components/list';
+import VacateForm from './_components/vacate-form';
 
 export default function VacateRoomPage() {
     const [type, setType] = useState<'student' | 'staff' | 'guest'>('student');
@@ -54,34 +54,24 @@ export default function VacateRoomPage() {
     };
 
     return (
-        <div className="flex-col">
-            <div className="flex items-center justify-end px-8 py-2 text-[10px] text-gray-500 font-medium bg-gray-100/50">
+        <div className='flex-col'>
+            <div className='flex items-center justify-end bg-gray-100/50 px-8 py-2 font-medium text-[10px] text-gray-500'>
                 <span>Transaction &gt; HostelVacate</span>
             </div>
-            <div className="flex-1 space-y-4 p-8 pt-4 bg-slate-50/50 min-h-screen">
-                <Heading 
-                    title="Hostel Vacate" 
-                    description="Manage hostel room vacations."
-                />
-                
-                <div className="animate-in fade-in slide-in-from-top-4 duration-500">
-                    <VacateForm
-                        initialData={data}
-                        onTypeChange={handleTypeChange}
-                        onSuccess={handleSuccess}
-                    />
+            <div className='min-h-screen flex-1 space-y-4 bg-slate-50/50 p-8 pt-4'>
+                <Heading title='Hostel Vacate' description='Manage hostel room vacations.' />
+
+                <div className='fade-in slide-in-from-top-4 animate-in duration-500'>
+                    <VacateForm initialData={data} onTypeChange={handleTypeChange} onSuccess={handleSuccess} />
                 </div>
 
-                <Card className="shadow-md border-t-4 border-t-[#4255a7]">
-                    <CardHeader className="bg-[#4255a7] py-1 px-4 flex flex-row items-center justify-between">
-                        <CardTitle className="text-white text-[11px] font-bold uppercase tracking-wider">VACATE DETAILS LIST</CardTitle>
-                        <Minus className="h-3 w-3 text-white cursor-pointer opacity-70" />
+                <Card className='border-t-4 border-t-[#4255a7] shadow-md'>
+                    <CardHeader className='flex flex-row items-center justify-between bg-[#4255a7] px-4 py-1'>
+                        <CardTitle className='font-bold text-[11px] text-white uppercase tracking-wider'>VACATE DETAILS LIST</CardTitle>
+                        <Minus className='h-3 w-3 cursor-pointer text-white opacity-70' />
                     </CardHeader>
-                    <CardContent className="p-6">
-                        <VacateRoomList
-                            data={data.gridlistdata || []}
-                            type={type}
-                        />
+                    <CardContent className='p-6'>
+                        <VacateRoomList data={data.gridlistdata || []} type={type} />
                     </CardContent>
                 </Card>
             </div>

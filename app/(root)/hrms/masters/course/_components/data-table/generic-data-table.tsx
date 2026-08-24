@@ -1,8 +1,8 @@
 'use client';
-import { DataTable } from './data-table';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Database, RefreshCw } from 'lucide-react';
 import { forwardRef } from 'react';
+import { DataTable } from './data-table';
 import type { DataTableRef } from './data-table';
 
 interface GenericDataTableProps<T> {

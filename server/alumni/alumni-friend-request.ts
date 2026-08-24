@@ -3,7 +3,7 @@
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import { auth } from '@/lib/auth';
 import type { ApiSearchparams } from '@/types';
-import type { IAlumniFriendRequest, IAlumniFriendRequestLoadResponse, IAlumniProfileResponse } from '@/types/alumni/alumni-friend-request';
+import type { IAlumniFriendRequestLoadResponse, IAlumniProfileResponse } from '@/types/alumni/alumni-friend-request';
 
 export async function getAlumniFriendRequestData(searchParams?: ApiSearchparams) {
     const session = await auth();

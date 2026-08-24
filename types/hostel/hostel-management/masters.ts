@@ -1,4 +1,4 @@
-import { IMasterFloor } from '@/app/(root)/hostel/hostel-management/masters/master-floor/_components/columns';
+import type { IMasterFloor } from '@/app/(root)/hostel/hostel-management/masters/master-floor/_components/columns';
 
 // --- BED ---
 export interface IBed {

@@ -97,14 +97,14 @@ export default function AdmissionMonthEndReport({
             <table className='mb-10 w-full border-collapse'>
                 <thead>
                     <tr className='bg-blue-600 text-white print:text-black'>
-                        <th className='border p-2 text-sm font-bold'>SL.No</th>
-                        <th className='border p-2 text-sm font-bold'>Name</th>
-                        <th className='border p-2 text-sm font-bold'>Count</th>
-                        <th className='border p-2 text-sm font-bold'>SMS</th>
-                        <th className='border p-2 text-sm font-bold'>Email Id</th>
-                        <th className='border p-2 text-sm font-bold'>Missing Photo</th>
-                        <th className='border p-2 text-sm font-bold'>Missing Email</th>
-                        <th className='border p-2 text-sm font-bold'>Missing Contact No.</th>
+                        <th className='border p-2 font-bold text-sm'>SL.No</th>
+                        <th className='border p-2 font-bold text-sm'>Name</th>
+                        <th className='border p-2 font-bold text-sm'>Count</th>
+                        <th className='border p-2 font-bold text-sm'>SMS</th>
+                        <th className='border p-2 font-bold text-sm'>Email Id</th>
+                        <th className='border p-2 font-bold text-sm'>Missing Photo</th>
+                        <th className='border p-2 font-bold text-sm'>Missing Email</th>
+                        <th className='border p-2 font-bold text-sm'>Missing Contact No.</th>
                     </tr>
                 </thead>
 

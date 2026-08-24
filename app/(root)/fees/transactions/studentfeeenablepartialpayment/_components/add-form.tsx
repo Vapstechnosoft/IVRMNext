@@ -5,18 +5,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { DateField } from '@/components/ui/dateField';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     useStudentFeeEnablePartialPayment,
-    useopeningacademicyerdropdowndatafee,
     useopeningClassdropdowndatafee,
-    useopeningSectiondropdowndatafee
+    useopeningSectiondropdowndatafee,
+    useopeningacademicyerdropdowndatafee
 } from '@/hooks/fees/useTrasactions';
 import { studentFeeEnablePartialPaymentSchema } from '@/schemas/fees/trasactions';
 import { studentNameDropdown } from '@/server/fees/trasactions/fee_opening_balance';
@@ -134,10 +128,7 @@ export default function AddStudentFeeEnablePartialPaymentForm({
                 const res = await studentNameDropdown(payload);
                 if (!isMounted) return;
 
-                const studentlist =
-                    (res?.data as any) ??
-                    (res as any)?.studentlist ??
-                    (Array.isArray(res) ? res : []);
+                const studentlist = (res?.data as any) ?? (res as any)?.studentlist ?? (Array.isArray(res) ? res : []);
 
                 if (Array.isArray(studentlist) && studentlist.length > 0) {
                     setStudents(studentlist);
@@ -179,12 +170,8 @@ export default function AddStudentFeeEnablePartialPaymentForm({
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const selectedStudent = students.find(
-                (s: any) => (s.amst_Id ?? s.amsT_Id ?? s.AMST_Id) === Number(data.amsT_Id)
-            );
-            const selectedYearObj = yearlist.find(
-                (y: any) => (y.asmaY_Id ?? y.ASMAY_Id) === Number(data.asmaY_Id)
-            );
+            const selectedStudent = students.find((s: any) => (s.amst_Id ?? s.amsT_Id ?? s.AMST_Id) === Number(data.amsT_Id));
+            const selectedYearObj = yearlist.find((y: any) => (y.asmaY_Id ?? y.ASMAY_Id) === Number(data.asmaY_Id));
 
             const payload: IStudentFeeEnablePartialPaymentSavePayload = {
                 FSEPP_Id: 0,
@@ -433,12 +420,8 @@ export default function AddStudentFeeEnablePartialPaymentForm({
                                                         const middleName = std.amsT_MiddleName ?? std.middleName ?? '';
                                                         const lastName = std.amsT_LastName ?? std.lastName ?? '';
                                                         const admNo = std.amsT_AdmNo ?? std.admNo ?? '';
-                                                        const fullName = [firstName, middleName, lastName]
-                                                            .filter(Boolean)
-                                                            .join(' ');
-                                                        const displayText = admNo
-                                                            ? `${admNo} : ${fullName}`
-                                                            : fullName;
+                                                        const fullName = [firstName, middleName, lastName].filter(Boolean).join(' ');
+                                                        const displayText = admNo ? `${admNo} : ${fullName}` : fullName;
                                                         if (studentId === undefined || studentId === null) return null;
 
                                                         return (

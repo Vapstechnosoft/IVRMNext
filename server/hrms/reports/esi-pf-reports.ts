@@ -133,7 +133,6 @@ export async function getPFSummaryReport(data: PFSummaryReportRequest) {
     }
 }
 
-
 /**
  * Fetch VPF Summary Report Data and VPF Yearly report also
  */
@@ -147,4 +146,3 @@ export async function getVPFSummaryReport(data: PFSummaryReportRequest) {
         return { success: false, message: error.message };
     }
 }
-

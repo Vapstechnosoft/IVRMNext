@@ -9,19 +9,21 @@ import type { IMasterTransactionNumberingList } from '@/types/admission/preadmis
 import { Plus, X } from 'lucide-react';
 
 import AddTransactionNumberingForm from './add-form';
-import UpdateTransactionNumberingForm from './update-form';
 import { registrationNumberingColumns } from './columns';
+import UpdateTransactionNumberingForm from './update-form';
 
 export default function TransactionNumberingContent({ numberingType }: { numberingType: string }) {
     const { data: response, isLoading, error } = useRegNumbering(numberingType);
-    const { openAddForm, isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } = useFormContext<IMasterTransactionNumberingList>();
-    
-    const arrayKey = numberingType === 'TC' 
-        ? 'tcNumberingArraylist' 
-        : numberingType === 'RollNumber'
-        ? 'rollNumberingArraylist'
-        : numberingType.charAt(0).toLowerCase() + numberingType.slice(1) + 'NumberingArraylist';
-        
+    const { openAddForm, isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
+        useFormContext<IMasterTransactionNumberingList>();
+
+    const arrayKey =
+        numberingType === 'TC'
+            ? 'tcNumberingArraylist'
+            : numberingType === 'RollNumber'
+              ? 'rollNumberingArraylist'
+              : numberingType.charAt(0).toLowerCase() + numberingType.slice(1) + 'NumberingArraylist';
+
     const tableData = response?.data?.[arrayKey] || [];
     const tableProps = useDataTableProps({ ...response, data: tableData });
 
@@ -100,7 +102,11 @@ export default function TransactionNumberingContent({ numberingType }: { numberi
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateTransactionNumberingForm numberingType={numberingType} selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <UpdateTransactionNumberingForm
+                                numberingType={numberingType}
+                                selectedRow={selectedRow}
+                                onSuccess={closeEditForm}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>

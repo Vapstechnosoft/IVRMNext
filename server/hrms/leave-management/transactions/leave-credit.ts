@@ -1,6 +1,6 @@
 'use server';
-import { createLocalCrud } from '@/lib/localdb';
 import type { LeaveCredit } from '@/app/(root)/hrms/leave-management/transaction/leave-transfer/_components/columns';
+import { createLocalCrud } from '@/lib/localdb';
 export async function getLeaveCredit() {
     const db = createLocalCrud<LeaveCredit>('leaveCredit');
     const data = db.list();

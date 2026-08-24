@@ -2,10 +2,10 @@
 
 export async function fetchAdmissionAnalytics() {
     try {
-        const response = await fetch('https://dashboard-backend-86hjhy0fy-sai-kumar-projects6.vercel.app/dashboard', {
+        const response = await fetch('https://dashboard-backend-coral.vercel.app/dashboard?mi_id=30', {
             next: { revalidate: 0 },
             headers: {
-                'Accept': 'application/json'
+                Accept: 'application/json'
             }
         });
         if (!response.ok) {

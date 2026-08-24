@@ -12,7 +12,9 @@ export async function getSamarthaClasses(asmay_id: number) {
         if (response && (response.success || response.data)) {
             return { success: true, data: response.data || response };
         }
-        const resGet = await api.get<any>('exam', `/exam_master_category/class_drop_down_by_academic_year_list/${asmay_id}`).catch(() => null);
+        const resGet = await api
+            .get<any>('exam', `/exam_master_category/class_drop_down_by_academic_year_list/${asmay_id}`)
+            .catch(() => null);
         return { success: resGet?.success ?? true, data: resGet?.data ?? resGet };
     } catch {
         return { success: false, data: [] };
@@ -29,7 +31,9 @@ export async function getSamarthaSections(asmay_id: number, asmcl_id: number) {
         if (response && (response.success || response.data)) {
             return { success: true, data: response.data || response };
         }
-        const resGet = await api.get<any>('exam', `/exam_master_category/sections_drop_down_by_class_list/${asmcl_id}/${asmay_id}`).catch(() => null);
+        const resGet = await api
+            .get<any>('exam', `/exam_master_category/sections_drop_down_by_class_list/${asmcl_id}/${asmay_id}`)
+            .catch(() => null);
         return { success: resGet?.success ?? true, data: resGet?.data ?? resGet };
     } catch {
         return { success: false, data: [] };
@@ -46,7 +50,12 @@ export async function getSamarthaStudents(asmay_id: number, asmcl_id: number, as
         if (response && (response.success || response.data)) {
             return { success: true, data: response.data || response };
         }
-        const resGet = await api.get<any>('exam', `/exam_master_category/students_drop_down_by_year_class_section_list?ASMAY_Id=${asmay_id}&ASMCL_Id=${asmcl_id}&ASMS_Id=${asms_id}`).catch(() => null);
+        const resGet = await api
+            .get<any>(
+                'exam',
+                `/exam_master_category/students_drop_down_by_year_class_section_list?ASMAY_Id=${asmay_id}&ASMCL_Id=${asmcl_id}&ASMS_Id=${asms_id}`
+            )
+            .catch(() => null);
         return { success: resGet?.success ?? true, data: resGet?.data ?? resGet };
     } catch {
         return { success: false, data: [] };

@@ -99,8 +99,7 @@ export default function TimetableGrid({ data }: TimetableGridProps) {
                                 </th>
                             </tr>
                         </thead>
-                        <tbody>
-                        </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
 
@@ -114,8 +113,7 @@ export default function TimetableGrid({ data }: TimetableGridProps) {
                             <ChevronRight className='h-4 w-4' />
                         </Button>
                     </div>
-                    <div className='rounded-lg border border-purple-100 bg-purple-50 px-3 py-1.5 font-medium text-purple-700 text-sm shadow-sm'>
-                    </div>
+                    <div className='rounded-lg border border-purple-100 bg-purple-50 px-3 py-1.5 font-medium text-purple-700 text-sm shadow-sm'></div>
                 </div>
             </div>
         </div>

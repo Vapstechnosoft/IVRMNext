@@ -416,7 +416,11 @@ export default function AddFeeTermsPeriodForm({ onSuccess, termname = '' }: FeeT
                             name='to_Month'
                             control={control}
                             render={({ field }) => (
-                                <Select key={`to-${resetKey}`} value={field.value || ''} onValueChange={field.onChange} disabled={!fromMonth}>
+                                <Select
+                                    key={`to-${resetKey}`}
+                                    value={field.value || ''}
+                                    onValueChange={field.onChange}
+                                    disabled={!fromMonth}>
                                     <SelectTrigger className='min-w-[400px] text-center'>
                                         <SelectValue placeholder='--Select Month--' />
                                     </SelectTrigger>

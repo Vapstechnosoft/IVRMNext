@@ -1,5 +1,4 @@
 'use client';
-import { getStatusBadge } from '@/components/extras/helpers/helper';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
@@ -25,14 +24,10 @@ export const shiftSettingColumns: ColumnDef<IMasterShiftSettingList>[] = [
         accessorKey: 'fomS_ShiftName',
         header: ({ column }) => (
             <div className='w-fit'>
-                <DataTableColumnHeader column={column} title="Shift Name" />
+                <DataTableColumnHeader column={column} title='Shift Name' />
             </div>
         ),
-        cell: ({ row }) => (
-            <div className='w-fit'>
-                {row.getValue('fomS_ShiftName')}
-            </div>
-        ),
+        cell: ({ row }) => <div className='w-fit'>{row.getValue('fomS_ShiftName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
@@ -41,7 +36,8 @@ export const shiftSettingColumns: ColumnDef<IMasterShiftSettingList>[] = [
         header: ({ column }) => (
             <div className='w-fit'>
                 <DataTableColumnHeader column={column} title='Shift Start Time' />
-            </div>),
+            </div>
+        ),
         cell: ({ row }) => <div className='w-fit'>{row.getValue('fomsT_IHalfLoginTime') || '-'}</div>,
         enableSorting: true,
         enableHiding: true
@@ -56,14 +52,14 @@ export const shiftSettingColumns: ColumnDef<IMasterShiftSettingList>[] = [
     {
         id: 'actions',
         header: ({ column }) => (
-            <div className="flex justify-center w-full">
-                <DataTableColumnHeader column={column} title="Actions" />
+            <div className='flex w-full justify-center'>
+                <DataTableColumnHeader column={column} title='Actions' />
             </div>
         ),
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => (
-            <div className="flex justify-center w-full">
+            <div className='flex w-full justify-center'>
                 <ActionButtonsCell rowData={row.original} />
             </div>
         )

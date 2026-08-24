@@ -1,8 +1,8 @@
 'use server';
 
-import { type ApiResponse } from '@/lib/apiService';
-import { type IDropdown } from '@/types';
-import { type SportStudentParticipationReportData } from '@/app/(root)/Sports/Reports/SportStudentParticipationReport/types';
+import type { SportStudentParticipationReportData } from '@/app/(root)/Sports/Reports/SportStudentParticipationReport/types';
+import type { ApiResponse } from '@/lib/apiService';
+import type { IDropdown } from '@/types';
 
 const dummyData: SportStudentParticipationReportData[] = Array.from({ length: 14 }, (_, i) => ({
     id: i + 1,
@@ -11,10 +11,10 @@ const dummyData: SportStudentParticipationReportData[] = Array.from({ length: 14
     ASMCL_ClassName: ['Class 5', 'Class 6', 'Class 7', 'Class 8'][i % 4],
     ASMC_SectionName: ['A', 'B', 'C'][i % 3],
     SPCCMH_HouseName: ['Red House', 'Blue House', 'Green House', 'Yellow House'][i % 4],
-    AMST_DOB: new Date(2010 + i % 5, i % 12, 1 + i % 28).toISOString(),
+    AMST_DOB: new Date(2010 + (i % 5), i % 12, 1 + (i % 28)).toISOString(),
     SPCCMCL_CompitionLevel: ['Inter-House', 'Zonal', 'State'][i % 3],
     SPCCMSCC_SportsCCName: ['Cricket', 'Football', 'Basketball', 'Throwball'][i % 4],
-    SPCCE_StartDate: new Date(2024, i % 12, 10 + i % 15).toISOString(),
+    SPCCE_StartDate: new Date(2024, i % 12, 10 + (i % 15)).toISOString()
 }));
 
 export async function getStudentParticipationReportData(data: any): Promise<ApiResponse<SportStudentParticipationReportData[]>> {
@@ -23,16 +23,18 @@ export async function getStudentParticipationReportData(data: any): Promise<ApiR
     return {
         success: true,
         message: 'Data fetched successfully',
-        data: dummyData,
+        data: dummyData
     };
 }
 
-export async function getInitialData(): Promise<ApiResponse<{
-    academicYears: IDropdown[];
-    houses: IDropdown[];
-    classes: IDropdown[];
-    sections: IDropdown[];
-}>> {
+export async function getInitialData(): Promise<
+    ApiResponse<{
+        academicYears: IDropdown[];
+        houses: IDropdown[];
+        classes: IDropdown[];
+        sections: IDropdown[];
+    }>
+> {
     return {
         success: true,
         message: 'Initial data fetched',

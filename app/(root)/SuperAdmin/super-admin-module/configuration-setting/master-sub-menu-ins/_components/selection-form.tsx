@@ -1,16 +1,25 @@
 'use client';
 
-import { useFormContext, Controller } from 'react-hook-form';
+import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent } from '@/components/ui/card';
+import {
+    getInstitutionDropdown,
+    getMainMenuDropdown,
+    getModuleDropdown
+} from '@/server/super-admin/configuration-setting/master-sub-menu-ins';
+import type { InstitutionDTO, MainMenuDTO, ModuleDTO } from '@/types/super-admin/configuration-setting/master-sub-menu-ins';
 import { useEffect, useState } from 'react';
-import { InstitutionDTO, ModuleDTO, MainMenuDTO } from '@/types/super-admin/configuration-setting/master-sub-menu-ins';
-import { getInstitutionDropdown, getModuleDropdown, getMainMenuDropdown } from '@/server/super-admin/configuration-setting/master-sub-menu-ins';
+import { Controller, useFormContext } from 'react-hook-form';
 import { toast } from 'sonner';
 
 export default function SelectionForm() {
-    const { control, setValue, watch, formState: { errors } } = useFormContext();
+    const {
+        control,
+        setValue,
+        watch,
+        formState: { errors }
+    } = useFormContext();
     const [institutions, setInstitutions] = useState<InstitutionDTO[]>([]);
     const [modules, setModules] = useState<ModuleDTO[]>([]);
     const [mainMenus, setMainMenus] = useState<MainMenuDTO[]>([]);
@@ -26,8 +35,8 @@ export default function SelectionForm() {
                     setInstitutions(instData.data.institutionList);
                 }
             } catch (e) {
-                console.error("Error fetching dropdowns", e);
-                toast.error("Failed to load initial data");
+                console.error('Error fetching dropdowns', e);
+                toast.error('Failed to load initial data');
             }
         };
         fetchInitialData();
@@ -43,7 +52,7 @@ export default function SelectionForm() {
             }
 
             try {
-                const mi_id = parseInt(selectedInstitution);
+                const mi_id = Number.parseInt(selectedInstitution);
                 const modData = await getModuleDropdown(mi_id);
                 if (modData.success && modData.data?.moduleList) {
                     setModules(modData.data.moduleList);
@@ -51,8 +60,8 @@ export default function SelectionForm() {
                     setModules([]);
                 }
             } catch (e) {
-                console.error("Error fetching modules", e);
-                toast.error("Failed to load modules");
+                console.error('Error fetching modules', e);
+                toast.error('Failed to load modules');
             }
         };
         // Reset sub-selections when parent changes
@@ -69,8 +78,8 @@ export default function SelectionForm() {
             }
 
             try {
-                const mi_id = parseInt(selectedInstitution);
-                const ivrmm_id = parseInt(selectedModule);
+                const mi_id = Number.parseInt(selectedInstitution);
+                const ivrmm_id = Number.parseInt(selectedModule);
                 const menuData = await getMainMenuDropdown(mi_id, ivrmm_id);
                 if (menuData.success && menuData.data?.mainMenuList) {
                     setMainMenus(menuData.data.mainMenuList);
@@ -78,8 +87,8 @@ export default function SelectionForm() {
                     setMainMenus([]);
                 }
             } catch (e) {
-                console.error("Error fetching main menus", e);
-                toast.error("Failed to load main menus");
+                console.error('Error fetching main menus', e);
+                toast.error('Failed to load main menus');
             }
         };
 
@@ -90,15 +99,17 @@ export default function SelectionForm() {
     // Using onValueChange in Controller to handle reset is better to avoid circle
 
     return (
-        <Card className="mb-6 bg-white shadow-md rounded-lg p-0 border">
-            <CardContent className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Card className='mb-6 rounded-lg border bg-white p-0 shadow-md'>
+            <CardContent className='p-6'>
+                <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                     {/* Institution Dropdown */}
-                    <div className="space-y-2">
-                        <Label className="font-semibold">Institution Name: <span className="text-red-500">*</span></Label>
+                    <div className='space-y-2'>
+                        <Label className='font-semibold'>
+                            Institution Name: <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             control={control}
-                            name="institution"
+                            name='institution'
                             render={({ field }) => (
                                 <Select
                                     onValueChange={(val) => {
@@ -106,10 +117,9 @@ export default function SelectionForm() {
                                         setValue('module', '');
                                         setValue('mainMenu', '');
                                     }}
-                                    value={field.value}
-                                >
+                                    value={field.value}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select Institution" />
+                                        <SelectValue placeholder='Select Institution' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {institutions.map((item) => (
@@ -122,18 +132,18 @@ export default function SelectionForm() {
                             )}
                         />
                         {errors.institution && (
-                            <p className="text-sm font-medium text-destructive text-red-500">
-                                {errors.institution.message as string}
-                            </p>
+                            <p className='font-medium text-destructive text-red-500 text-sm'>{errors.institution.message as string}</p>
                         )}
                     </div>
 
                     {/* Module Dropdown */}
-                    <div className="space-y-2">
-                        <Label className="font-semibold">Module Name: <span className="text-red-500">*</span></Label>
+                    <div className='space-y-2'>
+                        <Label className='font-semibold'>
+                            Module Name: <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             control={control}
-                            name="module"
+                            name='module'
                             render={({ field }) => (
                                 <Select
                                     onValueChange={(val) => {
@@ -141,10 +151,9 @@ export default function SelectionForm() {
                                         setValue('mainMenu', ''); // Reset Main Menu on Module change
                                     }}
                                     value={field.value}
-                                    disabled={!selectedInstitution}
-                                >
+                                    disabled={!selectedInstitution}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select Module" />
+                                        <SelectValue placeholder='Select Module' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {modules.map((item) => (
@@ -157,22 +166,22 @@ export default function SelectionForm() {
                             )}
                         />
                         {errors.module && (
-                            <p className="text-sm font-medium text-destructive text-red-500">
-                                {errors.module.message as string}
-                            </p>
+                            <p className='font-medium text-destructive text-red-500 text-sm'>{errors.module.message as string}</p>
                         )}
                     </div>
 
                     {/* Main Menu Dropdown */}
-                    <div className="space-y-2">
-                        <Label className="font-semibold">Main Menu Name: <span className="text-red-500">*</span></Label>
+                    <div className='space-y-2'>
+                        <Label className='font-semibold'>
+                            Main Menu Name: <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             control={control}
-                            name="mainMenu"
+                            name='mainMenu'
                             render={({ field }) => (
                                 <Select onValueChange={field.onChange} value={field.value} disabled={!selectedModule}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select Main Menu" />
+                                        <SelectValue placeholder='Select Main Menu' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {mainMenus.map((item) => (
@@ -185,9 +194,7 @@ export default function SelectionForm() {
                             )}
                         />
                         {errors.mainMenu && (
-                            <p className="text-sm font-medium text-destructive text-red-500">
-                                {errors.mainMenu.message as string}
-                            </p>
+                            <p className='font-medium text-destructive text-red-500 text-sm'>{errors.mainMenu.message as string}</p>
                         )}
                     </div>
                 </div>

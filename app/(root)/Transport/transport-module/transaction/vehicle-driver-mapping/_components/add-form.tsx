@@ -5,7 +5,12 @@ import { Calendar } from '@/components/ui/calendar';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useDriverDropDown, useSessionDropDown, useVehicleDriverMapping, useVehicleDropDown } from '@/hooks/transport/transportmodule/usetransaction';
+import {
+    useDriverDropDown,
+    useSessionDropDown,
+    useVehicleDriverMapping,
+    useVehicleDropDown
+} from '@/hooks/transport/transportmodule/usetransaction';
 import { cn } from '@/lib/utils';
 import { vehicleDriverMappingSchema } from '@/schemas/transport/transaction';
 import { saveVehicleDriverMapping } from '@/server/transport/transport-module/transaction/vehicle-driver-mapping';
@@ -14,7 +19,7 @@ import { CalendarIcon, Loader2, Save } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z } from 'zod';
+import type { z } from 'zod';
 
 interface AddFormProps {
     onClose?: () => void;
@@ -28,7 +33,7 @@ export default function AddForm({ onClose }: AddFormProps) {
 
     // Fetch master data directly in the form
     const { data: vehicleData } = useVehicleDropDown();
-    console.log("vehi--------------------", vehicleData);
+    console.log('vehi--------------------', vehicleData);
     const { data: driverData } = useDriverDropDown();
     const { data: sessionData } = useSessionDropDown();
 
@@ -74,7 +79,6 @@ export default function AddForm({ onClose }: AddFormProps) {
     return (
         <form onSubmit={handleSubmit(onSubmit)} className='space-y-4 p-4'>
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-
                 {/* Vehicle */}
                 <div className='group flex flex-col gap-1.5'>
                     <Label htmlFor='trmV_Id'>
@@ -84,9 +88,7 @@ export default function AddForm({ onClose }: AddFormProps) {
                         name='trmV_Id'
                         control={control}
                         render={({ field }) => (
-                            <Select
-                                onValueChange={(val) => field.onChange(Number(val))}
-                                value={field.value?.toString()}>
+                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                 <SelectTrigger id='trmV_Id'>
                                     <SelectValue placeholder='Select Vehicle' />
                                 </SelectTrigger>
@@ -100,9 +102,7 @@ export default function AddForm({ onClose }: AddFormProps) {
                             </Select>
                         )}
                     />
-                    {errors.trmV_Id && (
-                        <FormError>{errors.trmV_Id.message}</FormError>
-                    )}
+                    {errors.trmV_Id && <FormError>{errors.trmV_Id.message}</FormError>}
                 </div>
 
                 {/* Driver */}
@@ -114,9 +114,7 @@ export default function AddForm({ onClose }: AddFormProps) {
                         name='trmD_Id'
                         control={control}
                         render={({ field }) => (
-                            <Select
-                                onValueChange={(val) => field.onChange(Number(val))}
-                                value={field.value?.toString()}>
+                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                 <SelectTrigger id='trmD_Id'>
                                     <SelectValue placeholder='Select Driver' />
                                 </SelectTrigger>
@@ -130,9 +128,7 @@ export default function AddForm({ onClose }: AddFormProps) {
                             </Select>
                         )}
                     />
-                    {errors.trmD_Id && (
-                        <FormError>{errors.trmD_Id.message}</FormError>
-                    )}
+                    {errors.trmD_Id && <FormError>{errors.trmD_Id.message}</FormError>}
                 </div>
 
                 {/* Date */}
@@ -149,15 +145,8 @@ export default function AddForm({ onClose }: AddFormProps) {
                                     <Button
                                         id='trvD_Date'
                                         variant={'outline'}
-                                        className={cn(
-                                            'w-full pl-3 text-left font-normal',
-                                            !field.value && 'text-muted-foreground'
-                                        )}>
-                                        {field.value ? (
-                                            <span>{new Date(field.value).toLocaleDateString()}</span>
-                                        ) : (
-                                            <span>Pick a date</span>
-                                        )}
+                                        className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
+                                        {field.value ? <span>{new Date(field.value).toLocaleDateString()}</span> : <span>Pick a date</span>}
                                         <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
                                     </Button>
                                 </PopoverTrigger>
@@ -178,9 +167,7 @@ export default function AddForm({ onClose }: AddFormProps) {
                             </Popover>
                         )}
                     />
-                    {errors.trvD_Date && (
-                        <FormError>{errors.trvD_Date.message}</FormError>
-                    )}
+                    {errors.trvD_Date && <FormError>{errors.trvD_Date.message}</FormError>}
                 </div>
 
                 {/* Session */}
@@ -192,9 +179,7 @@ export default function AddForm({ onClose }: AddFormProps) {
                         name='trmS_Id'
                         control={control}
                         render={({ field }) => (
-                            <Select
-                                onValueChange={(val) => field.onChange(Number(val))}
-                                value={field.value?.toString()}>
+                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                 <SelectTrigger id='trmS_Id'>
                                     <SelectValue placeholder='Select Session' />
                                 </SelectTrigger>
@@ -208,9 +193,7 @@ export default function AddForm({ onClose }: AddFormProps) {
                             </Select>
                         )}
                     />
-                    {errors.trmS_Id && (
-                        <FormError>{errors.trmS_Id.message}</FormError>
-                    )}
+                    {errors.trmS_Id && <FormError>{errors.trmS_Id.message}</FormError>}
                 </div>
 
                 {/* PickUp / Drop */}
@@ -231,11 +214,8 @@ export default function AddForm({ onClose }: AddFormProps) {
                             </Select>
                         )}
                     />
-                    {errors.trmS_Flag && (
-                        <FormError>{errors.trmS_Flag.message}</FormError>
-                    )}
+                    {errors.trmS_Flag && <FormError>{errors.trmS_Flag.message}</FormError>}
                 </div>
-
             </div>
 
             <div className='flex justify-end space-x-2'>

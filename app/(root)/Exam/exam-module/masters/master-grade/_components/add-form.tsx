@@ -16,7 +16,11 @@ import type { z } from 'zod';
 
 type FormFields = z.infer<typeof masterGradeSchema.addOrUpdate>;
 
-export default function AddMasterGradeForm({ onSuccess, refetchGrid, className = '' }: { onSuccess?: () => void; refetchGrid: () => void; className?: string }) {
+export default function AddMasterGradeForm({
+    onSuccess,
+    refetchGrid,
+    className = ''
+}: { onSuccess?: () => void; refetchGrid: () => void; className?: string }) {
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
     const {
@@ -171,7 +175,13 @@ export default function AddMasterGradeForm({ onSuccess, refetchGrid, className =
         <form onSubmit={handleSubmit(onSubmit)} className={`space-y-6 ${className}`}>
             {/* Grade Name + Type */}
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                <InputText label='Grade Name' required placeholder='Enter Grade Name' {...register('emgR_GradeName')} error={errors.emgR_GradeName?.message} />
+                <InputText
+                    label='Grade Name'
+                    required
+                    placeholder='Enter Grade Name'
+                    {...register('emgR_GradeName')}
+                    error={errors.emgR_GradeName?.message}
+                />
                 <div>
                     <Label>
                         Marks/Percentage <span className='text-red-500'>*</span>

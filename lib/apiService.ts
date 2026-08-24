@@ -163,9 +163,9 @@ class ApiService {
                             if (currentTimestamp >= session.expires_at) {
                                 const Swal = (await import('sweetalert2')).default;
                                 await signOut({ redirect: false });
-                                await Swal.fire("Your Session has been Expired.....Please Re-login");
+                                await Swal.fire('Your Session has been Expired.....Please Re-login');
                                 window.location.href = '/sign-in';
-                                return Promise.reject(new Error("Session Expired"));
+                                return Promise.reject(new Error('Session Expired'));
                             }
                         }
 
@@ -199,7 +199,7 @@ class ApiService {
                             const { signOut } = await import('next-auth/react');
                             const Swal = (await import('sweetalert2')).default;
                             await signOut({ redirect: false });
-                            await Swal.fire("Your Session has been Expired.....Please Re-login");
+                            await Swal.fire('Your Session has been Expired.....Please Re-login');
                             window.location.href = '/sign-in';
                         } else {
                             await signOut(); // uses the server-side signOut from top import

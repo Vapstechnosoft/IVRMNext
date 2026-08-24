@@ -6,20 +6,24 @@ import type { IMasterUOM } from '@/types/sports/masters/uom';
 
 export async function getMasterUOMs(searchParams?: ApiSearchparams) {
     // Following the Events page reference: URL parameters with api.post and an empty body.
-    // We explicitly map the frontend column names to backend DMO field names (PascalCase) 
+    // We explicitly map the frontend column names to backend DMO field names (PascalCase)
     // and provide the required search_column to trigger the search helper on the backend.
-    
+
     const params = {
         ...searchParams,
         // Map frontend sorting keys to backend database field names
-        sort_column: searchParams?.sort_column === 'spccmuoM_Id' ? 'SPCCMUOM_Id' : 
-                    searchParams?.sort_column === 'spccmuoM_UOMName' ? 'SPCCMUOM_UOMName' : 
-                    searchParams?.sort_column === 'spccmuoM_ActiveFlag' ? 'SPCCMUOM_ActiveFlag' :
-                    searchParams?.sort_column || '',
+        sort_column:
+            searchParams?.sort_column === 'spccmuoM_Id'
+                ? 'SPCCMUOM_Id'
+                : searchParams?.sort_column === 'spccmuoM_UOMName'
+                  ? 'SPCCMUOM_UOMName'
+                  : searchParams?.sort_column === 'spccmuoM_ActiveFlag'
+                    ? 'SPCCMUOM_ActiveFlag'
+                    : searchParams?.sort_column || '',
         // The apiService getSearchParamsUrl helper expects 'search_columns' to map to 'search_column' in the URL
         search_columns: searchParams?.search_query ? 'SPCCMUOM_UOMName' : ''
     };
-    
+
     const urlParams = getSearchParamsUrl(params);
     const url = `/SportMasterUOM/Getdetails?${urlParams}`;
     return await api.post<IMasterUOM[]>('sports', url, {});

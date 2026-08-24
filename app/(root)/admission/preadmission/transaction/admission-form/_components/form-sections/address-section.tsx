@@ -1,12 +1,12 @@
 'use client';
 
-import { Controller, useFormContext } from 'react-hook-form';
-import { useMemo, useEffect } from 'react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label, FormError } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
 import { Checkbox } from '@/components/ui/checkbox';
+import { FormError, Label } from '@/components/ui/extension/field';
+import { InputText } from '@/components/ui/extension/input-text';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { useMemo } from 'react';
+import { Controller, useFormContext } from 'react-hook-form';
 
 interface AddressSectionProps {
     country: any[];
@@ -66,7 +66,7 @@ export function AddressSection({
                 state: getValues('amsT_ConState'),
                 district: getValues('amsT_ConDistrict'),
                 city: getValues('amsT_ConCity') || '',
-                pincode: getValues('amsT_ConPincode') || '',
+                pincode: getValues('amsT_ConPincode') || ''
             };
 
             setValue('amsT_PerStreet', residentialValues.street, { shouldValidate: true, shouldDirty: true });
@@ -90,28 +90,32 @@ export function AddressSection({
     };
 
     return (
-        <div className="space-y-8">
+        <div className='space-y-8'>
             {/* Residential Address */}
-            <div className="space-y-4">
-                <div className="flex items-center justify-between border-b pb-2">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                        Residential Address
-                    </h3>
+            <div className='space-y-4'>
+                <div className='flex items-center justify-between border-b pb-2'>
+                    <h3 className='flex items-center gap-2 font-semibold text-lg'>Residential Address</h3>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div className="flex flex-col gap-1.5 md:col-span-2">
-                        <Label>Street <span className="ml-1 text-red-500">*</span></Label>
-                        <InputText {...register('amsT_ConStreet')} placeholder="House No, Street Name" />
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
+                    <div className='flex flex-col gap-1.5 md:col-span-2'>
+                        <Label>
+                            Street <span className='ml-1 text-red-500'>*</span>
+                        </Label>
+                        <InputText {...register('amsT_ConStreet')} placeholder='House No, Street Name' />
                         {errors.amsT_ConStreet && <FormError>{errors.amsT_ConStreet.message as string}</FormError>}
                     </div>
-                    <div className="flex flex-col gap-1.5">
-                        <Label>Area <span className="ml-1 text-red-500">*</span></Label>
-                        <InputText {...register('amsT_ConArea')} placeholder="Area/Locality" />
+                    <div className='flex flex-col gap-1.5'>
+                        <Label>
+                            Area <span className='ml-1 text-red-500'>*</span>
+                        </Label>
+                        <InputText {...register('amsT_ConArea')} placeholder='Area/Locality' />
                     </div>
-                    <div className="flex flex-col gap-1.5">
-                        <Label>Country <span className="ml-1 text-red-500">*</span></Label>
+                    <div className='flex flex-col gap-1.5'>
+                        <Label>
+                            Country <span className='ml-1 text-red-500'>*</span>
+                        </Label>
                         <Controller
-                            name="amsT_ConCountry"
+                            name='amsT_ConCountry'
                             control={control}
                             render={({ field }) => (
                                 <Select
@@ -120,10 +124,9 @@ export function AddressSection({
                                         field.onChange(Number(val));
                                         setValue('amsT_ConState', 0);
                                         setValue('amsT_ConDistrict', 0);
-                                    }}
-                                >
+                                    }}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select Country" />
+                                        <SelectValue placeholder='Select Country' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {country.map((item: any) => (
@@ -136,10 +139,12 @@ export function AddressSection({
                             )}
                         />
                     </div>
-                    <div className="flex flex-col gap-1.5">
-                        <Label>State <span className="ml-1 text-red-500">*</span></Label>
+                    <div className='flex flex-col gap-1.5'>
+                        <Label>
+                            State <span className='ml-1 text-red-500'>*</span>
+                        </Label>
                         <Controller
-                            name="amsT_ConState"
+                            name='amsT_ConState'
                             control={control}
                             render={({ field }) => (
                                 <Select
@@ -148,10 +153,9 @@ export function AddressSection({
                                         field.onChange(Number(val));
                                         setValue('amsT_ConDistrict', 0);
                                     }}
-                                    disabled={!conCountryId}
-                                >
+                                    disabled={!conCountryId}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select State" />
+                                        <SelectValue placeholder='Select State' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {conStates.map((item: any) => (
@@ -164,19 +168,20 @@ export function AddressSection({
                             )}
                         />
                     </div>
-                    <div className="flex flex-col gap-1.5">
-                        <Label>District <span className="ml-1 text-red-500">*</span></Label>
+                    <div className='flex flex-col gap-1.5'>
+                        <Label>
+                            District <span className='ml-1 text-red-500'>*</span>
+                        </Label>
                         <Controller
-                            name="amsT_ConDistrict"
+                            name='amsT_ConDistrict'
                             control={control}
                             render={({ field }) => (
                                 <Select
                                     value={field.value?.toString() || ''}
                                     onValueChange={(val) => field.onChange(Number(val))}
-                                    disabled={!conStateId}
-                                >
+                                    disabled={!conStateId}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select District" />
+                                        <SelectValue placeholder='Select District' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {conDistrict?.map((item: any) => (
@@ -189,51 +194,61 @@ export function AddressSection({
                             )}
                         />
                     </div>
-                    <div className="flex flex-col gap-1.5">
-                        <Label>City <span className="ml-1 text-red-500">*</span></Label>
-                        <InputText {...register('amsT_ConCity')} placeholder="City Name" />
+                    <div className='flex flex-col gap-1.5'>
+                        <Label>
+                            City <span className='ml-1 text-red-500'>*</span>
+                        </Label>
+                        <InputText {...register('amsT_ConCity')} placeholder='City Name' />
                     </div>
-                    <div className="flex flex-col gap-1.5">
-                        <Label>Pincode <span className="ml-1 text-red-500">*</span></Label>
-                        <InputText
-                            {...register('amsT_ConPincode')}
-                            placeholder="Pincode"
-                            maxLength={conZipLength || 6}
-                        />
+                    <div className='flex flex-col gap-1.5'>
+                        <Label>
+                            Pincode <span className='ml-1 text-red-500'>*</span>
+                        </Label>
+                        <InputText {...register('amsT_ConPincode')} placeholder='Pincode' maxLength={conZipLength || 6} />
                         {errors.amsT_ConPincode && <FormError>{errors.amsT_ConPincode.message as string}</FormError>}
                     </div>
                 </div>
             </div>
 
-            <div className="flex items-center space-x-2 py-2 px-4 bg-muted/30 rounded-lg">
+            <div className='flex items-center space-x-2 rounded-lg bg-muted/30 px-4 py-2'>
                 <Checkbox
-                    id="sameAsResidential"
+                    id='sameAsResidential'
                     checked={sameAsResidential}
                     onCheckedChange={(checked) => handleSameAsResidential(!!checked)}
                 />
-                <Label htmlFor="sameAsResidential" className="font-semibold text-primary">
+                <Label htmlFor='sameAsResidential' className='font-semibold text-primary'>
                     Permanent Address same as Residential Address?
                 </Label>
             </div>
 
             {/* Permanent Address */}
-            <div className={cn("space-y-4 transition-all duration-300", sameAsResidential ? "opacity-50 pointer-events-none grayscale-[0.5]" : "opacity-100")}>
-                <div className="flex items-center justify-between border-b pb-2">
-                    <h3 className="text-lg font-semibold">Permanent Address</h3>
+            <div
+                className={cn(
+                    'space-y-4 transition-all duration-300',
+                    sameAsResidential ? 'pointer-events-none opacity-50 grayscale-[0.5]' : 'opacity-100'
+                )}>
+                <div className='flex items-center justify-between border-b pb-2'>
+                    <h3 className='font-semibold text-lg'>Permanent Address</h3>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div className="flex flex-col gap-1.5 md:col-span-2">
-                        <Label>Street <span className="ml-1 text-red-500">*</span></Label>
-                        <InputText {...register('amsT_PerStreet')} placeholder="House No, Street Name" readOnly={sameAsResidential} />
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
+                    <div className='flex flex-col gap-1.5 md:col-span-2'>
+                        <Label>
+                            Street <span className='ml-1 text-red-500'>*</span>
+                        </Label>
+                        <InputText {...register('amsT_PerStreet')} placeholder='House No, Street Name' readOnly={sameAsResidential} />
                     </div>
-                    <div className="flex flex-col gap-1.5">
-                        <Label>Area <span className="ml-1 text-red-500">*</span></Label>
-                        <InputText {...register('amsT_PerArea')} placeholder="Area/Locality" readOnly={sameAsResidential} />
+                    <div className='flex flex-col gap-1.5'>
+                        <Label>
+                            Area <span className='ml-1 text-red-500'>*</span>
+                        </Label>
+                        <InputText {...register('amsT_PerArea')} placeholder='Area/Locality' readOnly={sameAsResidential} />
                     </div>
-                    <div className="flex flex-col gap-1.5">
-                        <Label>Country <span className="ml-1 text-red-500">*</span></Label>
+                    <div className='flex flex-col gap-1.5'>
+                        <Label>
+                            Country <span className='ml-1 text-red-500'>*</span>
+                        </Label>
                         <Controller
-                            name="amsT_PerCountry"
+                            name='amsT_PerCountry'
                             control={control}
                             render={({ field }) => (
                                 <Select
@@ -243,10 +258,9 @@ export function AddressSection({
                                         setValue('amsT_PerState', 0);
                                         setValue('amsT_PerDistrict', 0);
                                     }}
-                                    disabled={sameAsResidential}
-                                >
+                                    disabled={sameAsResidential}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select Country" />
+                                        <SelectValue placeholder='Select Country' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {country.map((item: any) => (
@@ -259,10 +273,12 @@ export function AddressSection({
                             )}
                         />
                     </div>
-                    <div className="flex flex-col gap-1.5">
-                        <Label>State <span className="ml-1 text-red-500">*</span></Label>
+                    <div className='flex flex-col gap-1.5'>
+                        <Label>
+                            State <span className='ml-1 text-red-500'>*</span>
+                        </Label>
                         <Controller
-                            name="amsT_PerState"
+                            name='amsT_PerState'
                             control={control}
                             render={({ field }) => (
                                 <Select
@@ -271,10 +287,9 @@ export function AddressSection({
                                         field.onChange(Number(val));
                                         setValue('amsT_PerDistrict', 0);
                                     }}
-                                    disabled={sameAsResidential || !perCountryId}
-                                >
+                                    disabled={sameAsResidential || !perCountryId}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select State" />
+                                        <SelectValue placeholder='Select State' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {perStates.map((item: any) => (
@@ -287,19 +302,20 @@ export function AddressSection({
                             )}
                         />
                     </div>
-                    <div className="flex flex-col gap-1.5">
-                        <Label>District <span className="ml-1 text-red-500">*</span></Label>
+                    <div className='flex flex-col gap-1.5'>
+                        <Label>
+                            District <span className='ml-1 text-red-500'>*</span>
+                        </Label>
                         <Controller
-                            name="amsT_PerDistrict"
+                            name='amsT_PerDistrict'
                             control={control}
                             render={({ field }) => (
                                 <Select
                                     value={field.value?.toString() || ''}
                                     onValueChange={(val) => field.onChange(Number(val))}
-                                    disabled={sameAsResidential || !perStateId}
-                                >
+                                    disabled={sameAsResidential || !perStateId}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select District" />
+                                        <SelectValue placeholder='Select District' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {perDistrict?.map((item: any) => (
@@ -312,15 +328,19 @@ export function AddressSection({
                             )}
                         />
                     </div>
-                    <div className="flex flex-col gap-1.5">
-                        <Label>City <span className="ml-1 text-red-500">*</span></Label>
-                        <InputText {...register('amsT_PerCity')} placeholder="City Name" readOnly={sameAsResidential} />
+                    <div className='flex flex-col gap-1.5'>
+                        <Label>
+                            City <span className='ml-1 text-red-500'>*</span>
+                        </Label>
+                        <InputText {...register('amsT_PerCity')} placeholder='City Name' readOnly={sameAsResidential} />
                     </div>
-                    <div className="flex flex-col gap-1.5">
-                        <Label>Pincode <span className="ml-1 text-red-500">*</span></Label>
+                    <div className='flex flex-col gap-1.5'>
+                        <Label>
+                            Pincode <span className='ml-1 text-red-500'>*</span>
+                        </Label>
                         <InputText
                             {...register('amsT_PerPincode')}
-                            placeholder="Pincode"
+                            placeholder='Pincode'
                             maxLength={perZipLength || 6}
                             readOnly={sameAsResidential}
                         />
@@ -331,4 +351,3 @@ export function AddressSection({
         </div>
     );
 }
-

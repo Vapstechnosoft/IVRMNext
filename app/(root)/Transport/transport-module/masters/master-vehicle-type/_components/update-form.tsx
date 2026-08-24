@@ -21,11 +21,7 @@ interface UpdateVehicleTypeFormProps {
     selectedRow: IMasterVehicleType;
 }
 
-export default function UpdateVehicleTypeForm({
-    onSuccess,
-    className = '',
-    selectedRow: row
-}: UpdateVehicleTypeFormProps) {
+export default function UpdateVehicleTypeForm({ onSuccess, className = '', selectedRow: row }: UpdateVehicleTypeFormProps) {
     const { refetchAll } = useMasterVehicleType();
 
     const {

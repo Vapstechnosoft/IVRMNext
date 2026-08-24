@@ -36,7 +36,7 @@ export default function DeleteMasterPeriodForm({ rowData, onClose, onSuccess }: 
             <div className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <p>Are you sure you want to delete this period?</p>
-                    <div className='rounded-md bg-muted p-3 text-sm text-muted-foreground'>
+                    <div className='rounded-md bg-muted p-3 text-muted-foreground text-sm'>
                         <p>
                             <strong>Period Name:</strong> {rowData.imP_PeriodName}
                         </p>

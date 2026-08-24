@@ -103,44 +103,44 @@ export async function getCalcuttaPromotionReportI_IX(data: any) {
         groupewiseexamTemp.push({
             EMPG_GroupName: dd.empG_GroupName,
             EME_Id: 9800000,
-            EME_ExamName: "Marks Obtained",
+            EME_ExamName: 'Marks Obtained',
             EME_ExamOrder: 9800000,
             EMPG_DistplayName: dd.empG_DistplayName,
             EMPSGE_ForMaxMarkrs: counttotal,
             examnamedisplay: 'Total',
-            columname: ""
+            columname: ''
         });
 
         groupewiseexamTemp.push({
             EMPG_GroupName: dd.empG_GroupName,
             EME_Id: 98000012,
-            EME_ExamName: "Highest in Class",
+            EME_ExamName: 'Highest in Class',
             EME_ExamOrder: 98000012,
             EMPG_DistplayName: dd.empG_DistplayName,
             EMPSGE_ForMaxMarkrs: null,
-            examnamedisplay: "Highest in Class",
-            columname: ""
+            examnamedisplay: 'Highest in Class',
+            columname: ''
         });
 
         groupwiseexamlist.push({
             EMPG_GroupName: dd.empG_GroupName,
             EME_Id: 9800000,
-            EME_ExamName: "Marks Obtained",
+            EME_ExamName: 'Marks Obtained',
             EME_ExamOrder: 9800000,
             EMPG_DistplayName: dd.empG_DistplayName,
             EMPSGE_ForMaxMarkrs: counttotal,
             examnamedisplay: 'Total',
-            columname: "Marks",
+            columname: 'Marks'
         });
 
         groupwiseexamlist.push({
             EMPG_GroupName: dd.empG_GroupName,
             EME_Id: 98000012,
-            EME_ExamName: "Highest in Class",
+            EME_ExamName: 'Highest in Class',
             EME_ExamOrder: 98000012,
             EMPG_DistplayName: dd.empG_DistplayName,
             EMPSGE_ForMaxMarkrs: null,
-            examnamedisplay: "Highest in Class"
+            examnamedisplay: 'Highest in Class'
         });
 
         dd.empsG_MarksValue = counttotal;
@@ -174,26 +174,55 @@ export async function getCalcuttaPromotionReportI_IX(data: any) {
             const dId = d.amsT_Id ?? d.AMST_Id ?? d.amst_id ?? d.AMST_ID ?? 0;
             return dId && stuId && Number(dId) === Number(stuId);
         });
-        const remarks = promotionRemarksObj?.eprD_Remarks ?? promotionRemarksObj?.eprd_Remarks ?? promotionRemarksObj?.eprd_remarks ?? promotionRemarksObj?.EPRD_Remarks ?? promotionRemarksObj?.remarks ?? promotionRemarksObj?.Remarks ?? '';
-        const promotedclass = promotionRemarksObj?.eprD_ClassPromoted ?? promotionRemarksObj?.eprd_ClassPromoted ?? promotionRemarksObj?.eprd_classpromoted ?? '';
+        const remarks =
+            promotionRemarksObj?.eprD_Remarks ??
+            promotionRemarksObj?.eprd_Remarks ??
+            promotionRemarksObj?.eprd_remarks ??
+            promotionRemarksObj?.EPRD_Remarks ??
+            promotionRemarksObj?.remarks ??
+            promotionRemarksObj?.Remarks ??
+            '';
+        const promotedclass =
+            promotionRemarksObj?.eprD_ClassPromoted ??
+            promotionRemarksObj?.eprd_ClassPromoted ??
+            promotionRemarksObj?.eprd_classpromoted ??
+            '';
         const conduct = promotionRemarksObj?.eprD_PromotionName ?? promotionRemarksObj?.eprd_PromotionName ?? '';
 
         // Attendance (I-IX logic mapsTOTALAttendancePercentage)
-        const attendance = getstudentwiseattendancedetails.filter((d: any) => {
-            const dId = d.AMST_Id || d.amsT_Id;
-            const stuId = stu.amsT_Id || stu.AMST_Id;
-            return dId && stuId && Number(dId) === Number(stuId);
-        }).map((d: any) => {
-            const termName = d.EMPSG_DisplayName ?? d.empsG_DisplayName ?? d.empsg_DisplayName ?? d.EMPSG_GroupName ?? d.empg_GroupName ?? d.empsg_GroupName ?? '';
-            const percentageVal = d.TOTALAttendancePercentage ?? d.totalAttendancePercentage ?? d.TotalAttendancePercentage ?? d.attendancepercentage ?? d.attendancePercentage ?? d.ATTENDANCEPERCENTAGE ?? d.Percentage ?? d.percentage ?? null;
-            return {
-                classheld: d.TOTALWORKINGDAYS ?? d.totalworkingdays ?? d.TotalWorkingDays ?? 0,
-                emE_Id: d.EME_Id ?? d.emE_Id ?? d.eme_Id ?? 0,
-                classatt: d.PRESENTDAYS ?? d.presentdays ?? d.PresentDays ?? 0,
-                percentage: percentageVal !== null && percentageVal !== undefined ? Number(percentageVal) : null,
-                term: termName
-            };
-        });
+        const attendance = getstudentwiseattendancedetails
+            .filter((d: any) => {
+                const dId = d.AMST_Id || d.amsT_Id;
+                const stuId = stu.amsT_Id || stu.AMST_Id;
+                return dId && stuId && Number(dId) === Number(stuId);
+            })
+            .map((d: any) => {
+                const termName =
+                    d.EMPSG_DisplayName ??
+                    d.empsG_DisplayName ??
+                    d.empsg_DisplayName ??
+                    d.EMPSG_GroupName ??
+                    d.empg_GroupName ??
+                    d.empsg_GroupName ??
+                    '';
+                const percentageVal =
+                    d.TOTALAttendancePercentage ??
+                    d.totalAttendancePercentage ??
+                    d.TotalAttendancePercentage ??
+                    d.attendancepercentage ??
+                    d.attendancePercentage ??
+                    d.ATTENDANCEPERCENTAGE ??
+                    d.Percentage ??
+                    d.percentage ??
+                    null;
+                return {
+                    classheld: d.TOTALWORKINGDAYS ?? d.totalworkingdays ?? d.TotalWorkingDays ?? 0,
+                    emE_Id: d.EME_Id ?? d.emE_Id ?? d.eme_Id ?? 0,
+                    classatt: d.PRESENTDAYS ?? d.presentdays ?? d.PresentDays ?? 0,
+                    percentage: percentageVal !== null && percentageVal !== undefined ? Number(percentageVal) : null,
+                    term: termName
+                };
+            });
 
         // Exam wise total details
         const examwisetotal = getexamwisetotaldetails.filter((t: any) => {
@@ -219,7 +248,11 @@ export async function getCalcuttaPromotionReportI_IX(data: any) {
         // Generate Chart Data (Highest vs Average vs Obtained)
         const chartData = [];
         const studentChartSubjects = studentSubjects.filter(
-            (s: any) => s.EYCES_MarksDisplayFlg === true || s.EYCES_MarksDisplayFlg === 'true' || s.eyceS_MarksDisplayFlg === true || s.eyceS_MarksDisplayFlg === 'true'
+            (s: any) =>
+                s.EYCES_MarksDisplayFlg === true ||
+                s.EYCES_MarksDisplayFlg === 'true' ||
+                s.eyceS_MarksDisplayFlg === true ||
+                s.eyceS_MarksDisplayFlg === 'true'
         );
 
         for (const subj of studentChartSubjects) {
@@ -270,13 +303,13 @@ export async function getCalcuttaPromotionReportI_IX(data: any) {
         const ecsaId = dev.ECSA_Id ?? dev.ecsA_Id;
         const ecsaSkillArea = dev.ECSA_SkillArea ?? dev.ecsA_SkillArea;
 
-        if (ecsId && !skilllist_temp.find(emp => (emp.ECS_Id ?? emp.ecS_Id) === ecsId)) {
+        if (ecsId && !skilllist_temp.find((emp) => (emp.ECS_Id ?? emp.ecS_Id) === ecsId)) {
             skilllist_temp.push({
                 ECS_Id: ecsId,
                 ECS_SkillName: ecsSkillName
             });
         }
-        if (ecsaId && !activitylist_temp.find(act => (act.ECSA_Id ?? act.ecsA_Id) === ecsaId)) {
+        if (ecsaId && !activitylist_temp.find((act) => (act.ECSA_Id ?? act.ecsA_Id) === ecsaId)) {
             activitylist_temp.push({
                 ECS_Id: ecsId,
                 ECSA_Id: ecsaId,
@@ -286,12 +319,10 @@ export async function getCalcuttaPromotionReportI_IX(data: any) {
     }
 
     // exam_promotion_groupwise_remarks processing for PE
-    const examwiseremarkstemp = (exam_promotion_groupwise_remarks || []).filter(
-        (r: any) => {
-            const flag = (r.ECTERE_Indi_OverAllFlag || r.ecterE_Indi_OverAllFlag || '').trim().toUpperCase();
-            return flag === 'PE';
-        }
-    );
+    const examwiseremarkstemp = (exam_promotion_groupwise_remarks || []).filter((r: any) => {
+        const flag = (r.ECTERE_Indi_OverAllFlag || r.ecterE_Indi_OverAllFlag || '').trim().toUpperCase();
+        return flag === 'PE';
+    });
 
     return {
         getinstitution,
@@ -304,6 +335,6 @@ export async function getCalcuttaPromotionReportI_IX(data: any) {
         getpromotionremarksdetails,
         examwiseremarkstemp,
         studentdetails: studentListDetails,
-        getstudentwiseattendancedetails,
+        getstudentwiseattendancedetails
     };
 }

@@ -8,22 +8,26 @@ export const pcRequisitionSchema = {
         pcreqtN_Purpose: z.string().min(1, 'Purpose is required'),
 
         // Particulars Requirements Details
-        requisitionDetails: z.array(
-            z.object({
-                pcmparT_Id: z.string().min(1, 'Particulars is required'),
-                pcreqtndE_Amount: z.number().min(0, 'Amount must be positive'),
-                pcreqtndE_Remarks: z.string().optional()
-            })
-        ).min(1, 'At least one particular detail is required'),
+        requisitionDetails: z
+            .array(
+                z.object({
+                    pcmparT_Id: z.string().min(1, 'Particulars is required'),
+                    pcreqtndE_Amount: z.number().min(0, 'Amount must be positive'),
+                    pcreqtndE_Remarks: z.string().optional()
+                })
+            )
+            .min(1, 'At least one particular detail is required'),
 
-        requisitionDocuments: z.array(
-            z.object({
-                pcreqtndO_FileName: z.string().min(1, 'File Name is required'),
-                pcreqtndO_FilePath: z.string().optional(),
-                file: z.any().optional(),
-                fileType: z.string().optional()
-            })
-        ).optional()
+        requisitionDocuments: z
+            .array(
+                z.object({
+                    pcreqtndO_FileName: z.string().min(1, 'File Name is required'),
+                    pcreqtndO_FilePath: z.string().optional(),
+                    file: z.any().optional(),
+                    fileType: z.string().optional()
+                })
+            )
+            .optional()
     })
 };
 

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useOutward } from '@/hooks/visitors-management/transactions/useOutward';
-import { OutwardTransactionData } from '@/types/visitors-management/transactions';
+import type { OutwardTransactionData } from '@/types/visitors-management/transactions';
 import { Plus, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { getColumns } from './_components/columns';
@@ -44,14 +44,14 @@ export default function OutwardPage() {
     const columns = getColumns({ onEdit: handleEdit });
 
     return (
-        <div className="min-h-screen">
+        <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-self-end'>
                     <Button
                         type='button'
                         onClick={handleAddNew}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='h-4 w-4 mr-2' />
+                        <Plus className='mr-2 h-4 w-4' />
                         Add Outward
                     </Button>
                 </div>

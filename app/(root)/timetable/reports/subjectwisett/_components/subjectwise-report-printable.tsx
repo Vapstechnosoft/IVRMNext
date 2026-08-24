@@ -1,6 +1,6 @@
 'use client';
 
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 
 interface SubjectWiseReportPrintableProps {
     reportData: any[];
@@ -24,7 +24,7 @@ const SubjectWiseReportPrintable = forwardRef<HTMLDivElement, SubjectWiseReportP
                 }
             `}</style>
             {reportData.map((table, idx) => (
-                <div key={idx} className='mb-12 page-break-after-always'>
+                <div key={idx} className='page-break-after-always mb-12'>
                     <h3 className='mb-4 text-center font-bold text-green-700 text-xl' style={{ color: '#15803d' }}>
                         {table.header}
                     </h3>

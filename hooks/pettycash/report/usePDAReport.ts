@@ -1,8 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getPDAReportInitialData, getPDAReport, getAcademicYearList } from "@/server/pettycash/report/PCReport";
-import { IPDAReportParams } from "@/types/pettycash/report/PDAReport";
-import { TIMETABLE_QUERY_KEYS } from "@/constants/Timetable-query-keys";
-
+import { TIMETABLE_QUERY_KEYS } from '@/constants/Timetable-query-keys';
+import { getAcademicYearList, getPDAReport, getPDAReportInitialData } from '@/server/pettycash/report/PCReport';
+import type { IPDAReportParams } from '@/types/pettycash/report/PDAReport';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 //incomereport
 
@@ -26,7 +25,7 @@ export const usePDAReportInitialData = () => {
 
 export const usePDAReportMutation = () => {
     return useMutation({
-        mutationFn: (data: IPDAReportParams) => getPDAReport(data),
+        mutationFn: (data: IPDAReportParams) => getPDAReport(data)
     });
 };
 

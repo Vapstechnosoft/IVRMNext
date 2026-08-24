@@ -1,11 +1,11 @@
 'use client';
 
-import type { IMasterHouse } from '@/types/sports/masters/house';
-import AddMasterHouseForm from './add-form';
-import { useQuery } from '@tanstack/react-query';
 import { getMasterHouseDetails } from '@/server/sports/masters/house';
+import type { IMasterHouse } from '@/types/sports/masters/house';
+import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import AddMasterHouseForm from './add-form';
 
 export default function UpdateMasterHouseForm({
     selectedRow,
@@ -17,7 +17,7 @@ export default function UpdateMasterHouseForm({
     const { data: apiData, isLoading } = useQuery({
         queryKey: ['master-house-details', selectedRow.spccmH_Id],
         queryFn: () => getMasterHouseDetails(selectedRow.spccmH_Id),
-        enabled: !!selectedRow.spccmH_Id,
+        enabled: !!selectedRow.spccmH_Id
     });
 
     const [formData, setFormData] = useState<IMasterHouse>(selectedRow);
@@ -32,18 +32,19 @@ export default function UpdateMasterHouseForm({
 
     if (isLoading) {
         return (
-            <div className="flex h-40 w-full items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <span className="ml-2">Loading details...</span>
+            <div className='flex h-40 w-full items-center justify-center'>
+                <Loader2 className='h-8 w-8 animate-spin text-primary' />
+                <span className='ml-2'>Loading details...</span>
             </div>
         );
     }
 
-    const finalData = (apiData?.editdetails && Array.isArray(apiData.editdetails) && apiData.editdetails.length > 0)
-        ? (apiData.editdetails[0] as IMasterHouse)
-        : (apiData?.data && Array.isArray(apiData.data) && apiData.data.length > 0)
-            ? (apiData.data[0] as IMasterHouse)
-            : selectedRow;
+    const finalData =
+        apiData?.editdetails && Array.isArray(apiData.editdetails) && apiData.editdetails.length > 0
+            ? (apiData.editdetails[0] as IMasterHouse)
+            : apiData?.data && Array.isArray(apiData.data) && apiData.data.length > 0
+              ? (apiData.data[0] as IMasterHouse)
+              : selectedRow;
 
     return <AddMasterHouseForm selectedRow={formData !== selectedRow ? formData : finalData} onSuccess={onSuccess} />;
 }

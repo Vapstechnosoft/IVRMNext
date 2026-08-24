@@ -51,7 +51,12 @@ export async function toggleNoticeBoardStatus(payload: { intB_Id: number }) {
     return result;
 }
 
-export async function viewNoticeBoardRecords(payload: { intB_Id: number, intB_Title: string, intB_ToStaffFlg: boolean, intB_ToStudentFlg: boolean }) {
+export async function viewNoticeBoardRecords(payload: {
+    intB_Id: number;
+    intB_Title: string;
+    intB_ToStaffFlg: boolean;
+    intB_ToStudentFlg: boolean;
+}) {
     const { intB_Id, intB_Title, intB_ToStaffFlg, intB_ToStudentFlg } = payload;
     const url = `/notice_board/viewrecords?INTB_Id=${intB_Id}&INTB_Title=${encodeURIComponent(intB_Title)}&INTB_ToStudentFlg=${intB_ToStudentFlg}&INTB_ToStaffFlg=${intB_ToStaffFlg}`;
     return await api.post<any>('portal', url, {});

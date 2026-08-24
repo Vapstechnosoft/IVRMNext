@@ -2,7 +2,7 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import { masterSubMenuSchema } from '@/schemas/super-admin/super-admin-module/general-setting/master-sub-menu';
-import { IMasterSubMenu, IModuleDropdownItem, IMainMenuDropdownItem } from '@/types/super-admin/super-admin-module/general-setting/master-sub-menu';
+import type { IMainMenuDropdownItem, IModuleDropdownItem } from '@/types/super-admin/super-admin-module/general-setting/master-sub-menu';
 import { revalidatePath } from 'next/cache';
 
 const FACADE_URL = '/MasterSubMenuFacade'; // Assumed FACADE URL based on convention
@@ -37,11 +37,11 @@ export async function getMasterSubMenuData(searchParams: any) {
 
         return response;
     } catch (error) {
-        console.error("Error fetching Master Sub Menu data:", error);
+        console.error('Error fetching Master Sub Menu data:', error);
         return {
             success: false,
-            message: "Failed to fetch data",
-            data: [],
+            message: 'Failed to fetch data',
+            data: []
         };
     }
 }
@@ -53,7 +53,7 @@ export async function saveMasterSubMenu(data: any) {
         return {
             success: false,
             message: 'Validation failed',
-            errors: validation.error.flatten().fieldErrors,
+            errors: validation.error.flatten().fieldErrors
         };
     }
 
@@ -65,21 +65,21 @@ export async function saveMasterSubMenu(data: any) {
         ivrmM_Id: data.ivrmM_Id,
         ivrmmM_ParentId: data.ivrmmM_Id, // Main Menu ID (Parent)
         ivrmmM_MenuName: data.ivrmmS_SubMenuName,
-        ivrmmM_MenuOrder: parseInt(data.ivrmmS_Order as string), // Ensure number
+        ivrmmM_MenuOrder: Number.parseInt(data.ivrmmS_Order as string), // Ensure number
         ivrmmM_PageNonPageFlag: true
     };
 
-    console.log("Saving Master Sub Menu Payload:", JSON.stringify(payload, null, 2));
+    console.log('Saving Master Sub Menu Payload:', JSON.stringify(payload, null, 2));
 
     try {
         const response = await api.post('sadmin', url, payload);
-        console.log("Save Response:", response);
+        console.log('Save Response:', response);
         if (response.success) {
             revalidatePath('/SuperAdmin/super-admin-module/general-setting/master-sub-menu');
         }
         return response;
     } catch (error) {
-        console.error("Save Error:", error);
+        console.error('Save Error:', error);
         return {
             success: false,
             message: 'Failed to save data. Check server logs.',
@@ -98,7 +98,7 @@ export async function deleteMasterSubMenu(id: number) {
     } catch (error) {
         return {
             success: false,
-            message: 'Failed to delete data',
+            message: 'Failed to delete data'
         };
     }
 }
@@ -109,11 +109,11 @@ export async function getModuleDropdown() {
         const response = await api.get<IModuleDropdownItem[]>('sadmin', url);
         return response;
     } catch (error) {
-        console.error("Error fetching Module Dropdown:", error);
+        console.error('Error fetching Module Dropdown:', error);
         return {
             success: false,
-            message: "Failed to fetch module dropdown",
-            data: [],
+            message: 'Failed to fetch module dropdown',
+            data: []
         };
     }
 }
@@ -135,11 +135,11 @@ export async function getMainMenuDropdown(moduleId: number) {
 
         return response;
     } catch (error) {
-        console.error("Error fetching Main Menu Dropdown:", error);
+        console.error('Error fetching Main Menu Dropdown:', error);
         return {
             success: false,
-            message: "Failed to fetch main menu dropdown",
-            data: [],
+            message: 'Failed to fetch main menu dropdown',
+            data: []
         };
     }
 }
@@ -150,10 +150,10 @@ export async function getMasterSubMenuDetails(id: number) {
         const response = await api.get<any>('sadmin', url);
         return response;
     } catch (error) {
-        console.error("Error fetching Master Sub Menu details:", error);
+        console.error('Error fetching Master Sub Menu details:', error);
         return {
             success: false,
-            message: "Failed to fetch details",
+            message: 'Failed to fetch details'
         };
     }
 }

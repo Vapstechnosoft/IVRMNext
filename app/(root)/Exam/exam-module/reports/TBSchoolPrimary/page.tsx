@@ -22,7 +22,7 @@ export default function TBSchoolPrimaryReportPage() {
         try {
             const res = await getTBSchoolPrimaryReport(payload);
 
-            console.log(res, "response");
+            console.log(res, 'response');
 
             if (!res?.success || !res?.data) {
                 setIsReportVisible(false);
@@ -51,10 +51,7 @@ export default function TBSchoolPrimaryReportPage() {
             {isReportVisible && reportData && (
                 <CollapsibleSection title='TBSchool Primary Report Cards' defaultOpen>
                     <div ref={printRef}>
-                        <ProgressCardReport
-                            reportData={reportData}
-                            onPrint={handlePrint}
-                        />
+                        <ProgressCardReport reportData={reportData} onPrint={handlePrint} />
                     </div>
                 </CollapsibleSection>
             )}

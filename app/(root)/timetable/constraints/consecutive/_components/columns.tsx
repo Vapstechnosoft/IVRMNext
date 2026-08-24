@@ -81,4 +81,3 @@ function ActionButtonsCell({ rowData }: { rowData: IConsecutiveConstraintDetails
         />
     );
 }
-

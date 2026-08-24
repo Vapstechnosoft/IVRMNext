@@ -1,6 +1,6 @@
 'use server';
 
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 
 export interface CandidateInterviewListPayload {
     hrcisC_Id: number;
@@ -28,7 +28,7 @@ export async function getCandidateInterviewListVMS(): Promise<ApiResponse<any>> 
         return {
             success: response?.success ?? true,
             message: response?.message || 'Data fetched successfully',
-            data: response?.data || response,
+            data: response?.data || response
         };
     } catch (error) {
         console.error('Error fetching candidate interview list:', error);
@@ -47,7 +47,7 @@ export async function getCandidateInterviewByIdVMS(hrcisC_Id: number): Promise<A
         return {
             success: response?.success ?? true,
             message: response?.message || 'Record fetched successfully',
-            data: response?.data || response,
+            data: response?.data || response
         };
     } catch (error) {
         console.error(`Error fetching candidate interview record by id ${hrcisC_Id}:`, error);
@@ -66,7 +66,7 @@ export async function toggleCandidateInterviewStatusVMS(hrcisC_Id: number): Prom
         return {
             success: response?.success ?? true,
             message: response?.message || 'Status toggled successfully',
-            data: response?.data || response,
+            data: response?.data || response
         };
     } catch (error) {
         console.error(`Error toggling candidate interview status for id ${hrcisC_Id}:`, error);
@@ -86,7 +86,7 @@ export async function saveOrUpdateCandidateInterviewVMS(payload: CandidateInterv
         return {
             success: response?.success ?? true,
             message: response?.message || 'Candidate interview saved successfully',
-            data: response?.data || response,
+            data: response?.data || response
         };
     } catch (error) {
         console.error('Error saving candidate interview:', error);

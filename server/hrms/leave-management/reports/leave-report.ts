@@ -1,34 +1,32 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type {
-    GetLeaveReportRequest,
-    GetLeaveReportResponseData,
-    GetLeaveReportDepartmentsRequest,
-    GetLeaveReportDepartmentsResponseData,
-    GetLeaveReportDesignationRequest,
-    GetLeaveReportDesignationResponseData,
-    GetLeaveReportEmployeesRequest,
-    GetLeaveReportEmployeesResponseData,
     GetLeaveReportDataRequest,
     GetLeaveReportDataResponseData,
-    GetPeriodLeaveReportRequest,
-    GetPeriodLeaveReportResponseData,
+    GetLeaveReportDepartmentsRequest,
+    GetLeaveReportDepartmentsResponseData,
+    GetLeaveReportEmployeesRequest,
+    GetLeaveReportEmployeesResponseData,
+    GetLeaveReportRequest,
+    GetLeaveReportResponseData,
+    GetLeaveReportYearwiseRequest,
+    GetLeaveReportYearwiseResponseData,
+    GetPeriodLeaveReportDataRequest,
+    GetPeriodLeaveReportDataResponseData,
     GetPeriodLeaveReportDepartmentsRequest,
     GetPeriodLeaveReportDepartmentsResponseData,
     GetPeriodLeaveReportDesignationRequest,
     GetPeriodLeaveReportDesignationResponseData,
     GetPeriodLeaveReportEmployeesRequest,
     GetPeriodLeaveReportEmployeesResponseData,
-    GetPeriodLeaveReportDataRequest,
-    GetPeriodLeaveReportDataResponseData,
-    GetLeaveReportYearwiseRequest,
-    GetLeaveReportYearwiseResponseData
+    GetPeriodLeaveReportRequest,
+    GetPeriodLeaveReportResponseData
 } from '@/types/hrms/leave-management/leave-report';
 /**
  * Get leave report data
  * POST /api/LeaveReportWrapperFacade/GetLeaveReport
- * 
+ *
  * @param request - Request payload with MI_Id
  * @returns Leave report data
  */
@@ -55,10 +53,8 @@ export async function getLeaveReport(request: GetLeaveReportRequest): Promise<Ap
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message ||
-            error?.response?.data?.retrunMsg ||
-            error?.message ||
-            'Failed to fetch leave report';
+        const errorMessage =
+            error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to fetch leave report';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -66,11 +62,13 @@ export async function getLeaveReport(request: GetLeaveReportRequest): Promise<Ap
 /**
  * Get departments for leave report
  * POST /api/LeaveReportWrapperFacade/GetDepartments
- * 
+ *
  * @param request - Request payload with MI_Id and optional emptypes array
  * @returns Departments data
  */
-export async function getLeaveReportDepartments(request: GetLeaveReportDepartmentsRequest): Promise<ApiResponse<GetLeaveReportDepartmentsResponseData>> {
+export async function getLeaveReportDepartments(
+    request: GetLeaveReportDepartmentsRequest
+): Promise<ApiResponse<GetLeaveReportDepartmentsResponseData>> {
     const url = '/api/LeaveReportWrapperFacade/GetDepartments';
     const requestBody: GetLeaveReportDepartmentsRequest = {
         ...request, // Include any additional fields first
@@ -95,10 +93,8 @@ export async function getLeaveReportDepartments(request: GetLeaveReportDepartmen
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message ||
-            error?.response?.data?.retrunMsg ||
-            error?.message ||
-            'Failed to fetch departments';
+        const errorMessage =
+            error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to fetch departments';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -106,7 +102,7 @@ export async function getLeaveReportDepartments(request: GetLeaveReportDepartmen
 /**
  * Get leave report data with filters
  * POST /api/LeaveReportWrapperFacade/GetReport
- * 
+ *
  * @param request - Request payload with filters
  * @returns Leave report data
  */
@@ -141,10 +137,8 @@ export async function getLeaveReportData(request: GetLeaveReportDataRequest): Pr
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message ||
-            error?.response?.data?.retrunMsg ||
-            error?.message ||
-            'Failed to fetch leave report data';
+        const errorMessage =
+            error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to fetch leave report data';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -152,7 +146,7 @@ export async function getLeaveReportData(request: GetLeaveReportDataRequest): Pr
 /**
  * Get period leave report data
  * POST /api/LeaveReportWrapperFacade/PeriodGetLeaveReport
- * 
+ *
  * @param request - Request payload with MI_Id
  * @returns Period leave report data
  */
@@ -180,10 +174,8 @@ export async function getPeriodLeaveReport(request: GetPeriodLeaveReportRequest)
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message ||
-            error?.response?.data?.retrunMsg ||
-            error?.message ||
-            'Failed to fetch period leave report';
+        const errorMessage =
+            error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to fetch period leave report';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -191,11 +183,13 @@ export async function getPeriodLeaveReport(request: GetPeriodLeaveReportRequest)
 /**
  * Get departments for period leave report
  * POST /api/LeaveReportWrapperFacade/PeriodGetDepartments
- * 
+ *
  * @param request - Request payload with MI_Id and optional emptypes array
  * @returns Departments data
  */
-export async function getPeriodLeaveReportDepartments(request: GetPeriodLeaveReportDepartmentsRequest): Promise<ApiResponse<GetPeriodLeaveReportDepartmentsResponseData>> {
+export async function getPeriodLeaveReportDepartments(
+    request: GetPeriodLeaveReportDepartmentsRequest
+): Promise<ApiResponse<GetPeriodLeaveReportDepartmentsResponseData>> {
     const url = '/api/LeaveReportWrapperFacade/PeriodGetDepartments';
     const requestBody: GetPeriodLeaveReportDepartmentsRequest = {
         ...request, // Include any additional fields first
@@ -220,7 +214,8 @@ export async function getPeriodLeaveReportDepartments(request: GetPeriodLeaveRep
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message ||
+        const errorMessage =
+            error?.response?.data?.message ||
             error?.response?.data?.retrunMsg ||
             error?.message ||
             'Failed to fetch departments for period leave report';
@@ -231,11 +226,13 @@ export async function getPeriodLeaveReportDepartments(request: GetPeriodLeaveRep
 /**
  * Get designations for period leave report
  * POST /api/LeaveReportWrapperFacade/PeriodGetDesignation
- * 
+ *
  * @param request - Request payload with MI_Id and optional emptypes array
  * @returns Designations data
  */
-export async function getPeriodLeaveReportDesignation(request: GetPeriodLeaveReportDesignationRequest): Promise<ApiResponse<GetPeriodLeaveReportDesignationResponseData>> {
+export async function getPeriodLeaveReportDesignation(
+    request: GetPeriodLeaveReportDesignationRequest
+): Promise<ApiResponse<GetPeriodLeaveReportDesignationResponseData>> {
     const url = '/api/LeaveReportWrapperFacade/PeriodGetDesignation';
     const requestBody: GetPeriodLeaveReportDesignationRequest = {
         ...request, // Include any additional fields first
@@ -260,7 +257,8 @@ export async function getPeriodLeaveReportDesignation(request: GetPeriodLeaveRep
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message ||
+        const errorMessage =
+            error?.response?.data?.message ||
             error?.response?.data?.retrunMsg ||
             error?.message ||
             'Failed to fetch designations for period leave report';
@@ -271,11 +269,13 @@ export async function getPeriodLeaveReportDesignation(request: GetPeriodLeaveRep
 /**
  * Get employees for leave report
  * POST /api/LeaveReportWrapperFacade/GetEmployees
- * 
+ *
  * @param request - Request payload with MI_Id and optional emptypes and empdept arrays
  * @returns Employees data
  */
-export async function getLeaveReportEmployees(request: GetLeaveReportEmployeesRequest): Promise<ApiResponse<GetLeaveReportEmployeesResponseData>> {
+export async function getLeaveReportEmployees(
+    request: GetLeaveReportEmployeesRequest
+): Promise<ApiResponse<GetLeaveReportEmployeesResponseData>> {
     const url = '/api/LeaveReportWrapperFacade/GetEmployees';
     const requestBody: GetLeaveReportEmployeesRequest = {
         ...request,
@@ -299,7 +299,8 @@ export async function getLeaveReportEmployees(request: GetLeaveReportEmployeesRe
             data: response as unknown as GetLeaveReportEmployeesResponseData
         };
     } catch (error: any) {
-        const errorMessage = error?.response?.data?.message ||
+        const errorMessage =
+            error?.response?.data?.message ||
             error?.response?.data?.retrunMsg ||
             error?.message ||
             'Failed to fetch employees for leave report';
@@ -310,11 +311,13 @@ export async function getLeaveReportEmployees(request: GetLeaveReportEmployeesRe
 /**
  * Get employees for period leave report
  * POST /api/LeaveReportWrapperFacade/PeriodGetEmployees
- * 
+ *
  * @param request - Request payload with MI_Id and optional emptypes and empdept arrays
  * @returns Employees data
  */
-export async function getPeriodLeaveReportEmployees(request: GetPeriodLeaveReportEmployeesRequest): Promise<ApiResponse<GetPeriodLeaveReportEmployeesResponseData>> {
+export async function getPeriodLeaveReportEmployees(
+    request: GetPeriodLeaveReportEmployeesRequest
+): Promise<ApiResponse<GetPeriodLeaveReportEmployeesResponseData>> {
     const url = '/api/LeaveReportWrapperFacade/PeriodGetEmployees';
     const requestBody: GetPeriodLeaveReportEmployeesRequest = {
         ...request, // Include any additional fields first
@@ -340,7 +343,8 @@ export async function getPeriodLeaveReportEmployees(request: GetPeriodLeaveRepor
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message ||
+        const errorMessage =
+            error?.response?.data?.message ||
             error?.response?.data?.retrunMsg ||
             error?.message ||
             'Failed to fetch employees for period leave report';
@@ -351,11 +355,13 @@ export async function getPeriodLeaveReportEmployees(request: GetPeriodLeaveRepor
 /**
  * Get period leave report data with filters
  * POST /api/LeaveReportWrapperFacade/PeriodGetReport
- * 
+ *
  * @param request - Request payload with filters
  * @returns Period leave report data
  */
-export async function getPeriodLeaveReportData(request: GetPeriodLeaveReportDataRequest): Promise<ApiResponse<GetPeriodLeaveReportDataResponseData>> {
+export async function getPeriodLeaveReportData(
+    request: GetPeriodLeaveReportDataRequest
+): Promise<ApiResponse<GetPeriodLeaveReportDataResponseData>> {
     const url = '/api/LeaveReportWrapperFacade/PeriodGetReport';
     const requestBody: GetPeriodLeaveReportDataRequest = {
         MI_Id: request.MI_Id || HRMS_MI_ID,
@@ -385,7 +391,8 @@ export async function getPeriodLeaveReportData(request: GetPeriodLeaveReportData
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message ||
+        const errorMessage =
+            error?.response?.data?.message ||
             error?.response?.data?.retrunMsg ||
             error?.message ||
             'Failed to fetch period leave report data';
@@ -396,11 +403,13 @@ export async function getPeriodLeaveReportData(request: GetPeriodLeaveReportData
 /**
  * Get yearwise leave report data with filters
  * POST /api/LeaveReportWrapperFacade/GetReportYearwise
- * 
+ *
  * @param request - Request payload with filters
  * @returns Yearwise leave report data
  */
-export async function getLeaveReportYearwise(request: GetLeaveReportYearwiseRequest): Promise<ApiResponse<GetLeaveReportYearwiseResponseData>> {
+export async function getLeaveReportYearwise(
+    request: GetLeaveReportYearwiseRequest
+): Promise<ApiResponse<GetLeaveReportYearwiseResponseData>> {
     const url = '/api/LeaveReportWrapperFacade/GetReportYearwise';
     const requestBody: GetLeaveReportYearwiseRequest = {
         ...request, // Include any additional fields first
@@ -432,7 +441,8 @@ export async function getLeaveReportYearwise(request: GetLeaveReportYearwiseRequ
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message ||
+        const errorMessage =
+            error?.response?.data?.message ||
             error?.response?.data?.retrunMsg ||
             error?.message ||
             'Failed to fetch yearwise leave report data';

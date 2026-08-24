@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Printer } from 'lucide-react';
-import { useReactToPrint } from 'react-to-print';
-import { IPreMeetingSchedule } from '@/types/admission/preadmission/transactions/pre-meeting-schedule';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { getStudentPrintData } from '@/server/admission/preadmission/transactions/application_form';
+import type { IPreMeetingSchedule } from '@/types/admission/preadmission/transactions/pre-meeting-schedule';
+import { Printer } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { useReactToPrint } from 'react-to-print';
 
 interface StudentApplicationPrintProps {
     isOpen: boolean;
@@ -21,7 +21,7 @@ export default function StudentApplicationPrint({ isOpen, onClose, record }: Stu
 
     const handlePrint = useReactToPrint({
         contentRef: printRef,
-        documentTitle: `Student_Application_${record?.studentname || 'Details'}`,
+        documentTitle: `Student_Application_${record?.studentname || 'Details'}`
     });
 
     useEffect(() => {
@@ -38,7 +38,7 @@ export default function StudentApplicationPrint({ isOpen, onClose, record }: Stu
                         setPrintData(dtObj[0]);
                     }
                 } catch (error) {
-                    console.error("Error fetching print data:", error);
+                    console.error('Error fetching print data:', error);
                 } finally {
                     setIsLoading(false);
                 }
@@ -51,128 +51,158 @@ export default function StudentApplicationPrint({ isOpen, onClose, record }: Stu
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0">
-                <DialogHeader className="px-6 py-4 border-b flex flex-row items-center justify-between sticky top-0 bg-white z-10">
-                    <DialogTitle className="text-xl font-bold text-blue-800">
-                        Application Details - {record?.studentname}
-                    </DialogTitle>
-                    <div className="flex gap-2 pr-6">
+            <DialogContent className='flex h-[90vh] max-w-5xl flex-col p-0'>
+                <DialogHeader className='sticky top-0 z-10 flex flex-row items-center justify-between border-b bg-white px-6 py-4'>
+                    <DialogTitle className='font-bold text-blue-800 text-xl'>Application Details - {record?.studentname}</DialogTitle>
+                    <div className='flex gap-2 pr-6'>
                         <Button onClick={() => handlePrint()} disabled={isLoading || !printData}>
-                            <Printer className="w-4 h-4 mr-2" /> Print Application
+                            <Printer className='mr-2 h-4 w-4' /> Print Application
                         </Button>
                     </div>
                 </DialogHeader>
 
-                <div className="flex-1 overflow-auto p-6 bg-slate-50">
+                <div className='flex-1 overflow-auto bg-slate-50 p-6'>
                     {isLoading ? (
-                        <div className="flex items-center justify-center h-full">
-                            <span className="animate-pulse font-medium text-slate-500">Loading Application Data...</span>
+                        <div className='flex h-full items-center justify-center'>
+                            <span className='animate-pulse font-medium text-slate-500'>Loading Application Data...</span>
                         </div>
                     ) : !printData ? (
-                        <div className="flex items-center justify-center h-full">
-                            <span className="text-slate-500">No application data found.</span>
+                        <div className='flex h-full items-center justify-center'>
+                            <span className='text-slate-500'>No application data found.</span>
                         </div>
                     ) : (
-                        <div 
-                            ref={printRef} 
-                            className="bg-white p-8 shadow-sm border mx-auto max-w-4xl min-h-[1056px] print:shadow-none print:border-none print:m-0 print:p-0"
-                        >
+                        <div
+                            ref={printRef}
+                            className='mx-auto min-h-[1056px] max-w-4xl border bg-white p-8 shadow-sm print:m-0 print:border-none print:p-0 print:shadow-none'>
                             {/* Generic Print Template mapped from printData */}
-                            <div className="text-center mb-8 border-b pb-4">
-                                <h1 className="text-2xl font-bold uppercase tracking-wide">Student Application Form</h1>
-                                <p className="text-muted-foreground mt-1">Registration No: {printData.pasR_RegistrationNo}</p>
+                            <div className='mb-8 border-b pb-4 text-center'>
+                                <h1 className='font-bold text-2xl uppercase tracking-wide'>Student Application Form</h1>
+                                <p className='mt-1 text-muted-foreground'>Registration No: {printData.pasR_RegistrationNo}</p>
                             </div>
 
-                            <div className="flex gap-8 mb-8">
-                                <div className="w-32 h-40 border-2 border-slate-200 rounded overflow-hidden bg-slate-50 flex items-center justify-center flex-shrink-0">
+                            <div className='mb-8 flex gap-8'>
+                                <div className='flex h-40 w-32 flex-shrink-0 items-center justify-center overflow-hidden rounded border-2 border-slate-200 bg-slate-50'>
                                     {printData.pasR_Student_Pic_Path ? (
                                         // eslint-disable-next-line @next/next/no-img-element
-                                        <img src={printData.pasR_Student_Pic_Path} alt="Student" className="w-full h-full object-cover" />
+                                        <img src={printData.pasR_Student_Pic_Path} alt='Student' className='h-full w-full object-cover' />
                                     ) : (
-                                        <span className="text-xs text-slate-400">Photo</span>
+                                        <span className='text-slate-400 text-xs'>Photo</span>
                                     )}
                                 </div>
-                                <div className="flex-1 grid grid-cols-2 gap-y-4 gap-x-8 text-sm">
+                                <div className='grid flex-1 grid-cols-2 gap-x-8 gap-y-4 text-sm'>
                                     <div>
-                                        <span className="font-semibold text-slate-600 block">First Name</span>
-                                        <span className="text-slate-900 uppercase">{printData.pasR_FirstName || '-'}</span>
+                                        <span className='block font-semibold text-slate-600'>First Name</span>
+                                        <span className='text-slate-900 uppercase'>{printData.pasR_FirstName || '-'}</span>
                                     </div>
                                     <div>
-                                        <span className="font-semibold text-slate-600 block">Last Name</span>
-                                        <span className="text-slate-900 uppercase">{printData.pasR_LastName || '-'}</span>
+                                        <span className='block font-semibold text-slate-600'>Last Name</span>
+                                        <span className='text-slate-900 uppercase'>{printData.pasR_LastName || '-'}</span>
                                     </div>
                                     <div>
-                                        <span className="font-semibold text-slate-600 block">Date of Birth</span>
-                                        <span className="text-slate-900">{printData.pasR_DOB ? new Date(printData.pasR_DOB).toLocaleDateString() : '-'}</span>
+                                        <span className='block font-semibold text-slate-600'>Date of Birth</span>
+                                        <span className='text-slate-900'>
+                                            {printData.pasR_DOB ? new Date(printData.pasR_DOB).toLocaleDateString() : '-'}
+                                        </span>
                                     </div>
                                     <div>
-                                        <span className="font-semibold text-slate-600 block">Gender</span>
-                                        <span className="text-slate-900 uppercase">{printData.pasR_Sex || '-'}</span>
+                                        <span className='block font-semibold text-slate-600'>Gender</span>
+                                        <span className='text-slate-900 uppercase'>{printData.pasR_Sex || '-'}</span>
                                     </div>
                                     <div>
-                                        <span className="font-semibold text-slate-600 block">Blood Group</span>
-                                        <span className="text-slate-900">{printData.pasR_BloodGroup || '-'}</span>
+                                        <span className='block font-semibold text-slate-600'>Blood Group</span>
+                                        <span className='text-slate-900'>{printData.pasR_BloodGroup || '-'}</span>
                                     </div>
                                     <div>
-                                        <span className="font-semibold text-slate-600 block">Mother Tongue</span>
-                                        <span className="text-slate-900">{printData.pasR_MotherTongue || '-'}</span>
+                                        <span className='block font-semibold text-slate-600'>Mother Tongue</span>
+                                        <span className='text-slate-900'>{printData.pasR_MotherTongue || '-'}</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="mb-8">
-                                <h2 className="text-lg font-bold border-b border-slate-200 pb-2 mb-4 bg-slate-50 px-2 rounded-t">Contact Information</h2>
-                                <div className="grid grid-cols-2 gap-y-4 gap-x-8 text-sm px-2">
+                            <div className='mb-8'>
+                                <h2 className='mb-4 rounded-t border-slate-200 border-b bg-slate-50 px-2 pb-2 font-bold text-lg'>
+                                    Contact Information
+                                </h2>
+                                <div className='grid grid-cols-2 gap-x-8 gap-y-4 px-2 text-sm'>
                                     <div>
-                                        <span className="font-semibold text-slate-600 block">Mobile No</span>
-                                        <span className="text-slate-900">{printData.pasR_MobileNo || '-'}</span>
+                                        <span className='block font-semibold text-slate-600'>Mobile No</span>
+                                        <span className='text-slate-900'>{printData.pasR_MobileNo || '-'}</span>
                                     </div>
                                     <div>
-                                        <span className="font-semibold text-slate-600 block">Email ID</span>
-                                        <span className="text-slate-900">{printData.pasR_emailId || '-'}</span>
+                                        <span className='block font-semibold text-slate-600'>Email ID</span>
+                                        <span className='text-slate-900'>{printData.pasR_emailId || '-'}</span>
                                     </div>
-                                    <div className="col-span-2">
-                                        <span className="font-semibold text-slate-600 block">Permanent Address</span>
-                                        <span className="text-slate-900">
-                                            {[printData.pasR_PerStreet, printData.pasR_PerArea, printData.pasR_PerCity, printData.pasR_PerPincode].filter(Boolean).join(', ')}
+                                    <div className='col-span-2'>
+                                        <span className='block font-semibold text-slate-600'>Permanent Address</span>
+                                        <span className='text-slate-900'>
+                                            {[
+                                                printData.pasR_PerStreet,
+                                                printData.pasR_PerArea,
+                                                printData.pasR_PerCity,
+                                                printData.pasR_PerPincode
+                                            ]
+                                                .filter(Boolean)
+                                                .join(', ')}
                                         </span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="mb-8">
-                                <h2 className="text-lg font-bold border-b border-slate-200 pb-2 mb-4 bg-slate-50 px-2 rounded-t">Parents Information</h2>
-                                <div className="grid grid-cols-2 gap-y-6 gap-x-8 text-sm px-2">
+                            <div className='mb-8'>
+                                <h2 className='mb-4 rounded-t border-slate-200 border-b bg-slate-50 px-2 pb-2 font-bold text-lg'>
+                                    Parents Information
+                                </h2>
+                                <div className='grid grid-cols-2 gap-x-8 gap-y-6 px-2 text-sm'>
                                     <div>
-                                        <span className="font-semibold text-blue-800 block mb-2 border-b pb-1">Father Details</span>
-                                        <div className="space-y-2">
-                                            <div><span className="text-slate-500">Name:</span> {printData.pasR_FatherName || '-'}</div>
-                                            <div><span className="text-slate-500">Education:</span> {printData.pasR_FatherEducation || '-'}</div>
-                                            <div><span className="text-slate-500">Occupation:</span> {printData.pasR_FatherOccupation || '-'}</div>
-                                            <div><span className="text-slate-500">Mobile:</span> {printData.pasR_FatherMobleNo || '-'}</div>
-                                            <div><span className="text-slate-500">Email:</span> {printData.pasR_FatheremailId || '-'}</div>
+                                        <span className='mb-2 block border-b pb-1 font-semibold text-blue-800'>Father Details</span>
+                                        <div className='space-y-2'>
+                                            <div>
+                                                <span className='text-slate-500'>Name:</span> {printData.pasR_FatherName || '-'}
+                                            </div>
+                                            <div>
+                                                <span className='text-slate-500'>Education:</span> {printData.pasR_FatherEducation || '-'}
+                                            </div>
+                                            <div>
+                                                <span className='text-slate-500'>Occupation:</span> {printData.pasR_FatherOccupation || '-'}
+                                            </div>
+                                            <div>
+                                                <span className='text-slate-500'>Mobile:</span> {printData.pasR_FatherMobleNo || '-'}
+                                            </div>
+                                            <div>
+                                                <span className='text-slate-500'>Email:</span> {printData.pasR_FatheremailId || '-'}
+                                            </div>
                                         </div>
                                     </div>
                                     <div>
-                                        <span className="font-semibold text-blue-800 block mb-2 border-b pb-1">Mother Details</span>
-                                        <div className="space-y-2">
-                                            <div><span className="text-slate-500">Name:</span> {printData.pasR_MotherName || '-'}</div>
-                                            <div><span className="text-slate-500">Education:</span> {printData.pasR_MotherEducation || '-'}</div>
-                                            <div><span className="text-slate-500">Occupation:</span> {printData.pasR_MotherOccupation || '-'}</div>
-                                            <div><span className="text-slate-500">Mobile:</span> {printData.pasR_MotherMobleNo || '-'}</div>
-                                            <div><span className="text-slate-500">Email:</span> {printData.pasR_MotheremailId || '-'}</div>
+                                        <span className='mb-2 block border-b pb-1 font-semibold text-blue-800'>Mother Details</span>
+                                        <div className='space-y-2'>
+                                            <div>
+                                                <span className='text-slate-500'>Name:</span> {printData.pasR_MotherName || '-'}
+                                            </div>
+                                            <div>
+                                                <span className='text-slate-500'>Education:</span> {printData.pasR_MotherEducation || '-'}
+                                            </div>
+                                            <div>
+                                                <span className='text-slate-500'>Occupation:</span> {printData.pasR_MotherOccupation || '-'}
+                                            </div>
+                                            <div>
+                                                <span className='text-slate-500'>Mobile:</span> {printData.pasR_MotherMobleNo || '-'}
+                                            </div>
+                                            <div>
+                                                <span className='text-slate-500'>Email:</span> {printData.pasR_MotheremailId || '-'}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            
-                            <div className="mt-16 pt-16 border-t border-slate-300 flex justify-between text-sm font-semibold">
-                                <div className="text-center">
-                                    <div className="w-48 border-b border-black mb-2 h-8"></div>
+
+                            <div className='mt-16 flex justify-between border-slate-300 border-t pt-16 font-semibold text-sm'>
+                                <div className='text-center'>
+                                    <div className='mb-2 h-8 w-48 border-black border-b'></div>
                                     Parent/Guardian Signature
                                 </div>
-                                <div className="text-center">
-                                    <div className="w-48 border-b border-black mb-2 h-8"></div>
+                                <div className='text-center'>
+                                    <div className='mb-2 h-8 w-48 border-black border-b'></div>
                                     Principal Signature
                                 </div>
                             </div>

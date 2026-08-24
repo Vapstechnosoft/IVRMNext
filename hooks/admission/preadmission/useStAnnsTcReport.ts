@@ -1,11 +1,11 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-    getStAnnsTcLoadData,
-    changeStAnnsTcYear,
     changeStAnnsTcClass,
     changeStAnnsTcSection,
-    getStAnnsTcDetails
+    changeStAnnsTcYear,
+    getStAnnsTcDetails,
+    getStAnnsTcLoadData
 } from '@/server/admission/preadmission/reports/st_anns_tc_custom_report';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const useStAnnsTcLoadData = () => {
     return useQuery({
@@ -16,15 +16,13 @@ export const useStAnnsTcLoadData = () => {
 
 export const useStAnnsTcYearChange = () => {
     return useMutation({
-        mutationFn: (data: { ASMAY_Id: number; tctemporper: string; report_type: string }) =>
-            changeStAnnsTcYear(data)
+        mutationFn: (data: { ASMAY_Id: number; tctemporper: string; report_type: string }) => changeStAnnsTcYear(data)
     });
 };
 
 export const useStAnnsTcClassChange = () => {
     return useMutation({
-        mutationFn: (data: { ASMAY_Id: number; tctemporper: string; report_type: string; ASMCL_Id: number }) =>
-            changeStAnnsTcClass(data)
+        mutationFn: (data: { ASMAY_Id: number; tctemporper: string; report_type: string; ASMCL_Id: number }) => changeStAnnsTcClass(data)
     });
 };
 

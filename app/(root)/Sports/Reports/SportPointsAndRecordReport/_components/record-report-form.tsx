@@ -1,17 +1,17 @@
 'use client';
 
-import { useForm, useWatch, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
-import { Form } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Form } from '@/components/ui/form';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSportPointsAndRecordReport } from '@/hooks/sports/useSportPointsAndRecordReport';
-import { SportPointsAndRecordReportSchema, SportPointsAndRecordReportFormSchema } from '@/types/sports/reports/points-record-report';
-import { toast } from 'sonner';
+import { type SportPointsAndRecordReportFormSchema, SportPointsAndRecordReportSchema } from '@/types/sports/reports/points-record-report';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Controller, useForm, useWatch } from 'react-hook-form';
+import { toast } from 'sonner';
 
 interface ReportFormProps {
     onReportGenerated: (data: any[]) => void;
@@ -123,8 +123,8 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
     };
 
     return (
-        <div className="p-4 bg-white rounded-lg shadow-sm border space-y-4">
-            <h2 className="text-lg font-semibold border-b pb-2">Sport Points And Record Report</h2>
+        <div className='space-y-4 rounded-lg border bg-white p-4 shadow-sm'>
+            <h2 className='border-b pb-2 font-semibold text-lg'>Sport Points And Record Report</h2>
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
                     {/* Radio Buttons for Qualification Type */}
@@ -136,34 +136,34 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
                                 <RadioGroup
                                     onValueChange={field.onChange}
                                     defaultValue={field.value}
-                                    className="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-6 p-4 bg-gray-50 rounded-md"
+                                    className='flex flex-col justify-center space-y-2 rounded-md bg-gray-50 p-4 sm:flex-row sm:space-x-6 sm:space-y-0'
                                 >
                                     <div className="flex items-center space-x-2">
                                         <RadioGroupItem value="eca" id="eca" />
-                                        <label htmlFor="eca" className="font-normal cursor-pointer">Extra Curricular Activities</label>
+                                        <label htmlFor="eca" className='cursor-pointer font-normal'>Extra Curricular Activities</label>
                                     </div>
                                     <div className="flex items-center space-x-2">
                                         <RadioGroupItem value="cca" id="cca" />
-                                        <label htmlFor="cca" className="font-normal cursor-pointer">Co Curricular Activities</label>
+                                        <label htmlFor="cca" className='cursor-pointer font-normal'>Co Curricular Activities</label>
                                     </div>
                                     <div className="flex items-center space-x-2">
                                         <RadioGroupItem value="ih" id="ih" />
-                                        <label htmlFor="ih" className="font-normal cursor-pointer">Interhouse</label>
+                                        <label htmlFor="ih" className='cursor-pointer font-normal'>Interhouse</label>
                                     </div>
                                     <div className="flex items-center space-x-2">
                                         <RadioGroupItem value="others" id="others" />
-                                        <label htmlFor="others" className="font-normal cursor-pointer">Others</label>
+                                        <label htmlFor="others" className='cursor-pointer font-normal'>Others</label>
                                     </div>
                                 </RadioGroup>
-                                {errors.qualification_type && <span className="text-xs font-medium text-destructive">{errors.qualification_type.message}</span>}
+                                {errors.qualification_type && <span className='font-medium text-destructive text-xs'>{errors.qualification_type.message}</span>}
                             </div>
                         )}
                     />
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                         {/* Academic Year */}
                         <div className="flex flex-col gap-2">
-                            <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Academic Year</Label>
+                            <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Academic Year</Label>
                             <Controller
                                 control={control}
                                 name="asmaY_Id"
@@ -181,7 +181,7 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
                                                 ))}
                                             </SelectContent>
                                         </Select>
-                                        {errors.asmaY_Id && <span className="text-xs font-medium text-destructive">{errors.asmaY_Id.message}</span>}
+                                        {errors.asmaY_Id && <span className='font-medium text-destructive text-xs'>{errors.asmaY_Id.message}</span>}
                                     </div>
                                 )}
                             />
@@ -189,7 +189,7 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
 
                         {/* Class Name */}
                         <div className="flex flex-col gap-2">
-                            <Label className="text-sm font-semibold">Class Name</Label>
+                            <Label className='font-semibold text-sm'>Class Name</Label>
                             <Controller
                                 control={control}
                                 name="asmcL_Id"
@@ -207,7 +207,7 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
                                                 ))}
                                             </SelectContent>
                                         </Select>
-                                        {errors.asmcL_Id && <span className="text-xs font-medium text-destructive">{errors.asmcL_Id.message}</span>}
+                                        {errors.asmcL_Id && <span className='font-medium text-destructive text-xs'>{errors.asmcL_Id.message}</span>}
                                     </div>
                                 )}
                             />
@@ -215,7 +215,7 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
 
                         {/* Section Name */}
                         <div className="flex flex-col gap-2">
-                            <Label className="text-sm font-semibold">Section Name</Label>
+                            <Label className='font-semibold text-sm'>Section Name</Label>
                             <Controller
                                 control={control}
                                 name="asmS_Id"
@@ -233,7 +233,7 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
                                                 ))}
                                             </SelectContent>
                                         </Select>
-                                        {errors.asmS_Id && <span className="text-xs font-medium text-destructive">{errors.asmS_Id.message}</span>}
+                                        {errors.asmS_Id && <span className='font-medium text-destructive text-xs'>{errors.asmS_Id.message}</span>}
                                     </div>
                                 )}
                             />
@@ -241,7 +241,7 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
 
                         {/* House Name */}
                         <div className="flex flex-col gap-2">
-                            <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">House Name</Label>
+                            <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">House Name</Label>
                             <Controller
                                 control={control}
                                 name="spccmH_Id"
@@ -259,7 +259,7 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
                                                 ))}
                                             </SelectContent>
                                         </Select>
-                                        {errors.spccmH_Id && <span className="text-xs font-medium text-destructive">{errors.spccmH_Id.message}</span>}
+                                        {errors.spccmH_Id && <span className='font-medium text-destructive text-xs'>{errors.spccmH_Id.message}</span>}
                                     </div>
                                 )}
                             />
@@ -267,7 +267,7 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
 
                         {/* Program Master (Events) */}
                         <div className="flex flex-col gap-2">
-                            <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Program Master</Label>
+                            <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Program Master</Label>
                             <Controller
                                 control={control}
                                 name="spccE_Id"
@@ -316,7 +316,7 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
                                                     })}
                                                 </SelectContent>
                                             </Select>
-                                            {errors.spccE_Id && <span className="text-xs font-medium text-destructive">{errors.spccE_Id.message}</span>}
+                                            {errors.spccE_Id && <span className='font-medium text-destructive text-xs'>{errors.spccE_Id.message}</span>}
                                         </div>
                                     );
                                 }}
@@ -325,7 +325,7 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
 
                         {/* Event Name */}
                         <div className="flex flex-col gap-2">
-                            <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Event Name</Label>
+                            <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Event Name</Label>
                             <Controller
                                 control={control}
                                 name="spccmE_Id"
@@ -346,7 +346,7 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
                                                 })}
                                             </SelectContent>
                                         </Select>
-                                        {errors.spccmE_Id && <span className="text-xs font-medium text-destructive">{errors.spccmE_Id.message}</span>}
+                                        {errors.spccmE_Id && <span className='font-medium text-destructive text-xs'>{errors.spccmE_Id.message}</span>}
                                     </div>
                                 )}
                             />
@@ -354,7 +354,7 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
 
                         {/* Division Name */}
                         <div className="flex flex-col gap-2">
-                            <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Division Name</Label>
+                            <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Division Name</Label>
                             <Controller
                                 control={control}
                                 name="spccmD_Id"
@@ -372,7 +372,7 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
                                                 ))}
                                             </SelectContent>
                                         </Select>
-                                        {errors.spccmD_Id && <span className="text-xs font-medium text-destructive">{errors.spccmD_Id.message}</span>}
+                                        {errors.spccmD_Id && <span className='font-medium text-destructive text-xs'>{errors.spccmD_Id.message}</span>}
                                     </div>
                                 )}
                             />

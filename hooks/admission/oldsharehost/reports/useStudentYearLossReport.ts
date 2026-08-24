@@ -1,11 +1,10 @@
 'use client';
 
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { PREADMISSION_QUERY_KEYS } from '@/constants/query-keys';
 import {
-    getStudentYearLossReportInitialDetails,
-    getStudentYearLossReportData
+    getStudentYearLossReportData,
+    getStudentYearLossReportInitialDetails
 } from '@/server/admission/oldsharehost/reports/student_year_loss_report';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const useStudentYearLossReportInitialDetails = () => {
     return useQuery({

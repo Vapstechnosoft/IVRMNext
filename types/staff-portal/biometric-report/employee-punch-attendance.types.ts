@@ -1,4 +1,3 @@
-
 export interface IEmployeeDetails {
     empFname: string;
     empMname: string;
@@ -11,9 +10,9 @@ export interface IEmployeeDetails {
 export type IEmployeePunchAttendanceReportData = IPunchDetail[] | undefined;
 
 export interface IPunchDetail {
-    ecode:string;
-    ename:string;
-    HRME_Id:number;
+    ecode: string;
+    ename: string;
+    HRME_Id: number;
     punchdate: string;
     punchINtime: string;
     punchOUTtime: string;

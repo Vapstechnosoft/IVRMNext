@@ -63,11 +63,10 @@ export default function FeeDetailsClient({ initialData }: FeeDetailsClientProps)
         setDetailedData([]);
 
         try {
-            const response =
-                await getFeeDetails({
-                    ASMAY_Id: parseInt(yearId),
-                    type: mode
-                });
+            const response = await getFeeDetails({
+                ASMAY_Id: Number.parseInt(yearId),
+                type: mode
+            });
 
             if (response && Array.isArray(response.getfeedetails) && response.getfeedetails.length > 0) {
                 setHasData(true);

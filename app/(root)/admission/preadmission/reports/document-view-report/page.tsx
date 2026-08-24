@@ -3,13 +3,15 @@
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider } from '@/components/ui/form/form-provider';
-import { useDocumentView, useActivePreadmissionDetails, usePreadmissionDocumentsDropdown } from '@/hooks/admission/preadmission/useTransactions';
-import React, { useState, useMemo } from 'react';
-import FilterForm from './_components/filter-form';
-import { documentViewReportColumns } from './_components/columns';
+import {
+    useActivePreadmissionDetails,
+    useDocumentView,
+    usePreadmissionDocumentsDropdown
+} from '@/hooks/admission/preadmission/useTransactions';
 import type { IPreadmissionDocumentView } from '@/types/admission/preadmission/transactions';
-import { format } from 'date-fns';
-import { Calendar } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { documentViewReportColumns } from './_components/columns';
+import FilterForm from './_components/filter-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -18,11 +20,7 @@ export default function DocumentViewReportPage(props: { searchParams: SearchPara
     const [filterPayload, setFilterPayload] = useState<any>(null);
     const [isSearched, setIsSearched] = useState(false);
 
-    const { data: response, isLoading, error } = useDocumentView(
-        filterPayload?.asmaY_Id ?? 0,
-        filterPayload?.asmcL_Id ?? 0,
-        searchParams
-    );
+    const { data: response, isLoading, error } = useDocumentView(filterPayload?.asmaY_Id ?? 0, filterPayload?.asmcL_Id ?? 0, searchParams);
 
     const { data: activeDetails } = useActivePreadmissionDetails();
     const activeData = activeDetails?.data;
@@ -33,8 +31,8 @@ export default function DocumentViewReportPage(props: { searchParams: SearchPara
         if (!response?.data) return [];
 
         const { studentList, documentList } = response.data as any;
-        const students = Array.isArray(studentList) ? studentList : (studentList?.$values || []);
-        const docListGlobal = Array.isArray(documentList) ? documentList : (documentList?.$values || []);
+        const students = Array.isArray(studentList) ? studentList : studentList?.$values || [];
+        const docListGlobal = Array.isArray(documentList) ? documentList : documentList?.$values || [];
         const masterDocsList = masterDocs?.data || [];
 
         return students.map((student: any) => {
@@ -112,8 +110,7 @@ export default function DocumentViewReportPage(props: { searchParams: SearchPara
                         description='Filter students to view their documents and application forms'
                         defaultOpen={true}
                         variant='outline'
-                        size='md'
-                    >
+                        size='md'>
                         <FilterForm
                             onFilterChange={(payload, reset) => {
                                 if (reset) {
@@ -128,12 +125,7 @@ export default function DocumentViewReportPage(props: { searchParams: SearchPara
                     </CollapsibleSection>
 
                     {isSearched && (
-                        <CollapsibleSection
-                            defaultOpen={true}
-                            variant='default'
-                            size='lg'
-                            className='shadow-lg'
-                        >
+                        <CollapsibleSection defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                             <GenericDataTable<IPreadmissionDocumentView>
                                 {...tableProps}
                                 columns={documentViewReportColumns}

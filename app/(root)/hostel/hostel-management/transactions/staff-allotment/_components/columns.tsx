@@ -1,11 +1,11 @@
 'use client';
 
 import { Checkbox } from '@/components/ui/checkbox';
-import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { useFormContext } from '@/components/ui/form/form-provider';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import { useFormContext } from '@/components/ui/form/form-provider';
 import { useCallback } from 'react';
 
 export type StaffAllotmentColumn = {
@@ -25,20 +25,13 @@ export const staffAllotmentColumns: ColumnDef<StaffAllotmentColumn, any>[] = [
         id: 'select',
         header: ({ table }) => (
             <Checkbox
-                checked={
-                    table.getIsAllPageRowsSelected() ||
-                    (table.getIsSomePageRowsSelected() && 'indeterminate')
-                }
+                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
                 onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
                 aria-label='Select all'
             />
         ),
         cell: ({ row }) => (
-            <Checkbox
-                checked={row.getIsSelected()}
-                onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label='Select row'
-            />
+            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
         ),
         enableSorting: false,
         enableHiding: false
@@ -103,11 +96,5 @@ function ActionButtonsCell({ rowData }: { rowData: StaffAllotmentColumn }) {
         [openEditForm]
     );
 
-    return (
-        <ActionButtons
-            rowData={rowData}
-            buttons={{ edit: true, toggle: false, delete: false }}
-            onEdit={handleEdit}
-        />
-    );
+    return <ActionButtons rowData={rowData} buttons={{ edit: true, toggle: false, delete: false }} onEdit={handleEdit} />;
 }

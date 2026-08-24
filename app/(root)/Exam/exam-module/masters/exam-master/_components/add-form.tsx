@@ -74,7 +74,13 @@ export default function AddMasterExamForm({ onSuccess, className = '' }: AddMast
                 <div className='space-y-4'>
                     {/* Exam Basic Info */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <InputText label='Exam Name' required placeholder='Enter Exam Name' {...register('emE_ExamName')} error={errors.emE_ExamName?.message} />
+                        <InputText
+                            label='Exam Name'
+                            required
+                            placeholder='Enter Exam Name'
+                            {...register('emE_ExamName')}
+                            error={errors.emE_ExamName?.message}
+                        />
                         <InputText
                             label='IVRS Exam Name'
                             placeholder='Enter IVRS Exam Name'
@@ -89,7 +95,13 @@ export default function AddMasterExamForm({ onSuccess, className = '' }: AddMast
                             {...register('emE_ExamDescription')}
                             error={errors.emE_ExamDescription?.message}
                         />
-                        <InputText label='Exam Code' required placeholder='Enter Exam Code' {...register('emE_ExamCode')} error={errors.emE_ExamCode?.message} />
+                        <InputText
+                            label='Exam Code'
+                            required
+                            placeholder='Enter Exam Code'
+                            {...register('emE_ExamCode')}
+                            error={errors.emE_ExamCode?.message}
+                        />
                     </div>
 
                     {/* Exam Flags */}

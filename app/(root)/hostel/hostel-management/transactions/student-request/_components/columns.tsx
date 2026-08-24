@@ -1,10 +1,10 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
-import { format } from 'date-fns';
-import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import type { ColumnDef } from '@tanstack/react-table';
+import { format } from 'date-fns';
 import { useCallback } from 'react';
 
 export const studentRequestColumns: ColumnDef<any, any>[] = [
@@ -21,19 +21,19 @@ export const studentRequestColumns: ColumnDef<any, any>[] = [
     },
     {
         accessorKey: 'studentName',
-        header: ({ column }) => <ColumnHeader column={column} title='Student Name' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Student Name' />
     },
     {
         accessorKey: 'ASMCL_ClassName',
-        header: ({ column }) => <ColumnHeader column={column} title='Class' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Class' />
     },
     {
         accessorKey: 'HLMH_Name',
-        header: ({ column }) => <ColumnHeader column={column} title='Hostel' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Hostel' />
     },
     {
         accessorKey: 'HLMRCA_RoomCategory',
-        header: ({ column }) => <ColumnHeader column={column} title='Category' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Category' />
     },
     {
         accessorKey: 'HLHSREQ_RequestDate',
@@ -41,11 +41,11 @@ export const studentRequestColumns: ColumnDef<any, any>[] = [
         cell: ({ row }) => {
             const date = row.original.HLHSREQ_RequestDate;
             return date ? format(new Date(date), 'dd/MM/yyyy') : '';
-        },
+        }
     },
     {
         accessorKey: 'HLHSREQ_BookingStatus',
-        header: ({ column }) => <ColumnHeader column={column} title='Status' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Status' />
     },
     {
         id: 'actions',
@@ -78,7 +78,7 @@ function ActionButtonsCell({ rowData }: { rowData: any }) {
             onEdit={handleEdit}
             onToggle={handleToggle}
             toggleConditionKey='HLHSREQ_ActiveFlag'
-        //isActive={rowData.HLHSREQ_ActiveFlag}
+            //isActive={rowData.HLHSREQ_ActiveFlag}
         />
     );
 }

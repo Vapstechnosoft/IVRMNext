@@ -1,61 +1,61 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { Printer, X, FileText, Search, Loader2, Check } from 'lucide-react';
+import { Check, FileText, Printer, Search, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Input } from '@/components/ui/input';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { DatePicker } from '@/components/ui/date-picker';
-import { Checkbox } from '@/components/ui/checkbox';
-import { cn } from "@/lib/utils";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 
 import {
     useCasteBirthCertificateInitialData,
-    useSearchCasteBirthStudentMutation,
     useCasteBirthStudentReportMutation,
-    useGenerateCasteBirthQRCodeMutation
+    useGenerateCasteBirthQRCodeMutation,
+    useSearchCasteBirthStudentMutation
 } from '@/hooks/admission/preadmission/newsharedhost/reports/useCasteBirthCertificate';
 
-const formSchema = z.object({
-    allOrIndi: z.enum(['A', 'I']),
-    studentStatus: z.enum(['S', 'L', 'D']),
-    certificateType: z.string().min(1, 'Please select certificate type'),
-    academicYear: z.string().min(1, 'Please select Academic Year'),
-    classId: z.string().optional(),
-    sectionId: z.string().optional(),
-    issueDate: z.date({ required_error: 'Date is required' }),
-    studentId: z.string().min(1, 'Please select Student'),
-    addressType: z.enum(['address_per', 'address_con']),
-    parentNameType: z.enum(['0', '1', '2']),
-}).superRefine((data, ctx) => {
-    if (data.allOrIndi === 'I') {
-        if (!data.classId) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Please select Class',
-                path: ['classId']
-            });
+const formSchema = z
+    .object({
+        allOrIndi: z.enum(['A', 'I']),
+        studentStatus: z.enum(['S', 'L', 'D']),
+        certificateType: z.string().min(1, 'Please select certificate type'),
+        academicYear: z.string().min(1, 'Please select Academic Year'),
+        classId: z.string().optional(),
+        sectionId: z.string().optional(),
+        issueDate: z.date({ required_error: 'Date is required' }),
+        studentId: z.string().min(1, 'Please select Student'),
+        addressType: z.enum(['address_per', 'address_con']),
+        parentNameType: z.enum(['0', '1', '2'])
+    })
+    .superRefine((data, ctx) => {
+        if (data.allOrIndi === 'I') {
+            if (!data.classId) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Please select Class',
+                    path: ['classId']
+                });
+            }
+            if (!data.sectionId) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Please select Section',
+                    path: ['sectionId']
+                });
+            }
         }
-        if (!data.sectionId) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Please select Section',
-                path: ['sectionId']
-            });
-        }
-    }
-});
+    });
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -72,8 +72,8 @@ export default function CasteBirthCertificate() {
     const [isCommon, setIsCommon] = useState(true);
     const [showFatherMotherRadio, setShowFatherMotherRadio] = useState(false);
 
-    const [searchTerm, setSearchTerm] = useState("");
-    const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     const [studentOpen, setStudentOpen] = useState(false);
     const [selectedStudentData, setSelectedStudentData] = useState<any>(null);
 
@@ -112,7 +112,7 @@ export default function CasteBirthCertificate() {
             issueDate: new Date(),
             studentId: '',
             addressType: 'address_per',
-            parentNameType: '0',
+            parentNameType: '0'
         }
     });
 
@@ -185,7 +185,7 @@ export default function CasteBirthCertificate() {
                 const responseData = res?.data;
                 if (responseData?.studentlist && responseData.studentlist.length > 0) {
                     const student = responseData.studentlist[0];
-                    const miId = parseInt(responseData.masterCompany?.[0]?.mI_Id || '0');
+                    const miId = Number.parseInt(responseData.masterCompany?.[0]?.mI_Id || '0');
 
                     setIsCoEdSchool(miId === 5);
                     setIsGirlsSchool(miId === 4);
@@ -193,7 +193,7 @@ export default function CasteBirthCertificate() {
                     setIsCommon(miId !== 4 && miId !== 5 && miId !== 6);
 
                     let fatherNameStr = student.fathername || student.fatherName || '';
-                    let motherNameStr = student.mothername || student.motherName || '';
+                    const motherNameStr = student.mothername || student.motherName || '';
 
                     if (miId === 6) {
                         if (values.parentNameType === '0') fatherNameStr = `Mr. ${fatherNameStr}`;
@@ -201,7 +201,8 @@ export default function CasteBirthCertificate() {
                         else if (values.parentNameType === '2') fatherNameStr = `Mr. ${fatherNameStr} And Mrs. ${motherNameStr}`;
                     }
 
-                    const selectedYearName = academicYears.find((yr: any) => yr.asmaY_Id.toString() === values.academicYear)?.asmaY_Year || '';
+                    const selectedYearName =
+                        academicYears.find((yr: any) => yr.asmaY_Id.toString() === values.academicYear)?.asmaY_Year || '';
                     const sex = (student.AMST_Sex || student.amsT_Sex || '').toLowerCase();
 
                     setCertificateData({
@@ -216,7 +217,8 @@ export default function CasteBirthCertificate() {
                         relationTitle: sex === 'male' ? 'S/O' : 'D/O',
                         genderPronoun: sex === 'male' ? 'He' : 'She',
                         principalSign: responseData.principalsign?.[0]?.ivrmgC_PrincipalSign || '',
-                        principalName: responseData.principalsign?.[0]?.emp_Name || responseData.principalsign?.[0]?.ivrmgC_PrincipalName || '',
+                        principalName:
+                            responseData.principalsign?.[0]?.emp_Name || responseData.principalsign?.[0]?.ivrmgC_PrincipalName || '',
                         MI_Logo: responseData.logo?.[0]?.logo || student.MI_Logo || '',
                         masterCompany: responseData.masterCompany?.[0] || {}
                     });
@@ -230,11 +232,10 @@ export default function CasteBirthCertificate() {
                         ASMC_Id: reqData.ASMC_Id,
                         AMST_Id: reqData.AMST_Id,
                         CertificateDate: values.issueDate,
-                        ASCISS_HtmlTemplate: "Template Data", // simplified
-                        ASCISS_CertificateFlg: "SC"
+                        ASCISS_HtmlTemplate: 'Template Data', // simplified
+                        ASCISS_CertificateFlg: 'SC'
                     };
                     qrCodeMutation.mutate(qrData);
-
                 } else {
                     toast.error('Record not found');
                     setShowCertificate(false);
@@ -254,7 +255,7 @@ export default function CasteBirthCertificate() {
         const innerContents = printRef.current?.innerHTML;
         if (!innerContents) return;
 
-        const popupWindow = window.open("", "_blank");
+        const popupWindow = window.open('', '_blank');
         if (popupWindow) {
             popupWindow.document.open();
             popupWindow.document.write(`
@@ -360,30 +361,33 @@ export default function CasteBirthCertificate() {
     };
 
     return (
-        <div className="min-h-screen p-4 space-y-6">
+        <div className='min-h-screen space-y-6 p-4'>
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                    <CollapsibleSection title="Caste/Birth Certificate Report" defaultOpen={true} className="shadow-lg">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-6 bg-white">
+                <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
+                    <CollapsibleSection title='Caste/Birth Certificate Report' defaultOpen={true} className='shadow-lg'>
+                        <div className='grid grid-cols-1 gap-4 bg-white p-6 md:grid-cols-3'>
                             {/* Radio Groups */}
                             <FormField
                                 control={form.control}
-                                name="allOrIndi"
+                                name='allOrIndi'
                                 render={({ field }) => (
-                                    <FormItem className="border rounded-md p-2 flex items-center justify-center">
+                                    <FormItem className='flex items-center justify-center rounded-md border p-2'>
                                         <FormControl>
                                             <RadioGroup
                                                 onValueChange={field.onChange}
                                                 defaultValue={field.value}
-                                                className="flex flex-row space-x-6"
-                                            >
-                                                <FormItem className="flex items-center space-x-2 space-y-0">
-                                                    <FormControl><RadioGroupItem value="A" /></FormControl>
-                                                    <FormLabel className="font-normal text-sm cursor-pointer">All</FormLabel>
+                                                className='flex flex-row space-x-6'>
+                                                <FormItem className='flex items-center space-x-2 space-y-0'>
+                                                    <FormControl>
+                                                        <RadioGroupItem value='A' />
+                                                    </FormControl>
+                                                    <FormLabel className='cursor-pointer font-normal text-sm'>All</FormLabel>
                                                 </FormItem>
-                                                <FormItem className="flex items-center space-x-2 space-y-0">
-                                                    <FormControl><RadioGroupItem value="I" /></FormControl>
-                                                    <FormLabel className="font-normal text-sm cursor-pointer">Individual</FormLabel>
+                                                <FormItem className='flex items-center space-x-2 space-y-0'>
+                                                    <FormControl>
+                                                        <RadioGroupItem value='I' />
+                                                    </FormControl>
+                                                    <FormLabel className='cursor-pointer font-normal text-sm'>Individual</FormLabel>
                                                 </FormItem>
                                             </RadioGroup>
                                         </FormControl>
@@ -393,26 +397,31 @@ export default function CasteBirthCertificate() {
 
                             <FormField
                                 control={form.control}
-                                name="studentStatus"
+                                name='studentStatus'
                                 render={({ field }) => (
-                                    <FormItem className="border rounded-md p-2 flex items-center justify-center">
+                                    <FormItem className='flex items-center justify-center rounded-md border p-2'>
                                         <FormControl>
                                             <RadioGroup
                                                 onValueChange={field.onChange}
                                                 defaultValue={field.value}
-                                                className="flex flex-row space-x-4"
-                                            >
-                                                <FormItem className="flex items-center space-x-2 space-y-0">
-                                                    <FormControl><RadioGroupItem value="S" /></FormControl>
-                                                    <FormLabel className="font-normal text-sm cursor-pointer">Studying</FormLabel>
+                                                className='flex flex-row space-x-4'>
+                                                <FormItem className='flex items-center space-x-2 space-y-0'>
+                                                    <FormControl>
+                                                        <RadioGroupItem value='S' />
+                                                    </FormControl>
+                                                    <FormLabel className='cursor-pointer font-normal text-sm'>Studying</FormLabel>
                                                 </FormItem>
-                                                <FormItem className="flex items-center space-x-2 space-y-0">
-                                                    <FormControl><RadioGroupItem value="L" /></FormControl>
-                                                    <FormLabel className="font-normal text-sm cursor-pointer">Left</FormLabel>
+                                                <FormItem className='flex items-center space-x-2 space-y-0'>
+                                                    <FormControl>
+                                                        <RadioGroupItem value='L' />
+                                                    </FormControl>
+                                                    <FormLabel className='cursor-pointer font-normal text-sm'>Left</FormLabel>
                                                 </FormItem>
-                                                <FormItem className="flex items-center space-x-2 space-y-0">
-                                                    <FormControl><RadioGroupItem value="D" /></FormControl>
-                                                    <FormLabel className="font-normal text-sm cursor-pointer">Deactive</FormLabel>
+                                                <FormItem className='flex items-center space-x-2 space-y-0'>
+                                                    <FormControl>
+                                                        <RadioGroupItem value='D' />
+                                                    </FormControl>
+                                                    <FormLabel className='cursor-pointer font-normal text-sm'>Deactive</FormLabel>
                                                 </FormItem>
                                             </RadioGroup>
                                         </FormControl>
@@ -422,14 +431,18 @@ export default function CasteBirthCertificate() {
 
                             <FormField
                                 control={form.control}
-                                name="certificateType"
+                                name='certificateType'
                                 render={({ field }) => (
-                                    <FormItem className="border rounded-md p-2 flex items-center justify-center">
+                                    <FormItem className='flex items-center justify-center rounded-md border p-2'>
                                         <FormControl>
                                             <RadioGroup onValueChange={field.onChange} defaultValue={field.value}>
-                                                <FormItem className="flex items-center space-x-2 space-y-0">
-                                                    <FormControl><RadioGroupItem value="0" /></FormControl>
-                                                    <FormLabel className="font-normal text-sm cursor-pointer">Caste/Birth Certificate</FormLabel>
+                                                <FormItem className='flex items-center space-x-2 space-y-0'>
+                                                    <FormControl>
+                                                        <RadioGroupItem value='0' />
+                                                    </FormControl>
+                                                    <FormLabel className='cursor-pointer font-normal text-sm'>
+                                                        Caste/Birth Certificate
+                                                    </FormLabel>
                                                 </FormItem>
                                             </RadioGroup>
                                         </FormControl>
@@ -438,16 +451,22 @@ export default function CasteBirthCertificate() {
                             />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-gray-50 border-t">
-                            <div className="space-y-4">
+                        <div className='grid grid-cols-1 gap-6 border-t bg-gray-50 p-6 md:grid-cols-2'>
+                            <div className='space-y-4'>
                                 <FormField
                                     control={form.control}
-                                    name="academicYear"
+                                    name='academicYear'
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-[120px_1fr] items-center gap-4">
-                                            <FormLabel className="text-right">Academic Year:<span className="text-red-500">*</span></FormLabel>
+                                        <FormItem className='grid grid-cols-[120px_1fr] items-center gap-4'>
+                                            <FormLabel className='text-right'>
+                                                Academic Year:<span className='text-red-500'>*</span>
+                                            </FormLabel>
                                             <Select onValueChange={field.onChange} value={field.value}>
-                                                <FormControl><SelectTrigger><SelectValue placeholder="--Select--" /></SelectTrigger></FormControl>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder='--Select--' />
+                                                    </SelectTrigger>
+                                                </FormControl>
                                                 <SelectContent>
                                                     {academicYears.map((yr: any) => (
                                                         <SelectItem key={yr.asmaY_Id} value={yr.asmaY_Id.toString()}>
@@ -456,19 +475,25 @@ export default function CasteBirthCertificate() {
                                                     ))}
                                                 </SelectContent>
                                             </Select>
-                                            <FormMessage className="col-start-2" />
+                                            <FormMessage className='col-start-2' />
                                         </FormItem>
                                     )}
                                 />
 
                                 <FormField
                                     control={form.control}
-                                    name="classId"
+                                    name='classId'
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-[120px_1fr] items-center gap-4">
-                                            <FormLabel className="text-right">Class:{allOrIndi === 'I' && <span className="text-red-500">*</span>}</FormLabel>
+                                        <FormItem className='grid grid-cols-[120px_1fr] items-center gap-4'>
+                                            <FormLabel className='text-right'>
+                                                Class:{allOrIndi === 'I' && <span className='text-red-500'>*</span>}
+                                            </FormLabel>
                                             <Select onValueChange={field.onChange} value={field.value} disabled={allOrIndi === 'A'}>
-                                                <FormControl><SelectTrigger><SelectValue placeholder="--Select--" /></SelectTrigger></FormControl>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder='--Select--' />
+                                                    </SelectTrigger>
+                                                </FormControl>
                                                 <SelectContent>
                                                     {classes.map((cls: any) => (
                                                         <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>
@@ -477,19 +502,25 @@ export default function CasteBirthCertificate() {
                                                     ))}
                                                 </SelectContent>
                                             </Select>
-                                            <FormMessage className="col-start-2" />
+                                            <FormMessage className='col-start-2' />
                                         </FormItem>
                                     )}
                                 />
 
                                 <FormField
                                     control={form.control}
-                                    name="sectionId"
+                                    name='sectionId'
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-[120px_1fr] items-center gap-4">
-                                            <FormLabel className="text-right">Section:{allOrIndi === 'I' && <span className="text-red-500">*</span>}</FormLabel>
+                                        <FormItem className='grid grid-cols-[120px_1fr] items-center gap-4'>
+                                            <FormLabel className='text-right'>
+                                                Section:{allOrIndi === 'I' && <span className='text-red-500'>*</span>}
+                                            </FormLabel>
                                             <Select onValueChange={field.onChange} value={field.value} disabled={allOrIndi === 'A'}>
-                                                <FormControl><SelectTrigger><SelectValue placeholder="--Select--" /></SelectTrigger></FormControl>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder='--Select--' />
+                                                    </SelectTrigger>
+                                                </FormControl>
                                                 <SelectContent>
                                                     {sections.map((sec: any) => (
                                                         <SelectItem key={sec.asmS_Id} value={sec.asmS_Id.toString()}>
@@ -498,78 +529,78 @@ export default function CasteBirthCertificate() {
                                                     ))}
                                                 </SelectContent>
                                             </Select>
-                                            <FormMessage className="col-start-2" />
+                                            <FormMessage className='col-start-2' />
                                         </FormItem>
                                     )}
                                 />
                             </div>
 
-                            <div className="space-y-4">
+                            <div className='space-y-4'>
                                 <FormField
                                     control={form.control}
-                                    name="issueDate"
+                                    name='issueDate'
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-[120px_1fr] items-center gap-4">
-                                            <FormLabel className="text-right">Date:<span className="text-red-500">*</span></FormLabel>
+                                        <FormItem className='grid grid-cols-[120px_1fr] items-center gap-4'>
+                                            <FormLabel className='text-right'>
+                                                Date:<span className='text-red-500'>*</span>
+                                            </FormLabel>
                                             <FormControl>
-                                                <DatePicker
-                                                    date={field.value}
-                                                    setDate={field.onChange}
-                                                />
+                                                <DatePicker date={field.value} setDate={field.onChange} />
                                             </FormControl>
-                                            <FormMessage className="col-start-2" />
+                                            <FormMessage className='col-start-2' />
                                         </FormItem>
                                     )}
                                 />
 
                                 <FormField
                                     control={form.control}
-                                    name="studentId"
+                                    name='studentId'
                                     render={({ field }) => (
-                                        <FormItem className="grid grid-cols-[120px_1fr] items-center gap-4">
-                                            <FormLabel className="text-right">Student:<span className="text-red-500">*</span></FormLabel>
-                                            <div className="w-full">
+                                        <FormItem className='grid grid-cols-[120px_1fr] items-center gap-4'>
+                                            <FormLabel className='text-right'>
+                                                Student:<span className='text-red-500'>*</span>
+                                            </FormLabel>
+                                            <div className='w-full'>
                                                 <Popover open={studentOpen} onOpenChange={setStudentOpen}>
                                                     <PopoverTrigger asChild>
                                                         <Button
-                                                            variant="outline"
-                                                            role="combobox"
+                                                            variant='outline'
+                                                            role='combobox'
                                                             className={cn(
-                                                                "w-full justify-between p-2 border rounded-md font-normal bg-white h-auto",
-                                                                !field.value && "text-muted-foreground"
-                                                            )}
-                                                        >
-                                                            <span className="truncate pr-2">
+                                                                'h-auto w-full justify-between rounded-md border bg-white p-2 font-normal',
+                                                                !field.value && 'text-muted-foreground'
+                                                            )}>
+                                                            <span className='truncate pr-2'>
                                                                 {field.value && selectedStudentData
                                                                     ? `${selectedStudentData.amsT_FirstName} ${selectedStudentData.amsT_MiddleName || ''} ${selectedStudentData.amsT_LastName || ''}`
-                                                                    : "--Select Student--"}
+                                                                    : '--Select Student--'}
                                                             </span>
-                                                            <div className="flex items-center shrink-0">
+                                                            <div className='flex shrink-0 items-center'>
                                                                 {field.value && (
                                                                     <X
-                                                                        className="h-4 w-4 mr-1 opacity-50 hover:opacity-100 cursor-pointer"
+                                                                        className='mr-1 h-4 w-4 cursor-pointer opacity-50 hover:opacity-100'
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
-                                                                            field.onChange("");
+                                                                            field.onChange('');
                                                                             setSelectedStudentData(null);
                                                                         }}
                                                                     />
                                                                 )}
-                                                                <Search className="h-4 w-4 opacity-50" />
+                                                                <Search className='h-4 w-4 opacity-50' />
                                                             </div>
                                                         </Button>
                                                     </PopoverTrigger>
-                                                    <PopoverContent className="w-[400px] p-0" align="start">
+                                                    <PopoverContent className='w-[400px] p-0' align='start'>
                                                         <Command shouldFilter={false}>
                                                             <CommandInput
-                                                                placeholder="Type to search (min 2 chars)..."
-                                                                className="h-9"
+                                                                placeholder='Type to search (min 2 chars)...'
+                                                                className='h-9'
                                                                 onValueChange={setSearchTerm}
                                                                 value={searchTerm}
                                                             />
                                                             <CommandList>
                                                                 <CommandEmpty>No student found.</CommandEmpty>
-                                                                <CommandGroup className="max-h-64 overflow-y-auto">
+                                                                <CommandGroup className='max-h-64 overflow-y-auto'>
                                                                     {studentList.map((s: any) => (
                                                                         <CommandItem
                                                                             key={s.amsT_Id}
@@ -578,15 +609,17 @@ export default function CasteBirthCertificate() {
                                                                                 field.onChange(s.amsT_Id.toString());
                                                                                 setSelectedStudentData(s);
                                                                                 setStudentOpen(false);
-                                                                                setSearchTerm("");
-                                                                            }}
-                                                                        >
-                                                                            <div className="flex flex-col py-1">
-                                                                                <span className="font-semibold text-indigo-900">
-                                                                                    {s.amsT_FirstName} {s.amsT_MiddleName || ''} {s.amsT_LastName || ''}
+                                                                                setSearchTerm('');
+                                                                            }}>
+                                                                            <div className='flex flex-col py-1'>
+                                                                                <span className='font-semibold text-indigo-900'>
+                                                                                    {s.amsT_FirstName} {s.amsT_MiddleName || ''}{' '}
+                                                                                    {s.amsT_LastName || ''}
                                                                                 </span>
                                                                             </div>
-                                                                            {field.value === s.amsT_Id.toString() && <Check className="ml-auto h-4 w-4 text-indigo-600" />}
+                                                                            {field.value === s.amsT_Id.toString() && (
+                                                                                <Check className='ml-auto h-4 w-4 text-indigo-600' />
+                                                                            )}
                                                                         </CommandItem>
                                                                     ))}
                                                                 </CommandGroup>
@@ -595,25 +628,32 @@ export default function CasteBirthCertificate() {
                                                     </PopoverContent>
                                                 </Popover>
                                             </div>
-                                            <FormMessage className="col-start-2" />
+                                            <FormMessage className='col-start-2' />
                                         </FormItem>
                                     )}
                                 />
 
                                 <FormField
                                     control={form.control}
-                                    name="addressType"
+                                    name='addressType'
                                     render={({ field }) => (
-                                        <FormItem className="mt-4">
+                                        <FormItem className='mt-4'>
                                             <FormControl>
-                                                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex space-x-4 justify-center">
-                                                    <FormItem className="flex items-center space-x-2">
-                                                        <FormControl><RadioGroupItem value="address_per" /></FormControl>
-                                                        <FormLabel className="font-normal">Permanent Address</FormLabel>
+                                                <RadioGroup
+                                                    onValueChange={field.onChange}
+                                                    defaultValue={field.value}
+                                                    className='flex justify-center space-x-4'>
+                                                    <FormItem className='flex items-center space-x-2'>
+                                                        <FormControl>
+                                                            <RadioGroupItem value='address_per' />
+                                                        </FormControl>
+                                                        <FormLabel className='font-normal'>Permanent Address</FormLabel>
                                                     </FormItem>
-                                                    <FormItem className="flex items-center space-x-2">
-                                                        <FormControl><RadioGroupItem value="address_con" /></FormControl>
-                                                        <FormLabel className="font-normal">Communication Address</FormLabel>
+                                                    <FormItem className='flex items-center space-x-2'>
+                                                        <FormControl>
+                                                            <RadioGroupItem value='address_con' />
+                                                        </FormControl>
+                                                        <FormLabel className='font-normal'>Communication Address</FormLabel>
                                                     </FormItem>
                                                 </RadioGroup>
                                             </FormControl>
@@ -624,22 +664,31 @@ export default function CasteBirthCertificate() {
                                 {showFatherMotherRadio && (
                                     <FormField
                                         control={form.control}
-                                        name="parentNameType"
+                                        name='parentNameType'
                                         render={({ field }) => (
-                                            <FormItem className="mt-4">
+                                            <FormItem className='mt-4'>
                                                 <FormControl>
-                                                    <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex space-x-4 justify-center">
-                                                        <FormItem className="flex items-center space-x-2">
-                                                            <FormControl><RadioGroupItem value="0" /></FormControl>
-                                                            <FormLabel className="font-normal">Father Name</FormLabel>
+                                                    <RadioGroup
+                                                        onValueChange={field.onChange}
+                                                        defaultValue={field.value}
+                                                        className='flex justify-center space-x-4'>
+                                                        <FormItem className='flex items-center space-x-2'>
+                                                            <FormControl>
+                                                                <RadioGroupItem value='0' />
+                                                            </FormControl>
+                                                            <FormLabel className='font-normal'>Father Name</FormLabel>
                                                         </FormItem>
-                                                        <FormItem className="flex items-center space-x-2">
-                                                            <FormControl><RadioGroupItem value="1" /></FormControl>
-                                                            <FormLabel className="font-normal">Mother Name</FormLabel>
+                                                        <FormItem className='flex items-center space-x-2'>
+                                                            <FormControl>
+                                                                <RadioGroupItem value='1' />
+                                                            </FormControl>
+                                                            <FormLabel className='font-normal'>Mother Name</FormLabel>
                                                         </FormItem>
-                                                        <FormItem className="flex items-center space-x-2">
-                                                            <FormControl><RadioGroupItem value="2" /></FormControl>
-                                                            <FormLabel className="font-normal">Both</FormLabel>
+                                                        <FormItem className='flex items-center space-x-2'>
+                                                            <FormControl>
+                                                                <RadioGroupItem value='2' />
+                                                            </FormControl>
+                                                            <FormLabel className='font-normal'>Both</FormLabel>
                                                         </FormItem>
                                                     </RadioGroup>
                                                 </FormControl>
@@ -649,15 +698,26 @@ export default function CasteBirthCertificate() {
                                 )}
                             </div>
                         </div>
-                        <div className="p-4 flex items-center justify-center space-x-3 bg-white border-t">
-                            <Button type="submit" disabled={reportMutation.isPending} className="w-auto px-6 bg-[#3f51b5] hover:bg-[#303f9f] text-white">
-                                <FileText className="mr-2 h-4 w-4" /> REPORT
+                        <div className='flex items-center justify-center space-x-3 border-t bg-white p-4'>
+                            <Button
+                                type='submit'
+                                disabled={reportMutation.isPending}
+                                className='w-auto bg-[#3f51b5] px-6 text-white hover:bg-[#303f9f]'>
+                                <FileText className='mr-2 h-4 w-4' /> REPORT
                             </Button>
-                            <Button type="button" onClick={handleClear} variant="destructive" className="w-auto px-6 bg-[#ff5722] hover:bg-[#e64a19] text-white">
-                                <X className="mr-2 h-4 w-4" /> CANCEL
+                            <Button
+                                type='button'
+                                onClick={handleClear}
+                                variant='destructive'
+                                className='w-auto bg-[#ff5722] px-6 text-white hover:bg-[#e64a19]'>
+                                <X className='mr-2 h-4 w-4' /> CANCEL
                             </Button>
-                            <Button type="button" onClick={handlePrint} disabled={!showCertificate} className="w-auto px-6 bg-[#e0e0e0] hover:bg-[#d5d5d5] text-gray-700">
-                                <Printer className="mr-2 h-4 w-4 text-gray-600" /> PRINT
+                            <Button
+                                type='button'
+                                onClick={handlePrint}
+                                disabled={!showCertificate}
+                                className='w-auto bg-[#e0e0e0] px-6 text-gray-700 hover:bg-[#d5d5d5]'>
+                                <Printer className='mr-2 h-4 w-4 text-gray-600' /> PRINT
                             </Button>
                         </div>
                     </CollapsibleSection>
@@ -666,9 +726,9 @@ export default function CasteBirthCertificate() {
 
             {/* Print Section */}
             {showCertificate && certificateData && (
-                <div className="bg-white p-8 shadow-lg overflow-x-auto">
-                    <div ref={printRef} className="print-section" style={{ padding: '20px' }}>
-                        <style type="text/css" media="print">
+                <div className='overflow-x-auto bg-white p-8 shadow-lg'>
+                    <div ref={printRef} className='print-section' style={{ padding: '20px' }}>
+                        <style type='text/css' media='print'>
                             {`
                                 @page { size: A4; margin: 0; }
                                 html, body { background: #fff; margin: 0; padding: 0; }
@@ -706,73 +766,125 @@ export default function CasteBirthCertificate() {
                                 .principal-sign div { border-top: 1px solid #000; padding-top: 5px; width: 220px; }
                             `}
                         </style>
-                        <div className="print-container border-8 border-double border-black p-8 font-serif" style={{ maxWidth: '800px', margin: '0 auto' }}>
-                            <div className="header-container flex flex-col items-center justify-center mb-4">
+                        <div
+                            className='print-container border-8 border-black border-double p-8 font-serif'
+                            style={{ maxWidth: '800px', margin: '0 auto' }}>
+                            <div className='header-container mb-4 flex flex-col items-center justify-center'>
                                 {certificateData.MI_Logo && (
-                                    <img src={certificateData.MI_Logo} alt="Institution Logo" className="header-logo w-full max-w-2xl max-h-36 object-contain mb-2" />
+                                    <img
+                                        src={certificateData.MI_Logo}
+                                        alt='Institution Logo'
+                                        className='header-logo mb-2 max-h-36 w-full max-w-2xl object-contain'
+                                    />
                                 )}
                                 {certificateData.masterCompany && (
-                                    <div className="header-text-container text-center">
-                                        <p className="header-address text-sm">
-                                            {certificateData.masterCompany.mI_Address1 ? `${certificateData.masterCompany.mI_Address1}, ` : ''}
-                                            {certificateData.masterCompany.mI_Address2 ? `${certificateData.masterCompany.mI_Address2}, ` : ''}
-                                            {certificateData.masterCompany.mI_Address3 ? `${certificateData.masterCompany.mI_Address3}` : ''}
+                                    <div className='header-text-container text-center'>
+                                        <p className='header-address text-sm'>
+                                            {certificateData.masterCompany.mI_Address1
+                                                ? `${certificateData.masterCompany.mI_Address1}, `
+                                                : ''}
+                                            {certificateData.masterCompany.mI_Address2
+                                                ? `${certificateData.masterCompany.mI_Address2}, `
+                                                : ''}
+                                            {certificateData.masterCompany.mI_Address3
+                                                ? `${certificateData.masterCompany.mI_Address3}`
+                                                : ''}
                                             {certificateData.masterCompany.mI_Pincode ? `-${certificateData.masterCompany.mI_Pincode}` : ''}
                                         </p>
-                                        {certificateData.masterCompany.mI_Email && <p className="header-address text-sm">Email: {certificateData.masterCompany.mI_Email}</p>}
+                                        {certificateData.masterCompany.mI_Email && (
+                                            <p className='header-address text-sm'>Email: {certificateData.masterCompany.mI_Email}</p>
+                                        )}
                                     </div>
                                 )}
                             </div>
-                            <hr className="border-black border-t-2 my-4" />
-                            <div className="text-center">
-                                <div className="text-2xl font-bold underline my-4">CASTE / BIRTH CERTIFICATE</div>
+                            <hr className='my-4 border-black border-t-2' />
+                            <div className='text-center'>
+                                <div className='my-4 font-bold text-2xl underline'>CASTE / BIRTH CERTIFICATE</div>
                             </div>
 
-                            <div className="text-lg leading-loose mt-8 px-4">
-
-                                <div className="mt-4">
-                                    I, do hereby certify that <span className="inline-block border-b border-dotted border-black min-w-[300px] text-center px-2 font-bold uppercase">{certificateData.studentnam}</span>
-                                    {certificateData.relationTitle} <span className="inline-block border-b border-dotted border-black min-w-[250px] text-center px-2 uppercase">{certificateData.fatherNameFormatted}</span>
-                                    is a student of our institute. {certificateData.genderPronoun} is studying
-                                    in class <span className="inline-block border-b border-dotted border-black min-w-[80px] text-center px-2 font-bold">{certificateData.class}</span>
-                                    in <span className="inline-block border-b border-dotted border-black min-w-[120px] text-center px-2">{certificateData.acadamicyear}</span> the academic year
-                                    with Admission Number <span className="inline-block border-b border-dotted border-black min-w-[120px] text-center px-2">{certificateData.admno}</span>
-                                    & Enrollment Number <span className="inline-block border-b border-dotted border-black min-w-[150px] text-center px-2">{certificateData.RegistrationNo}</span>.
+                            <div className='mt-8 px-4 text-lg leading-loose'>
+                                <div className='mt-4'>
+                                    I, do hereby certify that{' '}
+                                    <span className='inline-block min-w-[300px] border-black border-b border-dotted px-2 text-center font-bold uppercase'>
+                                        {certificateData.studentnam}
+                                    </span>
+                                    {certificateData.relationTitle}{' '}
+                                    <span className='inline-block min-w-[250px] border-black border-b border-dotted px-2 text-center uppercase'>
+                                        {certificateData.fatherNameFormatted}
+                                    </span>
+                                    is a student of our institute. {certificateData.genderPronoun} is studying in class{' '}
+                                    <span className='inline-block min-w-[80px] border-black border-b border-dotted px-2 text-center font-bold'>
+                                        {certificateData.class}
+                                    </span>
+                                    in{' '}
+                                    <span className='inline-block min-w-[120px] border-black border-b border-dotted px-2 text-center'>
+                                        {certificateData.acadamicyear}
+                                    </span>{' '}
+                                    the academic year with Admission Number{' '}
+                                    <span className='inline-block min-w-[120px] border-black border-b border-dotted px-2 text-center'>
+                                        {certificateData.admno}
+                                    </span>
+                                    & Enrollment Number{' '}
+                                    <span className='inline-block min-w-[150px] border-black border-b border-dotted px-2 text-center'>
+                                        {certificateData.RegistrationNo}
+                                    </span>
+                                    .
                                 </div>
-                                <div className="mt-8">
+                                <div className='mt-8'>
                                     I declare that {certificateData.genderPronoun} belongs that
-                                    <span className="inline-block border-b border-dotted border-black min-w-[200px] text-center px-2 font-bold">{certificateData.caste_name}</span> caste belonging to
-                                    <span className="inline-block border-b border-dotted border-black min-w-[200px] text-center px-2 font-bold">{certificateData.CategoryName}</span> category as per school register.
+                                    <span className='inline-block min-w-[200px] border-black border-b border-dotted px-2 text-center font-bold'>
+                                        {certificateData.caste_name}
+                                    </span>{' '}
+                                    caste belonging to
+                                    <span className='inline-block min-w-[200px] border-black border-b border-dotted px-2 text-center font-bold'>
+                                        {certificateData.CategoryName}
+                                    </span>{' '}
+                                    category as per school register.
                                     {certificateData.genderPronoun === 'He' ? 'His' : 'Her'} date of birth is
-                                    <span className="inline-block border-b border-dotted border-black min-w-[120px] text-center px-2">
+                                    <span className='inline-block min-w-[120px] border-black border-b border-dotted px-2 text-center'>
                                         {certificateData.dob ? format(new Date(certificateData.dob), 'dd-MM-yyyy') : ''}
                                     </span>
                                     (In words)
-                                    <span className="inline-block border-b border-dotted border-black min-w-[300px] text-center px-2 uppercase">{certificateData.dobwords}</span>.
+                                    <span className='inline-block min-w-[300px] border-black border-b border-dotted px-2 text-center uppercase'>
+                                        {certificateData.dobwords}
+                                    </span>
+                                    .
                                 </div>
                             </div>
 
-                            <div className="flex justify-between items-start mt-16 text-lg px-4">
-                                <div className="space-y-4">
+                            <div className='mt-16 flex items-start justify-between px-4 text-lg'>
+                                <div className='space-y-4'>
                                     <div>
-                                        <strong>Date:</strong> <span className="inline-block border-b border-dotted border-black min-w-[150px] px-2 text-center">{certificateData.issueDate ? format(certificateData.issueDate, 'dd-MM-yyyy') : format(new Date(), 'dd-MM-yyyy')}</span>
+                                        <strong>Date:</strong>{' '}
+                                        <span className='inline-block min-w-[150px] border-black border-b border-dotted px-2 text-center'>
+                                            {certificateData.issueDate
+                                                ? format(certificateData.issueDate, 'dd-MM-yyyy')
+                                                : format(new Date(), 'dd-MM-yyyy')}
+                                        </span>
                                     </div>
                                     <div>
-                                        <strong>Place:</strong> <span className="inline-block border-b border-dotted border-black min-w-[150px] px-2 text-center">{certificateData.area}</span>
+                                        <strong>Place:</strong>{' '}
+                                        <span className='inline-block min-w-[150px] border-black border-b border-dotted px-2 text-center'>
+                                            {certificateData.area}
+                                        </span>
                                     </div>
                                 </div>
-                                <div className="flex flex-col items-end">
+                                <div className='flex flex-col items-end'>
                                     <div style={{ borderBottom: '2px solid black', width: '250px', marginBottom: '4px' }}></div>
                                     <div style={{ width: '250px', textAlign: 'center', fontWeight: 'bold' }}>Principal Signature</div>
 
-                                    <div className="mt-12">
-                                        <strong>Full Name:</strong> <span className="inline-block border-b border-dotted border-black min-w-[200px] px-2 text-center uppercase">{certificateData.principalName || ''}</span>
+                                    <div className='mt-12'>
+                                        <strong>Full Name:</strong>{' '}
+                                        <span className='inline-block min-w-[200px] border-black border-b border-dotted px-2 text-center uppercase'>
+                                            {certificateData.principalName || ''}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="text-center text-lg mt-10 mb-4">
-                                <span className="inline-block border-b border-dotted border-black min-w-[200px]"></span> Thanking you <span className="inline-block border-b border-dotted border-black min-w-[200px]"></span>
+                            <div className='mt-10 mb-4 text-center text-lg'>
+                                <span className='inline-block min-w-[200px] border-black border-b border-dotted'></span> Thanking you{' '}
+                                <span className='inline-block min-w-[200px] border-black border-b border-dotted'></span>
                             </div>
                         </div>
                     </div>

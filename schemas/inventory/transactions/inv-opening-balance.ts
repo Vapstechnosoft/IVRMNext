@@ -1,4 +1,3 @@
-
 import { z } from 'zod';
 
 export const invOpeningBalanceItemSchema = z.object({
@@ -15,13 +14,13 @@ export const invOpeningBalanceItemSchema = z.object({
     invstO_SalesRate: z.coerce.number().min(0, 'Sales Rate must be non-negative'),
     invoB_Naration: z.string().optional(),
     invoB_MfgDate: z.date().optional().nullable(),
-    invoB_ExpDate: z.date().optional().nullable(),
+    invoB_ExpDate: z.date().optional().nullable()
 });
 
 export const invOpeningBalanceSchema = z.object({
     invoB_Id: z.number().optional(),
     invmsT_Id: z.coerce.number().min(1, 'Store is required'),
-    transrows: z.array(invOpeningBalanceItemSchema).min(1, 'At least one item is required'),
+    transrows: z.array(invOpeningBalanceItemSchema).min(1, 'At least one item is required')
 });
 
 export type TInvOpeningBalance = z.infer<typeof invOpeningBalanceSchema>;

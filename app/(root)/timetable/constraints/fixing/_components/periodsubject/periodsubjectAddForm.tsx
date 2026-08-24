@@ -173,28 +173,28 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
                 extractList(res, 'clssbysub').length > 0
                     ? extractList(res, 'clssbysub')
                     : extractList(res, 'clsbysubject').length > 0
-                        ? extractList(res, 'clsbysubject')
-                        : extractList(res, 'classlist').length > 0
-                            ? extractList(res, 'classlist')
-                            : findArrayByField('asmcL_Id');
+                      ? extractList(res, 'clsbysubject')
+                      : extractList(res, 'classlist').length > 0
+                        ? extractList(res, 'classlist')
+                        : findArrayByField('asmcL_Id');
 
             const sections =
                 extractList(res, 'secsbysub').length > 0
                     ? extractList(res, 'secsbysub')
                     : extractList(res, 'secsbysubject').length > 0
-                        ? extractList(res, 'secsbysubject')
-                        : extractList(res, 'sectionlist').length > 0
-                            ? extractList(res, 'sectionlist')
-                            : findArrayByField('asmS_Id');
+                      ? extractList(res, 'secsbysubject')
+                      : extractList(res, 'sectionlist').length > 0
+                        ? extractList(res, 'sectionlist')
+                        : findArrayByField('asmS_Id');
 
             const staff =
                 extractList(res, 'staffbysub').length > 0
                     ? extractList(res, 'staffbysub')
                     : extractList(res, 'staffbysubject').length > 0
-                        ? extractList(res, 'staffbysubject')
-                        : extractList(res, 'stafflist').length > 0
-                            ? extractList(res, 'stafflist')
-                            : findArrayByField('hrmE_Id');
+                      ? extractList(res, 'staffbysubject')
+                      : extractList(res, 'stafflist').length > 0
+                        ? extractList(res, 'stafflist')
+                        : findArrayByField('hrmE_Id');
 
             console.log('[PeriodSubjectAddForm] Resolved → classes:', classes.length, 'sections:', sections.length, 'staff:', staff.length);
 
@@ -323,7 +323,9 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
                         name='asmaY_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Academic Year <span className='text-red-500'>*</span></FormLabel>
+                                <FormLabel>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => handleAcademicYearChange(Number(v))}
@@ -351,7 +353,9 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
                         name='ttmP_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Period <span className='text-red-500'>*</span></FormLabel>
+                                <FormLabel>
+                                    Period <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => field.onChange(Number(v))}
@@ -382,7 +386,9 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
                         name='ismS_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Subject <span className='text-red-500'>*</span></FormLabel>
+                                <FormLabel>
+                                    Subject <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => handleSubjectChange(Number(v))}
@@ -433,7 +439,9 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
                         <h4 className='font-semibold'>Add Class Details</h4>
                         <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-5'>
                             <div className='space-y-2'>
-                                <FormLabel>Class <span className='text-red-500'>*</span></FormLabel>
+                                <FormLabel>
+                                    Class <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={selectedClass?.toString() || 'empty'}
                                     onValueChange={(v) => handleClassChange(Number(v))}
@@ -456,10 +464,12 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
                                         )}
                                     </SelectContent>
                                 </Select>
-                                {gridErrors?.class && <p className='text-[0.8rem] font-medium text-destructive mt-1'>{gridErrors.class}</p>}
+                                {gridErrors?.class && <p className='mt-1 font-medium text-[0.8rem] text-destructive'>{gridErrors.class}</p>}
                             </div>
                             <div className='space-y-2'>
-                                <FormLabel>Section <span className='text-red-500'>*</span></FormLabel>
+                                <FormLabel>
+                                    Section <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={selectedSection?.toString() || 'empty'}
                                     onValueChange={(v) => handleSectionChange(Number(v))}
@@ -478,10 +488,14 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
                                         })}
                                     </SelectContent>
                                 </Select>
-                                {gridErrors?.section && <p className='text-[0.8rem] font-medium text-destructive mt-1'>{gridErrors.section}</p>}
+                                {gridErrors?.section && (
+                                    <p className='mt-1 font-medium text-[0.8rem] text-destructive'>{gridErrors.section}</p>
+                                )}
                             </div>
                             <div className='space-y-2'>
-                                <FormLabel>Staff <span className='text-red-500'>*</span></FormLabel>
+                                <FormLabel>
+                                    Staff <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={selectedStaff?.toString() || 'empty'}
                                     onValueChange={(v) => setSelectedStaff(Number(v))}
@@ -500,13 +514,14 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
                                         })}
                                     </SelectContent>
                                 </Select>
-                                {gridErrors?.staff && <p className='text-[0.8rem] font-medium text-destructive mt-1'>{gridErrors.staff}</p>}
+                                {gridErrors?.staff && <p className='mt-1 font-medium text-[0.8rem] text-destructive'>{gridErrors.staff}</p>}
                             </div>
                             <div className='space-y-2'>
-                                <FormLabel>No Of Days <span className='text-red-500'>*</span></FormLabel>
-                                <Input type='number' value={nod} onChange={(e) => setNod(e.target.value)}
-                                    placeholder='Number of Days' />
-                                {gridErrors?.nod && <p className='text-[0.8rem] font-medium text-destructive mt-1'>{gridErrors.nod}</p>}
+                                <FormLabel>
+                                    No Of Days <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <Input type='number' value={nod} onChange={(e) => setNod(e.target.value)} placeholder='Number of Days' />
+                                {gridErrors?.nod && <p className='mt-1 font-medium text-[0.8rem] text-destructive'>{gridErrors.nod}</p>}
                             </div>
                         </div>
                         <Button type='button' onClick={addToGrid}>
@@ -528,4 +543,3 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
         </Form>
     );
 }
-

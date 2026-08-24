@@ -48,14 +48,17 @@ export const deactivateMasterSportsCCGroup = async (data: any): Promise<ApiRespo
     try {
         const params = new URLSearchParams();
         params.append('SPCCMSCCG_Id', data.spccmD_Id ? data.spccmD_Id.toString() : data.spccmsccG_Id.toString());
-        params.append('SPCCMSCCG_ActiveFlag', data.spccmD_ActiveFlag !== undefined ? data.spccmD_ActiveFlag.toString() : data.spccmsccG_ActiveFlag.toString());
+        params.append(
+            'SPCCMSCCG_ActiveFlag',
+            data.spccmD_ActiveFlag !== undefined ? data.spccmD_ActiveFlag.toString() : data.spccmsccG_ActiveFlag.toString()
+        );
 
-        // Note: The toggle form in page.tsx currently uses 'spccmD_Id' (likely copy-paste from Division). 
-        // I should check if the toggle form sends the correct keys. 
+        // Note: The toggle form in page.tsx currently uses 'spccmD_Id' (likely copy-paste from Division).
+        // I should check if the toggle form sends the correct keys.
         // Division toggle form sent: spccmD_Id, spccmD_ActiveFlag.
         // MasterSportsCCGroup toggle form should send: spccmsccG_Id, spccmsccG_ActiveFlag.
-        // I will assume the component update (if done right) sends the right keys, but I'll add fallback just in case 
-        // to handle potential mismatch if I missed updating the toggle form keys. 
+        // I will assume the component update (if done right) sends the right keys, but I'll add fallback just in case
+        // to handle potential mismatch if I missed updating the toggle form keys.
         // Wait, I didn't update the toggle form yet! The previous view showed it using 'spccmD_...'.
         // I'll fix the toggle form in the next step. Here I will use the correct keys 'spccmsccG...'.
 

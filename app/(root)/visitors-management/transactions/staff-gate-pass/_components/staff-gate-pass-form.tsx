@@ -1,20 +1,20 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { Button } from '@/components/ui/button';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useFormContext } from '@/components/ui/form/form-provider';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { useStaffGatePass } from '@/hooks/visitors-management/transactions/useStaffGatePass';
-import { useFormContext } from '@/components/ui/form/form-provider';
-import { StaffGatePassData } from '@/types/visitors-management/transactions';
-import { DatePicker } from '@/components/ui/date-picker';
+import type { StaffGatePassData } from '@/types/visitors-management/transactions';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { Loader2 } from 'lucide-react';
-import { Textarea } from '@/components/ui/textarea';
 import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
 
 const formSchema = z.object({
     gphsT_Id: z.number().optional(),
@@ -22,10 +22,10 @@ const formSchema = z.object({
     hrmD_Id: z.number().min(1, 'Department is required'),
     hrmdeS_Id: z.number().min(1, 'Designation is required'),
     gphsT_DateTime: z.date({
-        required_error: "Date is required",
+        required_error: 'Date is required'
     }),
     gphsT_OutTime: z.string().min(1, 'Out Time is required'),
-    gphsT_Remarks: z.string().optional(),
+    gphsT_Remarks: z.string().optional()
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -61,7 +61,7 @@ export default function StaffGatePassForm({ onSuccess, empList, departments, des
     // Auto-fill department and designation when staff is selected
     useEffect(() => {
         if (watchStaff > 0 && !isEditMode) {
-            const selectedStaff = empList.find(e => e.hrmE_Id === watchStaff);
+            const selectedStaff = empList.find((e) => e.hrmE_Id === watchStaff);
             if (selectedStaff) {
                 form.setValue('hrmD_Id', selectedStaff.hrmD_Id);
                 form.setValue('hrmdeS_Id', selectedStaff.hrmdeS_Id);
@@ -72,7 +72,7 @@ export default function StaffGatePassForm({ onSuccess, empList, departments, des
     const onSubmit = async (data: FormValues) => {
         const submitData = {
             ...data,
-            gphsT_DateTime: data.gphsT_DateTime.toISOString(),
+            gphsT_DateTime: data.gphsT_DateTime.toISOString()
         };
 
         await saveStaffGatePass(submitData);
@@ -81,24 +81,30 @@ export default function StaffGatePassForm({ onSuccess, empList, departments, des
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
+                <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                     <FormField
                         control={form.control}
-                        name="hrmE_Id"
+                        name='hrmE_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Staff Name <span className="text-destructive">*</span></FormLabel>
-                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value.toString()} disabled={isEditMode}>
+                                <FormLabel>
+                                    Staff Name <span className='text-destructive'>*</span>
+                                </FormLabel>
+                                <Select
+                                    onValueChange={(val) => field.onChange(Number(val))}
+                                    value={field.value.toString()}
+                                    disabled={isEditMode}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Staff" />
+                                            <SelectValue placeholder='Select Staff' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {empList.map(emp => (
-                                            <SelectItem key={emp.hrmE_Id} value={emp.hrmE_Id.toString()}>{emp.empname}</SelectItem>
+                                        {empList.map((emp) => (
+                                            <SelectItem key={emp.hrmE_Id} value={emp.hrmE_Id.toString()}>
+                                                {emp.empname}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -109,19 +115,23 @@ export default function StaffGatePassForm({ onSuccess, empList, departments, des
 
                     <FormField
                         control={form.control}
-                        name="hrmD_Id"
+                        name='hrmD_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Department Name <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>
+                                    Department Name <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value.toString()} disabled>
                                     <FormControl>
-                                        <SelectTrigger className="bg-muted">
-                                            <SelectValue placeholder="Select Department" />
+                                        <SelectTrigger className='bg-muted'>
+                                            <SelectValue placeholder='Select Department' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {departments.map(dept => (
-                                            <SelectItem key={dept.hrmD_Id} value={dept.hrmD_Id.toString()}>{dept.hrmD_DepartmentName}</SelectItem>
+                                        {departments.map((dept) => (
+                                            <SelectItem key={dept.hrmD_Id} value={dept.hrmD_Id.toString()}>
+                                                {dept.hrmD_DepartmentName}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -132,19 +142,23 @@ export default function StaffGatePassForm({ onSuccess, empList, departments, des
 
                     <FormField
                         control={form.control}
-                        name="hrmdeS_Id"
+                        name='hrmdeS_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Designation Name <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>
+                                    Designation Name <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value.toString()} disabled>
                                     <FormControl>
-                                        <SelectTrigger className="bg-muted">
-                                            <SelectValue placeholder="Select Designation" />
+                                        <SelectTrigger className='bg-muted'>
+                                            <SelectValue placeholder='Select Designation' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {designations.map(desig => (
-                                            <SelectItem key={desig.hrmdeS_Id} value={desig.hrmdeS_Id.toString()}>{desig.hrmdeS_DesignationName}</SelectItem>
+                                        {designations.map((desig) => (
+                                            <SelectItem key={desig.hrmdeS_Id} value={desig.hrmdeS_Id.toString()}>
+                                                {desig.hrmdeS_DesignationName}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -155,15 +169,14 @@ export default function StaffGatePassForm({ onSuccess, empList, departments, des
 
                     <FormField
                         control={form.control}
-                        name="gphsT_DateTime"
+                        name='gphsT_DateTime'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Date <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>
+                                    Date <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <FormControl>
-                                    <DatePicker
-                                        date={field.value}
-                                        setDate={field.onChange}
-                                    />
+                                    <DatePicker date={field.value} setDate={field.onChange} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -172,12 +185,14 @@ export default function StaffGatePassForm({ onSuccess, empList, departments, des
 
                     <FormField
                         control={form.control}
-                        name="gphsT_OutTime"
+                        name='gphsT_OutTime'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Out Time <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>
+                                    Out Time <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <FormControl>
-                                    <Input type="time" {...field} />
+                                    <Input type='time' {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -186,12 +201,12 @@ export default function StaffGatePassForm({ onSuccess, empList, departments, des
 
                     <FormField
                         control={form.control}
-                        name="gphsT_Remarks"
+                        name='gphsT_Remarks'
                         render={({ field }) => (
-                            <FormItem className="md:col-span-2 lg:col-span-3">
+                            <FormItem className='md:col-span-2 lg:col-span-3'>
                                 <FormLabel>Remarks</FormLabel>
                                 <FormControl>
-                                    <Textarea {...field} placeholder="Enter remarks (optional)..." rows={2} />
+                                    <Textarea {...field} placeholder='Enter remarks (optional)...' rows={2} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -199,12 +214,12 @@ export default function StaffGatePassForm({ onSuccess, empList, departments, des
                     />
                 </div>
 
-                <div className="flex justify-end gap-4 mt-6 pt-4 border-t">
-                    <Button type="button" variant="outline" onClick={onSuccess}>
+                <div className='mt-6 flex justify-end gap-4 border-t pt-4'>
+                    <Button type='button' variant='outline' onClick={onSuccess}>
                         Cancel
                     </Button>
-                    <Button type="submit" disabled={isSaving}>
-                        {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    <Button type='submit' disabled={isSaving}>
+                        {isSaving && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
                         Save
                     </Button>
                 </div>

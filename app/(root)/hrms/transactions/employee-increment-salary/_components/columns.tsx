@@ -1,9 +1,9 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
+import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
+import { Trash2 } from 'lucide-react';
 
 export interface EmployeeIncrementGridItem {
     hrmeD_Name: string;
@@ -13,7 +13,7 @@ export interface EmployeeIncrementGridItem {
     amount: number | null;
     flag: string;
     hreiC_IncrementDate?: string | Date;
-   hreiceD_PreviousAmount?: number; // Might be in the real API
+    hreiceD_PreviousAmount?: number; // Might be in the real API
 }
 
 export const getEmployeeIncrementColumns = (onDelete: (id: number) => void): ColumnDef<EmployeeIncrementGridItem>[] => [
@@ -21,16 +21,16 @@ export const getEmployeeIncrementColumns = (onDelete: (id: number) => void): Col
         id: 'slNo',
         header: 'SL.No.',
         cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
-        size: 50,
+        size: 50
     },
     {
         accessorKey: 'employeeName',
-        header: 'Employee Name',
+        header: 'Employee Name'
         // size: 200,
     },
     {
         accessorKey: 'hrmD_DepartmentName',
-        header: 'Department',
+        header: 'Department'
         // size: 150,
     },
     {
@@ -44,45 +44,44 @@ export const getEmployeeIncrementColumns = (onDelete: (id: number) => void): Col
             } catch {
                 return String(date);
             }
-        },
-        // size: 120,   
+        }
+        // size: 120,
     },
     {
         accessorKey: 'hrmeD_Name',
-        header: 'Earning Head',
+        header: 'Earning Head'
         // size: 150,
     },
     {
         accessorKey: 'PreviousAmount',
         header: 'Previous Amount',
-        cell: ({ row }) => row.original.hreiceD_PreviousAmount ?? '-',
+        cell: ({ row }) => row.original.hreiceD_PreviousAmount ?? '-'
         // size: 120,
     },
     {
         accessorKey: 'amount',
         header: 'Percentage/Amount',
-        cell:({row})=> <div className='text-center'>{row.original.amount}</div>,
+        cell: ({ row }) => <div className='text-center'>{row.original.amount}</div>
         // size: 120,
     },
     {
         accessorKey: 'flag',
-        header: () => (<div className='text-center'>Flag</div>),
-        cell:({row})=> <div className='text-center'>{row.original.flag}</div>,
-        size: 100,
+        header: () => <div className='text-center'>Flag</div>,
+        cell: ({ row }) => <div className='text-center'>{row.original.flag}</div>,
+        size: 100
     },
     {
         id: 'actions',
         header: 'Action',
         cell: ({ row }) => (
             <Button
-                variant="ghost"
-                size="icon"
-                className="text-destructive hover:text-destructive hover:bg-destructive/50"
-                onClick={() => onDelete(row.original.hreiC_Id)}
-            >
-                <Trash2 className="h-4 w-4" />
+                variant='ghost'
+                size='icon'
+                className='text-destructive hover:bg-destructive/50 hover:text-destructive'
+                onClick={() => onDelete(row.original.hreiC_Id)}>
+                <Trash2 className='h-4 w-4' />
             </Button>
         ),
-        size: 80,
-    },
+        size: 80
+    }
 ];

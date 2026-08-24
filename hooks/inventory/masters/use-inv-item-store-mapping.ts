@@ -1,10 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+    deactivateInvItemStoreMapping,
     getInvItemStoreMappingLoadData,
-    saveInvItemStoreMapping,
-    deactivateInvItemStoreMapping
+    saveInvItemStoreMapping
 } from '@/server/inventory/masters/inv-item-store-mapping';
 import type { ApiSearchparams } from '@/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 export const INV_ITEM_STORE_MAPPING_QUERY_KEY = 'INV_ITEM_STORE_MAPPING';
@@ -14,7 +14,7 @@ export function useInvItemStoreMapping(searchParams?: ApiSearchparams) {
 
     const query = useQuery({
         queryKey: [INV_ITEM_STORE_MAPPING_QUERY_KEY, searchParams],
-        queryFn: () => getInvItemStoreMappingLoadData(searchParams),
+        queryFn: () => getInvItemStoreMappingLoadData(searchParams)
     });
 
     const saveMutation = useMutation({
@@ -29,7 +29,7 @@ export function useInvItemStoreMapping(searchParams?: ApiSearchparams) {
         },
         onError: () => {
             toast.error('An error occurred while saving');
-        },
+        }
     });
 
     const toggleActiveMutation = useMutation({
@@ -41,12 +41,12 @@ export function useInvItemStoreMapping(searchParams?: ApiSearchparams) {
             } else {
                 toast.error(response.message || 'Failed to update status');
             }
-        },
+        }
     });
 
     return {
         ...query,
         saveMutation,
-        toggleActiveMutation,
+        toggleActiveMutation
     };
 }

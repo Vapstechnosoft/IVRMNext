@@ -4,7 +4,7 @@ import './signin-form.css';
 import PreadmissionRegistration from '@/app/(root)/admission/preadmission/transactions/preadmission-registration/page';
 import { useCheckPreadmissionLive } from '@/hooks/admission/preadmission/useConfigurations';
 import { loginSchema } from '@/schemas/admission/preadmission/masters';
-import { login } from '@/server/user';
+import { login, forgotUsernameAction } from '@/server/user';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
     ArrowRight,
@@ -23,13 +23,12 @@ import {
     User,
     X
 } from 'lucide-react';
-import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
+import { QRCodeSVG } from 'qrcode.react'; // Added import here
 import { useEffect, useState, useTransition } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-import { QRCodeSVG } from 'qrcode.react'; // Added import here
 
 type FormFields = z.infer<typeof loginSchema>;
 
@@ -50,6 +49,13 @@ export default function SigninForm() {
     const [isSubscribeOpen, setIsSubscribeOpen] = useState(false);
     const [subscribeEmail, setSubscribeEmail] = useState('');
     const [subscribeSuccess, setSubscribeSuccess] = useState(false);
+
+    // Forgot Username Modal states
+    const [isForgotUsernameOpen, setIsForgotUsernameOpen] = useState(false);
+    const [forgotMobile, setForgotMobile] = useState('');
+    const [forgotPending, setForgotPending] = useState(false);
+    const [forgotResult, setForgotResult] = useState<string | null>(null);
+    const [forgotError, setForgotError] = useState('');
 
     useEffect(() => {
         setMounted(true);
@@ -100,6 +106,34 @@ export default function SigninForm() {
         }, 2200);
     };
 
+    const handleForgotUsernameSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setForgotError('');
+        setForgotResult(null);
+
+        if (!forgotMobile || forgotMobile.trim().length === 0) {
+            setForgotError('invalid register mobile number');
+            return;
+        }
+
+        setForgotPending(true);
+        try {
+            const res = await forgotUsernameAction(forgotMobile);
+            if (res.success && res.username) {
+                setForgotResult(res.username);
+                toast.success('Username retrieved successfully!');
+            } else {
+                setForgotError(res.message || 'invalid register mobile number');
+                toast.error(res.message || 'invalid register mobile number');
+            }
+        } catch (err: any) {
+            setForgotError('invalid register mobile number');
+            toast.error('invalid register mobile number');
+        } finally {
+            setForgotPending(false);
+        }
+    };
+
     if (!mounted) return null;
 
     return (
@@ -137,21 +171,20 @@ export default function SigninForm() {
                                     <span>ABOUT VAPS</span>
                                 </div> */}
                                 <a
-                                    href="https://www.google.com/search?q=About+VAPS+Technosoft+company+in+Bangalore"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                    href='https://www.google.com/search?q=About+VAPS+Technosoft+company+in+Bangalore'
+                                    target='_blank'
+                                    rel='noopener noreferrer'
                                     className='about-badge'
-                                    title="Click to learn about VAPS"
-                                    style={{ textDecoration: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}
-                                >
+                                    title='Click to learn about VAPS'
+                                    style={{ textDecoration: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}>
                                     <Sparkles size={14} />
                                     <span>ABOUT VAPS</span>
                                 </a>
                                 <h2 className='about-heading'>Ai-Vidyalaya Resource Management</h2>
                                 <p className='about-text'>
-                                    VAPS Technosoft is an ISO 9001 established software development company based in Bangalore specialized in{' '}
-                                    <strong>Ai-Vidyalaya Resource Management Software</strong> for educational Institutions &amp; universities ranging
-                                    from Kinder Garden to Post Graduation.
+                                    VAPS Technosoft is an ISO 9001 established software development company based in Bangalore specialized
+                                    in <strong>Ai-Vidyalaya Resource Management Software</strong> for educational Institutions &amp;
+                                    universities ranging from Kinder Garden to Post Graduation.
                                 </p>
 
                                 <div className='about-highlights'>
@@ -177,8 +210,8 @@ export default function SigninForm() {
                                     <h3 className='mv-title'>ABOUT VAPS MISSION - ARE YOU UP TO DATE?</h3>
                                 </div>
                                 <p className='mv-body'>
-                                    To facilitate customers to achieve their goals by providing innovative, best-in-class consulting, IT solutions
-                                    and services.
+                                    To facilitate customers to achieve their goals by providing innovative, best-in-class consulting, IT
+                                    solutions and services.
                                 </p>
                             </div>
 
@@ -189,9 +222,11 @@ export default function SigninForm() {
                                     </div>
                                     <h3 className='mv-title'>VAPS VISION &amp; VALUES</h3>
                                 </div>
-                                <p className="mv-body">
-                                    <strong>Vision:</strong> VAPS (V -Versatile in Vision,A - Avant Garde in Thinking,P -Prolific in Work,S -Service is our Motto) <br />
-                                    <strong>Values:</strong> To facilitate Customers to grow with us in making high-end technologies available even to common man.
+                                <p className='mv-body'>
+                                    <strong>Vision:</strong> VAPS (V -Versatile in Vision,A - Avant Garde in Thinking,P -Prolific in Work,S
+                                    -Service is our Motto) <br />
+                                    <strong>Values:</strong> To facilitate Customers to grow with us in making high-end technologies
+                                    available even to common man.
                                 </p>
                             </div>
                         </div>
@@ -254,11 +289,22 @@ export default function SigninForm() {
                                     {errors.password && <p className='field-error'>{errors.password?.message}</p>}
                                 </div>
 
-                                {/* Forgot password link */}
-                                <div className='forgot-password-row'>
-                                    {/* <Link href='/forgot-password' className='forgot-password-link'>
+                                {/* Forgot Username & Forgot Password Links */}
+                                <div className='forgot-links-row'>
+                                    <button
+                                        type='button'
+                                        onClick={() => {
+                                            setIsForgotUsernameOpen(true);
+                                            setForgotMobile('');
+                                            setForgotResult(null);
+                                            setForgotError('');
+                                        }}
+                                        className='forgot-username-link'>
+                                        Forgot User Name?
+                                    </button>
+                                    {/* <a href='/forgot-password' className='forgot-password-link'>
                                         Forgot password?
-                                    </Link> */}
+                                    </a> */}
                                 </div>
 
                                 {error && (
@@ -325,8 +371,7 @@ export default function SigninForm() {
                             target='_blank'
                             rel='noopener noreferrer'
                             className='technoveda-subscribe-btn'
-                            style={{ textDecoration: 'none' }}
-                        >
+                            style={{ textDecoration: 'none' }}>
                             <span>Subscribe Here</span>
                             <Send size={16} />
                         </a>
@@ -341,11 +386,7 @@ export default function SigninForm() {
                             title='Click or scan to visit https://vapstechnoveda.com/subscriber'>
                             <div className='qr-card'>
                                 {/* Replaced the hardcoded component with the dynamic qrcode.react one */}
-                                <QRCodeSVG
-                                    value="https://vapstechnoveda.com/subscriber"
-                                    className='qr-code-svg'
-                                    fgColor="#1e293b"
-                                />
+                                <QRCodeSVG value='https://vapstechnoveda.com/subscriber' className='qr-code-svg' fgColor='#1e293b' />
                                 <span className='qr-caption'>Scan here to subscribe now</span>
                             </div>
                         </a>
@@ -416,7 +457,7 @@ export default function SigninForm() {
 
                         {subscribeSuccess ? (
                             <div className='subscribe-success-box'>
-                                <CheckCircle2 size={48} className='text-emerald-500 animate-bounce' />
+                                <CheckCircle2 size={48} className='animate-bounce text-emerald-500' />
                                 <h4>Subscription Confirmed!</h4>
                                 <p>You have successfully subscribed to Technoveda quarterly newsletter.</p>
                             </div>
@@ -433,12 +474,79 @@ export default function SigninForm() {
                                     />
                                     <Mail size={18} className='input-icon' />
                                 </div>
-                                <button type='submit' className='btn-modal-primary w-full mt-4'>
+                                <button type='submit' className='btn-modal-primary mt-4 w-full'>
                                     <span>Subscribe Now</span>
                                     <Send size={16} />
                                 </button>
                             </form>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* --- FORGOT USERNAME MODAL --- */}
+            {isForgotUsernameOpen && (
+                <div className='modal-backdrop animate-fade-in'>
+                    <div className='forgot-username-modal'>
+                        <div className='forgot-username-header'>
+                            <h3 className='forgot-username-title'>FORGOT USER NAME?</h3>
+                            <button
+                                type='button'
+                                onClick={() => setIsForgotUsernameOpen(false)}
+                                className='forgot-username-close-btn'
+                                aria-label='Close'>
+                                X
+                            </button>
+                        </div>
+
+                        <div className='forgot-username-body'>
+                            <form onSubmit={handleForgotUsernameSubmit} className='forgot-username-form'>
+                                <div className='forgot-input-group'>
+                                    <label htmlFor='registered-mobile' className='forgot-mobile-label'>
+                                        Registered Mobile Number:
+                                    </label>
+                                    <input
+                                        id='registered-mobile'
+                                        type='text'
+                                        value={forgotMobile}
+                                        maxLength={10}
+                                        onChange={(e) => {
+                                            const val = e.target.value.replace(/\D/g, '');
+                                            setForgotMobile(val);
+                                            if (forgotError) setForgotError('');
+                                            if (forgotResult) setForgotResult(null);
+                                        }}
+                                        placeholder='Enter Register Mobile Number'
+                                        className='forgot-mobile-input'
+                                        autoFocus
+                                    />
+                                </div>
+
+                                {forgotError && (
+                                    <div className='forgot-username-error-msg'>
+                                        <span>{forgotError}</span>
+                                    </div>
+                                )}
+
+                                {forgotResult && (
+                                    <div className='forgot-username-success-msg'>
+                                        <span>Username: </span>
+                                        <strong>{forgotResult}</strong>
+                                    </div>
+                                )}
+
+                                {!forgotResult && (
+                                    <div className='forgot-submit-container'>
+                                        <button
+                                            type='submit'
+                                            disabled={forgotPending}
+                                            className='forgot-username-submit-btn'>
+                                            {forgotPending ? 'SUBMITTING...' : 'SUBMIT'}
+                                        </button>
+                                    </div>
+                                )}
+                            </form>
+                        </div>
                     </div>
                 </div>
             )}
@@ -499,17 +607,8 @@ function PhoneMockup() {
                             <span className='chart-tag'>+12.4%</span>
                         </div>
                         <svg className='chart-svg' viewBox='0 0 200 60'>
-                            <path
-                                d='M0,45 Q30,10 60,35 T120,20 T180,30 L200,10 L200,60 L0,60 Z'
-                                fill='url(#phoneGrad)'
-                                opacity='0.35'
-                            />
-                            <path
-                                d='M0,45 Q30,10 60,35 T120,20 T180,30 L200,10'
-                                fill='none'
-                                stroke='#ff7a18'
-                                strokeWidth='3'
-                            />
+                            <path d='M0,45 Q30,10 60,35 T120,20 T180,30 L200,10 L200,60 L0,60 Z' fill='url(#phoneGrad)' opacity='0.35' />
+                            <path d='M0,45 Q30,10 60,35 T120,20 T180,30 L200,10' fill='none' stroke='#ff7a18' strokeWidth='3' />
                             <defs>
                                 <linearGradient id='phoneGrad' x1='0' y1='0' x2='0' y2='1'>
                                     <stop offset='0%' stopColor='#ff7a18' />

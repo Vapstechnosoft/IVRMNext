@@ -1,5 +1,5 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type {
     BankCashReportOnloadRequest,
     BankCashReportOnloadResponse,
@@ -12,10 +12,7 @@ import type {
  * Request: { MI_Id, LogInUserId }
  * Response: { MI_Id, retrunMsg, roleId, HRES_Year, HRES_Month, AllOrIndividual, monthdropdown, leaveyeardropdown, departmentdropdown, designationdropdown, employeeTypedropdown, groupTypedropdown, bankdropdown, ... }
  */
-export async function getBankCashReportOnload(
-    MI_Id = 30,
-    LogInUserId = 0
-): Promise<ApiResponse<BankCashReportOnloadResponse>> {
+export async function getBankCashReportOnload(MI_Id = 30, LogInUserId = 0): Promise<ApiResponse<BankCashReportOnloadResponse>> {
     const url = '/api/BankCashReportFacade/onloadgetdetails';
     const requestBody: BankCashReportOnloadRequest = {
         MI_Id,
@@ -93,9 +90,7 @@ export async function getBankCashReportOnload(
  * Request: { MI_Id, HRES_Year, HRES_Month, BankCash, departmentselected, groupTypeselected }
  * Note: HRES_Year and HRES_Month are numbers, not strings. Arrays should be empty [] when no selection is made.
  */
-export async function searchBankCashReport(
-    request: BankCashReportSearchRequest
-): Promise<ApiResponse<BankCashReportSearchResponse>> {
+export async function searchBankCashReport(request: BankCashReportSearchRequest): Promise<ApiResponse<BankCashReportSearchResponse>> {
     const url = '/api/BankCashReportFacade/getEmployeedetailsBySelection';
     const requestBody: BankCashReportSearchRequest = {
         MI_Id: request.MI_Id || 0,

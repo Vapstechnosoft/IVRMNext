@@ -1,15 +1,14 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { Button } from '@/components/ui/button';
-import { Eye, PackageOpen } from 'lucide-react';
-import { useInvTSales } from '@/hooks/inventory/transactions/use-inv-t-sales';
 import type { IInvTSales } from '@/types/inventory/transactions/inv-t-sales';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
+import { Eye, PackageOpen } from 'lucide-react';
 import { useCallback } from 'react';
 
 export const getInvTSalesColumns = (onViewItem: (row: IInvTSales) => void): ColumnDef<IInvTSales>[] => [
@@ -78,7 +77,7 @@ export const getInvTSalesColumns = (onViewItem: (row: IInvTSales) => void): Colu
     }
 ];
 
-function InvTSalesActionButtons({ rowData, onViewItem }: { rowData: IInvTSales, onViewItem: (row: IInvTSales) => void }) {
+function InvTSalesActionButtons({ rowData, onViewItem }: { rowData: IInvTSales; onViewItem: (row: IInvTSales) => void }) {
     const { openEditForm, openDetailsView, openToggleForm } = useFormContext<IInvTSales>();
 
     const handleEdit = useCallback(() => openEditForm(rowData), [openEditForm, rowData]);
@@ -99,8 +98,7 @@ function InvTSalesActionButtons({ rowData, onViewItem }: { rowData: IInvTSales, 
                 size='icon'
                 onClick={handleView}
                 title='View Receipt'
-                className='h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50'
-            >
+                className='h-8 w-8 p-0 text-blue-600 hover:bg-blue-50 hover:text-blue-700'>
                 <Eye className='h-4 w-4' />
             </Button>
 
@@ -110,8 +108,7 @@ function InvTSalesActionButtons({ rowData, onViewItem }: { rowData: IInvTSales, 
                 size='icon'
                 onClick={handleViewItem}
                 title='View Items'
-                className='h-8 w-8 p-0 text-orange-600 hover:text-orange-700 hover:bg-orange-50'
-            >
+                className='h-8 w-8 p-0 text-orange-600 hover:bg-orange-50 hover:text-orange-700'>
                 <PackageOpen className='h-4 w-4' />
             </Button>
 
@@ -119,7 +116,6 @@ function InvTSalesActionButtons({ rowData, onViewItem }: { rowData: IInvTSales, 
                 rowData={rowData}
                 buttons={{ edit: true, delete: false, toggle: true, view: false }}
                 onEdit={handleEdit}
-
                 onToggle={handleToggle}
                 toggleConditionKey='invmsL_ActiveFlg'
             />

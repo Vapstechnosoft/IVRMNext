@@ -4,20 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
-import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import {
-    useDeputationAcademicYear,
-    useDeputationReportDetails
-} from '@/hooks/timetable/reports';
+import { useDeputationAcademicYear, useDeputationReportDetails } from '@/hooks/timetable/reports';
 import { cn } from '@/lib/utils';
 import { deputationReportSchema } from '@/schemas/timetable/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Download, Printer, Search, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -67,7 +63,7 @@ export default function DeputationReportForm() {
             };
 
             const response = await getReport(payload);
-            
+
             let dataList: any[] = [];
             if (Array.isArray(response)) {
                 dataList = response;
@@ -80,7 +76,6 @@ export default function DeputationReportForm() {
             } else if (response?.$values && Array.isArray(response.$values)) {
                 dataList = response.$values;
             }
-
 
             if (dataList && dataList.length > 0) {
                 setReportData(dataList);
@@ -219,7 +214,7 @@ export default function DeputationReportForm() {
                                 </Popover>
                             )}
                         />
-                        {errors.fromdate && <p className='text-sm text-red-500'>{errors.fromdate.message}</p>}
+                        {errors.fromdate && <p className='text-red-500 text-sm'>{errors.fromdate.message}</p>}
                     </div>
 
                     {/* To Date */}
@@ -252,7 +247,7 @@ export default function DeputationReportForm() {
                                 </Popover>
                             )}
                         />
-                        {errors.todate && <p className='text-sm text-red-500'>{errors.todate.message}</p>}
+                        {errors.todate && <p className='text-red-500 text-sm'>{errors.todate.message}</p>}
                     </div>
                 </div>
                 <div className='mt-4 flex justify-center'>

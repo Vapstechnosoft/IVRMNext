@@ -69,7 +69,10 @@ export async function getBatchList(data: {
     ASMS_Id: number;
     ismS_Id: number;
 }) {
-    const res = await api.post<any>('admission', `/StudentAttendanceEntry/getbatchlist?ASMAY_Id=${data.ASMAY_Id}&ASMCL_Id=${data.ASMCL_Id}&ASMS_Id=${data.ASMS_Id}&ismS_Id=${data.ismS_Id}`);
+    const res = await api.post<any>(
+        'admission',
+        `/StudentAttendanceEntry/getbatchlist?ASMAY_Id=${data.ASMAY_Id}&ASMCL_Id=${data.ASMCL_Id}&ASMS_Id=${data.ASMS_Id}&ismS_Id=${data.ismS_Id}`
+    );
     return res?.data || res;
 }
 

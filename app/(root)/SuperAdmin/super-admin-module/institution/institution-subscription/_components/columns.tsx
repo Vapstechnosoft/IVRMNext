@@ -1,13 +1,13 @@
 'use client';
 
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import type { IInstitutionSubscription } from '@/types/super-admin/super-admin-module/institution/institution-subscription';
-import { Badge } from '@/components/ui/badge';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 export const InstitutionSubscriptionColumns: ColumnDef<IInstitutionSubscription>[] = [
     {
@@ -74,8 +74,7 @@ export const InstitutionSubscriptionColumns: ColumnDef<IInstitutionSubscription>
                         size='icon'
                         onClick={() => console.log('Renewal Request', row.original)}
                         title='Renewal Request'
-                        className='text-green-600 hover:text-green-700 hover:bg-green-50'
-                    >
+                        className='text-green-600 hover:bg-green-50 hover:text-green-700'>
                         <RefreshCw className='h-4 w-4' />
                     </Button>
                 )}

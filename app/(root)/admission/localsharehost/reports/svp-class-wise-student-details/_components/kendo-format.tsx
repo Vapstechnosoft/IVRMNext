@@ -1,9 +1,9 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { FileSpreadsheet, FileText } from 'lucide-react';
-import { ColumnValue } from './columnvalue';
 import { cn } from '@/lib/utils';
+import { FileSpreadsheet } from 'lucide-react';
+import { ColumnValue } from './columnvalue';
 
 interface KendoFormatProps {
     data: any[];
@@ -13,13 +13,7 @@ interface KendoFormatProps {
     isLoading?: boolean;
 }
 
-export function KendoFormat({
-    data,
-    selectedFields,
-    onExportExcel,
-    onExportPdf,
-    isLoading
-}: KendoFormatProps) {
+export function KendoFormat({ data, selectedFields, onExportExcel, onExportPdf, isLoading }: KendoFormatProps) {
     const activeFields = ColumnValue.filter((field) => selectedFields.includes(field.columnID));
 
     if (isLoading) {
@@ -46,8 +40,7 @@ export function KendoFormat({
                     variant='outline'
                     size='sm'
                     onClick={onExportExcel}
-                    className='h-8 bg-transparent text-white hover:bg-white/10 border-white/30 text-[10px] font-bold tracking-tight'
-                >
+                    className='h-8 border-white/30 bg-transparent font-bold text-[10px] text-white tracking-tight hover:bg-white/10'>
                     <FileSpreadsheet className='mr-1.5 h-3.5 w-3.5' />
                     EXPORT TO EXCEL
                 </Button>
@@ -64,14 +57,13 @@ export function KendoFormat({
 
             {/* Kendo Style Grid */}
             <div className='max-h-[600px] overflow-auto'>
-                <table className='w-full text-left text-[11px] border-collapse'>
+                <table className='w-full border-collapse text-left text-[11px]'>
                     <thead className='sticky top-0 z-10'>
-                        <tr className='bg-[#f4f7f9] border-b border-gray-200'>
+                        <tr className='border-gray-200 border-b bg-[#f4f7f9]'>
                             {activeFields.map((field) => (
                                 <th
                                     key={field.columnID}
-                                    className='px-3 py-2.5 font-bold text-[#1e293b] border-r border-gray-200 last:border-r-0 whitespace-nowrap uppercase tracking-wider'
-                                >
+                                    className='whitespace-nowrap border-gray-200 border-r px-3 py-2.5 font-bold text-[#1e293b] uppercase tracking-wider last:border-r-0'>
                                     {field.columnName}
                                 </th>
                             ))}
@@ -82,15 +74,13 @@ export function KendoFormat({
                             <tr
                                 key={index}
                                 className={cn(
-                                    'border-b border-gray-100 transition-colors hover:bg-blue-50/30',
+                                    'border-gray-100 border-b transition-colors hover:bg-blue-50/30',
                                     index % 2 === 0 ? 'bg-white' : 'bg-[#fafbfc]'
-                                )}
-                            >
+                                )}>
                                 {activeFields.map((field) => (
                                     <td
                                         key={field.columnID}
-                                        className='px-3 py-2 text-[#475569] border-r border-gray-100 last:border-r-0 font-medium'
-                                    >
+                                        className='border-gray-100 border-r px-3 py-2 font-medium text-[#475569] last:border-r-0'>
                                         {row[field.columnID] || '-'}
                                     </td>
                                 ))}

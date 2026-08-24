@@ -21,7 +21,7 @@ import type {
 } from '@/types/hrms/hrms-config/master';
 import type { MasterEarningsDeductionsInput } from '@/types/hrms/master-earnings-deductions';
 import { Save } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -91,8 +91,8 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
                     !k.toLowerCase().endsWith('id')
             );
 
-            const finalKey = idField ? item[idField] : keyVal ?? (keys[0] ? item[keys[0]] : '');
-            const finalValue = nameField ? item[nameField] : displayVal ?? finalKey;
+            const finalKey = idField ? item[idField] : (keyVal ?? (keys[0] ? item[keys[0]] : ''));
+            const finalValue = nameField ? item[nameField] : (displayVal ?? finalKey);
 
             return {
                 key: String(finalKey ?? '').trim(),

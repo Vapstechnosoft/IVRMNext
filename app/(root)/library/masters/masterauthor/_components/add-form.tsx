@@ -141,13 +141,11 @@ export default function AddMasterAuthorForm({ onSuccess, className = '' }: AddMa
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
-              
-
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='submit'
                         disabled={isSubmitting}
-                        className='order-1 w-fit bg-[#4251b1] hover:bg-[#35418e] text-white transition-all duration-200 hover:scale-105'
+                        className='order-1 w-fit bg-[#4251b1] text-white transition-all duration-200 hover:scale-105 hover:bg-[#35418e]'
                         isLoading={isSubmitting}
                         loadingText='Saving...'>
                         <div className='flex items-center'>
@@ -159,7 +157,7 @@ export default function AddMasterAuthorForm({ onSuccess, className = '' }: AddMa
                         type='button'
                         onClick={handleReset}
                         disabled={isSubmitting}
-                        className='order-2 w-fit bg-[#ff5a30] hover:bg-[#e64d26] text-white transition-all duration-200 hover:scale-105'>
+                        className='order-2 w-fit bg-[#ff5a30] text-white transition-all duration-200 hover:scale-105 hover:bg-[#e64d26]'>
                         Reset
                     </Button>
                 </div>

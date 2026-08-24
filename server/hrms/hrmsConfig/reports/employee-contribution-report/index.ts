@@ -1,13 +1,11 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type {
     EmployeeContributionReportFilterRequest,
     EmployeeContributionReportFilterResponse,
     EmployeeContributionReportFilterResponseType,
     EmployeeContributionReportOnloadRequest,
-    EmployeeContributionReportOnloadResponse,
     EmployeeContributionReportResponse,
-    EmployeeContributionReportSearchRequest,
     EmployeeContributionReportSearchResponse,
     EmployeeContributionReportSearchResponseType
 } from '@/types/hrms/reports/employee-contribution-report';
@@ -89,9 +87,7 @@ export async function filterEmployeeContributionData(
  * POST /api/ReportEPFcontributionRegister/get_employee_details_by_selection
  * Request: { hreS_Month, hreS_Year, designationselected, departmentselected, groupTypeselected }
  */
-export async function searchEmployeeContributionDetails(
-    request: any
-): Promise<EmployeeContributionReportSearchResponseType> {
+export async function searchEmployeeContributionDetails(request: any): Promise<EmployeeContributionReportSearchResponseType> {
     const requestBody = {
         hreS_Month: request.hreS_Month || '',
         hreS_Year: request.hreS_Year || '',

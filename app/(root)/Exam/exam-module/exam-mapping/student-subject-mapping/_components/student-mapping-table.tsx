@@ -212,9 +212,7 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
             if (!query) return localStudents;
 
             return localStudents.filter((s) => {
-                const fullName = normalize(
-                    [s.amsT_FirstName, s.amsT_MiddleName, s.amsT_LastName].filter(Boolean).join(' ')
-                );
+                const fullName = normalize([s.amsT_FirstName, s.amsT_MiddleName, s.amsT_LastName].filter(Boolean).join(' '));
                 const admNo = normalize(s.amsT_AdmNo || '');
                 const rollNo = String(s.amaY_RollNo || '');
 
@@ -551,9 +549,7 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
 
         /** Handle delete student confirmation */
         const handleDeleteStudent = useCallback((student: Student) => {
-            const fullName = [student.amsT_FirstName, student.amsT_MiddleName, student.amsT_LastName]
-                .filter(Boolean)
-                .join(' ');
+            const fullName = [student.amsT_FirstName, student.amsT_MiddleName, student.amsT_LastName].filter(Boolean).join(' ');
             setStudentToDelete({ id: student.amsT_Id, name: fullName });
             setShowDeleteDialog(true);
         }, []);

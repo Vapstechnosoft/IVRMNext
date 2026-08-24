@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useSubjectDropDown, useTimeTableAcademicYear, useTimeTableClassDropdownData } from '@/hooks/timetable/useMasters';
+import { useSubjectDropDown, useTimeTableAcademicYear } from '@/hooks/timetable/useMasters';
 import { subjectWiseReportSchema } from '@/schemas/timetable/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Search, X } from 'lucide-react';
@@ -13,8 +13,8 @@ import type { z } from 'zod';
 
 type FormFields = z.infer<typeof subjectWiseReportSchema.search>;
 
-import { getSubjectWiseReport } from '@/server/timetable/reports/subjectwisett';
 import { useTimeTableClassDropdown } from '@/hooks/timetable/reports';
+import { getSubjectWiseReport } from '@/server/timetable/reports/subjectwisett';
 
 interface SubjectWiseFormProps {
     initialData: any;

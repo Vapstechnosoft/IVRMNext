@@ -1,7 +1,7 @@
 'use client';
 
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
-import { Control, Controller, FieldValues, Path } from 'react-hook-form';
+import { type Control, Controller, type FieldValues, type Path } from 'react-hook-form';
 
 interface FormTextareaProps<T extends FieldValues> extends Omit<any, 'name' | 'error' | 'value' | 'onChange' | 'onBlur'> {
     control: Control<T>;
@@ -14,13 +14,7 @@ export function FormTextarea<T extends FieldValues>({ control, name, ...props }:
             control={control}
             name={name}
             render={({ field, fieldState: { error } }) => (
-                <InputTextarea
-                    {...props}
-                    {...field}
-                    error={error?.message}
-                    value={field.value || ''}
-                    id={name}
-                />
+                <InputTextarea {...props} {...field} error={error?.message} value={field.value || ''} id={name} />
             )}
         />
     );

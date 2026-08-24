@@ -1,5 +1,5 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type {
     HeadWiseReportOnloadRequest,
     HeadWiseReportOnloadResponse,
@@ -12,10 +12,7 @@ import type {
  * Request: { MI_Id, LogInUserId }
  * Response: { MI_Id, retrunMsg, roleId, HRES_Year, HRES_Month, monthdropdown, leaveyeardropdown, departmentdropdown, designationdropdown, employeeTypedropdown, groupTypedropdown, ... }
  */
-export async function getHeadWiseReportOnload(
-    MI_Id = 30,
-    LogInUserId = 0
-): Promise<ApiResponse<HeadWiseReportOnloadResponse>> {
+export async function getHeadWiseReportOnload(MI_Id = 30, LogInUserId = 0): Promise<ApiResponse<HeadWiseReportOnloadResponse>> {
     const url = '/api/HeadwiseReportsFacade/onloadgetdetails';
     const requestBody: HeadWiseReportOnloadRequest = {
         MI_Id,
@@ -83,9 +80,7 @@ export async function getHeadWiseReportOnload(
  * Request: { MI_Id, groupTypeselected, departmentselected, designationselected, HRES_Year, HRES_Month }
  * Note: Arrays should be empty [] when no selection is made
  */
-export async function searchHeadWiseReport(
-    request: HeadWiseReportSearchRequest
-): Promise<ApiResponse<HeadWiseReportSearchResponse>> {
+export async function searchHeadWiseReport(request: HeadWiseReportSearchRequest): Promise<ApiResponse<HeadWiseReportSearchResponse>> {
     const url = '/api/HeadwiseReportsFacade/getEmployeedetailsBySelection';
     const requestBody: HeadWiseReportSearchRequest = {
         MI_Id: request.MI_Id || 30,

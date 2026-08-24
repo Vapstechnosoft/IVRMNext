@@ -1,19 +1,19 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+    addBurnpurStudentApplication,
     getBurnpurActivePreadmissionDetails,
-    getBurnpurReligionDropdown,
     getBurnpurCasteDropdown,
     getBurnpurCountryDropdown,
-    getBurnpurStateDropdown,
+    getBurnpurDocumentDropdown,
     getBurnpurGenderDropdown,
     getBurnpurPreadmissionClassDropdown,
-    getBurnpurDocumentDropdown,
+    getBurnpurReligionDropdown,
+    getBurnpurStateDropdown,
     getBurnpurStudentApplicationList,
-    addBurnpurStudentApplication,
     initiateBurnpurApplicationPayment,
     updateBurnpurPaymentStatus
 } from '@/server/admission/preadmission/transactions/brs_student_application';
 import type { ApiSearchparams } from '@/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useBurnpurActivePreadmissionDetails = () => {
     return useQuery({

@@ -171,12 +171,12 @@ function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFeeGroupMappingFi
         filterType === 'FCC'
             ? watch('feeClassCategory')
             : filterType === 'AC'
-                ? watch('classCategory')
-                : filterType === 'BR'
-                    ? watch('busRouting')
-                    : filterType === 'CCAT'
-                        ? watch('casteCategory')
-                        : 0;
+              ? watch('classCategory')
+              : filterType === 'BR'
+                ? watch('busRouting')
+                : filterType === 'CCAT'
+                  ? watch('casteCategory')
+                  : 0;
 
     const toSafeNumber = (val: string | number | null | undefined) => {
         const num = Number(val);
@@ -604,7 +604,7 @@ function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFeeGroupMappingFi
                     </RadioGroup>
                 </Card>
 
-                <Card className='p-4 mt-3'>
+                <Card className='mt-3 p-4'>
                     <div className='flex flex-wrap gap-6'>
                         <div className='flex items-center space-x-2'>
                             <Checkbox
@@ -632,7 +632,7 @@ function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFeeGroupMappingFi
                     </div>
                 </Card>
 
-                <div className='grid grid-cols-1 gap-4 md:grid-cols-2 p-4 mt-3'>
+                <div className='mt-3 grid grid-cols-1 gap-4 p-4 md:grid-cols-2'>
                     {/* <div className='group flex flex-col gap-1.5'>
                         <Label htmlFor='asmaY_Id'>
                             Academic Year <span className='ml-1 text-red-500'>*</span>
@@ -772,7 +772,7 @@ function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFeeGroupMappingFi
                                             setAdmClassCategory(v);
                                         }}
                                         value={field.value}
-                                    // disabled={!academicYear}
+                                        // disabled={!academicYear}
                                     >
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select classCategory' />
@@ -815,7 +815,7 @@ function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFeeGroupMappingFi
                                             setFeeBusRouting(v);
                                         }}
                                         value={field.value}
-                                    // disabled={!academicYear}
+                                        // disabled={!academicYear}
                                     >
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select Route' />
@@ -1017,7 +1017,6 @@ function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFeeGroupMappingFi
                 </div>
             </Card>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-5'>
-
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-1'>
                     {/* <CollapsibleSection
                         defaultOpen={true}

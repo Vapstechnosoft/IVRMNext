@@ -1,8 +1,8 @@
 'use server';
 
 import { api } from '@/lib/apiService';
+import type { StudentConfirmLoadData, StudentRequestLoadData } from '@/types/hostel/hostel-management/transactions';
 import { revalidatePath } from 'next/cache';
-import { StudentRequestLoadData, StudentConfirmLoadData } from '@/types/hostel/hostel-management/transactions';
 
 export async function getStudentRequestLoadData(): Promise<StudentRequestLoadData | null> {
     try {

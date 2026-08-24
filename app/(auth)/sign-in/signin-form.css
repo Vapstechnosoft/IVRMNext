@@ -15,8 +15,7 @@
     --glass-border: rgba(255, 255, 255, 0.6);
 
     /* Shadows & Effects */
-    --card-shadow: 0 20px 45px -10px rgba(140, 107, 211, 0.12),
-        0 10px 25px -8px rgba(255, 122, 24, 0.08);
+    --card-shadow: 0 20px 45px -10px rgba(140, 107, 211, 0.12), 0 10px 25px -8px rgba(255, 122, 24, 0.08);
     --btn-glow: 0 10px 25px -5px rgba(255, 122, 24, 0.35);
 }
 
@@ -46,9 +45,17 @@
 }
 
 @keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
 }
 
 .bg-grid-premium {
@@ -63,7 +70,7 @@
 .bg-grain-texture {
     position: fixed;
     inset: 0;
-    background-image: url("https://www.transparenttextures.com/patterns/p6.png");
+    background-image: url('https://www.transparenttextures.com/patterns/p6.png');
     opacity: 0.06;
     z-index: 2;
     pointer-events: none;
@@ -107,8 +114,13 @@
 }
 
 @keyframes waveFlow {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .bg-blobs {
@@ -152,9 +164,19 @@
 }
 
 @keyframes blobMorph {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    33% { transform: translate(50px, -50px) scale(1.08); }
-    66% { transform: translate(-30px, 30px) scale(0.92); }
+
+    0%,
+    100% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    33% {
+        transform: translate(50px, -50px) scale(1.08);
+    }
+
+    66% {
+        transform: translate(-30px, 30px) scale(0.92);
+    }
 }
 
 .bg-aura-glow {
@@ -293,8 +315,13 @@
 }
 
 @keyframes spinSlow {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .vt-text {
@@ -403,8 +430,7 @@
     background: #0f172a;
     border-radius: 36px;
     padding: 10px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35),
-        inset 0 0 0 2px rgba(255, 255, 255, 0.2);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35), inset 0 0 0 2px rgba(255, 255, 255, 0.2);
     position: relative;
     display: flex;
     flex-direction: column;
@@ -536,9 +562,17 @@
     align-items: center;
 }
 
-.card-purple { background: rgba(195, 180, 239, 0.3); }
-.card-peach { background: rgba(255, 238, 203, 0.5); }
-.card-orange { background: rgba(255, 122, 24, 0.15); }
+.card-purple {
+    background: rgba(195, 180, 239, 0.3);
+}
+
+.card-peach {
+    background: rgba(255, 238, 203, 0.5);
+}
+
+.card-orange {
+    background: rgba(255, 122, 24, 0.15);
+}
 
 .stat-val {
     font-size: 11px;
@@ -757,19 +791,19 @@
     border-color: var(--warm-orange);
 }
 
-.floating-input:focus ~ .floating-label,
-.floating-input.has-value ~ .floating-label {
+.floating-input:focus~.floating-label,
+.floating-input.has-value~.floating-label {
     top: 14px;
     font-size: 11px;
     font-weight: 800;
     color: var(--warm-orange);
 }
 
-.floating-input:focus ~ .input-focus-glow {
+.floating-input:focus~.input-focus-glow {
     opacity: 0.2;
 }
 
-.floating-input:focus ~ .input-icon {
+.floating-input:focus~.input-icon {
     color: var(--warm-orange);
     opacity: 1;
 }
@@ -800,10 +834,27 @@
     margin-left: 4px;
 }
 
-.forgot-password-row {
+.forgot-links-row {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 18px;
+}
+
+.forgot-username-link {
+    font-size: 13px;
+    font-weight: 700;
+    color: #2563eb;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline;
+    transition: color 0.2s;
+}
+
+.forgot-username-link:hover {
+    color: var(--warm-orange);
 }
 
 .forgot-password-link {
@@ -1212,8 +1263,15 @@
 }
 
 @keyframes entryFade {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .animate-fade-in {
@@ -1221,8 +1279,13 @@
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 /* --- RESPONSIVE MEDIA QUERIES --- */
@@ -1277,4 +1340,169 @@
     .phone-frame {
         transform: scale(0.9);
     }
+}
+
+/* --- FORGOT USERNAME MODAL (Image 3 Style) --- */
+.forgot-username-modal {
+    background: #ffffff;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 520px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    position: relative;
+    border: 1px solid #94a3b8;
+    animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalPop {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.forgot-username-header {
+    background: #00a2e8;
+    padding: 12px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.forgot-username-title {
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+
+.forgot-username-close-btn {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #dc2626;
+    font-weight: 900;
+    font-size: 14px;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    line-height: 1;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    transition: all 0.15s ease;
+}
+
+.forgot-username-close-btn:hover {
+    background: #fef2f2;
+    color: #b91c1c;
+    border-color: #fca5a5;
+}
+
+.forgot-username-body {
+    padding: 28px 24px;
+    background: #ffffff;
+}
+
+.forgot-username-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.forgot-input-group {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+@media (max-width: 520px) {
+    .forgot-input-group {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+}
+
+.forgot-mobile-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #334155;
+    white-space: nowrap;
+}
+
+.forgot-mobile-input {
+    flex: 1;
+    width: 100%;
+    height: 38px;
+    padding: 6px 12px;
+    border: 1px solid #00a2e8;
+    border-radius: 2px;
+    font-size: 13.5px;
+    color: #1e293b;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.forgot-mobile-input:focus {
+    border-color: #0284c7;
+    box-shadow: 0 0 0 3px rgba(0, 162, 232, 0.25);
+}
+
+.forgot-submit-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 8px;
+}
+
+.forgot-username-submit-btn {
+    background: #3f51b5;
+    color: #ffffff;
+    font-size: 13.5px;
+    font-weight: 700;
+    padding: 8px 32px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(63, 81, 181, 0.3);
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.forgot-username-submit-btn:hover {
+    background: #303f9f;
+}
+
+.forgot-username-submit-btn:disabled {
+    background: #9fa8da;
+    cursor: not-allowed;
+}
+
+.forgot-username-error-msg {
+    color: #dc2626;
+    font-size: 13px;
+    font-weight: 600;
+    background: #fef2f2;
+    border: 1px solid #fee2e2;
+    padding: 10px 14px;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.forgot-username-success-msg {
+    color: #15803d;
+    font-size: 14.5px;
+    background: #f0fdf4;
+    border: 1px solid #dcfce7;
+    padding: 12px 16px;
+    border-radius: 4px;
+    text-align: center;
 }

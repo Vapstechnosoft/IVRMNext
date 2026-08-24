@@ -361,7 +361,6 @@ function StudentSubjectMappingContent() {
                 };
             });
 
-
             setStudents(transformedStudents);
             setSubjects(transformedSubjects);
             setIsGridOpen(true);

@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { getSmartcardLoadData, getSmartcardReportData } from '../../../../server/admission/preadmission/reports/sophia_smartcard_report';
 
 export const useSophiaSmartcardReport = () => {

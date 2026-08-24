@@ -1,9 +1,8 @@
 'use client';
 
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Checkbox } from '@/components/ui/checkbox';
 
 export const birthdayColumns: ColumnDef<any>[] = [
     // {
@@ -27,28 +26,28 @@ export const birthdayColumns: ColumnDef<any>[] = [
     // },
     {
         accessorKey: 'sno',
-        header: () => <span className='font-bold text-black text-center'>SL.No</span>,
+        header: () => <span className='text-center font-bold text-black'>SL.No</span>,
         cell: ({ row }) => row.index + 1
     },
     {
         accessorKey: 'studentname',
-        header: () => <span className='font-bold text-black text-center'>Student Name</span>
+        header: () => <span className='text-center font-bold text-black'>Student Name</span>
     },
     {
         accessorKey: 'admno',
-        header: () => <span className='font-bold text-black text-center'>Adm. No.</span>
+        header: () => <span className='text-center font-bold text-black'>Adm. No.</span>
     },
     {
         accessorKey: 'classname',
-        header: () => <span className='font-bold text-black text-center'>Class</span>
+        header: () => <span className='text-center font-bold text-black'>Class</span>
     },
     {
         accessorKey: 'sectionname',
-        header: () => <span className='font-bold text-black text-center'>Section</span>
+        header: () => <span className='text-center font-bold text-black'>Section</span>
     },
     {
         accessorKey: 'amst_dob',
-        header: () => <span className='font-bold text-black text-center'>Date of Birth</span>,
+        header: () => <span className='text-center font-bold text-black'>Date of Birth</span>,
         cell: ({ row }) => {
             const date = row.getValue('amst_dob') as string;
             return date ? format(new Date(date), 'dd-MM-yyyy') : 'N/A';
@@ -56,7 +55,7 @@ export const birthdayColumns: ColumnDef<any>[] = [
     },
     {
         accessorKey: 'amst_photo',
-        header: () => <span className='font-bold text-black text-center'>Student Photo</span>,
+        header: () => <span className='text-center font-bold text-black'>Student Photo</span>,
         cell: ({ row }) => {
             const photoUrl = row.getValue('amst_photo') as string;
             return (
@@ -69,6 +68,6 @@ export const birthdayColumns: ColumnDef<any>[] = [
     },
     {
         accessorKey: 'stdaddress',
-        header: () => <span className='font-bold text-black text-center'>Address</span>
+        header: () => <span className='text-center font-bold text-black'>Address</span>
     }
 ];

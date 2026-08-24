@@ -1,24 +1,18 @@
 'use client';
 
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { useInvMasterItem } from '@/hooks/inventory/masters/use-inv-master-item';
-import { invMasterItemSchema, type TInvMasterItem } from '@/schemas/inventory/masters/inv-master-item';
-import { saveInvMasterItem } from '@/server/inventory/masters/inv-master-item';
-import { toast } from 'sonner';
-import { useEffect, useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useInvMasterItem } from '@/hooks/inventory/masters/use-inv-master-item';
+import { type TInvMasterItem, invMasterItemSchema } from '@/schemas/inventory/masters/inv-master-item';
+import { saveInvMasterItem } from '@/server/inventory/masters/inv-master-item';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 interface AddInvMasterItemFormProps {
     onSuccess: () => void;
@@ -64,18 +58,18 @@ export default function AddInvMasterItemForm({ onSuccess, dropdowns }: AddInvMas
             invmI_MaintenanceAplFlg: false,
             famcomP_Id: 0,
             famleD_Id: 0,
-            tax_Applicable: [],
+            tax_Applicable: []
         }
     });
 
     const isTaxApplied = watch('invmI_TaxAplFlg');
 
     const onTaxToggle = (taxId: number, checked: boolean) => {
-        setSelectedTaxes(prev => ({ ...prev, [taxId]: checked }));
+        setSelectedTaxes((prev) => ({ ...prev, [taxId]: checked }));
     };
 
     const onTaxValueChange = (taxId: number, value: string) => {
-        setTaxValues(prev => ({ ...prev, [taxId]: parseFloat(value) || 0 }));
+        setTaxValues((prev) => ({ ...prev, [taxId]: Number.parseFloat(value) || 0 }));
     };
 
     const onSubmit = async (data: TInvMasterItem) => {
@@ -116,19 +110,18 @@ export default function AddInvMasterItemForm({ onSuccess, dropdowns }: AddInvMas
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 p-4'>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+            <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                 {/* Left Column */}
                 <div className='space-y-4'>
                     <div className='space-y-2'>
-                        <Label>Group <span className='text-red-500'>*</span></Label>
+                        <Label>
+                            Group <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             name='invmG_Id'
                             control={control}
                             render={({ field }) => (
-                                <Select
-                                    onValueChange={(val) => field.onChange(Number(val))}
-                                    value={field.value?.toString() || ''}
-                                >
+                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
                                     <SelectTrigger className={errors.invmG_Id ? 'border-red-500' : ''}>
                                         <SelectValue placeholder='Select Group' />
                                     </SelectTrigger>
@@ -146,7 +139,9 @@ export default function AddInvMasterItemForm({ onSuccess, dropdowns }: AddInvMas
                     </div>
 
                     <div className='space-y-2'>
-                        <Label>Item Name <span className='text-red-500'>*</span></Label>
+                        <Label>
+                            Item Name <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             name='invmI_ItemName'
                             control={control}
@@ -173,9 +168,7 @@ export default function AddInvMasterItemForm({ onSuccess, dropdowns }: AddInvMas
                             <Controller
                                 name='invmI_TaxAplFlg'
                                 control={control}
-                                render={({ field }) => (
-                                    <Checkbox id='tax_applied' checked={field.value} onCheckedChange={field.onChange} />
-                                )}
+                                render={({ field }) => <Checkbox id='tax_applied' checked={field.value} onCheckedChange={field.onChange} />}
                             />
                             <Label htmlFor='tax_applied'>Tax</Label>
                         </div>
@@ -183,9 +176,7 @@ export default function AddInvMasterItemForm({ onSuccess, dropdowns }: AddInvMas
                             <Controller
                                 name='invmI_RawMatFlg'
                                 control={control}
-                                render={({ field }) => (
-                                    <Checkbox id='raw_mat' checked={field.value} onCheckedChange={field.onChange} />
-                                )}
+                                render={({ field }) => <Checkbox id='raw_mat' checked={field.value} onCheckedChange={field.onChange} />}
                             />
                             <Label htmlFor='raw_mat'>Raw Material</Label>
                         </div>
@@ -193,9 +184,7 @@ export default function AddInvMasterItemForm({ onSuccess, dropdowns }: AddInvMas
                             <Controller
                                 name='invmI_ForSaleFlg'
                                 control={control}
-                                render={({ field }) => (
-                                    <Checkbox id='for_sale' checked={field.value} onCheckedChange={field.onChange} />
-                                )}
+                                render={({ field }) => <Checkbox id='for_sale' checked={field.value} onCheckedChange={field.onChange} />}
                             />
                             <Label htmlFor='for_sale'>For Sale</Label>
                         </div>
@@ -203,9 +192,7 @@ export default function AddInvMasterItemForm({ onSuccess, dropdowns }: AddInvMas
                             <Controller
                                 name='invmI_MaintenanceAplFlg'
                                 control={control}
-                                render={({ field }) => (
-                                    <Checkbox id='maintenance' checked={field.value} onCheckedChange={field.onChange} />
-                                )}
+                                render={({ field }) => <Checkbox id='maintenance' checked={field.value} onCheckedChange={field.onChange} />}
                             />
                             <Label htmlFor='maintenance'>Maintenance</Label>
                         </div>
@@ -215,7 +202,9 @@ export default function AddInvMasterItemForm({ onSuccess, dropdowns }: AddInvMas
                 {/* Right Column */}
                 <div className='space-y-4'>
                     <div className='space-y-2'>
-                        <Label>UOM <span className='text-red-500'>*</span></Label>
+                        <Label>
+                            UOM <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             name='invmuoM_Id'
                             control={control}
@@ -225,7 +214,7 @@ export default function AddInvMasterItemForm({ onSuccess, dropdowns }: AddInvMas
                                         <SelectValue placeholder='Select UOM' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {dropdowns?.get_UOM?.map(uom => (
+                                        {dropdowns?.get_UOM?.map((uom) => (
                                             <SelectItem key={uom.invmuoM_Id} value={uom.invmuoM_Id?.toString() || uom.invmuoM_Id || ''}>
                                                 {uom.invmuoM_UOMName}
                                             </SelectItem>
@@ -242,9 +231,7 @@ export default function AddInvMasterItemForm({ onSuccess, dropdowns }: AddInvMas
                         <Controller
                             name='invmI_ItemCode'
                             control={control}
-                            render={({ field }) => (
-                                <Input {...field} placeholder='Enter Item Code' value={field.value || ''} />
-                            )}
+                            render={({ field }) => <Input {...field} placeholder='Enter Item Code' value={field.value || ''} />}
                         />
                     </div>
 
@@ -264,9 +251,7 @@ export default function AddInvMasterItemForm({ onSuccess, dropdowns }: AddInvMas
                         <Controller
                             name='invmI_HSNCode'
                             control={control}
-                            render={({ field }) => (
-                                <Input {...field} placeholder='Enter HSN Code' value={field.value || ''} />
-                            )}
+                            render={({ field }) => <Input {...field} placeholder='Enter HSN Code' value={field.value || ''} />}
                         />
                     </div>
                 </div>
@@ -274,9 +259,9 @@ export default function AddInvMasterItemForm({ onSuccess, dropdowns }: AddInvMas
 
             {/* Tax Grid Section */}
             {isTaxApplied && dropdowns?.get_tax?.length > 0 && (
-                <div className='mt-8 border rounded-lg p-4 bg-muted/30'>
-                    <h3 className='text-sm font-semibold mb-3'>Tax Details</h3>
-                    <div className='max-h-[300px] overflow-auto border rounded'>
+                <div className='mt-8 rounded-lg border bg-muted/30 p-4'>
+                    <h3 className='mb-3 font-semibold text-sm'>Tax Details</h3>
+                    <div className='max-h-[300px] overflow-auto rounded border'>
                         <Table>
                             <TableHeader className='bg-muted'>
                                 <TableRow>
@@ -317,18 +302,21 @@ export default function AddInvMasterItemForm({ onSuccess, dropdowns }: AddInvMas
                 </div>
             )}
 
-            <div className='flex justify-end gap-3 pt-4 border-t'>
-                <Button type='button' variant='outline' onClick={() => {
-                    reset();
-                    setSelectedTaxes({});
-                    setTaxValues({});
-                }}>
+            <div className='flex justify-end gap-3 border-t pt-4'>
+                <Button
+                    type='button'
+                    variant='outline'
+                    onClick={() => {
+                        reset();
+                        setSelectedTaxes({});
+                        setTaxValues({});
+                    }}>
                     Cancel
                 </Button>
                 <Button type='submit' disabled={isSubmitting}>
                     {isSubmitting ? 'Saving...' : 'Save'}
                 </Button>
             </div>
-        </form >
+        </form>
     );
 }

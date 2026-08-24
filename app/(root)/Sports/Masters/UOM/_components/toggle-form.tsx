@@ -30,7 +30,13 @@ export default function ToggleMasterUOMForm({ rowData, onClose, onSuccess }: Tog
     } = useForm<FormFields>({
         resolver: zodResolver(masterUOMSchema.delete),
         defaultValues: {
-            spccmuoM_Id: (rowData?.spccmuoM_Id || (rowData as any)?.SPCCMUOM_Id || (rowData as any)?.spccmuom_Id || (rowData as any)?.spccmUOM_Id || '').toString()
+            spccmuoM_Id: (
+                rowData?.spccmuoM_Id ||
+                (rowData as any)?.SPCCMUOM_Id ||
+                (rowData as any)?.spccmuom_Id ||
+                (rowData as any)?.spccmUOM_Id ||
+                ''
+            ).toString()
         },
         mode: 'onChange'
     });
@@ -68,7 +74,11 @@ export default function ToggleMasterUOMForm({ rowData, onClose, onSuccess }: Tog
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <input type='hidden' {...register('spccmuoM_Id')} />
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.spccmuoM_UOMName ?? (rowData as any).SPCCMUOM_UOMName ?? (rowData as any).spccmuom_UOMName}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'}{' '}
+                        <strong>
+                            {rowData.spccmuoM_UOMName ?? (rowData as any).SPCCMUOM_UOMName ?? (rowData as any).spccmuom_UOMName}
+                        </strong>
+                        ?
                     </p>
                     {errors.spccmuoM_Id && <FormError>{errors.spccmuoM_Id.message}</FormError>}
                 </AdaptiveBody>

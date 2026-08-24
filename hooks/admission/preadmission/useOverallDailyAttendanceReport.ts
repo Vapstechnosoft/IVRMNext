@@ -19,8 +19,7 @@ export const useOverallDailyAttendanceReportInitialData = () => {
 
 export const useOverallDailyAttendanceReportDetails = () => {
     return useMutation({
-        mutationFn: (data: { ASMAY_Id: number; fromdate: string; AMC_Id: number }) =>
-            getOverallDailyAttendanceReportDetails(data)
+        mutationFn: (data: { ASMAY_Id: number; fromdate: string; AMC_Id: number }) => getOverallDailyAttendanceReportDetails(data)
     });
 };
 
@@ -33,7 +32,6 @@ export const useOverallDailyAttendanceReportStudentDetails = () => {
 
 export const useOverallDailyAttendanceReportStudentAllDetails = () => {
     return useMutation({
-        mutationFn: (data: { ASMAY_Id: number; fromdate: string }) =>
-            getOverallDailyAttendanceReportStudentAllDetails(data)
+        mutationFn: (data: { ASMAY_Id: number; fromdate: string }) => getOverallDailyAttendanceReportStudentAllDetails(data)
     });
 };

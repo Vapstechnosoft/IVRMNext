@@ -1,33 +1,16 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import {
-    Send,
-    Paperclip,
-    Loader2,
-    User,
-    FileText,
-    FileImage,
-    Video,
-    Music,
-    ExternalLink,
-    Download
-} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Textarea } from '@/components/ui/textarea';
 import { fetchThread, saveInteractionReply } from '@/server/staff-portal/interactions';
 import type { IMessage, ISaveReplyRequest } from '@/types/staff-portal/interactions';
-import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { Download, FileImage, FileText, Loader2, Music, Paperclip, Video } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 interface ViewReplyModalProps {
     isOpen: boolean;
@@ -130,104 +113,120 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, interactions
 
     const getFileIcon = (url: string) => {
         const ext = url.split('.').pop()?.toLowerCase();
-        if (['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(ext || '')) return <FileImage className="h-4 w-4" />;
-        if (['mp4', 'mkv', 'avi'].includes(ext || '')) return <Video className="h-4 w-4" />;
-        if (['mp3', 'wav'].includes(ext || '')) return <Music className="h-4 w-4" />;
-        return <FileText className="h-4 w-4" />;
+        if (['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(ext || '')) return <FileImage className='h-4 w-4' />;
+        if (['mp4', 'mkv', 'avi'].includes(ext || '')) return <Video className='h-4 w-4' />;
+        if (['mp3', 'wav'].includes(ext || '')) return <Music className='h-4 w-4' />;
+        return <FileText className='h-4 w-4' />;
     };
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden border-none shadow-2xl backdrop-blur-md bg-background/95">
-                <DialogHeader className="p-6 border-b bg-muted/30">
-                    <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                            <DialogTitle className="text-xl font-bold flex items-center gap-2">
-                                <MessageSquareIcon className="h-5 w-5 text-primary" />
+            <DialogContent className='flex max-h-[90vh] max-w-4xl flex-col overflow-hidden border-none bg-background/95 p-0 shadow-2xl backdrop-blur-md'>
+                <DialogHeader className='border-b bg-muted/30 p-6'>
+                    <div className='flex items-center justify-between'>
+                        <div className='space-y-1'>
+                            <DialogTitle className='flex items-center gap-2 font-bold text-xl'>
+                                <MessageSquareIcon className='h-5 w-5 text-primary' />
                                 {message.ISMINT_Subject}
                             </DialogTitle>
-                            <p className="text-xs text-muted-foreground flex items-center gap-2">
-                                <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-tight">
+                            <p className='flex items-center gap-2 text-muted-foreground text-xs'>
+                                <Badge variant='outline' className='font-bold text-[10px] uppercase tracking-tight'>
                                     Conversation ID: {message.ISMINT_InteractionId}
                                 </Badge>
                                 {message.Classname && (
-                                    <Badge variant="outline" className="text-[10px] uppercase font-bold bg-blue-50 text-blue-600 border-blue-100">
+                                    <Badge
+                                        variant='outline'
+                                        className='border-blue-100 bg-blue-50 font-bold text-[10px] text-blue-600 uppercase'>
                                         {message.Classname} {message.Sectionname && `- ${message.Sectionname}`}
                                     </Badge>
                                 )}
                                 <span>•</span>
-                                <span>{message.Sender} to {message.Receiver}</span>
+                                <span>
+                                    {message.Sender} to {message.Receiver}
+                                </span>
                             </p>
                         </div>
                     </div>
                 </DialogHeader>
 
-                <ScrollArea className="flex-1 p-8 bg-white">
+                <ScrollArea className='flex-1 bg-white p-8'>
                     {isLoading ? (
-                        <div className="flex flex-col items-center justify-center py-20 gap-4">
-                            <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                            <p className="text-[10px] font-black uppercase tracking-widest text-primary animate-pulse">Loading interaction history...</p>
+                        <div className='flex flex-col items-center justify-center gap-4 py-20'>
+                            <Loader2 className='h-10 w-10 animate-spin text-primary' />
+                            <p className='animate-pulse font-black text-[10px] text-primary uppercase tracking-widest'>
+                                Loading interaction history...
+                            </p>
                         </div>
                     ) : (
-                        <div className="max-w-[95%] mx-auto pb-10">
+                        <div className='mx-auto max-w-[95%] pb-10'>
                             {/* Table View */}
-                            <div className="border border-slate-200 rounded-sm overflow-hidden bg-white shadow-sm">
-                                <table className="w-full text-left border-collapse">
-                                    <thead className="bg-[#1e40af] text-white">
+                            <div className='overflow-hidden rounded-sm border border-slate-200 bg-white shadow-sm'>
+                                <table className='w-full border-collapse text-left'>
+                                    <thead className='bg-[#1e40af] text-white'>
                                         <tr>
-                                            <th className="px-4 py-2 text-[11px] font-black uppercase tracking-wider border-r border-[#3b82f6]/30 text-center w-[60px]">SL NO</th>
-                                            <th className="px-4 py-2 text-[11px] font-black uppercase tracking-wider border-r border-[#3b82f6]/30 text-center">Interaction</th>
-                                            <th className="px-4 py-2 text-[11px] font-black uppercase tracking-wider border-r border-[#3b82f6]/30 text-center w-[120px]">Image</th>
-                                            <th className="px-4 py-2 text-[11px] font-black uppercase tracking-wider border-r border-[#3b82f6]/30 text-center w-[150px]">Reply By</th>
-                                            <th className="px-4 py-2 text-[11px] font-black uppercase tracking-wider text-center w-[180px]">Date</th>
+                                            <th className='w-[60px] border-[#3b82f6]/30 border-r px-4 py-2 text-center font-black text-[11px] uppercase tracking-wider'>
+                                                SL NO
+                                            </th>
+                                            <th className='border-[#3b82f6]/30 border-r px-4 py-2 text-center font-black text-[11px] uppercase tracking-wider'>
+                                                Interaction
+                                            </th>
+                                            <th className='w-[120px] border-[#3b82f6]/30 border-r px-4 py-2 text-center font-black text-[11px] uppercase tracking-wider'>
+                                                Image
+                                            </th>
+                                            <th className='w-[150px] border-[#3b82f6]/30 border-r px-4 py-2 text-center font-black text-[11px] uppercase tracking-wider'>
+                                                Reply By
+                                            </th>
+                                            <th className='w-[180px] px-4 py-2 text-center font-black text-[11px] uppercase tracking-wider'>
+                                                Date
+                                            </th>
                                         </tr>
                                     </thead>
-                                    <tbody className="text-[12px] font-bold text-slate-600">
+                                    <tbody className='font-bold text-[12px] text-slate-600'>
                                         {/* Original Message First */}
-                                        <tr className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                                            <td className="px-4 py-4 text-center border-r border-slate-100 italic text-slate-400">1</td>
-                                            <td className="px-4 py-4 border-r border-slate-100 leading-relaxed font-medium">
+                                        <tr className='border-slate-100 border-b transition-colors hover:bg-slate-50'>
+                                            <td className='border-slate-100 border-r px-4 py-4 text-center text-slate-400 italic'>1</td>
+                                            <td className='border-slate-100 border-r px-4 py-4 font-medium leading-relaxed'>
                                                 {message.ISMINT_Interaction}
                                             </td>
-                                            <td className="px-4 py-4 border-r border-slate-100 text-center">
+                                            <td className='border-slate-100 border-r px-4 py-4 text-center'>
                                                 {message.ISMINT_Attachment && (
                                                     <button
                                                         onClick={() => setPreviewUrl(message.ISMINT_Attachment!)}
-                                                        className="inline-flex p-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors"
-                                                    >
-                                                        <Paperclip className="h-4 w-4" />
+                                                        className='inline-flex rounded-md bg-blue-50 p-2 text-blue-600 transition-colors hover:bg-blue-100'>
+                                                        <Paperclip className='h-4 w-4' />
                                                     </button>
                                                 )}
                                             </td>
-                                            <td className="px-4 py-4 border-r border-slate-100 text-center text-[11px] uppercase tracking-tighter">
+                                            <td className='border-slate-100 border-r px-4 py-4 text-center text-[11px] uppercase tracking-tighter'>
                                                 {message.Sender}
                                             </td>
-                                            <td className="px-4 py-4 text-center text-[11px] text-slate-500">
+                                            <td className='px-4 py-4 text-center text-[11px] text-slate-500'>
                                                 {format(new Date(message.ISMINT_DateTime), 'dd/MM/yyyy hh:mm a')}
                                             </td>
                                         </tr>
 
                                         {/* Replies */}
                                         {thread.map((item: any, idx: number) => (
-                                            <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                                                <td className="px-4 py-4 text-center border-r border-slate-100 italic text-slate-400">{idx + 2}</td>
-                                                <td className="px-4 py-4 border-r border-slate-100 leading-relaxed font-medium">
+                                            <tr key={idx} className='border-slate-100 border-b transition-colors hover:bg-slate-50'>
+                                                <td className='border-slate-100 border-r px-4 py-4 text-center text-slate-400 italic'>
+                                                    {idx + 2}
+                                                </td>
+                                                <td className='border-slate-100 border-r px-4 py-4 font-medium leading-relaxed'>
                                                     {item.ISTINT_Interaction}
                                                 </td>
-                                                <td className="px-4 py-4 border-r border-slate-100 text-center">
+                                                <td className='border-slate-100 border-r px-4 py-4 text-center'>
                                                     {item.ISTINT_Attachment && (
                                                         <button
                                                             onClick={() => setPreviewUrl(item.ISTINT_Attachment)}
-                                                            className="inline-flex p-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors"
-                                                        >
+                                                            className='inline-flex rounded-md bg-blue-50 p-2 text-blue-600 transition-colors hover:bg-blue-100'>
                                                             {getFileIcon(item.ISTINT_Attachment)}
                                                         </button>
                                                     )}
                                                 </td>
-                                                <td className="px-4 py-4 border-r border-slate-100 text-center text-[11px] uppercase tracking-tighter">
+                                                <td className='border-slate-100 border-r px-4 py-4 text-center text-[11px] uppercase tracking-tighter'>
                                                     {item.Sender || (item.ISTINT_ComposedByFlg === roleFlg ? 'You' : item.Receiver)}
                                                 </td>
-                                                <td className="px-4 py-4 text-center text-[11px] text-slate-500">
+                                                <td className='px-4 py-4 text-center text-[11px] text-slate-500'>
                                                     {format(new Date(item.ISTINT_DateTime), 'dd/MM/yyyy hh:mm a')}
                                                 </td>
                                             </tr>
@@ -240,32 +239,27 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, interactions
                 </ScrollArea>
 
                 {replyVisible && (
-                    <div className="p-6 border-t bg-muted/10 space-y-4">
-                        <div className="flex flex-col gap-3">
+                    <div className='space-y-4 border-t bg-muted/10 p-6'>
+                        <div className='flex flex-col gap-3'>
                             <Textarea
-                                placeholder="Write a reply..."
-                                className="min-h-[100px] resize-none focus-visible:ring-primary/20"
+                                placeholder='Write a reply...'
+                                className='min-h-[100px] resize-none focus-visible:ring-primary/20'
                                 value={replyText}
                                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReplyText(e.target.value)}
                             />
 
-                            <div className="flex items-center justify-between gap-4">
-                                <div className="flex grow flex-wrap gap-2">
-                                    <Button variant="outline" size="sm" className="h-8 text-[10px] gap-2">
-                                        <Paperclip className="h-3.5 w-3.5" />
+                            <div className='flex items-center justify-between gap-4'>
+                                <div className='flex grow flex-wrap gap-2'>
+                                    <Button variant='outline' size='sm' className='h-8 gap-2 text-[10px]'>
+                                        <Paperclip className='h-3.5 w-3.5' />
                                         Attach File
                                     </Button>
                                 </div>
                                 <Button
-                                    className="min-w-[120px] h-10 px-6 rounded-md bg-[#1e40af] hover:bg-[#1e3a8a] text-white font-black text-xs uppercase tracking-widest shadow-md transition-all"
+                                    className='h-10 min-w-[120px] rounded-md bg-[#1e40af] px-6 font-black text-white text-xs uppercase tracking-widest shadow-md transition-all hover:bg-[#1e3a8a]'
                                     onClick={handleSendReply}
-                                    disabled={isSubmitting || !replyText.trim()}
-                                >
-                                    {isSubmitting ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                    ) : (
-                                        "REPLY"
-                                    )}
+                                    disabled={isSubmitting || !replyText.trim()}>
+                                    {isSubmitting ? <Loader2 className='h-4 w-4 animate-spin' /> : 'REPLY'}
                                 </Button>
                             </div>
                         </div>
@@ -274,29 +268,27 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, interactions
             </DialogContent>
             {/* Image Preview Modal */}
             <Dialog open={!!previewUrl} onOpenChange={() => setPreviewUrl(null)}>
-                <DialogContent className="max-w-4xl p-0 bg-transparent border-none shadow-none flex flex-col items-center">
-                    <div className="relative group w-full flex flex-col items-center gap-6">
-                        <div className="relative rounded-2xl overflow-hidden bg-white/10 backdrop-blur-md p-1 shadow-2xl">
+                <DialogContent className='flex max-w-4xl flex-col items-center border-none bg-transparent p-0 shadow-none'>
+                    <div className='group relative flex w-full flex-col items-center gap-6'>
+                        <div className='relative overflow-hidden rounded-2xl bg-white/10 p-1 shadow-2xl backdrop-blur-md'>
                             {previewUrl && (
                                 <img
                                     src={previewUrl}
-                                    alt="Preview"
-                                    className="max-h-[70vh] w-auto rounded-xl object-contain shadow-inner"
+                                    alt='Preview'
+                                    className='max-h-[70vh] w-auto rounded-xl object-contain shadow-inner'
                                 />
                             )}
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className='flex items-center gap-4'>
                             <Button
                                 onClick={() => previewUrl && handleDownload(previewUrl)}
-                                className="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-md px-8 rounded-full font-black uppercase tracking-widest gap-3 h-12 shadow-xl"
-                            >
-                                <Download className="h-5 w-5" />
+                                className='h-12 gap-3 rounded-full border border-white/20 bg-white/10 px-8 font-black text-white uppercase tracking-widest shadow-xl backdrop-blur-md hover:bg-white/20'>
+                                <Download className='h-5 w-5' />
                                 Download Image
                             </Button>
                             <Button
                                 onClick={() => setPreviewUrl(null)}
-                                className="bg-red-500/80 hover:bg-red-500 text-white px-8 rounded-full font-black uppercase tracking-widest h-12 shadow-xl"
-                            >
+                                className='h-12 rounded-full bg-red-500/80 px-8 font-black text-white uppercase tracking-widest shadow-xl hover:bg-red-500'>
                                 Close
                             </Button>
                         </div>
@@ -311,17 +303,16 @@ function MessageSquareIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
         <svg
             {...props}
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            xmlns='http://www.w3.org/2000/svg'
+            width='24'
+            height='24'
+            viewBox='0 0 24 24'
+            fill='none'
+            stroke='currentColor'
+            strokeWidth='2'
+            strokeLinecap='round'
+            strokeLinejoin='round'>
+            <path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z' />
         </svg>
-    )
+    );
 }

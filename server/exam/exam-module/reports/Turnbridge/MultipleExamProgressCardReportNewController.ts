@@ -14,11 +14,11 @@ export async function getMultipleExamProgressCardReportNew(data: any) {
             ASMAY_Id: data.ASMAY_Id,
             ASMCL_Id: data.ASMCL_Id,
             ASMS_Id: data.ASMS_Id,
-            examlist: data.examlist || [],
+            examlist: data.examlist || []
         };
-        
+
         const response = await api.post<any>('exam', url, payload);
-        
+
         if (response?.success && response.data) {
             return {
                 ...response,
@@ -30,7 +30,7 @@ export async function getMultipleExamProgressCardReportNew(data: any) {
                 data: transformReportData(response)
             };
         }
-        
+
         return response;
     } catch (error) {
         console.error('MultipleExamProgressCardReportNewController error:', error);
@@ -47,12 +47,7 @@ export async function getMultipleExamProgressCardReportNew(data: any) {
  * Data Transformation logic (Equivalent to logic in legacy JS controller)
  */
 function transformReportData(data: any) {
-    const {
-        getstudentmarksdetails = [],
-        getstudentwisesubjectlist = [],
-        getstudentdetails = [],
-        getexamdetails = [],
-    } = data;
+    const { getstudentmarksdetails = [], getstudentwisesubjectlist = [], getstudentdetails = [], getexamdetails = [] } = data;
 
     // 1. Calculate Total Max Marks and append Total/Grade columns to exam details
     let totalMaxMarks = 0;
@@ -72,7 +67,7 @@ function transformReportData(data: any) {
         return {
             ...stu,
             subjects: studentSubjects,
-            marks: studentMarks,
+            marks: studentMarks
         };
     });
 

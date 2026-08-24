@@ -1,14 +1,20 @@
 'use server';
 
-import { IBMIReport, IBMIReportClass, IBMIReportLoadData, IBMIReportRequest, IBMIReportSection } from '@/types/sports/reports/bmi-report';
-import { api, ApiResponse, getSearchParamsUrl } from '@/lib/apiService';
+import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
+import type {
+    IBMIReport,
+    IBMIReportClass,
+    IBMIReportLoadData,
+    IBMIReportRequest,
+    IBMIReportSection
+} from '@/types/sports/reports/bmi-report';
 
 const API_URL = {
     GET_DETAILS: 'BMIReport/getDetails',
     GET_CLASS: 'BMIReport/get_class',
     GET_SECTION: 'BMIReport/get_section',
-    REPORT: 'BMIReport/report',
+    REPORT: 'BMIReport/report'
 };
 
 export async function getBMIReportLoadData(): Promise<IBMIReportLoadData> {
@@ -18,7 +24,7 @@ export async function getBMIReportLoadData(): Promise<IBMIReportLoadData> {
         console.log('BMI Report Load Data Response:', JSON.stringify(response));
         return {
             academicYear: response.data?.academicYear || [],
-            houseList: response.data?.houseList || [],
+            houseList: response.data?.houseList || []
         };
     } catch (error) {
         console.error('Error fetching BMI Report Load Data:', error);
@@ -38,7 +44,10 @@ export async function getClassesForBMI(asMAY_Id: number): Promise<IBMIReportClas
 
 export async function getSectionsForBMI(asMAY_Id: number, asmcL_Id: number): Promise<IBMIReportSection[]> {
     try {
-        const response = await api.post<{ sectionList: IBMIReportSection[] }>('sports', API_URL.GET_SECTION, { asmaY_Id: asMAY_Id, asmcL_Id: asmcL_Id });
+        const response = await api.post<{ sectionList: IBMIReportSection[] }>('sports', API_URL.GET_SECTION, {
+            asmaY_Id: asMAY_Id,
+            asmcL_Id: asmcL_Id
+        });
         return response.data?.sectionList || [];
     } catch (error) {
         console.error('Error fetching Sections for BMI:', error);
@@ -52,7 +61,7 @@ export async function getBMIReport(data: IBMIReportRequest, searchParams?: ApiSe
             mI_Id: data.mI_Id,
             asmaY_Id: data.ASMAY_Id,
             asmcL_Id: data.ASMCL_Id,
-            selectedSectionlist: data.selectedSectionlist,
+            selectedSectionlist: data.selectedSectionlist
         };
 
         const paramsUrl = getSearchParamsUrl(searchParams);

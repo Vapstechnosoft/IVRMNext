@@ -1,14 +1,13 @@
-
-import { useMutation, useQuery } from '@tanstack/react-query';
 import { getInvRStockDetails, getInvRStockReport } from '@/server/inventory/reports/inv-r-stock';
+import type { IInvRStockPayload } from '@/types/inventory/reports/inv-r-stock';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { IInvRStockPayload } from '@/types/inventory/reports/inv-r-stock';
 
 export const useInvRStockDetails = (optionflag: string) => {
     return useQuery({
         queryKey: ['invRStockDetails', optionflag],
         queryFn: () => getInvRStockDetails(optionflag),
-        enabled: optionflag !== 'All', // Don't fetch if All (or maybe fetch empty?)
+        enabled: optionflag !== 'All' // Don't fetch if All (or maybe fetch empty?)
     });
 };
 

@@ -1,27 +1,20 @@
 'use client';
-
-import React, { useEffect, useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { format } from 'date-fns';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import * as z from 'zod';
 
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/extension/field';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
+import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Search, RotateCcw, Printer, FileDown } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { FileDown, Printer, RotateCcw, Search } from 'lucide-react';
 
-import {
-    usePDAAcademicYear,
-    usePDAClass,
-    usePDASection,
-    usePDAStudent,
-} from '@/hooks/pda/usePDACommon';
+import { usePDAAcademicYear, usePDAClass, usePDASection, usePDAStudent } from '@/hooks/pda/usePDACommon';
 import { usePDADebitCreditReportMutation } from '@/hooks/pettycash/report/usePDADebitCreditReport';
-import { IPDADebitCreditReportRow, IPDADebitCreditStudentDetail } from '@/types/pettycash/report/PDADebitCreditReport';
+import type { IPDADebitCreditReportRow, IPDADebitCreditStudentDetail } from '@/types/pettycash/report/PDADebitCreditReport';
 
 // ---------- Zod Schema ----------
 const formSchema = z.object({
@@ -30,7 +23,7 @@ const formSchema = z.object({
     asmC_Id: z.string().min(1, 'Please Select Section'),
     AMST_Id: z.string().min(1, 'Please Select Student'),
     From_Date: z.date({ required_error: 'Please Select From Date' }),
-    To_Date: z.date({ required_error: 'Please Select To Date' }),
+    To_Date: z.date({ required_error: 'Please Select To Date' })
 });
 
 export type PDADebitCreditFormValues = z.infer<typeof formSchema>;
@@ -49,7 +42,7 @@ export default function PDADebitCreditReportForm({
     onCancel,
     onPrint,
     onExport,
-    showReportButtons,
+    showReportButtons
 }: PDADebitCreditReportFormProps) {
     const {
         control,
@@ -57,15 +50,15 @@ export default function PDADebitCreditReportForm({
         reset,
         watch,
         setValue,
-        formState: { errors },
+        formState: { errors }
     } = useForm<PDADebitCreditFormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             asmaY_Id: '',
             asmcL_Id: '',
             asmC_Id: '',
-            AMST_Id: '',
-        },
+            AMST_Id: ''
+        }
     });
 
     const watchedYear = watch('asmaY_Id');
@@ -84,9 +77,12 @@ export default function PDADebitCreditReportForm({
     const reportMutation = usePDADebitCreditReportMutation();
 
     const years = (Array.isArray(yearsRes?.data) ? yearsRes?.data : yearsRes?.data?.data) || yearsRes?.data?.fillyear?.$values || [];
-    const classes = (Array.isArray(classesRes?.data) ? classesRes?.data : classesRes?.data?.data) || classesRes?.data?.classlist?.$values || [];
-    const sections = (Array.isArray(sectionsRes?.data) ? sectionsRes?.data : sectionsRes?.data?.data) || sectionsRes?.data?.fillsection?.$values || [];
-    const students = (Array.isArray(studentsRes?.data) ? studentsRes?.data : studentsRes?.data?.data) || studentsRes?.data?.fillstudent?.$values || [];
+    const classes =
+        (Array.isArray(classesRes?.data) ? classesRes?.data : classesRes?.data?.data) || classesRes?.data?.classlist?.$values || [];
+    const sections =
+        (Array.isArray(sectionsRes?.data) ? sectionsRes?.data : sectionsRes?.data?.data) || sectionsRes?.data?.fillsection?.$values || [];
+    const students =
+        (Array.isArray(studentsRes?.data) ? studentsRes?.data : studentsRes?.data?.data) || studentsRes?.data?.fillstudent?.$values || [];
 
     const onSubmit = (values: PDADebitCreditFormValues) => {
         const payload = {
@@ -96,7 +92,7 @@ export default function PDADebitCreditReportForm({
             Amst_Id: Number(values.AMST_Id),
             From_Date: format(values.From_Date, 'yyyy-MM-dd'),
             To_Date: format(values.To_Date, 'yyyy-MM-dd'),
-            type: 'Ind',
+            type: 'Ind'
         };
 
         reportMutation.mutate(payload, {
@@ -113,7 +109,7 @@ export default function PDADebitCreditReportForm({
             },
             onError: () => {
                 toast.error('Failed to generate report');
-            },
+            }
         });
     };
 
@@ -123,21 +119,21 @@ export default function PDADebitCreditReportForm({
     };
 
     return (
-        <CollapsibleSection defaultOpen title="PDA Debit Credit Report">
-            <div className="mx-auto w-full bg-white rounded-xl shadow-sm border border-purple-100 p-8 space-y-8 animate-in fade-in duration-500">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <CollapsibleSection defaultOpen title='PDA Debit Credit Report'>
+            <div className='fade-in mx-auto w-full animate-in space-y-8 rounded-xl border border-purple-100 bg-white p-8 shadow-sm duration-500'>
+                <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                     {/* Academic Year */}
-                    <div className="space-y-2">
-                        <Label className="text-purple-900 font-semibold">
-                            Academic Year <span className="text-red-500">*</span>
+                    <div className='space-y-2'>
+                        <Label className='font-semibold text-purple-900'>
+                            Academic Year <span className='text-red-500'>*</span>
                         </Label>
                         <Controller
-                            name="asmaY_Id"
+                            name='asmaY_Id'
                             control={control}
                             render={({ field }) => (
                                 <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="--Select Year--" />
+                                    <SelectTrigger className='w-full'>
+                                        <SelectValue placeholder='--Select Year--' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {years.map((y: any) => (
@@ -149,21 +145,21 @@ export default function PDADebitCreditReportForm({
                                 </Select>
                             )}
                         />
-                        {errors.asmaY_Id && <span className="text-red-500 text-xs font-medium">{errors.asmaY_Id.message}</span>}
+                        {errors.asmaY_Id && <span className='font-medium text-red-500 text-xs'>{errors.asmaY_Id.message}</span>}
                     </div>
 
                     {/* Class */}
-                    <div className="space-y-2">
-                        <Label className="text-purple-900 font-semibold">
-                            Class <span className="text-red-500">*</span>
+                    <div className='space-y-2'>
+                        <Label className='font-semibold text-purple-900'>
+                            Class <span className='text-red-500'>*</span>
                         </Label>
                         <Controller
-                            name="asmcL_Id"
+                            name='asmcL_Id'
                             control={control}
                             render={({ field }) => (
                                 <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="--Select Class--" />
+                                    <SelectTrigger className='w-full'>
+                                        <SelectValue placeholder='--Select Class--' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {classes.map((c: any) => (
@@ -175,21 +171,21 @@ export default function PDADebitCreditReportForm({
                                 </Select>
                             )}
                         />
-                        {errors.asmcL_Id && <span className="text-red-500 text-xs font-medium">{errors.asmcL_Id.message}</span>}
+                        {errors.asmcL_Id && <span className='font-medium text-red-500 text-xs'>{errors.asmcL_Id.message}</span>}
                     </div>
 
                     {/* Section */}
-                    <div className="space-y-2">
-                        <Label className="text-purple-900 font-semibold">
-                            Section <span className="text-red-500">*</span>
+                    <div className='space-y-2'>
+                        <Label className='font-semibold text-purple-900'>
+                            Section <span className='text-red-500'>*</span>
                         </Label>
                         <Controller
-                            name="asmC_Id"
+                            name='asmC_Id'
                             control={control}
                             render={({ field }) => (
                                 <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="--Select Section--" />
+                                    <SelectTrigger className='w-full'>
+                                        <SelectValue placeholder='--Select Section--' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {sections.map((s: any) => (
@@ -201,21 +197,21 @@ export default function PDADebitCreditReportForm({
                                 </Select>
                             )}
                         />
-                        {errors.asmC_Id && <span className="text-red-500 text-xs font-medium">{errors.asmC_Id.message}</span>}
+                        {errors.asmC_Id && <span className='font-medium text-red-500 text-xs'>{errors.asmC_Id.message}</span>}
                     </div>
 
                     {/* Student */}
-                    <div className="space-y-2">
-                        <Label className="text-purple-900 font-semibold">
-                            Student Name <span className="text-red-500">*</span>
+                    <div className='space-y-2'>
+                        <Label className='font-semibold text-purple-900'>
+                            Student Name <span className='text-red-500'>*</span>
                         </Label>
                         <Controller
-                            name="AMST_Id"
+                            name='AMST_Id'
                             control={control}
                             render={({ field }) => (
                                 <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="--Select Student--" />
+                                    <SelectTrigger className='w-full'>
+                                        <SelectValue placeholder='--Select Student--' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {students.map((st: any) => (
@@ -227,79 +223,73 @@ export default function PDADebitCreditReportForm({
                                 </Select>
                             )}
                         />
-                        {errors.AMST_Id && <span className="text-red-500 text-xs font-medium">{errors.AMST_Id.message}</span>}
+                        {errors.AMST_Id && <span className='font-medium text-red-500 text-xs'>{errors.AMST_Id.message}</span>}
                     </div>
 
                     {/* From Date */}
-                    <div className="space-y-2">
-                        <Label className="text-purple-900 font-semibold">
-                            From Date <span className="text-red-500">*</span>
+                    <div className='space-y-2'>
+                        <Label className='font-semibold text-purple-900'>
+                            From Date <span className='text-red-500'>*</span>
                         </Label>
                         <Controller
-                            name="From_Date"
+                            name='From_Date'
                             control={control}
                             render={({ field }) => (
-                                <DatePicker date={field.value} setDate={field.onChange} placeholder="Select From Date" />
+                                <DatePicker date={field.value} setDate={field.onChange} placeholder='Select From Date' />
                             )}
                         />
-                        {errors.From_Date && <span className="text-red-500 text-xs font-medium">{errors.From_Date.message}</span>}
+                        {errors.From_Date && <span className='font-medium text-red-500 text-xs'>{errors.From_Date.message}</span>}
                     </div>
 
                     {/* To Date */}
-                    <div className="space-y-2">
-                        <Label className="text-purple-900 font-semibold">
-                            To Date <span className="text-red-500">*</span>
+                    <div className='space-y-2'>
+                        <Label className='font-semibold text-purple-900'>
+                            To Date <span className='text-red-500'>*</span>
                         </Label>
                         <Controller
-                            name="To_Date"
+                            name='To_Date'
                             control={control}
-                            render={({ field }) => (
-                                <DatePicker date={field.value} setDate={field.onChange} placeholder="Select To Date" />
-                            )}
+                            render={({ field }) => <DatePicker date={field.value} setDate={field.onChange} placeholder='Select To Date' />}
                         />
-                        {errors.To_Date && <span className="text-red-500 text-xs font-medium">{errors.To_Date.message}</span>}
+                        {errors.To_Date && <span className='font-medium text-red-500 text-xs'>{errors.To_Date.message}</span>}
                     </div>
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-4 border-t border-purple-50">
-                    <div className="flex items-center gap-4">
+                <div className='flex flex-col items-center justify-between gap-6 border-purple-50 border-t pt-4 md:flex-row'>
+                    <div className='flex items-center gap-4'>
                         <Button
                             onClick={handleSubmit(onSubmit)}
                             disabled={reportMutation.isPending}
-                            className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white px-6 h-10 rounded-md font-bold shadow-md transition-all active:scale-95"
-                        >
-                            <Search className="mr-2 h-4 w-4" />
+                            className='h-10 rounded-md bg-gradient-to-r from-orange-600 to-orange-700 px-6 font-bold text-white shadow-md transition-all hover:from-orange-700 hover:to-orange-800 active:scale-95'>
+                            <Search className='mr-2 h-4 w-4' />
                             {reportMutation.isPending ? 'Loading...' : 'Report'}
                         </Button>
                         <Button
-                            variant="outline"
+                            variant='outline'
                             onClick={handleReset}
-                            className="border-orange-200 text-orange-700 hover:bg-orange-50 h-10 px-6 rounded-md font-bold shadow-sm transition-all"
-                        >
-                            <RotateCcw className="mr-2 h-4 w-4" />
+                            className='h-10 rounded-md border-orange-200 px-6 font-bold text-orange-700 shadow-sm transition-all hover:bg-orange-50'>
+                            <RotateCcw className='mr-2 h-4 w-4' />
                             Cancel
                         </Button>
                     </div>
 
                     {showReportButtons && (
-                        <div className="flex flex-wrap items-center gap-3">
+                        <div className='flex flex-wrap items-center gap-3'>
                             <Button
-                                type="button"
-                                variant="outline"
+                                type='button'
+                                variant='outline'
                                 onClick={onExport}
-                                className="h-10 rounded-md border-green-200 bg-white px-6 text-xs font-bold text-green-700 shadow-sm hover:bg-green-50"
-                            >
-                                <FileDown className="mr-1.5 h-4 w-4" />
+                                className='h-10 rounded-md border-green-200 bg-white px-6 font-bold text-green-700 text-xs shadow-sm hover:bg-green-50'>
+                                <FileDown className='mr-1.5 h-4 w-4' />
                                 Export Excel
                             </Button>
                             <Button
-                                type="button"
-                                variant="outline"
+                                type='button'
+                                variant='outline'
                                 onClick={onPrint}
-                                className="h-10 rounded-md border-blue-200 bg-white px-6 text-xs font-bold text-blue-700 shadow-sm hover:bg-blue-50"
-                            >
-                                <Printer className="mr-1.5 h-4 w-4" />
+                                className='h-10 rounded-md border-blue-200 bg-white px-6 font-bold text-blue-700 text-xs shadow-sm hover:bg-blue-50'>
+                                <Printer className='mr-1.5 h-4 w-4' />
                                 Print
                             </Button>
                         </div>

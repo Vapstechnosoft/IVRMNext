@@ -1,5 +1,5 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 
 export async function getBasicDataJobListVMS(): Promise<ApiResponse<any>> {
     const url = '/api/JobListVMS/GetBasicData';
@@ -8,7 +8,7 @@ export async function getBasicDataJobListVMS(): Promise<ApiResponse<any>> {
         return {
             success: response?.success ?? true,
             message: response?.message || 'Data fetched successfully',
-            data: response?.data || response,
+            data: response?.data || response
         };
     } catch (error) {
         console.error('Error fetching basic job list VMS data:', error);
@@ -23,7 +23,7 @@ export async function saveOrUpdateJobListVMS(data: any): Promise<ApiResponse<any
         return {
             success: response?.success ?? true,
             message: response?.message || 'Job posting saved successfully',
-            data: response?.data || response,
+            data: response?.data || response
         };
     } catch (error) {
         console.error('Error saving job posting VMS:', error);

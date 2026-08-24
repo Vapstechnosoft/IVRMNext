@@ -226,7 +226,7 @@ export interface ICollegeAdmissionFormState {
     AMCST_FatherNationality: number;
     AMCST_FatherMonIncome?: string;
     AMCST_FatherAnnIncome?: string;
-    
+
     AMCST_MotherName: string;
     AMCST_MotherSurname?: string;
     AMCST_MotherAadharNo?: string;

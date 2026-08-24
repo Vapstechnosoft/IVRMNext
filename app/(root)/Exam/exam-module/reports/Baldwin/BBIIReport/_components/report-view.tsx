@@ -57,19 +57,22 @@ export default function BBIIReportView({
     const getSubjectRemark = (sub: any) => {
         if (sub.emgD_Remarks) return sub.emgD_Remarks;
         if (!gradeRemarks || !Array.isArray(gradeRemarks) || gradeRemarks.length === 0) return '';
-        const remarkObj = gradeRemarks.find(r =>
-            (Number(r.emgR_Id || r.EMGR_Id) === Number(sub.emgR_Id)) &&
-            (String(r.emgD_Name || r.EMGD_Name) === String(sub.estmpS_ObtainedGrade))
+        const remarkObj = gradeRemarks.find(
+            (r) =>
+                Number(r.emgR_Id || r.EMGR_Id) === Number(sub.emgR_Id) &&
+                String(r.emgD_Name || r.EMGD_Name) === String(sub.estmpS_ObtainedGrade)
         );
-        return remarkObj ? (remarkObj.emgD_Remarks || remarkObj.EMGD_Remarks) : '';
+        return remarkObj ? remarkObj.emgD_Remarks || remarkObj.EMGD_Remarks : '';
     };
 
     const getAttendance = (list: any[], studentId: any) => {
         if (!list || !Array.isArray(list)) return {};
         const id = Number(studentId);
-        return list.find(a =>
-            Number(a.studentId || a.amsT_ID || a.amsT_Id || a.AMST_Id || a.AMST_ID || a.StudentId || a.student_id || 0) === id
-        ) || {};
+        return (
+            list.find(
+                (a) => Number(a.studentId || a.amsT_ID || a.amsT_Id || a.AMST_Id || a.AMST_ID || a.StudentId || a.student_id || 0) === id
+            ) || {}
+        );
     };
 
     const getMonthValue = (at: any, month: string) => {
@@ -137,9 +140,10 @@ export default function BBIIReportView({
     };
 
     return (
-        <div className="space-y-6">
-            <style dangerouslySetInnerHTML={{
-                __html: `
+        <div className='space-y-6'>
+            <style
+                dangerouslySetInnerHTML={{
+                    __html: `
                 @media print {
                     body * {
                         visibility: hidden !important;
@@ -208,109 +212,177 @@ export default function BBIIReportView({
                 .sect1 label {
                     font-size: 13px;
                 }
-            `}} />
+            `
+                }}
+            />
 
-            <div className="no-print flex justify-end">
-                <Button onClick={handlePrint} className="flex items-center gap-2">
-                    <Printer className="h-4 w-4" />
+            <div className='no-print flex justify-end'>
+                <Button onClick={handlePrint} className='flex items-center gap-2'>
+                    <Printer className='h-4 w-4' />
                     Print All Reports
                 </Button>
             </div>
 
-            <div id="bb-ii-report-print-area" className="bb-report-container">
+            <div id='bb-ii-report-print-area' className='bb-report-container'>
                 {(reportData || []).map((report, index) => (
-                    <div key={report.student_id || index} className="margin-top-50 report-card" style={{ pageBreakBefore: index > 0 ? 'always' : 'auto' }}>
+                    <div
+                        key={report.student_id || index}
+                        className='margin-top-50 report-card'
+                        style={{ pageBreakBefore: index > 0 ? 'always' : 'auto' }}>
                         {/* Header */}
-                        <div className="text-center margin-bottom-10">
-                            <h4 className="font-bold">
-                                PROGRESS REPORT<br />
-                                ACADEMIC YEAR {academicYear || ''}<br />
+                        <div className='margin-bottom-10 text-center'>
+                            <h4 className='font-bold'>
+                                PROGRESS REPORT
+                                <br />
+                                ACADEMIC YEAR {academicYear || ''}
+                                <br />
                                 {examName || ''}
                             </h4>
                         </div>
 
                         {/* Student Info */}
-                        <section className="content">
-                            <div className="sect1">
-                                <div className="grid grid-cols-12 gap-4 margin-bottom-10">
-                                    <div className="col-span-5">
-                                        <div className="form-group">
-                                            <label className="w-1/3"><b>NAME</b></label>
-                                            <label className="flex-1">: <b>{report.amsT_FirstName || ''}</b></label>
+                        <section className='content'>
+                            <div className='sect1'>
+                                <div className='margin-bottom-10 grid grid-cols-12 gap-4'>
+                                    <div className='col-span-5'>
+                                        <div className='form-group'>
+                                            <label className='w-1/3'>
+                                                <b>NAME</b>
+                                            </label>
+                                            <label className='flex-1'>
+                                                : <b>{report.amsT_FirstName || ''}</b>
+                                            </label>
                                         </div>
-                                        <div className="form-group">
-                                            <label className="w-1/3 text-[11px]"><b>CLASS TEACHER</b></label>
-                                            <label className="flex-1">: <b>{(classTeacher || '').toUpperCase()}</b></label>
-                                        </div>
-                                    </div>
-                                    <div className="col-span-3">
-                                        <div className="form-group">
-                                            <label className="w-1/3"><b>CLASS</b></label>
-                                            <label className="flex-1">: <b>{selectedClass || report.asmcL_ClassName || ''}</b></label>
-                                        </div>
-                                        <div className="form-group">
-                                            <label className="w-1/3"><b>SECTION</b></label>
-                                            <label className="flex-1">: <b>{selectedSection || report.asmC_SectionName || ''}</b></label>
+                                        <div className='form-group'>
+                                            <label className='w-1/3 text-[11px]'>
+                                                <b>CLASS TEACHER</b>
+                                            </label>
+                                            <label className='flex-1'>
+                                                : <b>{(classTeacher || '').toUpperCase()}</b>
+                                            </label>
                                         </div>
                                     </div>
-                                    <div className="col-span-4">
-                                        <div className="form-group">
-                                            <label className="w-1/3"><b>ADM. NO</b></label>
-                                            <label className="flex-1">: <b>{report.amsT_AdmNo || ''}</b></label>
+                                    <div className='col-span-3'>
+                                        <div className='form-group'>
+                                            <label className='w-1/3'>
+                                                <b>CLASS</b>
+                                            </label>
+                                            <label className='flex-1'>
+                                                : <b>{selectedClass || report.asmcL_ClassName || ''}</b>
+                                            </label>
                                         </div>
-                                        <div className="form-group">
-                                            <label className="w-1/3"><b>D.O.B</b></label>
-                                            <label className="flex-1">: <b suppressHydrationWarning>{formatDate(report.amsT_DOB)}</b></label>
+                                        <div className='form-group'>
+                                            <label className='w-1/3'>
+                                                <b>SECTION</b>
+                                            </label>
+                                            <label className='flex-1'>
+                                                : <b>{selectedSection || report.asmC_SectionName || ''}</b>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div className='col-span-4'>
+                                        <div className='form-group'>
+                                            <label className='w-1/3'>
+                                                <b>ADM. NO</b>
+                                            </label>
+                                            <label className='flex-1'>
+                                                : <b>{report.amsT_AdmNo || ''}</b>
+                                            </label>
+                                        </div>
+                                        <div className='form-group'>
+                                            <label className='w-1/3'>
+                                                <b>D.O.B</b>
+                                            </label>
+                                            <label className='flex-1'>
+                                                : <b suppressHydrationWarning>{formatDate(report.amsT_DOB)}</b>
+                                            </label>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Marks Table */}
-                            <div className="">
-                                <table className="table-bordered text-center">
+                            <div className=''>
+                                <table className='table-bordered text-center'>
                                     <thead>
                                         <tr>
-                                            <th className="text-center" rowSpan={2}><b>SUBJECTS</b></th>
-                                            <th className="text-center" rowSpan={2} style={{ width: '60px' }}><b>MAX MARKS</b></th>
-                                            <th className="text-center" rowSpan={2} style={{ width: '60px' }}><b>MIN MARKS</b></th>
-                                            <th className="text-center" colSpan={3}><b>OBTAINED</b></th>
-                                            <th className="text-center" rowSpan={2}><b>REMARKS</b></th>
+                                            <th className='text-center' rowSpan={2}>
+                                                <b>SUBJECTS</b>
+                                            </th>
+                                            <th className='text-center' rowSpan={2} style={{ width: '60px' }}>
+                                                <b>MAX MARKS</b>
+                                            </th>
+                                            <th className='text-center' rowSpan={2} style={{ width: '60px' }}>
+                                                <b>MIN MARKS</b>
+                                            </th>
+                                            <th className='text-center' colSpan={3}>
+                                                <b>OBTAINED</b>
+                                            </th>
+                                            <th className='text-center' rowSpan={2}>
+                                                <b>REMARKS</b>
+                                            </th>
                                         </tr>
                                         <tr>
-                                            <th className="text-center" style={{ width: '40px' }}><b>MARKS</b></th>
-                                            <th className="text-center" style={{ width: '80px' }}><b>PERCENTAGE</b></th>
-                                            <th className="text-center" style={{ width: '40px' }}><b>GRADE</b></th>
+                                            <th className='text-center' style={{ width: '40px' }}>
+                                                <b>MARKS</b>
+                                            </th>
+                                            <th className='text-center' style={{ width: '80px' }}>
+                                                <b>PERCENTAGE</b>
+                                            </th>
+                                            <th className='text-center' style={{ width: '40px' }}>
+                                                <b>GRADE</b>
+                                            </th>
                                         </tr>
                                     </thead>
 
                                     <tbody>
                                         {/* Result Subjects */}
-                                        {(report.sub_list || []).filter((s: any) => s.eyceS_AplResultFlg === true || s.eyceS_AplResultFlg === 'true' || s.eyceS_AplResultFlg === 1).map((subj: any) => (
-                                            <tr key={subj.ismS_Id}>
-                                                <td className="text-left"><b>{subj.ismS_SubjectName}</b></td>
-                                                <td>{subj.eyceS_MarksEntryMax || subj.eyceS_MaxMarks || ''}</td>
-                                                <td>{subj.eyceS_MinMarks || ''}</td>
-                                                <td>
-                                                    {subj.estmpS_PassFailFlg !== 'AB' ? (subj.estM_Marks || subj.estmpS_ObtainedMarks || '') : subj.estmpS_PassFailFlg}
-                                                </td>
-                                                <td>{subj.estmpS_Percentage || ''}</td>
-                                                <td>
-                                                    {subj.estmpS_PassFailFlg !== 'AB' ? (subj.estmpS_ObtainedGrade || '') : subj.estmpS_PassFailFlg}
-                                                </td>
-                                                <td>
-                                                    {subj.estmpS_PassFailFlg !== 'AB' ? getSubjectRemark(subj) : ''}
-                                                </td>
-                                            </tr>
-                                        ))}
+                                        {(report.sub_list || [])
+                                            .filter(
+                                                (s: any) =>
+                                                    s.eyceS_AplResultFlg === true ||
+                                                    s.eyceS_AplResultFlg === 'true' ||
+                                                    s.eyceS_AplResultFlg === 1
+                                            )
+                                            .map((subj: any) => (
+                                                <tr key={subj.ismS_Id}>
+                                                    <td className='text-left'>
+                                                        <b>{subj.ismS_SubjectName}</b>
+                                                    </td>
+                                                    <td>{subj.eyceS_MarksEntryMax || subj.eyceS_MaxMarks || ''}</td>
+                                                    <td>{subj.eyceS_MinMarks || ''}</td>
+                                                    <td>
+                                                        {subj.estmpS_PassFailFlg !== 'AB'
+                                                            ? subj.estM_Marks || subj.estmpS_ObtainedMarks || ''
+                                                            : subj.estmpS_PassFailFlg}
+                                                    </td>
+                                                    <td>{subj.estmpS_Percentage || ''}</td>
+                                                    <td>
+                                                        {subj.estmpS_PassFailFlg !== 'AB'
+                                                            ? subj.estmpS_ObtainedGrade || ''
+                                                            : subj.estmpS_PassFailFlg}
+                                                    </td>
+                                                    <td>{subj.estmpS_PassFailFlg !== 'AB' ? getSubjectRemark(subj) : ''}</td>
+                                                </tr>
+                                            ))}
 
                                         {/* Total Row */}
                                         <tr>
-                                            <td className="text-left"><b>GRAND TOTAL / PERCENTAGE</b></td>
-                                            <td><b>{report.totaleyceS_MarksEntryMax || report.estmP_TotalMaxMarks || ''}</b></td>
-                                            <td><b>{report.stu_grandmin_marks || ''}</b></td>
-                                            <td><b>{report.totalestM_Marks || report.estmP_TotalObtMarks || ''}</b></td>
-                                            <td><b>{report.estmP_Percentage || ''}</b></td>
+                                            <td className='text-left'>
+                                                <b>GRAND TOTAL / PERCENTAGE</b>
+                                            </td>
+                                            <td>
+                                                <b>{report.totaleyceS_MarksEntryMax || report.estmP_TotalMaxMarks || ''}</b>
+                                            </td>
+                                            <td>
+                                                <b>{report.stu_grandmin_marks || ''}</b>
+                                            </td>
+                                            <td>
+                                                <b>{report.totalestM_Marks || report.estmP_TotalObtMarks || ''}</b>
+                                            </td>
+                                            <td>
+                                                <b>{report.estmP_Percentage || ''}</b>
+                                            </td>
                                             <td></td>
                                             <td></td>
                                         </tr>
@@ -318,62 +390,109 @@ export default function BBIIReportView({
                                         {/* Rank Row */}
                                         {showRank && (
                                             <tr>
-                                                <td className="text-left"><b>RANK IN SECTION</b></td>
-                                                <td colSpan={4}>{report.estmP_SectionRank && report.estmP_SectionRank !== '0' ? report.estmP_SectionRank : ''}</td>
+                                                <td className='text-left'>
+                                                    <b>RANK IN SECTION</b>
+                                                </td>
+                                                <td colSpan={4}>
+                                                    {report.estmP_SectionRank && report.estmP_SectionRank !== '0'
+                                                        ? report.estmP_SectionRank
+                                                        : ''}
+                                                </td>
                                                 <td></td>
                                                 <td></td>
                                             </tr>
                                         )}
 
                                         {/* Non-Result Subjects */}
-                                        {(report.sub_list || []).filter((s: any) => s.eyceS_AplResultFlg === false || s.eyceS_AplResultFlg === 'false' || s.eyceS_AplResultFlg === 0).map((subj: any) => (
-                                            <tr key={subj.ismS_Id}>
-                                                <td className="text-left"><b>{subj.ismS_SubjectName}</b></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td>
-                                                    {subj.estmpS_PassFailFlg !== 'AB' ? ('') : subj.estmpS_PassFailFlg}
-                                                </td>
-                                                <td></td>
-                                                <td>
-                                                    {subj.estmpS_PassFailFlg !== 'AB' ? (subj.estmpS_ObtainedGrade || '') : subj.estmpS_PassFailFlg}
-                                                </td>
-                                                <td>
-                                                    {subj.estmpS_PassFailFlg !== 'AB' ? getSubjectRemark(subj) : ''}
-                                                </td>
-                                            </tr>
-                                        ))}
+                                        {(report.sub_list || [])
+                                            .filter(
+                                                (s: any) =>
+                                                    s.eyceS_AplResultFlg === false ||
+                                                    s.eyceS_AplResultFlg === 'false' ||
+                                                    s.eyceS_AplResultFlg === 0
+                                            )
+                                            .map((subj: any) => (
+                                                <tr key={subj.ismS_Id}>
+                                                    <td className='text-left'>
+                                                        <b>{subj.ismS_SubjectName}</b>
+                                                    </td>
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td>{subj.estmpS_PassFailFlg !== 'AB' ? '' : subj.estmpS_PassFailFlg}</td>
+                                                    <td></td>
+                                                    <td>
+                                                        {subj.estmpS_PassFailFlg !== 'AB'
+                                                            ? subj.estmpS_ObtainedGrade || ''
+                                                            : subj.estmpS_PassFailFlg}
+                                                    </td>
+                                                    <td>{subj.estmpS_PassFailFlg !== 'AB' ? getSubjectRemark(subj) : ''}</td>
+                                                </tr>
+                                            ))}
                                     </tbody>
                                 </table>
 
                                 {/* Attendance Table */}
-                                <table className="table-bordered text-center">
+                                <table className='table-bordered text-center'>
                                     <thead>
                                         <tr>
-                                            <th className="text-center" colSpan={16}><b>ATTENDANCE</b></th>
+                                            <th className='text-center' colSpan={16}>
+                                                <b>ATTENDANCE</b>
+                                            </th>
                                         </tr>
                                         <tr>
-                                            <th className="text-center" colSpan={2}><b>MONTH</b></th>
-                                            <th className="text-center" style={{ width: '50px' }}><b>JUN</b></th>
-                                            <th className="text-center" style={{ width: '50px' }}><b>JUL</b></th>
-                                            <th className="text-center" style={{ width: '50px' }}><b>AUG</b></th>
-                                            <th className="text-center" style={{ width: '50px' }}><b>SEP</b></th>
-                                            <th className="text-center" style={{ width: '50px' }}><b>OCT</b></th>
-                                            <th className="text-center" style={{ width: '50px' }}><b>NOV</b></th>
-                                            <th className="text-center" style={{ width: '50px' }}><b>DEC</b></th>
-                                            <th className="text-center" style={{ width: '50px' }}><b>JAN</b></th>
-                                            <th className="text-center" style={{ width: '50px' }}><b>FEB</b></th>
-                                            <th className="text-center" style={{ width: '50px' }}><b>MAR</b></th>
-                                            <th className="text-center" style={{ width: '50px' }}><b>APR</b></th>
-                                            <th className="text-center" style={{ width: '50px' }}><b>MAY</b></th>
-                                            <th className="text-center" style={{ width: '20px' }}><b>TOTAL</b></th>
-                                            <th className="text-center" style={{ width: '20px' }}><b>TOTAL%</b></th>
+                                            <th className='text-center' colSpan={2}>
+                                                <b>MONTH</b>
+                                            </th>
+                                            <th className='text-center' style={{ width: '50px' }}>
+                                                <b>JUN</b>
+                                            </th>
+                                            <th className='text-center' style={{ width: '50px' }}>
+                                                <b>JUL</b>
+                                            </th>
+                                            <th className='text-center' style={{ width: '50px' }}>
+                                                <b>AUG</b>
+                                            </th>
+                                            <th className='text-center' style={{ width: '50px' }}>
+                                                <b>SEP</b>
+                                            </th>
+                                            <th className='text-center' style={{ width: '50px' }}>
+                                                <b>OCT</b>
+                                            </th>
+                                            <th className='text-center' style={{ width: '50px' }}>
+                                                <b>NOV</b>
+                                            </th>
+                                            <th className='text-center' style={{ width: '50px' }}>
+                                                <b>DEC</b>
+                                            </th>
+                                            <th className='text-center' style={{ width: '50px' }}>
+                                                <b>JAN</b>
+                                            </th>
+                                            <th className='text-center' style={{ width: '50px' }}>
+                                                <b>FEB</b>
+                                            </th>
+                                            <th className='text-center' style={{ width: '50px' }}>
+                                                <b>MAR</b>
+                                            </th>
+                                            <th className='text-center' style={{ width: '50px' }}>
+                                                <b>APR</b>
+                                            </th>
+                                            <th className='text-center' style={{ width: '50px' }}>
+                                                <b>MAY</b>
+                                            </th>
+                                            <th className='text-center' style={{ width: '20px' }}>
+                                                <b>TOTAL</b>
+                                            </th>
+                                            <th className='text-center' style={{ width: '20px' }}>
+                                                <b>TOTAL%</b>
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {/* Working Days */}
                                         <tr>
-                                            <td className="text-left" colSpan={2}><b>No of Working Days</b></td>
+                                            <td className='text-left' colSpan={2}>
+                                                <b>No of Working Days</b>
+                                            </td>
                                             {(() => {
                                                 const at = getAttendance(attendanceWork, report.student_id);
                                                 return (
@@ -390,15 +509,25 @@ export default function BBIIReportView({
                                                         <td>{getMonthValue(at, 'mar')}</td>
                                                         <td>{getMonthValue(at, 'apr')}</td>
                                                         <td>{getMonthValue(at, 'may')}</td>
-                                                        <td><b>{getAttendanceTotal(at, report, 'work')}</b></td>
-                                                        <td><b>{getAttendancePercentage(at, report, 'work') ? getAttendancePercentage(at, report, 'work') + '%' : ''}</b></td>
+                                                        <td>
+                                                            <b>{getAttendanceTotal(at, report, 'work')}</b>
+                                                        </td>
+                                                        <td>
+                                                            <b>
+                                                                {getAttendancePercentage(at, report, 'work')
+                                                                    ? getAttendancePercentage(at, report, 'work') + '%'
+                                                                    : ''}
+                                                            </b>
+                                                        </td>
                                                     </>
                                                 );
                                             })()}
                                         </tr>
                                         {/* Present Days */}
                                         <tr>
-                                            <td className="text-left" colSpan={2}><b>DAYS PRESENT</b></td>
+                                            <td className='text-left' colSpan={2}>
+                                                <b>DAYS PRESENT</b>
+                                            </td>
                                             {(() => {
                                                 const at = getAttendance(attendancePresent, report.student_id);
                                                 return (
@@ -415,8 +544,16 @@ export default function BBIIReportView({
                                                         <td>{getMonthValue(at, 'mar')}</td>
                                                         <td>{getMonthValue(at, 'apr')}</td>
                                                         <td>{getMonthValue(at, 'may')}</td>
-                                                        <td><b>{getAttendanceTotal(at, report, 'present')}</b></td>
-                                                        <td><b>{getAttendancePercentage(at, report, 'present') ? getAttendancePercentage(at, report, 'present') + '%' : ''}</b></td>
+                                                        <td>
+                                                            <b>{getAttendanceTotal(at, report, 'present')}</b>
+                                                        </td>
+                                                        <td>
+                                                            <b>
+                                                                {getAttendancePercentage(at, report, 'present')
+                                                                    ? getAttendancePercentage(at, report, 'present') + '%'
+                                                                    : ''}
+                                                            </b>
+                                                        </td>
                                                     </>
                                                 );
                                             })()}
@@ -426,11 +563,13 @@ export default function BBIIReportView({
                             </div>
 
                             {/* Remarks */}
-                            <table className="table margin-top-20" style={{ fontSize: '14px', width: '100%' }}>
+                            <table className='margin-top-20 table' style={{ fontSize: '14px', width: '100%' }}>
                                 <tbody>
                                     <tr>
-                                        <td style={{ width: '20%' }}><b>Class Teacher's Remarks : </b></td>
-                                        <td className="text-center border-bottom">
+                                        <td style={{ width: '20%' }}>
+                                            <b>Class Teacher's Remarks : </b>
+                                        </td>
+                                        <td className='border-bottom text-center'>
                                             {showRemarks && <b>{report.estmP_TotalGradeRemark || 'Good'}</b>}
                                         </td>
                                     </tr>
@@ -438,12 +577,24 @@ export default function BBIIReportView({
                             </table>
 
                             {/* Signatures */}
-                            <table className="table margin-top-40" style={{ fontSize: '14px', width: '100%' }}>
+                            <table className='margin-top-40 table' style={{ fontSize: '14px', width: '100%' }}>
                                 <tbody>
                                     <tr>
-                                        <td><span className="border-top"><b>Parent's Signature</b></span></td>
-                                        <td className="text-center"><span className="border-top"><b>Class Teacher's Signature</b></span></td>
-                                        <td className="text-right"><span className="border-top"><b>Principal's Signature</b></span></td>
+                                        <td>
+                                            <span className='border-top'>
+                                                <b>Parent's Signature</b>
+                                            </span>
+                                        </td>
+                                        <td className='text-center'>
+                                            <span className='border-top'>
+                                                <b>Class Teacher's Signature</b>
+                                            </span>
+                                        </td>
+                                        <td className='text-right'>
+                                            <span className='border-top'>
+                                                <b>Principal's Signature</b>
+                                            </span>
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
