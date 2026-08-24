@@ -138,7 +138,6 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
         });
 
         if (payloadTimeTable.length === 0) {
-            alert('Could not map selected periods to their IDs. Please check if periods are loaded correctly.');
             toast.error('Invalid selection', { description: 'Could not map selected periods to their IDs.' });
             return;
         }
@@ -156,7 +155,6 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
         };
 
         console.log('Sending payload:', finalPayload);
-        alert("PAYLOAD GENERATED ON CLICK:\n\n" + JSON.stringify(finalPayload, null, 2));
 
         saveTimetable(finalPayload, {
             onSuccess: (res: any) => {
