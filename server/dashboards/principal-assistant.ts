@@ -6,7 +6,7 @@ import { getEmployees } from '@/server/hrms/master-dropdown';
 import { GetChairmanDashBoardFeesdata, GetTeacherCount, getDashboardCounts } from './chairman-dashboard';
 
 async function queryAssistantLLM(question: string, contextData: any, defaultResponse: any): Promise<any> {
-    const apiKey = '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';
+    const apiKey = process.env.assistant_groq_key || '';
     const endpoint = 'https://api.groq.com/openai/v1/chat/completions';
 
     try {
@@ -74,7 +74,7 @@ export interface AssistantResponse {
 }
 
 async function classifyQueryWithLLM(query: string): Promise<string> {
-    const apiKey = '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';
+    const apiKey = process.env.assistant_groq_key || '';
     const endpoint = 'https://api.groq.com/openai/v1/chat/completions';
 
     const validIds = [
