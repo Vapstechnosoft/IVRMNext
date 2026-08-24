@@ -1,5 +1,6 @@
 import {
     calculateDueDateWithHolidays,
+    getBookDetailsOnLoad,
     getBookTransactionDetails,
     getDepartmentDetails,
     getStaffDetails,
@@ -11,6 +12,15 @@ import {
 import type { BookCategory, BookType, IIssueBookRequest, MemberType } from '@/types/library/transactions/book-transaction';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+
+export const useBookDetailsOnLoad = () => {
+    return useQuery({
+        queryKey: ['book-details-on-load'],
+        queryFn: () => getBookDetailsOnLoad(),
+        staleTime: 5 * 60 * 1000,
+        refetchOnWindowFocus: false
+    });
+};
 
 export const useBookIssueInitialData = (params: {
     booktype: BookType;
@@ -24,6 +34,7 @@ export const useBookIssueInitialData = (params: {
         refetchOnWindowFocus: false
     });
 };
+
 
 export const useIssueBook = () => {
     const queryClient = useQueryClient();

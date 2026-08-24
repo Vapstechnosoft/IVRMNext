@@ -349,3 +349,20 @@ export async function lostBook(data: {
     const url = `${FACADE}/LostBook`;
     return await api.post<{ returnval: boolean }>('library', url, data);
 }
+
+// Get Book Details on Load (No Payload)
+export async function getBookDetailsOnLoad() {
+    try {
+        const url = 'BookTransaction/get-book-details';
+        const response = await api.get<any>('library', url);
+        return response;
+    } catch (error: any) {
+        console.error('Error fetching book details on load:', error);
+        return {
+            success: false,
+            message: error?.message || 'Failed to fetch book details',
+            data: null
+        };
+    }
+}
+
