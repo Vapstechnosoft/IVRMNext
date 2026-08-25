@@ -2,14 +2,13 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, Loader2, RotateCcw, Save } from 'lucide-react';
+import { Calendar as CalendarIcon, Loader2, RotateCcw, Search, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
-import { useAbsentStaffList, useDeputationMasters } from '@/hooks/timetable/useTransactions';
+import { useAbsentStaffList, useDeputationDetails } from '@/hooks/timetable/useTransactions';
 import { DeputationSchema } from '@/schemas/timetable/transactions';
-import { saveDeputation } from '@/server/timetable/transactions/deputation';
 
 import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
@@ -19,19 +18,29 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useTimeTableAcademicYear, useTimeTableCategoryDropDownData, useTimeTableClassDropdownData } from '@/hooks/timetable/useMasters';
 
 interface DeputationFormProps {
-    onFetch: (data: any) => void;
+    onFetch: (selection: {
+        date: Date | null;
+        dateStr: string;
+        dayId: number;
+        dayName: string;
+        absentStaffId: number;
+        absflag: boolean;
+        remarks: string;
+        smsflag: boolean;
+        mailflag: boolean;
+        noT_Flag: boolean;
+        masters: any;
+    } | null) => void;
 }
 
 export default function DeputationForm({ onFetch }: DeputationFormProps) {
-    const { data: masters, isLoading } = useDeputationMasters();
-    const [saving, setSaving] = useState(false);
+    const { data: initialDetails, isLoading: detailsLoading } = useDeputationDetails();
+    const [fetchingPeriods, setFetchingPeriods] = useState(false);
 
     const {
         control,
-        handleSubmit,
         reset,
         setValue,
         watch,
@@ -40,96 +49,164 @@ export default function DeputationForm({ onFetch }: DeputationFormProps) {
         resolver: zodResolver(DeputationSchema),
         defaultValues: {
             asmaY_Id: '',
-            ttmD_Date: undefined,
+            ttmD_Date: undefined as Date | undefined,
             ttmD_Day: '',
+            ttmD_Id: 0,
             absent_Staff_Flag: false,
             sms_Flag: false,
             email_Flag: false,
             notification_Flag: false,
             ttmD_Remarks: '',
-            hrE_Id: ''
+            hrmE_Id: ''
         }
     });
-    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
-    const AcademicYear = watch('asmaY_Id');
+
     const watchDate = watch('ttmD_Date');
-    const watchYear = watch('asmaY_Id');
     const watchAbsent = watch('absent_Staff_Flag');
+    const watchHrmEId = watch('hrmE_Id');
+    const watchDayId = watch('ttmD_Id');
+    const watchDayName = watch('ttmD_Day');
+    const watchRemarks = watch('ttmD_Remarks');
+    const watchSms = watch('sms_Flag');
+    const watchEmail = watch('email_Flag');
+    const watchNot = watch('notification_Flag');
 
-    // Fetch absent staff based on selection
-    const { data: absentStaffData } = useAbsentStaffList({
-        asmaY_Id: Number(watchYear),
-        ttmD_Date: watchDate ? format(watchDate, 'yyyy-MM-dd') : '',
-        absent_Staff_Flag: watchAbsent
-    });
-    console.log('absentStaffData', absentStaffData, absentStaffData?.data);
+    // Academic years list from getdetails
+    const ayList = initialDetails?.acayear || initialDetails?.academiclist || [];
+    // Day list from getdetails
+    const dayList = initialDetails?.daylist || initialDetails?.day_list || [];
+    // Master staff list from getdetails
+    const masterStaffList =
+        initialDetails?.stafflist ||
+        initialDetails?.absentstafflist ||
+        initialDetails?.staff_list ||
+        initialDetails?.staffList ||
+        initialDetails?.gridweeks ||
+        (Array.isArray(initialDetails) ? initialDetails : []);
 
+    // Automatically update day when date changes
     useEffect(() => {
         if (watchDate) {
-            setValue('ttmD_Day', format(watchDate, 'EEEE').toUpperCase());
-        }
-    }, [watchDate, setValue]);
+            const formattedDayName = format(watchDate, 'EEEE').toUpperCase();
+            setValue('ttmD_Day', formattedDayName);
 
-    const { data: ayData, isLoading: ayLoading } = useTimeTableAcademicYear();
-    const { data: catData, isLoading: catLoading } = useTimeTableCategoryDropDownData();
-    const { data: classData, isLoading: classLoading } = useTimeTableClassDropdownData();
-
-    const mastersLoading = ayLoading || catLoading || classLoading;
-
-    const onSubmit = async (data: any) => {
-        if (saving) return;
-
-        setSaving(true);
-
-        try {
-            const res = await saveDeputation(data);
-
-            if (res) {
-                toast.success('Staff allotment saved successfully');
-                onFetch(res);
-                reset();
+            // Find matching day ID from daylist if available
+            if (dayList && dayList.length > 0) {
+                const matchedDay = dayList.find(
+                    (d: any) =>
+                        d.ttmD_DayName?.toUpperCase() === formattedDayName ||
+                        d.ttmD_DayCode?.toUpperCase() === formattedDayName.substring(0, 3)
+                );
+                if (matchedDay) {
+                    setValue('ttmD_Id', Number(matchedDay.ttmD_Id || 0));
+                }
             }
-        } catch (error) {
-            console.error(error);
-            toast.error('Unable to save allotment');
-        } finally {
-            setSaving(false);
         }
-    };
+    }, [watchDate, dayList, setValue]);
+
+    // Fetch absent staff based on date and flag via POST /api/DeputationFacade/getabsentstaff
+    const dateFormatted = watchDate ? format(watchDate, 'yyyy-MM-dd') : '';
+    const dateIsoStr = watchDate ? watchDate.toISOString() : '';
+    const { data: absentStaffRes, isLoading: absentStaffLoading } = useAbsentStaffList(
+        {
+            ttsD_Date: dateFormatted || dateIsoStr,
+            absflag: watchAbsent,
+            ttmD_Id: watchDayId || 0,
+            ttmP_Id: 0,
+            hrmE_Id: 0
+        },
+        !!watchDate
+    );
+
+    // Extract absent staff list array
+    const rawAbsentList =
+        absentStaffRes?.absentstafflist ||
+        absentStaffRes?.stafflist ||
+        absentStaffRes?.absentStaffList ||
+        absentStaffRes?.staffList ||
+        absentStaffRes?.staff_list ||
+        absentStaffRes?.gridweeks ||
+        absentStaffRes?.vlist ||
+        (Array.isArray(absentStaffRes) ? absentStaffRes : (Array.isArray(absentStaffRes?.data) ? absentStaffRes.data : null));
+
+    const absentStaffList = (rawAbsentList && rawAbsentList.length > 0) ? rawAbsentList : masterStaffList;
+
+    // Reset staff selection when Date or Absent Flag changes
+    useEffect(() => {
+        setValue('hrmE_Id', '');
+    }, [watchDate, watchAbsent, setValue]);
+
+    // Show warning toast if absent staff query returns empty results
+    useEffect(() => {
+        if (watchDate && !absentStaffLoading && absentStaffRes) {
+            if (rawAbsentList && Array.isArray(rawAbsentList) && rawAbsentList.length === 0) {
+                toast.warning('No staff records found for the selected date and criteria');
+            }
+        }
+    }, [watchDate, absentStaffLoading, absentStaffRes]);
+
+    // Automatically trigger period allotment fetch when Date and Staff are selected
+    useEffect(() => {
+        if (watchDate && watchHrmEId) {
+            const dateStr = watchDate ? watchDate.toISOString() : '';
+            const dayId = Number(watchDayId || 0);
+
+            onFetch({
+                date: watchDate,
+                dateStr,
+                dayId,
+                dayName: watchDayName || '',
+                absentStaffId: Number(watchHrmEId),
+                absflag: watchAbsent,
+                remarks: watchRemarks || '',
+                smsflag: watchSms,
+                mailflag: watchEmail,
+                noT_Flag: watchNot,
+                masters: initialDetails
+            });
+        } else {
+            onFetch(null);
+        }
+    }, [watchDate, watchHrmEId, watchAbsent, watchDayId, watchDayName, watchRemarks, watchSms, watchEmail, watchNot, initialDetails]);
 
     const handleReset = () => {
-        reset();
+        reset({
+            asmaY_Id: '',
+            ttmD_Date: undefined,
+            ttmD_Day: '',
+            ttmD_Id: 0,
+            absent_Staff_Flag: false,
+            sms_Flag: false,
+            email_Flag: false,
+            notification_Flag: false,
+            ttmD_Remarks: '',
+            hrmE_Id: ''
+        });
         onFetch(null);
     };
 
     return (
         <CollapsibleSection title='Staff Replacement For Class And Section' defaultOpen>
             <div className='rounded-xl border border-purple-100 bg-white p-6 shadow-md'>
-                <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                <form onSubmit={(e) => e.preventDefault()} className='space-y-6'>
                     {/* TOP GRID */}
                     <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
                         {/* Academic Year */}
-                        {/* Academic Year */}
                         <div className='space-y-1'>
-                            <Label className={`font-bold text-xs uppercase ${errors.asmaY_Id ? 'text-red-500' : 'text-purple-900'}`}>
-                                Academic Year *
-                            </Label>
+                            <Label className='font-bold text-purple-900 text-xs uppercase'>Academic Year</Label>
                             <Controller
                                 name='asmaY_Id'
                                 control={control}
                                 render={({ field }) => (
                                     <Select
                                         key={field.value || 'empty'}
-                                        onValueChange={(value) => {
-                                            field.onChange(value || '');
-                                        }}
+                                        onValueChange={(value) => field.onChange(value || '')}
                                         value={field.value?.toString() || undefined}>
-                                        <SelectTrigger
-                                            className={`h-10 border-purple-100 ${errors.asmaY_Id ? 'border-red-500 ring-red-100' : ''}`}>
-                                            <SelectValue placeholder={ayLoading ? 'Loading...' : 'Select Year'} />
+                                        <SelectTrigger className='h-10 border-purple-100'>
+                                            <SelectValue placeholder={detailsLoading ? 'Loading Years...' : 'Select Academic Year'} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {ayData?.data?.map((ay: any) => (
+                                            {ayList?.map((ay: any) => (
                                                 <SelectItem key={ay.asmaY_Id} value={ay.asmaY_Id.toString()}>
                                                     {ay.asmaY_Year}
                                                 </SelectItem>
@@ -138,8 +215,8 @@ export default function DeputationForm({ onFetch }: DeputationFormProps) {
                                     </Select>
                                 )}
                             />
-                            {errors.asmaY_Id && <p className='font-medium text-[10px] text-red-500'>{errors.asmaY_Id.message}</p>}
                         </div>
+
                         {/* Date */}
                         <div className='space-y-1'>
                             <Label className={`font-bold text-xs uppercase ${errors.ttmD_Date ? 'text-red-500' : 'text-purple-900'}`}>
@@ -181,12 +258,12 @@ export default function DeputationForm({ onFetch }: DeputationFormProps) {
                             <Controller
                                 name='ttmD_Day'
                                 control={control}
-                                render={({ field }) => <Input {...field} readOnly className='h-10 bg-slate-50 text-purple-700' />}
+                                render={({ field }) => <Input {...field} readOnly className='h-10 bg-slate-50 text-purple-700 font-semibold' />}
                             />
                         </div>
                     </div>
 
-                    {/* ABSENT STAFF */}
+                    {/* ABSENT STAFF SECTION */}
                     <div className='grid gap-6 rounded-xl border border-orange-100 bg-orange-50/40 p-5 md:grid-cols-2'>
                         <div className='flex items-center space-x-3'>
                             <Controller
@@ -200,34 +277,47 @@ export default function DeputationForm({ onFetch }: DeputationFormProps) {
                         </div>
 
                         <div className='space-y-1'>
-                            <Label className={`font-bold text-xs uppercase ${errors.hrE_Id ? 'text-red-500' : 'text-purple-900'}`}>
+                            <Label className={`font-bold text-xs uppercase ${errors.hrmE_Id ? 'text-red-500' : 'text-purple-900'}`}>
                                 Staff Name *
                             </Label>
                             <Controller
-                                name='hrE_Id'
+                                name='hrmE_Id'
                                 control={control}
                                 render={({ field }) => (
                                     <Select
                                         key={field.value || 'empty'}
-                                        onValueChange={(value) => {
-                                            field.onChange(value || '');
-                                        }}
+                                        onValueChange={(value) => field.onChange(value || '')}
                                         value={field.value?.toString() || undefined}>
                                         <SelectTrigger
-                                            className={`h-10 border-purple-100 ${errors.hrE_Id ? 'border-red-500 ring-red-100' : ''}`}>
-                                            <SelectValue placeholder='-- Select Staff --' />
+                                            className={`h-10 border-purple-100 ${errors.hrmE_Id ? 'border-red-500 ring-red-100' : ''}`}>
+                                            <SelectValue placeholder={absentStaffLoading ? 'Loading Staff...' : '-- Select Staff --'} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {absentStaffData?.map((staff: any) => (
-                                                <SelectItem key={staff.hrmE_Id} value={staff.hrmE_Id.toString()}>
-                                                    {staff.staffName}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
+                                             {absentStaffList?.map((staff: any, idx: number) => {
+                                                 const staffId = staff.hrmE_Id || staff.hrE_Id || staff.HRME_Id || staff.id || idx;
+                                                 const fullName = [staff.hrmE_EmployeeFirstName, staff.hrmE_EmployeeMiddleName, staff.hrmE_EmployeeLastName]
+                                                     .filter(Boolean)
+                                                     .join(' ');
+                                                 const staffName =
+                                                     staff.staffName ||
+                                                     staff.staffname ||
+                                                     (fullName ? fullName : null) ||
+                                                     staff.hrmE_EmployeeFirstName ||
+                                                     staff.hrmE_EmployeeCode ||
+                                                     staff.employeeName ||
+                                                     `Staff #${staffId}`;
+
+                                                 return (
+                                                     <SelectItem key={`${staffId}-${idx}`} value={staffId.toString()}>
+                                                         {staffName}
+                                                     </SelectItem>
+                                                 );
+                                             })}
+                                         </SelectContent>
                                     </Select>
                                 )}
                             />
-                            {errors.hrE_Id && <p className='font-medium text-[10px] text-red-500'>{errors.hrE_Id.message}</p>}
+                            {errors.hrmE_Id && <p className='font-medium text-[10px] text-red-500'>{errors.hrmE_Id.message}</p>}
                         </div>
                     </div>
 
@@ -237,41 +327,50 @@ export default function DeputationForm({ onFetch }: DeputationFormProps) {
                         <Controller
                             name='ttmD_Remarks'
                             control={control}
-                            render={({ field }) => <Input {...field} placeholder='Enter remarks...' />}
+                            render={({ field }) => <Input {...field} placeholder='Enter remarks...' className='h-10' />}
                         />
                     </div>
 
-                    {/* FLAGS */}
+                    {/* NOTIFICATION FLAGS */}
                     <div className='flex gap-8 border-y py-4'>
-                        {['sms_Flag', 'email_Flag', 'notification_Flag'].map((key) => (
-                            <div key={key} className='flex items-center gap-2'>
-                                <Controller
-                                    name={key as any}
-                                    control={control}
-                                    render={({ field }) => <Checkbox checked={field.value} onCheckedChange={field.onChange} />}
-                                />
-                                <Label className='font-bold text-xs uppercase'>{key.replace('_Flag', '')}</Label>
-                            </div>
-                        ))}
+                        <div className='flex items-center gap-2'>
+                            <Controller
+                                name='sms_Flag'
+                                control={control}
+                                render={({ field }) => <Checkbox checked={field.value} onCheckedChange={field.onChange} />}
+                            />
+                            <Label className='font-bold text-xs uppercase'>SMS</Label>
+                        </div>
+                        <div className='flex items-center gap-2'>
+                            <Controller
+                                name='email_Flag'
+                                control={control}
+                                render={({ field }) => <Checkbox checked={field.value} onCheckedChange={field.onChange} />}
+                            />
+                            <Label className='font-bold text-xs uppercase'>Email</Label>
+                        </div>
+                        <div className='flex items-center gap-2'>
+                            <Controller
+                                name='notification_Flag'
+                                control={control}
+                                render={({ field }) => <Checkbox checked={field.value} onCheckedChange={field.onChange} />}
+                            />
+                            <Label className='font-bold text-xs uppercase'>Notification</Label>
+                        </div>
                     </div>
 
                     {/* ACTIONS */}
-                    <div className='flex gap-3'>
-                        <Button type='submit' disabled={mastersLoading} className='bg-orange-500 px-6 font-bold'>
-                            {saving ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Save className='mr-2 h-4 w-4' />}
-                            Save Allotment
+                    <div className='flex justify-center pt-2 gap-3'>
+                        <Button type='button' onClick={handleReset} className='bg-orange-600 px-8 font-bold text-white hover:bg-orange-700 uppercase tracking-wide'>
+                            <X className='mr-2 h-4 w-4' /> Cancel
                         </Button>
-
-                        <Button type='button' variant='outline' onClick={handleReset} disabled={mastersLoading}>
-                            <RotateCcw className='mr-2 h-4 w-4' />
-                            Reset
-                        </Button>
-                        {mastersLoading && <Loader2 className='h-4 w-4 animate-spin self-center text-purple-500' />}
+                        {detailsLoading && <Loader2 className='h-4 w-4 animate-spin self-center text-purple-500' />}
                     </div>
                 </form>
             </div>
         </CollapsibleSection>
     );
 }
+
 
 

@@ -8,7 +8,21 @@ import type { ApiSearchparams } from '@/types';
 import { getAcademicYear, getCategory, getTimeTableGenerationGridData } from '@/server/timetable/transactions/timetablegeneration';
 
 // deputation
-import { getAbsentStaffList, getDeputationMasters } from '@/server/timetable/transactions/deputation';
+import {
+    getAbsentStaff,
+    getDeputationDetails,
+    getFreeStaffDets,
+    getPeriodAlloted,
+    getViewRecordsPopup9,
+    saveDeputationDetails
+} from '@/server/timetable/transactions/deputation';
+import type {
+    IAbsentStaffPayload,
+    IFreeStaffPayload,
+    IPeriodAllotedPayload,
+    ISaveDeputationPayload,
+    IViewRecordsPopupPayload
+} from '@/types/timetable/Transaction/deputation';
 
 // manual-Period-insersion
 import { getManualPeriodInsertionMasters, getSectionsByClass as getSectionsByClassManual, getManualPeriodInsertionReportData, saveManualPeriodInsertion } from '@/server/timetable/transactions/manualperiodinsertion';
@@ -95,29 +109,76 @@ export const useTimeTableGenerationGridData = (searchParams: any) => {
 };
 
 // ================= deputation =================
-export const useDeputationMasters = () => {
+export const useDeputationDetails = () => {
     return useQuery({
         queryKey: [TIMETABLE_QUERY_KEYS.DEPUTATION_MASTERS],
         queryFn: async () => {
-            const res = await getDeputationMasters();
+            const res = await getDeputationDetails();
             return res.data || res;
         }
     });
 };
-export const useAbsentStaffList = (payload: { asmaY_Id: number; ttmD_Date: string; absent_Staff_Flag: boolean }) => {
+
+export const useDeputationMasters = useDeputationDetails;
+
+export const useAbsentStaffList = (payload: IAbsentStaffPayload, enabled = true) => {
     return useQuery({
         queryKey: [TIMETABLE_QUERY_KEYS.DEPUTATION_ABSENT_STAFF, payload],
         queryFn: async () => {
-            const res = await getAbsentStaffList({
-                asmaY_Id: payload.asmaY_Id,
-                TTSD_Date: payload.ttmD_Date,
-                absFlag: payload.absent_Staff_Flag
-            });
-            return res.data || [];
+            const res = await getAbsentStaff(payload);
+            return res.data || res;
         },
-        enabled: !!payload.asmaY_Id && !!payload.ttmD_Date
+        enabled: enabled && !!payload.ttsD_Date
     });
 };
+
+export const usePeriodAlloted = (payload: IPeriodAllotedPayload, enabled = true) => {
+    return useQuery({
+        queryKey: ['DEPUTATION_PERIOD_ALLOTED', payload],
+        queryFn: async () => {
+            const res = await getPeriodAlloted(payload);
+            return res.data || res;
+        },
+        enabled: enabled && !!payload.hrmE_Id && !!payload.ttsD_Date
+    });
+};
+
+export const useFreeStaffDetails = (payload: IFreeStaffPayload, enabled = true) => {
+    return useQuery({
+        queryKey: ['DEPUTATION_FREE_STAFF', payload],
+        queryFn: async () => {
+            const res = await getFreeStaffDets(payload);
+            return res.data || res;
+        },
+        enabled: enabled && !!payload.ttmP_Id && !!payload.ttsD_Date
+    });
+};
+
+export const useDeputationViewRecords = (payload: IViewRecordsPopupPayload, enabled = true) => {
+    return useQuery({
+        queryKey: ['DEPUTATION_VIEW_RECORDS', payload],
+        queryFn: async () => {
+            const res = await getViewRecordsPopup9(payload);
+            return res.data || res;
+        },
+        enabled: enabled && !!payload.ttsD_Date
+    });
+};
+
+export const useSaveDeputationDetails = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (payload: ISaveDeputationPayload) => {
+            return await saveDeputationDetails(payload);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [TIMETABLE_QUERY_KEYS.DEPUTATION_MASTERS] });
+            queryClient.invalidateQueries({ queryKey: ['DEPUTATION_PERIOD_ALLOTED'] });
+            queryClient.invalidateQueries({ queryKey: ['DEPUTATION_VIEW_RECORDS'] });
+        }
+    });
+};
+
 
 // ================= manual-Period-insersion =================
 export const useManualPeriodMasters = () => {
