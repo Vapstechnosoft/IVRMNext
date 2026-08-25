@@ -144,13 +144,21 @@ export const gradeDetailsSchema = z
         emgD_ActiveFlag: z.boolean().default(true)
     })
 
-    // 🔥 YOUR ORIGINAL LOGIC — untouched as requested.
     .superRefine((data, ctx) => {
         const from = data.emgD_From;
         const to = data.emgD_To;
 
-        if (from !== null && to !== null) {
-            if (from > to) {
+        const isValidNumber = (v: unknown): boolean => {
+            if (v === null || v === undefined) return false;
+            if (typeof v === 'string' && v.trim() === '') return false;
+            const num = typeof v === 'number' ? v : Number(v);
+            return !isNaN(num) && isFinite(num);
+        };
+
+        if (isValidNumber(from) && isValidNumber(to)) {
+            const numFrom = Number(from);
+            const numTo = Number(to);
+            if (numFrom > numTo) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
                     message: "'From' value cannot be greater than 'To' value",
@@ -177,21 +185,34 @@ export const masterGradeSchema = {
             grade_list: z.array(gradeDetailsSchema).min(1, { message: 'At least one grade detail is required' })
         })
         .superRefine((data, ctx) => {
+            const isValidNumber = (v: unknown): boolean => {
+                if (v === null || v === undefined) return false;
+                if (typeof v === 'string' && v.trim() === '') return false;
+                const num = typeof v === 'number' ? v : Number(v);
+                return !isNaN(num) && isFinite(num);
+            };
+
             if (data.emgR_MarksPerFlag === 'P') {
                 data.grade_list.forEach((row, index) => {
-                    if (row.emgD_From !== null && (row.emgD_From < 0 || row.emgD_From > 100)) {
-                        ctx.addIssue({
-                            code: z.ZodIssueCode.custom,
-                            message: 'From value must be between 0 and 100 when percentage is selected',
-                            path: ['grade_list', index, 'emgD_From']
-                        });
+                    if (isValidNumber(row.emgD_From)) {
+                        const numFrom = Number(row.emgD_From);
+                        if (numFrom < 0 || numFrom > 100) {
+                            ctx.addIssue({
+                                code: z.ZodIssueCode.custom,
+                                message: 'From value must be between 0 and 100 when percentage is selected',
+                                path: ['grade_list', index, 'emgD_From']
+                            });
+                        }
                     }
-                    if (row.emgD_To !== null && (row.emgD_To < 0 || row.emgD_To > 100)) {
-                        ctx.addIssue({
-                            code: z.ZodIssueCode.custom,
-                            message: 'To value must be between 0 and 100 when percentage is selected',
-                            path: ['grade_list', index, 'emgD_To']
-                        });
+                    if (isValidNumber(row.emgD_To)) {
+                        const numTo = Number(row.emgD_To);
+                        if (numTo < 0 || numTo > 100) {
+                            ctx.addIssue({
+                                code: z.ZodIssueCode.custom,
+                                message: 'To value must be between 0 and 100 when percentage is selected',
+                                path: ['grade_list', index, 'emgD_To']
+                            });
+                        }
                     }
                 });
             }
