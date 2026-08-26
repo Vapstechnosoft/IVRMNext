@@ -1,19 +1,18 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
 import {
     getClassesHousesEvents,
     getSections,
     getTopperListLoadData,
     getTopperListReport
 } from '@/server/sports/reports/sport-topper-list-report';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 export const useSportTopperListReport = () => {
-
     // Initial Data (Year & Sports)
     const initialData = useQuery({
         queryKey: ['sportTopperListReportInitial'],
         queryFn: () => getTopperListLoadData(),
-        staleTime: Infinity,
+        staleTime: Number.POSITIVE_INFINITY
     });
 
     // Fetch Classes, Houses, Events
@@ -21,7 +20,7 @@ export const useSportTopperListReport = () => {
         mutationFn: ({ asmaY_Id }: { asmaY_Id: number }) => getClassesHousesEvents(asmaY_Id),
         onError: (error) => {
             toast.error(error.message || 'Failed to fetch classes, houses and events');
-        },
+        }
     });
 
     // Fetch Sections
@@ -29,7 +28,7 @@ export const useSportTopperListReport = () => {
         mutationFn: ({ asmaY_Id, asmcL_Id }: { asmaY_Id: number; asmcL_Id: number }) => getSections(asmaY_Id, asmcL_Id),
         onError: (error) => {
             toast.error(error.message || 'Failed to fetch sections');
-        },
+        }
     });
 
     // Generate Report
@@ -44,13 +43,13 @@ export const useSportTopperListReport = () => {
         },
         onError: (error) => {
             toast.error(error.message || 'Failed to generate report');
-        },
+        }
     });
 
     return {
         initialData,
         classHouseEventMutation,
         sectionMutation,
-        reportMutation,
+        reportMutation
     };
 };

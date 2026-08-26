@@ -1,14 +1,14 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
 import {
-    getNdaStudentProfileDetails,
     getNdaSiblingDetails,
+    getNdaStudentProfileDetails,
     saveNdaProfileUpdateRequest,
     uploadNdaProfilePic
 } from '@/server/admission/preadmission/reports/nda_student_profile_update';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const ndaKeys = {
     all: ['nda-student-profile-update'] as const,
-    details: () => [...ndaKeys.all, 'details'] as const,
+    details: () => [...ndaKeys.all, 'details'] as const
 };
 
 /**
@@ -17,8 +17,8 @@ export const ndaKeys = {
 export const useNdaStudentProfileDetails = (updateFlag = false) => {
     return useQuery({
         queryKey: [...ndaKeys.details(), updateFlag],
-        queryFn: () => updateFlag ? getNdaSiblingDetails(updateFlag) : getNdaStudentProfileDetails(),
-        staleTime: 1000 * 60 * 5, // 5 minutes
+        queryFn: () => (updateFlag ? getNdaSiblingDetails(updateFlag) : getNdaStudentProfileDetails()),
+        staleTime: 1000 * 60 * 5 // 5 minutes
     });
 };
 
@@ -27,7 +27,7 @@ export const useNdaStudentProfileDetails = (updateFlag = false) => {
  */
 export const useNdaSiblingDetails = () => {
     return useMutation({
-        mutationFn: getNdaSiblingDetails,
+        mutationFn: getNdaSiblingDetails
     });
 };
 
@@ -36,7 +36,7 @@ export const useNdaSiblingDetails = () => {
  */
 export const useNdaSaveRequest = () => {
     return useMutation({
-        mutationFn: saveNdaProfileUpdateRequest,
+        mutationFn: saveNdaProfileUpdateRequest
     });
 };
 
@@ -45,6 +45,6 @@ export const useNdaSaveRequest = () => {
  */
 export const useNdaUploadProfilePic = () => {
     return useMutation({
-        mutationFn: uploadNdaProfilePic,
+        mutationFn: uploadNdaProfilePic
     });
 };

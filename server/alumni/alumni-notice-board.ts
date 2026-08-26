@@ -42,5 +42,3 @@ export async function viewAlumniNoticeBoard(id: number) {
     const url = `/Alumni_NoticeBoard/viewData?ALNTB_Id=${id}`;
     return await api.post<{ attachementlist: any[] }>('alumni', url, {});
 }
-
-

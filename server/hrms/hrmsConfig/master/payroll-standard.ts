@@ -21,7 +21,6 @@ export async function saveMasterPayrollStandard(data: any) {
     return await api.post<any>('hrms', url, data);
 }
 
-
 /**
  * Get Month List for dropdowns
  * GET /api/MasterDropDown/GetMonths

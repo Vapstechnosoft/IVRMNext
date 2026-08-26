@@ -1,13 +1,7 @@
 'use server';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { api, type ApiResponse } from '@/lib/apiService';
-import type {
-    MasterLeaveGetRequest,
-    MasterLeaveGetResponse,
-    MasterLeaveGetResponseData,
-    MasterLeaveSaveRequest,
-    MasterLeaveListItem
-} from '@/types/hrms/leave-management/master-leave';
+import { type ApiResponse, api } from '@/lib/apiService';
+import type { MasterLeaveGetResponseData, MasterLeaveListItem, MasterLeaveSaveRequest } from '@/types/hrms/leave-management/master-leave';
 /**
  * Get master leave dropdown options (leave types, etc.)
  * This is a helper function that calls GetLeave with HRML_Id=0 to get dropdown data
@@ -147,7 +141,7 @@ export async function getMasterLeave(
 
         // If returned data exists even if success is not explicitly true
         // biome-ignore lint/complexity/useOptionalChain: <explanation>
-                if (response && response.data) {
+        if (response && response.data) {
             return {
                 success: true,
                 message: response.message || 'Data fetched',
@@ -356,7 +350,6 @@ export async function deleteMasterLeave(HRML_Id: number): Promise<ApiResponse<an
             message: message,
             data: res.data || null
         };
-
     } catch (error: any) {
         console.error('🔴 [SERVER] Error:', error);
 

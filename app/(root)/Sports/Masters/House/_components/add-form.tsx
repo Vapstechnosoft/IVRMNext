@@ -1,14 +1,14 @@
 import { GenericForm } from '@/components/ui/form/generic-form';
 import { GenericInputField } from '@/components/ui/form/input-fields';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useMasterHouses } from '@/hooks/sports/useMasterHouses';
+import { cn } from '@/lib/utils';
 import { masterHouseSchema } from '@/schemas/sports/masters/house';
 import { saveMasterHouse } from '@/server/sports/masters/house';
-import { useMasterHouses } from '@/hooks/sports/useMasterHouses';
 import type { IMasterHouse } from '@/types/sports/masters/house';
-import { toast } from 'sonner';
 import { Controller, useFormContext } from 'react-hook-form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 // Local definition of GenericSelectField to avoid modifying shared components
 interface GenericSelectFieldProps {
@@ -21,15 +21,7 @@ interface GenericSelectFieldProps {
     options: { label: string; value: string }[];
 }
 
-function GenericSelectField({
-    name,
-    label,
-    placeholder,
-    required,
-    disabled,
-    className,
-    options
-}: GenericSelectFieldProps) {
+function GenericSelectField({ name, label, placeholder, required, disabled, className, options }: GenericSelectFieldProps) {
     const {
         control,
         formState: { errors }
@@ -59,7 +51,7 @@ function GenericSelectField({
                     </Select>
                 )}
             />
-            {error && <span className='text-xs text-destructive'>{error.message as string}</span>}
+            {error && <span className='text-destructive text-xs'>{error.message as string}</span>}
         </div>
     );
 }
@@ -72,13 +64,10 @@ interface AddMasterHouseFormProps {
 function HiddenField({ name }: { name: string }) {
     const { register, watch } = useFormContext();
     const value = watch(name);
-    return <input type="hidden" value={value || ''} {...register(name)} />;
+    return <input type='hidden' value={value || ''} {...register(name)} />;
 }
 
-export default function AddMasterHouseForm({
-    selectedRow,
-    onSuccess
-}: AddMasterHouseFormProps) {
+export default function AddMasterHouseForm({ selectedRow, onSuccess }: AddMasterHouseFormProps) {
     const { refetchAll } = useMasterHouses();
 
     return (
@@ -97,23 +86,32 @@ export default function AddMasterHouseForm({
 
                     // Robust success check for IVRM backend responses
                     const msg = (response?.message || response?.Message || response?.msg || '') as string;
-                    const isSuccess = response?.success || 
-                                     response?.returnval == true || 
-                                     response?.returnVal === true ||
-                                     response?.returnVal_update === true ||
-                                     response?.returnVal === 'saved' || 
-                                     response?.returnVal === 'updated' ||
-                                     msg.toLowerCase() === 'saved' ||
-                                     msg.toLowerCase() === 'updated' ||
-                                     msg.toLowerCase().includes('success');
+                    const isSuccess =
+                        response?.success ||
+                        response?.returnval == true ||
+                        response?.returnVal === true ||
+                        response?.returnVal_update === true ||
+                        response?.returnVal === 'saved' ||
+                        response?.returnVal === 'updated' ||
+                        msg.toLowerCase() === 'saved' ||
+                        msg.toLowerCase() === 'updated' ||
+                        msg.toLowerCase().includes('success');
 
                     if (isSuccess) {
                         toast.success('Record saved successfully');
-                    } else if (response?.duplicate_caste_name_bool || response?.returnVal === 'duplicate' || msg.toLowerCase() === 'duplicate') {
+                    } else if (
+                        response?.duplicate_caste_name_bool ||
+                        response?.returnVal === 'duplicate' ||
+                        msg.toLowerCase() === 'duplicate'
+                    ) {
                         toast.error('Record already exists');
                         throw new Error('duplicate');
                     } else {
-                        const errorMsg = (response?.msg as string) || (response?.message as string) || (response?.Message as string) || 'Failed to save record';
+                        const errorMsg =
+                            (response?.msg as string) ||
+                            (response?.message as string) ||
+                            (response?.Message as string) ||
+                            'Failed to save record';
                         toast.error(errorMsg);
                         throw new Error(errorMsg);
                     }
@@ -131,16 +129,10 @@ export default function AddMasterHouseForm({
                 refetchAll();
                 onSuccess?.();
             }}
-            className='space-y-4'
-        >
-            <HiddenField name="spccmH_Id" />
+            className='space-y-4'>
+            <HiddenField name='spccmH_Id' />
             <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-                <GenericInputField
-                    name='spccmH_HouseName'
-                    label='House Name'
-                    placeholder='Enter House Name...'
-                    required
-                />
+                <GenericInputField name='spccmH_HouseName' label='House Name' placeholder='Enter House Name...' required />
                 <GenericInputField
                     name='spccmH_HouseDescription'
                     label='House Description'

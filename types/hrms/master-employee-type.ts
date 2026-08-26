@@ -1,9 +1,11 @@
 export interface MasterEmployeeTypeResponse {
     success?: boolean;
     message?: string;
-    data?: EmployeeTypeDetail[] | {
-        employeeTypeList: EmployeeTypeDetail[];
-    };
+    data?:
+        | EmployeeTypeDetail[]
+        | {
+              employeeTypeList: EmployeeTypeDetail[];
+          };
     employeeTypeList?: EmployeeTypeDetail[];
     retrunMsg?: string;
     roleId?: number;

@@ -1,51 +1,56 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { FileSpreadsheet, Printer, Search, X, BellRing } from 'lucide-react';
+import { format } from 'date-fns';
+import { BellRing, FileSpreadsheet, Printer, Search, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
-import { toast } from 'sonner';
-import { z } from 'zod';
-import * as XLSX from 'xlsx';
 import { useReactToPrint } from 'react-to-print';
-import { format } from 'date-fns';
+import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
+import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { FormError, Label } from '@/components/ui/extension/field';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 
 import {
-    useAttendance100InitialDetails,
     useAttendance100Class,
-    useAttendance100Section,
+    useAttendance100InitialDetails,
     useAttendance100Report,
+    useAttendance100Section,
     useAttendance100ShortageAlert
 } from '@/hooks/admission/preadmission/useReports';
-import { attendance100Columns } from './_components/columns';
 import { AttendanceReportPrint } from './_components/attendance-report-print';
+import { attendance100Columns } from './_components/columns';
 
-const schema = z.object({
-    type23: z.string().default('1'), // 1: All, 2: Individual
-    asmaY_Id: z.string().min(1, 'Select Academic Year'),
-    amC_Id: z.string().optional(),
-    asmcL_Id: z.string().optional(),
-    asmC_Id: z.string().optional(),
-    percentage: z.string().min(1, 'Select Percentage').max(3, 'Max 100%')
-}).refine((data) => {
-    if (data.type23 === '2') {
-        if (!data.asmcL_Id) return false;
-        if (!data.asmC_Id) return false;
-    }
-    return true;
-}, {
-    message: "Required fields are missing for Individual selection",
-    path: ["asmcL_Id"]
-});
+const schema = z
+    .object({
+        type23: z.string().default('1'), // 1: All, 2: Individual
+        asmaY_Id: z.string().min(1, 'Select Academic Year'),
+        amC_Id: z.string().optional(),
+        asmcL_Id: z.string().optional(),
+        asmC_Id: z.string().optional(),
+        percentage: z.string().min(1, 'Select Percentage').max(3, 'Max 100%')
+    })
+    .refine(
+        (data) => {
+            if (data.type23 === '2') {
+                if (!data.asmcL_Id) return false;
+                if (!data.asmC_Id) return false;
+            }
+            return true;
+        },
+        {
+            message: 'Required fields are missing for Individual selection',
+            path: ['asmcL_Id']
+        }
+    );
 
 type FormFields = z.infer<typeof schema>;
 
@@ -83,7 +88,14 @@ interface ApiResponse<T> {
 }
 
 export default function AttendanceReport100Page() {
-    const { control, handleSubmit, reset, setValue, getValues, formState: { errors } } = useForm<FormFields>({
+    const {
+        control,
+        handleSubmit,
+        reset,
+        setValue,
+        getValues,
+        formState: { errors }
+    } = useForm<FormFields>({
         resolver: zodResolver(schema),
         defaultValues: {
             type23: '1',
@@ -105,7 +117,7 @@ export default function AttendanceReport100Page() {
     const { data: initialResponse, isLoading: isInitialLoading } = useAttendance100InitialDetails({
         categoryflag: true,
         ASMAY_Id: 0
-    }) as { data: ApiResponse<InitialData> | undefined, isLoading: boolean };
+    }) as { data: ApiResponse<InitialData> | undefined; isLoading: boolean };
 
     const initialData = initialResponse?.data;
 
@@ -122,21 +134,25 @@ export default function AttendanceReport100Page() {
 
     // Dependent data
     const { data: classResponse, isLoading: isClassLoading } = useAttendance100Class(
-        { ASMAY_Id: parseInt(asmaY_Id || '0'), AMC_Id: parseInt(amC_Id || '0') },
+        { ASMAY_Id: Number.parseInt(asmaY_Id || '0'), AMC_Id: Number.parseInt(amC_Id || '0') },
         !!asmaY_Id
-    ) as { data: ApiResponse<ClassData> | undefined, isLoading: boolean };
+    ) as { data: ApiResponse<ClassData> | undefined; isLoading: boolean };
 
     const classData = classResponse?.data;
 
     const { data: sectionResponse, isLoading: isSectionLoading } = useAttendance100Section(
-        { ASMAY_Id: parseInt(asmaY_Id || '0'), ASMCL_Id: parseInt(asmcL_Id || '0') },
+        { ASMAY_Id: Number.parseInt(asmaY_Id || '0'), ASMCL_Id: Number.parseInt(asmcL_Id || '0') },
         !!asmcL_Id
-    ) as { data: ApiResponse<SectionData> | undefined, isLoading: boolean };
+    ) as { data: ApiResponse<SectionData> | undefined; isLoading: boolean };
 
     const sectionData = sectionResponse?.data;
 
     // Report data
-    const { data: reportResponse, isLoading: isReportLoading, refetch } = useAttendance100Report(filterPayload, showGrid) as { data: ApiResponse<ReportData> | undefined, isLoading: boolean, refetch: any };
+    const {
+        data: reportResponse,
+        isLoading: isReportLoading,
+        refetch
+    } = useAttendance100Report(filterPayload, showGrid) as { data: ApiResponse<ReportData> | undefined; isLoading: boolean; refetch: any };
 
     const reportData = reportResponse?.data;
 
@@ -155,11 +171,11 @@ export default function AttendanceReport100Page() {
 
     const onSubmit = (data: FormFields) => {
         const payload = {
-            type: parseInt(data.type23),
-            ASMAY_Id: parseInt(data.asmaY_Id),
-            ASMCL_Id: data.type23 === '1' ? 0 : parseInt(data.asmcL_Id || '0'),
-            ASMC_Id: data.type23 === '1' ? 0 : parseInt(data.asmC_Id || '0'),
-            AMC_Id: data.amC_Id === '0' || !data.amC_Id ? 0 : parseInt(data.amC_Id),
+            type: Number.parseInt(data.type23),
+            ASMAY_Id: Number.parseInt(data.asmaY_Id),
+            ASMCL_Id: data.type23 === '1' ? 0 : Number.parseInt(data.asmcL_Id || '0'),
+            ASMC_Id: data.type23 === '1' ? 0 : Number.parseInt(data.asmC_Id || '0'),
+            AMC_Id: data.amC_Id === '0' || !data.amC_Id ? 0 : Number.parseInt(data.amC_Id),
             percentage: data.percentage
         };
         setFilterPayload(payload);
@@ -174,17 +190,19 @@ export default function AttendanceReport100Page() {
             return;
         }
 
-        const ws = XLSX.utils.json_to_sheet(dataToExport.map((row: any, index: number) => ({
-            'SL.No': index + 1,
-            'Student Name': row.namme,
-            'Admission No.': row.AMST_AdmNo,
-            'Registration No.': row.AMST_RegistrationNo,
-            'Class Name': row.ASMCL_ClassName,
-            'Section Name': row.ASMC_SectionName,
-            'No. of Working days': row.classes,
-            'No. of Present days': row.attendance,
-            'Present %': row.per
-        })));
+        const ws = XLSX.utils.json_to_sheet(
+            dataToExport.map((row: any, index: number) => ({
+                'SL.No': index + 1,
+                'Student Name': row.namme,
+                'Admission No.': row.AMST_AdmNo,
+                'Registration No.': row.AMST_RegistrationNo,
+                'Class Name': row.ASMCL_ClassName,
+                'Section Name': row.ASMC_SectionName,
+                'No. of Working days': row.classes,
+                'No. of Present days': row.attendance,
+                'Present %': row.per
+            }))
+        );
 
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'AttendanceReport');
@@ -207,7 +225,7 @@ export default function AttendanceReport100Page() {
             toast.error('Please select an Academic Year');
             return;
         }
-        sendAlert(parseInt(asmaY_Id), {
+        sendAlert(Number.parseInt(asmaY_Id), {
             onSuccess: (res) => {
                 if (res?.success) {
                     toast.success(res.message || 'Alerts sent successfully');
@@ -239,7 +257,7 @@ export default function AttendanceReport100Page() {
                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                             {/* Type Selection */}
                             <div className='space-y-3 rounded-lg border p-4'>
-                                <Label className='text-sm font-medium'>Report Type</Label>
+                                <Label className='font-medium text-sm'>Report Type</Label>
                                 <Controller
                                     name='type23'
                                     control={control}
@@ -253,15 +271,18 @@ export default function AttendanceReport100Page() {
                                                 }
                                             }}
                                             value={field.value}
-                                            className='flex gap-6'
-                                        >
+                                            className='flex gap-6'>
                                             <div className='flex items-center space-x-2'>
                                                 <RadioGroupItem value='1' id='type-all' />
-                                                <Label htmlFor='type-all' className='font-normal cursor-pointer'>All</Label>
+                                                <Label htmlFor='type-all' className='cursor-pointer font-normal'>
+                                                    All
+                                                </Label>
                                             </div>
                                             <div className='flex items-center space-x-2'>
                                                 <RadioGroupItem value='2' id='type-individual' />
-                                                <Label htmlFor='type-individual' className='font-normal cursor-pointer'>Individual</Label>
+                                                <Label htmlFor='type-individual' className='cursor-pointer font-normal'>
+                                                    Individual
+                                                </Label>
                                             </div>
                                         </RadioGroup>
                                     )}
@@ -270,18 +291,22 @@ export default function AttendanceReport100Page() {
 
                             {/* Academic Year */}
                             <div className='space-y-2'>
-                                <Label>Academic Year <span className='text-destructive'>*</span></Label>
+                                <Label>
+                                    Academic Year <span className='text-destructive'>*</span>
+                                </Label>
                                 <Controller
                                     name='asmaY_Id'
                                     control={control}
                                     render={({ field }) => (
                                         <Select onValueChange={field.onChange} value={field.value}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select Year" />
+                                                <SelectValue placeholder='Select Year' />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {(yearDropdown as any[]).map((y: any) => (
-                                                    <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>{y.asmaY_Year}</SelectItem>
+                                                    <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>
+                                                        {y.asmaY_Year}
+                                                    </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
@@ -302,12 +327,14 @@ export default function AttendanceReport100Page() {
                                         render={({ field }) => (
                                             <Select onValueChange={field.onChange} value={field.value}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select Category" />
+                                                    <SelectValue placeholder='Select Category' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="0">All</SelectItem>
+                                                    <SelectItem value='0'>All</SelectItem>
                                                     {(categoryDropdown as any[]).map((c: any) => (
-                                                        <SelectItem key={c.amC_Id} value={c.amC_Id.toString()}>{c.amC_Name}</SelectItem>
+                                                        <SelectItem key={c.amC_Id} value={c.amC_Id.toString()}>
+                                                            {c.amC_Name}
+                                                        </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
@@ -326,14 +353,15 @@ export default function AttendanceReport100Page() {
                                         <Select
                                             onValueChange={field.onChange}
                                             value={field.value}
-                                            disabled={type23 === '1' || isClassLoading}
-                                        >
+                                            disabled={type23 === '1' || isClassLoading}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select Class" />
+                                                <SelectValue placeholder='Select Class' />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {(classDropdown as any[]).map((c: any) => (
-                                                    <SelectItem key={c.asmcL_Id} value={c.asmcL_Id.toString()}>{c.asmcL_ClassName}</SelectItem>
+                                                    <SelectItem key={c.asmcL_Id} value={c.asmcL_Id.toString()}>
+                                                        {c.asmcL_ClassName}
+                                                    </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
@@ -352,15 +380,16 @@ export default function AttendanceReport100Page() {
                                         <Select
                                             onValueChange={field.onChange}
                                             value={field.value}
-                                            disabled={type23 === '1' || isSectionLoading}
-                                        >
+                                            disabled={type23 === '1' || isSectionLoading}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select Section" />
+                                                <SelectValue placeholder='Select Section' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="0">All</SelectItem>
+                                                <SelectItem value='0'>All</SelectItem>
                                                 {(sectionDropdown as any[]).map((s: any) => (
-                                                    <SelectItem key={s.asmS_Id} value={s.asmS_Id.toString()}>{s.asmC_SectionName}</SelectItem>
+                                                    <SelectItem key={s.asmS_Id} value={s.asmS_Id.toString()}>
+                                                        {s.asmC_SectionName}
+                                                    </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
@@ -370,7 +399,9 @@ export default function AttendanceReport100Page() {
 
                             {/* Percentage */}
                             <div className='space-y-2'>
-                                <Label>Percentage wise <span className='text-destructive'>*</span></Label>
+                                <Label>
+                                    Percentage wise <span className='text-destructive'>*</span>
+                                </Label>
                                 <Controller
                                     name='percentage'
                                     control={control}
@@ -396,7 +427,13 @@ export default function AttendanceReport100Page() {
                                 <Search className='mr-2 h-4 w-4' />
                                 Report
                             </Button>
-                            <Button type='button' variant='outline' onClick={() => { reset(); setShowGrid(false); }}>
+                            <Button
+                                type='button'
+                                variant='outline'
+                                onClick={() => {
+                                    reset();
+                                    setShowGrid(false);
+                                }}>
                                 <X className='mr-2 h-4 w-4' />
                                 Cancel
                             </Button>
@@ -437,7 +474,7 @@ export default function AttendanceReport100Page() {
                 <AttendanceReportPrint
                     ref={printRef}
                     data={{
-                        ...reportData as any,
+                        ...(reportData as any),
                         studentAttendanceList: selectedRows.length > 0 ? selectedRows : reportData?.studentAttendanceList || []
                     }}
                     yearName={selectedYearName}

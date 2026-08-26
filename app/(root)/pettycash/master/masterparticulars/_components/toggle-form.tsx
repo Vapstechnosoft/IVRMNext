@@ -68,13 +68,10 @@ export default function ToggleMasterParticularsForm({ rowData, onClose, onSucces
             <form onSubmit={handleSubmit} className='space-y-6'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <Label>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'}{' '}
-                        <strong>{rowData.pcmparT_ParticularName}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.pcmparT_ParticularName}</strong>?
                     </Label>
                     {rowData.pcmparT_ParticularDesc && (
-                        <div className='text-muted-foreground text-sm'>
-                            Description: {rowData.pcmparT_ParticularDesc}
-                        </div>
+                        <div className='text-muted-foreground text-sm'>Description: {rowData.pcmparT_ParticularDesc}</div>
                     )}
                 </AdaptiveBody>
 

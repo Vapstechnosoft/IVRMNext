@@ -1,9 +1,9 @@
 'use server';
-import { api, type ApiResponse, getSearchParamsUrl } from '@/lib/apiService';
+import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
 import type {
     LeaveOpeningBalanceEntry,
-    SaveLeaveOpeningBalancePayload,
-    LeaveOpeningBalanceSearch
+    LeaveOpeningBalanceSearch,
+    SaveLeaveOpeningBalancePayload
 } from '@/types/hrms/leave-management/transaction/leave-opening-balance';
 
 /**
@@ -50,9 +50,7 @@ export async function getEmployeeLeaveOpeningBalanceGrid(
  * Add or update employee leave opening balance
  * POST /api/LeaveOpeningBalance/add_or_update_emp_leave_opening_balance
  */
-export async function addOrUpdateEmpLeaveOpeningBalance(
-    payload: SaveLeaveOpeningBalancePayload
-): Promise<ApiResponse<any>> {
+export async function addOrUpdateEmpLeaveOpeningBalance(payload: SaveLeaveOpeningBalancePayload): Promise<ApiResponse<any>> {
     const url = '/api/LeaveOpeningBalance/add_or_update_emp_leave_opening_balance';
     console.log('🟠 [SERVER] LeaveOpeningBalance - Saving:', url, payload);
     try {

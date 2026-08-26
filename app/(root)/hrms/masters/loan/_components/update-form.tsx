@@ -100,7 +100,8 @@ export default function UpdateLoanForm({ onSuccess, className = '', selectedRow:
                                     value={field.value ?? undefined}
                                     maxDigits={10}
                                     onChange={(value) => {
-                                        const numValue = value !== null && value !== undefined && !Number.isNaN(value) ? Number(value) : undefined;
+                                        const numValue =
+                                            value !== null && value !== undefined && !Number.isNaN(value) ? Number(value) : undefined;
                                         field.onChange(numValue);
                                     }}
                                     onBlur={field.onBlur}

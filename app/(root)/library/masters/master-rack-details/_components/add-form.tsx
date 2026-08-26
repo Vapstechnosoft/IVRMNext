@@ -56,7 +56,6 @@ export default function AddMasterRackForm({ onSuccess, className = '', subjectLi
             } else {
                 toast.error(response.message || 'Record Not Saved Successfully!!!');
             }
-
         } catch (error: any) {
             toast.error(error.message || 'Something went wrong');
         }
@@ -72,7 +71,6 @@ export default function AddMasterRackForm({ onSuccess, className = '', subjectLi
             lmS_Id: 0
         });
     };
-
 
     return (
         <div className={className}>
@@ -104,7 +102,7 @@ export default function AddMasterRackForm({ onSuccess, className = '', subjectLi
                             name='lmS_Id'
                             render={({ field }) => (
                                 <div className='flex flex-col gap-1.5'>
-                                    <label className='text-sm font-medium'>
+                                    <label className='font-medium text-sm'>
                                         Subject Name <span className='text-red-500'>*</span>
                                     </label>
                                     <Select
@@ -135,7 +133,7 @@ export default function AddMasterRackForm({ onSuccess, className = '', subjectLi
                     </div>
                     <div className='grid grid-cols-1'>
                         <div className='flex flex-col gap-1.5'>
-                            <label className='text-sm font-medium'>
+                            <label className='font-medium text-sm'>
                                 Location <span className='text-red-500'>*</span>
                             </label>
                             <textarea

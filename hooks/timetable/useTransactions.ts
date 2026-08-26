@@ -1,8 +1,8 @@
 'use client';
 
 import { TIMETABLE_QUERY_KEYS } from '@/constants/Timetable-query-keys';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ApiSearchparams } from '@/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 // time-table-generation
 import { getAcademicYear, getCategory, getTimeTableGenerationGridData } from '@/server/timetable/transactions/timetablegeneration';
@@ -11,17 +11,22 @@ import { getAcademicYear, getCategory, getTimeTableGenerationGridData } from '@/
 import { getAbsentStaffList, getDeputationMasters } from '@/server/timetable/transactions/deputation';
 
 // manual-Period-insersion
-import { getManualPeriodInsertionMasters, getSectionsByClass as getSectionsByClassManual, getManualPeriodInsertionReportData, saveManualPeriodInsertion } from '@/server/timetable/transactions/manualperiodinsertion';
+import {
+    getManualPeriodInsertionMasters,
+    getManualPeriodInsertionReportData,
+    getSectionsByClass as getSectionsByClassManual,
+    saveManualPeriodInsertion
+} from '@/server/timetable/transactions/manualperiodinsertion';
 import type { ManualPeriodInsertionMasters, Section as ManualSection } from '@/types/timetable/Transaction/manualperiodinsertion';
 
 // staff-replacement-existing-to-new
 import {
+    getSectionDropdown as getSectionDropdownExisting,
     getSectionsByClass as getSectionsByClassExisting,
     getStaffReplacementExistingToNewMasters,
     getStaffReplacementGridData,
     getStaffReplacementInitialDetails,
-    saveStaffReplacementExistingToNew,
-    getSectionDropdown as getSectionDropdownExisting
+    saveStaffReplacementExistingToNew
 } from '@/server/timetable/transactions/staffreplacementexistingtonew';
 
 // staffPeriodTransfer
@@ -30,13 +35,13 @@ import {
     getStaffPeriodDetails,
     getStaffPeriodTransferMasters
 } from '@/server/timetable/transactions/staffperiodtransfer';
-import type { Section as TransferSection, StaffPeriodTransferMasters } from '@/types/timetable/Transaction/staffperiodtransfer';
+import type { StaffPeriodTransferMasters, Section as TransferSection } from '@/types/timetable/Transaction/staffperiodtransfer';
 
 // staff-replacement-in-unallocated-period
 import {
+    TTStaffReplacementInUnallocatedPeriodReport,
     getStaffReplacementUnallocatedPeriodNewMasters,
-    saveStaffReplacementInUnallocatedPeriod,
-    TTStaffReplacementInUnallocatedPeriodReport
+    saveStaffReplacementInUnallocatedPeriod
 } from '@/server/timetable/transactions/staffreplacementinunallocatedperiod';
 
 // staff-replacement-In-their-timeTable
@@ -57,10 +62,7 @@ export const useGenerationMasters = () => {
         ...useQuery({
             queryKey: [TIMETABLE_QUERY_KEYS.TT_GENERATION_MASTERS],
             queryFn: async () => {
-                const [yearsResponse, categoriesResponse] = await Promise.all([
-                    getAcademicYear({}),
-                    getCategory({})
-                ]);
+                const [yearsResponse, categoriesResponse] = await Promise.all([getAcademicYear({}), getCategory({})]);
                 return {
                     years: yearsResponse.data ?? [],
                     categories: categoriesResponse.data ?? []
@@ -181,7 +183,7 @@ export const useSectionDropdown = () => {
         queryFn: async () => {
             const res = await getSectionDropdownExisting();
             return res.data || [];
-        },
+        }
     });
 };
 export const useStaffReplacementInitialDetails = (id = 0) => {
@@ -241,7 +243,13 @@ export const useStaffTransferSectionsByClass = (asmcL_Id: number) => {
         enabled: !!asmcL_Id
     });
 };
-export const useStaffPeriodDetails = (payload: { asmaY_Id: number; hrmE_Id: number; asmcL_Id: number; asms_Id: number; ismS_Id: number; }) => {
+export const useStaffPeriodDetails = (payload: {
+    asmaY_Id: number;
+    hrmE_Id: number;
+    asmcL_Id: number;
+    asms_Id: number;
+    ismS_Id: number;
+}) => {
     return useQuery({
         queryKey: [TIMETABLE_QUERY_KEYS.STAFF_PERIOD_DETAILS, payload],
         queryFn: async () => {

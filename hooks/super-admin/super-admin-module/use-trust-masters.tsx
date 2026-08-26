@@ -1,6 +1,6 @@
 import { getCountryList, getStateList, getTrustMasterData } from '@/server/super-admin/super-admin-module/masters/trust-master';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ApiSearchparams } from '@/types';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useTrustMasterData = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();

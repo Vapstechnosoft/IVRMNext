@@ -1,21 +1,21 @@
 'use client';
 
-import { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { useMemo } from 'react';
-import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useMasterActivityDetails } from '@/hooks/admission/preadmission/useMasterActivity';
 import type { IMasterActivityList } from '@/schemas/admission/preadmission/master_activity';
+import { Plus } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
+import { useMemo } from 'react';
 import ActivityForm from './_components/activity-form';
 import { masterActivityColumns } from './_components/columns';
 
 export default function MasterActivityPage() {
     return (
-        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading page...</div>}>
+        <Suspense fallback={<div className='flex min-h-screen items-center justify-center'>Loading page...</div>}>
             <MasterActivityPageContentWrapper />
         </Suspense>
     );
@@ -54,7 +54,6 @@ function MasterActivityPageContent({
     return (
         <div className='min-h-screen p-1'>
             <div className='container space-y-4'>
-
                 {/* Header */}
                 <div className='flex justify-end'>
                     <Button
@@ -87,15 +86,8 @@ function MasterActivityPageContent({
 }
 
 function FormSections() {
-    const {
-        isAddFormOpen,
-        isEditFormOpen,
-        selectedRow,
-        closeAddForm,
-        closeEditForm,
-        addFormRef,
-        editFormRef
-    } = useFormContext<IMasterActivityList>();
+    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
+        useFormContext<IMasterActivityList>();
 
     return (
         <>

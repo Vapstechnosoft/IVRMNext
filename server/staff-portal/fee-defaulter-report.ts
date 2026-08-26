@@ -1,17 +1,16 @@
-
 'use server';
 
-import { api, ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type {
-    IFeeDefaulterInitialData,
     IClass,
-    ISection,
     ICustomGroup,
-    IFeeGroup,
-    IFeeTerm,
+    IFeeDefaulterInitialData,
     IFeeDefaulterSearchRequest,
     IFeeDefaulterSearchResponse,
-    ISaveRemarkRequest
+    IFeeGroup,
+    IFeeTerm,
+    ISaveRemarkRequest,
+    ISection
 } from '@/types/staff-portal/fee-defaulter-report';
 
 const BASE_URL = '/FeeDefaulterReport';
@@ -24,7 +23,10 @@ export async function getStaffWiseClasses(asmaY_Id: number): Promise<ApiResponse
     return await api.post('portal', `${BASE_URL}/getstaffwiseclass`, { ASMAY_Id: asmaY_Id });
 }
 
-export async function getStaffTerms(asmaY_Id: number, reportType: string): Promise<ApiResponse<{ fillmastergroup: any[], fillterms: IFeeTerm[], customlist: ICustomGroup[], grouplist: IFeeGroup[] }>> {
+export async function getStaffTerms(
+    asmaY_Id: number,
+    reportType: string
+): Promise<ApiResponse<{ fillmastergroup: any[]; fillterms: IFeeTerm[]; customlist: ICustomGroup[]; grouplist: IFeeGroup[] }>> {
     return await api.post('portal', `${BASE_URL}/getStaffterms`, { ASMAY_Id: asmaY_Id, reporttype: reportType });
 }
 

@@ -35,14 +35,12 @@ export const routeLocationMappingColumns: ColumnDef<IRouteLocationMapping>[] = [
         accessorKey: 'trmrL_ActiveFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Status' className='justify-center' />,
         cell: ({ row }) => (
-            <div className='flex justify-center'>
-                {getStatusBadge(row.original.trmrL_ActiveFlag ? 'active' : 'inactive')}
-            </div>
+            <div className='flex justify-center'>{getStatusBadge(row.original.trmrL_ActiveFlag ? 'active' : 'inactive')}</div>
         )
     },
     {
         id: 'actions',
-        header: ({ column }) => <div className='text-center w-full'>Action</div>,
+        header: ({ column }) => <div className='w-full text-center'>Action</div>,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />

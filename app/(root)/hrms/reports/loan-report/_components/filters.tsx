@@ -107,7 +107,6 @@ export function LoanReportFilters({
                         className='w-full'
                         maxHeight={240}
                     />
-
                 </div>
                 {/* Department Section */}
                 <div className='space-y-2'>
@@ -134,7 +133,6 @@ export function LoanReportFilters({
                         className='w-full'
                         maxHeight={240}
                     />
-
                 </div>
                 {/* Designation Section */}
                 <div className='space-y-2'>
@@ -161,7 +159,6 @@ export function LoanReportFilters({
                         className='w-full'
                         maxHeight={240}
                     />
-
                 </div>
             </div>
             {/* Employee Selection - Only show when Individual is selected */}

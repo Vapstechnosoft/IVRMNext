@@ -9,7 +9,6 @@ import { addOrUpdateMasterVendor } from '@/server/library/masters/library_vendor
 import type { IMasterVendorList } from '@/types/library/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { useEffect } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -56,7 +55,7 @@ export default function UpdateMasterVendorForm({ onSuccess, className = '', sele
                 lmV_EMailId,
                 lmV_MobileNo,
                 lmV_Address,
-                lmV_PhoneNo: "",
+                lmV_PhoneNo: '',
                 lmV_ActiveFlg: true
             };
 
@@ -103,11 +102,16 @@ export default function UpdateMasterVendorForm({ onSuccess, className = '', sele
                             error={errors.lmV_VendorName?.message}
                             placeholder='e.g. Acme Books Dist'
                         />
-                        <InputText label='Email Id' id='lmV_EMailId' {...register('lmV_EMailId')} error={errors.lmV_EMailId?.message} placeholder='e.g. contact@vendor.com' />
+                        <InputText
+                            label='Email Id'
+                            id='lmV_EMailId'
+                            {...register('lmV_EMailId')}
+                            error={errors.lmV_EMailId?.message}
+                            placeholder='e.g. contact@vendor.com'
+                        />
                     </div>
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
-
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
@@ -141,8 +145,8 @@ export default function UpdateMasterVendorForm({ onSuccess, className = '', sele
                         />
                     </div>
                     {errors.root && <FormError>{errors.root.message}</FormError>}
-                </div>                {/* Phone No section removed */}
-
+                </div>{' '}
+                {/* Phone No section removed */}
                 {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button

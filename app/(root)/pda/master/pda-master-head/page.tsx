@@ -7,7 +7,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useMasterHead, usePDADropdownData } from '@/hooks/pda/master/useMasterHead';
 import type { IPDAMasterHead } from '@/types/pda/master/master-head';
 import { Plus, X } from 'lucide-react';
-import { use, useEffect } from 'react';
+import { use } from 'react';
 import AddPDAMasterHeadForm from './_components/add-form';
 import { pdaMasterHeadColumns } from './_components/columns';
 import TogglePDAMasterHeadForm from './_components/toggle-form';

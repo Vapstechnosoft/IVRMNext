@@ -2,9 +2,9 @@
 
 import { GenericForm } from '@/components/ui/form/generic-form';
 import { GenericInputField, GenericTextAreaField } from '@/components/ui/form/input-fields';
+import { useMasterDivisions } from '@/hooks/sports/useMasterDivisions';
 import { masterDivisionSchema } from '@/schemas/sports/masters/division';
 import { saveMasterDivision } from '@/server/sports/masters/division';
-import { useMasterDivisions } from '@/hooks/sports/useMasterDivisions';
 import type { IMasterDivision } from '@/types/sports/masters/division';
 import { toast } from 'sonner';
 
@@ -13,10 +13,7 @@ interface AddMasterDivisionFormProps {
     onSuccess?: () => void;
 }
 
-export default function AddMasterDivisionForm({
-    selectedRow,
-    onSuccess
-}: AddMasterDivisionFormProps) {
+export default function AddMasterDivisionForm({ selectedRow, onSuccess }: AddMasterDivisionFormProps) {
     const { refetchAll } = useMasterDivisions();
 
     return (
@@ -34,14 +31,15 @@ export default function AddMasterDivisionForm({
 
                     // Robust success check for IVRM backend responses
                     const msg = (response?.message || response?.Message || '') as string;
-                    const isSuccess = response?.success || 
-                                     response?.returnval == true || 
-                                     response?.returnVal == true ||
-                                     response?.returnVal === 'saved' || 
-                                     response?.returnVal === 'updated' || 
-                                     msg.toLowerCase() === 'saved' ||
-                                     msg.toLowerCase() === 'updated' ||
-                                     msg.toLowerCase().includes('success');
+                    const isSuccess =
+                        response?.success ||
+                        response?.returnval == true ||
+                        response?.returnVal == true ||
+                        response?.returnVal === 'saved' ||
+                        response?.returnVal === 'updated' ||
+                        msg.toLowerCase() === 'saved' ||
+                        msg.toLowerCase() === 'updated' ||
+                        msg.toLowerCase().includes('success');
 
                     if (isSuccess) {
                         toast.success('Record saved successfully');
@@ -67,15 +65,9 @@ export default function AddMasterDivisionForm({
                 refetchAll();
                 onSuccess?.();
             }}
-            className='space-y-4'
-        >
+            className='space-y-4'>
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                <GenericInputField
-                    name='spccmD_DivisionName'
-                    label='Division Name'
-                    placeholder='Enter Division Name'
-                    required
-                />
+                <GenericInputField name='spccmD_DivisionName' label='Division Name' placeholder='Enter Division Name' required />
 
                 <GenericTextAreaField
                     name='spccmD_DivisionDescription'

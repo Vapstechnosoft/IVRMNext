@@ -1,8 +1,12 @@
 'use client';
 
+import {
+    getEmployeePunchDetails,
+    saveEmployeePunch,
+    togglePunchDetail
+} from '@/server/hrms/attendance-management/masters/front-office-add-logs';
+import type { IEmployeePunchSaveRequest } from '@/types/hrms/attendance-management/masters';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { saveEmployeePunch, getEmployeePunchDetails, togglePunchDetail } from '@/server/hrms/attendance-management/masters/front-office-add-logs';
-import { IEmployeePunchSaveRequest } from '@/types/hrms/attendance-management/masters';
 import { toast } from 'sonner';
 
 /**

@@ -79,7 +79,7 @@ export async function getManualPeriodInsertionReportData(payload: any) {
         asmaY_Id: payload.asmaY_Id ? Number(payload.asmaY_Id) : 0,
         ttmC_Id: payload.ttmC_Id ? Number(payload.ttmC_Id) : 0,
         asmcL_Id: payload.asmcL_Id ? Number(payload.asmcL_Id) : 0,
-        asms_Id: payload.asms_Id ? Number(payload.asms_Id) : 0,
+        asms_Id: payload.asms_Id ? Number(payload.asms_Id) : 0
     };
     return await api.post<any>('timetable', url, normalizedPayload);
 }
@@ -87,6 +87,6 @@ export async function getManualPeriodInsertionReportData(payload: any) {
 export async function saveManualPeriodInsertion(payload: any) {
     const url = '/ManualperiodinsertionFacade/savemanualPeriodinsertion';
     console.info('ManualperiodinsertionFacade', url);
-    console.log("payload : ", JSON.stringify(payload, null, 2));
+    console.log('payload : ', JSON.stringify(payload, null, 2));
     return await api.post<any>('timetable', url, payload);
 }

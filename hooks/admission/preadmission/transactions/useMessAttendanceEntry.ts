@@ -1,19 +1,19 @@
 'use client';
 
-import { useMutation, useQuery } from '@tanstack/react-query';
 import {
+    attendanceDeleteRecordWise,
+    deleteAttendance,
+    getBatchList,
+    getDatewiseAttMDM,
     getMessAttendanceLoadData,
+    getMonthClassHeld,
+    getStdListPeriod,
     getStudentData,
     getStudents,
-    getMonthClassHeld,
-    getDatewiseAttMDM,
-    getBatchList,
-    getStdListPeriod,
-    viewAttendanceDetailsStaffWise,
     saveMessStudentAttendance,
-    deleteAttendance,
-    attendanceDeleteRecordWise
+    viewAttendanceDetailsStaffWise
 } from '@/server/admission/preadmission/transactions/mess_attendance_entry';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const useMessAttendanceLoadData = (portalType?: string) => {
     return useQuery({
@@ -24,60 +24,60 @@ export const useMessAttendanceLoadData = (portalType?: string) => {
 
 export const useGetStudentData = () => {
     return useMutation({
-        mutationFn: (data: any) => getStudentData(data),
+        mutationFn: (data: any) => getStudentData(data)
     });
 };
 
 export const useGetStudents = () => {
     return useMutation({
-        mutationFn: (data: any) => getStudents(data),
+        mutationFn: (data: any) => getStudents(data)
     });
 };
 
 export const useGetMonthClassHeld = () => {
     return useMutation({
-        mutationFn: (data: any) => getMonthClassHeld(data),
+        mutationFn: (data: any) => getMonthClassHeld(data)
     });
 };
 
 export const useGetDatewiseAttMDM = () => {
     return useMutation({
-        mutationFn: (data: any) => getDatewiseAttMDM(data),
+        mutationFn: (data: any) => getDatewiseAttMDM(data)
     });
 };
 
 export const useGetBatchList = () => {
     return useMutation({
-        mutationFn: (data: any) => getBatchList(data),
+        mutationFn: (data: any) => getBatchList(data)
     });
 };
 
 export const useGetStdListPeriod = () => {
     return useMutation({
-        mutationFn: (data: any) => getStdListPeriod(data),
+        mutationFn: (data: any) => getStdListPeriod(data)
     });
 };
 
 export const useViewAttendanceDetailsStaffWise = () => {
     return useMutation({
-        mutationFn: (data: any) => viewAttendanceDetailsStaffWise(data),
+        mutationFn: (data: any) => viewAttendanceDetailsStaffWise(data)
     });
 };
 
 export const useSaveMessStudentAttendance = () => {
     return useMutation({
-        mutationFn: (data: any) => saveMessStudentAttendance(data),
+        mutationFn: (data: any) => saveMessStudentAttendance(data)
     });
 };
 
 export const useDeleteAttendance = () => {
     return useMutation({
-        mutationFn: (data: any) => deleteAttendance(data),
+        mutationFn: (data: any) => deleteAttendance(data)
     });
 };
 
 export const useAttendanceDeleteRecordWise = () => {
     return useMutation({
-        mutationFn: (data: any) => attendanceDeleteRecordWise(data),
+        mutationFn: (data: any) => attendanceDeleteRecordWise(data)
     });
 };

@@ -111,4 +111,3 @@ export const fixingPeriodSubjectSchema = z.object({
     tempararyArrayList: z.array(fixingPeriodSubjectListSchema).optional()
 });
 export type FixingPeriodSubjectSchema = z.infer<typeof fixingPeriodSubjectSchema>;
-

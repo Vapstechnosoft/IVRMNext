@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit } from 'lucide-react';
 export interface InterviewerFeedback {
     id: number;
     candidateName: string;
@@ -18,12 +18,7 @@ function ActionButtonsCell({ rowData }: { rowData: any }) {
 
     return (
         <div className='flex items-center gap-2'>
-            <Button
-                variant='ghost'
-                size='sm'
-                onClick={() => openEditForm(rowData)}
-                className='text-blue-600 hover:text-blue-800'
-            >
+            <Button variant='ghost' size='sm' onClick={() => openEditForm(rowData)} className='text-blue-600 hover:text-blue-800'>
                 <Edit className='h-4 w-4' />
             </Button>
         </div>
@@ -92,7 +87,6 @@ export const interviewerFeedbackColumns: ColumnDef<InterviewerFeedback>[] = [
         id: 'actions',
         header: 'Actions',
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
-        size:50
+        size: 50
     }
 ];
-

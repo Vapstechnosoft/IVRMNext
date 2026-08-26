@@ -50,9 +50,7 @@ function mapApiDataToLeaveTransactionManual(apiData: LeaveTransactionManualApiDa
 /**
  * Map frontend model to API request
  */
-function mapLeaveTransactionManualToApiData(
-    data: Partial<LeaveTransactionManual>
-): LeaveTransactionManualSaveRequest {
+function mapLeaveTransactionManualToApiData(data: Partial<LeaveTransactionManual>): LeaveTransactionManualSaveRequest {
     // Ensure dates are correctly formatted without time zone issues
     const formatDate = (date: Date | string) => {
         const d = typeof date === 'string' ? new Date(date) : new Date(date);
@@ -63,7 +61,7 @@ function mapLeaveTransactionManualToApiData(
 
     const fromDate = formatDate(data.fromDate || new Date());
     const toDate = formatDate(data.toDate || new Date());
-    console.log("final payload", {
+    console.log('final payload', {
         hrelT_Id: data.transactionId || 0,
         hreltD_Id: data.id || 0,
         hrmE_Id: data.employeeId || 0,

@@ -20,14 +20,8 @@ export default function GMVNBAnalysisReportPage() {
 
     return (
         <div className='flex flex-col gap-6 p-4'>
-            <AnalysisReportForm
-                title='GMVNB Performance Analysis Report'
-                onReportGenerated={handleReportGenerated}
-                onReset={handleReset}
-            />
-            {reportData && (
-                <AnalysisReportList data={reportData} params={reportParams} />
-            )}
+            <AnalysisReportForm title='GMVNB Performance Analysis Report' onReportGenerated={handleReportGenerated} onReset={handleReset} />
+            {reportData && <AnalysisReportList data={reportData} params={reportParams} />}
         </div>
     );
 }

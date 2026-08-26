@@ -1,24 +1,20 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
-import {
-    useAdminOnDutyApplyList,
-    useDeleteLeaveById,
-    useToggleOnDutyStatus
-} from '@/hooks/hrms/leave-management/useAdminOnDutyApply';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { useAdminOnDutyApplyList } from '@/hooks/hrms/leave-management/useAdminOnDutyApply';
 import { tableSearchVariables } from '@/lib/data-table.config';
+import type { AdminOnDutyApply } from '@/types/hrms/leave-management/admin-on-duty-apply';
+import { AnimatePresence, motion } from 'framer-motion';
+import { X } from 'lucide-react';
 import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import { useState } from 'react';
 import ApplyLeaveForm from './_components/apply-leave-form';
 import { getAdminOnDutyApplyColumns } from './_components/columns';
-import { ViewLeaveDetailsDialog } from './_components/view-dialog';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { AdminOnDutyApply } from '@/types/hrms/leave-management/admin-on-duty-apply';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { Plus, X } from 'lucide-react';
 import DeleteAdminOnDutyForm from './_components/delete-form';
+import { ViewLeaveDetailsDialog } from './_components/view-dialog';
 
 export default function AdminOnDutyApplyPage() {
     return (
@@ -47,18 +43,13 @@ function AdminOnDutyApplyPageContent() {
         sortColumn,
         sortDirection
     });
-    console.log("adminOnDutyList", adminOnDutyList)
+    console.log('adminOnDutyList', adminOnDutyList);
     const [viewLeaveId, setViewLeaveId] = useState<number | null>(null);
     const [isViewOpen, setIsViewOpen] = useState(false);
     const [showForm, setShowForm] = useState(false);
     const [editingRow, setEditingRow] = useState<AdminOnDutyApply | null>(null);
 
-    const {
-        isDeleteFormOpen,
-        selectedRow,
-        openDeleteForm,
-        closeDeleteForm
-    } = useFormContext<AdminOnDutyApply>();
+    const { isDeleteFormOpen, selectedRow, openDeleteForm, closeDeleteForm } = useFormContext<AdminOnDutyApply>();
 
     const tableProps = useDataTableProps(adminOnDutyList);
 
@@ -92,8 +83,7 @@ function AdminOnDutyApplyPageContent() {
                                 }
                                 setShowForm(!showForm);
                             }}
-                            className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'
-                        >
+                            className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                             {/* {showForm ? <X className='h-4 w-4' /> : <Plus className='h-4 w-4' />}
                             {showForm ? 'Close Form' : 'Add Admin On Duty'} */}
                             <p>Add Admin On Duty</p>
@@ -101,13 +91,7 @@ function AdminOnDutyApplyPageContent() {
                     </div>
 
                     {/* Data Table Section */}
-                    <CollapsibleSection
-                        title="Admin On Duty Details"
-                        defaultOpen={true}
-                        variant='default'
-                        size='lg'
-                        className='shadow-lg'
-                    >
+                    <CollapsibleSection title='Admin On Duty Details' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                         <GenericDataTable
                             columns={columns}
                             isLoading={isLoading}
@@ -129,15 +113,13 @@ function AdminOnDutyApplyPageContent() {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 10 }}
-                                className='w-full'
-                            >
+                                className='w-full'>
                                 <CollapsibleSection
                                     title={editingRow ? 'Edit On Duty Application' : 'Add New On Duty Application'}
                                     defaultOpen={true}
                                     variant='outline'
                                     size='md'
-                                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'
-                                >
+                                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
                                     <div className='relative'>
                                         <Button
                                             type='button'
@@ -147,8 +129,7 @@ function AdminOnDutyApplyPageContent() {
                                             }}
                                             variant='ghost'
                                             size='sm'
-                                            className='-top-[3.5rem] absolute right-9 w-fit border p-2 shadow-md hover:bg-destructive/10'
-                                        >
+                                            className='-top-[3.5rem] absolute right-9 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                             <X className='h-4 w-4 text-destructive ' /> Close
                                         </Button>
                                         <ApplyLeaveForm
@@ -171,16 +152,10 @@ function AdminOnDutyApplyPageContent() {
                     </AnimatePresence>
                 </div>
 
-                <ViewLeaveDetailsDialog
-                    leaveId={viewLeaveId}
-                    open={isViewOpen}
-                    onOpenChange={setIsViewOpen}
-                />
+                <ViewLeaveDetailsDialog leaveId={viewLeaveId} open={isViewOpen} onOpenChange={setIsViewOpen} />
 
                 {/* Delete Form */}
-                {isDeleteFormOpen && selectedRow && (
-                    <DeleteAdminOnDutyForm rowData={selectedRow} onClose={closeDeleteForm} />
-                )}
+                {isDeleteFormOpen && selectedRow && <DeleteAdminOnDutyForm rowData={selectedRow} onClose={closeDeleteForm} />}
             </div>
         </div>
     );

@@ -144,6 +144,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
     const [phoneValues, setPhoneValues] = useState<Record<string, string>>({});
     const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [isAppNoEnabled, setIsAppNoEnabled] = useState(false);
     const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
 
     const handleImagePreview = (url: string) => {
@@ -935,17 +936,15 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
     const handleDOBChange = (date: Date | undefined) => {
         console.log('handleDOBChange');
         if (!date || !masterConfig?.data) {
-
             if (masterConfig?.data == null) {
-                console.log(masterConfig?.data)
+                console.log(masterConfig?.data);
                 console.log('Master Config data is null');
             }
-            console.log(masterConfig?.data)
+            console.log(masterConfig?.data);
             setIsClassDisabled(true);
             setFilteredClasses([]);
             setValue('asmcL_Id', 0);
             return;
-
         }
 
         const allClasses = preadmissionClass?.data || [];
@@ -962,7 +961,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                 invalidClasses.push(classItem);
             }
         });
-
 
         setFilteredClasses(validClasses);
 
@@ -1439,14 +1437,21 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
                                                         <div className='flex flex-col'>
                                                             <div className='flex items-center gap-2'>
-                                                                <input type='checkbox' id='admcheck' name='admcheck' />
+                                                                <input
+                                                                    type='checkbox'
+                                                                    id='admcheck'
+                                                                    name='admcheck'
+                                                                    checked={isAppNoEnabled}
+                                                                    onChange={(e) => setIsAppNoEnabled(e.target.checked)}
+                                                                />
                                                                 <Label htmlFor='admcheck'>Application No.</Label>
                                                                 <input
                                                                     type='text'
                                                                     id='appNo'
                                                                     name='appNo'
                                                                     placeholder='Enter Application No.'
-                                                                    className='rounded-md border px-3 py-2'
+                                                                    className='rounded-md border px-3 py-2 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:opacity-50'
+                                                                    disabled={!isAppNoEnabled}
                                                                 />
                                                             </div>
                                                         </div>

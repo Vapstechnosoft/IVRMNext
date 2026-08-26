@@ -1,18 +1,15 @@
-import { format } from 'date-fns';
-
-export const printInterviewReport = (
-    reportData: any[]
-) => {
+export const printInterviewReport = (reportData: any[]) => {
     const printWindow = window.open('', '', 'width=1200,height=800');
     if (!printWindow) {
         alert('Please allow popups to print the report');
         return;
     }
 
-    const tableRows = reportData.map((record: any, index: number) => {
-        const date = record.interviewDate ? new Date(record.interviewDate).toLocaleDateString('en-GB') : '-';
+    const tableRows = reportData
+        .map((record: any, index: number) => {
+            const date = record.interviewDate ? new Date(record.interviewDate).toLocaleDateString('en-GB') : '-';
 
-        return `
+            return `
             <tr>
                 <td class="text-center">${index + 1}</td>
                 <td class="text-left">${record.candidateName || ''}</td>
@@ -24,7 +21,8 @@ export const printInterviewReport = (
                 <td class="text-center">${record.candidateStatus || ''}</td>
             </tr>
         `;
-    }).join('');
+        })
+        .join('');
 
     printWindow.document.write(`
         <html>
@@ -92,4 +90,4 @@ export const printInterviewReport = (
     setTimeout(() => {
         printWindow.print();
     }, 250);
-}
+};

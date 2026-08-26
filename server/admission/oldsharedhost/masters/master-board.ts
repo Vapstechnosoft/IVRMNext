@@ -2,7 +2,6 @@
 
 import { api } from '@/lib/apiService';
 
-
 export async function getMasterBoardData() {
     return await api.get<any>('admission', `/MasterBoardandSchoolType/getAllDetails`);
 }

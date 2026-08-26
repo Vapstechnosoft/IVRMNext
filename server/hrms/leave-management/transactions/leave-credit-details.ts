@@ -1,43 +1,33 @@
 'use server';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { api, type ApiResponse } from '@/lib/apiService';
-import { createLocalCrud } from '@/lib/localdb';
 import type { LeaveCreditDetail } from '@/app/(root)/hrms/leave-management/transaction/leave-credit-details/_components/columns';
+import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { type ApiResponse, api } from '@/lib/apiService';
+import { createLocalCrud } from '@/lib/localdb';
 import type {
-    GetLeaveCreditDetailsRequest,
-    GetLeaveCreditDetailsResponseData,
-    LeaveCreditDetailItem,
+    CreditMonthDropdownItem,
     GetLeaveCodeRequest,
     GetLeaveCodeResponseData,
-    LeaveCodeItem,
     GetLeaveCreditDepartmentsRequest,
     GetLeaveCreditDepartmentsResponseData,
-    DepartmentItem,
     GetLeaveCreditDesignationRequest,
     GetLeaveCreditDesignationResponseData,
-    DesignationItem,
+    GetLeaveCreditDetailsResponseData,
     GetLeaveCreditGradeRequest,
     GetLeaveCreditGradeResponseData,
-    GradeItem,
-    GetLeaveMasterRequest,
-    GetLeaveMasterResponseData,
-    LeaveMasterItem,
-    SaveLeaveCreditDetailsRequest,
-    SaveLeaveCreditDetailsResponseData,
-    GetLeaveDetailsCreditMonthRequest,
-    GetLeaveDetailsCreditMonthResponseData,
-    LeaveDetailsCreditMonthItem,
-    GetLeaveDetailsCFRequest,
-    GetLeaveDetailsCFResponseData,
-    LeaveDetailsCFItem,
     GetLeaveDetailsCFMonthRequest,
     GetLeaveDetailsCFMonthResponseData,
-    LeaveDetailsCFMonthItem,
+    GetLeaveDetailsCFRequest,
+    GetLeaveDetailsCFResponseData,
+    GetLeaveDetailsCreditMonthRequest,
+    GetLeaveDetailsCreditMonthResponseData,
     GetLeaveDetailsEnCashRequest,
     GetLeaveDetailsEnCashResponseData,
-    LeaveDetailsEnCashItem,
+    GetLeaveMasterRequest,
+    GetLeaveMasterResponseData,
+    LeaveCreditDetailItem,
     LeaveNameDropdownItem,
-    CreditMonthDropdownItem
+    SaveLeaveCreditDetailsRequest,
+    SaveLeaveCreditDetailsResponseData
 } from '@/types/hrms/leave-management/leave-credit-details';
 /**
  * Map API response data to LeaveCreditDetail format
@@ -47,7 +37,7 @@ function mapApiDataToLeaveCreditDetail(apiData: LeaveCreditDetailItem, index: nu
         id: apiData.HRMLD_Id || apiData.id || index + 1,
         leaveId: apiData.HRML_Id || 0,
         createdAt: apiData.createdAt || new Date(),
-        // Multiple IDs are usually not returned in a single record by this legacy API 
+        // Multiple IDs are usually not returned in a single record by this legacy API
         // unless it's a comma separated string or a related array.
         // For now, we handle the single ID case which is common in grid results.
         type: apiData.HRMGT_Id ? [String(apiData.HRMGT_Id)] : [],
@@ -62,9 +52,10 @@ function mapApiDataToLeaveCreditDetail(apiData: LeaveCreditDetailItem, index: nu
 
         leaveName: apiData.HRML_LeaveName || apiData.leaveName || '',
         leaveCode: apiData.HRML_LeaveCode || apiData.leaveCode || '',
-        noOfDays: typeof apiData.HRMLD_NoOfDays === 'string'
-            ? parseFloat(apiData.HRMLD_NoOfDays) || 0
-            : (apiData.HRMLD_NoOfDays || apiData.noOfDays || 0),
+        noOfDays:
+            typeof apiData.HRMLD_NoOfDays === 'string'
+                ? Number.parseFloat(apiData.HRMLD_NoOfDays) || 0
+                : apiData.HRMLD_NoOfDays || apiData.noOfDays || 0,
         maxLeaveApplicable: apiData.HRMLD_MaxLeaveApplicable || apiData.maxLeaveApplicable || 0,
         leaveCarryForward: apiData.HRMLD_CarryForFlg ?? apiData.leaveCarryForward ?? false,
         leaveEncashment: apiData.HRMLD_EncashFlg ?? apiData.leaveEncashment ?? false,
@@ -76,7 +67,7 @@ function mapApiDataToLeaveCreditDetail(apiData: LeaveCreditDetailItem, index: nu
 /**
  * Get leave credit details
  * POST /api/LeaveCreditWrapperFacade/GetLeave
- * 
+ *
  * @param request - Request payload with MI_Id
  * @returns Leave credit details data
  */
@@ -129,10 +120,8 @@ export async function getLeaveCreditDetails(request?: { MI_Id?: number }): Promi
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message ||
-            error?.response?.data?.retrunMsg ||
-            error?.message ||
-            'Failed to fetch leave credit details';
+        const errorMessage =
+            error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to fetch leave credit details';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -140,7 +129,7 @@ export async function getLeaveCreditDetails(request?: { MI_Id?: number }): Promi
 /**
  * Get leave code
  * POST /api/LeaveCreditWrapperFacade/GetLeaveCode
- * 
+ *
  * @param request - Request payload with leavecode
  * @returns Leave code data
  */
@@ -164,10 +153,8 @@ export async function getLeaveCode(request: GetLeaveCodeRequest): Promise<ApiRes
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message ||
-            error?.response?.data?.retrunMsg ||
-            error?.message ||
-            'Failed to fetch leave code';
+        const errorMessage =
+            error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to fetch leave code';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -175,11 +162,13 @@ export async function getLeaveCode(request: GetLeaveCodeRequest): Promise<ApiRes
 /**
  * Get departments for leave credit details
  * POST /api/LeaveCreditWrapperFacade/GetDepartments
- * 
+ *
  * @param request - Request payload with MI_Id and emptypes array
  * @returns Departments data
  */
-export async function getLeaveCreditDepartments(request: GetLeaveCreditDepartmentsRequest): Promise<ApiResponse<GetLeaveCreditDepartmentsResponseData>> {
+export async function getLeaveCreditDepartments(
+    request: GetLeaveCreditDepartmentsRequest
+): Promise<ApiResponse<GetLeaveCreditDepartmentsResponseData>> {
     const url = '/api/LeaveCreditWrapperFacade/GetDepartments';
     const requestBody: GetLeaveCreditDepartmentsRequest = {
         MI_Id: request.MI_Id || HRMS_MI_ID,
@@ -197,15 +186,14 @@ export async function getLeaveCreditDepartments(request: GetLeaveCreditDepartmen
         // Wrap raw response data
         return {
             success: (response as any)?.success ?? true,
-            message: (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
+            message:
+                (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
             data: response as unknown as GetLeaveCreditDepartmentsResponseData
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message ||
-            error?.response?.data?.retrunMsg ||
-            error?.message ||
-            'Failed to fetch departments';
+        const errorMessage =
+            error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to fetch departments';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -213,11 +201,13 @@ export async function getLeaveCreditDepartments(request: GetLeaveCreditDepartmen
 /**
  * Get designation for leave credit details
  * POST /api/LeaveCreditWrapperFacade/GetDesignation
- * 
+ *
  * @param request - Request payload with MI_Id and emptypes array
  * @returns Designation data
  */
-export async function getLeaveCreditDesignation(request: GetLeaveCreditDesignationRequest): Promise<ApiResponse<GetLeaveCreditDesignationResponseData>> {
+export async function getLeaveCreditDesignation(
+    request: GetLeaveCreditDesignationRequest
+): Promise<ApiResponse<GetLeaveCreditDesignationResponseData>> {
     const url = '/api/LeaveCreditWrapperFacade/GetDesignation';
     const requestBody: GetLeaveCreditDesignationRequest = {
         MI_Id: request.MI_Id || HRMS_MI_ID,
@@ -235,15 +225,14 @@ export async function getLeaveCreditDesignation(request: GetLeaveCreditDesignati
         // Wrap raw response data
         return {
             success: (response as any)?.success ?? true,
-            message: (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
+            message:
+                (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
             data: response as unknown as GetLeaveCreditDesignationResponseData
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message ||
-            error?.response?.data?.retrunMsg ||
-            error?.message ||
-            'Failed to fetch designation';
+        const errorMessage =
+            error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to fetch designation';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -251,7 +240,7 @@ export async function getLeaveCreditDesignation(request: GetLeaveCreditDesignati
 /**
  * Get grade for leave credit details
  * POST /api/LeaveCreditWrapperFacade/GetGrade
- * 
+ *
  * @param request - Request payload with MI_Id and emptypes array
  * @returns Grade data
  */
@@ -273,15 +262,14 @@ export async function getLeaveCreditGrade(request: GetLeaveCreditGradeRequest): 
         // Wrap raw response data
         return {
             success: (response as any)?.success ?? true,
-            message: (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
+            message:
+                (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
             data: response as unknown as GetLeaveCreditGradeResponseData
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message ||
-            error?.response?.data?.retrunMsg ||
-            error?.message ||
-            'Failed to fetch grade';
+        const errorMessage =
+            error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to fetch grade';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -289,7 +277,7 @@ export async function getLeaveCreditGrade(request: GetLeaveCreditGradeRequest): 
 /**
  * Get leave master (credit months) data
  * POST /api/LeaveCreditWrapperFacade/LeaveMaster
- * 
+ *
  * @param request - Request payload with MI_Id, HRML_LeaveCode, and HRMLDCM_Id
  * @returns Leave master data
  */
@@ -312,15 +300,14 @@ export async function getLeaveMaster(request: GetLeaveMasterRequest): Promise<Ap
         // Wrap raw response data
         return {
             success: (response as any)?.success ?? true,
-            message: (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
+            message:
+                (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
             data: response as unknown as GetLeaveMasterResponseData
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message ||
-            error?.response?.data?.retrunMsg ||
-            error?.message ||
-            'Failed to fetch leave master';
+        const errorMessage =
+            error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to fetch leave master';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -328,11 +315,13 @@ export async function getLeaveMaster(request: GetLeaveMasterRequest): Promise<Ap
 /**
  * Get leave details CF Month data
  * POST /api/LeaveCreditWrapperFacade/LeaveDetailsCFMonth
- * 
+ *
  * @param request - Request payload with HRMLDCFM_Id and HRMLDCFM_MonthId
  * @returns Leave details CF Month data
  */
-export async function getLeaveDetailsCFMonth(request: GetLeaveDetailsCFMonthRequest): Promise<ApiResponse<GetLeaveDetailsCFMonthResponseData>> {
+export async function getLeaveDetailsCFMonth(
+    request: GetLeaveDetailsCFMonthRequest
+): Promise<ApiResponse<GetLeaveDetailsCFMonthResponseData>> {
     const url = '/api/LeaveCreditWrapperFacade/LeaveDetailsCFMonth';
     const requestBody: GetLeaveDetailsCFMonthRequest = {
         HRMLDCFM_Id: request.HRMLDCFM_Id || 0,
@@ -350,12 +339,14 @@ export async function getLeaveDetailsCFMonth(request: GetLeaveDetailsCFMonthRequ
         // Wrap raw response data
         return {
             success: (response as any)?.success ?? true,
-            message: (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
+            message:
+                (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
             data: response as unknown as GetLeaveDetailsCFMonthResponseData
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message ||
+        const errorMessage =
+            error?.response?.data?.message ||
             error?.response?.data?.retrunMsg ||
             error?.message ||
             'Failed to fetch leave details CF month';
@@ -366,11 +357,13 @@ export async function getLeaveDetailsCFMonth(request: GetLeaveDetailsCFMonthRequ
 /**
  * Get leave details EnCash (Encashment) data
  * POST /api/LeaveCreditWrapperFacade/LeaveDetailsEnCash
- * 
+ *
  * @param request - Request payload with encashment details
  * @returns Leave details EnCash data
  */
-export async function getLeaveDetailsEnCash(request: GetLeaveDetailsEnCashRequest): Promise<ApiResponse<GetLeaveDetailsEnCashResponseData>> {
+export async function getLeaveDetailsEnCash(
+    request: GetLeaveDetailsEnCashRequest
+): Promise<ApiResponse<GetLeaveDetailsEnCashResponseData>> {
     const url = '/api/LeaveCreditWrapperFacade/LeaveDetailsEnCash';
     const requestBody: GetLeaveDetailsEnCashRequest = {
         HRMLDEC_Id: request.HRMLDEC_Id || 0,
@@ -398,15 +391,14 @@ export async function getLeaveDetailsEnCash(request: GetLeaveDetailsEnCashReques
         // Wrap raw response data
         return {
             success: (response as any)?.success ?? true,
-            message: (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
+            message:
+                (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
             data: response as unknown as GetLeaveDetailsEnCashResponseData
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message ||
-            error?.response?.data?.retrunMsg ||
-            error?.message ||
-            'Failed to fetch leave details encash';
+        const errorMessage =
+            error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to fetch leave details encash';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -414,7 +406,7 @@ export async function getLeaveDetailsEnCash(request: GetLeaveDetailsEnCashReques
 /**
  * Get leave details CF (Carry Forward) data
  * POST /api/LeaveCreditWrapperFacade/LeaveDetailsCF
- * 
+ *
  * @param request - Request payload with HRMLDCF_Id and HRMLDCF_MaxLeaveAplFlg
  * @returns Leave details CF data
  */
@@ -436,15 +428,14 @@ export async function getLeaveDetailsCF(request: GetLeaveDetailsCFRequest): Prom
         // Wrap raw response data
         return {
             success: (response as any)?.success ?? true,
-            message: (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
+            message:
+                (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
             data: response as unknown as GetLeaveDetailsCFResponseData
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message ||
-            error?.response?.data?.retrunMsg ||
-            error?.message ||
-            'Failed to fetch leave details CF';
+        const errorMessage =
+            error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to fetch leave details CF';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -452,11 +443,13 @@ export async function getLeaveDetailsCF(request: GetLeaveDetailsCFRequest): Prom
 /**
  * Get leave details credit month data
  * POST /api/LeaveCreditWrapperFacade/LeaveDetailsCreditMonth
- * 
+ *
  * @param request - Request payload with HRMLDCM_Id and HRMLDCM_LCMonthCode
  * @returns Leave details credit month data
  */
-export async function getLeaveDetailsCreditMonth(request: GetLeaveDetailsCreditMonthRequest): Promise<ApiResponse<GetLeaveDetailsCreditMonthResponseData>> {
+export async function getLeaveDetailsCreditMonth(
+    request: GetLeaveDetailsCreditMonthRequest
+): Promise<ApiResponse<GetLeaveDetailsCreditMonthResponseData>> {
     const url = '/api/LeaveCreditWrapperFacade/LeaveDetailsCreditMonth';
     const requestBody: GetLeaveDetailsCreditMonthRequest = {
         HRMLDCM_Id: request.HRMLDCM_Id || 0,
@@ -474,12 +467,14 @@ export async function getLeaveDetailsCreditMonth(request: GetLeaveDetailsCreditM
         // Wrap raw response data
         return {
             success: (response as any)?.success ?? true,
-            message: (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
+            message:
+                (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
             data: response as unknown as GetLeaveDetailsCreditMonthResponseData
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message ||
+        const errorMessage =
+            error?.response?.data?.message ||
             error?.response?.data?.retrunMsg ||
             error?.message ||
             'Failed to fetch leave details credit month';
@@ -490,11 +485,13 @@ export async function getLeaveDetailsCreditMonth(request: GetLeaveDetailsCreditM
 /**
  * Save leave credit details
  * POST /api/LeaveCreditWrapperFacade/SaveData
- * 
+ *
  * @param data - Request payload with leave credit details data
  * @returns Save response
  */
-export async function saveLeaveCreditDetails(data: SaveLeaveCreditDetailsRequest): Promise<ApiResponse<SaveLeaveCreditDetailsResponseData>> {
+export async function saveLeaveCreditDetails(
+    data: SaveLeaveCreditDetailsRequest
+): Promise<ApiResponse<SaveLeaveCreditDetailsResponseData>> {
     const url = '/api/LeaveCreditWrapperFacade/SaveData';
     const requestBody: SaveLeaveCreditDetailsRequest = {
         ...data, // Include any additional fields first
@@ -528,12 +525,15 @@ export async function saveLeaveCreditDetails(data: SaveLeaveCreditDetailsRequest
             responseData = (response as unknown as SaveLeaveCreditDetailsResponseData) || {};
         }
         // Extract success message
-        const successMessage = responseData?.retrunMsg ||
+        const successMessage =
+            responseData?.retrunMsg ||
             responseData?.message ||
             (response as any)?.message ||
-            (responseData?.returnval_add ? 'Leave credit detail created successfully' :
-                responseData?.returnval_Update ? 'Leave credit detail updated successfully' :
-                    'Leave credit detail saved successfully');
+            (responseData?.returnval_add
+                ? 'Leave credit detail created successfully'
+                : responseData?.returnval_Update
+                  ? 'Leave credit detail updated successfully'
+                  : 'Leave credit detail saved successfully');
         // Check for duplicate status
         if (responseData?.dupr || responseData?.returnduplicatestatus) {
             const duplicateMessage = responseData?.returnduplicatestatus || 'Duplicate record found';
@@ -550,10 +550,8 @@ export async function saveLeaveCreditDetails(data: SaveLeaveCreditDetailsRequest
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message ||
-            error?.response?.data?.retrunMsg ||
-            error?.message ||
-            'Failed to save leave credit details';
+        const errorMessage =
+            error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to save leave credit details';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -587,7 +585,7 @@ export async function deleteLeaveCreditDetails(id: number) {
 /**
  * Get leave name dropdown data
  * GET /api/LeaveCredit/get_leave_name_dropdown
- * 
+ *
  * @returns Leave name dropdown data
  */
 export async function getLeaveNameDropdown(): Promise<ApiResponse<LeaveNameDropdownItem[]>> {
@@ -613,7 +611,7 @@ export async function getLeaveNameDropdown(): Promise<ApiResponse<LeaveNameDropd
 /**
  * Get credit month dropdown data
  * GET /api/LeaveCredit/get_creditmonth_dropdown
- * 
+ *
  * @returns Credit month dropdown data
  */
 export async function getCreditMonthDropdown(): Promise<ApiResponse<CreditMonthDropdownItem[]>> {

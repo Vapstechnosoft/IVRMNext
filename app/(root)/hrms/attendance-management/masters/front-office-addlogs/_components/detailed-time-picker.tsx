@@ -1,9 +1,8 @@
 'use client';
 
-import * as React from 'react';
-import { ChevronUp, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Input } from '@/components/ui/input';
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import * as React from 'react';
 
 interface DetailedTimePickerProps {
     value?: string; // HH:mm
@@ -31,42 +30,42 @@ export function DetailedTimePicker({ value = 'HH:MM', onChange, error }: Detaile
     };
 
     const handleIncrementHour = () => {
-        const h = isNaN(parseInt(hours)) ? -1 : parseInt(hours);
+        const h = isNaN(Number.parseInt(hours)) ? -1 : Number.parseInt(hours);
         const nextH = (h + 1) % 24;
-        updateTime(String(nextH), isNaN(parseInt(minutes)) ? '00' : minutes);
+        updateTime(String(nextH), isNaN(Number.parseInt(minutes)) ? '00' : minutes);
     };
 
     const handleDecrementHour = () => {
-        const h = isNaN(parseInt(hours)) ? 1 : parseInt(hours);
+        const h = isNaN(Number.parseInt(hours)) ? 1 : Number.parseInt(hours);
         const nextH = (h - 1 + 24) % 24;
-        updateTime(String(nextH), isNaN(parseInt(minutes)) ? '00' : minutes);
+        updateTime(String(nextH), isNaN(Number.parseInt(minutes)) ? '00' : minutes);
     };
 
     const handleIncrementMinute = () => {
-        const m = isNaN(parseInt(minutes)) ? -1 : parseInt(minutes);
+        const m = isNaN(Number.parseInt(minutes)) ? -1 : Number.parseInt(minutes);
         const nextM = (m + 1) % 60;
-        updateTime(isNaN(parseInt(hours)) ? '00' : hours, String(nextM));
+        updateTime(isNaN(Number.parseInt(hours)) ? '00' : hours, String(nextM));
     };
 
     const handleDecrementMinute = () => {
-        const m = isNaN(parseInt(minutes)) ? 1 : parseInt(minutes);
+        const m = isNaN(Number.parseInt(minutes)) ? 1 : Number.parseInt(minutes);
         const nextM = (m - 1 + 60) % 60;
-        updateTime(isNaN(parseInt(hours)) ? '00' : hours, String(nextM));
+        updateTime(isNaN(Number.parseInt(hours)) ? '00' : hours, String(nextM));
     };
 
     const handleHourChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         let val = e.target.value.replace(/\D/g, '');
         if (val.length > 2) val = val.slice(-2);
-        
+
         if (val === '') {
             setHours('HH');
             return;
         }
 
-        const num = parseInt(val);
+        const num = Number.parseInt(val);
         if (num < 24) {
             setHours(val);
-            updateTime(val, isNaN(parseInt(minutes)) ? '00' : minutes);
+            updateTime(val, isNaN(Number.parseInt(minutes)) ? '00' : minutes);
         }
     };
 
@@ -79,99 +78,80 @@ export function DetailedTimePicker({ value = 'HH:MM', onChange, error }: Detaile
             return;
         }
 
-        const num = parseInt(val);
+        const num = Number.parseInt(val);
         if (num < 60) {
             setMinutes(val);
-            updateTime(isNaN(parseInt(hours)) ? '00' : hours, val);
+            updateTime(isNaN(Number.parseInt(hours)) ? '00' : hours, val);
         }
     };
 
     return (
-        <div className="flex flex-col items-start gap-1">
-            <div className="flex items-center gap-1">
+        <div className='flex flex-col items-start gap-1'>
+            <div className='flex items-center gap-1'>
                 {/* Hours Group */}
-                <div className="flex flex-col items-center">
-                    <button
-                        type="button"
-                        onClick={handleIncrementHour}
-                        className="text-[#3b82f6] hover:scale-110 transition-all p-1"
-                    >
-                        <ChevronUp className="h-6 w-6 stroke-[3px]" />
+                <div className='flex flex-col items-center'>
+                    <button type='button' onClick={handleIncrementHour} className='p-1 text-[#3b82f6] transition-all hover:scale-110'>
+                        <ChevronUp className='h-6 w-6 stroke-[3px]' />
                     </button>
-                    <div className={cn(
-                        "w-14 h-12 border-2 rounded flex items-center justify-center bg-white transition-colors",
-                        error ? "border-red-500 shadow-[0_0_0_1px_rgba(239,68,68,1)]" : "border-[#3b82f6]"
-                    )}>
+                    <div
+                        className={cn(
+                            'flex h-12 w-14 items-center justify-center rounded border-2 bg-white transition-colors',
+                            error ? 'border-red-500 shadow-[0_0_0_1px_rgba(239,68,68,1)]' : 'border-[#3b82f6]'
+                        )}>
                         <input
-                            type="text"
+                            type='text'
                             value={hours}
                             onChange={handleHourChange}
                             onBlur={() => {
-                                if (!isNaN(parseInt(hours))) setHours(hours.padStart(2, '0'));
+                                if (!isNaN(Number.parseInt(hours))) setHours(hours.padStart(2, '0'));
                                 else setHours('HH');
                             }}
                             className={cn(
-                                "w-full h-full text-center text-xl font-medium bg-transparent outline-none",
-                                hours === 'HH' ? "text-gray-300" : "text-gray-400"
+                                'h-full w-full bg-transparent text-center font-medium text-xl outline-none',
+                                hours === 'HH' ? 'text-gray-300' : 'text-gray-400'
                             )}
                         />
                     </div>
-                    <button
-                        type="button"
-                        onClick={handleDecrementHour}
-                        className="text-[#3b82f6] hover:scale-110 transition-all p-1"
-                    >
-                        <ChevronDown className="h-6 w-6 stroke-[3px]" />
+                    <button type='button' onClick={handleDecrementHour} className='p-1 text-[#3b82f6] transition-all hover:scale-110'>
+                        <ChevronDown className='h-6 w-6 stroke-[3px]' />
                     </button>
                 </div>
 
-                <div className={cn(
-                    "text-2xl font-bold self-center mx-1 transition-colors",
-                    error ? "text-red-500" : "text-[#3b82f6]"
-                )}>:</div>
+                <div className={cn('mx-1 self-center font-bold text-2xl transition-colors', error ? 'text-red-500' : 'text-[#3b82f6]')}>
+                    :
+                </div>
 
                 {/* Minutes Group */}
-                <div className="flex flex-col items-center">
-                    <button
-                        type="button"
-                        onClick={handleIncrementMinute}
-                        className="text-[#3b82f6] hover:scale-110 transition-all p-1"
-                    >
-                        <ChevronUp className="h-6 w-6 stroke-[3px]" />
+                <div className='flex flex-col items-center'>
+                    <button type='button' onClick={handleIncrementMinute} className='p-1 text-[#3b82f6] transition-all hover:scale-110'>
+                        <ChevronUp className='h-6 w-6 stroke-[3px]' />
                     </button>
-                    <div className={cn(
-                        "w-14 h-12 border-2 rounded flex items-center justify-center bg-white transition-colors",
-                        error ? "border-red-500 shadow-[0_0_0_1px_rgba(239,68,68,1)]" : "border-[#3b82f6]"
-                    )}>
+                    <div
+                        className={cn(
+                            'flex h-12 w-14 items-center justify-center rounded border-2 bg-white transition-colors',
+                            error ? 'border-red-500 shadow-[0_0_0_1px_rgba(239,68,68,1)]' : 'border-[#3b82f6]'
+                        )}>
                         <input
-                            type="text"
+                            type='text'
                             value={minutes}
                             onChange={handleMinuteChange}
                             onBlur={() => {
-                                if (!isNaN(parseInt(minutes))) setMinutes(minutes.padStart(2, '0'));
+                                if (!isNaN(Number.parseInt(minutes))) setMinutes(minutes.padStart(2, '0'));
                                 else setMinutes('MM');
                             }}
                             className={cn(
-                                "w-full h-full text-center text-xl font-medium bg-transparent outline-none",
-                                minutes === 'MM' ? "text-gray-300" : "text-gray-400"
+                                'h-full w-full bg-transparent text-center font-medium text-xl outline-none',
+                                minutes === 'MM' ? 'text-gray-300' : 'text-gray-400'
                             )}
                         />
                     </div>
-                    <button
-                        type="button"
-                        onClick={handleDecrementMinute}
-                        className="text-[#3b82f6] hover:scale-110 transition-all p-1"
-                    >
-                        <ChevronDown className="h-6 w-6 stroke-[3px]" />
+                    <button type='button' onClick={handleDecrementMinute} className='p-1 text-[#3b82f6] transition-all hover:scale-110'>
+                        <ChevronDown className='h-6 w-6 stroke-[3px]' />
                     </button>
                 </div>
             </div>
 
-            {error && (
-                <p className="text-red-500 text-sm font-medium mt-1">
-                    {error}
-                </p>
-            )}
+            {error && <p className='mt-1 font-medium text-red-500 text-sm'>{error}</p>}
         </div>
     );
 }

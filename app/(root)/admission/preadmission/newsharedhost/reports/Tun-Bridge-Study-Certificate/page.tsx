@@ -7,13 +7,13 @@ import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
+import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
 import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
 
 import {
@@ -177,17 +177,16 @@ export default function TunBridgeStudyCertificatePage() {
     });
 
     return (
-        <div className="min-h-screen p-4 space-y-6">
+        <div className='min-h-screen space-y-6 p-4'>
             <CollapsibleSection
-                title="Study Certificate Report"
-                description="Tunbridge High School - Study Certificate"
+                title='Study Certificate Report'
+                description='Tunbridge High School - Study Certificate'
                 defaultOpen={true}
-                variant="outline"
-                className="shadow-lg"
-            >
-                <div className="space-y-6 bg-white p-6">
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                        <div className="flex items-center space-x-4 rounded-lg border p-2 bg-gray-50/50">
+                variant='outline'
+                className='shadow-lg'>
+                <div className='space-y-6 bg-white p-6'>
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+                        <div className='flex items-center space-x-4 rounded-lg border bg-gray-50/50 p-2'>
                             <RadioGroup
                                 value={studentScope}
                                 onValueChange={(v) => {
@@ -198,20 +197,23 @@ export default function TunBridgeStudyCertificatePage() {
                                     setStudentId(null);
                                     setSearchQuery('');
                                 }}
-                                className="flex space-x-4"
-                            >
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="A" id="scope-all" />
-                                    <Label htmlFor="scope-all" className="text-sm font-medium">All</Label>
+                                className='flex space-x-4'>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='A' id='scope-all' />
+                                    <Label htmlFor='scope-all' className='font-medium text-sm'>
+                                        All
+                                    </Label>
                                 </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="I" id="scope-ind" />
-                                    <Label htmlFor="scope-ind" className="text-sm font-medium">Individual</Label>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='I' id='scope-ind' />
+                                    <Label htmlFor='scope-ind' className='font-medium text-sm'>
+                                        Individual
+                                    </Label>
                                 </div>
                             </RadioGroup>
                         </div>
 
-                        <div className="flex items-center space-x-4 rounded-lg border p-2 bg-gray-50/50">
+                        <div className='flex items-center space-x-4 rounded-lg border bg-gray-50/50 p-2'>
                             <RadioGroup
                                 value={studentStatus}
                                 onValueChange={(v) => {
@@ -219,33 +221,40 @@ export default function TunBridgeStudyCertificatePage() {
                                     setStudentId(null);
                                     setSearchQuery('');
                                 }}
-                                className="flex space-x-4"
-                            >
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="S" id="status-studying" />
-                                    <Label htmlFor="status-studying" className="text-sm font-medium">Studying</Label>
+                                className='flex space-x-4'>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='S' id='status-studying' />
+                                    <Label htmlFor='status-studying' className='font-medium text-sm'>
+                                        Studying
+                                    </Label>
                                 </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="L" id="status-left" />
-                                    <Label htmlFor="status-left" className="text-sm font-medium">Left</Label>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='L' id='status-left' />
+                                    <Label htmlFor='status-left' className='font-medium text-sm'>
+                                        Left
+                                    </Label>
                                 </div>
                             </RadioGroup>
                         </div>
 
-                        <div className="flex items-center space-x-4 rounded-lg border p-2 bg-gray-50/50">
-                            <RadioGroup value="0" className="flex space-x-4">
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="0" id="type-study" />
-                                    <Label htmlFor="type-study" className="text-sm font-medium">Study Certificate</Label>
+                        <div className='flex items-center space-x-4 rounded-lg border bg-gray-50/50 p-2'>
+                            <RadioGroup value='0' className='flex space-x-4'>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='0' id='type-study' />
+                                    <Label htmlFor='type-study' className='font-medium text-sm'>
+                                        Study Certificate
+                                    </Label>
                                 </div>
                             </RadioGroup>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                <Label className="text-sm font-bold">Academic Year:<span className="text-red-500">*</span></Label>
+                    <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
+                        <div className='space-y-4'>
+                            <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                <Label className='font-bold text-sm'>
+                                    Academic Year:<span className='text-red-500'>*</span>
+                                </Label>
                                 <Select
                                     value={academicYearId?.toString()}
                                     onValueChange={(v) => {
@@ -255,10 +264,9 @@ export default function TunBridgeStudyCertificatePage() {
                                         setStudentId(null);
                                         setSearchQuery('');
                                         setStudentListFromSearch([]);
-                                    }}
-                                >
-                                    <SelectTrigger className="h-9">
-                                        <SelectValue placeholder="--Select--" />
+                                    }}>
+                                    <SelectTrigger className='h-9'>
+                                        <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {(loadData as any)?.data?.allAcademicYear?.map((item: any) => (
@@ -270,8 +278,10 @@ export default function TunBridgeStudyCertificatePage() {
                                 </Select>
                             </div>
 
-                            <div className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                <Label className="text-sm font-bold">Class:<span className="text-red-500">*</span></Label>
+                            <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                <Label className='font-bold text-sm'>
+                                    Class:<span className='text-red-500'>*</span>
+                                </Label>
                                 <Select
                                     disabled={studentScope === 'A'}
                                     value={classId?.toString()}
@@ -280,10 +290,9 @@ export default function TunBridgeStudyCertificatePage() {
                                         setSectionId(null);
                                         setStudentId(null);
                                         setSearchQuery('');
-                                    }}
-                                >
-                                    <SelectTrigger className="h-9">
-                                        <SelectValue placeholder="--Select--" />
+                                    }}>
+                                    <SelectTrigger className='h-9'>
+                                        <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {(loadData as any)?.data?.allclasslist?.map((item: any) => (
@@ -295,8 +304,10 @@ export default function TunBridgeStudyCertificatePage() {
                                 </Select>
                             </div>
 
-                            <div className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                <Label className="text-sm font-bold">Section:<span className="text-red-500">*</span></Label>
+                            <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
+                                <Label className='font-bold text-sm'>
+                                    Section:<span className='text-red-500'>*</span>
+                                </Label>
                                 <Select
                                     disabled={studentScope === 'A' || !classId}
                                     value={sectionId?.toString()}
@@ -304,10 +315,9 @@ export default function TunBridgeStudyCertificatePage() {
                                         setSectionId(Number(v));
                                         setStudentId(null);
                                         setSearchQuery('');
-                                    }}
-                                >
-                                    <SelectTrigger className="h-9">
-                                        <SelectValue placeholder="--Select--" />
+                                    }}>
+                                    <SelectTrigger className='h-9'>
+                                        <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {(loadData as any)?.data?.allsectionlist?.map((item: any) => (
@@ -320,19 +330,21 @@ export default function TunBridgeStudyCertificatePage() {
                             </div>
                         </div>
 
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-[100px_1fr] items-center gap-4">
-                                <Label className="text-sm font-bold">Date:<span className="text-red-500">*</span></Label>
+                        <div className='space-y-4'>
+                            <div className='grid grid-cols-[100px_1fr] items-center gap-4'>
+                                <Label className='font-bold text-sm'>
+                                    Date:<span className='text-red-500'>*</span>
+                                </Label>
                                 <Popover open={dateOpen} onOpenChange={setDateOpen}>
                                     <PopoverTrigger asChild>
-                                        <Button variant="outline" className="h-9 w-full justify-start text-left font-normal">
-                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                        <Button variant='outline' className='h-9 w-full justify-start text-left font-normal'>
+                                            <CalendarIcon className='mr-2 h-4 w-4' />
                                             {selectedDate ? format(selectedDate, 'dd-MM-yyyy') : 'Select Date'}
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent align="start" className="p-0">
+                                    <PopoverContent align='start' className='p-0'>
                                         <DatePickerWithYear
-                                            mode="single"
+                                            mode='single'
                                             selected={selectedDate || undefined}
                                             onDayClick={(date) => {
                                                 setSelectedDate(date);
@@ -343,44 +355,44 @@ export default function TunBridgeStudyCertificatePage() {
                                 </Popover>
                             </div>
 
-                            <div className="grid grid-cols-[100px_1fr] items-center gap-4">
-                                <Label className="text-sm font-bold">Student:<span className="text-red-500">*</span></Label>
+                            <div className='grid grid-cols-[100px_1fr] items-center gap-4'>
+                                <Label className='font-bold text-sm'>
+                                    Student:<span className='text-red-500'>*</span>
+                                </Label>
                                 <Popover open={studentOpen} onOpenChange={setStudentOpen}>
                                     <PopoverTrigger asChild>
-                                        <div className="relative">
+                                        <div className='relative'>
                                             <input
-                                                value={studentId ? (students.find((s: any) => s.amsT_Id === studentId)?.studentName || searchQuery) : searchQuery}
+                                                value={
+                                                    studentId
+                                                        ? students.find((s: any) => s.amsT_Id === studentId)?.studentName || searchQuery
+                                                        : searchQuery
+                                                }
                                                 onChange={(e) => {
                                                     setSearchQuery(e.target.value);
                                                     setStudentId(null);
                                                     setStudentOpen(true);
                                                 }}
                                                 onFocus={() => setStudentOpen(true)}
-                                                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                                                placeholder="Select or search Student (min 3 chars)"
+                                                className='flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+                                                placeholder='Select or search Student (min 3 chars)'
                                             />
                                             {searchMutation.isPending && (
-                                                <div className="absolute right-2 top-2.5">
-                                                    <Loader2 className="h-4 w-4 animate-spin text-indigo-500" />
+                                                <div className='absolute top-2.5 right-2'>
+                                                    <Loader2 className='h-4 w-4 animate-spin text-indigo-500' />
                                                 </div>
                                             )}
                                         </div>
                                     </PopoverTrigger>
-                                    <PopoverContent
-                                        className="w-[420px] p-0"
-                                        align="start"
-                                        onOpenAutoFocus={(e) => e.preventDefault()}
-                                    >
-                                        <Command shouldFilter={false} className="w-full">
+                                    <PopoverContent className='w-[420px] p-0' align='start' onOpenAutoFocus={(e) => e.preventDefault()}>
+                                        <Command shouldFilter={false} className='w-full'>
                                             <CommandList>
                                                 {searchQuery.trim().length > 0 && searchQuery.trim().length < 3 && (
-                                                    <div className="p-4 text-center text-sm text-muted-foreground">
+                                                    <div className='p-4 text-center text-muted-foreground text-sm'>
                                                         Enter at least 3 characters
                                                     </div>
                                                 )}
-                                                <CommandEmpty>
-                                                    {searchQuery.trim().length >= 3 ? 'No students found.' : ''}
-                                                </CommandEmpty>
+                                                <CommandEmpty>{searchQuery.trim().length >= 3 ? 'No students found.' : ''}</CommandEmpty>
                                                 <CommandGroup>
                                                     {students.map((s: any, idx: number) => (
                                                         <CommandItem
@@ -390,18 +402,19 @@ export default function TunBridgeStudyCertificatePage() {
                                                                 setStudentId(Number(s.amsT_Id));
                                                                 setSearchQuery(s.studentName);
                                                                 setStudentOpen(false);
-                                                            }}
-                                                        >
+                                                            }}>
                                                             <Check
                                                                 className={cn(
                                                                     'mr-2 h-4 w-4',
                                                                     studentId === Number(s.amsT_Id) ? 'opacity-100' : 'opacity-0'
                                                                 )}
                                                             />
-                                                            <div className="flex flex-col">
+                                                            <div className='flex flex-col'>
                                                                 <span>{s.studentName}</span>
-                                                                <span className="text-[10px] text-muted-foreground">
-                                                                    Adm: {s.amsT_AdmNo || s.admno || '-'} | {s.asmcL_ClassName || s.class || 'N/A'}-{s.asmC_SectionName || s.section || 'N/A'}
+                                                                <span className='text-[10px] text-muted-foreground'>
+                                                                    Adm: {s.amsT_AdmNo || s.admno || '-'} |{' '}
+                                                                    {s.asmcL_ClassName || s.class || 'N/A'}-
+                                                                    {s.asmC_SectionName || s.section || 'N/A'}
                                                                 </span>
                                                             </div>
                                                         </CommandItem>
@@ -415,31 +428,28 @@ export default function TunBridgeStudyCertificatePage() {
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap justify-center gap-4 pt-6 border-t">
+                    <div className='flex flex-wrap justify-center gap-4 border-t pt-6'>
                         <Button
-                            size="sm"
+                            size='sm'
                             onClick={handleReport}
                             disabled={isLoading}
-                            className="min-w-[120px] bg-[#3f51b5] hover:bg-[#303f9f] text-white shadow-md uppercase"
-                        >
-                            {isLoading ? <RotateCcw className="mr-2 h-4 w-4 animate-spin" /> : <Printer className="mr-2 h-4 w-4" />}
+                            className='min-w-[120px] bg-[#3f51b5] text-white uppercase shadow-md hover:bg-[#303f9f]'>
+                            {isLoading ? <RotateCcw className='mr-2 h-4 w-4 animate-spin' /> : <Printer className='mr-2 h-4 w-4' />}
                             Report
                         </Button>
                         <Button
-                            size="sm"
+                            size='sm'
                             onClick={handleReset}
-                            className="min-w-[120px] bg-[#ff5722] hover:bg-[#f4511e] text-white shadow-md uppercase"
-                        >
-                            <RotateCcw className="mr-2 h-4 w-4" />
+                            className='min-w-[120px] bg-[#ff5722] text-white uppercase shadow-md hover:bg-[#f4511e]'>
+                            <RotateCcw className='mr-2 h-4 w-4' />
                             Cancel
                         </Button>
                         <Button
-                            size="sm"
+                            size='sm'
                             onClick={handlePrint}
                             disabled={!showCertificate}
-                            className="min-w-[120px] bg-[#e0e0e0] hover:bg-[#d5d5d5] text-gray-700 shadow-md uppercase disabled:bg-gray-100"
-                        >
-                            <Printer className="mr-2 h-4 w-4" />
+                            className='min-w-[120px] bg-[#e0e0e0] text-gray-700 uppercase shadow-md hover:bg-[#d5d5d5] disabled:bg-gray-100'>
+                            <Printer className='mr-2 h-4 w-4' />
                             Print
                         </Button>
                     </div>
@@ -447,17 +457,12 @@ export default function TunBridgeStudyCertificatePage() {
             </CollapsibleSection>
 
             {showCertificate && reportData && (
-                <div className="mt-8 flex justify-center overflow-x-auto p-4 bg-gray-100 rounded-xl border-2 border-dashed border-gray-300">
-                    <div className="bg-white shadow-2xl origin-top">
-                        <TunBridgeStudyCertificatePrint
-                            ref={printRef}
-                            data={reportData}
-                            selectedDate={selectedDate}
-                        />
+                <div className='mt-8 flex justify-center overflow-x-auto rounded-xl border-2 border-gray-300 border-dashed bg-gray-100 p-4'>
+                    <div className='origin-top bg-white shadow-2xl'>
+                        <TunBridgeStudyCertificatePrint ref={printRef} data={reportData} selectedDate={selectedDate} />
                     </div>
                 </div>
             )}
         </div>
     );
 }
-

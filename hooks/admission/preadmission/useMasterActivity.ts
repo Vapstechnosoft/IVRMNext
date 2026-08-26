@@ -1,14 +1,14 @@
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import type { IMasterActivity } from '@/schemas/admission/preadmission/master_activity';
 import {
-    getMasterActivitiesDetails,
-    getSelectedMasterActivityRow,
     addOrUpdateMasterActivity,
-    deleteMasterActivityData
+    deleteMasterActivityData,
+    getMasterActivitiesDetails,
+    getSelectedMasterActivityRow
 } from '@/server/admission/preadmission/masters/master_activity';
 import type { ApiSearchparams } from '@/types';
-import type { IMasterActivity } from '@/schemas/admission/preadmission/master_activity';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 const QUERY_KEYS = {
     MASTER_ACTIVITY_DETAILS: 'master_activity_details',
@@ -20,7 +20,7 @@ const QUERY_KEYS = {
  */
 export const useMasterActivityDetails = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
-    
+
     const query = useQuery({
         queryKey: [QUERY_KEYS.MASTER_ACTIVITY_DETAILS, searchParams ?? {}],
         queryFn: () => getMasterActivitiesDetails(searchParams),

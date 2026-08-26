@@ -358,6 +358,14 @@ export const feesModule: IUserAccessibleModules = {
                             url: '/fees/transactions/stafftransaction',
                             title: 'Fee Staff Other Transaction',
                             description: 'Fee Staff Other Transaction'
+                        },
+                        {
+                            id: 519,
+                            name: 'Student Fee Enable Partial Payment',
+                            icon: 'BadgeIndianRupee',
+                            url: '/fees/transactions/studentfeeenablepartialpayment',
+                            title: 'Student Fee Enable Partial Payment',
+                            description: 'Manage Student Fee Enable Partial Payment'
                         }
                     ]
                 },

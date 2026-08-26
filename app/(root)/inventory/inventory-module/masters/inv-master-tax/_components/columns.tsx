@@ -67,8 +67,7 @@ function InvMasterTaxActionButtons({
                 type='button'
                 onClick={handleViewLedger}
                 className='rounded-md p-2 transition hover:bg-muted'
-                title='View Ledger Mapping'
-            >
+                title='View Ledger Mapping'>
                 <Eye className='h-4 w-4 text-blue-600' />
             </button>
 

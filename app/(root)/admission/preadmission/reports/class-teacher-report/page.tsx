@@ -13,7 +13,7 @@ import { getExcelClassTeacherReport } from '@/server/admission/preadmission/repo
 import { GetClassTeacherReport } from '@/server/admission/preadmission/reports/student_yearly_attendance';
 import type { IClassTeacherReportList } from '@/types/admission/preadmission/reports';
 import { FileText, Printer, RotateCcw, X } from 'lucide-react';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
 import { ClassTeacherReportPrint } from './_components/class-teacher-report-print';
@@ -61,8 +61,6 @@ export default function ClassTeacherReportPage(props: {
         data: (response?.data as any)?.searchstudentDetails || []
     });
 
-
-
     const handleFilterChange = (filterType: string, value: number) => {
         if (filterType === 'academic_year') {
             setAcademicYearId(value);
@@ -96,8 +94,8 @@ export default function ClassTeacherReportPage(props: {
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                    });
+                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                      });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);
@@ -252,9 +250,7 @@ export default function ClassTeacherReportPage(props: {
                                 Category
                             </Label>
 
-                            <Select
-                                onValueChange={(value) => handleFilterChange('category', Number(value))}
-                                value={amcId?.toString()}>
+                            <Select onValueChange={(value) => handleFilterChange('category', Number(value))} value={amcId?.toString()}>
                                 <SelectTrigger id='category' className='w-full'>
                                     <SelectValue placeholder='--Select Category--' />
                                 </SelectTrigger>
@@ -335,50 +331,48 @@ export default function ClassTeacherReportPage(props: {
                             Cancel
                         </Button>
 
-                        {showReport &&
-                            response && (
-                                <>
-                                    <Button onClick={downloadExcel} className='w-fit'>
-                                        Export to Excel
-                                    </Button>
-                                    <Button
-                                        variant='outline'
-                                        className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'
-                                        onClick={handlePrint}>
-                                        <Printer className='mr-2 h-4 w-4' />
-                                        Print
-                                    </Button>
-                                </>
-                            )}
+                        {showReport && response && (
+                            <>
+                                <Button onClick={downloadExcel} className='w-fit'>
+                                    Export to Excel
+                                </Button>
+                                <Button
+                                    variant='outline'
+                                    className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'
+                                    onClick={handlePrint}>
+                                    <Printer className='mr-2 h-4 w-4' />
+                                    Print
+                                </Button>
+                            </>
+                        )}
                     </div>
                 </div>
             </CollapsibleSection>
 
-            {showReport &&
-                response && (
-                    <div id='printable-report'>
-                        <CollapsibleSection
-                            title='Class Teacher Report Results'
-                            defaultOpen={true}
-                            variant='outline'
-                            size='md'
-                            className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                            <GenericDataTable<IClassTeacherReportList>
-                                {...tableProps}
-                                ref={tableRef}
-                                columns={columns}
-                                isLoading={isLoading}
-                                error={error}
-                                showViewOptions={false}
-                                loadingMessage='Loading class teacher reports...'
-                                noDataTitle='No Data Found'
-                                noDataDescription='No class teacher reports found.'
-                                errorTitle='Error Loading Class Teacher Reports'
-                                onRowSelectionChange={handleSelectStudent}
-                            />
-                        </CollapsibleSection>
-                    </div>
-                )}
+            {showReport && response && (
+                <div id='printable-report'>
+                    <CollapsibleSection
+                        title='Class Teacher Report Results'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <GenericDataTable<IClassTeacherReportList>
+                            {...tableProps}
+                            ref={tableRef}
+                            columns={columns}
+                            isLoading={isLoading}
+                            error={error}
+                            showViewOptions={false}
+                            loadingMessage='Loading class teacher reports...'
+                            noDataTitle='No Data Found'
+                            noDataDescription='No class teacher reports found.'
+                            errorTitle='Error Loading Class Teacher Reports'
+                            onRowSelectionChange={handleSelectStudent}
+                        />
+                    </CollapsibleSection>
+                </div>
+            )}
 
             {/* Hidden Print Component */}
             <div
@@ -393,11 +387,7 @@ export default function ClassTeacherReportPage(props: {
                     pointerEvents: 'none',
                     zIndex: -1
                 }}>
-                <ClassTeacherReportPrint
-                    ref={componentRef}
-                    data={printData}
-                    reportType={reportType}
-                />
+                <ClassTeacherReportPrint ref={componentRef} data={printData} reportType={reportType} />
             </div>
         </div>
     );

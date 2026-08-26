@@ -1,11 +1,6 @@
 import { PDA_QUERY_KEYS } from '@/constants/pda-query-keys';
 import { getSectionDetails, getStudentDetails } from '@/server/pda/pda-common';
-import {
-    getPDAReportLoadData,
-    getPDASectionsSRS,
-    getPDAStudentsSRS,
-    generatePDADebitCreditReportSRS
-} from '@/server/pda/report/debit-credit-report';
+import { generatePDADebitCreditReportSRS, getPDAReportLoadData } from '@/server/pda/report/debit-credit-report';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const usePDAReportLoadData = () => {

@@ -1,11 +1,15 @@
 'use server';
 
-import { api, getSearchParamsUrl, type ApiResponse } from '@/lib/apiService';
-import { IDropdown } from '@/types';
-import { StudentAgeCalculationFormData, StudentAgeRecord } from '@/schemas/sports/transactions/student-age-calculation';
-import { StudentAgeCalculationInitialData } from '@/types/sports/transactions/student-age-calculation';
+import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
+import type { StudentAgeCalculationFormData, StudentAgeRecord } from '@/schemas/sports/transactions/student-age-calculation';
+import type { IDropdown } from '@/types';
+import type { StudentAgeCalculationInitialData } from '@/types/sports/transactions/student-age-calculation';
 
-export async function getInitialData(searchParams?: any): Promise<ApiResponse<{ academicYears: IDropdown[], classes: IDropdown[], sections: IDropdown[], records: StudentAgeRecord[], total: number }>> {
+export async function getInitialData(
+    searchParams?: any
+): Promise<
+    ApiResponse<{ academicYears: IDropdown[]; classes: IDropdown[]; sections: IDropdown[]; records: StudentAgeRecord[]; total: number }>
+> {
     try {
         const params = { ...searchParams };
         if (params.search_query) {
@@ -22,7 +26,7 @@ export async function getInitialData(searchParams?: any): Promise<ApiResponse<{ 
             };
         }
 
-        const data = (response.data as any);
+        const data = response.data as any;
         const records: StudentAgeRecord[] = (data.listt || []).map((r: any, index: number) => ({
             id: index + 1,
             asmaY_Year: r.asmaY_Year,
@@ -58,12 +62,12 @@ export async function getInitialData(searchParams?: any): Promise<ApiResponse<{ 
         return {
             success: response.success,
             message: response.message || 'Initial data fetched successfully',
-            data: { 
-                academicYears, 
-                classes, 
-                sections, 
-                records, 
-                total: response.total ?? 0 
+            data: {
+                academicYears,
+                classes,
+                sections,
+                records,
+                total: response.total ?? 0
             }
         };
     } catch (error: any) {
@@ -75,7 +79,9 @@ export async function getInitialData(searchParams?: any): Promise<ApiResponse<{ 
     }
 }
 
-export async function getStudents(data: { ASMAY_Id: number, AMST_Id: number, ASMCL_Id: number, ASMS_Id: number }): Promise<ApiResponse<IDropdown[]>> {
+export async function getStudents(data: { ASMAY_Id: number; AMST_Id: number; ASMCL_Id: number; ASMS_Id: number }): Promise<
+    ApiResponse<IDropdown[]>
+> {
     try {
         // Sending data in both body and params to be safe, as backend snippet lacks [FromBody]
         const response = await api.post<any>('sports', '/StudentAgeCalc/getStudents', data, { params: data });
@@ -116,7 +122,7 @@ export async function saveStudentAge(data: StudentAgeCalculationFormData): Promi
             ASMS_Id: data.ASMS_Id,
             AMST_Id: 0,
             Till_Date: data.Till_Date ? new Date(data.Till_Date).toISOString().split('T')[0] : null,
-            student: data.student.map(id => ({ AMST_Id: id }))
+            student: data.student.map((id) => ({ AMST_Id: id }))
         };
 
         const response = await api.post<any>('sports', '/StudentAgeCalc/save', payload);

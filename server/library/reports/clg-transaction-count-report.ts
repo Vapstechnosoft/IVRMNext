@@ -1,7 +1,7 @@
 'use server';
 
-import { auth } from '@/lib/auth';
 import { api } from '@/lib/apiService';
+import { auth } from '@/lib/auth';
 import type {
     ICLGTransactionCountReportInitialData,
     ICLGTransactionCountReportRequest
@@ -38,7 +38,7 @@ export async function getCLGTransactionCountReportSearch(data: ICLGTransactionCo
 
     const payload = {
         ...data,
-        mI_Id: session.mi_id,
+        mI_Id: session.mi_id
     };
 
     const url = `${FACADE}/CLGget_report`;
@@ -46,11 +46,11 @@ export async function getCLGTransactionCountReportSearch(data: ICLGTransactionCo
     const responseData = response.data || response;
 
     return extractList(
-        responseData.data?.alldata || 
-        responseData.alldata || 
-        responseData.reportlist || 
-        responseData.griddata || 
-        responseData.statuslist ||
-        (Array.isArray(responseData) ? responseData : [])
+        responseData.data?.alldata ||
+            responseData.alldata ||
+            responseData.reportlist ||
+            responseData.griddata ||
+            responseData.statuslist ||
+            (Array.isArray(responseData) ? responseData : [])
     );
 }

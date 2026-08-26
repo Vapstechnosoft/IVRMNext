@@ -1,12 +1,12 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { TIMETABLE_QUERY_KEYS } from '@/constants/Timetable-query-keys';
 import {
+    getPDADebitCreditReport,
     getPDADebitCreditReportInitialData,
     getPDADebitCreditReportSections,
-    getPDADebitCreditReportStudents,
-    getPDADebitCreditReport,
+    getPDADebitCreditReportStudents
 } from '@/server/pettycash/report/PDADebitCreditReport';
-import { IPDADebitCreditReportParams } from '@/types/pettycash/report/PDADebitCreditReport';
-import { TIMETABLE_QUERY_KEYS } from '@/constants/Timetable-query-keys';
+import type { IPDADebitCreditReportParams } from '@/types/pettycash/report/PDADebitCreditReport';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const usePDADebitCreditReportInitialData = () => {
     const queryClient = useQueryClient();
@@ -28,20 +28,18 @@ export const usePDADebitCreditReportInitialData = () => {
 
 export const usePDADebitCreditReportSectionsMutation = () => {
     return useMutation({
-        mutationFn: (data: { ASMAY_Id: number; ASMCL_Id: number }) =>
-            getPDADebitCreditReportSections(data),
+        mutationFn: (data: { ASMAY_Id: number; ASMCL_Id: number }) => getPDADebitCreditReportSections(data)
     });
 };
 
 export const usePDADebitCreditReportStudentsMutation = () => {
     return useMutation({
-        mutationFn: (data: { ASMAY_Id: number; ASMCL_Id: number; AMSC_Id: number }) =>
-            getPDADebitCreditReportStudents(data),
+        mutationFn: (data: { ASMAY_Id: number; ASMCL_Id: number; AMSC_Id: number }) => getPDADebitCreditReportStudents(data)
     });
 };
 
 export const usePDADebitCreditReportMutation = () => {
     return useMutation({
-        mutationFn: (data: IPDADebitCreditReportParams) => getPDADebitCreditReport(data),
+        mutationFn: (data: IPDADebitCreditReportParams) => getPDADebitCreditReport(data)
     });
 };

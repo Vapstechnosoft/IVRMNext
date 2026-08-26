@@ -1,23 +1,15 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from '@/components/ui/form';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { saveMasterSportsCCNameUOM } from '@/server/sports/masters/sports-cc-name-uom';
-import { MasterSportsCCNameUOMSchema, type IMasterSportsCCNameUOM, type ISportsCCName, type IUOM } from '@/types/sports/masters/sports-cc-name-uom';
+import {
+    type IMasterSportsCCNameUOM,
+    type ISportsCCName,
+    type IUOM,
+    MasterSportsCCNameUOMSchema
+} from '@/types/sports/masters/sports-cc-name-uom';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
@@ -35,7 +27,12 @@ interface UpdateMasterSportsCCNameUOMFormProps {
 import { editMasterSportsCCNameUOM } from '@/server/sports/masters/sports-cc-name-uom';
 import { useEffect } from 'react';
 
-export default function UpdateMasterSportsCCNameUOMForm({ selectedRow, onSuccess, sportsCCNameList, uomList }: UpdateMasterSportsCCNameUOMFormProps) {
+export default function UpdateMasterSportsCCNameUOMForm({
+    selectedRow,
+    onSuccess,
+    sportsCCNameList,
+    uomList
+}: UpdateMasterSportsCCNameUOMFormProps) {
     const queryClient = useQueryClient();
 
     const form = useForm<z.infer<typeof MasterSportsCCNameUOMSchema>>({
@@ -64,7 +61,7 @@ export default function UpdateMasterSportsCCNameUOMForm({ selectedRow, onSuccess
                     });
                 }
             } catch (err) {
-                console.error("Failed to load edit details", err);
+                console.error('Failed to load edit details', err);
             }
         };
 
@@ -99,22 +96,23 @@ export default function UpdateMasterSportsCCNameUOMForm({ selectedRow, onSuccess
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-4 pt-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form onSubmit={form.handleSubmit(onSubmit, onError)} className='space-y-4 pt-4'>
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                     <FormField
                         control={form.control}
-                        name="spccmscC_Id"
+                        name='spccmscC_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Sports Name <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>
+                                    Sports Name <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <Select
                                     onValueChange={(val) => field.onChange(Number(val))}
                                     value={field.value?.toString()}
-                                    searchable={true}
-                                >
+                                    searchable={true}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="--Select Sports Name--" />
+                                            <SelectValue placeholder='--Select Sports Name--' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
@@ -131,18 +129,19 @@ export default function UpdateMasterSportsCCNameUOMForm({ selectedRow, onSuccess
                     />
                     <FormField
                         control={form.control}
-                        name="spccmuoM_Id"
+                        name='spccmuoM_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>UOM <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel>
+                                    UOM <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <Select
                                     onValueChange={(val) => field.onChange(Number(val))}
                                     value={field.value?.toString()}
-                                    searchable={true}
-                                >
+                                    searchable={true}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="--Select UOM--" />
+                                            <SelectValue placeholder='--Select UOM--' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
@@ -159,21 +158,24 @@ export default function UpdateMasterSportsCCNameUOMForm({ selectedRow, onSuccess
                     />
                 </div>
 
-                <div className="flex justify-center gap-4">
-                    <Button type="submit" disabled={form.formState.isSubmitting}>
+                <div className='flex justify-center gap-4'>
+                    <Button type='submit' disabled={form.formState.isSubmitting}>
                         {form.formState.isSubmitting ? (
                             <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                                 Updating...
                             </>
                         ) : (
                             'Update'
                         )}
                     </Button>
-                    <Button type="button" variant="destructive" onClick={() => {
-                        form.reset();
-                        onSuccess();
-                    }}>
+                    <Button
+                        type='button'
+                        variant='destructive'
+                        onClick={() => {
+                            form.reset();
+                            onSuccess();
+                        }}>
                         Cancel
                     </Button>
                 </div>

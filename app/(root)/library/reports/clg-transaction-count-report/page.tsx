@@ -26,7 +26,10 @@ export default function CLGTransactionCountReportPage() {
         setHasSearched(false);
         searchMutation.mutate(data, {
             onSuccess: (response: any) => {
-                const data = (response.alldata || response.reportlist || response.griddata || (Array.isArray(response) ? response : [])) as ICLGTransactionCountReportGridData[];
+                const data = (response.alldata ||
+                    response.reportlist ||
+                    response.griddata ||
+                    (Array.isArray(response) ? response : [])) as ICLGTransactionCountReportGridData[];
                 setReportData(data);
                 setHasSearched(true);
                 if (data.length === 0) {
@@ -65,19 +68,15 @@ export default function CLGTransactionCountReportPage() {
                   { label: 'Count', value: 'seccount' }
               ];
 
-        exportToExcel(
-            'College_Transaction_Report',
-            JSON.stringify(columns),
-            JSON.stringify(reportData)
-        );
+        exportToExcel('College_Transaction_Report', JSON.stringify(columns), JSON.stringify(reportData));
     };
 
     return (
         <div className='space-y-4'>
             <CollapsibleSection title='STUDENT BOOK Transaction Count Report' defaultOpen={true}>
-                <ReportForm 
-                    onSearch={handleSearch} 
-                    isLoading={searchMutation.isPending} 
+                <ReportForm
+                    onSearch={handleSearch}
+                    isLoading={searchMutation.isPending}
                     onPrint={() => window.print()}
                     onExport={handleExport}
                     onCancel={() => {
@@ -87,7 +86,6 @@ export default function CLGTransactionCountReportPage() {
                     hasData={reportData.length > 0}
                 />
             </CollapsibleSection>
-
 
             {reportData.length > 0 && (
                 <CollapsibleSection title='Report Grid' defaultOpen={true}>

@@ -189,278 +189,267 @@ interface SubjectTableRowProps {
     validateRowWithZod: (row: NormalizedSubject) => Record<string, string>;
 }
 
-const SubjectTableRow = React.memo(({
-    s,
-    index,
-    showSubExamColumn,
-    showSubSubjectColumn,
-    gradeList,
-    errors,
-    updateSubjectField,
-    setSubjectChecked,
-    handleMapClick,
-    setErrors,
-    validateRowWithZod
-}: SubjectTableRowProps) => {
-    const hasMaxMarks =
-        s.eyceS_MaxMarks !== '' &&
-        s.eyceS_MaxMarks !== null &&
-        s.eyceS_MaxMarks !== undefined &&
-        s.eyceS_MaxMarks !== 0;
-    const hasMinMarks =
-        s.eyceS_MinMarks !== '' &&
-        s.eyceS_MinMarks !== null &&
-        s.eyceS_MinMarks !== undefined &&
-        s.eyceS_MinMarks !== 0;
-    const hasEntryMax =
-        s.eyceS_MarksEntryMax !== '' &&
-        s.eyceS_MarksEntryMax !== null &&
-        s.eyceS_MarksEntryMax !== undefined &&
-        s.eyceS_MarksEntryMax !== 0;
+const SubjectTableRow = React.memo(
+    ({
+        s,
+        index,
+        showSubExamColumn,
+        showSubSubjectColumn,
+        gradeList,
+        errors,
+        updateSubjectField,
+        setSubjectChecked,
+        handleMapClick,
+        setErrors,
+        validateRowWithZod
+    }: SubjectTableRowProps) => {
+        const hasMaxMarks =
+            s.eyceS_MaxMarks !== '' && s.eyceS_MaxMarks !== null && s.eyceS_MaxMarks !== undefined && s.eyceS_MaxMarks !== 0;
+        const hasMinMarks =
+            s.eyceS_MinMarks !== '' && s.eyceS_MinMarks !== null && s.eyceS_MinMarks !== undefined && s.eyceS_MinMarks !== 0;
+        const hasEntryMax =
+            s.eyceS_MarksEntryMax !== '' &&
+            s.eyceS_MarksEntryMax !== null &&
+            s.eyceS_MarksEntryMax !== undefined &&
+            s.eyceS_MarksEntryMax !== 0;
 
-    const canToggleSubFlags = hasMaxMarks && hasMinMarks && hasEntryMax;
+        const canToggleSubFlags = hasMaxMarks && hasMinMarks && hasEntryMax;
 
-    const renderFieldError = (field: string) => {
-        if (!errors) return null;
-        const msg = errors[field];
-        if (!msg) return null;
-        return <div className='mt-1 text-red-500 text-xs'>{msg}</div>;
-    };
+        const renderFieldError = (field: string) => {
+            if (!errors) return null;
+            const msg = errors[field];
+            if (!msg) return null;
+            return <div className='mt-1 text-red-500 text-xs'>{msg}</div>;
+        };
 
-    return (
-        <tr className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-            <td className='border p-2 text-center align-top'>{index + 1}</td>
+        return (
+            <tr className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                <td className='border p-2 text-center align-top'>{index + 1}</td>
 
-            <td className='border p-2 text-center align-top'>
-                <Checkbox
-                    checked={!!s.checkedvalue}
-                    onCheckedChange={(v) => setSubjectChecked(s.ismS_Id, !!v)}
-                />
-            </td>
-
-            <td className='border p-2 align-top'>
-                <div className='text-sm'>
-                    <div className='font-medium'>{s.ismS_SubjectName}</div>
-                    <div className='text-slate-500 text-xs'>{s.ismS_SubjectCode ?? ''}</div>
-                </div>
-            </td>
-
-            {/* Max Marks */}
-            <td className='w-28 border p-2 align-top'>
-                <Input
-                    value={s.eyceS_MaxMarks === '' || s.eyceS_MaxMarks === 0 ? '' : String(s.eyceS_MaxMarks)}
-                    onChange={(e) => {
-                        const raw = e.target.value.replace(/\D/g, '');
-                        updateSubjectField(s.ismS_Id, 'eyceS_MaxMarks', raw === '' ? '' : Number(raw));
-                        setErrors((prev) => ({
-                            ...prev,
-                            [s.ismS_Id]: {
-                                ...(prev[s.ismS_Id] ?? {}),
-                                eyceS_MinMarks: '',
-                                eyceS_MarksEntryMax: ''
-                            }
-                        }));
-                    }}
-                    onBlur={() => {
-                        const rowErrors = validateRowWithZod(s);
-                        setErrors((prev) => ({
-                            ...prev,
-                            [s.ismS_Id]: rowErrors
-                        }));
-                    }}
-                    placeholder='Enter Max Marks'
-                    inputMode='numeric'
-                    className={`text-center ${errors?.eyceS_MaxMarks ? 'border-red-500' : ''}`}
-                />
-                {renderFieldError('eyceS_MaxMarks')}
-            </td>
-
-            {/* Min Marks */}
-            <td className='w-24 border p-2 align-top'>
-                <Input
-                    value={s.eyceS_MinMarks === '' || s.eyceS_MinMarks === 0 ? '' : String(s.eyceS_MinMarks)}
-                    onChange={(e) => {
-                        const raw = e.target.value.replace(/\D/g, '');
-                        updateSubjectField(s.ismS_Id, 'eyceS_MinMarks', raw === '' ? '' : Number(raw));
-                        setErrors((prev) => ({
-                            ...prev,
-                            [s.ismS_Id]: {
-                                ...(prev[s.ismS_Id] ?? {}),
-                                eyceS_MaxMarks: ''
-                            }
-                        }));
-                    }}
-                    onBlur={() => {
-                        const rowErrors = validateRowWithZod(s);
-                        setErrors((prev) => ({
-                            ...prev,
-                            [s.ismS_Id]: rowErrors
-                        }));
-                    }}
-                    placeholder='Enter Min Marks'
-                    inputMode='numeric'
-                    className={`text-center ${errors?.eyceS_MinMarks ? 'border-red-500' : ''}`}
-                />
-                {renderFieldError('eyceS_MinMarks')}
-            </td>
-
-            {/* Max Entry */}
-            <td className='w-28 border p-2 align-top'>
-                <Input
-                    value={s.eyceS_MarksEntryMax === '' || s.eyceS_MarksEntryMax === 0 ? '' : String(s.eyceS_MarksEntryMax)}
-                    onChange={(e) => {
-                        const raw = e.target.value.replace(/\D/g, '');
-                        updateSubjectField(s.ismS_Id, 'eyceS_MarksEntryMax', raw === '' ? '' : Number(raw));
-                        setErrors((prev) => ({
-                            ...prev,
-                            [s.ismS_Id]: {
-                                ...(prev[s.ismS_Id] ?? {}),
-                                eyceS_MaxMarks: ''
-                            }
-                        }));
-                    }}
-                    onBlur={() => {
-                        const rowErrors = validateRowWithZod(s);
-                        setErrors((prev) => ({
-                            ...prev,
-                            [s.ismS_Id]: rowErrors
-                        }));
-                    }}
-                    placeholder='Enter Max Entry'
-                    inputMode='numeric'
-                    className={`text-center ${errors?.eyceS_MarksEntryMax ? 'border-red-500' : ''}`}
-                />
-                {renderFieldError('eyceS_MarksEntryMax')}
-            </td>
-
-            {/* SubExam */}
-            {showSubExamColumn && (
                 <td className='border p-2 text-center align-top'>
-                    <Checkbox
-                        checked={!!s.eyceS_SubExamFlg}
-                        onCheckedChange={(v) => updateSubjectField(s.ismS_Id, 'eyceS_SubExamFlg', !!v)}
-                        disabled={!canToggleSubFlags}
-                    />
+                    <Checkbox checked={!!s.checkedvalue} onCheckedChange={(v) => setSubjectChecked(s.ismS_Id, !!v)} />
                 </td>
-            )}
 
-            {/* SubSubject */}
-            {showSubSubjectColumn && (
-                <td className='border p-2 text-center align-top'>
-                    <Checkbox
-                        checked={!!s.eyceS_SubSubjectFlg}
-                        onCheckedChange={(v) => updateSubjectField(s.ismS_Id, 'eyceS_SubSubjectFlg', !!v)}
-                        disabled={!canToggleSubFlags}
-                    />
-                </td>
-            )}
-
-            {/* Map Button */}
-            {(showSubExamColumn || showSubSubjectColumn) && (
-                <td className='border p-2 text-center align-top'>
-                    <Button
-                        size='sm'
-                        type='button'
-                        variant='outline'
-                        onClick={() => handleMapClick(s)}
-                        disabled={!canToggleSubFlags || !(s.eyceS_SubExamFlg || s.eyceS_SubSubjectFlg)}>
-                        Map
-                    </Button>
-                </td>
-            )}
-
-            {/* Marks / Grade options */}
-            <td className='border p-2 align-top'>
-                <RadioGroup
-                    value={s.eyceS_MarksGradeEntryFlg ?? 'M'}
-                    onValueChange={(val) => updateSubjectField(s.ismS_Id, 'eyceS_MarksGradeEntryFlg', val)}
-                    className='flex items-center justify-center gap-6'>
-                    <div className='flex items-center gap-2'>
-                        <RadioGroupItem value='M' id={`marks-${s.ismS_Id}`} />
-                        <label
-                            htmlFor={`marks-${s.ismS_Id}`}
-                            className='cursor-pointer select-none font-medium text-sm leading-none'>
-                            Marks
-                        </label>
+                <td className='border p-2 align-top'>
+                    <div className='text-sm'>
+                        <div className='font-medium'>{s.ismS_SubjectName}</div>
+                        <div className='text-slate-500 text-xs'>{s.ismS_SubjectCode ?? ''}</div>
                     </div>
+                </td>
 
-                    <div className='flex items-center gap-2'>
-                        <RadioGroupItem value='G' id={`grade-${s.ismS_Id}`} />
-                        <label
-                            htmlFor={`grade-${s.ismS_Id}`}
-                            className='cursor-pointer select-none font-medium text-sm leading-none'>
-                            Grade
-                        </label>
-                    </div>
-                </RadioGroup>
-            </td>
-
-            {/* Marks Display */}
-            <td className='border p-2 text-center align-top'>
-                <Checkbox
-                    checked={!!s.eyceS_MarksDisplayFlg}
-                    onCheckedChange={(v) => updateSubjectField(s.ismS_Id, 'eyceS_MarksDisplayFlg', !!v)}
-                />
-            </td>
-
-            {/* Grade Display */}
-            <td className='border p-2 text-center align-top'>
-                <Checkbox
-                    checked={!!s.eyceS_GradeDisplayFlg}
-                    onCheckedChange={(v) => updateSubjectField(s.ismS_Id, 'eyceS_GradeDisplayFlg', !!v)}
-                />
-            </td>
-
-            {/* Apply to Result */}
-            <td className='border p-2 text-center align-top'>
-                <Checkbox
-                    checked={!!s.eyceS_AplResultFlg}
-                    onCheckedChange={(v) => updateSubjectField(s.ismS_Id, 'eyceS_AplResultFlg', !!v)}
-                />
-            </td>
-
-            <td className='w-[150px] min-w-[150px] max-w-[150px] border p-2 align-top'>
-                <Select
-                    value={s.emgR_Id ? String(s.emgR_Id) : ''}
-                    onValueChange={(val) => {
-                        const num = Number(val);
-                        updateSubjectField(s.ismS_Id, 'emgR_Id', num);
-
-                        // clear grade error immediately
-                        setErrors((prev) => {
-                            const rowErrors = prev[s.ismS_Id];
-                            if (!rowErrors?.emgR_Id) return prev;
-
-                            const { emgR_Id, ...rest } = rowErrors;
-
-                            if (Object.keys(rest).length === 0) {
-                                const { [s.ismS_Id]: _, ...remaining } = prev;
-                                return remaining;
-                            }
-
-                            return {
+                {/* Max Marks */}
+                <td className='w-28 border p-2 align-top'>
+                    <Input
+                        value={s.eyceS_MaxMarks === '' || s.eyceS_MaxMarks === 0 ? '' : String(s.eyceS_MaxMarks)}
+                        onChange={(e) => {
+                            const raw = e.target.value.replace(/\D/g, '');
+                            updateSubjectField(s.ismS_Id, 'eyceS_MaxMarks', raw === '' ? '' : Number(raw));
+                            setErrors((prev) => ({
                                 ...prev,
-                                [s.ismS_Id]: rest
-                            };
-                        });
-                    }}>
-                    <SelectTrigger className='w-full'>
-                        <SelectValue placeholder='Select Grade' />
-                    </SelectTrigger>
+                                [s.ismS_Id]: {
+                                    ...(prev[s.ismS_Id] ?? {}),
+                                    eyceS_MinMarks: '',
+                                    eyceS_MarksEntryMax: ''
+                                }
+                            }));
+                        }}
+                        onBlur={() => {
+                            const rowErrors = validateRowWithZod(s);
+                            setErrors((prev) => ({
+                                ...prev,
+                                [s.ismS_Id]: rowErrors
+                            }));
+                        }}
+                        placeholder='Enter Max Marks'
+                        inputMode='numeric'
+                        className={`text-center ${errors?.eyceS_MaxMarks ? 'border-red-500' : ''}`}
+                    />
+                    {renderFieldError('eyceS_MaxMarks')}
+                </td>
 
-                    <SelectContent>
-                        {gradeList.map((g) => (
-                            <SelectItem key={g.emgR_Id} value={String(g.emgR_Id)}>
-                                {g.emgR_GradeName}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-                {renderFieldError('emgR_Id')}
-            </td>
-        </tr>
-    );
-});
+                {/* Min Marks */}
+                <td className='w-24 border p-2 align-top'>
+                    <Input
+                        value={s.eyceS_MinMarks === '' || s.eyceS_MinMarks === 0 ? '' : String(s.eyceS_MinMarks)}
+                        onChange={(e) => {
+                            const raw = e.target.value.replace(/\D/g, '');
+                            updateSubjectField(s.ismS_Id, 'eyceS_MinMarks', raw === '' ? '' : Number(raw));
+                            setErrors((prev) => ({
+                                ...prev,
+                                [s.ismS_Id]: {
+                                    ...(prev[s.ismS_Id] ?? {}),
+                                    eyceS_MaxMarks: ''
+                                }
+                            }));
+                        }}
+                        onBlur={() => {
+                            const rowErrors = validateRowWithZod(s);
+                            setErrors((prev) => ({
+                                ...prev,
+                                [s.ismS_Id]: rowErrors
+                            }));
+                        }}
+                        placeholder='Enter Min Marks'
+                        inputMode='numeric'
+                        className={`text-center ${errors?.eyceS_MinMarks ? 'border-red-500' : ''}`}
+                    />
+                    {renderFieldError('eyceS_MinMarks')}
+                </td>
+
+                {/* Max Entry */}
+                <td className='w-28 border p-2 align-top'>
+                    <Input
+                        value={s.eyceS_MarksEntryMax === '' || s.eyceS_MarksEntryMax === 0 ? '' : String(s.eyceS_MarksEntryMax)}
+                        onChange={(e) => {
+                            const raw = e.target.value.replace(/\D/g, '');
+                            updateSubjectField(s.ismS_Id, 'eyceS_MarksEntryMax', raw === '' ? '' : Number(raw));
+                            setErrors((prev) => ({
+                                ...prev,
+                                [s.ismS_Id]: {
+                                    ...(prev[s.ismS_Id] ?? {}),
+                                    eyceS_MaxMarks: ''
+                                }
+                            }));
+                        }}
+                        onBlur={() => {
+                            const rowErrors = validateRowWithZod(s);
+                            setErrors((prev) => ({
+                                ...prev,
+                                [s.ismS_Id]: rowErrors
+                            }));
+                        }}
+                        placeholder='Enter Max Entry'
+                        inputMode='numeric'
+                        className={`text-center ${errors?.eyceS_MarksEntryMax ? 'border-red-500' : ''}`}
+                    />
+                    {renderFieldError('eyceS_MarksEntryMax')}
+                </td>
+
+                {/* SubExam */}
+                {showSubExamColumn && (
+                    <td className='border p-2 text-center align-top'>
+                        <Checkbox
+                            checked={!!s.eyceS_SubExamFlg}
+                            onCheckedChange={(v) => updateSubjectField(s.ismS_Id, 'eyceS_SubExamFlg', !!v)}
+                            disabled={!canToggleSubFlags}
+                        />
+                    </td>
+                )}
+
+                {/* SubSubject */}
+                {showSubSubjectColumn && (
+                    <td className='border p-2 text-center align-top'>
+                        <Checkbox
+                            checked={!!s.eyceS_SubSubjectFlg}
+                            onCheckedChange={(v) => updateSubjectField(s.ismS_Id, 'eyceS_SubSubjectFlg', !!v)}
+                            disabled={!canToggleSubFlags}
+                        />
+                    </td>
+                )}
+
+                {/* Map Button */}
+                {(showSubExamColumn || showSubSubjectColumn) && (
+                    <td className='border p-2 text-center align-top'>
+                        <Button
+                            size='sm'
+                            type='button'
+                            variant='outline'
+                            onClick={() => handleMapClick(s)}
+                            disabled={!canToggleSubFlags || !(s.eyceS_SubExamFlg || s.eyceS_SubSubjectFlg)}>
+                            Map
+                        </Button>
+                    </td>
+                )}
+
+                {/* Marks / Grade options */}
+                <td className='border p-2 align-top'>
+                    <RadioGroup
+                        value={s.eyceS_MarksGradeEntryFlg ?? 'M'}
+                        onValueChange={(val) => updateSubjectField(s.ismS_Id, 'eyceS_MarksGradeEntryFlg', val)}
+                        className='flex items-center justify-center gap-6'>
+                        <div className='flex items-center gap-2'>
+                            <RadioGroupItem value='M' id={`marks-${s.ismS_Id}`} />
+                            <label htmlFor={`marks-${s.ismS_Id}`} className='cursor-pointer select-none font-medium text-sm leading-none'>
+                                Marks
+                            </label>
+                        </div>
+
+                        <div className='flex items-center gap-2'>
+                            <RadioGroupItem value='G' id={`grade-${s.ismS_Id}`} />
+                            <label htmlFor={`grade-${s.ismS_Id}`} className='cursor-pointer select-none font-medium text-sm leading-none'>
+                                Grade
+                            </label>
+                        </div>
+                    </RadioGroup>
+                </td>
+
+                {/* Marks Display */}
+                <td className='border p-2 text-center align-top'>
+                    <Checkbox
+                        checked={!!s.eyceS_MarksDisplayFlg}
+                        onCheckedChange={(v) => updateSubjectField(s.ismS_Id, 'eyceS_MarksDisplayFlg', !!v)}
+                    />
+                </td>
+
+                {/* Grade Display */}
+                <td className='border p-2 text-center align-top'>
+                    <Checkbox
+                        checked={!!s.eyceS_GradeDisplayFlg}
+                        onCheckedChange={(v) => updateSubjectField(s.ismS_Id, 'eyceS_GradeDisplayFlg', !!v)}
+                    />
+                </td>
+
+                {/* Apply to Result */}
+                <td className='border p-2 text-center align-top'>
+                    <Checkbox
+                        checked={!!s.eyceS_AplResultFlg}
+                        onCheckedChange={(v) => updateSubjectField(s.ismS_Id, 'eyceS_AplResultFlg', !!v)}
+                    />
+                </td>
+
+                <td className='w-[150px] min-w-[150px] max-w-[150px] border p-2 align-top'>
+                    <Select
+                        value={s.emgR_Id ? String(s.emgR_Id) : ''}
+                        onValueChange={(val) => {
+                            const num = Number(val);
+                            updateSubjectField(s.ismS_Id, 'emgR_Id', num);
+
+                            // clear grade error immediately
+                            setErrors((prev) => {
+                                const rowErrors = prev[s.ismS_Id];
+                                if (!rowErrors?.emgR_Id) return prev;
+
+                                const { emgR_Id, ...rest } = rowErrors;
+
+                                if (Object.keys(rest).length === 0) {
+                                    const { [s.ismS_Id]: _, ...remaining } = prev;
+                                    return remaining;
+                                }
+
+                                return {
+                                    ...prev,
+                                    [s.ismS_Id]: rest
+                                };
+                            });
+                        }}>
+                        <SelectTrigger className='w-full'>
+                            <SelectValue placeholder='Select Grade' />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                            {gradeList.map((g) => (
+                                <SelectItem key={g.emgR_Id} value={String(g.emgR_Id)}>
+                                    {g.emgR_GradeName}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    {renderFieldError('emgR_Id')}
+                </td>
+            </tr>
+        );
+    }
+);
 SubjectTableRow.displayName = 'SubjectTableRow';
 
 // ---------- Component ----------
@@ -913,17 +902,20 @@ export default function SubjectTableWithValidation({
     }, [subjects]);
 
     // ---------- handleMapClick ----------
-    const handleMapClick = useCallback((subject: any) => {
-        if (subject.eyceS_SubExamFlg && subject.eyceS_SubSubjectFlg) {
-            onOpenSubSubjectSubExamModal(subject);
-        } else if (showSubExamColumn && subject.eyceS_SubExamFlg) {
-            onOpenSubExamModal(subject);
-        } else if (showSubSubjectColumn && subject.eyceS_SubSubjectFlg) {
-            onOpenSubSubjectModal(subject);
-        } else {
-            toast.error('Enable SubExam or SubSubject for mapping first.');
-        }
-    }, [onOpenSubSubjectSubExamModal, showSubExamColumn, onOpenSubExamModal, showSubSubjectColumn, onOpenSubSubjectModal]);
+    const handleMapClick = useCallback(
+        (subject: any) => {
+            if (subject.eyceS_SubExamFlg && subject.eyceS_SubSubjectFlg) {
+                onOpenSubSubjectSubExamModal(subject);
+            } else if (showSubExamColumn && subject.eyceS_SubExamFlg) {
+                onOpenSubExamModal(subject);
+            } else if (showSubSubjectColumn && subject.eyceS_SubSubjectFlg) {
+                onOpenSubSubjectModal(subject);
+            } else {
+                toast.error('Enable SubExam or SubSubject for mapping first.');
+            }
+        },
+        [onOpenSubSubjectSubExamModal, showSubExamColumn, onOpenSubExamModal, showSubSubjectColumn, onOpenSubSubjectModal]
+    );
 
     // ---------- small UX helpers ----------
     const renderFieldError = (rowId: number, field: string) => {

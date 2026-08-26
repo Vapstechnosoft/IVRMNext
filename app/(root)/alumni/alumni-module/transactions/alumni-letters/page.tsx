@@ -37,13 +37,13 @@ export default function AlumniLettersPage() {
             const yearData = (yearRes as any).success
                 ? yearRes.data || []
                 : Array.isArray(yearRes)
-                    ? yearRes
-                    : (yearRes as any).newuser1 || [];
+                  ? yearRes
+                  : (yearRes as any).newuser1 || [];
             const classData = (classRes as any).success
                 ? classRes.data || []
                 : Array.isArray(classRes)
-                    ? classRes
-                    : (classRes as any).newuser2 || [];
+                  ? classRes
+                  : (classRes as any).newuser2 || [];
 
             if (yearData && Array.isArray(yearData)) {
                 // Deduplicate years

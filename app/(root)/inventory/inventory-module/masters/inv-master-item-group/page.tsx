@@ -1,5 +1,4 @@
 'use client';
-import React from 'react';
 import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
@@ -7,8 +6,9 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useInvMasterItemGroup } from '@/hooks/inventory/masters/use-inv-master-item-group';
 import type { IInvMasterItemGroup } from '@/types/inventory/masters/inv-master-group';
-import { Plus, X, Boxes, PlusCircle, Pencil } from 'lucide-react';
+import { Boxes, Pencil, Plus, PlusCircle, X } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
+import React from 'react';
 import { InvMasterItemGroupColumns } from './_components/item-group-columns';
 import { AddItemGroupForm, ToggleItemGroupForm, UpdateItemGroupForm } from './_components/item-group-form';
 
@@ -40,10 +40,10 @@ function ItemGroupPageContent() {
 
     const enrichedData = React.useMemo(() => {
         if (!response) return undefined;
-        
+
         // The actual API payload could be directly `response`, or wrapped inside `response.data`.
         const payload = response?.data || response;
-        
+
         let itemGroups = [];
         if (Array.isArray(payload)) {
             itemGroups = payload;
@@ -203,9 +203,7 @@ function FormSections({ response, userGroupsList }: FormSectionsProps) {
             )}
 
             {/* Toggle Form */}
-            {isToggleFormOpen && selectedRow && (
-                <ToggleItemGroupForm rowData={selectedRow} onClose={closeToggleForm} />
-            )}
+            {isToggleFormOpen && selectedRow && <ToggleItemGroupForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

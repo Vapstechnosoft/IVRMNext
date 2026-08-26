@@ -1,9 +1,10 @@
 'use client';
 
+import './signin-form.css';
 import PreadmissionRegistration from '@/app/(root)/admission/preadmission/transactions/preadmission-registration/page';
 import { useCheckPreadmissionLive } from '@/hooks/admission/preadmission/useConfigurations';
 import { loginSchema } from '@/schemas/admission/preadmission/masters';
-import { login, forgotUsernameAction } from '@/server/user';
+import { forgotUsernameAction, login } from '@/server/user';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
     ArrowRight,
@@ -22,14 +23,10 @@ import {
     User,
     X
 } from 'lucide-react';
-import { useParams, useSearchParams } from 'next/navigation'; // Added import here
+import { useParams, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
-import { AdaptiveDialog } from '@/components/ui/extension/adaptive-dialog';
-import AddPreadmissionRegistrationForm from '@/app/(root)/admission/preadmission/transactions/preadmission-registration/_components/registration-form';
-import { toast } from 'sonner';
-import ForgotPasswordModal from '../forgot-password/ForgotPasswordModal';
-import AlumniRegistrationModal from '../alumni-registration/AlumniRegistrationModal';
 import { type SubmitHandler, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof loginSchema>;
@@ -38,21 +35,16 @@ export default function SigninForm() {
     const searchParams = useSearchParams();
     const { sub_domain } = useParams();
 
-    const { data: preadmissionLive, refetch: refetchPreadmission } = useCheckPreadmissionLive(sub_domain?.toString() || '');
+    const { data: _preadmissionLive } = useCheckPreadmissionLive(sub_domain?.toString() || '');
 
     const callbackUrl = searchParams.get('callbackUrl') || '/';
     const [error, setError] = useState<string | undefined>('');
     const [isPending, startTransition] = useTransition();
     const [mounted, setMounted] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
-    const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
-    const [forgotMode, setForgotMode] = useState<'username' | 'password'>('password');
-    const [isPreadmissionModalOpen, setIsPreadmissionModalOpen] = useState(false);
-    const [isAlumniModalOpen, setIsAlumniModalOpen] = useState(false);
-    const [showSupportModal, setShowSupportModal] = useState(false);
 
     // Dialog / Modal states
-    const [isVirtualTourOpen, setIsVirtualTourOpen] = useState(false);
+    const [_isVirtualTourOpen, setIsVirtualTourOpen] = useState(false);
     const [isSubscribeOpen, setIsSubscribeOpen] = useState(false);
     const [subscribeEmail, setSubscribeEmail] = useState('');
     const [subscribeSuccess, setSubscribeSuccess] = useState(false);
@@ -392,8 +384,12 @@ export default function SigninForm() {
                             className='qr-card-link'
                             title='Click or scan to visit https://vapstechnoveda.com/subscriber'>
                             <div className='qr-card'>
-                                {/* Replaced the hardcoded component with the dynamic qrcode.react one */}
-                                <QRCodeSVG value='https://vapstechnoveda.com/subscriber' className='qr-code-svg' fgColor='#1e293b' />
+                                <img
+                                    src='https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://vapstechnoveda.com/subscriber'
+                                    alt='Technoveda QR Code'
+                                    className='qr-code-svg'
+                                    style={{ width: '110px', height: '110px', display: 'block', margin: '0 auto' }}
+                                />
                                 <span className='qr-caption'>Scan here to subscribe now</span>
                             </div>
                         </a>
@@ -525,7 +521,6 @@ export default function SigninForm() {
                                         }}
                                         placeholder='Enter Register Mobile Number'
                                         className='forgot-mobile-input'
-                                        autoFocus
                                     />
                                 </div>
 
@@ -544,10 +539,7 @@ export default function SigninForm() {
 
                                 {!forgotResult && (
                                     <div className='forgot-submit-container'>
-                                        <button
-                                            type='submit'
-                                            disabled={forgotPending}
-                                            className='forgot-username-submit-btn'>
+                                        <button type='submit' disabled={forgotPending} className='forgot-username-submit-btn'>
                                             {forgotPending ? 'SUBMITTING...' : 'SUBMIT'}
                                         </button>
                                     </div>

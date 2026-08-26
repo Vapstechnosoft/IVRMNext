@@ -1,7 +1,7 @@
 'use server';
 
-import { auth } from '@/lib/auth';
 import { api, getSearchParamsUrl } from '@/lib/apiService';
+import { auth } from '@/lib/auth';
 import type { ApiSearchparams } from '@/types';
 
 export async function getMasterTimeSlab(searchParams?: ApiSearchparams) {
@@ -34,17 +34,7 @@ export async function deactivateMasterTimeSlab(id: number) {
         const session = await auth();
         const url = `/MasterTimeSlab/toggle-master-timeslab/${id}`;
         return await api.put<any>('library', url);
-
-
-
-
-
-
     } catch (error: any) {
         return { success: false, message: error?.message || 'Failed to update status' };
     }
 }
-
-
-
-

@@ -23,7 +23,12 @@ interface UpdateMasterLibraryFormProps {
     selectedRow: IMasterLibraryList;
 }
 
-export default function UpdateMasterLibraryForm({ onSuccess, onSaveAndNext, className = '', selectedRow: row }: UpdateMasterLibraryFormProps) {
+export default function UpdateMasterLibraryForm({
+    onSuccess,
+    onSaveAndNext,
+    className = '',
+    selectedRow: row
+}: UpdateMasterLibraryFormProps) {
     const { refetchAll } = useMasterLibrary();
     const [shouldNext, setShouldNext] = useState(false);
 
@@ -133,7 +138,7 @@ export default function UpdateMasterLibraryForm({ onSuccess, onSaveAndNext, clas
                         type='submit'
                         onClick={() => setShouldNext(true)}
                         disabled={isSubmitting}
-                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-3 bg-[#4251b1] hover:bg-[#35418e]'
+                        className='order-1 w-fit bg-[#4251b1] transition-all duration-200 hover:scale-105 hover:bg-[#35418e] sm:order-3'
                         isLoading={isSubmitting && shouldNext}
                         loadingText='Saving...'>
                         <div className='flex items-center'>

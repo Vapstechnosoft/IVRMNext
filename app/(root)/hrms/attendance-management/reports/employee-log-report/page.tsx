@@ -7,8 +7,8 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useEmployeeLogReport } from '@/hooks/hrms/attendance-management/useReports';
 import { exportToExcel } from '@/lib/utils';
 import { format } from 'date-fns';
-import { FileSpreadsheet, Printer, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { FileSpreadsheet, Printer } from 'lucide-react';
+import { useEffect } from 'react';
 import { use } from 'react';
 import { toast } from 'sonner';
 import AddEmployeeLogReportForm from './_components/add-from';
@@ -83,14 +83,30 @@ function EmployeeLogReportPageContent({
             'Employee Code': row.ecode || '',
             'Employee Name': row.ename || '',
             'Employee Type': row.gtype || '',
-            'Department': row.depname || '',
-            'Designation': row.desgname || '',
-            'In Time': row.intime || (row.intime === null || row.intime === '' || row.intime === 'A' || row.intime === '00:00') ? 'A' : '',
-            'Out Time': row.outtime || (row.outtime === null || row.outtime === '' || row.outtime === 'A' || row.outtime === '00:00') ? 'A' : '',
-            'Working Time': row.workingtime || (row.workingtime === null || row.workingtime === '' || row.workingtime === 'A' || row.workingtime === '00:00') ? 'A' : '',
-            'Late By': row.lateby || (row.lateby === null || row.lateby === '' || row.lateby === 'A' || row.lateby === '00:00') ? 'A' : '',
-            'Early By': row.earlyby || (row.earlyby === null || row.earlyby === '' || row.earlyby === 'A' || row.earlyby === '00:00') ? 'A' : '',
-            'In Temp': row.intemperature || (row.intemperature === null || row.intemperature === '' || row.intemperature === 'A' || row.intemperature === '00:00') ? 'A' : ''
+            Department: row.depname || '',
+            Designation: row.desgname || '',
+            'In Time': row.intime || row.intime === null || row.intime === '' || row.intime === 'A' || row.intime === '00:00' ? 'A' : '',
+            'Out Time':
+                row.outtime || row.outtime === null || row.outtime === '' || row.outtime === 'A' || row.outtime === '00:00' ? 'A' : '',
+            'Working Time':
+                row.workingtime ||
+                row.workingtime === null ||
+                row.workingtime === '' ||
+                row.workingtime === 'A' ||
+                row.workingtime === '00:00'
+                    ? 'A'
+                    : '',
+            'Late By': row.lateby || row.lateby === null || row.lateby === '' || row.lateby === 'A' || row.lateby === '00:00' ? 'A' : '',
+            'Early By':
+                row.earlyby || row.earlyby === null || row.earlyby === '' || row.earlyby === 'A' || row.earlyby === '00:00' ? 'A' : '',
+            'In Temp':
+                row.intemperature ||
+                row.intemperature === null ||
+                row.intemperature === '' ||
+                row.intemperature === 'A' ||
+                row.intemperature === '00:00'
+                    ? 'A'
+                    : ''
         }));
 
         exportToExcel(exportData, 'Employee_Log_Report');
@@ -184,15 +200,15 @@ function EmployeeLogReportPageContent({
     }, [response]);
 
     const formatDate = (dateString: string) => {
-            if (!dateString) return '';
-            try {
-                return format(new Date(dateString), 'dd-MM-yyyy');
-            } catch (e) {
-                console.error("Error formatting date:", e);
-                return dateString; // Return original if invalid
-            }
-        };
-        
+        if (!dateString) return '';
+        try {
+            return format(new Date(dateString), 'dd-MM-yyyy');
+        } catch (e) {
+            console.error('Error formatting date:', e);
+            return dateString; // Return original if invalid
+        }
+    };
+
     const hasData = response?.data && response.data.length > 0;
 
     return (
@@ -210,14 +226,14 @@ function EmployeeLogReportPageContent({
                         className='mt-6 shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                         <div className='space-y-4 rounded-lg bg-white p-6'>
                             <div className='flex items-center justify-between border-b pb-4'>
-                                <h2 className='font-semibold text-lg text-gray-800'>Report Results</h2>
+                                <h2 className='font-semibold text-gray-800 text-lg'>Report Results</h2>
                                 <div className='flex gap-2'>
                                     <Button
                                         type='button'
                                         variant='outline'
                                         size='sm'
                                         onClick={handleExportToExcel}
-                                        className='bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800 transition-all duration-200'>
+                                        className='bg-green-50 text-green-700 transition-all duration-200 hover:bg-green-100 hover:text-green-800'>
                                         <FileSpreadsheet className='mr-2 h-4 w-4' />
                                         Export Excel
                                     </Button>
@@ -226,15 +242,15 @@ function EmployeeLogReportPageContent({
                                         variant='outline'
                                         size='sm'
                                         onClick={handlePrint}
-                                        className='bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 transition-all duration-200'>
+                                        className='bg-blue-50 text-blue-700 transition-all duration-200 hover:bg-blue-100 hover:text-blue-800'>
                                         <Printer className='mr-2 h-4 w-4' />
                                         Print
                                     </Button>
                                 </div>
                             </div>
 
-                            <div className="rounded-md shadow-sm">
-                                <div className="bg-gray-400 py-2 px-4 mb-4 text-center text-black font-bold text-sm tracking-wide shadow-inner">
+                            <div className='rounded-md shadow-sm'>
+                                <div className='mb-4 bg-gray-400 px-4 py-2 text-center font-bold text-black text-sm tracking-wide shadow-inner'>
                                     Employee Log Report from {formatDate(response?.fromdate)} to {formatDate(response?.todate)}
                                 </div>
                                 <GenericDataTable<LogRow>

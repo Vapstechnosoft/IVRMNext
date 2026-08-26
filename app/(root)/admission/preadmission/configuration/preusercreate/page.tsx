@@ -3,13 +3,17 @@
 import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { activateDeactivatePreUsers, sendEmailToPreUsers, sendSmsToPreUsers } from '@/server/admission/preadmission/configuration/pre_user_create';
+import {
+    activateDeactivatePreUsers,
+    sendEmailToPreUsers,
+    sendSmsToPreUsers
+} from '@/server/admission/preadmission/configuration/pre_user_create';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Mail, MessageSquare, Power, PowerOff } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import AddPreUserForm from './_components/add-form';
-import { preUserColumns, type PreUser } from './_components/columns';
+import { type PreUser, preUserColumns } from './_components/columns';
 import { usePreUserInitialDataQuery } from './_components/usePreUserCreate';
 
 export default function PreUserCreatePage() {
@@ -104,38 +108,33 @@ export default function PreUserCreatePage() {
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    
-                    <div className='mb-4 flex flex-wrap gap-2 justify-center'>
-                        <Button 
-                            variant='outline' 
+                    <div className='mb-4 flex flex-wrap justify-center gap-2'>
+                        <Button
+                            variant='outline'
                             className='w-fit shadow-md hover:bg-primary/10 hover:text-primary'
                             onClick={onSendSms}
-                            disabled={smsMutation.isPending}
-                        >
+                            disabled={smsMutation.isPending}>
                             <MessageSquare className='mr-2 h-4 w-4' /> SMS
                         </Button>
-                        <Button 
-                            variant='outline' 
+                        <Button
+                            variant='outline'
                             className='w-fit shadow-md hover:bg-primary/10 hover:text-primary'
                             onClick={onSendEmail}
-                            disabled={emailMutation.isPending}
-                        >
+                            disabled={emailMutation.isPending}>
                             <Mail className='mr-2 h-4 w-4' /> EMAIL
                         </Button>
-                        <Button 
-                            variant='outline' 
+                        <Button
+                            variant='outline'
                             className='w-fit shadow-md hover:bg-success/10 hover:text-success'
                             onClick={() => onActivateDeactivate(1)}
-                            disabled={activateDeactivateMutation.isPending}
-                        >
+                            disabled={activateDeactivateMutation.isPending}>
                             <Power className='mr-2 h-4 w-4 text-success' /> Activate
                         </Button>
-                        <Button 
-                            variant='outline' 
+                        <Button
+                            variant='outline'
                             className='w-fit shadow-md hover:bg-destructive/10 hover:text-destructive'
                             onClick={() => onActivateDeactivate(0)}
-                            disabled={activateDeactivateMutation.isPending}
-                        >
+                            disabled={activateDeactivateMutation.isPending}>
                             <PowerOff className='mr-2 h-4 w-4 text-destructive' /> De-Activate
                         </Button>
                     </div>

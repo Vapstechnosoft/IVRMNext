@@ -312,7 +312,7 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
         setSelectedFeeGroup(null);
         setSelectedCategoryId(null);
         setFeeGridData([]);
-        setResetKey(prev => prev + 1);
+        setResetKey((prev) => prev + 1);
     };
 
     return (

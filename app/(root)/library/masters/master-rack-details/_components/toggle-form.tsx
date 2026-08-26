@@ -1,12 +1,12 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { AdaptiveDialog } from '@/components/ui/extension/adaptive-dialog';
 import { useMasterRackDetails } from '@/hooks/library/useMasters';
 import { toggleMasterRack } from '@/server/library/masters/rack-details';
 import type { IMasterRackDetails } from '@/types/library/masters/rack-details';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
 
 interface ToggleRackFormProps {
     rowData: IMasterRackDetails;
@@ -39,10 +39,7 @@ export default function ToggleRackForm({ rowData, onClose }: ToggleRackFormProps
     };
 
     return (
-        <AdaptiveDialog
-            title={isActive ? 'Deactivate Rack' : 'Activate Rack'}
-            isOpen={true}
-            onClose={onClose}>
+        <AdaptiveDialog title={isActive ? 'Deactivate Rack' : 'Activate Rack'} isOpen={true} onClose={onClose}>
             <div className='flex flex-col gap-4'>
                 <p className='text-sm'>
                     Are you sure you want to {isActive ? 'deactivate' : 'activate'} the record{' '}
@@ -58,12 +55,15 @@ export default function ToggleRackForm({ rowData, onClose }: ToggleRackFormProps
                         disabled={mutation.isPending}
                         className='min-w-[100px]'>
                         {mutation.isPending
-                            ? isActive ? 'Deactivating...' : 'Activating...'
-                            : isActive ? 'Yes, Deactivate' : 'Yes, Activate'}
+                            ? isActive
+                                ? 'Deactivating...'
+                                : 'Activating...'
+                            : isActive
+                              ? 'Yes, Deactivate'
+                              : 'Yes, Activate'}
                     </Button>
                 </div>
             </div>
         </AdaptiveDialog>
     );
 }
-

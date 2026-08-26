@@ -1,7 +1,7 @@
 'use server';
- 
+
 import { api } from '@/lib/apiService';
- 
+
 export async function getInvRMonthEndReportLoadData() {
     return await Promise.all([
         api.get<any>('inventory', `/INV_MonthEndReportFacade/loadmonth`),
@@ -12,7 +12,7 @@ export async function getInvRMonthEndReportLoadData() {
         acayear: yearRes.data ?? yearRes
     }));
 }
- 
+
 export async function getInvRMonthEndReport(payload: any) {
     return await api.post<any>('inventory', '/INV_MonthEndReportFacade/getmonthreport', payload);
 }

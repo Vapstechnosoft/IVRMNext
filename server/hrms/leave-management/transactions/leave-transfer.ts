@@ -1,37 +1,39 @@
 'use server';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { api, type ApiResponse, getSearchParamsUrl } from '@/lib/apiService';
+import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
 import type {
-    GetLeaveTransferBasicDataRequest,
-    GetLeaveTransferBasicDataResponseData,
-    GetLeaveOBRequest,
-    GetLeaveOBResponseData,
+    DeleteLeaveTransferRequest,
+    DeleteLeaveTransferResponseData,
     GetDepartmentsRequest,
     GetDepartmentsResponseData,
     GetDesignationRequest,
     GetDesignationResponseData,
-    SaveLeaveTransferDetailsRequest,
-    SaveLeaveTransferDetailsResponseData,
+    GetLeaveOBRequest,
+    GetLeaveOBResponseData,
+    GetLeaveTransferBasicDataRequest,
+    GetLeaveTransferBasicDataResponseData,
     LeaveCarryForwardRequest,
     LeaveCarryForwardResponseData,
-    DeleteLeaveTransferRequest,
-    DeleteLeaveTransferResponseData
+    SaveLeaveTransferDetailsRequest,
+    SaveLeaveTransferDetailsResponseData
 } from '@/types/hrms/leave-management/leave-transfer';
 import type {
+    DeleteLeaveStatusByIdRequest,
     GetLeaveCreditAndBalanceGridResponse,
-    UpdateLeaveStatusTabPayload,
     LeaveAdditionStatusTabPayload,
     LeaveCarryForwardStatusTabPayload,
-    DeleteLeaveStatusByIdRequest
+    UpdateLeaveStatusTabPayload
 } from '@/types/hrms/leave-management/leave-transfer-new';
 /**
  * Get basic data for leave transfer page
  * POST /api/LeaveTransferWrapperFacade/GetBasicData
- * 
+ *
  * @param request - Request payload with MI_Id
  * @returns Basic data including dropdown options
  */
-export async function getLeaveTransferBasicData(request: GetLeaveTransferBasicDataRequest): Promise<ApiResponse<GetLeaveTransferBasicDataResponseData>> {
+export async function getLeaveTransferBasicData(
+    request: GetLeaveTransferBasicDataRequest
+): Promise<ApiResponse<GetLeaveTransferBasicDataResponseData>> {
     const url = '/api/LeaveTransferWrapperFacade/GetBasicData';
     const requestBody: GetLeaveTransferBasicDataRequest = {
         MI_Id: request.MI_Id || HRMS_MI_ID
@@ -46,12 +48,14 @@ export async function getLeaveTransferBasicData(request: GetLeaveTransferBasicDa
         // Wrap raw response data
         return {
             success: (response as any)?.success ?? true,
-            message: (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
+            message:
+                (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
             data: response as unknown as GetLeaveTransferBasicDataResponseData
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message ||
+        const errorMessage =
+            error?.response?.data?.message ||
             error?.response?.data?.retrunMsg ||
             error?.message ||
             'Failed to fetch leave transfer basic data';
@@ -62,7 +66,7 @@ export async function getLeaveTransferBasicData(request: GetLeaveTransferBasicDa
 /**
  * Get leave OB (Outstanding Balance) data
  * POST /api/LeaveTransferWrapperFacade/GetLeaveOB
- * 
+ *
  * @param request - Request payload with MI_Id
  * @returns Leave OB data including employee leave balances
  */
@@ -83,15 +87,14 @@ export async function getLeaveOB(request: GetLeaveOBRequest): Promise<ApiRespons
         // Wrap raw response data
         return {
             success: (response as any)?.success ?? true,
-            message: (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
+            message:
+                (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
             data: response as unknown as GetLeaveOBResponseData
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message ||
-            error?.response?.data?.retrunMsg ||
-            error?.message ||
-            'Failed to fetch leave OB data';
+        const errorMessage =
+            error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to fetch leave OB data';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -99,7 +102,7 @@ export async function getLeaveOB(request: GetLeaveOBRequest): Promise<ApiRespons
 /**
  * Get departments based on selected employee types
  * POST /api/LeaveTransferWrapperFacade/GetDepartments
- * 
+ *
  * @param request - Request payload with MI_Id and emptypes array
  * @returns Department data filtered by employee types
  */
@@ -121,15 +124,14 @@ export async function getDepartments(request: GetDepartmentsRequest): Promise<Ap
         // Wrap raw response data
         return {
             success: (response as any)?.success ?? true,
-            message: (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
+            message:
+                (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
             data: response as unknown as GetDepartmentsResponseData
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message ||
-            error?.response?.data?.retrunMsg ||
-            error?.message ||
-            'Failed to fetch departments';
+        const errorMessage =
+            error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to fetch departments';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -137,7 +139,7 @@ export async function getDepartments(request: GetDepartmentsRequest): Promise<Ap
 /**
  * Get designations based on selected employee types
  * POST /api/LeaveTransferWrapperFacade/GetDesignation
- * 
+ *
  * @param request - Request payload with MI_Id and emptypes array
  * @returns Designation data filtered by employee types
  */
@@ -159,15 +161,14 @@ export async function getDesignation(request: GetDesignationRequest): Promise<Ap
         // Wrap raw response data
         return {
             success: (response as any)?.success ?? true,
-            message: (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
+            message:
+                (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
             data: response as unknown as GetDesignationResponseData
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message ||
-            error?.response?.data?.retrunMsg ||
-            error?.message ||
-            'Failed to fetch designations';
+        const errorMessage =
+            error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to fetch designations';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -175,11 +176,13 @@ export async function getDesignation(request: GetDesignationRequest): Promise<Ap
 /**
  * Save leave transfer details
  * POST /api/LeaveTransferWrapperFacade/SaveDetails
- * 
+ *
  * @param data - Leave transfer details data to save
  * @returns Save response
  */
-export async function saveLeaveTransferDetails(data: SaveLeaveTransferDetailsRequest): Promise<ApiResponse<SaveLeaveTransferDetailsResponseData>> {
+export async function saveLeaveTransferDetails(
+    data: SaveLeaveTransferDetailsRequest
+): Promise<ApiResponse<SaveLeaveTransferDetailsResponseData>> {
     const url = '/api/LeaveTransferWrapperFacade/SaveDetails';
     const requestBody: SaveLeaveTransferDetailsRequest = {
         MI_Id: data.MI_Id || HRMS_MI_ID,
@@ -206,13 +209,9 @@ export async function saveLeaveTransferDetails(data: SaveLeaveTransferDetailsReq
         console.log('🟢 [SERVER] Response:', JSON.stringify(response, null, 2));
         // Extract return message from response
         const responseData = response as any;
-        const retrunMsg = responseData?.retrunMsg ||
-            responseData?.data?.retrunMsg ||
-            responseData?.message ||
-            '';
+        const retrunMsg = responseData?.retrunMsg || responseData?.data?.retrunMsg || responseData?.message || '';
         // Check for duplicate
-        const isDuplicate = retrunMsg === 'Duplicate' ||
-            (retrunMsg?.toLowerCase().includes('duplicate') ?? false);
+        const isDuplicate = retrunMsg === 'Duplicate' || (retrunMsg?.toLowerCase().includes('duplicate') ?? false);
         if (isDuplicate) {
             return {
                 success: false,
@@ -221,15 +220,15 @@ export async function saveLeaveTransferDetails(data: SaveLeaveTransferDetailsReq
             };
         }
         // Check for success indicators
-        const isUpdateSuccess = retrunMsg === 'Update' ||
+        const isUpdateSuccess =
+            retrunMsg === 'Update' ||
             retrunMsg === 'Saved' ||
             retrunMsg === 'Add' ||
             retrunMsg === 'Success' ||
             responseData?.returnval_Update === true ||
             responseData?.returnval_add === true ||
             responseData?.returnval === true;
-        const isSuccess = isUpdateSuccess ||
-            (response?.success === true);
+        const isSuccess = isUpdateSuccess || response?.success === true;
         let message = retrunMsg || 'Failed to save leave transfer details';
         if (isSuccess) {
             message = retrunMsg || 'Leave transfer details saved successfully';
@@ -241,17 +240,15 @@ export async function saveLeaveTransferDetails(data: SaveLeaveTransferDetailsReq
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message ||
-            error?.response?.data?.retrunMsg ||
-            error?.message ||
-            'Failed to save leave transfer details';
+        const errorMessage =
+            error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to save leave transfer details';
         throw new Error(errorMessage);
     }
 }
 /**
  * Process leave carry forward
  * POST /api/LeaveTransferWrapperFacade/LeaveCarryForward
- * 
+ *
  * @param request - Request payload with MI_Id and emplist array
  * @returns Leave carry forward response
  */
@@ -267,13 +264,9 @@ export async function leaveCarryForward(request: LeaveCarryForwardRequest): Prom
         console.log('🟢 [SERVER] Response:', JSON.stringify(response, null, 2));
         // Extract return message from response
         const responseData = response as any;
-        const retrunMsg = responseData?.retrunMsg ||
-            responseData?.data?.retrunMsg ||
-            responseData?.message ||
-            '';
+        const retrunMsg = responseData?.retrunMsg || responseData?.data?.retrunMsg || responseData?.message || '';
         // Check for duplicate
-        const isDuplicate = retrunMsg === 'Duplicate' ||
-            (retrunMsg?.toLowerCase().includes('duplicate') ?? false);
+        const isDuplicate = retrunMsg === 'Duplicate' || (retrunMsg?.toLowerCase().includes('duplicate') ?? false);
         if (isDuplicate) {
             return {
                 success: false,
@@ -282,7 +275,8 @@ export async function leaveCarryForward(request: LeaveCarryForwardRequest): Prom
             };
         }
         // Check for success indicators
-        const isUpdateSuccess = retrunMsg === 'Update' ||
+        const isUpdateSuccess =
+            retrunMsg === 'Update' ||
             retrunMsg === 'Saved' ||
             retrunMsg === 'Add' ||
             retrunMsg === 'Success' ||
@@ -291,8 +285,7 @@ export async function leaveCarryForward(request: LeaveCarryForwardRequest): Prom
             responseData?.returnval_Update === true ||
             responseData?.returnval_add === true ||
             responseData?.returnval === true;
-        const isSuccess = isUpdateSuccess ||
-            (response?.success === true);
+        const isSuccess = isUpdateSuccess || response?.success === true;
         let message = retrunMsg || 'Failed to process leave carry forward';
         if (isSuccess) {
             message = retrunMsg || 'Leave carry forward processed successfully';
@@ -304,17 +297,15 @@ export async function leaveCarryForward(request: LeaveCarryForwardRequest): Prom
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message ||
-            error?.response?.data?.retrunMsg ||
-            error?.message ||
-            'Failed to process leave carry forward';
+        const errorMessage =
+            error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to process leave carry forward';
         throw new Error(errorMessage);
     }
 }
 /**
  * Delete leave transfer record
  * POST /api/LeaveTransferWrapperFacade/DeletePages
- * 
+ *
  * @param request - Request payload with HRELS_Id
  * @returns Delete response
  */
@@ -329,12 +320,10 @@ export async function deleteLeaveTransfer(request: DeleteLeaveTransferRequest): 
         console.log('🔴 [SERVER] Response:', JSON.stringify(response, null, 2));
         // Extract return message from response
         const responseData = response as any;
-        const retrunMsg = responseData?.retrunMsg ||
-            responseData?.data?.retrunMsg ||
-            responseData?.message ||
-            '';
+        const retrunMsg = responseData?.retrunMsg || responseData?.data?.retrunMsg || responseData?.message || '';
         // Check for success indicators
-        const isSuccess = retrunMsg === 'Delete' ||
+        const isSuccess =
+            retrunMsg === 'Delete' ||
             retrunMsg === 'Deleted' ||
             retrunMsg === 'Success' ||
             responseData?.returnval === true ||
@@ -350,10 +339,8 @@ export async function deleteLeaveTransfer(request: DeleteLeaveTransferRequest): 
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message ||
-            error?.response?.data?.retrunMsg ||
-            error?.message ||
-            'Failed to delete leave transfer';
+        const errorMessage =
+            error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to delete leave transfer';
         throw new Error(errorMessage);
     }
 }

@@ -2,7 +2,6 @@
 
 import { api } from '@/lib/apiService';
 
-
 export async function getNdaStudentProfileDetails() {
     const url = `/StudentDashboard/Getdetails`;
     try {

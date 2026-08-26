@@ -1,5 +1,4 @@
 'use client';
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
@@ -103,20 +102,20 @@ export const getEmployeeInOutReportColumns = (dateColumns: string[]): ColumnDef<
             if (!isNaN(dateObj.getTime())) {
                 title = `${format(dateObj, 'dd-MMM')} ${format(dateObj, 'EEEE').substring(0, 3)}`;
             }
-        } catch (e) { }
+        } catch (e) {}
 
         return {
             accessorKey: dateStr,
             header: ({ column }) => (
-                <DataTableColumnHeader 
-                    column={column} 
-                    title={title} 
-                    className="flex flex-col items-center justify-center text-center text-xs"
+                <DataTableColumnHeader
+                    column={column}
+                    title={title}
+                    className='flex flex-col items-center justify-center text-center text-xs'
                 />
             ),
             cell: ({ row }) => {
                 const val = row.getValue(dateStr) as any;
-                
+
                 if (typeof val === 'object' && val !== null) {
                     return (
                         <div className='flex flex-col items-center justify-center gap-1 py-1'>
@@ -129,12 +128,8 @@ export const getEmployeeInOutReportColumns = (dateColumns: string[]): ColumnDef<
                         </div>
                     );
                 }
-                
-                return (
-                    <div className="flex h-8 items-center justify-center font-medium">
-                        {val || '--'}
-                    </div>
-                );
+
+                return <div className='flex h-8 items-center justify-center font-medium'>{val || '--'}</div>;
             },
             enableSorting: false,
             enableHiding: false

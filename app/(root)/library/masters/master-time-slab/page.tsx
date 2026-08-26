@@ -1,5 +1,6 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
@@ -7,7 +8,6 @@ import { useMasterTimeSlab, useMasterTimeSlabList } from '@/hooks/library/useMas
 import type { IMasterTimeSlab } from '@/types/library/masters/time-slab';
 import { X } from 'lucide-react';
 import { use } from 'react';
-import { Button } from '@/components/ui/button';
 import AddMasterTimeSlabForm from './_components/add-form';
 import { MasterTimeSlabColumns } from './_components/columns';
 import ToggleTimeSlabForm from './_components/toggle-form';
@@ -55,7 +55,11 @@ function MasterTimeSlabPageContent({
                 {/* Entry Form Section */}
                 <CollapsibleSection
                     title={isEditFormOpen ? 'EDIT TIME SLAB' : 'MASTER TIME SLAB'}
-                    description={isEditFormOpen ? 'Update the details of the selected time slab' : 'Fill in the details below to create a new master time slab'}
+                    description={
+                        isEditFormOpen
+                            ? 'Update the details of the selected time slab'
+                            : 'Fill in the details below to create a new master time slab'
+                    }
                     defaultOpen={true}
                     variant='outline'
                     size='md'
@@ -109,11 +113,5 @@ function MasterTimeSlabPageContent({
 function FormSections() {
     const { isToggleFormOpen, selectedRow, closeToggleForm } = useFormContext<IMasterTimeSlab>();
 
-    return (
-        <>
-            {isToggleFormOpen && selectedRow && (
-                <ToggleTimeSlabForm rowData={selectedRow} onClose={closeToggleForm} />
-            )}
-        </>
-    );
+    return <>{isToggleFormOpen && selectedRow && <ToggleTimeSlabForm rowData={selectedRow} onClose={closeToggleForm} />}</>;
 }

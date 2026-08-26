@@ -36,7 +36,7 @@ export function useClasswiseStudents(classId: number | null) {
             const uniqueList = Array.from(new Map(list.map((s: any) => [s.pasR_Id || s.pasrId || s.pasR_ID, s])).values());
             return uniqueList.map((s: any, index: number) => ({
                 ...s,
-                pasR_Id: s.pasR_Id || s.pasrId || s.pasR_ID || (index + 1),
+                pasR_Id: s.pasR_Id || s.pasrId || s.pasR_ID || index + 1,
                 pasR_FirstName: s.pasR_FirstName || s.studentName || '',
                 pasR_RegistrationNo: s.pasR_RegistrationNo || s.registrationNo || '',
                 pasR_Sex: s.pasR_Sex || s.gender || '',
@@ -44,7 +44,7 @@ export function useClasswiseStudents(classId: number | null) {
                 pasR_emailId: s.pasR_EmailId || s.emailId || '', // Support both casings
                 asmcL_Id: s.asmcL_Id || s.classId || 0,
                 asmcL_ClassName: s.asmcL_ClassName || s.className || '',
-                classname: s.asmcL_ClassName || s.className || '', // Support both casings
+                classname: s.asmcL_ClassName || s.className || '' // Support both casings
             }));
         }
     });
@@ -93,8 +93,7 @@ export function useOralTestScheduleSelectedRow(id: number) {
 export function useDeleteOralTestScheduleStudent() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ paotsId, pasrId }: { paotsId: number; pasrId: number }) => 
-            deleteOralTestScheduleStudentData(paotsId, pasrId),
+        mutationFn: ({ paotsId, pasrId }: { paotsId: number; pasrId: number }) => deleteOralTestScheduleStudentData(paotsId, pasrId),
         onSuccess: () => {
             toast.success('Record Deleted Successfully');
             queryClient.invalidateQueries({ queryKey: [PREADMISSION_QUERY_KEYS.ORAL_TEST_SCHEDULE_DETAILS] });

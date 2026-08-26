@@ -138,13 +138,16 @@ export default function ReceiptPage({ rowData, onClose }: ReceiptPageProps) {
 
         if (num < 1000) return convertLessThanThousand(num);
         if (num < 100000)
-            return `${convertLessThanThousand(Math.floor(num / 1000))} Thousand${num % 1000 !== 0 ? ` ${convertLessThanThousand(num % 1000)}` : ''
-                }`;
-        if (num < 10000000)
-            return `${convertLessThanThousand(Math.floor(num / 100000))} Lakh${num % 100000 !== 0 ? ` ${convertNumberToWords(num % 100000)}` : ''
-                }`;
-        return `${convertLessThanThousand(Math.floor(num / 10000000))} Crore${num % 10000000 !== 0 ? ` ${convertNumberToWords(num % 10000000)}` : ''
+            return `${convertLessThanThousand(Math.floor(num / 1000))} Thousand${
+                num % 1000 !== 0 ? ` ${convertLessThanThousand(num % 1000)}` : ''
             }`;
+        if (num < 10000000)
+            return `${convertLessThanThousand(Math.floor(num / 100000))} Lakh${
+                num % 100000 !== 0 ? ` ${convertNumberToWords(num % 100000)}` : ''
+            }`;
+        return `${convertLessThanThousand(Math.floor(num / 10000000))} Crore${
+            num % 10000000 !== 0 ? ` ${convertNumberToWords(num % 10000000)}` : ''
+        }`;
     };
 
     const formatDate = (dateString: string) => {

@@ -1,10 +1,10 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
 import {
-    getSVPClassWiseInitialData,
     getSVPClassByYear,
-    getSVPSectionByClass,
-    getSVPClassWiseReportDetails
+    getSVPClassWiseInitialData,
+    getSVPClassWiseReportDetails,
+    getSVPSectionByClass
 } from '@/server/admission/preadmission/reports/svp_class_wise_student_details';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const useSVPClassWiseInitialData = () => {
     return useQuery({
@@ -21,8 +21,7 @@ export const useSVPClassByYear = () => {
 
 export const useSVPSectionByClass = () => {
     return useMutation({
-        mutationFn: (data: { asmaY_Id: number; classlsttwo: any[] }) =>
-            getSVPSectionByClass(data)
+        mutationFn: (data: { asmaY_Id: number; classlsttwo: any[] }) => getSVPSectionByClass(data)
     });
 };
 

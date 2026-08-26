@@ -1,4 +1,3 @@
-
 import { z } from 'zod';
 
 export const invStockRowSchema = z.object({
@@ -22,11 +21,11 @@ export const invStockRowSchema = z.object({
 
     // Virtual fields for UI
     invmI_ItemName: z.string().optional(),
-    invmS_StoreName: z.string().optional(),
+    invmS_StoreName: z.string().optional()
 });
 
 export const invStockSchema = z.object({
-    stocklist: z.array(invStockRowSchema).min(1, 'At least one stock record is required'),
+    stocklist: z.array(invStockRowSchema).min(1, 'At least one stock record is required')
 });
 
 export type TInvStock = z.infer<typeof invStockSchema>;

@@ -23,12 +23,7 @@ export default function MasterRouteSchedulePage(props: { searchParams: SearchPar
         <FormProvider<IMasterRouteSchedule>>
             <div className='min-h-screen'>
                 <div className='container space-y-4 p-1'>
-                    <MasterRouteSchedulePageContent
-                        response={response}
-                        isLoading={isLoading}
-                        error={error}
-                        refetchAll={refetchAll}
-                    />
+                    <MasterRouteSchedulePageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
                 </div>
             </div>
         </FormProvider>

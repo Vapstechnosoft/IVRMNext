@@ -45,7 +45,9 @@ export const employeeShiftMappingColumns: ColumnDef<IMasterEmployeeShiftMappingL
         header: ({ column }) => <DataTableColumnHeader column={column} title='Date' />,
         cell: ({ row }) => {
             const date = row.getValue('foesT_Date') as string;
-            return <div>{date ? new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}</div>;
+            return (
+                <div>{date ? new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}</div>
+            );
         },
         enableSorting: true,
         enableHiding: true

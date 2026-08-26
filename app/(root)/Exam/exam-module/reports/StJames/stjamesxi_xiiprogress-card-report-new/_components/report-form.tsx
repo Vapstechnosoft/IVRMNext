@@ -78,10 +78,10 @@ export default function StJamesXI_XIIDataForm({
         (async () => {
             try {
                 setLoadingClasses(true);
-                console.log("selectedYear", selectedYear);
+                console.log('selectedYear', selectedYear);
                 const { data } = await getClassDropDownByAcademicYearlist(selectedYear);
 
-                console.log("data", data);
+                console.log('data', data);
                 setClasses(Array.isArray(data) ? data : []);
                 setValue('asmcL_Id', 0);
                 setValue('asmS_Id', 0);
@@ -199,13 +199,13 @@ export default function StJamesXI_XIIDataForm({
                                         <RadioGroup onValueChange={field.onChange} value={field.value} className='flex flex-row space-x-4'>
                                             <div className='flex items-center space-x-2'>
                                                 <RadioGroupItem value='indi' id='r1' />
-                                                <Label htmlFor='r1' className='font-normal cursor-pointer'>
+                                                <Label htmlFor='r1' className='cursor-pointer font-normal'>
                                                     Individual
                                                 </Label>
                                             </div>
                                             <div className='flex items-center space-x-2'>
                                                 <RadioGroupItem value='groupwise' id='r3' />
-                                                <Label htmlFor='r3' className='font-normal cursor-pointer'>
+                                                <Label htmlFor='r3' className='cursor-pointer font-normal'>
                                                     Promotion
                                                 </Label>
                                             </div>
@@ -344,14 +344,16 @@ export default function StJamesXI_XIIDataForm({
                                             <Checkbox id='displayAttendance' checked={field.value} onCheckedChange={field.onChange} />
                                         )}
                                     />
-                                    <Label htmlFor='displayAttendance' className='cursor-pointer'>Display Attendance</Label>
+                                    <Label htmlFor='displayAttendance' className='cursor-pointer'>
+                                        Display Attendance
+                                    </Label>
                                 </div>
                             </div>
 
                             <div className='space-y-6'>
                                 {reportType === 'indi' && (
                                     <div className='flex flex-col gap-2 sm:flex-row sm:items-start'>
-                                        <Label className='flex items-center gap-2 font-medium text-sm sm:w-32 pt-1'>
+                                        <Label className='flex items-center gap-2 pt-1 font-medium text-sm sm:w-32'>
                                             <Checkbox
                                                 checked={selectedExams?.length === exams.length && exams.length > 0}
                                                 onCheckedChange={(checked) => {
@@ -383,7 +385,8 @@ export default function StJamesXI_XIIDataForm({
                                                                 <div className='flex flex-col gap-3'>
                                                                     {exams.map((e) => {
                                                                         const isChecked =
-                                                                            field.value?.some((val: any) => val.emE_Id === e.emE_Id) || false;
+                                                                            field.value?.some((val: any) => val.emE_Id === e.emE_Id) ||
+                                                                            false;
                                                                         return (
                                                                             <div key={e.emE_Id} className='flex items-center space-x-2'>
                                                                                 <Checkbox
@@ -406,7 +409,7 @@ export default function StJamesXI_XIIDataForm({
                                                                                 />
                                                                                 <Label
                                                                                     htmlFor={`exam-${e.emE_Id}`}
-                                                                                    className='font-medium text-sm leading-none cursor-pointer'>
+                                                                                    className='cursor-pointer font-medium text-sm leading-none'>
                                                                                     {e.emE_ExamName}
                                                                                 </Label>
                                                                             </div>

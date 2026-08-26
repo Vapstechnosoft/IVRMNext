@@ -1,9 +1,11 @@
 export interface MasterGenderResponse {
     success?: boolean;
     message?: string;
-    data?: GenderItem[] | {
-        genderList: GenderItem[];
-    };
+    data?:
+        | GenderItem[]
+        | {
+              genderList: GenderItem[];
+          };
     genderList?: GenderItem[];
     retrunMsg?: string;
     roleId?: number;

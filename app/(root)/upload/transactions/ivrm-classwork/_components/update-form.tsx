@@ -12,22 +12,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { classWorkSchema } from '@/schemas/upload/transactions/ivrm-classwork.schema';
+import { uploadDocument } from '@/server/fees/trasactions/waived_off';
 import {
-    fetchInitialData,
+    editClassWork,
     fetchClasses,
+    fetchInitialData,
     fetchSections,
     fetchSubjects,
-    saveClassWork,
-    editClassWork
+    saveClassWork
 } from '@/server/upload/transactions/ivrm-classwork/server-action';
-import { uploadDocument } from '@/server/fees/trasactions/waived_off';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Eye, Loader2, Minus, Plus, Save, Upload, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z } from 'zod';
+import type { z } from 'zod';
 
 type IClassWorkFormValues = z.infer<typeof classWorkSchema.addOrUpdate>;
 
@@ -113,7 +113,7 @@ export default function UpdateClassWorkForm({ selectedRow, onSuccess, onCancel }
                 if (selectedRow?.icW_Id) {
                     const editResponse: any = await editClassWork(selectedRow.icW_Id, selectedRow.asmaY_Id);
                     const response = editResponse?.data || editResponse;
-                    
+
                     console.log('ClassWork Edit Response:', response);
 
                     if (response?.editlist?.length > 0) {
@@ -121,28 +121,64 @@ export default function UpdateClassWorkForm({ selectedRow, onSuccess, onCancel }
                         const attachments = response.attachementlist || [];
 
                         console.log('Record for reset:', record);
-                        
-                        const files = attachments.filter((a: any) => {
-                            const url = (a.icwatT_Attachment || '').toLowerCase();
-                            const ext = url.split('.').pop() || '';
-                            const isDoc = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'jpg', 'jpeg', 'png', 'gif', 'mp3', 'mp4', 'wmv', 'avi'].includes(ext);
-                            const isBlob = url.includes('.blob.core.windows.net') || url.includes('storage.googleapis.com');
-                            return isDoc || isBlob;
-                        }).map((a: any) => ({
-                            icW_FilePath: a.icwatT_Attachment,
-                            fileName: a.icwatT_FileName
-                        }));
 
-                        const urls = attachments.filter((a: any) => {
-                            const url = (a.icwatT_Attachment || '').toLowerCase();
-                            const ext = url.split('.').pop() || '';
-                            const isDoc = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'jpg', 'jpeg', 'png', 'gif', 'mp3', 'mp4', 'wmv', 'avi'].includes(ext);
-                            const isBlob = url.includes('.blob.core.windows.net') || url.includes('storage.googleapis.com');
-                            return !isDoc && !isBlob && ['http', 'https', 'www'].some(p => url.startsWith(p));
-                        }).map((a: any) => ({
-                            icW_FilePath: a.icwatT_Attachment,
-                            fileName: a.icwatT_FileName
-                        }));
+                        const files = attachments
+                            .filter((a: any) => {
+                                const url = (a.icwatT_Attachment || '').toLowerCase();
+                                const ext = url.split('.').pop() || '';
+                                const isDoc = [
+                                    'pdf',
+                                    'doc',
+                                    'docx',
+                                    'xls',
+                                    'xlsx',
+                                    'ppt',
+                                    'pptx',
+                                    'jpg',
+                                    'jpeg',
+                                    'png',
+                                    'gif',
+                                    'mp3',
+                                    'mp4',
+                                    'wmv',
+                                    'avi'
+                                ].includes(ext);
+                                const isBlob = url.includes('.blob.core.windows.net') || url.includes('storage.googleapis.com');
+                                return isDoc || isBlob;
+                            })
+                            .map((a: any) => ({
+                                icW_FilePath: a.icwatT_Attachment,
+                                fileName: a.icwatT_FileName
+                            }));
+
+                        const urls = attachments
+                            .filter((a: any) => {
+                                const url = (a.icwatT_Attachment || '').toLowerCase();
+                                const ext = url.split('.').pop() || '';
+                                const isDoc = [
+                                    'pdf',
+                                    'doc',
+                                    'docx',
+                                    'xls',
+                                    'xlsx',
+                                    'ppt',
+                                    'pptx',
+                                    'jpg',
+                                    'jpeg',
+                                    'png',
+                                    'gif',
+                                    'mp3',
+                                    'mp4',
+                                    'wmv',
+                                    'avi'
+                                ].includes(ext);
+                                const isBlob = url.includes('.blob.core.windows.net') || url.includes('storage.googleapis.com');
+                                return !isDoc && !isBlob && ['http', 'https', 'www'].some((p) => url.startsWith(p));
+                            })
+                            .map((a: any) => ({
+                                icW_FilePath: a.icwatT_Attachment,
+                                fileName: a.icwatT_FileName
+                            }));
 
                         // Only show URL section if there are actual external URLs
                         setShowUrlSection(urls.length > 0);
@@ -155,7 +191,7 @@ export default function UpdateClassWorkForm({ selectedRow, onSuccess, onCancel }
                         setSections(sectionResp.data?.sectionlist || sectionResp.sectionlist || []);
 
                         const sectionListPayload = (response.editlist_section as any[]).map((s: any) => ({ asmS_Id: s.asmS_Id }));
-                        
+
                         const subjectResp: any = await fetchSubjects(record.asmcL_Id, record.asmaY_Id, sectionListPayload);
                         setSubjects(subjectResp.data?.subjectlist || subjectResp.subjectlist || []);
 
@@ -171,7 +207,7 @@ export default function UpdateClassWorkForm({ selectedRow, onSuccess, onCancel }
                             icW_FilePath_Array: files.length > 0 ? files : [{ icW_FilePath: '', fileName: '' }],
                             icW_Attachment_Array: urls.length > 0 ? urls : [{ icW_FilePath: '', fileName: '' }]
                         };
-                        
+
                         console.log('Final Reset Values:', resetValues);
                         reset(resetValues);
                     }
@@ -266,7 +302,7 @@ export default function UpdateClassWorkForm({ selectedRow, onSuccess, onCancel }
                 icW_Attachment: data.icW_Attachment || '',
                 hm_section_list: data.hm_section_list.map((s: any) => ({
                     asmS_Id: s.asmS_Id,
-                    asmC_SectionName: sections.find(sec => sec.asmS_Id === s.asmS_Id)?.asmC_SectionName || ''
+                    asmC_SectionName: sections.find((sec) => sec.asmS_Id === s.asmS_Id)?.asmC_SectionName || ''
                 })),
                 icW_FilePath_Array: mergedAttachments.map((f: any) => ({
                     icW_FilePath: f.icW_FilePath,
@@ -297,10 +333,14 @@ export default function UpdateClassWorkForm({ selectedRow, onSuccess, onCancel }
     }
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md border-t-4 border-t-blue-600'>
+        <form
+            onSubmit={handleSubmit(onSubmit)}
+            className='flex flex-col gap-6 rounded-2xl border-t-4 border-t-blue-600 bg-white p-6 shadow-md'>
             <div className='flex items-center justify-between'>
-                <h3 className='text-lg font-bold text-blue-800 uppercase tracking-tight'>Edit ClassWork Details</h3>
-                <Button variant='ghost' size='icon' onClick={onCancel}><X className='h-5 w-5' /></Button>
+                <h3 className='font-bold text-blue-800 text-lg uppercase tracking-tight'>Edit ClassWork Details</h3>
+                <Button variant='ghost' size='icon' onClick={onCancel}>
+                    <X className='h-5 w-5' />
+                </Button>
             </div>
 
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
@@ -309,12 +349,18 @@ export default function UpdateClassWorkForm({ selectedRow, onSuccess, onCancel }
                     name='asmaY_Id'
                     render={({ field, fieldState }) => (
                         <div>
-                            <Label>Academic Year <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Academic Year <span className='text-red-500'>*</span>
+                            </Label>
                             <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                <SelectTrigger><SelectValue placeholder='Select Year' /></SelectTrigger>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Year' />
+                                </SelectTrigger>
                                 <SelectContent>
                                     {years.map((year: any) => (
-                                        <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>{year.asmaY_Year}</SelectItem>
+                                        <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
+                                            {year.asmaY_Year}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -328,12 +374,18 @@ export default function UpdateClassWorkForm({ selectedRow, onSuccess, onCancel }
                     name='asmcL_Id'
                     render={({ field, fieldState }) => (
                         <div>
-                            <Label>Class <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Class <span className='text-red-500'>*</span>
+                            </Label>
                             <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                <SelectTrigger><SelectValue placeholder='Select Class' /></SelectTrigger>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Class' />
+                                </SelectTrigger>
                                 <SelectContent>
                                     {classes.map((cls: any) => (
-                                        <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>{cls.asmcL_ClassName}</SelectItem>
+                                        <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>
+                                            {cls.asmcL_ClassName}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -365,12 +417,18 @@ export default function UpdateClassWorkForm({ selectedRow, onSuccess, onCancel }
                     name='ismS_Id'
                     render={({ field, fieldState }) => (
                         <div>
-                            <Label>Subject <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Subject <span className='text-red-500'>*</span>
+                            </Label>
                             <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                <SelectTrigger><SelectValue placeholder='Select Subject' /></SelectTrigger>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Subject' />
+                                </SelectTrigger>
                                 <SelectContent>
                                     {subjects.map((sub: any) => (
-                                        <SelectItem key={sub.ismS_Id} value={sub.ismS_Id.toString()}>{sub.ismS_SubjectName}</SelectItem>
+                                        <SelectItem key={sub.ismS_Id} value={sub.ismS_Id.toString()}>
+                                            {sub.ismS_SubjectName}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -384,7 +442,9 @@ export default function UpdateClassWorkForm({ selectedRow, onSuccess, onCancel }
                     name='icW_Topic'
                     render={({ field, fieldState }) => (
                         <div>
-                            <Label>Topic <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Topic <span className='text-red-500'>*</span>
+                            </Label>
                             <Input {...field} placeholder='Enter Topic' />
                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                         </div>
@@ -396,7 +456,9 @@ export default function UpdateClassWorkForm({ selectedRow, onSuccess, onCancel }
                     name='icW_SubTopic'
                     render={({ field, fieldState }) => (
                         <div>
-                            <Label>Sub Topic <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Sub Topic <span className='text-red-500'>*</span>
+                            </Label>
                             <Input {...field} placeholder='Enter Sub Topic' />
                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                         </div>
@@ -408,12 +470,14 @@ export default function UpdateClassWorkForm({ selectedRow, onSuccess, onCancel }
                     name='icW_TeachingAid'
                     render={({ field }) => (
                         <div className='flex items-center gap-3 pt-8'>
-                            <Checkbox 
-                                id='up-teaching-aid' 
-                                checked={field.value === 1} 
-                                onCheckedChange={(checked) => field.onChange(checked ? 1 : 0)} 
+                            <Checkbox
+                                id='up-teaching-aid'
+                                checked={field.value === 1}
+                                onCheckedChange={(checked) => field.onChange(checked ? 1 : 0)}
                             />
-                            <Label htmlFor='up-teaching-aid' className='cursor-pointer text-sm font-bold uppercase'>Teaching Aid</Label>
+                            <Label htmlFor='up-teaching-aid' className='cursor-pointer font-bold text-sm uppercase'>
+                                Teaching Aid
+                            </Label>
                         </div>
                     )}
                 />
@@ -448,10 +512,14 @@ export default function UpdateClassWorkForm({ selectedRow, onSuccess, onCancel }
                     name='icW_FromDate'
                     render={({ field, fieldState }) => (
                         <div className='flex flex-col'>
-                            <Label>Start Date <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Start Date <span className='text-red-500'>*</span>
+                            </Label>
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <Button variant='outline' className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
+                                    <Button
+                                        variant='outline'
+                                        className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
                                         <CalendarIcon className='mr-2 h-4 w-4 opacity-50' />
                                         {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
                                     </Button>
@@ -470,10 +538,14 @@ export default function UpdateClassWorkForm({ selectedRow, onSuccess, onCancel }
                     name='icW_ToDate'
                     render={({ field, fieldState }) => (
                         <div className='flex flex-col'>
-                            <Label>End Date <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                End Date <span className='text-red-500'>*</span>
+                            </Label>
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <Button variant='outline' className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
+                                    <Button
+                                        variant='outline'
+                                        className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
                                         <CalendarIcon className='mr-2 h-4 w-4 opacity-50' />
                                         {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
                                     </Button>
@@ -489,7 +561,9 @@ export default function UpdateClassWorkForm({ selectedRow, onSuccess, onCancel }
             </div>
 
             <div>
-                <Label>Content <span className='text-red-500'>*</span></Label>
+                <Label>
+                    Content <span className='text-red-500'>*</span>
+                </Label>
                 <Controller
                     control={control}
                     name='icW_Content'
@@ -502,10 +576,12 @@ export default function UpdateClassWorkForm({ selectedRow, onSuccess, onCancel }
                 />
             </div>
 
-            <div className='space-y-4 rounded-md border p-4 bg-gray-50'>
-                <h3 className='font-semibold text-lg text-blue-700 flex items-center gap-2'><Upload className='h-5 w-5'/> Update Attachments</h3>
+            <div className='space-y-4 rounded-md border bg-gray-50 p-4'>
+                <h3 className='flex items-center gap-2 font-semibold text-blue-700 text-lg'>
+                    <Upload className='h-5 w-5' /> Update Attachments
+                </h3>
                 <div className='overflow-x-auto'>
-                    <table className='w-full table-auto border-collapse border text-sm bg-white'>
+                    <table className='w-full table-auto border-collapse border bg-white text-sm'>
                         <thead className='bg-blue-100/50'>
                             <tr>
                                 <th className='w-12 border p-2'>SL</th>
@@ -522,7 +598,9 @@ export default function UpdateClassWorkForm({ selectedRow, onSuccess, onCancel }
                                     <td className='border p-2'>
                                         <div className='flex justify-center'>
                                             <input
-                                                ref={(el) => { fileInputRefs.current[index] = el; }}
+                                                ref={(el) => {
+                                                    fileInputRefs.current[index] = el;
+                                                }}
                                                 type='file'
                                                 className='hidden'
                                                 onChange={(e) => handleFileUpload(e, index)}
@@ -536,7 +614,11 @@ export default function UpdateClassWorkForm({ selectedRow, onSuccess, onCancel }
                                                 disabled={item.isUploading}
                                             >
                                                 {/* @ts-ignore */}
-                                                {item.isUploading ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Upload className='mr-2 h-4 w-4' />} 
+                                                {item.isUploading ? (
+                                                    <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                                                ) : (
+                                                    <Upload className='mr-2 h-4 w-4' />
+                                                )}
                                                 Update
                                             </Button>
                                         </div>
@@ -550,15 +632,29 @@ export default function UpdateClassWorkForm({ selectedRow, onSuccess, onCancel }
                                             variant='ghost'
                                             size='sm'
                                             onClick={() => item.icW_FilePath && window.open(item.icW_FilePath, '_blank')}
-                                            disabled={!item.icW_FilePath}
-                                        >
+                                            disabled={!item.icW_FilePath}>
                                             <Eye className='h-4 w-4 text-blue-600' />
                                         </Button>
                                     </td>
                                     <td className='border p-2 text-center'>
                                         <div className='flex justify-center gap-2'>
-                                            <Button type='button' size='icon' variant='destructive' className='h-8 w-8' onClick={() => removeFile(index)} disabled={fileFields.length === 1}><Minus className='h-4 w-4' /></Button>
-                                            <Button type='button' size='icon' variant='outline' className='h-8 w-8 text-blue-600' onClick={() => appendFile({ icW_FilePath: '', fileName: '' })}><Plus className='h-4 w-4' /></Button>
+                                            <Button
+                                                type='button'
+                                                size='icon'
+                                                variant='destructive'
+                                                className='h-8 w-8'
+                                                onClick={() => removeFile(index)}
+                                                disabled={fileFields.length === 1}>
+                                                <Minus className='h-4 w-4' />
+                                            </Button>
+                                            <Button
+                                                type='button'
+                                                size='icon'
+                                                variant='outline'
+                                                className='h-8 w-8 text-blue-600'
+                                                onClick={() => appendFile({ icW_FilePath: '', fileName: '' })}>
+                                                <Plus className='h-4 w-4' />
+                                            </Button>
                                         </div>
                                     </td>
                                 </tr>
@@ -574,10 +670,10 @@ export default function UpdateClassWorkForm({ selectedRow, onSuccess, onCancel }
             </div>
 
             {showUrlSection && (
-                <div className='space-y-4 rounded-md border p-4 bg-gray-50'>
-                    <h3 className='font-semibold text-lg text-blue-700'>URL Links</h3>
+                <div className='space-y-4 rounded-md border bg-gray-50 p-4'>
+                    <h3 className='font-semibold text-blue-700 text-lg'>URL Links</h3>
                     <div className='overflow-x-auto'>
-                        <table className='w-full table-auto border-collapse border text-sm bg-white'>
+                        <table className='w-full table-auto border-collapse border bg-white text-sm'>
                             <thead className='bg-blue-100/50'>
                                 <tr>
                                     <th className='w-12 border p-2'>SL</th>
@@ -598,12 +694,34 @@ export default function UpdateClassWorkForm({ selectedRow, onSuccess, onCancel }
                                             />
                                         </td>
                                         <td className='border p-2 text-center'>
-                                            <Button type='button' variant='ghost' size='sm' onClick={() => item.icW_FilePath && window.open(item.icW_FilePath, '_blank')} disabled={!item.icW_FilePath}><Eye className='h-4 w-4' /></Button>
+                                            <Button
+                                                type='button'
+                                                variant='ghost'
+                                                size='sm'
+                                                onClick={() => item.icW_FilePath && window.open(item.icW_FilePath, '_blank')}
+                                                disabled={!item.icW_FilePath}>
+                                                <Eye className='h-4 w-4' />
+                                            </Button>
                                         </td>
                                         <td className='border p-2 text-center'>
                                             <div className='flex justify-center gap-2'>
-                                                <Button type='button' size='icon' variant='destructive' className='h-8 w-8' onClick={() => removeUrl(index)} disabled={urlFields.length === 1}><Minus className='h-4 w-4' /></Button>
-                                                <Button type='button' size='icon' variant='outline' className='h-8 w-8 text-blue-600' onClick={() => appendUrl({ icW_FilePath: '', fileName: '' })}><Plus className='h-4 w-4' /></Button>
+                                                <Button
+                                                    type='button'
+                                                    size='icon'
+                                                    variant='destructive'
+                                                    className='h-8 w-8'
+                                                    onClick={() => removeUrl(index)}
+                                                    disabled={urlFields.length === 1}>
+                                                    <Minus className='h-4 w-4' />
+                                                </Button>
+                                                <Button
+                                                    type='button'
+                                                    size='icon'
+                                                    variant='outline'
+                                                    className='h-8 w-8 text-blue-600'
+                                                    onClick={() => appendUrl({ icW_FilePath: '', fileName: '' })}>
+                                                    <Plus className='h-4 w-4' />
+                                                </Button>
                                             </div>
                                         </td>
                                     </tr>
@@ -614,10 +732,18 @@ export default function UpdateClassWorkForm({ selectedRow, onSuccess, onCancel }
                 </div>
             )}
 
-            <div className='flex justify-end gap-4 pt-4 border-t'>
-                <Button type='button' variant='ghost' onClick={onCancel} className='px-8'>Cancel</Button>
-                <Button type='submit' className='bg-blue-600 hover:bg-blue-700 px-8' isLoading={isSubmitting}>
-                    {isSubmitting ? 'Updating...' : <><Save className='h-4 w-4 mr-2' /> Update ClassWork</>}
+            <div className='flex justify-end gap-4 border-t pt-4'>
+                <Button type='button' variant='ghost' onClick={onCancel} className='px-8'>
+                    Cancel
+                </Button>
+                <Button type='submit' className='bg-blue-600 px-8 hover:bg-blue-700' isLoading={isSubmitting}>
+                    {isSubmitting ? (
+                        'Updating...'
+                    ) : (
+                        <>
+                            <Save className='mr-2 h-4 w-4' /> Update ClassWork
+                        </>
+                    )}
                 </Button>
             </div>
         </form>

@@ -7,17 +7,15 @@ import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { trustMasterSchema } from '@/schemas/super-admin/super-admin-module/trust-masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { LoopIcon, PlusIcon, TrashIcon } from '@radix-ui/react-icons';
+import { useQueryClient } from '@tanstack/react-query';
 import { Plus, Save, Trash2 } from 'lucide-react';
 import React from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
-import { useQueryClient } from '@tanstack/react-query';
 
-import { getCountryList, getStateList, saveTrustMaster } from '@/server/super-admin/super-admin-module/masters/trust-master';
-import { useCountryListData, useStateListData, useTrustMasterData } from '@/hooks/super-admin/super-admin-module/use-trust-masters';
+import { useCountryListData, useStateListData } from '@/hooks/super-admin/super-admin-module/use-trust-masters';
+import { saveTrustMaster } from '@/server/super-admin/super-admin-module/masters/trust-master';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-
 
 type FormFields = z.infer<typeof trustMasterSchema.addOrUpdate>;
 
@@ -57,7 +55,6 @@ export default function AddTrustMasterForm({ onSuccess, onRefresh, className = '
 
     const queryClient = useQueryClient();
 
-
     const selectedCountryId = watch('ivrmmC_Id');
 
     const { data: countryData, isLoading: loadingCountries } = useCountryListData();
@@ -73,17 +70,29 @@ export default function AddTrustMasterForm({ onSuccess, onRefresh, className = '
         // fetchStates is no longer needed as we use the hook
     }, []);
 
-    const { fields: phoneFields, append: appendPhone, remove: removePhone } = useFieldArray({
+    const {
+        fields: phoneFields,
+        append: appendPhone,
+        remove: removePhone
+    } = useFieldArray({
         control,
         name: 'phones'
     });
 
-    const { fields: mobileFields, append: appendMobile, remove: removeMobile } = useFieldArray({
+    const {
+        fields: mobileFields,
+        append: appendMobile,
+        remove: removeMobile
+    } = useFieldArray({
         control,
         name: 'mobiles'
     });
 
-    const { fields: emailFields, append: appendEmail, remove: removeEmail } = useFieldArray({
+    const {
+        fields: emailFields,
+        append: appendEmail,
+        remove: removeEmail
+    } = useFieldArray({
         control,
         name: 'emails'
     });
@@ -97,9 +106,9 @@ export default function AddTrustMasterForm({ onSuccess, onRefresh, className = '
                 ...data,
                 mO_Id: data.mO_Id || 0,
                 mO_Pincode: Number(data.mO_Pincode),
-                phones: data.phones?.map(p => ({ ...p, mopN_Id: 0, mopN_PhoneNo: Number(p.mopN_PhoneNo) })) || [],
-                mobiles: data.mobiles?.map(m => ({ ...m, momN_Id: 0, momN_MobileNo: Number(m.momN_MobileNo) })) || [],
-                emails: data.emails?.map(e => ({ ...e, moE_Id: 0 })) || [],
+                phones: data.phones?.map((p) => ({ ...p, mopN_Id: 0, mopN_PhoneNo: Number(p.mopN_PhoneNo) })) || [],
+                mobiles: data.mobiles?.map((m) => ({ ...m, momN_Id: 0, momN_MobileNo: Number(m.momN_MobileNo) })) || [],
+                emails: data.emails?.map((e) => ({ ...e, moE_Id: 0 })) || [],
                 mO_AboutInstitute: data.mO_AboutInstitute || '',
                 mO_ContactDetails: data.mO_ContactDetails || '',
                 mO_Logo: data.mO_Logo || ''
@@ -120,7 +129,6 @@ export default function AddTrustMasterForm({ onSuccess, onRefresh, className = '
         }
     };
 
-
     const contactFlags = ['Office', 'Residence', 'Personal'];
 
     return (
@@ -132,7 +140,9 @@ export default function AddTrustMasterForm({ onSuccess, onRefresh, className = '
                         <InputText label='Trust Name' required {...register('mO_Name')} error={errors.mO_Name?.message} />
 
                         <div className='flex flex-col gap-1.5'>
-                            <Label>Trust Type <span className='ml-1 text-red-500'>*</span></Label>
+                            <Label>
+                                Trust Type <span className='ml-1 text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 control={control}
                                 name='mO_OrganisationType'
@@ -152,13 +162,33 @@ export default function AddTrustMasterForm({ onSuccess, onRefresh, className = '
                             {errors.mO_OrganisationType && <FormError>{errors.mO_OrganisationType.message}</FormError>}
                         </div>
 
-                        <InputTextarea label='Address1' required maxLength={40} {...register('mO_Address1')} error={errors.mO_Address1?.message} />
-                        <InputTextarea label='Address2' required maxLength={40} {...register('mO_Address2')} error={errors.mO_Address2?.message} />
-                        <InputTextarea label='Address3' required maxLength={40} {...register('mO_Address3')} error={errors.mO_Address3?.message} />
+                        <InputTextarea
+                            label='Address1'
+                            required
+                            maxLength={40}
+                            {...register('mO_Address1')}
+                            error={errors.mO_Address1?.message}
+                        />
+                        <InputTextarea
+                            label='Address2'
+                            required
+                            maxLength={40}
+                            {...register('mO_Address2')}
+                            error={errors.mO_Address2?.message}
+                        />
+                        <InputTextarea
+                            label='Address3'
+                            required
+                            maxLength={40}
+                            {...register('mO_Address3')}
+                            error={errors.mO_Address3?.message}
+                        />
                         <InputText label='Landmark' {...register('mO_Landmark')} error={errors.mO_Landmark?.message} />
 
                         <div className='flex flex-col gap-1.5'>
-                            <Label>Country <span className='ml-1 text-red-500'>*</span></Label>
+                            <Label>
+                                Country <span className='ml-1 text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 control={control}
                                 name='ivrmmC_Id'
@@ -166,8 +196,7 @@ export default function AddTrustMasterForm({ onSuccess, onRefresh, className = '
                                     <Select
                                         onValueChange={(val) => field.onChange(Number(val))}
                                         value={field.value ? String(field.value) : undefined}
-                                        disabled={loadingCountries}
-                                    >
+                                        disabled={loadingCountries}>
                                         <SelectTrigger>
                                             <SelectValue placeholder={loadingCountries ? 'Loading...' : 'Select Country'} />
                                         </SelectTrigger>
@@ -188,7 +217,9 @@ export default function AddTrustMasterForm({ onSuccess, onRefresh, className = '
                     {/* Right Column */}
                     <div className='space-y-4'>
                         <div className='flex flex-col gap-1.5'>
-                            <Label>State <span className='ml-1 text-red-500'>*</span></Label>
+                            <Label>
+                                State <span className='ml-1 text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 control={control}
                                 name='ivrmmS_Id'
@@ -196,10 +227,17 @@ export default function AddTrustMasterForm({ onSuccess, onRefresh, className = '
                                     <Select
                                         onValueChange={(val) => field.onChange(Number(val))}
                                         value={field.value ? String(field.value) : undefined}
-                                        disabled={loadingStates || !selectedCountryId}
-                                    >
+                                        disabled={loadingStates || !selectedCountryId}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder={!selectedCountryId ? 'Select Country First' : loadingStates ? 'Loading...' : 'Select State'} />
+                                            <SelectValue
+                                                placeholder={
+                                                    !selectedCountryId
+                                                        ? 'Select Country First'
+                                                        : loadingStates
+                                                          ? 'Loading...'
+                                                          : 'Select State'
+                                                }
+                                            />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {stateList.map((s: any) => (
@@ -221,15 +259,21 @@ export default function AddTrustMasterForm({ onSuccess, onRefresh, className = '
                         {/* Dynamic Phones */}
                         <div className='space-y-2 rounded-md border p-3'>
                             <div className='flex items-center justify-between'>
-                                <Label>Phone No <span className='ml-1 text-red-500'>*</span></Label>
+                                <Label>
+                                    Phone No <span className='ml-1 text-red-500'>*</span>
+                                </Label>
                                 {phoneFields.length < 5 && (
-                                    <Button type='button' variant='outline' size='sm' onClick={() => appendPhone({ mopN_PhoneNo: '', moP_Flag: '' })}>
+                                    <Button
+                                        type='button'
+                                        variant='outline'
+                                        size='sm'
+                                        onClick={() => appendPhone({ mopN_PhoneNo: '', moP_Flag: '' })}>
                                         <Plus className='mr-1 h-3 w-3' /> Add
                                     </Button>
                                 )}
                             </div>
                             {phoneFields.map((field, index) => (
-                                <div key={field.id} className='flex gap-2 items-start'>
+                                <div key={field.id} className='flex items-start gap-2'>
                                     <div className='flex-1'>
                                         <InputText
                                             placeholder='Phone No'
@@ -243,14 +287,22 @@ export default function AddTrustMasterForm({ onSuccess, onRefresh, className = '
                                             name={`phones.${index}.moP_Flag`}
                                             render={({ field }) => (
                                                 <Select onValueChange={field.onChange} value={field.value}>
-                                                    <SelectTrigger><SelectValue placeholder='Type' /></SelectTrigger>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder='Type' />
+                                                    </SelectTrigger>
                                                     <SelectContent>
-                                                        {contactFlags.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+                                                        {contactFlags.map((f) => (
+                                                            <SelectItem key={f} value={f}>
+                                                                {f}
+                                                            </SelectItem>
+                                                        ))}
                                                     </SelectContent>
                                                 </Select>
                                             )}
                                         />
-                                        {errors.phones?.[index]?.moP_Flag && <FormError>{errors.phones[index]?.moP_Flag?.message}</FormError>}
+                                        {errors.phones?.[index]?.moP_Flag && (
+                                            <FormError>{errors.phones[index]?.moP_Flag?.message}</FormError>
+                                        )}
                                     </div>
                                     {index > 0 && (
                                         <Button type='button' variant='ghost' size='icon' onClick={() => removePhone(index)}>
@@ -264,15 +316,21 @@ export default function AddTrustMasterForm({ onSuccess, onRefresh, className = '
                         {/* Dynamic Mobiles */}
                         <div className='space-y-2 rounded-md border p-3'>
                             <div className='flex items-center justify-between'>
-                                <Label>Mobile No <span className='ml-1 text-red-500'>*</span></Label>
+                                <Label>
+                                    Mobile No <span className='ml-1 text-red-500'>*</span>
+                                </Label>
                                 {mobileFields.length < 5 && (
-                                    <Button type='button' variant='outline' size='sm' onClick={() => appendMobile({ momN_MobileNo: '', moM_Flag: '' })}>
+                                    <Button
+                                        type='button'
+                                        variant='outline'
+                                        size='sm'
+                                        onClick={() => appendMobile({ momN_MobileNo: '', moM_Flag: '' })}>
                                         <Plus className='mr-1 h-3 w-3' /> Add
                                     </Button>
                                 )}
                             </div>
                             {mobileFields.map((field, index) => (
-                                <div key={field.id} className='flex gap-2 items-start'>
+                                <div key={field.id} className='flex items-start gap-2'>
                                     <div className='flex-1'>
                                         <InputText
                                             placeholder='Mobile No'
@@ -286,14 +344,22 @@ export default function AddTrustMasterForm({ onSuccess, onRefresh, className = '
                                             name={`mobiles.${index}.moM_Flag`}
                                             render={({ field }) => (
                                                 <Select onValueChange={field.onChange} value={field.value}>
-                                                    <SelectTrigger><SelectValue placeholder='Type' /></SelectTrigger>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder='Type' />
+                                                    </SelectTrigger>
                                                     <SelectContent>
-                                                        {contactFlags.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+                                                        {contactFlags.map((f) => (
+                                                            <SelectItem key={f} value={f}>
+                                                                {f}
+                                                            </SelectItem>
+                                                        ))}
                                                     </SelectContent>
                                                 </Select>
                                             )}
                                         />
-                                        {errors.mobiles?.[index]?.moM_Flag && <FormError>{errors.mobiles[index]?.moM_Flag?.message}</FormError>}
+                                        {errors.mobiles?.[index]?.moM_Flag && (
+                                            <FormError>{errors.mobiles[index]?.moM_Flag?.message}</FormError>
+                                        )}
                                     </div>
                                     {index > 0 && (
                                         <Button type='button' variant='ghost' size='icon' onClick={() => removeMobile(index)}>
@@ -307,15 +373,21 @@ export default function AddTrustMasterForm({ onSuccess, onRefresh, className = '
                         {/* Dynamic Emails */}
                         <div className='space-y-2 rounded-md border p-3'>
                             <div className='flex items-center justify-between'>
-                                <Label>Email ID <span className='ml-1 text-red-500'>*</span></Label>
+                                <Label>
+                                    Email ID <span className='ml-1 text-red-500'>*</span>
+                                </Label>
                                 {emailFields.length < 5 && (
-                                    <Button type='button' variant='outline' size='sm' onClick={() => appendEmail({ moE_EmailId: '', moE_Flag: '' })}>
+                                    <Button
+                                        type='button'
+                                        variant='outline'
+                                        size='sm'
+                                        onClick={() => appendEmail({ moE_EmailId: '', moE_Flag: '' })}>
                                         <Plus className='mr-1 h-3 w-3' /> Add
                                     </Button>
                                 )}
                             </div>
                             {emailFields.map((field, index) => (
-                                <div key={field.id} className='flex gap-2 items-start'>
+                                <div key={field.id} className='flex items-start gap-2'>
                                     <div className='flex-1'>
                                         <InputText
                                             placeholder='Email ID'
@@ -329,14 +401,22 @@ export default function AddTrustMasterForm({ onSuccess, onRefresh, className = '
                                             name={`emails.${index}.moE_Flag`}
                                             render={({ field }) => (
                                                 <Select onValueChange={field.onChange} value={field.value}>
-                                                    <SelectTrigger><SelectValue placeholder='Type' /></SelectTrigger>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder='Type' />
+                                                    </SelectTrigger>
                                                     <SelectContent>
-                                                        {contactFlags.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+                                                        {contactFlags.map((f) => (
+                                                            <SelectItem key={f} value={f}>
+                                                                {f}
+                                                            </SelectItem>
+                                                        ))}
                                                     </SelectContent>
                                                 </Select>
                                             )}
                                         />
-                                        {errors.emails?.[index]?.moE_Flag && <FormError>{errors.emails[index]?.moE_Flag?.message}</FormError>}
+                                        {errors.emails?.[index]?.moE_Flag && (
+                                            <FormError>{errors.emails[index]?.moE_Flag?.message}</FormError>
+                                        )}
                                     </div>
                                     {index > 0 && (
                                         <Button type='button' variant='ghost' size='icon' onClick={() => removeEmail(index)}>
@@ -357,7 +437,9 @@ export default function AddTrustMasterForm({ onSuccess, onRefresh, className = '
                                 name='mT_Currency'
                                 render={({ field }) => (
                                     <Select onValueChange={field.onChange} value={field.value}>
-                                        <SelectTrigger><SelectValue placeholder='Select Currency' /></SelectTrigger>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select Currency' />
+                                        </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value='INR'>INR</SelectItem>
                                             <SelectItem value='USD'>USD</SelectItem>

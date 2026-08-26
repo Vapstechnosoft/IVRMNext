@@ -1,9 +1,9 @@
-import type { NextRequest } from 'next/server';
 import { exec } from 'child_process';
-import { promisify } from 'util';
-import path from 'path';
-import fs from 'fs/promises';
 import os from 'os';
+import path from 'path';
+import { promisify } from 'util';
+import fs from 'fs/promises';
+import type { NextRequest } from 'next/server';
 
 const execAsync = promisify(exec);
 
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
 
             const externalRes = await fetch('https://stt-mobile.onrender.com/transcribe', {
                 method: 'POST',
-                body: apiFormData,
+                body: apiFormData
             });
 
             if (externalRes.ok) {
@@ -42,14 +42,14 @@ export async function POST(req: NextRequest) {
                     if (typeof resData === 'string') {
                         transcribedText = resData;
                     } else {
-                        transcribedText = 
-                            resData.text || 
-                            resData.transcript || 
-                            resData.transcription || 
-                            resData.transcribedText || 
-                            resData.data?.text || 
-                            resData.data?.transcript || 
-                            resData.data?.transcription || 
+                        transcribedText =
+                            resData.text ||
+                            resData.transcript ||
+                            resData.transcription ||
+                            resData.transcribedText ||
+                            resData.data?.text ||
+                            resData.data?.transcript ||
+                            resData.data?.transcription ||
                             '';
                     }
                 }
@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
             const result = JSON.parse(match[1]);
 
             // Clean up
-            if (tempFilePath) await fs.unlink(tempFilePath).catch(() => { });
+            if (tempFilePath) await fs.unlink(tempFilePath).catch(() => {});
 
             if (!result.success) {
                 return Response.json({ error: result.error }, { status: 500 });
@@ -103,19 +103,20 @@ export async function POST(req: NextRequest) {
                 language: result.detected_lang,
                 provider: 'local'
             });
-
         } catch (execError: any) {
             console.error('[Header Voice] Execution error:', execError);
             const errorOutput = execError.stdout || execError.message || 'Python execution failed';
-            return Response.json({
-                error: 'Python processing failed',
-                details: errorOutput
-            }, { status: 500 });
+            return Response.json(
+                {
+                    error: 'Python processing failed',
+                    details: errorOutput
+                },
+                { status: 500 }
+            );
         }
-
     } catch (error: unknown) {
         console.error('Header Voice API error:', error);
-        if (tempFilePath) await fs.unlink(tempFilePath).catch(() => { });
+        if (tempFilePath) await fs.unlink(tempFilePath).catch(() => {});
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         return Response.json({ error: 'Server error', details: errorMessage }, { status: 500 });
     }

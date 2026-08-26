@@ -1,5 +1,3 @@
-import type { ApiResponse } from '@/lib/apiService';
-
 /**
  * Request interface for Head Wise Report onload
  */
@@ -134,4 +132,3 @@ export interface HeadWiseReportSearchResponse {
     employeeDetails?: any[];
     [key: string]: any;
 }
-

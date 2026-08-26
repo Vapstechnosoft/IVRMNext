@@ -4,24 +4,24 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Card } from '@/components/ui/card';
 import { Checkbox as BaseCheckbox } from '@/components/ui/checkbox';
+import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
-import type { z } from 'zod';
-import { FormError } from '@/components/ui/extension/field';
-import { useRef, useState, useEffect } from 'react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { CalendarIcon, FileSpreadsheet, Printer } from 'lucide-react';
-import { format } from 'date-fns';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { coeReportSchema } from '@/schemas/coe/master';
 import { getCoeReport } from '@/server/coe/masters/masterevent';
 import { getCoeMonthEndReport } from '@/server/coe/masters/report';
-import { toast } from 'sonner';
-import { coeReportSchema } from '@/schemas/coe/master';
-import xlsx, { IJsonSheet } from 'json-as-xlsx';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import xlsx, { type IJsonSheet } from 'json-as-xlsx';
+import { CalendarIcon, FileSpreadsheet, Printer } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { useReactToPrint } from 'react-to-print';
+import { toast } from 'sonner';
+import type { z } from 'zod';
 import { CoeReportPrint } from './_components/coe-report-print';
 
 const Checkbox = ({ checked, indeterminate, onCheckedChange, ...props }: any) => {
@@ -76,7 +76,7 @@ export default function coeReport() {
     const [isPrinting, setIsPrinting] = useState(false);
     const triggerPrint = useReactToPrint({
         contentRef: componentRef,
-        documentTitle: 'COE_Report',
+        documentTitle: 'COE_Report'
     });
 
     const handlePrint = () => {
@@ -100,16 +100,16 @@ export default function coeReport() {
                     { label: 'Event Name', value: 'coemE_EventName' },
                     { label: 'Event Description', value: 'coemE_EventDesc' },
                     { label: 'Event Start Date', value: 'startDate' },
-                    { label: 'Event End Date', value: 'endDate' },
+                    { label: 'Event End Date', value: 'endDate' }
                 ],
                 content: coeReportData.map((row, idx) => ({
                     slNo: idx + 1,
                     coemE_EventName: row.eventName || row.coemE_EventName || 'NA',
                     coemE_EventDesc: row.eventDesc || row.coemE_EventDesc || 'NA',
                     startDate: row.coeE_EStartDate ? new Date(row.coeE_EStartDate).toISOString().slice(0, 10) : 'NA',
-                    endDate: row.coeE_EEndDate ? new Date(row.coeE_EEndDate).toISOString().slice(0, 10) : 'NA',
-                })),
-            },
+                    endDate: row.coeE_EEndDate ? new Date(row.coeE_EEndDate).toISOString().slice(0, 10) : 'NA'
+                }))
+            }
         ] as IJsonSheet[];
 
         const settings = {
@@ -117,7 +117,7 @@ export default function coeReport() {
             extraLength: 3,
             writeMode: 'writeFile',
             writeOptions: {},
-            RTL: false,
+            RTL: false
         };
 
         xlsx(data, settings);
@@ -181,17 +181,24 @@ export default function coeReport() {
         const fetchInitialData = async () => {
             try {
                 const response = await getCoeMonthEndReport({ MI_Id: 2 });
-                console.log("Initial Data:", response);
+                console.log('Initial Data:', response);
 
                 // Flexibly handle the response format (whether wrapped in { success, data } or returned directly)
                 if (response) {
                     const dataObj = response.data || response;
-                    
+
                     // The backend might use different keys like 'yearlist', 'academicYear', 'monthlist', etc.
-                    const yearData = dataObj.year?.$values || dataObj.year || dataObj.yearlist?.$values || dataObj.yearlist || dataObj.academicYear?.$values || dataObj.academicYear || [];
+                    const yearData =
+                        dataObj.year?.$values ||
+                        dataObj.year ||
+                        dataObj.yearlist?.$values ||
+                        dataObj.yearlist ||
+                        dataObj.academicYear?.$values ||
+                        dataObj.academicYear ||
+                        [];
                     const classData = dataObj.classlist?.$values || dataObj.classlist || dataObj.class?.$values || dataObj.class || [];
                     const monthData = dataObj.month?.$values || dataObj.month || dataObj.monthlist?.$values || dataObj.monthlist || [];
-                    
+
                     setInitialData({
                         year: yearData,
                         classlist: classData,
@@ -199,7 +206,7 @@ export default function coeReport() {
                     });
                 }
             } catch (error) {
-                console.error("Failed to load initial data", error);
+                console.error('Failed to load initial data', error);
             } finally {
                 setLoadingInitial(false);
             }
@@ -266,7 +273,9 @@ export default function coeReport() {
                                                     </SelectItem>
                                                 ) : (
                                                     initialData.year?.map((item: any) => (
-                                                        <SelectItem key={item.hrmlY_Id || item.hrmlY_Id} value={String(item.hrmlY_Id || item.hrmlY_Id)}>
+                                                        <SelectItem
+                                                            key={item.hrmlY_Id || item.hrmlY_Id}
+                                                            value={String(item.hrmlY_Id || item.hrmlY_Id)}>
                                                             {item.hrmlY_LeaveYear || item.hrmlY_LeaveYear}
                                                         </SelectItem>
                                                     ))
@@ -414,11 +423,18 @@ export default function coeReport() {
                                 </Button>
                                 {showReport && (
                                     <>
-                                        <Button type='button' onClick={handleExport} className='min-w-[120px] bg-green-600 hover:bg-green-700 text-white'>
-                                            <FileSpreadsheet className="mr-2 h-4 w-4" /> Export
+                                        <Button
+                                            type='button'
+                                            onClick={handleExport}
+                                            className='min-w-[120px] bg-green-600 text-white hover:bg-green-700'>
+                                            <FileSpreadsheet className='mr-2 h-4 w-4' /> Export
                                         </Button>
-                                        <Button type='button' onClick={handlePrint} disabled={isPrinting} className='min-w-[120px] bg-blue-600 hover:bg-blue-700 text-white'>
-                                            <Printer className="mr-2 h-4 w-4" /> {isPrinting ? 'Preparing...' : 'Print'}
+                                        <Button
+                                            type='button'
+                                            onClick={handlePrint}
+                                            disabled={isPrinting}
+                                            className='min-w-[120px] bg-blue-600 text-white hover:bg-blue-700'>
+                                            <Printer className='mr-2 h-4 w-4' /> {isPrinting ? 'Preparing...' : 'Print'}
                                         </Button>
                                     </>
                                 )}
@@ -445,8 +461,12 @@ export default function coeReport() {
                                                     {coeReportData.map((row, idx) => (
                                                         <tr key={idx}>
                                                             <td className='border border-gray-300 px-2 py-2 text-center'>{idx + 1}</td>
-                                                            <td className='border border-gray-300 px-2 py-2 font-medium'>{row.eventName ?? row.coemE_EventName ?? 'NA'}</td>
-                                                            <td className='border border-gray-300 px-2 py-2 text-center'>{row.eventDesc ?? row.coemE_EventDesc ?? 'NA'}</td>
+                                                            <td className='border border-gray-300 px-2 py-2 font-medium'>
+                                                                {row.eventName ?? row.coemE_EventName ?? 'NA'}
+                                                            </td>
+                                                            <td className='border border-gray-300 px-2 py-2 text-center'>
+                                                                {row.eventDesc ?? row.coemE_EventDesc ?? 'NA'}
+                                                            </td>
 
                                                             <td className='border border-gray-300 px-2 py-2 text-center'>
                                                                 {new Date(row.coeE_EStartDate).toISOString().slice(0, 10)}

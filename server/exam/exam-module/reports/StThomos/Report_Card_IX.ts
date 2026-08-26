@@ -2,7 +2,6 @@
 
 import { api } from '@/lib/apiService';
 import { getAcademicYearDropdown } from '@/server/fees/masters/class_yearly_category';
-import type { IMasterInstitution } from '@/types/exam/exam-module/report';
 
 const ACADEMIC_YEARS = [
     { asmaY_Id: 1, asmaY_Year: '2023-2024' },

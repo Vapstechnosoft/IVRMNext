@@ -5,7 +5,7 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useFeeChequeBounceInitialData } from '@/hooks/fees/useTrasactions';
-import { IFeeChequeBounceGrid } from '@/types/fees/transactions/feeChequeBounce';
+import type { IFeeChequeBounceGrid } from '@/types/fees/transactions/feeChequeBounce';
 import { Plus, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import AddFeeChequeBounceForm from './components/add-form';
@@ -18,11 +18,7 @@ export default function FeeChequeBouncePage() {
 
     return (
         <FormProvider<IFeeChequeBounceGrid>>
-            <FeeChequeBouncePageContent
-                response={response}
-                isLoading={isLoading}
-                error={error}
-            />
+            <FeeChequeBouncePageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
@@ -60,22 +56,22 @@ function FeeChequeBouncePageContent({
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <h2 className='text-2xl font-bold tracking-tight'>Fee Cheque Bounce</h2>
+                    <h2 className='font-bold text-2xl tracking-tight'>Fee Cheque Bounce</h2>
                     <Button
                         type='button'
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='h-4 w-4 mr-2' />
+                        <Plus className='mr-2 h-4 w-4' />
                         Add Cheque Bounce
                     </Button>
                 </div>
 
-                <CollapsibleSection title="Search Records" defaultOpen={false}>
+                <CollapsibleSection title='Search Records' defaultOpen={false}>
                     <SearchFeeChequeBounceForm asmayId={asmayId} onSearchResults={handleSearchResults} />
                 </CollapsibleSection>
 
                 <CollapsibleSection
-                    title="Cheque Bounce List"
+                    title='Cheque Bounce List'
                     defaultOpen={true}
                     variant='default'
                     size='lg'
@@ -100,14 +96,8 @@ function FeeChequeBouncePageContent({
 }
 
 function FormSections() {
-    const {
-        isAddFormOpen,
-        selectedRow,
-        isDeleteFormOpen,
-        closeAddForm,
-        closeDeleteForm,
-        addFormRef,
-    } = useFormContext<IFeeChequeBounceGrid>();
+    const { isAddFormOpen, selectedRow, isDeleteFormOpen, closeAddForm, closeDeleteForm, addFormRef } =
+        useFormContext<IFeeChequeBounceGrid>();
 
     return (
         <>
@@ -127,7 +117,7 @@ function FormSections() {
                                 variant='ghost'
                                 size='sm'
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive mr-2' /> Close
+                                <X className='mr-2 h-4 w-4 text-destructive' /> Close
                             </Button>
                             <AddFeeChequeBounceForm onSuccess={closeAddForm} />
                         </div>
@@ -135,9 +125,7 @@ function FormSections() {
                 </div>
             )}
 
-            {isDeleteFormOpen && selectedRow && (
-                <DeleteFeeChequeBounceForm rowData={selectedRow} onClose={closeDeleteForm} />
-            )}
+            {isDeleteFormOpen && selectedRow && <DeleteFeeChequeBounceForm rowData={selectedRow} onClose={closeDeleteForm} />}
         </>
     );
 }

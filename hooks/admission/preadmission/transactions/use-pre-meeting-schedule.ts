@@ -1,28 +1,24 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
 import {
-    getEmpDetails,
     endMainMeeting,
-    saveRemarks,
-    onStartMeeting,
+    getEmpDetails,
+    getStudentDocsOnly,
     joinMeeting,
     onDateChange,
     onScheduleChange,
-    getEmployeeDetailsBySelection,
-    getDepts,
-    getDesig,
-    filterEmployeeDetailsBySelection,
-    getStudentDocsOnly
+    onStartMeeting,
+    saveRemarks
 } from '@/server/admission/preadmission/transactions/pre_meeting_schedule';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 const QUERY_KEYS = {
-    PRE_MEETING_DETAILS: 'pre-meeting-details',
+    PRE_MEETING_DETAILS: 'pre-meeting-details'
 };
 
 export function usePreMeetingDetails() {
     return useQuery({
         queryKey: [QUERY_KEYS.PRE_MEETING_DETAILS],
-        queryFn: () => getEmpDetails(),
+        queryFn: () => getEmpDetails()
     });
 }
 

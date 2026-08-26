@@ -137,7 +137,6 @@ export default function UpdateDesignationForm({ onSuccess, className = '', selec
                             )}
                         />
 
-
                         <div className='flex items-center gap-2'>
                             <Controller
                                 name='hrmdeS_DisplaySanctionedSeatsFlag'

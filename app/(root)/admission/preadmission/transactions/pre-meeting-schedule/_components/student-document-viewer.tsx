@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useGetStudentDocsOnly } from '@/hooks/admission/preadmission/transactions/use-pre-meeting-schedule';
-import { ChevronLeft, ChevronRight, Download, ZoomIn, ZoomOut, X } from 'lucide-react';
-import { IPreMeetingSchedule } from '@/types/admission/preadmission/transactions/pre-meeting-schedule';
-import Image from 'next/image';
+import type { IPreMeetingSchedule } from '@/types/admission/preadmission/transactions/pre-meeting-schedule';
+import { ChevronLeft, ChevronRight, Download, ZoomIn, ZoomOut } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface StudentDocumentViewerProps {
     isOpen: boolean;
@@ -68,93 +67,92 @@ export default function StudentDocumentViewer({ isOpen, onClose, record }: Stude
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
+            <DialogContent className='flex h-[90vh] max-w-4xl flex-col'>
                 <DialogHeader>
-                    <DialogTitle className="text-xl font-bold text-blue-800 flex justify-between items-center pr-8">
+                    <DialogTitle className='flex items-center justify-between pr-8 font-bold text-blue-800 text-xl'>
                         <span>Documents for {record?.studentname}</span>
                         {documents.length > 0 && (
-                            <span className="text-sm font-normal text-muted-foreground bg-slate-100 px-3 py-1 rounded-full">
+                            <span className='rounded-full bg-slate-100 px-3 py-1 font-normal text-muted-foreground text-sm'>
                                 {currentIndex + 1} of {documents.length}
                             </span>
                         )}
                     </DialogTitle>
-                    <DialogDescription>
-                        {currentDoc ? currentDoc.amsmD_DocumentName : 'No documents available'}
-                    </DialogDescription>
+                    <DialogDescription>{currentDoc ? currentDoc.amsmD_DocumentName : 'No documents available'}</DialogDescription>
                 </DialogHeader>
 
-                <div className="flex-1 relative bg-slate-100/50 rounded-lg border overflow-hidden flex flex-col">
+                <div className='relative flex flex-1 flex-col overflow-hidden rounded-lg border bg-slate-100/50'>
                     {isPending ? (
-                        <div className="flex-1 flex items-center justify-center">
-                            <span className="animate-pulse font-medium text-slate-500">Loading documents...</span>
+                        <div className='flex flex-1 items-center justify-center'>
+                            <span className='animate-pulse font-medium text-slate-500'>Loading documents...</span>
                         </div>
                     ) : documents.length === 0 ? (
-                        <div className="flex-1 flex items-center justify-center">
-                            <span className="text-slate-500">No documents found for this student.</span>
+                        <div className='flex flex-1 items-center justify-center'>
+                            <span className='text-slate-500'>No documents found for this student.</span>
                         </div>
                     ) : (
                         <>
                             {/* Toolbar */}
-                            <div className="h-12 bg-white border-b flex items-center justify-between px-4">
-                                <div className="flex items-center gap-2">
+                            <div className='flex h-12 items-center justify-between border-b bg-white px-4'>
+                                <div className='flex items-center gap-2'>
                                     {currentDoc.isImage && (
                                         <>
-                                            <Button variant="ghost" size="icon" onClick={() => setZoom(z => Math.max(50, z - 25))}>
-                                                <ZoomOut className="w-4 h-4" />
+                                            <Button variant='ghost' size='icon' onClick={() => setZoom((z) => Math.max(50, z - 25))}>
+                                                <ZoomOut className='h-4 w-4' />
                                             </Button>
-                                            <span className="text-xs font-medium w-12 text-center">{zoom}%</span>
-                                            <Button variant="ghost" size="icon" onClick={() => setZoom(z => Math.min(200, z + 25))}>
-                                                <ZoomIn className="w-4 h-4" />
+                                            <span className='w-12 text-center font-medium text-xs'>{zoom}%</span>
+                                            <Button variant='ghost' size='icon' onClick={() => setZoom((z) => Math.min(200, z + 25))}>
+                                                <ZoomIn className='h-4 w-4' />
                                             </Button>
                                         </>
                                     )}
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <Button variant="ghost" size="sm" asChild>
-                                        <a href={currentDoc.document_Path} target="_blank" rel="noopener noreferrer">
-                                            <Download className="w-4 h-4 mr-2" /> Download
+                                <div className='flex items-center gap-2'>
+                                    <Button variant='ghost' size='sm' asChild>
+                                        <a href={currentDoc.document_Path} target='_blank' rel='noopener noreferrer'>
+                                            <Download className='mr-2 h-4 w-4' /> Download
                                         </a>
                                     </Button>
                                 </div>
                             </div>
 
                             {/* Content Area */}
-                            <div className="flex-1 relative overflow-auto bg-slate-50 flex items-center justify-center p-4">
+                            <div className='relative flex flex-1 items-center justify-center overflow-auto bg-slate-50 p-4'>
                                 {currentDoc.isImage && (
-                                    <div 
-                                        className="relative transition-transform duration-200 ease-in-out"
-                                        style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'center' }}
-                                    >
+                                    <div
+                                        className='relative transition-transform duration-200 ease-in-out'
+                                        style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'center' }}>
                                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img 
-                                            src={currentDoc.viewPath} 
+                                        <img
+                                            src={currentDoc.viewPath}
                                             alt={currentDoc.amsmD_DocumentName}
-                                            className="max-w-full max-h-[70vh] object-contain shadow-sm border rounded bg-white"
+                                            className='max-h-[70vh] max-w-full rounded border bg-white object-contain shadow-sm'
                                         />
                                     </div>
                                 )}
-                                
+
                                 {currentDoc.isPdf && (
-                                    <iframe 
-                                        src={currentDoc.viewPath} 
-                                        className="w-full h-full rounded shadow-sm border bg-white"
+                                    <iframe
+                                        src={currentDoc.viewPath}
+                                        className='h-full w-full rounded border bg-white shadow-sm'
                                         title={currentDoc.amsmD_DocumentName}
                                     />
                                 )}
 
                                 {currentDoc.isOfficeDoc && (
-                                    <iframe 
-                                        src={currentDoc.viewPath} 
-                                        className="w-full h-full rounded shadow-sm border bg-white"
+                                    <iframe
+                                        src={currentDoc.viewPath}
+                                        className='h-full w-full rounded border bg-white shadow-sm'
                                         title={currentDoc.amsmD_DocumentName}
                                     />
                                 )}
 
                                 {!currentDoc.isImage && !currentDoc.isPdf && !currentDoc.isOfficeDoc && (
-                                    <div className="text-center p-8 bg-white rounded shadow-sm border">
-                                        <p className="text-slate-500 mb-4">Preview not available for this file type ({currentDoc.filetype})</p>
+                                    <div className='rounded border bg-white p-8 text-center shadow-sm'>
+                                        <p className='mb-4 text-slate-500'>
+                                            Preview not available for this file type ({currentDoc.filetype})
+                                        </p>
                                         <Button asChild>
-                                            <a href={currentDoc.document_Path} target="_blank" rel="noopener noreferrer">
+                                            <a href={currentDoc.document_Path} target='_blank' rel='noopener noreferrer'>
                                                 Download File
                                             </a>
                                         </Button>
@@ -166,20 +164,18 @@ export default function StudentDocumentViewer({ isOpen, onClose, record }: Stude
                             {documents.length > 1 && (
                                 <>
                                     <Button
-                                        variant="secondary"
-                                        size="icon"
-                                        className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full shadow-lg h-10 w-10 opacity-70 hover:opacity-100"
-                                        onClick={handlePrev}
-                                    >
-                                        <ChevronLeft className="w-6 h-6" />
+                                        variant='secondary'
+                                        size='icon'
+                                        className='-translate-y-1/2 absolute top-1/2 left-4 h-10 w-10 rounded-full opacity-70 shadow-lg hover:opacity-100'
+                                        onClick={handlePrev}>
+                                        <ChevronLeft className='h-6 w-6' />
                                     </Button>
                                     <Button
-                                        variant="secondary"
-                                        size="icon"
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full shadow-lg h-10 w-10 opacity-70 hover:opacity-100"
-                                        onClick={handleNext}
-                                    >
-                                        <ChevronRight className="w-6 h-6" />
+                                        variant='secondary'
+                                        size='icon'
+                                        className='-translate-y-1/2 absolute top-1/2 right-4 h-10 w-10 rounded-full opacity-70 shadow-lg hover:opacity-100'
+                                        onClick={handleNext}>
+                                        <ChevronRight className='h-6 w-6' />
                                     </Button>
                                 </>
                             )}

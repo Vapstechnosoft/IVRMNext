@@ -69,7 +69,11 @@ function LeaveStatusReportContent() {
     const { data: groupTypesData, isLoading: groupTypesLoading } = useReportGroupTypes();
     const { data: departmentsData, isLoading: departmentsLoading } = useReportDepartments(groupTypeIds.toString());
     const { data: designationsData, isLoading: designationsLoading } = useReportDesignations(groupTypeIds.toString(), deptIds.toString());
-    const { data: employeesData, isLoading: employeesLoading } = useReportEmployeesByGroupTypeDeptAndDesignation(groupTypeIds, deptIds, desigIds);
+    const { data: employeesData, isLoading: employeesLoading } = useReportEmployeesByGroupTypeDeptAndDesignation(
+        groupTypeIds,
+        deptIds,
+        desigIds
+    );
     console.log('employeesData', employeesData);
     // Transforms
     const leavesDataTransformed = useMemo(() => {
@@ -244,13 +248,9 @@ function LeaveStatusReportContent() {
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
                                         placeholder={groupTypesLoading ? 'Loading Group Types...' : 'Select Group Types'}
-                                        className={`${groupTypesLoading
-                                                ? "pointer-events-none opacity-50"
-                                                : ""
-                                            }`}
+                                        className={`${groupTypesLoading ? 'pointer-events-none opacity-50' : ''}`}
                                     />
                                 )}
-
                             />
                         </div>
 
@@ -271,10 +271,7 @@ function LeaveStatusReportContent() {
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
                                         placeholder={departmentsLoading ? 'Loading Departments...' : 'Select Departments'}
-                                        className={`${departmentsLoading
-                                                ? "pointer-events-none opacity-50"
-                                                : ""
-                                            }`}
+                                        className={`${departmentsLoading ? 'pointer-events-none opacity-50' : ''}`}
                                     />
                                 )}
                             />
@@ -297,10 +294,7 @@ function LeaveStatusReportContent() {
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
                                         placeholder={designationsLoading ? 'Loading Designations...' : 'Select Designations'}
-                                        className={`${designationsLoading
-                                                ? "pointer-events-none opacity-50"
-                                                : ""
-                                            }`}
+                                        className={`${designationsLoading ? 'pointer-events-none opacity-50' : ''}`}
                                     />
                                 )}
                             />
@@ -323,10 +317,7 @@ function LeaveStatusReportContent() {
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
                                         placeholder={employeesLoading ? 'Loading Employees...' : 'Select Employees'}
-                                        className={`${employeesLoading
-                                                ? "pointer-events-none opacity-50"
-                                                : ""
-                                            }`}
+                                        className={`${employeesLoading ? 'pointer-events-none opacity-50' : ''}`}
                                     />
                                 )}
                             />

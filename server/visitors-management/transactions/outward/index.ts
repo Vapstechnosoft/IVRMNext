@@ -1,13 +1,13 @@
 'use server';
 
-import { OutwardInitialData, OutwardTransactionData } from '@/types/visitors-management/transactions';
-import { OutwardSchema } from '@/schemas/visitors-management/transactions';
+import type { OutwardSchema } from '@/schemas/visitors-management/transactions';
+import type { OutwardInitialData, OutwardTransactionData } from '@/types/visitors-management/transactions';
 
 // Mock Data
 const mockEmployees = [
     { hrmE_Id: 101, hrmE_EmployeeFirstName: 'John Doe' },
     { hrmE_Id: 102, hrmE_EmployeeFirstName: 'Jane Smith' },
-    { hrmE_Id: 103, hrmE_EmployeeFirstName: 'Robert Johnson' },
+    { hrmE_Id: 103, hrmE_EmployeeFirstName: 'Robert Johnson' }
 ];
 
 // biome-ignore lint/style/useConst: <explanation>
@@ -50,7 +50,7 @@ let mockOutwardData: OutwardTransactionData[] = [
 
 export async function getOutwardData(): Promise<OutwardInitialData> {
     // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     return {
         emplist: mockEmployees,
@@ -60,16 +60,16 @@ export async function getOutwardData(): Promise<OutwardInitialData> {
 
 export async function saveOutwardData(data: OutwardSchema) {
     // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     console.log('Saving Outward Data:', data);
-    
+
     // Simulate return
     return { success: true, message: 'Outward Entry Saved Successfully' };
 }
 
 export async function deleteOutwardData(id: number) {
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
     console.log('Deleting Outward ID:', id);
     return { success: true, message: 'Outward Entry Deleted Successfully' };
 }

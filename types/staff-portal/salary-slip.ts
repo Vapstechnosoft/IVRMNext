@@ -1,4 +1,3 @@
-
 export interface ISalarySlipInitialData {
     leaveyeardropdown: ILeaveYear[];
     monthdropdown: IMonth[];

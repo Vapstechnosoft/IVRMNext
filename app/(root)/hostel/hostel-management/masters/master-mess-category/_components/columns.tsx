@@ -3,7 +3,7 @@
 import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
+import { type ColumnDef, createColumnHelper } from '@tanstack/react-table';
 
 export interface IMasterMessCategory {
     hlmmC_Id: number;

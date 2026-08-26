@@ -3,13 +3,13 @@
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 
 const API_URL = {
-    GET_DETAILS:  '/SportsStudentHouseMapping/getDetails',
-    GET_CLASS:    '/SportStudentEligbleReport/get_class',
-    GET_SECTION:  '/SportStudentEligbleReport/get_section',
-    GET_STUDENT:  '/SportStudentEligbleReport/get_student',
-    EDIT_RECORD:  '/SportsStudentHouseMapping/EditRecord',
-    SAVE:         '/SportsStudentHouseMapping/saveRecord',
-    TOGGLE:       '/SportsStudentHouseMapping/deactivate',
+    GET_DETAILS: '/SportsStudentHouseMapping/getDetails',
+    GET_CLASS: '/SportStudentEligbleReport/get_class',
+    GET_SECTION: '/SportStudentEligbleReport/get_section',
+    GET_STUDENT: '/SportStudentEligbleReport/get_student',
+    EDIT_RECORD: '/SportsStudentHouseMapping/EditRecord',
+    SAVE: '/SportsStudentHouseMapping/saveRecord',
+    TOGGLE: '/SportsStudentHouseMapping/deactivate'
 };
 
 /** Fetch initial load data (years, houses, and grid data) with support for sorting/filtering */
@@ -69,11 +69,11 @@ export async function editStudentHouseMapping(spccsH_Id: number, asmaY_Id: numbe
         const response = await api.post<any>('sports', API_URL.EDIT_RECORD, {
             spccsH_Id: spccsH_Id,
             asmaY_Id: asmaY_Id,
-            mI_Id: 30, // Defaulting as per user sample, should ideally come from session/context if available
+            mI_Id: 30 // Defaulting as per user sample, should ideally come from session/context if available
         });
         return {
             editrecord: response.data?.editrecord || [],
-            studentList: response.data?.studentList || [],
+            studentList: response.data?.studentList || []
         };
     } catch (error) {
         console.error('Error fetching edit record:', error);
@@ -97,7 +97,7 @@ export async function deleteStudentHouseMapping(spccsH_Id: number) {
     try {
         const response = await api.post<any>('sports', API_URL.TOGGLE, {
             spccsH_Id: spccsH_Id,
-            mI_Id: 30, // Defaulting as per user sample
+            mI_Id: 30 // Defaulting as per user sample
         });
         return response;
     } catch (error) {

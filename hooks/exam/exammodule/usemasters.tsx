@@ -14,7 +14,13 @@ import { getCategoryMappedSections } from '@/server/exam/exam-module/masters/cat
 import { getMasterExam, getMasterExamOrderData } from '@/server/exam/exam-module/masters/exam';
 import { getMasterExamPaper } from '@/server/exam/exam-module/masters/exam-paper';
 import { getGradeDetailsById, getMasterGrade, getMasterGradeDropdownList } from '@/server/exam/exam-module/masters/grade';
-import { getMasterLifeSkillAreas, getMasterLifeSkillAreasDropdown, getMasterLifeSkillDrpdownList, getMasterLifeSkillMappings, getMasterLifeSkills } from '@/server/exam/exam-module/masters/life-skills';
+import {
+    getMasterLifeSkillAreas,
+    getMasterLifeSkillAreasDropdown,
+    getMasterLifeSkillDrpdownList,
+    getMasterLifeSkillMappings,
+    getMasterLifeSkills
+} from '@/server/exam/exam-module/masters/life-skills';
 import { getMasterSubExam, getMasterSubExamDropdownList } from '@/server/exam/exam-module/masters/sub-exam';
 import { getMasterSubject, getMasterSubjectDropdownList } from '@/server/exam/exam-module/masters/subject';
 import {

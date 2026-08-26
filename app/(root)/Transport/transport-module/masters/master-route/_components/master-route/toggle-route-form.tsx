@@ -20,10 +20,6 @@ export default function ToggleRouteForm({
     const isActive = rowData.trmR_ActiveFlg;
 
     const handleConfirm = async () => {
-
-
-
-
         try {
             setIsLoading(true);
             const response = await activeDeactiveRoute(rowData.trmR_Id);

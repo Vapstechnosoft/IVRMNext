@@ -151,11 +151,7 @@ export default function SchoolStaffPeriodTransactionPage() {
             </div>
 
             <FormProvider {...methods}>
-                <SearchForm
-                    masterYear={initialData.masteryear}
-                    employees={initialData.employeedetails}
-                    onSearch={handleSearch}
-                />
+                <SearchForm masterYear={initialData.masteryear} employees={initialData.employeedetails} onSearch={handleSearch} />
             </FormProvider>
 
             {gridData && (

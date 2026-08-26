@@ -52,8 +52,7 @@ export default function TunBridgeStudentTcCustomReportPage() {
     });
 
     const loadPayload = unwrap(loadRes) as any;
-    const yearDropdown =
-        loadPayload?.accyear ?? loadPayload?.allAcademicYear ?? loadPayload?.yearDropdown ?? [];
+    const yearDropdown = loadPayload?.accyear ?? loadPayload?.allAcademicYear ?? loadPayload?.yearDropdown ?? [];
 
     useEffect(() => {
         const raw = unwrap(loadRes) as any;
@@ -208,17 +207,16 @@ export default function TunBridgeStudentTcCustomReportPage() {
     const isIndi = reporttype === 'indi';
 
     return (
-        <div className="min-h-screen p-4 space-y-6 bg-gray-50/50">
+        <div className='min-h-screen space-y-6 bg-gray-50/50 p-4'>
             <CollapsibleSection
-                title="Student TC Custom Report"
-                description="Tunbridge High School — Transfer Certificate"
+                title='Student TC Custom Report'
+                description='Tunbridge High School — Transfer Certificate'
                 defaultOpen={true}
-                variant="outline"
-                className="shadow-sm border-t-2 border-t-[#3f51b5]"
-            >
-                <div className="space-y-6 bg-white p-6 rounded-b-lg">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div className="flex items-center justify-center border rounded-lg p-4 bg-gray-50">
+                variant='outline'
+                className='border-t-2 border-t-[#3f51b5] shadow-sm'>
+                <div className='space-y-6 rounded-b-lg bg-white p-6'>
+                    <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
+                        <div className='flex items-center justify-center rounded-lg border bg-gray-50 p-4'>
                             <RadioGroup
                                 value={reporttype}
                                 onValueChange={async (v) => {
@@ -248,19 +246,18 @@ export default function TunBridgeStudentTcCustomReportPage() {
                                         /* ignore */
                                     }
                                 }}
-                                className="flex gap-8"
-                            >
-                                <div className="flex items-center gap-2 cursor-pointer">
-                                    <RadioGroupItem value="All" id="rt-all" />
-                                    <span className="text-sm font-semibold">All</span>
+                                className='flex gap-8'>
+                                <div className='flex cursor-pointer items-center gap-2'>
+                                    <RadioGroupItem value='All' id='rt-all' />
+                                    <span className='font-semibold text-sm'>All</span>
                                 </div>
-                                <div className="flex items-center gap-2 cursor-pointer">
-                                    <RadioGroupItem value="indi" id="rt-indi" />
-                                    <span className="text-sm font-semibold">Individual</span>
+                                <div className='flex cursor-pointer items-center gap-2'>
+                                    <RadioGroupItem value='indi' id='rt-indi' />
+                                    <span className='font-semibold text-sm'>Individual</span>
                                 </div>
                             </RadioGroup>
                         </div>
-                        <div className="flex items-center justify-center border rounded-lg p-4 bg-gray-50">
+                        <div className='flex items-center justify-center rounded-lg border bg-gray-50 p-4'>
                             <RadioGroup
                                 value={temporper}
                                 onValueChange={async (v) => {
@@ -286,33 +283,31 @@ export default function TunBridgeStudentTcCustomReportPage() {
                                         /* ignore */
                                     }
                                 }}
-                                className="flex gap-8"
-                            >
-                                <div className="flex items-center gap-2 cursor-pointer">
-                                    <RadioGroupItem value="Temp" id="tp-temp" />
-                                    <span className="text-sm font-semibold">Temporary TC</span>
+                                className='flex gap-8'>
+                                <div className='flex cursor-pointer items-center gap-2'>
+                                    <RadioGroupItem value='Temp' id='tp-temp' />
+                                    <span className='font-semibold text-sm'>Temporary TC</span>
                                 </div>
-                                <div className="flex items-center gap-2 cursor-pointer">
-                                    <RadioGroupItem value="Per" id="tp-per" />
-                                    <span className="text-sm font-semibold">Permanent TC</span>
+                                <div className='flex cursor-pointer items-center gap-2'>
+                                    <RadioGroupItem value='Per' id='tp-per' />
+                                    <span className='font-semibold text-sm'>Permanent TC</span>
                                 </div>
                             </RadioGroup>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-6">
-                        <div className="flex flex-col gap-2">
-                            <div className="flex items-center gap-2">
-                                <Label className="text-sm font-semibold whitespace-nowrap w-32 text-right">
-                                    Year:<span className="text-red-500">*</span>
+                    <div className='grid grid-cols-1 gap-x-12 gap-y-6 lg:grid-cols-2'>
+                        <div className='flex flex-col gap-2'>
+                            <div className='flex items-center gap-2'>
+                                <Label className='w-32 whitespace-nowrap text-right font-semibold text-sm'>
+                                    Year:<span className='text-red-500'>*</span>
                                 </Label>
-                                <div className="flex-1">
+                                <div className='flex-1'>
                                     <Select
                                         value={asmaY_Id ? String(asmaY_Id) : undefined}
                                         onValueChange={onYearChange}
-                                        disabled={loadLoading}
-                                    >
-                                        <SelectTrigger className="h-9">
+                                        disabled={loadLoading}>
+                                        <SelectTrigger className='h-9'>
                                             <SelectValue placeholder={loadLoading ? 'Loading...' : 'Select Year'} />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -323,24 +318,21 @@ export default function TunBridgeStudentTcCustomReportPage() {
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    {submitted && !asmaY_Id && (
-                                        <span className="text-xs text-red-500">Select Left Year.</span>
-                                    )}
+                                    {submitted && !asmaY_Id && <span className='text-red-500 text-xs'>Select Left Year.</span>}
                                 </div>
                             </div>
                         </div>
 
-                        <div className="flex flex-col gap-2">
-                            <div className="flex items-center gap-2">
-                                <Label className="text-sm font-semibold whitespace-nowrap w-32 text-right">Student Name:</Label>
-                                <div className="flex-1">
+                        <div className='flex flex-col gap-2'>
+                            <div className='flex items-center gap-2'>
+                                <Label className='w-32 whitespace-nowrap text-right font-semibold text-sm'>Student Name:</Label>
+                                <div className='flex-1'>
                                     <Select
                                         value={AMST_Id ? String(AMST_Id) : undefined}
                                         onValueChange={(v) => setAmstId(Number(v))}
-                                        disabled={!studentDropdown.length}
-                                    >
-                                        <SelectTrigger className="h-9">
-                                            <SelectValue placeholder="Select Or Search Student" />
+                                        disabled={!studentDropdown.length}>
+                                        <SelectTrigger className='h-9'>
+                                            <SelectValue placeholder='Select Or Search Student' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {studentDropdown.map((s: any) => (
@@ -354,19 +346,18 @@ export default function TunBridgeStudentTcCustomReportPage() {
                             </div>
                         </div>
 
-                        <div className="flex flex-col gap-4">
-                            <div className="flex items-center gap-2">
-                                <Label className="text-sm font-semibold whitespace-nowrap w-32 text-right">
-                                    Class:{isIndi && <span className="text-red-500">*</span>}
+                        <div className='flex flex-col gap-4'>
+                            <div className='flex items-center gap-2'>
+                                <Label className='w-32 whitespace-nowrap text-right font-semibold text-sm'>
+                                    Class:{isIndi && <span className='text-red-500'>*</span>}
                                 </Label>
-                                <div className="flex-1">
+                                <div className='flex-1'>
                                     <Select
                                         value={ASMCL_Id ? String(ASMCL_Id) : undefined}
                                         onValueChange={onClassChange}
-                                        disabled={!isIndi || !asmaY_Id}
-                                    >
-                                        <SelectTrigger className="h-9">
-                                            <SelectValue placeholder="Select Class" />
+                                        disabled={!isIndi || !asmaY_Id}>
+                                        <SelectTrigger className='h-9'>
+                                            <SelectValue placeholder='Select Class' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {classlist?.map((c: any) => (
@@ -378,18 +369,17 @@ export default function TunBridgeStudentTcCustomReportPage() {
                                     </Select>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <Label className="text-sm font-semibold whitespace-nowrap w-32 text-right">
-                                    Section:{isIndi && <span className="text-red-500">*</span>}
+                            <div className='flex items-center gap-2'>
+                                <Label className='w-32 whitespace-nowrap text-right font-semibold text-sm'>
+                                    Section:{isIndi && <span className='text-red-500'>*</span>}
                                 </Label>
-                                <div className="flex-1">
+                                <div className='flex-1'>
                                     <Select
                                         value={ASMS_Id ? String(ASMS_Id) : undefined}
                                         onValueChange={onSectionChange}
-                                        disabled={!isIndi || !ASMCL_Id}
-                                    >
-                                        <SelectTrigger className="h-9">
-                                            <SelectValue placeholder="Select Section" />
+                                        disabled={!isIndi || !ASMCL_Id}>
+                                        <SelectTrigger className='h-9'>
+                                            <SelectValue placeholder='Select Section' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {seclist?.map((s: any) => (
@@ -403,31 +393,28 @@ export default function TunBridgeStudentTcCustomReportPage() {
                             </div>
                         </div>
 
-                        <div className="flex flex-wrap justify-center items-end gap-4 lg:justify-end">
+                        <div className='flex flex-wrap items-end justify-center gap-4 lg:justify-end'>
                             <Button
-                                type="button"
+                                type='button'
                                 onClick={handleReport}
                                 disabled={tcMutation.isPending}
-                                className="min-w-[120px] bg-[#3f51b5] hover:bg-[#303f9f] text-white uppercase text-xs font-bold shadow-md h-10"
-                            >
-                                <History className="mr-2 h-4 w-4" />
+                                className='h-10 min-w-[120px] bg-[#3f51b5] font-bold text-white text-xs uppercase shadow-md hover:bg-[#303f9f]'>
+                                <History className='mr-2 h-4 w-4' />
                                 Report
                             </Button>
                             <Button
-                                type="button"
+                                type='button'
                                 onClick={handleClear}
-                                className="min-w-[120px] bg-[#ff5722] hover:bg-[#e64a19] text-white uppercase text-xs font-bold shadow-md h-10"
-                            >
-                                <RotateCcw className="mr-2 h-4 w-4" />
+                                className='h-10 min-w-[120px] bg-[#ff5722] font-bold text-white text-xs uppercase shadow-md hover:bg-[#e64a19]'>
+                                <RotateCcw className='mr-2 h-4 w-4' />
                                 Cancel
                             </Button>
                             <Button
-                                type="button"
+                                type='button'
                                 onClick={() => handlePrint()}
                                 disabled={!showReport}
-                                className="min-w-[120px] bg-[#3f51b5] hover:bg-[#303f9f] text-white uppercase text-xs font-bold shadow-md h-10"
-                            >
-                                <Printer className="mr-2 h-4 w-4" />
+                                className='h-10 min-w-[120px] bg-[#3f51b5] font-bold text-white text-xs uppercase shadow-md hover:bg-[#303f9f]'>
+                                <Printer className='mr-2 h-4 w-4' />
                                 Print
                             </Button>
                         </div>
@@ -436,8 +423,8 @@ export default function TunBridgeStudentTcCustomReportPage() {
             </CollapsibleSection>
 
             {showReport && reportData && (
-                <div className="flex justify-center p-4 lg:p-12 bg-white/50 backdrop-blur-sm rounded-xl border-2 border-dashed border-gray-200 overflow-x-auto shadow-inner">
-                    <div className="shadow-[0_0_50px_rgba(0,0,0,0.1)] bg-white">
+                <div className='flex justify-center overflow-x-auto rounded-xl border-2 border-gray-200 border-dashed bg-white/50 p-4 shadow-inner backdrop-blur-sm lg:p-12'>
+                    <div className='bg-white shadow-[0_0_50px_rgba(0,0,0,0.1)]'>
                         <TunBridgeTcPrint ref={printRef} reportData={reportData} />
                     </div>
                 </div>

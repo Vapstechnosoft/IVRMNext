@@ -1,7 +1,6 @@
 'use client';
 import type { IMasterStudentCountReportList } from '@/types/admission/preadmission/reports';
 import { format, isValid } from 'date-fns';
-import React from 'react';
 
 interface ReportPrintProps {
     data: IMasterStudentCountReportList[];
@@ -19,15 +18,7 @@ const formatDate = (date: any) => {
     return isValid(d) ? format(d, 'dd-MM-yyyy') : 'N/A';
 };
 
-export default function StudentCountReportPrint({
-    data,
-    reportType,
-    academicYear,
-    fromDate,
-    toDate,
-    rangeType,
-    logo
-}: ReportPrintProps) {
+export default function StudentCountReportPrint({ data, reportType, academicYear, fromDate, toDate, rangeType, logo }: ReportPrintProps) {
     const reportNames: Record<string, string> = {
         '1': 'Registered list',
         '2': 'Registered but not filled application form',
@@ -41,7 +32,7 @@ export default function StudentCountReportPrint({
     };
 
     const title = reportNames[reportType] || 'Total Count Report';
-    
+
     let dateRange = '';
     if (rangeType === 'between' && fromDate && toDate) {
         const d1 = new Date(fromDate);
@@ -55,50 +46,74 @@ export default function StudentCountReportPrint({
 
     if (!data || !Array.isArray(data) || data.length === 0) {
         return (
-            <div className="p-8 text-center" style={{ color: 'black', background: 'white' }}>
-                <h1 className="font-bold text-2xl uppercase underline mb-4">{title}</h1>
+            <div className='p-8 text-center' style={{ color: 'black', background: 'white' }}>
+                <h1 className='mb-4 font-bold text-2xl uppercase underline'>{title}</h1>
                 <p>No records found for the selected criteria. (Data: {data ? 'Empty Array' : 'Null/Undefined'})</p>
             </div>
         );
     }
 
     return (
-        <div className="p-8 print:pt-12 print:px-0 bg-white printable-content" style={{ color: 'black', minHeight: '100%', background: 'white' }}>
-            <style dangerouslySetInnerHTML={{ __html: `
+        <div
+            className='printable-content bg-white p-8 print:px-0 print:pt-12'
+            style={{ color: 'black', minHeight: '100%', background: 'white' }}>
+            <style
+                dangerouslySetInnerHTML={{
+                    __html: `
                 @media print {
                     @page {
                         margin: 1.5cm 1cm 1cm 1cm;
                     }
                 }
-            ` }} />
-            <div className="mb-6 text-center">
-                {logo && <img src={logo} alt="Logo" className="mx-auto mb-2 max-h-24" />}
-                <h1 className="font-bold text-2xl uppercase underline" style={{ color: 'black' }}>
-                    {title}{dateRange}
+            `
+                }}
+            />
+            <div className='mb-6 text-center'>
+                {logo && <img src={logo} alt='Logo' className='mx-auto mb-2 max-h-24' />}
+                <h1 className='font-bold text-2xl uppercase underline' style={{ color: 'black' }}>
+                    {title}
+                    {dateRange}
                 </h1>
             </div>
 
-            <table className="w-full border-collapse border border-black text-xs" style={{ border: '1px solid black' }}>
+            <table className='w-full border-collapse border border-black text-xs' style={{ border: '1px solid black' }}>
                 <thead>
-                    <tr className="bg-gray-100">
-                        <th className="border border-black p-1 text-center" style={{ border: '1px solid black' }}>SL.NO</th>
-                        <th className="border border-black p-1 text-left" style={{ border: '1px solid black' }}>STUDENT NAME</th>
-                        <th className="border border-black p-1 text-left" style={{ border: '1px solid black' }}>EMAIL-ID</th>
-                        <th className="border border-black p-1 text-left" style={{ border: '1px solid black' }}>MOBILE NUMBER</th>
-                        <th className="border border-black p-1 text-center" style={{ border: '1px solid black' }}>REG DATE</th>
+                    <tr className='bg-gray-100'>
+                        <th className='border border-black p-1 text-center' style={{ border: '1px solid black' }}>
+                            SL.NO
+                        </th>
+                        <th className='border border-black p-1 text-left' style={{ border: '1px solid black' }}>
+                            STUDENT NAME
+                        </th>
+                        <th className='border border-black p-1 text-left' style={{ border: '1px solid black' }}>
+                            EMAIL-ID
+                        </th>
+                        <th className='border border-black p-1 text-left' style={{ border: '1px solid black' }}>
+                            MOBILE NUMBER
+                        </th>
+                        <th className='border border-black p-1 text-center' style={{ border: '1px solid black' }}>
+                            REG DATE
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
-
                     {data.map((row, index) => {
                         const fullName = [row.FirstName, row.MiddleName, row.LastName].filter(Boolean).join(' ');
                         return (
-                            <tr key={index} className="break-inside-avoid">
-                                <td className="border border-black p-1 text-center" style={{ border: '1px solid black' }}>{index + 1}</td>
-                                <td className="border border-black p-1" style={{ border: '1px solid black' }}>{fullName || 'N/A'}</td>
-                                <td className="border border-black p-1" style={{ border: '1px solid black' }}>{row.EmailID || 'N/A'}</td>
-                                <td className="border border-black p-1" style={{ border: '1px solid black' }}>{row.Mobileno || 'N/A'}</td>
-                                <td className="border border-black p-1 text-center" style={{ border: '1px solid black' }}>
+                            <tr key={index} className='break-inside-avoid'>
+                                <td className='border border-black p-1 text-center' style={{ border: '1px solid black' }}>
+                                    {index + 1}
+                                </td>
+                                <td className='border border-black p-1' style={{ border: '1px solid black' }}>
+                                    {fullName || 'N/A'}
+                                </td>
+                                <td className='border border-black p-1' style={{ border: '1px solid black' }}>
+                                    {row.EmailID || 'N/A'}
+                                </td>
+                                <td className='border border-black p-1' style={{ border: '1px solid black' }}>
+                                    {row.Mobileno || 'N/A'}
+                                </td>
+                                <td className='border border-black p-1 text-center' style={{ border: '1px solid black' }}>
                                     {formatDate(row.RegDate)}
                                 </td>
                             </tr>
@@ -107,7 +122,7 @@ export default function StudentCountReportPrint({
                 </tbody>
             </table>
 
-            <div className="mt-8 flex justify-between text-[10px] italic" style={{ color: 'black' }}>
+            <div className='mt-8 flex justify-between text-[10px] italic' style={{ color: 'black' }}>
                 <span>Printed on: {format(new Date(), 'dd/MM/yyyy HH:mm:ss')}</span>
                 <span>Generated by System</span>
             </div>

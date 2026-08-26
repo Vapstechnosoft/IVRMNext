@@ -1,34 +1,39 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { Printer, X, FileText, Search, Loader2 } from 'lucide-react';
+import { FileText, Loader2, Printer, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/extension/field';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 import {
     useBBKVCustomReportInitialDetails,
-    useBBKVCustomReportStudents,
     useBBKVCustomReportStudentDetails,
+    useBBKVCustomReportStudents,
     useBBKVCustomReportTCDetails
 } from '@/hooks/admission/oldsharehost/reports/useBBKVCustomReport';
 
 export default function BBKVCustomReportPage() {
     const { data: initialData, isLoading: isInitialLoading } = useBBKVCustomReportInitialDetails();
-    
+
     const studentsMutation = useBBKVCustomReportStudents();
     const studentDetailsMutation = useBBKVCustomReportStudentDetails();
     const tcDetailsMutation = useBBKVCustomReportTCDetails();
 
-    const { control, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm({
+    const {
+        control,
+        handleSubmit,
+        watch,
+        setValue,
+        reset,
+        formState: { errors }
+    } = useForm({
         defaultValues: {
             admname: 'regno',
             asmaY_Id: '',
@@ -43,7 +48,7 @@ export default function BBKVCustomReportPage() {
     const [studentDropdown, setStudentDropdown] = useState<any[]>([]);
     const [reportData, setReportData] = useState<any>(null);
     const [isGenerating, setIsGenerating] = useState(false);
-    
+
     const printRef = useRef<HTMLDivElement>(null);
 
     // Watch for changes that should trigger student search
@@ -72,10 +77,10 @@ export default function BBKVCustomReportPage() {
             if (students.length > 0) {
                 setStudentDropdown(students);
             } else {
-                toast.info("Student is not available for this selection");
+                toast.info('Student is not available for this selection');
             }
         } catch (error) {
-            toast.error("Failed to fetch students");
+            toast.error('Failed to fetch students');
         }
     };
 
@@ -100,23 +105,34 @@ export default function BBKVCustomReportPage() {
 
     const SwitchFuction = (sno: string) => {
         switch (sno) {
-            case 'I': return "FIRST";
-            case 'II': return "SECOND";
-            case 'III': return "THIRD";
-            case 'IV': return "FOURTH";
-            case 'V': return "FIFTH";
-            case 'VI': return "SIXTH";
-            case 'VII': return "SEVENTH";
-            case 'VIII': return "EIGHTH";
-            case 'IX': return "NINTH";
-            case 'X': return "TENTH";
-            default: return sno;
+            case 'I':
+                return 'FIRST';
+            case 'II':
+                return 'SECOND';
+            case 'III':
+                return 'THIRD';
+            case 'IV':
+                return 'FOURTH';
+            case 'V':
+                return 'FIFTH';
+            case 'VI':
+                return 'SIXTH';
+            case 'VII':
+                return 'SEVENTH';
+            case 'VIII':
+                return 'EIGHTH';
+            case 'IX':
+                return 'NINTH';
+            case 'X':
+                return 'TENTH';
+            default:
+                return sno;
         }
     };
 
     const onSubmit = async (data: any) => {
         if (!data.amsT_Id) {
-            toast.error("Please select a student");
+            toast.error('Please select a student');
             return;
         }
 
@@ -131,7 +147,7 @@ export default function BBKVCustomReportPage() {
 
         try {
             const res = await tcDetailsMutation.mutateAsync(payload);
-            
+
             if (res?.data?.studentTCList?.length > 0) {
                 const tcList = res.data.studentTCList[0];
                 const tcDetails = res.data.studenttcdetails?.[0] || {};
@@ -181,10 +197,10 @@ export default function BBKVCustomReportPage() {
                     todaydate: new Date()
                 });
             } else {
-                toast.info("Select any Student / No TC Details Found");
+                toast.info('Select any Student / No TC Details Found');
             }
         } catch (error) {
-            toast.error("Failed to generate report");
+            toast.error('Failed to generate report');
         } finally {
             setIsGenerating(false);
         }
@@ -192,10 +208,10 @@ export default function BBKVCustomReportPage() {
 
     const handlePrint = () => {
         if (!printRef.current) return;
-        
+
         const printContent = printRef.current.innerHTML;
         const printWindow = window.open('', '_blank', 'width=1000,height=800');
-        
+
         if (printWindow) {
             printWindow.document.write(`
                 <html>
@@ -252,55 +268,52 @@ export default function BBKVCustomReportPage() {
     };
 
     return (
-        <div className="min-h-screen p-4 space-y-6 bg-gray-50">
+        <div className='min-h-screen space-y-6 bg-gray-50 p-4'>
             <CollapsibleSection
-                title="TC Custom Report"
-                description="Generate TC custom report"
+                title='TC Custom Report'
+                description='Generate TC custom report'
                 defaultOpen={true}
-                variant="outline"
-                className="shadow-md"
-            >
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 bg-white p-6 rounded-lg">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                variant='outline'
+                className='shadow-md'>
+                <form onSubmit={handleSubmit(onSubmit)} className='space-y-8 rounded-lg bg-white p-6'>
+                    <div className='mx-auto grid max-w-5xl grid-cols-1 gap-8 md:grid-cols-2'>
                         {/* Left Column */}
-                        <div className="space-y-6">
-                            <div className="bg-gray-100 p-4 rounded-lg flex justify-center">
+                        <div className='space-y-6'>
+                            <div className='flex justify-center rounded-lg bg-gray-100 p-4'>
                                 <Controller
-                                    name="admname"
+                                    name='admname'
                                     control={control}
                                     render={({ field }) => (
-                                        <RadioGroup
-                                            onValueChange={field.onChange}
-                                            value={field.value}
-                                            className="flex gap-6"
-                                        >
-                                            <div className="flex items-center space-x-2">
-                                                <RadioGroupItem value="regno" id="regno" />
-                                                <Label htmlFor="regno" className="cursor-pointer">Admno</Label>
+                                        <RadioGroup onValueChange={field.onChange} value={field.value} className='flex gap-6'>
+                                            <div className='flex items-center space-x-2'>
+                                                <RadioGroupItem value='regno' id='regno' />
+                                                <Label htmlFor='regno' className='cursor-pointer'>
+                                                    Admno
+                                                </Label>
                                             </div>
-                                            <div className="flex items-center space-x-2">
-                                                <RadioGroupItem value="stdname" id="stdname" />
-                                                <Label htmlFor="stdname" className="cursor-pointer">Name</Label>
+                                            <div className='flex items-center space-x-2'>
+                                                <RadioGroupItem value='stdname' id='stdname' />
+                                                <Label htmlFor='stdname' className='cursor-pointer'>
+                                                    Name
+                                                </Label>
                                             </div>
                                         </RadioGroup>
                                     )}
                                 />
                             </div>
 
-                            <div className="space-y-2">
-                                <Label className="text-sm font-bold">Academic Year:<span className="text-red-500">*</span></Label>
+                            <div className='space-y-2'>
+                                <Label className='font-bold text-sm'>
+                                    Academic Year:<span className='text-red-500'>*</span>
+                                </Label>
                                 <Controller
-                                    name="asmaY_Id"
+                                    name='asmaY_Id'
                                     control={control}
-                                    rules={{ required: "Academic Year is required" }}
+                                    rules={{ required: 'Academic Year is required' }}
                                     render={({ field }) => (
-                                        <Select
-                                            value={field.value}
-                                            onValueChange={field.onChange}
-                                            disabled={isInitialLoading}
-                                        >
+                                        <Select value={field.value} onValueChange={field.onChange} disabled={isInitialLoading}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select Year" />
+                                                <SelectValue placeholder='Select Year' />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {initialData?.data?.accyear?.map((year: any) => (
@@ -312,23 +325,24 @@ export default function BBKVCustomReportPage() {
                                         </Select>
                                     )}
                                 />
-                                {errors.asmaY_Id && <span className="text-red-500 text-xs">{errors.asmaY_Id.message as string}</span>}
+                                {errors.asmaY_Id && <span className='text-red-500 text-xs'>{errors.asmaY_Id.message as string}</span>}
                             </div>
 
-                            <div className="space-y-2">
-                                <Label className="text-sm font-bold">Student Name:<span className="text-red-500">*</span></Label>
+                            <div className='space-y-2'>
+                                <Label className='font-bold text-sm'>
+                                    Student Name:<span className='text-red-500'>*</span>
+                                </Label>
                                 <Controller
-                                    name="amsT_Id"
+                                    name='amsT_Id'
                                     control={control}
-                                    rules={{ required: "Student is required" }}
+                                    rules={{ required: 'Student is required' }}
                                     render={({ field }) => (
                                         <Select
                                             value={field.value}
                                             onValueChange={(val) => handleStudentChange(val)}
-                                            disabled={studentDropdown.length === 0}
-                                        >
+                                            disabled={studentDropdown.length === 0}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select Student" />
+                                                <SelectValue placeholder='Select Student' />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {studentDropdown.map((student: any) => (
@@ -340,48 +354,44 @@ export default function BBKVCustomReportPage() {
                                         </Select>
                                     )}
                                 />
-                                {errors.amsT_Id && <span className="text-red-500 text-xs">{errors.amsT_Id.message as string}</span>}
+                                {errors.amsT_Id && <span className='text-red-500 text-xs'>{errors.amsT_Id.message as string}</span>}
                             </div>
                         </div>
 
                         {/* Right Column */}
-                        <div className="space-y-6">
-                            <div className="bg-gray-100 p-4 rounded-lg flex justify-center">
+                        <div className='space-y-6'>
+                            <div className='flex justify-center rounded-lg bg-gray-100 p-4'>
                                 <Controller
-                                    name="tctempper"
+                                    name='tctempper'
                                     control={control}
                                     render={({ field }) => (
-                                        <RadioGroup
-                                            onValueChange={field.onChange}
-                                            value={field.value}
-                                            className="flex gap-6"
-                                        >
-                                            <div className="flex items-center space-x-2">
-                                                <RadioGroupItem value="temp" id="temp" />
-                                                <Label htmlFor="temp" className="cursor-pointer">Temp Student</Label>
+                                        <RadioGroup onValueChange={field.onChange} value={field.value} className='flex gap-6'>
+                                            <div className='flex items-center space-x-2'>
+                                                <RadioGroupItem value='temp' id='temp' />
+                                                <Label htmlFor='temp' className='cursor-pointer'>
+                                                    Temp Student
+                                                </Label>
                                             </div>
-                                            <div className="flex items-center space-x-2">
-                                                <RadioGroupItem value="per" id="per" />
-                                                <Label htmlFor="per" className="cursor-pointer">Permanent Student</Label>
+                                            <div className='flex items-center space-x-2'>
+                                                <RadioGroupItem value='per' id='per' />
+                                                <Label htmlFor='per' className='cursor-pointer'>
+                                                    Permanent Student
+                                                </Label>
                                             </div>
                                         </RadioGroup>
                                     )}
                                 />
                             </div>
 
-                            <div className="space-y-2">
-                                <Label className="text-sm font-bold">Promoted Class:</Label>
+                            <div className='space-y-2'>
+                                <Label className='font-bold text-sm'>Promoted Class:</Label>
                                 <Controller
-                                    name="asmcL_Id"
+                                    name='asmcL_Id'
                                     control={control}
                                     render={({ field }) => (
-                                        <Select
-                                            value={field.value}
-                                            onValueChange={field.onChange}
-                                            disabled={isInitialLoading}
-                                        >
+                                        <Select value={field.value} onValueChange={field.onChange} disabled={isInitialLoading}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select Class" />
+                                                <SelectValue placeholder='Select Class' />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {initialData?.data?.accclass?.map((cls: any) => (
@@ -397,34 +407,27 @@ export default function BBKVCustomReportPage() {
                         </div>
                     </div>
 
-                    <div className="flex justify-center gap-4 pt-4 border-t">
+                    <div className='flex justify-center gap-4 border-t pt-4'>
                         <Button
-                            type="submit"
+                            type='submit'
                             disabled={isGenerating}
-                            className="min-w-[140px] bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg"
-                        >
-                            {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
+                            className='min-w-[140px] bg-indigo-600 font-bold text-white shadow-lg hover:bg-indigo-700'>
+                            {isGenerating ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <FileText className='mr-2 h-4 w-4' />}
                             Report
                         </Button>
                         <Button
-                            type="button"
-                            variant="destructive"
+                            type='button'
+                            variant='destructive'
                             onClick={() => {
                                 window.location.reload();
                             }}
-                            className="min-w-[140px] font-bold"
-                        >
-                            <X className="mr-2 h-4 w-4" />
+                            className='min-w-[140px] font-bold'>
+                            <X className='mr-2 h-4 w-4' />
                             Cancel
                         </Button>
                         {reportData && (
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={handlePrint}
-                                className="min-w-[140px] font-bold"
-                            >
-                                <Printer className="mr-2 h-4 w-4" />
+                            <Button type='button' variant='outline' onClick={handlePrint} className='min-w-[140px] font-bold'>
+                                <Printer className='mr-2 h-4 w-4' />
                                 Print
                             </Button>
                         )}
@@ -433,208 +436,260 @@ export default function BBKVCustomReportPage() {
             </CollapsibleSection>
 
             {reportData && (
-                <div className="bg-white p-8 rounded-lg shadow-md max-w-5xl mx-auto overflow-x-auto">
-                    <div ref={printRef} className="bg-white text-black p-4 sm:p-6 min-w-[800px] max-w-[900px] mx-auto font-serif">
+                <div className='mx-auto max-w-5xl overflow-x-auto rounded-lg bg-white p-8 shadow-md'>
+                    <div ref={printRef} className='mx-auto min-w-[800px] max-w-[900px] bg-white p-4 font-serif text-black sm:p-6'>
                         {/* Header */}
-                        <div className="text-center mb-2">
+                        <div className='mb-2 text-center'>
                             {reportData?.logo ? (
-                                <img src={reportData.logo} alt="Institution Logo" className="mx-auto max-h-[70px]" />
+                                <img src={reportData.logo} alt='Institution Logo' className='mx-auto max-h-[70px]' />
                             ) : (
-                                <img src="/images/BBKVTCLOGO.png" alt="Logo" className="mx-auto max-h-[70px]" />
+                                <img src='/images/BBKVTCLOGO.png' alt='Logo' className='mx-auto max-h-[70px]' />
                             )}
                         </div>
-                        
-                        <div className="text-center mb-4">
-                            <h2 className="text-xl font-bold uppercase">Transfer Certificate</h2>
+
+                        <div className='mb-4 text-center'>
+                            <h2 className='font-bold text-xl uppercase'>Transfer Certificate</h2>
                         </div>
 
                         {/* Top Info Section */}
-                        <div className="text-right text-xs font-bold mb-1">
-                            <span className="mr-2">DATE :</span>
+                        <div className='mb-1 text-right font-bold text-xs'>
+                            <span className='mr-2'>DATE :</span>
                             <span>{reportData.todaydate ? format(new Date(reportData.todaydate), 'dd/MM/yyyy') : ''}</span>
                         </div>
-                        <div className="flex justify-between text-xs font-bold mb-2">
-                            <div>Affiliation No: <span className="ml-2 font-normal">{reportData.affiliationNo || '830892'}</span></div>
-                            <div>School Code: <span className="ml-2 font-normal">{reportData.schoolCode || '41692'}</span></div>
-                            <div>DISE Code: <span className="ml-2 font-normal">{reportData.diseCode || '29120910805'}</span></div>
+                        <div className='mb-2 flex justify-between font-bold text-xs'>
+                            <div>
+                                Affiliation No: <span className='ml-2 font-normal'>{reportData.affiliationNo || '830892'}</span>
+                            </div>
+                            <div>
+                                School Code: <span className='ml-2 font-normal'>{reportData.schoolCode || '41692'}</span>
+                            </div>
+                            <div>
+                                DISE Code: <span className='ml-2 font-normal'>{reportData.diseCode || '29120910805'}</span>
+                            </div>
                         </div>
-                        <div className="flex justify-between text-xs font-bold mb-4">
-                            <div className="flex items-end">
-                                <span className="mr-2">TC.No:</span>
-                                <span className="border-b border-black inline-block min-w-[100px] text-center font-normal pb-0.5">{reportData.tcno}</span>
+                        <div className='mb-4 flex justify-between font-bold text-xs'>
+                            <div className='flex items-end'>
+                                <span className='mr-2'>TC.No:</span>
+                                <span className='inline-block min-w-[100px] border-black border-b pb-0.5 text-center font-normal'>
+                                    {reportData.tcno}
+                                </span>
                             </div>
-                            <div className="flex items-end">
-                                <span className="mr-2">STS No.:</span>
-                                <span className="border-b border-black inline-block min-w-[150px] text-center font-normal pb-0.5">{reportData.stsno}</span>
+                            <div className='flex items-end'>
+                                <span className='mr-2'>STS No.:</span>
+                                <span className='inline-block min-w-[150px] border-black border-b pb-0.5 text-center font-normal'>
+                                    {reportData.stsno}
+                                </span>
                             </div>
-                            <div className="flex items-end">
-                                <span className="mr-2">Admission NO:</span>
-                                <span className="border-b border-black inline-block min-w-[100px] text-center font-normal pb-0.5">{reportData.admno}</span>
+                            <div className='flex items-end'>
+                                <span className='mr-2'>Admission NO:</span>
+                                <span className='inline-block min-w-[100px] border-black border-b pb-0.5 text-center font-normal'>
+                                    {reportData.admno}
+                                </span>
                             </div>
                         </div>
 
                         {/* List Section */}
-                        <div className="space-y-[7px] text-sm">
-                            <div className="flex items-end leading-none">
-                                <div className="w-8">1.</div>
-                                <div className="whitespace-nowrap mr-2">Name of Pupil</div>
-                                <div className="flex-grow border-b border-black text-center pb-0.5 font-bold">{reportData.studentname}</div>
+                        <div className='space-y-[7px] text-sm'>
+                            <div className='flex items-end leading-none'>
+                                <div className='w-8'>1.</div>
+                                <div className='mr-2 whitespace-nowrap'>Name of Pupil</div>
+                                <div className='flex-grow border-black border-b pb-0.5 text-center font-bold'>{reportData.studentname}</div>
                             </div>
-                            <div className="flex items-end leading-none">
-                                <div className="w-8">2.</div>
-                                <div className="whitespace-nowrap mr-2">Mother's Name :</div>
-                                <div className="flex-grow border-b border-black text-center pb-0.5 font-bold">{reportData.mothername}</div>
+                            <div className='flex items-end leading-none'>
+                                <div className='w-8'>2.</div>
+                                <div className='mr-2 whitespace-nowrap'>Mother's Name :</div>
+                                <div className='flex-grow border-black border-b pb-0.5 text-center font-bold'>{reportData.mothername}</div>
                             </div>
-                            <div className="flex items-end leading-none">
-                                <div className="w-8">3.</div>
-                                <div className="whitespace-nowrap mr-2">Name of Father's / Guardian's Name :</div>
-                                <div className="flex-grow border-b border-black text-center pb-0.5 font-bold">{reportData.fathername}</div>
+                            <div className='flex items-end leading-none'>
+                                <div className='w-8'>3.</div>
+                                <div className='mr-2 whitespace-nowrap'>Name of Father's / Guardian's Name :</div>
+                                <div className='flex-grow border-black border-b pb-0.5 text-center font-bold'>{reportData.fathername}</div>
                             </div>
-                            <div className="flex items-end leading-none">
-                                <div className="w-8">4.</div>
-                                <div className="whitespace-nowrap mr-2">Date of Birth(In christian)according to Admission & Withdrawal Register In Figure :</div>
-                                <div className="flex-grow border-b border-black text-center pb-0.5 font-bold">{reportData.dob ? format(new Date(reportData.dob), 'dd/MM/yyyy') : ''}</div>
+                            <div className='flex items-end leading-none'>
+                                <div className='w-8'>4.</div>
+                                <div className='mr-2 whitespace-nowrap'>
+                                    Date of Birth(In christian)according to Admission & Withdrawal Register In Figure :
+                                </div>
+                                <div className='flex-grow border-black border-b pb-0.5 text-center font-bold'>
+                                    {reportData.dob ? format(new Date(reportData.dob), 'dd/MM/yyyy') : ''}
+                                </div>
                             </div>
-                            <div className="flex items-end leading-none pl-8">
-                                <div className="whitespace-nowrap mr-2">in words :</div>
-                                <div className="flex-grow border-b border-black text-center pb-0.5 uppercase font-bold">{reportData.dobwords}</div>
+                            <div className='flex items-end pl-8 leading-none'>
+                                <div className='mr-2 whitespace-nowrap'>in words :</div>
+                                <div className='flex-grow border-black border-b pb-0.5 text-center font-bold uppercase'>
+                                    {reportData.dobwords}
+                                </div>
                             </div>
-                            <div className="flex items-end leading-none">
-                                <div className="w-8">5.</div>
-                                <div className="whitespace-nowrap mr-2">Nationality :</div>
-                                <div className="flex-grow border-b border-black text-center pb-0.5">{reportData.nationality}</div>
+                            <div className='flex items-end leading-none'>
+                                <div className='w-8'>5.</div>
+                                <div className='mr-2 whitespace-nowrap'>Nationality :</div>
+                                <div className='flex-grow border-black border-b pb-0.5 text-center'>{reportData.nationality}</div>
                             </div>
-                            <div className="flex items-end leading-none">
-                                <div className="w-8">6.</div>
-                                <div className="whitespace-nowrap mr-2">Whether the Candidate belongs to SC/ST/OBC/GM :</div>
-                                <div className="flex-grow border-b border-black text-center pb-0.5 uppercase">{reportData.castecategory}</div>
+                            <div className='flex items-end leading-none'>
+                                <div className='w-8'>6.</div>
+                                <div className='mr-2 whitespace-nowrap'>Whether the Candidate belongs to SC/ST/OBC/GM :</div>
+                                <div className='flex-grow border-black border-b pb-0.5 text-center uppercase'>
+                                    {reportData.castecategory}
+                                </div>
                             </div>
-                            <div className="flex items-end leading-none">
-                                <div className="w-8">7.</div>
-                                <div className="whitespace-nowrap mr-2">Date of First admission in the school with class :</div>
-                                <div className="flex-grow border-b border-black text-center pb-0.5">{reportData.doa ? format(new Date(reportData.doa), 'dd/MM/yyyy') : ''}</div>
+                            <div className='flex items-end leading-none'>
+                                <div className='w-8'>7.</div>
+                                <div className='mr-2 whitespace-nowrap'>Date of First admission in the school with class :</div>
+                                <div className='flex-grow border-black border-b pb-0.5 text-center'>
+                                    {reportData.doa ? format(new Date(reportData.doa), 'dd/MM/yyyy') : ''}
+                                </div>
                             </div>
-                            <div className="flex items-end leading-none">
-                                <div className="w-8">8.</div>
-                                <div className="whitespace-nowrap mr-2">Class in which the pupil last studied (in figures) :</div>
-                                <div className="flex-grow border-b border-black text-center pb-0.5">{reportData.laststudied}</div>
-                                <div className="whitespace-nowrap mx-2">in words :</div>
-                                <div className="flex-grow border-b border-black text-center pb-0.5">{reportData.laststudiedinwords}</div>
+                            <div className='flex items-end leading-none'>
+                                <div className='w-8'>8.</div>
+                                <div className='mr-2 whitespace-nowrap'>Class in which the pupil last studied (in figures) :</div>
+                                <div className='flex-grow border-black border-b pb-0.5 text-center'>{reportData.laststudied}</div>
+                                <div className='mx-2 whitespace-nowrap'>in words :</div>
+                                <div className='flex-grow border-black border-b pb-0.5 text-center'>{reportData.laststudiedinwords}</div>
                             </div>
-                            <div className="flex items-end leading-none">
-                                <div className="w-8">9.</div>
-                                <div className="whitespace-nowrap mr-2">School/Board Annual Examination last taken with result :</div>
-                                <div className="flex-grow border-b border-black text-center pb-0.5">{reportData.result}</div>
+                            <div className='flex items-end leading-none'>
+                                <div className='w-8'>9.</div>
+                                <div className='mr-2 whitespace-nowrap'>School/Board Annual Examination last taken with result :</div>
+                                <div className='flex-grow border-black border-b pb-0.5 text-center'>{reportData.result}</div>
                             </div>
-                            <div className="flex items-end leading-none">
-                                <div className="w-8">10.</div>
-                                <div className="whitespace-nowrap mr-2">Whether failed (Give Reason) :</div>
-                                <div className="flex-grow border-b border-black text-center pb-0.5">No</div>
+                            <div className='flex items-end leading-none'>
+                                <div className='w-8'>10.</div>
+                                <div className='mr-2 whitespace-nowrap'>Whether failed (Give Reason) :</div>
+                                <div className='flex-grow border-black border-b pb-0.5 text-center'>No</div>
                             </div>
-                            <div className="flex mb-1">
-                                <div className="w-8">11.</div>
-                                <div className="whitespace-nowrap mr-2">Subjects Studied :</div>
-                                <div className="flex-grow">
-                                    <div className="flex items-end mb-2 leading-none">
-                                        <div className="mr-2">1.</div>
-                                        <div className="flex-grow border-b border-black text-center pb-0.5 font-bold">{reportData.subjects?.[0] || ''}</div>
-                                        <div className="mx-2">2.</div>
-                                        <div className="flex-grow border-b border-black text-center pb-0.5 font-bold">{reportData.subjects?.[1] || ''}</div>
-                                        <div className="mx-2">3.</div>
-                                        <div className="flex-grow border-b border-black text-center pb-0.5 font-bold">{reportData.subjects?.[2] || ''}</div>
+                            <div className='mb-1 flex'>
+                                <div className='w-8'>11.</div>
+                                <div className='mr-2 whitespace-nowrap'>Subjects Studied :</div>
+                                <div className='flex-grow'>
+                                    <div className='mb-2 flex items-end leading-none'>
+                                        <div className='mr-2'>1.</div>
+                                        <div className='flex-grow border-black border-b pb-0.5 text-center font-bold'>
+                                            {reportData.subjects?.[0] || ''}
+                                        </div>
+                                        <div className='mx-2'>2.</div>
+                                        <div className='flex-grow border-black border-b pb-0.5 text-center font-bold'>
+                                            {reportData.subjects?.[1] || ''}
+                                        </div>
+                                        <div className='mx-2'>3.</div>
+                                        <div className='flex-grow border-black border-b pb-0.5 text-center font-bold'>
+                                            {reportData.subjects?.[2] || ''}
+                                        </div>
                                     </div>
-                                    <div className="flex items-end leading-none">
-                                        <div className="mr-2">4.</div>
-                                        <div className="flex-grow border-b border-black text-center pb-0.5 font-bold">{reportData.subjects?.[3] || ''}</div>
-                                        <div className="mx-2">5.</div>
-                                        <div className="flex-grow border-b border-black text-center pb-0.5 font-bold">{reportData.subjects?.[4] || ''}</div>
-                                        <div className="mx-2">6.</div>
-                                        <div className="flex-grow border-b border-black text-center pb-0.5 font-bold">{reportData.subjects?.[5] || ''}</div>
+                                    <div className='flex items-end leading-none'>
+                                        <div className='mr-2'>4.</div>
+                                        <div className='flex-grow border-black border-b pb-0.5 text-center font-bold'>
+                                            {reportData.subjects?.[3] || ''}
+                                        </div>
+                                        <div className='mx-2'>5.</div>
+                                        <div className='flex-grow border-black border-b pb-0.5 text-center font-bold'>
+                                            {reportData.subjects?.[4] || ''}
+                                        </div>
+                                        <div className='mx-2'>6.</div>
+                                        <div className='flex-grow border-black border-b pb-0.5 text-center font-bold'>
+                                            {reportData.subjects?.[5] || ''}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex items-end leading-none">
-                                <div className="w-8">12.</div>
-                                <div className="whitespace-nowrap mr-2">Whether qualified for promotion to the higher class :</div>
-                                <div className="flex-grow border-b border-black text-center pb-0.5">{reportData.promotedclass ? 'Yes' : (reportData.promotionflag === 'Y' || reportData.promotionflag === 'YES' || reportData.promotionflag === true ? 'Yes' : 'No')}</div>
+                            <div className='flex items-end leading-none'>
+                                <div className='w-8'>12.</div>
+                                <div className='mr-2 whitespace-nowrap'>Whether qualified for promotion to the higher class :</div>
+                                <div className='flex-grow border-black border-b pb-0.5 text-center'>
+                                    {reportData.promotedclass
+                                        ? 'Yes'
+                                        : reportData.promotionflag === 'Y' ||
+                                            reportData.promotionflag === 'YES' ||
+                                            reportData.promotionflag === true
+                                          ? 'Yes'
+                                          : 'No'}
+                                </div>
                             </div>
-                            <div className="flex items-end leading-none pl-8">
-                                <div className="whitespace-nowrap mr-2">if so, to which class (in fig.)</div>
-                                <div className="flex-grow border-b border-black text-center pb-0.5">{reportData.promotedclass}</div>
-                                <div className="whitespace-nowrap mx-2">(in words)</div>
-                                <div className="flex-grow border-b border-black text-center pb-0.5">{reportData.promotedclassinfig}</div>
+                            <div className='flex items-end pl-8 leading-none'>
+                                <div className='mr-2 whitespace-nowrap'>if so, to which class (in fig.)</div>
+                                <div className='flex-grow border-black border-b pb-0.5 text-center'>{reportData.promotedclass}</div>
+                                <div className='mx-2 whitespace-nowrap'>(in words)</div>
+                                <div className='flex-grow border-black border-b pb-0.5 text-center'>{reportData.promotedclassinfig}</div>
                             </div>
-                            <div className="flex items-end leading-none">
-                                <div className="w-8">13.</div>
-                                <div className="whitespace-nowrap mr-2">Month upto which the pupil has paid school dues :</div>
-                                <div className="flex-grow border-b border-black text-center pb-0.5">March</div>
+                            <div className='flex items-end leading-none'>
+                                <div className='w-8'>13.</div>
+                                <div className='mr-2 whitespace-nowrap'>Month upto which the pupil has paid school dues :</div>
+                                <div className='flex-grow border-black border-b pb-0.5 text-center'>March</div>
                             </div>
-                            <div className="flex items-end leading-none">
-                                <div className="w-8">14.</div>
-                                <div className="whitespace-nowrap mr-2">Total No.of working days in the academic session :</div>
-                                <div className="flex-grow border-b border-black text-center pb-0.5">{reportData.totalworkingdays}</div>
+                            <div className='flex items-end leading-none'>
+                                <div className='w-8'>14.</div>
+                                <div className='mr-2 whitespace-nowrap'>Total No.of working days in the academic session :</div>
+                                <div className='flex-grow border-black border-b pb-0.5 text-center'>{reportData.totalworkingdays}</div>
                             </div>
-                            <div className="flex items-end leading-none">
-                                <div className="w-8">15.</div>
-                                <div className="whitespace-nowrap mr-2">Total No.of working days pupil present in the school :</div>
-                                <div className="flex-grow border-b border-black text-center pb-0.5">{reportData.noworkingdays}</div>
+                            <div className='flex items-end leading-none'>
+                                <div className='w-8'>15.</div>
+                                <div className='mr-2 whitespace-nowrap'>Total No.of working days pupil present in the school :</div>
+                                <div className='flex-grow border-black border-b pb-0.5 text-center'>{reportData.noworkingdays}</div>
                             </div>
-                            <div className="flex items-end leading-none">
-                                <div className="w-8">16.</div>
-                                <div className="whitespace-nowrap mr-2">whether NCC cadet/boy scout/girl guide(details may be given) :</div>
-                                <div className="flex-grow border-b border-black text-center pb-0.5">{reportData.nccdetails}</div>
+                            <div className='flex items-end leading-none'>
+                                <div className='w-8'>16.</div>
+                                <div className='mr-2 whitespace-nowrap'>whether NCC cadet/boy scout/girl guide(details may be given) :</div>
+                                <div className='flex-grow border-black border-b pb-0.5 text-center'>{reportData.nccdetails}</div>
                             </div>
-                            <div className="flex items-end leading-none">
-                                <div className="w-8">17.</div>
-                                <div className="whitespace-nowrap mr-2">Games played or extra-curricular activities in which the pupils usually took part :</div>
-                                <div className="flex-grow border-b border-black text-center pb-0.5"></div>
+                            <div className='flex items-end leading-none'>
+                                <div className='w-8'>17.</div>
+                                <div className='mr-2 whitespace-nowrap'>
+                                    Games played or extra-curricular activities in which the pupils usually took part :
+                                </div>
+                                <div className='flex-grow border-black border-b pb-0.5 text-center'></div>
                             </div>
-                            <div className="flex items-end leading-none pl-8">
-                                <div className="whitespace-nowrap mr-2">(Mention achievement their in) :</div>
-                                <div className="flex-grow border-b border-black text-center pb-0.5">{reportData.gamesplayed}</div>
+                            <div className='flex items-end pl-8 leading-none'>
+                                <div className='mr-2 whitespace-nowrap'>(Mention achievement their in) :</div>
+                                <div className='flex-grow border-black border-b pb-0.5 text-center'>{reportData.gamesplayed}</div>
                             </div>
-                            <div className="flex items-end leading-none">
-                                <div className="w-8">18.</div>
-                                <div className="whitespace-nowrap mr-2">General conduct :</div>
-                                <div className="flex-grow border-b border-black text-center pb-0.5">{reportData.conduct}</div>
+                            <div className='flex items-end leading-none'>
+                                <div className='w-8'>18.</div>
+                                <div className='mr-2 whitespace-nowrap'>General conduct :</div>
+                                <div className='flex-grow border-black border-b pb-0.5 text-center'>{reportData.conduct}</div>
                             </div>
-                            <div className="flex items-end leading-none">
-                                <div className="w-8">19.</div>
-                                <div className="whitespace-nowrap mr-2">Date of application for certificate :</div>
-                                <div className="flex-grow border-b border-black text-center pb-0.5">{reportData.applicationdate ? format(new Date(reportData.applicationdate), 'dd/MM/yyyy') : ''}</div>
+                            <div className='flex items-end leading-none'>
+                                <div className='w-8'>19.</div>
+                                <div className='mr-2 whitespace-nowrap'>Date of application for certificate :</div>
+                                <div className='flex-grow border-black border-b pb-0.5 text-center'>
+                                    {reportData.applicationdate ? format(new Date(reportData.applicationdate), 'dd/MM/yyyy') : ''}
+                                </div>
                             </div>
-                            <div className="flex items-end leading-none">
-                                <div className="w-8">20.</div>
-                                <div className="whitespace-nowrap mr-2">Date of issue for certificate :</div>
-                                <div className="flex-grow border-b border-black text-center pb-0.5">{reportData.dateofissue ? format(new Date(reportData.dateofissue), 'dd/MM/yyyy') : ''}</div>
+                            <div className='flex items-end leading-none'>
+                                <div className='w-8'>20.</div>
+                                <div className='mr-2 whitespace-nowrap'>Date of issue for certificate :</div>
+                                <div className='flex-grow border-black border-b pb-0.5 text-center'>
+                                    {reportData.dateofissue ? format(new Date(reportData.dateofissue), 'dd/MM/yyyy') : ''}
+                                </div>
                             </div>
-                            <div className="flex items-end leading-none">
-                                <div className="w-8">21.</div>
-                                <div className="whitespace-nowrap mr-2">Whether availed any govt aid :</div>
-                                <div className="flex-grow border-b border-black text-center pb-0.5">{reportData.feeconcession}</div>
+                            <div className='flex items-end leading-none'>
+                                <div className='w-8'>21.</div>
+                                <div className='mr-2 whitespace-nowrap'>Whether availed any govt aid :</div>
+                                <div className='flex-grow border-black border-b pb-0.5 text-center'>{reportData.feeconcession}</div>
                             </div>
                         </div>
 
                         {/* Footer Signatures */}
-                        <div className="flex justify-between mt-8 text-sm px-8">
-                            <div className="text-center">
-                                <div className="mb-1">Checked By</div>
+                        <div className='mt-8 flex justify-between px-8 text-sm'>
+                            <div className='text-center'>
+                                <div className='mb-1'>Checked By</div>
                                 <div>(With full name and designation)</div>
                             </div>
-                            <div className="text-center">
-                                <div className="mb-4">Signature of the principal with date</div>
+                            <div className='text-center'>
+                                <div className='mb-4'>Signature of the principal with date</div>
                                 <div>school seal</div>
                             </div>
                         </div>
-                        
-                        <div className="mt-4 text-[9px] text-justify leading-tight text-gray-700">
-                            Transfer Certificate should be issued only under the signatures ofthe Regular Principal/Vice Principal and itshould be counter-signed by an officer not below the rank
-                            of District Inspector ofSchools/Deputy Director of Education / Education Officer of the Education Deptt. of the State/Union Territory concerned. Incase ofa student
-                            migratingfrom the CBSE affiliated school to another CBSE affiliated school the transfer certificate ofa previous school Ofsuch a student may be countersigned by the
-                            Regional oncer ofthe Board or The Asst. Commissioner ofthe WS or The Deputy Director, Navodaya Vidyalaya Samiti in India or an officer of the Board at the Head
-                            Quartersand by the FirstSecretary/Attache/CulturaIAttache oran equivalentofficerofthe Embassy/ High Commission oflndia in the concerned country in respectof
-                            students studying in an affiliated school of the CBSE situated outside the country and the student shall not be admitted to a school without such a counter signature.
-                            Assistant Commissioners, KVS have also been authorised to countersign thl Transfer Certificates issued by the schools run by Directorated General, Border Security force.
+
+                        <div className='mt-4 text-justify text-[9px] text-gray-700 leading-tight'>
+                            Transfer Certificate should be issued only under the signatures ofthe Regular Principal/Vice Principal and
+                            itshould be counter-signed by an officer not below the rank of District Inspector ofSchools/Deputy Director of
+                            Education / Education Officer of the Education Deptt. of the State/Union Territory concerned. Incase ofa student
+                            migratingfrom the CBSE affiliated school to another CBSE affiliated school the transfer certificate ofa previous
+                            school Ofsuch a student may be countersigned by the Regional oncer ofthe Board or The Asst. Commissioner ofthe
+                            WS or The Deputy Director, Navodaya Vidyalaya Samiti in India or an officer of the Board at the Head Quartersand
+                            by the FirstSecretary/Attache/CulturaIAttache oran equivalentofficerofthe Embassy/ High Commission oflndia in
+                            the concerned country in respectof students studying in an affiliated school of the CBSE situated outside the
+                            country and the student shall not be admitted to a school without such a counter signature. Assistant
+                            Commissioners, KVS have also been authorised to countersign thl Transfer Certificates issued by the schools run
+                            by Directorated General, Border Security force.
                         </div>
                     </div>
                 </div>

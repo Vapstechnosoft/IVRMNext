@@ -8,7 +8,7 @@ export const eventsMapSchema = z.object({
     COEE_EEndDate: z.date({ required_error: 'End Date is required' }),
     COEE_EStartTime: z.string().min(1, 'Start Time is required'),
     COEE_EEndTime: z.string().min(1, 'End Time is required'),
-    
+
     // New fields
     COEE_ReminderDays: z.string().optional(),
     COEE_ReminderDate: z.date().optional(),
@@ -17,7 +17,7 @@ export const eventsMapSchema = z.object({
     COEE_RepeatFlag: z.boolean().default(false),
     COEE_ReminderSchedule: z.string().optional(),
     ASMAY_Id_o_s: z.string().optional(),
-    
+
     COEE_StudentFlag: z.boolean().default(false),
     COEE_EmployeeFlag: z.boolean().default(false),
     COEE_OtherFlag: z.boolean().default(false),

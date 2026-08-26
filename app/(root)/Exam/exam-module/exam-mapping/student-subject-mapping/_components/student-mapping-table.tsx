@@ -63,6 +63,8 @@ interface StudentSubjectMapping {
 interface Student {
     amsT_Id: number;
     amsT_FirstName: string;
+    amsT_MiddleName?: string;
+    amsT_LastName?: string;
     amsT_AdmNo: string;
     amaY_RollNo: number;
     sub_list: StudentSubjectMapping[];
@@ -210,11 +212,11 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
             if (!query) return localStudents;
 
             return localStudents.filter((s) => {
-                const name = normalize(s.amsT_FirstName || '');
+                const fullName = normalize([s.amsT_FirstName, s.amsT_MiddleName, s.amsT_LastName].filter(Boolean).join(' '));
                 const admNo = normalize(s.amsT_AdmNo || '');
                 const rollNo = String(s.amaY_RollNo || '');
 
-                return name.includes(query) || admNo.includes(query) || rollNo.includes(query);
+                return fullName.includes(query) || admNo.includes(query) || rollNo.includes(query);
             });
         }, [localStudents, searchTerm]);
 
@@ -547,7 +549,8 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
 
         /** Handle delete student confirmation */
         const handleDeleteStudent = useCallback((student: Student) => {
-            setStudentToDelete({ id: student.amsT_Id, name: student.amsT_FirstName });
+            const fullName = [student.amsT_FirstName, student.amsT_MiddleName, student.amsT_LastName].filter(Boolean).join(' ');
+            setStudentToDelete({ id: student.amsT_Id, name: fullName });
             setShowDeleteDialog(true);
         }, []);
 
@@ -703,7 +706,11 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
                                                 </div>
                                             </TableCell>
                                             <TableCell className={cn(isDisabled && 'opacity-50')}>
-                                                <div className='font-semibold text-gray-800'>{student.amsT_FirstName}</div>
+                                                <div className='font-semibold text-gray-800'>
+                                                    {[student.amsT_FirstName, student.amsT_MiddleName, student.amsT_LastName]
+                                                        .filter(Boolean)
+                                                        .join(' ')}
+                                                </div>
                                                 <div className='space-y-0.5 text-gray-600 text-xs'>
                                                     <div>Admission No: {student.amsT_AdmNo}</div>
                                                     <div>Roll No: {student.amaY_RollNo}</div>

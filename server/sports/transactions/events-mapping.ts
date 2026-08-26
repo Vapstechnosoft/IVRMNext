@@ -1,7 +1,7 @@
 'use server';
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
-import { IEventMappingDTO } from '@/types/sports/transactions/events-mapping';
+import type { IEventMappingDTO } from '@/types/sports/transactions/events-mapping';
 
 export async function getEventMappingDetails(params: any = {}) {
     const search_query = (params.search_query || '').toString().trim();
@@ -19,7 +19,7 @@ export async function getEventMappingDetails(params: any = {}) {
         const data = response.data as any;
         // Map according to user's snippet
         const records = data.eventmappingList || data.list || [];
-        
+
         return {
             ...response,
             data: {

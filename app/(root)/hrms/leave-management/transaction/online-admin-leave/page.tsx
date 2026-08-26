@@ -1,30 +1,29 @@
 'use client';
 
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     useEmployeesDropDown,
-    useLeaveHistoryByEmployeeId,
-    useLeaveBalanceByEmployeeId
+    useLeaveBalanceByEmployeeId,
+    useLeaveHistoryByEmployeeId
 } from '@/hooks/hrms/leave-management/useOnlineAdminLeave';
 import { tableSearchVariables } from '@/lib/data-table.config';
+import { cn } from '@/lib/utils';
+import type { ColumnDef } from '@tanstack/react-table';
+import { differenceInDays, format } from 'date-fns';
+import { ClipboardList, Info, Layers, Search, UserCheck } from 'lucide-react';
+import { CalendarIcon } from 'lucide-react';
 import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import ApplyLeaveForm from './_components/apply-leave-form';
 import { getOnlineAdminLeaveColumns } from './_components/columns';
-import { Button } from '@/components/ui/button';
-import { Search, UserCheck, Layers, ClipboardList, Info, FileText } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ColumnDef } from '@tanstack/react-table';
-import { OnlineAdminLeaveBalance } from '@/types/hrms/leave-management/online-admin-leave';
-import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
-import { format, differenceInDays } from 'date-fns';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { CalendarIcon } from 'lucide-react';
 
 export default function OnlineAdminLeavePage() {
     // Search states for History Grid
@@ -50,10 +49,7 @@ export default function OnlineAdminLeavePage() {
     }, [employeeList, staffSearch]);
 
     // Data for Grids
-    const {
-        data: leaveBalanceData,
-        isLoading: isLoadingBalance,
-    } = useLeaveBalanceByEmployeeId(selectedEmployeeId);
+    const { data: leaveBalanceData, isLoading: isLoadingBalance } = useLeaveBalanceByEmployeeId(selectedEmployeeId);
 
     const {
         data: leaveHistoryBatch,
@@ -66,7 +62,12 @@ export default function OnlineAdminLeavePage() {
         if (Array.isArray(leaveHistoryBatch) && leaveHistoryBatch.length > 0) {
             return leaveHistoryBatch;
         }
-        if (leaveHistoryBatch && !Array.isArray(leaveHistoryBatch) && Array.isArray((leaveHistoryBatch as any).get_leave_details) && (leaveHistoryBatch as any).get_leave_details.length > 0) {
+        if (
+            leaveHistoryBatch &&
+            !Array.isArray(leaveHistoryBatch) &&
+            Array.isArray((leaveHistoryBatch as any).get_leave_details) &&
+            (leaveHistoryBatch as any).get_leave_details.length > 0
+        ) {
             return (leaveHistoryBatch as any).get_leave_details;
         }
         if (leaveBalanceData?.get_leave_details && Array.isArray(leaveBalanceData.get_leave_details)) {
@@ -89,9 +90,7 @@ export default function OnlineAdminLeavePage() {
             const reason = (item.hrelaP_LeaveReason || '').toLowerCase();
             const status = (item.hrelaP_ApplicationStatus || '').toLowerCase();
 
-            return leaveName.includes(lowerSearch) ||
-                reason.includes(lowerSearch) ||
-                status.includes(lowerSearch);
+            return leaveName.includes(lowerSearch) || reason.includes(lowerSearch) || status.includes(lowerSearch);
         });
     }, [effectiveHistory, searchQuery]);
 
@@ -99,7 +98,7 @@ export default function OnlineAdminLeavePage() {
     const combinedBalanceData = useMemo(() => {
         if (!leaveBalanceData?.employeeLeaves) return [];
 
-        return leaveBalanceData.employeeLeaves.map(balance => {
+        return leaveBalanceData.employeeLeaves.map((balance) => {
             // Find the most recent history record for this leave type
             const latestHistory = effectiveHistory
                 ?.filter((h: any) => h.hrmL_Id === balance.hrmL_Id)
@@ -126,7 +125,7 @@ export default function OnlineAdminLeavePage() {
             header: '',
             cell: ({ row }) => (
                 <div
-                    className='flex items-center justify-center p-1 cursor-pointer'
+                    className='flex cursor-pointer items-center justify-center p-1'
                     onClick={() => {
                         setSelectedLeave(row.original);
                         const today = new Date();
@@ -134,15 +133,13 @@ export default function OnlineAdminLeavePage() {
                         setSelectedFromDate(today);
                         setSelectedToDate(today);
                         setIsHalfDay(false);
-                    }}
-                >
-                    <div className={cn(
-                        'h-4 w-4 rounded-full border-2 transition-all flex items-center justify-center',
-                        selectedLeave?.hrmL_Id === row.original.hrmL_Id ? 'border-primary bg-primary' : 'border-slate-300'
-                    )}>
-                        {selectedLeave?.hrmL_Id === row.original.hrmL_Id && (
-                            <div className='h-1.5 w-1.5 rounded-full bg-white' />
-                        )}
+                    }}>
+                    <div
+                        className={cn(
+                            'flex h-4 w-4 items-center justify-center rounded-full border-2 transition-all',
+                            selectedLeave?.hrmL_Id === row.original.hrmL_Id ? 'border-primary bg-primary' : 'border-slate-300'
+                        )}>
+                        {selectedLeave?.hrmL_Id === row.original.hrmL_Id && <div className='h-1.5 w-1.5 rounded-full bg-white' />}
                     </div>
                 </div>
             )
@@ -151,7 +148,7 @@ export default function OnlineAdminLeavePage() {
             header: 'SNO',
             cell: ({ row }) => (
                 <div
-                    className='font-mono text-xs cursor-pointer'
+                    className='cursor-pointer font-mono text-xs'
                     onClick={() => {
                         setSelectedLeave(row.original);
                         const today = new Date();
@@ -159,8 +156,7 @@ export default function OnlineAdminLeavePage() {
                         setSelectedFromDate(today);
                         setSelectedToDate(today);
                         setIsHalfDay(false);
-                    }}
-                >
+                    }}>
                     {row.index + 1}
                 </div>
             )
@@ -170,7 +166,7 @@ export default function OnlineAdminLeavePage() {
             header: 'LEAVE TYPE',
             cell: ({ row }) => (
                 <span
-                    className='font-bold text-slate-700 cursor-pointer hover:text-primary transition-colors'
+                    className='cursor-pointer font-bold text-slate-700 transition-colors hover:text-primary'
                     onClick={() => {
                         setSelectedLeave(row.original);
                         const today = new Date();
@@ -178,8 +174,7 @@ export default function OnlineAdminLeavePage() {
                         setSelectedFromDate(today);
                         setSelectedToDate(today);
                         setIsHalfDay(false);
-                    }}
-                >
+                    }}>
                     {row.getValue('hrmL_LeaveName')}
                 </span>
             )
@@ -192,7 +187,7 @@ export default function OnlineAdminLeavePage() {
         {
             accessorKey: 'hrelS_CBLeaves',
             header: 'BALANCE',
-            cell: ({ row }) => <span className='text-green-600 font-black'>{row.getValue('hrelS_CBLeaves')}</span>
+            cell: ({ row }) => <span className='font-black text-green-600'>{row.getValue('hrelS_CBLeaves')}</span>
         },
         {
             accessorKey: 'latestFromDate',
@@ -202,13 +197,16 @@ export default function OnlineAdminLeavePage() {
                 const activeDate = isSelected ? selectedFromDate : undefined;
 
                 return (
-                    <div className='flex items-center gap-2 w-max'>
-                        <span className={cn('font-medium text-[11px]', isSelected ? 'text-primary font-black' : 'text-slate-600')}>
+                    <div className='flex w-max items-center gap-2'>
+                        <span className={cn('font-medium text-[11px]', isSelected ? 'font-black text-primary' : 'text-slate-600')}>
                             {activeDate ? format(activeDate, 'dd-MM-yyyy') : '-- -- ----'}
                         </span>
                         <Popover>
                             <PopoverTrigger asChild>
-                                <Button variant='ghost' size='icon' className='h-6 w-6 rounded-full hover:bg-primary/10 hover:text-primary transition-all p-0'>
+                                <Button
+                                    variant='ghost'
+                                    size='icon'
+                                    className='h-6 w-6 rounded-full p-0 transition-all hover:bg-primary/10 hover:text-primary'>
                                     <CalendarIcon className='h-3 w-3' />
                                 </Button>
                             </PopoverTrigger>
@@ -250,13 +248,16 @@ export default function OnlineAdminLeavePage() {
                 const activeDate = isSelected ? selectedToDate : undefined;
 
                 return (
-                    <div className='flex items-center gap-2 w-max'>
-                        <span className={cn('font-medium text-[11px]', isSelected ? 'text-primary font-black' : 'text-slate-600')}>
+                    <div className='flex w-max items-center gap-2'>
+                        <span className={cn('font-medium text-[11px]', isSelected ? 'font-black text-primary' : 'text-slate-600')}>
                             {activeDate ? format(activeDate, 'dd-MM-yyyy') : '-- -- ----'}
                         </span>
                         <Popover>
                             <PopoverTrigger asChild>
-                                <Button variant='ghost' size='icon' className='h-6 w-6 rounded-full hover:bg-primary/10 hover:text-primary transition-all p-0'>
+                                <Button
+                                    variant='ghost'
+                                    size='icon'
+                                    className='h-6 w-6 rounded-full p-0 transition-all hover:bg-primary/10 hover:text-primary'>
                                     <CalendarIcon className='h-3 w-3' />
                                 </Button>
                             </PopoverTrigger>
@@ -277,7 +278,7 @@ export default function OnlineAdminLeavePage() {
                                         maxDate.setDate(today.getDate() + Math.max(0, Math.ceil(balance) - 1));
 
                                         // ToDate cannot be before selected FromDate (or Today if not selected)
-                                        const minDate = (isSelected && selectedFromDate) ? new Date(selectedFromDate) : today;
+                                        const minDate = isSelected && selectedFromDate ? new Date(selectedFromDate) : today;
                                         minDate.setHours(0, 0, 0, 0);
 
                                         return date < minDate || date > maxDate;
@@ -306,16 +307,12 @@ export default function OnlineAdminLeavePage() {
                 }
 
                 const isSingleDay = days === 1;
-                const displayDays = (isSingleDay && isHalfDay) ? 0.5 : days;
+                const displayDays = isSingleDay && isHalfDay ? 0.5 : days;
 
                 return (
-                    <div className="flex items-center gap-3 w-max">
-                        <Input
-                            readOnly
-                            value={displayDays || ''}
-                            className="w-16 h-8 text-xs font-bold text-center bg-white"
-                        />
-                        <div className="flex items-center space-x-1.5">
+                    <div className='flex w-max items-center gap-3'>
+                        <Input readOnly value={displayDays || ''} className='h-8 w-16 bg-white text-center font-bold text-xs' />
+                        <div className='flex items-center space-x-1.5'>
                             <Checkbox
                                 id={`half-day-${row.original.hrmL_Id}`}
                                 disabled={!isSingleDay}
@@ -324,8 +321,10 @@ export default function OnlineAdminLeavePage() {
                             />
                             <label
                                 htmlFor={`half-day-${row.original.hrmL_Id}`}
-                                className={cn("text-xs font-medium cursor-pointer whitespace-nowrap", !isSingleDay ? "opacity-50 cursor-not-allowed" : "text-slate-700")}
-                            >
+                                className={cn(
+                                    'cursor-pointer whitespace-nowrap font-medium text-xs',
+                                    !isSingleDay ? 'cursor-not-allowed opacity-50' : 'text-slate-700'
+                                )}>
                                 Half day
                             </label>
                         </div>
@@ -336,15 +335,19 @@ export default function OnlineAdminLeavePage() {
     ];
 
     // Grid 2 Columns (History)
-    const historyColumns = useMemo(() => getOnlineAdminLeaveColumns({
-        onView: (row) => console.log('View', row),
-        onDelete: (id) => {
-            if (confirm('Are you sure you want to delete this leave application?')) {
-                console.log('Delete', id);
-            }
-        },
-        onEdit: () => { } // Edit is disabled in columns.tsx
-    }), []);
+    const historyColumns = useMemo(
+        () =>
+            getOnlineAdminLeaveColumns({
+                onView: (row) => console.log('View', row),
+                onDelete: (id) => {
+                    if (confirm('Are you sure you want to delete this leave application?')) {
+                        console.log('Delete', id);
+                    }
+                },
+                onEdit: () => {} // Edit is disabled in columns.tsx
+            }),
+        []
+    );
 
     // Calculate current selection total days for form
     const currentTotalDays = useMemo(() => {
@@ -360,21 +363,21 @@ export default function OnlineAdminLeavePage() {
 
     return (
         <div className='min-h-screen bg-slate-50/50 p-4 md:p-6'>
-            <div className='max-w-[1400px] mx-auto space-y-6'>
+            <div className='mx-auto max-w-[1400px] space-y-6'>
                 {/* Master Header with Dropdown */}
-                <header className='bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-6'>
+                <header className='flex flex-col items-center justify-between gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:flex-row'>
                     <div className='flex items-center gap-4'>
-                        <div className='p-3 bg-primary/10 rounded-2xl'>
+                        <div className='rounded-2xl bg-primary/10 p-3'>
                             <Layers className='h-7 w-7 text-primary' />
                         </div>
                         <div>
-                            <h1 className='text-2xl font-black tracking-tight text-slate-900'>Online Leave Application</h1>
-                            <p className='text-sm text-slate-500 font-medium'>Manage employee leaves efficiently</p>
+                            <h1 className='font-black text-2xl text-slate-900 tracking-tight'>Online Leave Application</h1>
+                            <p className='font-medium text-slate-500 text-sm'>Manage employee leaves efficiently</p>
                         </div>
                     </div>
 
-                    <div className='w-full md:w-[400px] space-y-1.5'>
-                        <label className='text-[12px] font-black uppercase  tracking-widest ml-1'>Select Employee</label>
+                    <div className='w-full space-y-1.5 md:w-[400px]'>
+                        <label className='ml-1 font-black text-[12px] uppercase tracking-widest'>Select Employee</label>
                         <Select
                             searchable={false}
                             onValueChange={(value) => {
@@ -383,37 +386,40 @@ export default function OnlineAdminLeavePage() {
                                 setSelectedFromDate(undefined);
                                 setSelectedToDate(undefined);
                             }}
-                            value={selectedEmployeeId && selectedEmployeeId > 0 ? selectedEmployeeId.toString() : ''}
-                        >
-                            <SelectTrigger className='h-12 border-primary/20  hover:bg-slate-50 rounded-xl focus:ring-primary/20 transition-all'>
+                            value={selectedEmployeeId && selectedEmployeeId > 0 ? selectedEmployeeId.toString() : ''}>
+                            <SelectTrigger className='h-12 rounded-xl border-primary/20 transition-all hover:bg-slate-50 focus:ring-primary/20'>
                                 <SelectValue placeholder='Search and Select Staff...' />
                             </SelectTrigger>
                             <SelectContent className='max-h-80'>
-                                <div className='p-2 sticky top-0 bg-white z-10 border-b mb-1'>
+                                <div className='sticky top-0 z-10 mb-1 border-b bg-white p-2'>
                                     <div className='relative'>
-                                        <Search className='absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
+                                        <Search className='-translate-y-1/2 absolute top-1/2 left-2.5 h-4 w-4 text-muted-foreground' />
                                         <Input
                                             placeholder='Type Name or Code...'
-                                            className='pl-8 h-9 text-xs border-primary/10 focus-visible:ring-primary/20'
+                                            className='h-9 border-primary/10 pl-8 text-xs focus-visible:ring-primary/20'
                                             value={staffSearch}
                                             onChange={(e) => setStaffSearch(e.target.value)}
-                                            onKeyDown={(e) => { if (e.key !== 'Escape') e.stopPropagation(); }}
+                                            onKeyDown={(e) => {
+                                                if (e.key !== 'Escape') e.stopPropagation();
+                                            }}
                                         />
                                     </div>
                                 </div>
                                 {isLoadingEmployees ? (
-                                    <div className='p-4 text-center text-sm text-slate-400 italic'>Loading staff...</div>
+                                    <div className='p-4 text-center text-slate-400 text-sm italic'>Loading staff...</div>
                                 ) : filteredEmployeeList.length > 0 ? (
                                     filteredEmployeeList.map((emp) => (
                                         <SelectItem key={emp.hrmE_Id} value={emp.hrmE_Id.toString()} className='py-2.5'>
                                             <div className='flex flex-col'>
                                                 <span className='font-bold text-sm'>{emp.employeeName}</span>
-                                                <span className='text-[10px] text-slate-400'>Code: {emp.hrmE_EmployeeCode} | ID: {emp.hrmE_Id}</span>
+                                                <span className='text-[10px] text-slate-400'>
+                                                    Code: {emp.hrmE_EmployeeCode} | ID: {emp.hrmE_Id}
+                                                </span>
                                             </div>
                                         </SelectItem>
                                     ))
                                 ) : (
-                                    <div className='p-4 text-center text-sm text-slate-400 italic'>No matching staff found</div>
+                                    <div className='p-4 text-center text-slate-400 text-sm italic'>No matching staff found</div>
                                 )}
                             </SelectContent>
                         </Select>
@@ -421,32 +427,38 @@ export default function OnlineAdminLeavePage() {
                 </header>
 
                 {selectedEmployeeId ? (
-                    <div className='grid grid-cols-1 gap-6 fade-in'>
+                    <div className='fade-in grid grid-cols-1 gap-6'>
                         {/* Selected Employee Info */}
                         {leaveBalanceData?.employeeDetails && (
-                            <div className='bg-primary/5 border border-primary/10 p-4 rounded-xl flex flex-wrap items-center gap-8 shadow-inner'>
+                            <div className='flex flex-wrap items-center gap-8 rounded-xl border border-primary/10 bg-primary/5 p-4 shadow-inner'>
                                 <div className='flex items-center gap-3'>
-                                    <div className='p-2 bg-white rounded-lg shadow-sm font-black text-primary text-xs'>NAME</div>
-                                    <span className='text-sm font-black text-slate-700'>{leaveBalanceData.employeeDetails.hrmE_EmployeeName}</span>
+                                    <div className='rounded-lg bg-white p-2 font-black text-primary text-xs shadow-sm'>NAME</div>
+                                    <span className='font-black text-slate-700 text-sm'>
+                                        {leaveBalanceData.employeeDetails.hrmE_EmployeeName}
+                                    </span>
                                 </div>
                                 <div className='flex items-center gap-3'>
-                                    <div className='p-2 bg-white rounded-lg shadow-sm font-black text-primary text-xs'>CODE</div>
-                                    <span className='text-sm font-black text-slate-700'>{leaveBalanceData.employeeDetails.hrmE_EmployeeCode}</span>
+                                    <div className='rounded-lg bg-white p-2 font-black text-primary text-xs shadow-sm'>CODE</div>
+                                    <span className='font-black text-slate-700 text-sm'>
+                                        {leaveBalanceData.employeeDetails.hrmE_EmployeeCode}
+                                    </span>
                                 </div>
                                 <div className='flex items-center gap-3'>
-                                    <div className='p-2 bg-white rounded-lg shadow-sm font-black text-primary text-xs'>DESIGNATION</div>
-                                    <span className='text-sm font-black text-slate-700'>{leaveBalanceData.employeeDetails.hrmdeS_DesignationName}</span>
+                                    <div className='rounded-lg bg-white p-2 font-black text-primary text-xs shadow-sm'>DESIGNATION</div>
+                                    <span className='font-black text-slate-700 text-sm'>
+                                        {leaveBalanceData.employeeDetails.hrmdeS_DesignationName}
+                                    </span>
                                 </div>
                             </div>
                         )}
 
                         <div className='grid grid-cols-1 gap-6'>
                             {/* Integrated Leave Balance & Application Card */}
-                            <Card className='border-slate-200 shadow-sm rounded-2xl overflow-hidden bg-white'>
-                                <CardHeader className='pb-4 border-b bg-slate-50/50'>
+                            <Card className='overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm'>
+                                <CardHeader className='border-b bg-slate-50/50 pb-4'>
                                     <div className='flex items-center justify-between'>
                                         <div className='space-y-1'>
-                                            <CardTitle className='text-base font-bold flex items-center gap-2 text-slate-800'>
+                                            <CardTitle className='flex items-center gap-2 font-bold text-base text-slate-800'>
                                                 <Info className='h-4 w-4 text-primary' />
                                                 Employee Leave Details
                                             </CardTitle>
@@ -456,7 +468,7 @@ export default function OnlineAdminLeavePage() {
                                 </CardHeader>
                                 <CardContent className='p-0'>
                                     {/* Balance Grid */}
-                                    <div className='border-b border-slate-100'>
+                                    <div className='border-slate-100 border-b'>
                                         <GenericDataTable
                                             columns={balanceColumns}
                                             isLoading={isLoadingBalance}
@@ -471,13 +483,19 @@ export default function OnlineAdminLeavePage() {
                                     </div>
 
                                     {/* Selection Banner */}
-                                    <div className='px-6 py-4 bg-slate-50/50 flex items-center justify-between border-b border-slate-100'>
+                                    <div className='flex items-center justify-between border-slate-100 border-b bg-slate-50/50 px-6 py-4'>
                                         {selectedLeave ? (
-                                            <div className='flex items-center gap-4 animate-in slide-in-from-top-1 duration-200'>
-                                                <Badge variant='outline' className='bg-primary text-white border-none text-[9px] font-black px-3 py-1 rounded-full uppercase'>SELECTED</Badge>
+                                            <div className='slide-in-from-top-1 flex animate-in items-center gap-4 duration-200'>
+                                                <Badge
+                                                    variant='outline'
+                                                    className='rounded-full border-none bg-primary px-3 py-1 font-black text-[9px] text-white uppercase'>
+                                                    SELECTED
+                                                </Badge>
                                                 <div className='flex flex-col'>
-                                                    <span className='text-xs font-black text-slate-800 uppercase'>{selectedLeave.hrmL_LeaveName}</span>
-                                                    <span className='text-[10px] text-slate-400 font-bold'>
+                                                    <span className='font-black text-slate-800 text-xs uppercase'>
+                                                        {selectedLeave.hrmL_LeaveName}
+                                                    </span>
+                                                    <span className='font-bold text-[10px] text-slate-400'>
                                                         {selectedFromDate && selectedToDate
                                                             ? `${format(selectedFromDate, 'dd MMM')} → ${format(selectedToDate, 'dd MMM')} (${currentTotalDays} Days)`
                                                             : 'Please select dates in the grid above'}
@@ -487,19 +505,20 @@ export default function OnlineAdminLeavePage() {
                                         ) : (
                                             <div className='flex items-center gap-2 text-slate-300 italic'>
                                                 <Info className='h-4 w-4' />
-                                                <span className='text-[10px] font-bold uppercase tracking-widest'>Select a leave row and dates in the grid above</span>
+                                                <span className='font-bold text-[10px] uppercase tracking-widest'>
+                                                    Select a leave row and dates in the grid above
+                                                </span>
                                             </div>
                                         )}
                                         {selectedLeave && (
                                             <Button
                                                 variant='ghost'
-                                                className='h-7 text-[10px] font-black text-primary hover:bg-primary/10 rounded-full px-4 uppercase'
+                                                className='h-7 rounded-full px-4 font-black text-[10px] text-primary uppercase hover:bg-primary/10'
                                                 onClick={() => {
                                                     setSelectedLeave(null);
                                                     setSelectedFromDate(undefined);
                                                     setSelectedToDate(undefined);
-                                                }}
-                                            >
+                                                }}>
                                                 Clear Selection
                                             </Button>
                                         )}
@@ -528,27 +547,26 @@ export default function OnlineAdminLeavePage() {
                         </div>
 
                         {/* Grid 2: Leave History */}
-                        <Card className='border-slate-200 shadow-sm rounded-2xl overflow-hidden'>
-                            <CardHeader className='pb-4 border-b bg-slate-50/50 flex flex-row items-center justify-between'>
+                        <Card className='overflow-hidden rounded-2xl border-slate-200 shadow-sm'>
+                            <CardHeader className='flex flex-row items-center justify-between border-b bg-slate-50/50 pb-4'>
                                 <div className='space-y-1'>
-                                    <CardTitle className='text-base font-bold flex items-center gap-2'>
+                                    <CardTitle className='flex items-center gap-2 font-bold text-base'>
                                         <ClipboardList className='h-4 w-4 text-primary' />
                                         Leave History
                                     </CardTitle>
                                     <CardDescription className='text-xs'>Previously applied leaves</CardDescription>
                                 </div>
                                 <div className='relative w-64'>
-                                    <Search className='absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300' />
+                                    <Search className='-translate-y-1/2 absolute top-1/2 left-2.5 h-4 w-4 text-slate-300' />
                                     <Input
                                         placeholder='Search in history...'
-                                        className='pl-9 h-9 text-xs border-slate-200 bg-white ring-0'
+                                        className='h-9 border-slate-200 bg-white pl-9 text-xs ring-0'
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                     />
                                 </div>
                             </CardHeader>
                             <CardContent className='p-0'>
-
                                 <GenericDataTable
                                     columns={historyColumns}
                                     isLoading={isHistoryLoading}
@@ -562,14 +580,15 @@ export default function OnlineAdminLeavePage() {
                         </Card>
                     </div>
                 ) : (
-                    <div className='bg-white border-2 border-dashed border-slate-200 rounded-3xl p-20 text-center space-y-6'>
-                        <div className='mx-auto w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center border border-slate-100 shadow-sm'>
+                    <div className='space-y-6 rounded-3xl border-2 border-slate-200 border-dashed bg-white p-20 text-center'>
+                        <div className='mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-slate-100 bg-slate-50 shadow-sm'>
                             <UserCheck className='h-10 w-10 text-slate-300' />
                         </div>
-                        <div className='max-w-md mx-auto space-y-2'>
-                            <h2 className='text-xl font-black text-slate-800 uppercase tracking-tight'>No Staff Selected</h2>
-                            <p className='text-slate-500 font-medium leading-relaxed'>
-                                Please select an employee from the dropdown at the top to view their leave balance, apply for new leaves, and check history.
+                        <div className='mx-auto max-w-md space-y-2'>
+                            <h2 className='font-black text-slate-800 text-xl uppercase tracking-tight'>No Staff Selected</h2>
+                            <p className='font-medium text-slate-500 leading-relaxed'>
+                                Please select an employee from the dropdown at the top to view their leave balance, apply for new leaves,
+                                and check history.
                             </p>
                         </div>
                     </div>

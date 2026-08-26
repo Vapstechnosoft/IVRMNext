@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
 import { format } from 'date-fns';
+import React from 'react';
 
 interface CoeMonthEndReportPrintProps {
     reportData: any[];
@@ -15,7 +15,7 @@ export const CoeMonthEndReportPrint = React.forwardRef<HTMLDivElement, CoeMonthE
         const currentDate = format(new Date(), 'dd/MM/yyyy');
 
         return (
-            <div ref={ref} className='print-preview-container bg-white text-black min-h-full w-full'>
+            <div ref={ref} className='print-preview-container min-h-full w-full bg-white text-black'>
                 <style>
                     {`
                         @media print {
@@ -105,33 +105,31 @@ export const CoeMonthEndReportPrint = React.forwardRef<HTMLDivElement, CoeMonthE
                             <td className='no-border'>
                                 {/* Header */}
                                 <div className='header-section'>
-                                    <h2 className='text-xl font-bold uppercase underline'>
-                                        COE Report
-                                    </h2>
+                                    <h2 className='font-bold text-xl uppercase underline'>COE Report</h2>
                                     <div style={{ border: '1px solid black', display: 'inline-block', padding: '5px', marginTop: '10px' }}>
-                                        <h3 className='font-semibold uppercase text-center'>COE {selectedMonth} MONTH REPORT</h3>
+                                        <h3 className='text-center font-semibold uppercase'>COE {selectedMonth} MONTH REPORT</h3>
                                     </div>
                                 </div>
                                 {/* Info Table */}
-                                <div className="info-grid mt-4">
-                                    <div className="info-row">
-                                        <span className="font-semibold">Name:</span>
+                                <div className='info-grid mt-4'>
+                                    <div className='info-row'>
+                                        <span className='font-semibold'>Name:</span>
                                         <span>{ieName || reportData?.[0]?.ieName || '_________________'}</span>
                                     </div>
-                                    <div className="info-row">
-                                        <span className="font-semibold">Date:</span>
+                                    <div className='info-row'>
+                                        <span className='font-semibold'>Date:</span>
                                         <span>{currentDate}</span>
                                     </div>
-                                    <div className="info-row">
-                                        <span className="font-semibold">Designation:</span>
+                                    <div className='info-row'>
+                                        <span className='font-semibold'>Designation:</span>
                                         <span>{reportData?.[0]?.designation || 'Implementation Engineer'}</span>
                                     </div>
-                                    <div className="info-row">
-                                        <span className="font-semibold">Academic Year:</span>
+                                    <div className='info-row'>
+                                        <span className='font-semibold'>Academic Year:</span>
                                         <span>{selectedYear}</span>
                                     </div>
-                                    <div className="info-row col-span-2">
-                                        <span className="font-semibold">Module:</span>
+                                    <div className='info-row col-span-2'>
+                                        <span className='font-semibold'>Module:</span>
                                         <span>COE</span>
                                     </div>
                                 </div>
@@ -142,7 +140,7 @@ export const CoeMonthEndReportPrint = React.forwardRef<HTMLDivElement, CoeMonthE
                         <tr>
                             <td className='no-border'>
                                 {/* Table */}
-                                <table className='data-table w-full mt-4'>
+                                <table className='data-table mt-4 w-full'>
                                     <thead>
                                         <tr className='bg-gray-100 uppercase'>
                                             <th className='w-12'>Sl No</th>
@@ -161,14 +159,12 @@ export const CoeMonthEndReportPrint = React.forwardRef<HTMLDivElement, CoeMonthE
                                                 <td>
                                                     {row.coeE_EStartDate ? new Date(row.coeE_EStartDate).toISOString().slice(0, 10) : 'NA'}
                                                 </td>
-                                                <td>
-                                                    {row.coeE_EEndDate ? new Date(row.coeE_EEndDate).toISOString().slice(0, 10) : 'NA'}
-                                                </td>
+                                                <td>{row.coeE_EEndDate ? new Date(row.coeE_EEndDate).toISOString().slice(0, 10) : 'NA'}</td>
                                             </tr>
                                         ))}
                                         {(!reportData || reportData.length === 0) && (
                                             <tr>
-                                                <td colSpan={5} className="py-4 text-center font-bold">
+                                                <td colSpan={5} className='py-4 text-center font-bold'>
                                                     No records found
                                                 </td>
                                             </tr>
@@ -181,13 +177,13 @@ export const CoeMonthEndReportPrint = React.forwardRef<HTMLDivElement, CoeMonthE
                     <tfoot>
                         <tr>
                             <td className='no-border'>
-                                <div className="footer-section">
-                                    <div className="text-left">Implementation Engineer: ________________</div>
-                                    <div className="text-right">Nodal Officer: ________________</div>
+                                <div className='footer-section'>
+                                    <div className='text-left'>Implementation Engineer: ________________</div>
+                                    <div className='text-right'>Nodal Officer: ________________</div>
                                 </div>
-                                <div className="footer-section mt-4" style={{ paddingTop: '20px' }}>
-                                    <div className="text-left">End User: ________________</div>
-                                    <div className="text-right">Seal: ________________</div>
+                                <div className='footer-section mt-4' style={{ paddingTop: '20px' }}>
+                                    <div className='text-left'>End User: ________________</div>
+                                    <div className='text-right'>Seal: ________________</div>
                                 </div>
                             </td>
                         </tr>

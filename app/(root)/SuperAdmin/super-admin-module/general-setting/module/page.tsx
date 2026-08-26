@@ -4,12 +4,12 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { tableSearchVariables } from '@/lib/data-table.config';
 import { getMasterModules } from '@/server/super-admin/super-admin-module/general-setting/module';
 import type { IMasterModule } from '@/types/super-admin/super-admin-module/general-setting/module';
 import { Plus, X } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
 import { parseAsInteger, useQueryState } from 'nuqs';
-import { tableSearchVariables } from '@/lib/data-table.config';
+import React, { useEffect, useState } from 'react';
 import AddMasterModuleForm from './_components/add-form';
 import { columns } from './_components/columns';
 import { ModuleProvider } from './_components/module-context';
@@ -29,14 +29,8 @@ function MasterModulePageContent() {
 
     // Pagination State
     // Pagination State synced with URL
-    const [page] = useQueryState(
-        tableSearchVariables.page,
-        parseAsInteger.withOptions({ shallow: false }).withDefault(1)
-    );
-    const [pageSize] = useQueryState(
-        tableSearchVariables.page_size,
-        parseAsInteger.withOptions({ shallow: false }).withDefault(10)
-    );
+    const [page] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
+    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
     const [totalItems, setTotalItems] = useState(0);
 
     const fetchData = React.useCallback(async () => {
@@ -65,7 +59,6 @@ function MasterModulePageContent() {
 
     // Handlers for pagination
 
-
     return (
         <ModuleProvider refreshData={fetchData}>
             <div className='container space-y-4 p-1'>
@@ -75,18 +68,12 @@ function MasterModulePageContent() {
                         type='button'
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='h-4 w-4 mr-2' />
+                        <Plus className='mr-2 h-4 w-4' />
                         Add Master Module
                     </Button>
                 </div>
 
-                <CollapsibleSection
-                    title='Master Modules'
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg'
-                >
+                <CollapsibleSection title='Master Modules' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                     <div className='p-4'>
                         <GenericDataTable
                             data={data}
@@ -124,8 +111,7 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
                     defaultOpen={true}
                     variant='outline'
                     size='lg'
-                    className='shadow-lg animate-in slide-in-from-top-2'
-                >
+                    className='slide-in-from-top-2 animate-in shadow-lg'>
                     <div className='relative'>
                         <Button
                             type='button'

@@ -7,7 +7,6 @@ import { format } from 'date-fns';
 
 export const registrationColumns: ColumnDef<IRigistrationReportList>[] = [
     {
-
         id: 'sl_no',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6 font-bold text-black' />,
         cell: ({ row, table }) => {

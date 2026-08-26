@@ -5,9 +5,7 @@ import type {
     DepartmentDropdown,
     DesignationDropdown,
     SalaryUpdationDepartmentRequest,
-    SalaryUpdationDepartmentResponse,
     SalaryUpdationDesignationRequest,
-    SalaryUpdationDesignationResponse,
     SalaryUpdationEmployeeDetailsRequest,
     SalaryUpdationEmployeeDetailsResponse,
     SalaryUpdationFilterRequest,
@@ -16,10 +14,7 @@ import type {
     SalaryUpdationSaveRequest,
     SalaryUpdationSaveResponse,
     SalaryUpdationUpdateItem,
-    SalaryUpdationUpdateRequest,
-    SalaryUpdationUpdateResponse,
-    EarningResultItem,
-    DeductionResultItem
+    SalaryUpdationUpdateRequest
 } from '@/types/hrms/salary-updation';
 
 function mapGroupType(item: any) {
@@ -138,14 +133,21 @@ export async function getSalaryUpdationOnload(
         console.log('🔄 [SALARY UPDATION - BACKEND] Fetching onload data...');
         // Fetch both in parallel
         const [facadeResponse, groupTypeResponse, headersResponse] = await Promise.all([
-            api.post<{ success: boolean; message?: string; data?: any; total?: number | null; page?: number | null; page_size?: number | null }>('hrms', facadeUrl, requestBody),
+            api.post<{
+                success: boolean;
+                message?: string;
+                data?: any;
+                total?: number | null;
+                page?: number | null;
+                page_size?: number | null;
+            }>('hrms', facadeUrl, requestBody),
             api.get<any[]>('hrms', groupTypeUrl),
             api.get<any[]>('hrms', headersUrl)
         ]);
 
         console.log('✅ [SALARY UPDATION - BACKEND] Responses received.');
 
-        let rawData: any = facadeResponse && facadeResponse.data ? facadeResponse.data : (facadeResponse || {});
+        let rawData: any = facadeResponse && facadeResponse.data ? facadeResponse.data : facadeResponse || {};
         // Check if response is wrapped
         if (facadeResponse && typeof facadeResponse === 'object' && 'success' in facadeResponse && 'data' in facadeResponse) {
             rawData = facadeResponse.data;
@@ -195,7 +197,6 @@ export async function getSalaryUpdationOnload(
             page: typeof facadeResponse?.page === 'number' ? facadeResponse.page : undefined,
             page_size: typeof facadeResponse?.page_size === 'number' ? facadeResponse.page_size : undefined
         };
-
     } catch (error: any) {
         console.error('❌ [SALARY UPDATION - BACKEND] Error in onload:', error);
         return {
@@ -242,16 +243,16 @@ export async function deleteSalaryUpdation(data: { HRESU_Id: number; roleId: num
 export async function filterSalaryUpdationEmployees(data: SalaryUpdationFilterRequest) {
     console.log('📥 [SALARY UPDATION - BACKEND] Request payload:', JSON.stringify(data, null, 2));
 
-    // The user strictly requested this endpoint. 
-    // Although likely a POST given the body, the user shared a GET example. 
+    // The user strictly requested this endpoint.
+    // Although likely a POST given the body, the user shared a GET example.
     // I will use POST as it is safer for arrays, but if it fails I might need to switch to GET with query params.
     // However, the existing pattern for 'search' with complex body is often POST.
-    // Let's try POST first as it matches the previous function signature. 
-    // IF the user is adamant about GET with body, that's non-standard fetch behavior but possible in some clients, 
+    // Let's try POST first as it matches the previous function signature.
+    // IF the user is adamant about GET with body, that's non-standard fetch behavior but possible in some clients,
     // but typically fetch() doesn't support body in GET.
-    // I'll assume standard POST for now or GET with query params if I were building from scratch, 
+    // I'll assume standard POST for now or GET with query params if I were building from scratch,
     // but replacing the URL in a POST request is the standard first stemp.
-    // WAIT: The user request specifically said: 
+    // WAIT: The user request specifically said:
     // /api/SalaryUpdation/search_employees_for_salary_updation GET "{ ... }"
     // This strongly implies I should try to make it work.
     // But sending body with GET in fetch is forbidden.
@@ -329,9 +330,8 @@ export async function filterSalaryUpdationEmployees(data: SalaryUpdationFilterRe
             message: response.message || 'Failed to fetch employee data',
             data: undefined
         };
-
     } catch (error: any) {
-        console.error("Filter API Error:", error);
+        console.error('Filter API Error:', error);
         return {
             success: false,
             message: error?.message || 'Failed to filter salary updation employees',
@@ -442,7 +442,6 @@ export async function getSalaryUpdationDepartments(data: SalaryUpdationDepartmen
 export async function getSalaryUpdationDesignations(data: SalaryUpdationDesignationRequest) {
     console.log('📥 [SALARY UPDATION - BACKEND] Request payload:', JSON.stringify(data, null, 2));
 
-
     const groupTypeIds = data.hrmgT_IdList?.join(',') || '0';
     const deptIds = data.hrmD_IdList?.join(',') || '0';
     const url = `/api/MasterDropDown/designations_drop_down_by_group_Type_and_Dept/${groupTypeIds}/${deptIds}`;
@@ -480,7 +479,6 @@ export async function getSalaryUpdationDesignations(data: SalaryUpdationDesignat
             message: response.message || 'Failed to fetching designations',
             data: undefined
         };
-
     } catch (error: any) {
         return {
             success: false,
@@ -573,15 +571,13 @@ export async function getHeadDropdown() {
     }
 }
 
-
-
 // Helper to map UI earning/deduction items to Backend API format
 function mapToUpdateItem(item: any, userId: number): SalaryUpdationUpdateItem {
     // Robust mapping for Swagger format: handles both PascalCase (Updation) and camelCase (Approval)
     // specifically adding hresD_ prefix support for Amount, Percentage, etc.
     return {
-        // IMPORTANT: We do NOT map hresD_Id to hreeD_Id here because hresD_Id is a Transaction ID 
-        // while the update API expects HREED_Id (Master ID). Sending 0 allows the backend to 
+        // IMPORTANT: We do NOT map hresD_Id to hreeD_Id here because hresD_Id is a Transaction ID
+        // while the update API expects HREED_Id (Master ID). Sending 0 allows the backend to
         // match the master record by HRME_Id and HRMED_Id.
         hreeD_Id: item.HREED_Id ?? item.hreeD_Id ?? 0,
         mI_Id: item.MI_Id ?? item.mI_Id ?? 30, // Default institutional ID
@@ -593,21 +589,20 @@ function mapToUpdateItem(item: any, userId: number): SalaryUpdationUpdateItem {
         hreeD_MaxApplicableFlg: item.HREED_MaxApplicableFlg ?? item.hresD_MaxApplicableFlg ?? item.hreeD_MaxApplicableFlg ?? false,
         hreeD_ApplicableMaxValue: item.HREED_ApplicableMaxValue ?? item.hresD_ApplicableMaxValue ?? item.hreeD_ApplicableMaxValue ?? 0,
         updatedDate: new Date().toISOString(),
-        hreeD_UpdatedBy: userId,
+        hreeD_UpdatedBy: userId
     };
 }
 
-
-export async function updateEmployeesEarningsAndDeductions(data: { earningResult?: any[], deductionResult?: any[], LoginUserId: number }) {
+export async function updateEmployeesEarningsAndDeductions(data: { earningResult?: any[]; deductionResult?: any[]; LoginUserId: number }) {
     console.log('📥 [SALARY UPDATION - SERVER] RAW INPUT:', JSON.stringify(data, null, 2));
 
     const url = '/api/SalaryUpdation/update_employees_earnings_and_deductions';
-    
+
     // Map PascalCase UI objects to camelCase Backend objects
     const userId = data.LoginUserId || 30; // Use provided LoginUserId or default
     const requestBody: SalaryUpdationUpdateRequest = {
-        earnings: (data.earningResult || []).map(item => mapToUpdateItem(item, userId)),
-        deductions: (data.deductionResult || []).map(item => mapToUpdateItem(item, userId))
+        earnings: (data.earningResult || []).map((item) => mapToUpdateItem(item, userId)),
+        deductions: (data.deductionResult || []).map((item) => mapToUpdateItem(item, userId))
     };
 
     console.log('📤 [SALARY UPDATION - SERVER] FINAL PAYLOAD:', JSON.stringify(requestBody, null, 2));

@@ -96,7 +96,10 @@ export const departmentMasterSchema = z.object({
     ),
     hrmD_InternalTrainingMinimumHrs: z
         .union([
-            z.number({ invalid_type_error: 'Internal Training Minimum Hours is required', required_error: 'Internal Training Minimum Hours is required' }),
+            z.number({
+                invalid_type_error: 'Internal Training Minimum Hours is required',
+                required_error: 'Internal Training Minimum Hours is required'
+            }),
             z.string().transform((val) => {
                 const parsed = Number.parseInt(val, 10);
                 return Number.isNaN(parsed) ? undefined : parsed;
@@ -469,8 +472,20 @@ export const payrollStandardSchema = z.object({
     // Provident Fund
     HRC_PFAccPrefix: z.string().min(1, 'Account Prefix is required'),
     HRC_PFMaxAmt: z.number({ required_error: 'PF Max Amount is required' }).min(0, 'Cannot be negative'),
-    HRC_FPFPer: z.number().min(0).max(100).refine(val => !val || Number.isInteger(val * 100), 'Max 2 decimal places allowed').optional().or(z.literal(undefined)),
-    HRC_EPFPer: z.number().min(0).max(100).refine(val => !val || Number.isInteger(val * 100), 'Max 2 decimal places allowed').optional().or(z.literal(undefined)),
+    HRC_FPFPer: z
+        .number()
+        .min(0)
+        .max(100)
+        .refine((val) => !val || Number.isInteger(val * 100), 'Max 2 decimal places allowed')
+        .optional()
+        .or(z.literal(undefined)),
+    HRC_EPFPer: z
+        .number()
+        .min(0)
+        .max(100)
+        .refine((val) => !val || Number.isInteger(val * 100), 'Max 2 decimal places allowed')
+        .optional()
+        .or(z.literal(undefined)),
     HRC_EPFPerAfterRetirement: z.number().min(0).max(100).optional(),
     HRC_EPFPerAfterRetirement2: z.number().min(0).max(100).optional(),
     HRC_AccNo2Per: z.number().min(0).optional(), // Account number, not percentage
@@ -486,7 +501,13 @@ export const payrollStandardSchema = z.object({
     HRC_RetirementYrs: z.number().min(1).max(99),
     // ESI
     HRC_ESIAccPrefix: z.string().min(1, 'ESI Account Prefix Required'),
-    HRC_ESIMax: z.number().min(0, 'Must be at least 0').max(100, 'Cannot exceed 100').refine(val => !val || Number.isInteger(val * 100), 'Max 2 decimal places allowed').optional().or(z.literal(undefined)),
+    HRC_ESIMax: z
+        .number()
+        .min(0, 'Must be at least 0')
+        .max(100, 'Cannot exceed 100')
+        .refine((val) => !val || Number.isInteger(val * 100), 'Max 2 decimal places allowed')
+        .optional()
+        .or(z.literal(undefined)),
     HRC_ESIMaxAmount: z.number().min(0).optional().or(z.literal(undefined)),
     HRC_ESIEmplrCont: z.number().min(0).max(100).optional().or(z.literal(undefined)),
     // Arrear Details
@@ -607,74 +628,80 @@ export const hrmsMasterSchemas = {
     },
     // Attendance Management Masters
     masterHoliday: {
-        add: z.object({
-            day_flag: z.boolean().default(true),
-            selectedDaysDate: z.array(z.object({
-                date: z.string(),
-                dayname: z.string()
-            })).optional(),
-            fO_Start_Date: z.string().optional(),
-            fomhwdD_ToDate: z.string().optional(),
-            fomhwD_HolidayWDName: z.string().optional(),
-            fO_Remark: z.string().optional(),
-            fohwdT_Id: z.coerce.number().min(1, 'Holiday Type is required'),
-            hrmlY_Id: z.coerce.number().min(1, 'Leave Year is required'),
-            hrmD_Id: z.coerce.number().optional(),
-            // UI fields for form tracking
-            calendarYear: z.string().optional(),
-            selectedDays: z.array(z.string()).optional()
-        }).superRefine((data, ctx) => {
-            if (data.day_flag) {
-                if (!data.selectedDays || data.selectedDays.length === 0) {
-                    ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: "Please select at least one day",
-                        path: ["selectedDays"],
-                    });
-                }
-                
-                // Only validate selectedDaysDate if days are selected to avoid duplicate errors
-                if (data.selectedDays && data.selectedDays.length > 0) {
-                    if (!data.selectedDaysDate || data.selectedDaysDate.length === 0) {
+        add: z
+            .object({
+                day_flag: z.boolean().default(true),
+                selectedDaysDate: z
+                    .array(
+                        z.object({
+                            date: z.string(),
+                            dayname: z.string()
+                        })
+                    )
+                    .optional(),
+                fO_Start_Date: z.string().optional(),
+                fomhwdD_ToDate: z.string().optional(),
+                fomhwD_HolidayWDName: z.string().optional(),
+                fO_Remark: z.string().optional(),
+                fohwdT_Id: z.coerce.number().min(1, 'Holiday Type is required'),
+                hrmlY_Id: z.coerce.number().min(1, 'Leave Year is required'),
+                hrmD_Id: z.coerce.number().optional(),
+                // UI fields for form tracking
+                calendarYear: z.string().optional(),
+                selectedDays: z.array(z.string()).optional()
+            })
+            .superRefine((data, ctx) => {
+                if (data.day_flag) {
+                    if (!data.selectedDays || data.selectedDays.length === 0) {
                         ctx.addIssue({
                             code: z.ZodIssueCode.custom,
-                            message: "Please select at least one date from the list below",
-                            path: ["selectedDaysDate"],
+                            message: 'Please select at least one day',
+                            path: ['selectedDays']
+                        });
+                    }
+
+                    // Only validate selectedDaysDate if days are selected to avoid duplicate errors
+                    if (data.selectedDays && data.selectedDays.length > 0) {
+                        if (!data.selectedDaysDate || data.selectedDaysDate.length === 0) {
+                            ctx.addIssue({
+                                code: z.ZodIssueCode.custom,
+                                message: 'Please select at least one date from the list below',
+                                path: ['selectedDaysDate']
+                            });
+                        }
+                    }
+                } else {
+                    if (!data.fO_Start_Date) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: 'Start Date is required',
+                            path: ['fO_Start_Date']
+                        });
+                    }
+
+                    if (!data.fomhwdD_ToDate) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: 'End Date is required',
+                            path: ['fomhwdD_ToDate']
+                        });
+                    }
+                    if (!data.fomhwD_HolidayWDName) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: 'Holiday Name is required',
+                            path: ['fomhwD_HolidayWDName']
+                        });
+                    }
+                    if (!data.fO_Remark) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: 'Remark is required',
+                            path: ['fO_Remark']
                         });
                     }
                 }
-            } else {
-                if (!data.fO_Start_Date) {
-                    ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: "Start Date is required",
-                        path: ["fO_Start_Date"],
-                    });
-                }
-
-                if (!data.fomhwdD_ToDate) {
-                    ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: "End Date is required",
-                        path: ["fomhwdD_ToDate"],
-                    });
-                }
-                if (!data.fomhwD_HolidayWDName) {
-                    ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: "Holiday Name is required",
-                        path: ["fomhwD_HolidayWDName"],
-                    });
-                }
-                if (!data.fO_Remark) {
-                    ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: "Remark is required",
-                        path: ["fO_Remark"],
-                    });
-                }
-            }
-        }),
+            }),
         update: z.object({
             fomhwD_Id: z.number(),
             calendarYear: z.string().min(1, 'Calendar Year is required'),
@@ -687,33 +714,84 @@ export const hrmsMasterSchemas = {
             fomhwD_Remarks: z.string().optional()
         }),
         delete: z.object({
-            fomhwdD_Id: z.coerce.number().int({ message: 'fomhwdD_Id is required' }).min(1, { message: 'fomhwdD_Id must be greater than 0' })
+            fomhwdD_Id: z.coerce
+                .number()
+                .int({ message: 'fomhwdD_Id is required' })
+                .min(1, { message: 'fomhwdD_Id must be greater than 0' })
         })
     },
     shiftSettingMaster: {
         add: z.object({
             foms_ShiftName: z.string().min(1, 'Shift Name is required').max(100),
-            fomsT_IHalfLoginTime: z.string({ required_error: 'Shift Start Time is required' }).min(1, 'Shift Start Time is required').refine((val) => val !== '00:00', { message: 'Shift Start Time is required' }),
-            fomsT_IIHalfLogoutTime: z.string({ required_error: 'Shift End Time is required' }).min(1, 'Shift End Time is required').refine((val) => val !== '00:00', { message: 'Shift End Time is required' }),
-            fomsT_IHalfLogoutTime: z.string({ required_error: 'Lunch Start Time is required' }).min(1, 'Lunch Start Time is required').refine((val) => val !== '00:00', { message: 'Lunch Start Time is required' }),
-            fomsT_IIHalfLoginTime: z.string({ required_error: 'Lunch End Time is required' }).min(1, 'Lunch End Time is required').refine((val) => val !== '00:00', { message: 'Lunch End Time is required' }),
-            fomsT_FDWHrMin: z.string({ required_error: 'Total Working Hours is required' }).min(1, 'Total Working Hours is required').refine((val) => val !== '00:00', { message: 'Total Working Hours is required' }),
-            fomsT_HDWHrMin: z.string({ required_error: 'Half Day Working Hours is required' }).min(1, 'Half Day Working Hours is required').refine((val) => val !== '00:00', { message: 'Half Day Working Hours is required' }),
-            fomsT_LunchHoursDuration: z.string({ required_error: 'Lunch Hours is required' }).min(1, 'Lunch Hours is required').refine((val) => val !== '00:00', { message: 'Lunch Hours is required' }),
-            fomsT_DelayPerShiftHrMin: z.string({ required_error: 'Delay Per Shift is required' }).min(1, 'Delay Per Shift is required').refine((val) => val !== '00:00', { message: 'Delay Per Shift is required' }),
-            fomsT_EarlyPerShiftHrMin: z.string({ required_error: 'Early Per Shift is required' }).min(1, 'Early Per Shift is required').refine((val) => val !== '00:00', { message: 'Early Per Shift is required' })
+            fomsT_IHalfLoginTime: z
+                .string({ required_error: 'Shift Start Time is required' })
+                .min(1, 'Shift Start Time is required')
+                .refine((val) => val !== '00:00', { message: 'Shift Start Time is required' }),
+            fomsT_IIHalfLogoutTime: z
+                .string({ required_error: 'Shift End Time is required' })
+                .min(1, 'Shift End Time is required')
+                .refine((val) => val !== '00:00', { message: 'Shift End Time is required' }),
+            fomsT_IHalfLogoutTime: z
+                .string({ required_error: 'Lunch Start Time is required' })
+                .min(1, 'Lunch Start Time is required')
+                .refine((val) => val !== '00:00', { message: 'Lunch Start Time is required' }),
+            fomsT_IIHalfLoginTime: z
+                .string({ required_error: 'Lunch End Time is required' })
+                .min(1, 'Lunch End Time is required')
+                .refine((val) => val !== '00:00', { message: 'Lunch End Time is required' }),
+            fomsT_FDWHrMin: z
+                .string({ required_error: 'Total Working Hours is required' })
+                .min(1, 'Total Working Hours is required')
+                .refine((val) => val !== '00:00', { message: 'Total Working Hours is required' }),
+            fomsT_HDWHrMin: z
+                .string({ required_error: 'Half Day Working Hours is required' })
+                .min(1, 'Half Day Working Hours is required')
+                .refine((val) => val !== '00:00', { message: 'Half Day Working Hours is required' }),
+            fomsT_LunchHoursDuration: z
+                .string({ required_error: 'Lunch Hours is required' })
+                .min(1, 'Lunch Hours is required')
+                .refine((val) => val !== '00:00', { message: 'Lunch Hours is required' }),
+            fomsT_DelayPerShiftHrMin: z
+                .string({ required_error: 'Delay Per Shift is required' })
+                .min(1, 'Delay Per Shift is required')
+                .refine((val) => val !== '00:00', { message: 'Delay Per Shift is required' }),
+            fomsT_EarlyPerShiftHrMin: z
+                .string({ required_error: 'Early Per Shift is required' })
+                .min(1, 'Early Per Shift is required')
+                .refine((val) => val !== '00:00', { message: 'Early Per Shift is required' })
         }),
         update: z.object({
             fomsT_Id: z.number().optional(),
             fomS_Id: z.number().optional(),
             foms_ShiftName: z.string().min(1, 'Shift Name is required').max(100),
-            fomsT_IHalfLoginTime: z.string({ required_error: 'Shift Start Time is required' }).min(1, 'Shift Start Time is required').refine((val) => val !== '00:00', { message: 'Shift Start Time is required' }),
-            fomsT_IIHalfLogoutTime: z.string({ required_error: 'Shift End Time is required' }).min(1, 'Shift End Time is required').refine((val) => val !== '00:00', { message: 'Shift End Time is required' }),
-            fomsT_IHalfLogoutTime: z.string({ required_error: 'Lunch Start Time is required' }).min(1, 'Lunch Start Time is required').refine((val) => val !== '00:00', { message: 'Lunch Start Time is required' }),
-            fomsT_IIHalfLoginTime: z.string({ required_error: 'Lunch End Time is required' }).min(1, 'Lunch End Time is required').refine((val) => val !== '00:00', { message: 'Lunch End Time is required' }),
-            fomsT_FDWHrMin: z.string({ required_error: 'Total Working Hours is required' }).min(1, 'Total Working Hours is required').refine((val) => val !== '00:00', { message: 'Total Working Hours is required' }),
-            fomsT_HDWHrMin: z.string({ required_error: 'Half Day Working Hours is required' }).min(1, 'Half Day Working Hours is required').refine((val) => val !== '00:00', { message: 'Half Day Working Hours is required' }),
-            fomsT_LunchHoursDuration: z.string({ required_error: 'Lunch Hours is required' }).min(1, 'Lunch Hours is required').refine((val) => val !== '00:00', { message: 'Lunch Hours is required' }),
+            fomsT_IHalfLoginTime: z
+                .string({ required_error: 'Shift Start Time is required' })
+                .min(1, 'Shift Start Time is required')
+                .refine((val) => val !== '00:00', { message: 'Shift Start Time is required' }),
+            fomsT_IIHalfLogoutTime: z
+                .string({ required_error: 'Shift End Time is required' })
+                .min(1, 'Shift End Time is required')
+                .refine((val) => val !== '00:00', { message: 'Shift End Time is required' }),
+            fomsT_IHalfLogoutTime: z
+                .string({ required_error: 'Lunch Start Time is required' })
+                .min(1, 'Lunch Start Time is required')
+                .refine((val) => val !== '00:00', { message: 'Lunch Start Time is required' }),
+            fomsT_IIHalfLoginTime: z
+                .string({ required_error: 'Lunch End Time is required' })
+                .min(1, 'Lunch End Time is required')
+                .refine((val) => val !== '00:00', { message: 'Lunch End Time is required' }),
+            fomsT_FDWHrMin: z
+                .string({ required_error: 'Total Working Hours is required' })
+                .min(1, 'Total Working Hours is required')
+                .refine((val) => val !== '00:00', { message: 'Total Working Hours is required' }),
+            fomsT_HDWHrMin: z
+                .string({ required_error: 'Half Day Working Hours is required' })
+                .min(1, 'Half Day Working Hours is required')
+                .refine((val) => val !== '00:00', { message: 'Half Day Working Hours is required' }),
+            fomsT_LunchHoursDuration: z
+                .string({ required_error: 'Lunch Hours is required' })
+                .min(1, 'Lunch Hours is required')
+                .refine((val) => val !== '00:00', { message: 'Lunch Hours is required' }),
             fomsT_DelayPerShiftHrMin: z.string({ required_error: 'Delay Per Shift is required' }).min(1, 'Delay Per Shift is required'),
             fomsT_EarlyPerShiftHrMin: z.string({ required_error: 'Early Per Shift is required' }).min(1, 'Early Per Shift is required')
         }),
@@ -731,7 +809,9 @@ export const hrmsMasterSchemas = {
             foest_ApplicableDate: z.string({ required_error: 'Applicable Date is required' }).min(1, 'Applicable Date is required'),
             foest_GroupType: z.string({ required_error: 'Group Type is required' }).min(1, 'Group Type is required'),
             foest_TotalWork: z.string().optional(),
-            foest_HalfDayWork: z.string({ required_error: 'Half Day Working Hours is required' }).min(1, 'Half Day Working Hours is required'),
+            foest_HalfDayWork: z
+                .string({ required_error: 'Half Day Working Hours is required' })
+                .min(1, 'Half Day Working Hours is required'),
             foest_MorningLogin: z.string({ required_error: 'Shift Start Time is required' }).min(1, 'Shift Start Time is required'),
             foest_MorningLogout: z.string({ required_error: 'Lunch Start Time is required' }).min(1, 'Lunch Start Time is required'),
             foest_AfternoonLogin: z.string({ required_error: 'Lunch End Time is required' }).min(1, 'Lunch End Time is required'),
@@ -750,7 +830,9 @@ export const hrmsMasterSchemas = {
             foest_ApplicableDate: z.string({ required_error: 'Applicable Date is required' }).min(1, 'Applicable Date is required'),
             foest_GroupType: z.string({ required_error: 'Group Type is required' }).min(1, 'Group Type is required'),
             foest_TotalWork: z.string().optional(),
-            foest_HalfDayWork: z.string({ required_error: 'Half Day Working Hours is required' }).min(1, 'Half Day Working Hours is required'),
+            foest_HalfDayWork: z
+                .string({ required_error: 'Half Day Working Hours is required' })
+                .min(1, 'Half Day Working Hours is required'),
             foest_MorningLogin: z.string({ required_error: 'Shift Start Time is required' }).min(1, 'Shift Start Time is required'),
             foest_MorningLogout: z.string({ required_error: 'Lunch Start Time is required' }).min(1, 'Lunch Start Time is required'),
             foest_AfternoonLogin: z.string({ required_error: 'Lunch End Time is required' }).min(1, 'Lunch End Time is required'),

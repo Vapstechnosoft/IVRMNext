@@ -1,72 +1,60 @@
 'use client';
-
-import { format } from 'date-fns';
-import { 
-    Calendar, 
-    ChevronDown, 
-    FileText, 
-    Loader2, 
-    Plus, 
-    RotateCcw, 
-    Save, 
-    Trash2, 
-    User, 
-    Users, 
-    School, 
-    BookOpen, 
-    Upload, 
-    Search, 
-    Eye,
-    ShieldAlert,
-    CreditCard,
+import {
+    ArrowLeft,
+    BookOpen,
     CheckCircle2,
-    Briefcase,
-    GraduationCap,
+    CreditCard,
+    Eye,
+    FileText,
     HeartPulse,
+    History,
     Info,
     LayoutDashboard,
-    Wallet,
-    History,
-    FileCheck,
-    MessageSquare,
-    Target,
-    Trophy,
-    Gamepad2,
+    Loader2,
     MapPin,
-    ArrowLeft
+    MessageSquare,
+    Plus,
+    Save,
+    School,
+    Search,
+    ShieldAlert,
+    Trash2,
+    Trophy,
+    Upload,
+    User,
+    Users,
+    Wallet
 } from 'lucide-react';
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 
-import { 
-    useSophiaRegistrationXIInitialData,
+import {
     useSophiaRegistrationXICaste,
     useSophiaRegistrationXIClassChange,
+    useSophiaRegistrationXIClassMaxMinAge,
+    useSophiaRegistrationXIDelete,
+    useSophiaRegistrationXIDistricts,
+    useSophiaRegistrationXIInitialData,
+    useSophiaRegistrationXISave,
+    useSophiaRegistrationXIStates,
     useSophiaRegistrationXIStreams,
     useSophiaRegistrationXISubjects,
-    useSophiaRegistrationXIStates,
-    useSophiaRegistrationXIDistricts,
-    useSophiaRegistrationXISave,
-    useSophiaRegistrationXIDelete,
-    useSophiaRegistrationXIToggleStatus,
-    useSophiaRegistrationXIClassMaxMinAge
+    useSophiaRegistrationXIToggleStatus
 } from '@/hooks/admission/preadmission/transactions/useSophiaRegistrationXI';
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/extension/field';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { DataTable } from '@/components/ui/data-table';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Label } from '@/components/ui/extension/field';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Input } from '@/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 
 export default function SophiaRegistrationXI() {
@@ -108,7 +96,7 @@ export default function SophiaRegistrationXI() {
     /* -------------------- State -------------------- */
     const [activeTab, setActiveTab] = useState('entry');
     const [view, setView] = useState<'form' | 'payment'>('form');
-    
+
     const [reg, setReg] = useState<any>({
         ASMAY_Id: 0,
         PASR_FirstName: '',
@@ -201,21 +189,25 @@ export default function SophiaRegistrationXI() {
         Option2: '',
         Option3: '',
         Option4: '',
-        Option5: '',
+        Option5: ''
     });
 
-    const [siblings, setSiblings] = useState<any[]>([{ 
-        pasrS_SiblingsName: '', 
-        pasrS_SiblingsClass: '', 
-        pasrS_SchoolName: '',
-        pasrS_Gender: 'Female'
-    }]);
+    const [siblings, setSiblings] = useState<any[]>([
+        {
+            pasrS_SiblingsName: '',
+            pasrS_SiblingsClass: '',
+            pasrS_SchoolName: '',
+            pasrS_Gender: 'Female'
+        }
+    ]);
 
-    const [prevSchools, setPrevSchools] = useState<any[]>([{ 
-        pasrpS_PrvSchoolName: '', 
-        pasrpS_Address: '', 
-        pasrPS_TcNo: ''
-    }]);
+    const [prevSchools, setPrevSchools] = useState<any[]>([
+        {
+            pasrpS_PrvSchoolName: '',
+            pasrpS_Address: '',
+            pasrPS_TcNo: ''
+        }
+    ]);
 
     const [counts, setCounts] = useState({
         regisrertotal: 0,
@@ -282,7 +274,7 @@ export default function SophiaRegistrationXI() {
                 const activeYear = pData.academicdrp.find((y: any) => y.asmaY_Id === pData.asmaY_Id) || pData.academicdrp[0];
                 setReg((prev: any) => ({ ...prev, ASMAY_Id: activeYear.asmaY_Id }));
             }
-            
+
             // Set counts
             setCounts({
                 regisrertotal: pData.regisrertotal || 0,
@@ -328,8 +320,6 @@ export default function SophiaRegistrationXI() {
         const id = Number(val);
         handleInputChange('Religion_Id', id);
     };
-
-
 
     const handleClassChange = async (val: string) => {
         const id = Number(val);
@@ -377,7 +367,10 @@ export default function SophiaRegistrationXI() {
 
     const handleAddSibling = () => {
         if (siblings.length < 5) {
-            setSiblings((prev: any[]) => [...prev, { pasrS_SiblingsName: '', pasrS_SiblingsClass: '', pasrS_SchoolName: '', pasrS_Gender: 'Female' }]);
+            setSiblings((prev: any[]) => [
+                ...prev,
+                { pasrS_SiblingsName: '', pasrS_SiblingsClass: '', pasrS_SchoolName: '', pasrS_Gender: 'Female' }
+            ]);
         }
     };
 
@@ -416,7 +409,7 @@ export default function SophiaRegistrationXI() {
     };
 
     const handleMarksChange = (examId: number, subId: number, value: string) => {
-        const mark = parseFloat(value);
+        const mark = Number.parseFloat(value);
         if (value !== '' && (isNaN(mark) || mark < 0 || mark > 100)) {
             return;
         }
@@ -434,7 +427,7 @@ export default function SophiaRegistrationXI() {
         let total = 0;
         let hasValue = false;
         Object.values(examMarks).forEach((v: any) => {
-            const m = parseFloat(v);
+            const m = Number.parseFloat(v);
             if (!isNaN(m)) {
                 total += m;
                 hasValue = true;
@@ -453,11 +446,11 @@ export default function SophiaRegistrationXI() {
     const handleSave = async () => {
         const payload = {
             ...reg,
-            siblings: siblings.filter(s => s.pasrS_SiblingsName),
-            prevSchools: prevSchools.filter(s => s.pasrpS_PrvSchoolName),
+            siblings: siblings.filter((s) => s.pasrS_SiblingsName),
+            prevSchools: prevSchools.filter((s) => s.pasrpS_PrvSchoolName),
             marksMatrix: marksMatrix,
             selectedElectives: selectedElectives,
-            documents: documentList.filter(d => d.document_Path)
+            documents: documentList.filter((d) => d.document_Path)
         };
 
         try {
@@ -502,99 +495,131 @@ export default function SophiaRegistrationXI() {
 
     const filteredList = useMemo(() => {
         if (!studentSearch) return registrationList;
-        return registrationList.filter((r: any) => 
-            r.pasR_FirstName?.toLowerCase().includes(studentSearch.toLowerCase()) ||
-            r.pasR_RegistrationNo?.toLowerCase().includes(studentSearch.toLowerCase())
+        return registrationList.filter(
+            (r: any) =>
+                r.pasR_FirstName?.toLowerCase().includes(studentSearch.toLowerCase()) ||
+                r.pasR_RegistrationNo?.toLowerCase().includes(studentSearch.toLowerCase())
         );
     }, [registrationList, studentSearch]);
 
     return (
-        <div className='p-6 space-y-6 min-h-screen bg-slate-50/50'>
+        <div className='min-h-screen space-y-6 bg-slate-50/50 p-6'>
             <style dangerouslySetInnerHTML={{ __html: legacyStyles }} />
 
             <div className='flex items-center justify-between'>
                 <div className='space-y-1'>
-                    <h1 className='text-2xl font-bold tracking-tight flex items-center gap-2 text-slate-800'>
+                    <h1 className='flex items-center gap-2 font-bold text-2xl text-slate-800 tracking-tight'>
                         <Users className='h-7 w-7 text-indigo-600' />
                         Sophia Registration (Class XI)
                     </h1>
-                    <p className='text-slate-500 text-sm'>Manage student registrations and academic records for higher secondary admission.</p>
+                    <p className='text-slate-500 text-sm'>
+                        Manage student registrations and academic records for higher secondary admission.
+                    </p>
                 </div>
                 <div className='flex items-center gap-3'>
-                    <Badge variant='outline' className='bg-indigo-50 text-indigo-700 border-indigo-200 px-3 py-1 text-sm font-medium'>
-                        Academic Year: {(initialData?.data as any)?.academicdrp?.find((y: any) => y.asmaY_Id === reg.ASMAY_Id)?.asmaY_Year || 'Loading...'}
+                    <Badge variant='outline' className='border-indigo-200 bg-indigo-50 px-3 py-1 font-medium text-indigo-700 text-sm'>
+                        Academic Year:{' '}
+                        {(initialData?.data as any)?.academicdrp?.find((y: any) => y.asmaY_Id === reg.ASMAY_Id)?.asmaY_Year || 'Loading...'}
                     </Badge>
                 </div>
             </div>
 
             <div className='flex flex-wrap items-center gap-2'>
-                <Badge variant='outline' className='bg-indigo-600 text-white border-none py-2 px-4 rounded-full flex items-center gap-2 text-[10px] font-bold'>
-                    REGISTERED <span className='bg-white text-indigo-600 px-2 py-0.5 rounded-full'>{counts.regisrertotal}</span>
+                <Badge
+                    variant='outline'
+                    className='flex items-center gap-2 rounded-full border-none bg-indigo-600 px-4 py-2 font-bold text-[10px] text-white'>
+                    REGISTERED <span className='rounded-full bg-white px-2 py-0.5 text-indigo-600'>{counts.regisrertotal}</span>
                 </Badge>
-                <Badge variant='outline' className='bg-indigo-600 text-white border-none py-2 px-4 rounded-full flex items-center gap-2 text-[10px] font-bold'>
-                    APPLICATION NOT FILLED <span className='bg-white text-indigo-600 px-2 py-0.5 rounded-full'>{counts.notappform}</span>
+                <Badge
+                    variant='outline'
+                    className='flex items-center gap-2 rounded-full border-none bg-indigo-600 px-4 py-2 font-bold text-[10px] text-white'>
+                    APPLICATION NOT FILLED <span className='rounded-full bg-white px-2 py-0.5 text-indigo-600'>{counts.notappform}</span>
                 </Badge>
-                <Badge variant='outline' className='bg-indigo-600 text-white border-none py-2 px-4 rounded-full flex items-center gap-2 text-[10px] font-bold'>
-                    APPLICATION FILLED <span className='bg-white text-indigo-600 px-2 py-0.5 rounded-full'>{counts.appform - counts.duplicate}+{counts.duplicate}</span>
+                <Badge
+                    variant='outline'
+                    className='flex items-center gap-2 rounded-full border-none bg-indigo-600 px-4 py-2 font-bold text-[10px] text-white'>
+                    APPLICATION FILLED{' '}
+                    <span className='rounded-full bg-white px-2 py-0.5 text-indigo-600'>
+                        {counts.appform - counts.duplicate}+{counts.duplicate}
+                    </span>
                 </Badge>
-                <Badge variant='outline' className='bg-indigo-600 text-white border-none py-2 px-4 rounded-full flex items-center gap-2 text-[10px] font-bold'>
-                    PAYMENT DONE <span className='bg-white text-indigo-600 px-2 py-0.5 rounded-full'>{counts.pay}</span>
+                <Badge
+                    variant='outline'
+                    className='flex items-center gap-2 rounded-full border-none bg-indigo-600 px-4 py-2 font-bold text-[10px] text-white'>
+                    PAYMENT DONE <span className='rounded-full bg-white px-2 py-0.5 text-indigo-600'>{counts.pay}</span>
                 </Badge>
-                <Badge variant='outline' className='bg-indigo-600 text-white border-none py-2 px-4 rounded-full flex items-center gap-2 text-[10px] font-bold'>
-                    PAYMENT NOT DONE <span className='bg-white text-indigo-600 px-2 py-0.5 rounded-full'>{counts.notpay}</span>
+                <Badge
+                    variant='outline'
+                    className='flex items-center gap-2 rounded-full border-none bg-indigo-600 px-4 py-2 font-bold text-[10px] text-white'>
+                    PAYMENT NOT DONE <span className='rounded-full bg-white px-2 py-0.5 text-indigo-600'>{counts.notpay}</span>
                 </Badge>
-                <Badge variant='outline' className='bg-indigo-600 text-white border-none py-2 px-4 rounded-full flex items-center gap-2 text-[10px] font-bold'>
-                    TRANSFER STUDENT <span className='bg-white text-indigo-600 px-2 py-0.5 rounded-full'>{counts.transferstu}</span>
+                <Badge
+                    variant='outline'
+                    className='flex items-center gap-2 rounded-full border-none bg-indigo-600 px-4 py-2 font-bold text-[10px] text-white'>
+                    TRANSFER STUDENT <span className='rounded-full bg-white px-2 py-0.5 text-indigo-600'>{counts.transferstu}</span>
                 </Badge>
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className='space-y-6'>
-                <TabsList className='grid w-full grid-cols-2 lg:w-[400px] h-12 p-1 bg-slate-200/50'>
-                    <TabsTrigger value='entry' className='data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm rounded-md transition-all'>
-                        <FileText className='h-4 w-4 mr-2' />
+                <TabsList className='grid h-12 w-full grid-cols-2 bg-slate-200/50 p-1 lg:w-[400px]'>
+                    <TabsTrigger
+                        value='entry'
+                        className='rounded-md transition-all data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm'>
+                        <FileText className='mr-2 h-4 w-4' />
                         Registration Form
                     </TabsTrigger>
-                    <TabsTrigger value='list' className='data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm rounded-md transition-all'>
-                        <Search className='h-4 w-4 mr-2' />
+                    <TabsTrigger
+                        value='list'
+                        className='rounded-md transition-all data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm'>
+                        <Search className='mr-2 h-4 w-4' />
                         View Registrations
                     </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value='entry' className='space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300'>
+                <TabsContent value='entry' className='fade-in slide-in-from-bottom-2 animate-in space-y-6 duration-300'>
                     {view === 'payment' ? (
                         <div className='flex justify-center'>
-                            <Card className='w-full max-w-2xl shadow-2xl border-none overflow-hidden rounded-2xl'>
-                                <CardHeader className='bg-indigo-600 text-white p-8 text-center'>
-                                    <div className='mx-auto bg-white/20 w-16 h-16 rounded-full flex items-center justify-center mb-4'>
+                            <Card className='w-full max-w-2xl overflow-hidden rounded-2xl border-none shadow-2xl'>
+                                <CardHeader className='bg-indigo-600 p-8 text-center text-white'>
+                                    <div className='mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/20'>
                                         <Wallet className='h-8 w-8' />
                                     </div>
-                                    <CardTitle className='text-2xl font-bold'>REGISTRATION FEES PAYMENT</CardTitle>
-                                    <CardDescription className='text-indigo-100'>Complete your registration by making the payment.</CardDescription>
+                                    <CardTitle className='font-bold text-2xl'>REGISTRATION FEES PAYMENT</CardTitle>
+                                    <CardDescription className='text-indigo-100'>
+                                        Complete your registration by making the payment.
+                                    </CardDescription>
                                 </CardHeader>
-                                <CardContent className='p-8 space-y-6'>
-                                    <div className='grid grid-cols-1 gap-4 bg-slate-50 p-6 rounded-xl border border-slate-100'>
-                                        <div className='flex justify-between items-center border-b border-slate-200 pb-3'>
-                                            <span className='text-slate-500 font-medium'>Name of the Child</span>
+                                <CardContent className='space-y-6 p-8'>
+                                    <div className='grid grid-cols-1 gap-4 rounded-xl border border-slate-100 bg-slate-50 p-6'>
+                                        <div className='flex items-center justify-between border-slate-200 border-b pb-3'>
+                                            <span className='font-medium text-slate-500'>Name of the Child</span>
                                             <span className='font-bold text-slate-800'>{reg.PASR_FirstName}</span>
                                         </div>
-                                        <div className='flex justify-between items-center border-b border-slate-200 pb-3'>
-                                            <span className='text-slate-500 font-medium'>Mobile</span>
+                                        <div className='flex items-center justify-between border-slate-200 border-b pb-3'>
+                                            <span className='font-medium text-slate-500'>Mobile</span>
                                             <span className='font-bold text-slate-800'>{reg.PASR_MobileNo}</span>
                                         </div>
-                                        <div className='flex justify-between items-center pb-1'>
-                                            <span className='text-slate-500 font-medium'>Email ID</span>
+                                        <div className='flex items-center justify-between pb-1'>
+                                            <span className='font-medium text-slate-500'>Email ID</span>
                                             <span className='font-bold text-slate-800'>{reg.PASR_emailId}</span>
                                         </div>
                                     </div>
 
-                                    <RadioGroup value={paymentMode.toString()} onValueChange={(v) => setPaymentMode(Number(v))} className='flex gap-8 justify-center p-4 bg-indigo-50/50 rounded-xl'>
+                                    <RadioGroup
+                                        value={paymentMode.toString()}
+                                        onValueChange={(v) => setPaymentMode(Number(v))}
+                                        className='flex justify-center gap-8 rounded-xl bg-indigo-50/50 p-4'>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='1' id='online' />
-                                            <Label htmlFor='online' className='font-bold text-indigo-700 cursor-pointer'>ONLINE PAYMENT</Label>
+                                            <Label htmlFor='online' className='cursor-pointer font-bold text-indigo-700'>
+                                                ONLINE PAYMENT
+                                            </Label>
                                         </div>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='2' id='offline' />
-                                            <Label htmlFor='offline' className='font-bold text-indigo-700 cursor-pointer'>OFFLINE PAYMENT</Label>
+                                            <Label htmlFor='offline' className='cursor-pointer font-bold text-indigo-700'>
+                                                OFFLINE PAYMENT
+                                            </Label>
                                         </div>
                                     </RadioGroup>
 
@@ -602,29 +627,33 @@ export default function SophiaRegistrationXI() {
                                         <div className='space-y-4 text-center'>
                                             <h4 className='font-bold text-slate-700'>Select Payment Gateway</h4>
                                             <div className='flex justify-center gap-4'>
-                                                <div 
-                                                    className={`p-4 border-2 rounded-2xl cursor-pointer transition-all ${selectedGateway === 'RAZORPAY' ? 'border-indigo-600 bg-indigo-50 shadow-md' : 'border-slate-100 hover:border-indigo-200'}`}
-                                                    onClick={() => setSelectedGateway('RAZORPAY')}
-                                                >
-                                                    <img src='https://razorpay.com/assets/razorpay-glyph.svg' alt='Razorpay' className='h-12 w-32 object-contain' />
-                                                    <p className='text-xs font-bold mt-2 text-slate-500 uppercase'>Razorpay</p>
+                                                <div
+                                                    className={`cursor-pointer rounded-2xl border-2 p-4 transition-all ${selectedGateway === 'RAZORPAY' ? 'border-indigo-600 bg-indigo-50 shadow-md' : 'border-slate-100 hover:border-indigo-200'}`}
+                                                    onClick={() => setSelectedGateway('RAZORPAY')}>
+                                                    <img
+                                                        src='https://razorpay.com/assets/razorpay-glyph.svg'
+                                                        alt='Razorpay'
+                                                        className='h-12 w-32 object-contain'
+                                                    />
+                                                    <p className='mt-2 font-bold text-slate-500 text-xs uppercase'>Razorpay</p>
                                                 </div>
                                             </div>
                                         </div>
                                     )}
 
-                                    <div className='bg-amber-50 border border-amber-200 p-4 rounded-xl flex gap-3'>
-                                        <Info className='h-5 w-5 text-amber-600 shrink-0' />
-                                        <p className='text-sm text-amber-800 leading-relaxed font-medium'>
-                                            <strong>Note:</strong> For faster and smoother payment processing, please prefer using the UPI mode of payment.
+                                    <div className='flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4'>
+                                        <Info className='h-5 w-5 shrink-0 text-amber-600' />
+                                        <p className='font-medium text-amber-800 text-sm leading-relaxed'>
+                                            <strong>Note:</strong> For faster and smoother payment processing, please prefer using the UPI
+                                            mode of payment.
                                         </p>
                                     </div>
                                 </CardContent>
-                                <CardFooter className='p-8 bg-slate-50 border-t flex gap-4'>
-                                    <Button variant='outline' className='flex-1 h-12 rounded-xl' onClick={() => setView('form')}>
+                                <CardFooter className='flex gap-4 border-t bg-slate-50 p-8'>
+                                    <Button variant='outline' className='h-12 flex-1 rounded-xl' onClick={() => setView('form')}>
                                         <ArrowLeft className='mr-2 h-4 w-4' /> BACK
                                     </Button>
-                                    <Button className='flex-1 h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-100'>
+                                    <Button className='h-12 flex-1 rounded-xl bg-indigo-600 shadow-indigo-100 shadow-lg hover:bg-indigo-700'>
                                         <CreditCard className='mr-2 h-4 w-4' /> CLICK HERE TO PAY NOW
                                     </Button>
                                 </CardFooter>
@@ -632,46 +661,98 @@ export default function SophiaRegistrationXI() {
                         </div>
                     ) : (
                         <div className='grid grid-cols-1 gap-8'>
-                            
                             {/* Section 1: Personal Information */}
-                            <CollapsibleSection title='Application Form - Personal Information' icon={<User className='h-5 w-5 text-indigo-600' />} defaultOpen={true}>
-                                <div className='grid grid-cols-1 lg:grid-cols-12 gap-8 p-6'>
-                                    <div className='lg:col-span-9 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+                            <CollapsibleSection
+                                title='Application Form - Personal Information'
+                                icon={<User className='h-5 w-5 text-indigo-600' />}
+                                defaultOpen={true}>
+                                <div className='grid grid-cols-1 gap-8 p-6 lg:grid-cols-12'>
+                                    <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:col-span-9 lg:grid-cols-3'>
                                         <div className='space-y-2'>
-                                            <Label className='text-xs font-bold uppercase text-slate-500'>First Name <span className='text-red-500'>*</span></Label>
-                                            <Input placeholder='First Name' value={reg.PASR_FirstName} onChange={(e) => handleInputChange('PASR_FirstName', e.target.value)} className='h-10 text-uppercase' />
+                                            <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                First Name <span className='text-red-500'>*</span>
+                                            </Label>
+                                            <Input
+                                                placeholder='First Name'
+                                                value={reg.PASR_FirstName}
+                                                onChange={(e) => handleInputChange('PASR_FirstName', e.target.value)}
+                                                className='h-10 text-uppercase'
+                                            />
                                         </div>
                                         <div className='space-y-2'>
-                                            <Label className='text-xs font-bold uppercase text-slate-500'>Middle Name</Label>
-                                            <Input placeholder='Middle Name' value={reg.PASR_MiddleName} onChange={(e) => handleInputChange('PASR_MiddleName', e.target.value)} className='h-10 text-uppercase' />
+                                            <Label className='font-bold text-slate-500 text-xs uppercase'>Middle Name</Label>
+                                            <Input
+                                                placeholder='Middle Name'
+                                                value={reg.PASR_MiddleName}
+                                                onChange={(e) => handleInputChange('PASR_MiddleName', e.target.value)}
+                                                className='h-10 text-uppercase'
+                                            />
                                         </div>
                                         <div className='space-y-2'>
-                                            <Label className='text-xs font-bold uppercase text-slate-500'>Last Name</Label>
-                                            <Input placeholder='Last Name' value={reg.PASR_LastName} onChange={(e) => handleInputChange('PASR_LastName', e.target.value)} className='h-10 text-uppercase' />
+                                            <Label className='font-bold text-slate-500 text-xs uppercase'>Last Name</Label>
+                                            <Input
+                                                placeholder='Last Name'
+                                                value={reg.PASR_LastName}
+                                                onChange={(e) => handleInputChange('PASR_LastName', e.target.value)}
+                                                className='h-10 text-uppercase'
+                                            />
                                         </div>
                                         <div className='space-y-2'>
-                                            <Label className='text-xs font-bold uppercase text-slate-500'>Mobile No <span className='text-red-500'>*</span></Label>
+                                            <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                Mobile No <span className='text-red-500'>*</span>
+                                            </Label>
                                             <div className='relative'>
-                                                <LayoutDashboard className='absolute left-3 top-2.5 h-4 w-4 text-slate-400' />
-                                                <Input placeholder='Mobile No' maxLength={10} value={reg.PASR_MobileNo} onChange={(e) => handleInputChange('PASR_MobileNo', e.target.value)} className='pl-10 h-10' />
+                                                <LayoutDashboard className='absolute top-2.5 left-3 h-4 w-4 text-slate-400' />
+                                                <Input
+                                                    placeholder='Mobile No'
+                                                    maxLength={10}
+                                                    value={reg.PASR_MobileNo}
+                                                    onChange={(e) => handleInputChange('PASR_MobileNo', e.target.value)}
+                                                    className='h-10 pl-10'
+                                                />
                                             </div>
                                         </div>
                                         <div className='space-y-2'>
-                                            <Label className='text-xs font-bold uppercase text-slate-500'>Hall Ticket No <span className='text-red-500'>*</span></Label>
-                                            <Input placeholder='Hall Ticket No' value={reg.PASTCBAF_HallTicket} onChange={(e) => handleInputChange('PASTCBAF_HallTicket', e.target.value)} className='h-10 text-uppercase' />
+                                            <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                Hall Ticket No <span className='text-red-500'>*</span>
+                                            </Label>
+                                            <Input
+                                                placeholder='Hall Ticket No'
+                                                value={reg.PASTCBAF_HallTicket}
+                                                onChange={(e) => handleInputChange('PASTCBAF_HallTicket', e.target.value)}
+                                                className='h-10 text-uppercase'
+                                            />
                                         </div>
                                         <div className='space-y-2'>
-                                            <Label className='text-xs font-bold uppercase text-slate-500'>SATS No</Label>
-                                            <Input placeholder='SATS No' value={reg.PASTCBAF_SATSNo} onChange={(e) => handleInputChange('PASTCBAF_SATSNo', e.target.value)} className='h-10 text-uppercase' maxLength={9} />
+                                            <Label className='font-bold text-slate-500 text-xs uppercase'>SATS No</Label>
+                                            <Input
+                                                placeholder='SATS No'
+                                                value={reg.PASTCBAF_SATSNo}
+                                                onChange={(e) => handleInputChange('PASTCBAF_SATSNo', e.target.value)}
+                                                className='h-10 text-uppercase'
+                                                maxLength={9}
+                                            />
                                         </div>
                                         <div className='space-y-2'>
-                                            <Label className='text-xs font-bold uppercase text-slate-500'>PEN No</Label>
-                                            <Input placeholder='PEN No' value={reg.PASTCBAF_PENNo} onChange={(e) => handleInputChange('PASTCBAF_PENNo', e.target.value)} className='h-10 text-uppercase' maxLength={11} />
+                                            <Label className='font-bold text-slate-500 text-xs uppercase'>PEN No</Label>
+                                            <Input
+                                                placeholder='PEN No'
+                                                value={reg.PASTCBAF_PENNo}
+                                                onChange={(e) => handleInputChange('PASTCBAF_PENNo', e.target.value)}
+                                                className='h-10 text-uppercase'
+                                                maxLength={11}
+                                            />
                                         </div>
                                         <div className='space-y-2'>
-                                            <Label className='text-xs font-bold uppercase text-slate-500'>Board Exam <span className='text-red-500'>*</span></Label>
-                                            <Select value={reg.PASTCBAF_BoardExam} onValueChange={(v) => handleInputChange('PASTCBAF_BoardExam', v)}>
-                                                <SelectTrigger className='h-10'><SelectValue placeholder='Select' /></SelectTrigger>
+                                            <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                Board Exam <span className='text-red-500'>*</span>
+                                            </Label>
+                                            <Select
+                                                value={reg.PASTCBAF_BoardExam}
+                                                onValueChange={(v) => handleInputChange('PASTCBAF_BoardExam', v)}>
+                                                <SelectTrigger className='h-10'>
+                                                    <SelectValue placeholder='Select' />
+                                                </SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value='ICSE'>ICSE</SelectItem>
                                                     <SelectItem value='CBSE'>CBSE</SelectItem>
@@ -681,46 +762,77 @@ export default function SophiaRegistrationXI() {
                                             </Select>
                                         </div>
                                         <div className='space-y-2'>
-                                            <Label className='text-xs font-bold uppercase text-slate-500'>Board Passing Year <span className='text-red-500'>*</span></Label>
-                                            <Input placeholder='Passing Year' value={reg.PASTCBAF_BoardPassYear} onChange={(e) => handleInputChange('PASTCBAF_BoardPassYear', e.target.value)} className='h-10' />
+                                            <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                Board Passing Year <span className='text-red-500'>*</span>
+                                            </Label>
+                                            <Input
+                                                placeholder='Passing Year'
+                                                value={reg.PASTCBAF_BoardPassYear}
+                                                onChange={(e) => handleInputChange('PASTCBAF_BoardPassYear', e.target.value)}
+                                                className='h-10'
+                                            />
                                         </div>
                                         <div className='space-y-2'>
-                                            <Label className='text-xs font-bold uppercase text-slate-500'>Religion <span className='text-red-500'>*</span></Label>
+                                            <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                Religion <span className='text-red-500'>*</span>
+                                            </Label>
                                             <Select value={reg.Religion_Id?.toString()} onValueChange={handleReligionChange}>
-                                                <SelectTrigger className='h-10'><SelectValue placeholder='Select' /></SelectTrigger>
+                                                <SelectTrigger className='h-10'>
+                                                    <SelectValue placeholder='Select' />
+                                                </SelectTrigger>
                                                 <SelectContent>
                                                     {(initialData?.data as any)?.religiondrp?.map((r: any) => (
-                                                        <SelectItem key={r.ivrmmR_Id} value={r.ivrmmR_Id.toString()}>{r.ivrmmR_Name}</SelectItem>
+                                                        <SelectItem key={r.ivrmmR_Id} value={r.ivrmmR_Id.toString()}>
+                                                            {r.ivrmmR_Name}
+                                                        </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
                                         </div>
                                         <div className='space-y-2'>
-                                            <Label className='text-xs font-bold uppercase text-slate-500'>Caste Category <span className='text-red-500'>*</span></Label>
+                                            <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                Caste Category <span className='text-red-500'>*</span>
+                                            </Label>
                                             <Select value={reg.IMCC_Id?.toString()} onValueChange={handleCasteCategoryChange}>
-                                                <SelectTrigger className='h-10'><SelectValue placeholder='Select' /></SelectTrigger>
+                                                <SelectTrigger className='h-10'>
+                                                    <SelectValue placeholder='Select' />
+                                                </SelectTrigger>
                                                 <SelectContent>
                                                     {(initialData?.data as any)?.arrlist9?.map((c: any) => (
-                                                        <SelectItem key={c.imcC_Id} value={c.imcC_Id.toString()}>{c.imcC_CategoryName}</SelectItem>
+                                                        <SelectItem key={c.imcC_Id} value={c.imcC_Id.toString()}>
+                                                            {c.imcC_CategoryName}
+                                                        </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
                                         </div>
                                         <div className='space-y-2'>
-                                            <Label className='text-xs font-bold uppercase text-slate-500'>Caste <span className='text-red-500'>*</span></Label>
-                                            <Select value={reg.Caste_Id?.toString()} onValueChange={(v) => handleInputChange('Caste_Id', Number(v))}>
-                                                <SelectTrigger className='h-10'><SelectValue placeholder='Select' /></SelectTrigger>
+                                            <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                Caste <span className='text-red-500'>*</span>
+                                            </Label>
+                                            <Select
+                                                value={reg.Caste_Id?.toString()}
+                                                onValueChange={(v) => handleInputChange('Caste_Id', Number(v))}>
+                                                <SelectTrigger className='h-10'>
+                                                    <SelectValue placeholder='Select' />
+                                                </SelectTrigger>
                                                 <SelectContent>
                                                     {(casteMutation.data as any)?.data?.allCaste?.map((c: any) => (
-                                                        <SelectItem key={c.imC_Id} value={c.imC_Id.toString()}>{c.imC_CasteName}</SelectItem>
+                                                        <SelectItem key={c.imC_Id} value={c.imC_Id.toString()}>
+                                                            {c.imC_CasteName}
+                                                        </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
                                         </div>
                                         <div className='space-y-2'>
-                                            <Label className='text-xs font-bold uppercase text-slate-500'>Gender <span className='text-red-500'>*</span></Label>
+                                            <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                Gender <span className='text-red-500'>*</span>
+                                            </Label>
                                             <Select value={reg.PASR_Sex} onValueChange={(v) => handleInputChange('PASR_Sex', v)}>
-                                                <SelectTrigger className='h-10'><SelectValue /></SelectTrigger>
+                                                <SelectTrigger className='h-10'>
+                                                    <SelectValue />
+                                                </SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value='Male'>Male</SelectItem>
                                                     <SelectItem value='Female'>Female</SelectItem>
@@ -728,54 +840,104 @@ export default function SophiaRegistrationXI() {
                                             </Select>
                                         </div>
                                         <div className='space-y-2'>
-                                            <Label className='text-xs font-bold uppercase text-slate-500'>Date of Birth <span className='text-red-500'>*</span></Label>
-                                            <Input type='date' value={reg.PASR_DOB ? new Date(reg.PASR_DOB).toISOString().split('T')[0] : ''} onChange={(e) => handleInputChange('PASR_DOB', e.target.value)} className='h-10' />
+                                            <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                Date of Birth <span className='text-red-500'>*</span>
+                                            </Label>
+                                            <Input
+                                                type='date'
+                                                value={reg.PASR_DOB ? new Date(reg.PASR_DOB).toISOString().split('T')[0] : ''}
+                                                onChange={(e) => handleInputChange('PASR_DOB', e.target.value)}
+                                                className='h-10'
+                                            />
                                         </div>
                                         <div className='space-y-2'>
-                                            <Label className='text-xs font-bold uppercase text-slate-500'>Applying For <span className='text-red-500'>*</span></Label>
+                                            <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                Applying For <span className='text-red-500'>*</span>
+                                            </Label>
                                             <Select value={reg.ASMCL_Id?.toString()} onValueChange={handleClassChange}>
-                                                <SelectTrigger className='h-10'><SelectValue /></SelectTrigger>
+                                                <SelectTrigger className='h-10'>
+                                                    <SelectValue />
+                                                </SelectTrigger>
                                                 <SelectContent>
                                                     {(initialData?.data as any)?.arrlist5?.map((c: any) => (
-                                                        <SelectItem key={c.asmcL_Id} value={c.asmcL_Id.toString()}>{c.asmcL_ClassName}</SelectItem>
+                                                        <SelectItem key={c.asmcL_Id} value={c.asmcL_Id.toString()}>
+                                                            {c.asmcL_ClassName}
+                                                        </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
                                         </div>
                                         <div className='space-y-2'>
-                                            <Label className='text-xs font-bold uppercase text-slate-500'>Email ID <span className='text-red-500'>*</span></Label>
-                                            <Input type='email' placeholder='Email ID' value={reg.PASR_emailId} onChange={(e) => handleInputChange('PASR_emailId', e.target.value)} className='h-10' />
+                                            <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                Email ID <span className='text-red-500'>*</span>
+                                            </Label>
+                                            <Input
+                                                type='email'
+                                                placeholder='Email ID'
+                                                value={reg.PASR_emailId}
+                                                onChange={(e) => handleInputChange('PASR_emailId', e.target.value)}
+                                                className='h-10'
+                                            />
                                         </div>
                                         <div className='space-y-2'>
-                                            <Label className='text-xs font-bold uppercase text-slate-500'>Nationality <span className='text-red-500'>*</span></Label>
-                                            <Select value={reg.PASR_Nationality?.toString()} onValueChange={(v) => handleInputChange('PASR_Nationality', Number(v))}>
-                                                <SelectTrigger className='h-10'><SelectValue placeholder='Select' /></SelectTrigger>
+                                            <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                Nationality <span className='text-red-500'>*</span>
+                                            </Label>
+                                            <Select
+                                                value={reg.PASR_Nationality?.toString()}
+                                                onValueChange={(v) => handleInputChange('PASR_Nationality', Number(v))}>
+                                                <SelectTrigger className='h-10'>
+                                                    <SelectValue placeholder='Select' />
+                                                </SelectTrigger>
                                                 <SelectContent>
                                                     {(initialData?.data as any)?.arrlist?.map((c: any) => (
-                                                        <SelectItem key={c.ivrmmC_Id} value={c.ivrmmC_Id.toString()}>{c.ivrmmC_CountryName}</SelectItem>
+                                                        <SelectItem key={c.ivrmmC_Id} value={c.ivrmmC_Id.toString()}>
+                                                            {c.ivrmmC_CountryName}
+                                                        </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
                                         </div>
                                         <div className='space-y-2'>
-                                            <Label className='text-xs font-bold uppercase text-slate-500'>Mother Tongue <span className='text-red-500'>*</span></Label>
-                                            <Input placeholder='Mother Tongue' value={reg.PASR_MotherTongue} onChange={(e) => handleInputChange('PASR_MotherTongue', e.target.value)} className='h-10 text-uppercase' />
+                                            <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                Mother Tongue <span className='text-red-500'>*</span>
+                                            </Label>
+                                            <Input
+                                                placeholder='Mother Tongue'
+                                                value={reg.PASR_MotherTongue}
+                                                onChange={(e) => handleInputChange('PASR_MotherTongue', e.target.value)}
+                                                className='h-10 text-uppercase'
+                                            />
                                         </div>
                                         <div className='space-y-2'>
-                                            <Label className='text-xs font-bold uppercase text-slate-500'>Blood Group <span className='text-red-500'>*</span></Label>
-                                            <Select value={reg.PASR_BloodGroup} onValueChange={(v) => handleInputChange('PASR_BloodGroup', v)}>
-                                                <SelectTrigger className='h-10'><SelectValue placeholder='Select' /></SelectTrigger>
+                                            <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                Blood Group <span className='text-red-500'>*</span>
+                                            </Label>
+                                            <Select
+                                                value={reg.PASR_BloodGroup}
+                                                onValueChange={(v) => handleInputChange('PASR_BloodGroup', v)}>
+                                                <SelectTrigger className='h-10'>
+                                                    <SelectValue placeholder='Select' />
+                                                </SelectTrigger>
                                                 <SelectContent>
-                                                    {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Not Available'].map(g => (
-                                                        <SelectItem key={g} value={g}>{g}</SelectItem>
+                                                    {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Not Available'].map((g) => (
+                                                        <SelectItem key={g} value={g}>
+                                                            {g}
+                                                        </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
                                         </div>
                                         <div className='space-y-2'>
-                                            <Label className='text-xs font-bold uppercase text-slate-500'>Existing Student? <span className='text-red-500'>*</span></Label>
-                                            <Select value={reg.PASTCBAF_ExistingSchool} onValueChange={(v) => handleInputChange('PASTCBAF_ExistingSchool', v)}>
-                                                <SelectTrigger className='h-10'><SelectValue /></SelectTrigger>
+                                            <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                Existing Student? <span className='text-red-500'>*</span>
+                                            </Label>
+                                            <Select
+                                                value={reg.PASTCBAF_ExistingSchool}
+                                                onValueChange={(v) => handleInputChange('PASTCBAF_ExistingSchool', v)}>
+                                                <SelectTrigger className='h-10'>
+                                                    <SelectValue />
+                                                </SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value='YES'>YES</SelectItem>
                                                     <SelectItem value='NO'>NO</SelectItem>
@@ -783,9 +945,15 @@ export default function SophiaRegistrationXI() {
                                             </Select>
                                         </div>
                                         <div className='space-y-2'>
-                                            <Label className='text-xs font-bold uppercase text-slate-500'>Parent is Alumnus? <span className='text-red-500'>*</span></Label>
-                                            <Select value={reg.PASTCBAF_FatherExStudentFlg} onValueChange={(v) => handleInputChange('PASTCBAF_FatherExStudentFlg', v)}>
-                                                <SelectTrigger className='h-10'><SelectValue /></SelectTrigger>
+                                            <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                Parent is Alumnus? <span className='text-red-500'>*</span>
+                                            </Label>
+                                            <Select
+                                                value={reg.PASTCBAF_FatherExStudentFlg}
+                                                onValueChange={(v) => handleInputChange('PASTCBAF_FatherExStudentFlg', v)}>
+                                                <SelectTrigger className='h-10'>
+                                                    <SelectValue />
+                                                </SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value='1'>YES</SelectItem>
                                                     <SelectItem value='0'>NO</SelectItem>
@@ -793,12 +961,18 @@ export default function SophiaRegistrationXI() {
                                             </Select>
                                         </div>
                                         <div className='space-y-2'>
-                                            <Label className='text-xs font-bold uppercase text-slate-500'>Stream <span className='text-red-500'>*</span></Label>
+                                            <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                Stream <span className='text-red-500'>*</span>
+                                            </Label>
                                             <Select value={reg.ASMST_Id?.toString()} onValueChange={handleStreamChange}>
-                                                <SelectTrigger className='h-10'><SelectValue placeholder='Select Stream' /></SelectTrigger>
+                                                <SelectTrigger className='h-10'>
+                                                    <SelectValue placeholder='Select Stream' />
+                                                </SelectTrigger>
                                                 <SelectContent>
                                                     {(initialData?.data as any)?.syllabuslist?.map((s: any) => (
-                                                        <SelectItem key={s.asmsT_Id} value={s.asmsT_Id.toString()}>{s.asmsT_StreamName}</SelectItem>
+                                                        <SelectItem key={s.asmsT_Id} value={s.asmsT_Id.toString()}>
+                                                            {s.asmsT_StreamName}
+                                                        </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
@@ -806,57 +980,97 @@ export default function SophiaRegistrationXI() {
                                     </div>
 
                                     {/* Student Photo */}
-                                    <div className='lg:col-span-3 flex flex-col items-center justify-start space-y-4'>
-                                        <div className='w-48 h-48 border-2 border-dashed border-slate-200 rounded-2xl overflow-hidden bg-slate-50 flex items-center justify-center relative group'>
+                                    <div className='flex flex-col items-center justify-start space-y-4 lg:col-span-3'>
+                                        <div className='group relative flex h-48 w-48 items-center justify-center overflow-hidden rounded-2xl border-2 border-slate-200 border-dashed bg-slate-50'>
                                             {reg.PASR_Student_Pic_Path ? (
-                                                <img src={reg.PASR_Student_Pic_Path} alt='Student' className='w-full h-full object-cover' />
+                                                <img src={reg.PASR_Student_Pic_Path} alt='Student' className='h-full w-full object-cover' />
                                             ) : (
-                                                <div className='text-center space-y-2 p-4'>
-                                                    <User className='h-12 w-12 text-slate-300 mx-auto' />
-                                                    <p className='text-[10px] text-slate-400 font-bold uppercase'>Upload Photo</p>
+                                                <div className='space-y-2 p-4 text-center'>
+                                                    <User className='mx-auto h-12 w-12 text-slate-300' />
+                                                    <p className='font-bold text-[10px] text-slate-400 uppercase'>Upload Photo</p>
                                                 </div>
                                             )}
-                                            <div className='absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2'>
-                                                <Button size='sm' variant='secondary' className='h-8 w-8 p-0 rounded-full'><Upload className='h-4 w-4' /></Button>
+                                            <div className='absolute inset-0 flex items-center justify-center gap-2 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100'>
+                                                <Button size='sm' variant='secondary' className='h-8 w-8 rounded-full p-0'>
+                                                    <Upload className='h-4 w-4' />
+                                                </Button>
                                             </div>
                                         </div>
-                                        <Label className='text-[10px] font-black uppercase text-indigo-600 tracking-widest'>Student Profile Picture <span className='text-red-500'>*</span></Label>
-                                        <Button variant='outline' size='sm' className='w-full border-indigo-200 text-indigo-600 hover:bg-indigo-50'>Capture Image</Button>
+                                        <Label className='font-black text-[10px] text-indigo-600 uppercase tracking-widest'>
+                                            Student Profile Picture <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <Button
+                                            variant='outline'
+                                            size='sm'
+                                            className='w-full border-indigo-200 text-indigo-600 hover:bg-indigo-50'>
+                                            Capture Image
+                                        </Button>
                                     </div>
                                 </div>
                             </CollapsibleSection>
 
                             {/* Section 2: Addresses */}
-                            <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
-                                <CollapsibleSection title='Residential Address' icon={<MapPin className='h-5 w-5 text-indigo-600' />} variant='outline'>
-                                    <div className='p-6 space-y-6'>
+                            <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
+                                <CollapsibleSection
+                                    title='Residential Address'
+                                    icon={<MapPin className='h-5 w-5 text-indigo-600' />}
+                                    variant='outline'>
+                                    <div className='space-y-6 p-6'>
                                         <div className='space-y-2'>
-                                            <Label className='text-xs font-bold uppercase text-slate-500'>Street <span className='text-red-500'>*</span></Label>
-                                            <Input value={reg.PASR_ConStreet} onChange={(e) => handleInputChange('PASR_ConStreet', e.target.value)} className='text-uppercase' />
+                                            <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                Street <span className='text-red-500'>*</span>
+                                            </Label>
+                                            <Input
+                                                value={reg.PASR_ConStreet}
+                                                onChange={(e) => handleInputChange('PASR_ConStreet', e.target.value)}
+                                                className='text-uppercase'
+                                            />
                                         </div>
                                         <div className='space-y-2'>
-                                            <Label className='text-xs font-bold uppercase text-slate-500'>Area <span className='text-red-500'>*</span></Label>
-                                            <Input value={reg.PASR_ConArea} onChange={(e) => handleInputChange('PASR_ConArea', e.target.value)} className='text-uppercase' />
+                                            <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                Area <span className='text-red-500'>*</span>
+                                            </Label>
+                                            <Input
+                                                value={reg.PASR_ConArea}
+                                                onChange={(e) => handleInputChange('PASR_ConArea', e.target.value)}
+                                                className='text-uppercase'
+                                            />
                                         </div>
                                         <div className='grid grid-cols-2 gap-4'>
                                             <div className='space-y-2'>
-                                                <Label className='text-xs font-bold uppercase text-slate-500'>Country <span className='text-red-500'>*</span></Label>
-                                                <Select value={reg.PASR_ConCountry?.toString()} onValueChange={(v) => handleCountryChange('con', v)}>
-                                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                                <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                    Country <span className='text-red-500'>*</span>
+                                                </Label>
+                                                <Select
+                                                    value={reg.PASR_ConCountry?.toString()}
+                                                    onValueChange={(v) => handleCountryChange('con', v)}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder='Select' />
+                                                    </SelectTrigger>
                                                     <SelectContent>
                                                         {(initialData?.data as any)?.arrlist?.map((c: any) => (
-                                                            <SelectItem key={c.ivrmmC_Id} value={c.ivrmmC_Id.toString()}>{c.ivrmmC_CountryName}</SelectItem>
+                                                            <SelectItem key={c.ivrmmC_Id} value={c.ivrmmC_Id.toString()}>
+                                                                {c.ivrmmC_CountryName}
+                                                            </SelectItem>
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
                                             <div className='space-y-2'>
-                                                <Label className='text-xs font-bold uppercase text-slate-500'>State <span className='text-red-500'>*</span></Label>
-                                                <Select value={reg.PASR_ConState?.toString()} onValueChange={(v) => handleInputChange('PASR_ConState', Number(v))}>
-                                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                                <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                    State <span className='text-red-500'>*</span>
+                                                </Label>
+                                                <Select
+                                                    value={reg.PASR_ConState?.toString()}
+                                                    onValueChange={(v) => handleInputChange('PASR_ConState', Number(v))}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder='Select' />
+                                                    </SelectTrigger>
                                                     <SelectContent>
                                                         {(statesMutation.data as any)?.data?.arrStatelist2?.map((s: any) => (
-                                                            <SelectItem key={s.ivrmmS_Id} value={s.ivrmmS_Id.toString()}>{s.ivrmmS_Name}</SelectItem>
+                                                            <SelectItem key={s.ivrmmS_Id} value={s.ivrmmS_Id.toString()}>
+                                                                {s.ivrmmS_Name}
+                                                            </SelectItem>
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
@@ -864,50 +1078,105 @@ export default function SophiaRegistrationXI() {
                                         </div>
                                         <div className='grid grid-cols-2 gap-4'>
                                             <div className='space-y-2'>
-                                                <Label className='text-xs font-bold uppercase text-slate-500'>City <span className='text-red-500'>*</span></Label>
-                                                <Input value={reg.PASR_ConCity} onChange={(e) => handleInputChange('PASR_ConCity', e.target.value)} className='text-uppercase' />
+                                                <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                    City <span className='text-red-500'>*</span>
+                                                </Label>
+                                                <Input
+                                                    value={reg.PASR_ConCity}
+                                                    onChange={(e) => handleInputChange('PASR_ConCity', e.target.value)}
+                                                    className='text-uppercase'
+                                                />
                                             </div>
                                             <div className='space-y-2'>
-                                                <Label className='text-xs font-bold uppercase text-slate-500'>Pincode <span className='text-red-500'>*</span></Label>
-                                                <Input value={reg.PASR_ConPincode} onChange={(e) => handleInputChange('PASR_ConPincode', e.target.value)} maxLength={6} />
+                                                <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                    Pincode <span className='text-red-500'>*</span>
+                                                </Label>
+                                                <Input
+                                                    value={reg.PASR_ConPincode}
+                                                    onChange={(e) => handleInputChange('PASR_ConPincode', e.target.value)}
+                                                    maxLength={6}
+                                                />
                                             </div>
                                         </div>
                                         <div className='flex items-center space-x-2 pt-2'>
-                                            <Checkbox id='addr_copy' checked={reg.chkbox_address === 1} onCheckedChange={(c) => address_copy(!!c)} />
-                                            <Label htmlFor='addr_copy' className='text-xs font-bold text-indigo-600 cursor-pointer uppercase tracking-tight'>Permanent Address Same As Residential Address</Label>
+                                            <Checkbox
+                                                id='addr_copy'
+                                                checked={reg.chkbox_address === 1}
+                                                onCheckedChange={(c) => address_copy(!!c)}
+                                            />
+                                            <Label
+                                                htmlFor='addr_copy'
+                                                className='cursor-pointer font-bold text-indigo-600 text-xs uppercase tracking-tight'>
+                                                Permanent Address Same As Residential Address
+                                            </Label>
                                         </div>
                                     </div>
                                 </CollapsibleSection>
 
-                                <CollapsibleSection title='Permanent Address' icon={<History className='h-5 w-5 text-indigo-600' />} variant='outline'>
-                                    <div className='p-6 space-y-6'>
+                                <CollapsibleSection
+                                    title='Permanent Address'
+                                    icon={<History className='h-5 w-5 text-indigo-600' />}
+                                    variant='outline'>
+                                    <div className='space-y-6 p-6'>
                                         <div className='space-y-2'>
-                                            <Label className='text-xs font-bold uppercase text-slate-500'>Street <span className='text-red-500'>*</span></Label>
-                                            <Input value={reg.PASR_PerStreet} onChange={(e) => handleInputChange('PASR_PerStreet', e.target.value)} className='text-uppercase' disabled={reg.chkbox_address === 1} />
+                                            <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                Street <span className='text-red-500'>*</span>
+                                            </Label>
+                                            <Input
+                                                value={reg.PASR_PerStreet}
+                                                onChange={(e) => handleInputChange('PASR_PerStreet', e.target.value)}
+                                                className='text-uppercase'
+                                                disabled={reg.chkbox_address === 1}
+                                            />
                                         </div>
                                         <div className='space-y-2'>
-                                            <Label className='text-xs font-bold uppercase text-slate-500'>Area <span className='text-red-500'>*</span></Label>
-                                            <Input value={reg.PASR_PerArea} onChange={(e) => handleInputChange('PASR_PerArea', e.target.value)} className='text-uppercase' disabled={reg.chkbox_address === 1} />
+                                            <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                Area <span className='text-red-500'>*</span>
+                                            </Label>
+                                            <Input
+                                                value={reg.PASR_PerArea}
+                                                onChange={(e) => handleInputChange('PASR_PerArea', e.target.value)}
+                                                className='text-uppercase'
+                                                disabled={reg.chkbox_address === 1}
+                                            />
                                         </div>
                                         <div className='grid grid-cols-2 gap-4'>
                                             <div className='space-y-2'>
-                                                <Label className='text-xs font-bold uppercase text-slate-500'>Country <span className='text-red-500'>*</span></Label>
-                                                <Select value={reg.PASR_PerCountry?.toString()} onValueChange={(v) => handleCountryChange('per', v)} disabled={reg.chkbox_address === 1}>
-                                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                                <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                    Country <span className='text-red-500'>*</span>
+                                                </Label>
+                                                <Select
+                                                    value={reg.PASR_PerCountry?.toString()}
+                                                    onValueChange={(v) => handleCountryChange('per', v)}
+                                                    disabled={reg.chkbox_address === 1}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder='Select' />
+                                                    </SelectTrigger>
                                                     <SelectContent>
                                                         {(initialData?.data as any)?.arrlist?.map((c: any) => (
-                                                            <SelectItem key={c.ivrmmC_Id} value={c.ivrmmC_Id.toString()}>{c.ivrmmC_CountryName}</SelectItem>
+                                                            <SelectItem key={c.ivrmmC_Id} value={c.ivrmmC_Id.toString()}>
+                                                                {c.ivrmmC_CountryName}
+                                                            </SelectItem>
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
                                             <div className='space-y-2'>
-                                                <Label className='text-xs font-bold uppercase text-slate-500'>State <span className='text-red-500'>*</span></Label>
-                                                <Select value={reg.PASR_PerState?.toString()} onValueChange={(v) => handleInputChange('PASR_PerState', Number(v))} disabled={reg.chkbox_address === 1}>
-                                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                                <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                    State <span className='text-red-500'>*</span>
+                                                </Label>
+                                                <Select
+                                                    value={reg.PASR_PerState?.toString()}
+                                                    onValueChange={(v) => handleInputChange('PASR_PerState', Number(v))}
+                                                    disabled={reg.chkbox_address === 1}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder='Select' />
+                                                    </SelectTrigger>
                                                     <SelectContent>
                                                         {(statesMutation.data as any)?.data?.arrStatelist?.map((s: any) => (
-                                                            <SelectItem key={s.ivrmmS_Id} value={s.ivrmmS_Id.toString()}>{s.ivrmmS_Name}</SelectItem>
+                                                            <SelectItem key={s.ivrmmS_Id} value={s.ivrmmS_Id.toString()}>
+                                                                {s.ivrmmS_Name}
+                                                            </SelectItem>
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
@@ -915,12 +1184,26 @@ export default function SophiaRegistrationXI() {
                                         </div>
                                         <div className='grid grid-cols-2 gap-4'>
                                             <div className='space-y-2'>
-                                                <Label className='text-xs font-bold uppercase text-slate-500'>City <span className='text-red-500'>*</span></Label>
-                                                <Input value={reg.PASR_PerCity} onChange={(e) => handleInputChange('PASR_PerCity', e.target.value)} className='text-uppercase' disabled={reg.chkbox_address === 1} />
+                                                <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                    City <span className='text-red-500'>*</span>
+                                                </Label>
+                                                <Input
+                                                    value={reg.PASR_PerCity}
+                                                    onChange={(e) => handleInputChange('PASR_PerCity', e.target.value)}
+                                                    className='text-uppercase'
+                                                    disabled={reg.chkbox_address === 1}
+                                                />
                                             </div>
                                             <div className='space-y-2'>
-                                                <Label className='text-xs font-bold uppercase text-slate-500'>Pincode <span className='text-red-500'>*</span></Label>
-                                                <Input value={reg.PASR_PerPincode} onChange={(e) => handleInputChange('PASR_PerPincode', e.target.value)} maxLength={6} disabled={reg.chkbox_address === 1} />
+                                                <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                    Pincode <span className='text-red-500'>*</span>
+                                                </Label>
+                                                <Input
+                                                    value={reg.PASR_PerPincode}
+                                                    onChange={(e) => handleInputChange('PASR_PerPincode', e.target.value)}
+                                                    maxLength={6}
+                                                    disabled={reg.chkbox_address === 1}
+                                                />
                                             </div>
                                         </div>
                                     </div>
@@ -928,94 +1211,320 @@ export default function SophiaRegistrationXI() {
                             </div>
 
                             {/* Section 3: Parents Details */}
-                            <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
-                                <CollapsibleSection title="FATHER'S DETAILS" icon={<Users className='h-5 w-5 text-indigo-600' />} variant='outline'>
-                                    <div className='p-6 space-y-4'>
+                            <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
+                                <CollapsibleSection
+                                    title="FATHER'S DETAILS"
+                                    icon={<Users className='h-5 w-5 text-indigo-600' />}
+                                    variant='outline'>
+                                    <div className='space-y-4 p-6'>
                                         <div className='grid grid-cols-2 gap-4'>
-                                            <div className='space-y-2'><Label className='text-[10px] font-bold uppercase text-slate-500'>Father Name *</Label><Input value={reg.PASR_FatherName} onChange={(e) => handleInputChange('PASR_FatherName', e.target.value)} className='h-9 text-uppercase' /></div>
-                                            <div className='space-y-2'><Label className='text-[10px] font-bold uppercase text-slate-500'>Surname *</Label><Input value={reg.PASR_FatherSurname} onChange={(e) => handleInputChange('PASR_FatherSurname', e.target.value)} className='h-9 text-uppercase' /></div>
-                                        </div>
-                                        <div className='grid grid-cols-2 gap-4'>
-                                            <div className='space-y-2'><Label className='text-[10px] font-bold uppercase text-slate-500'>Mobile *</Label><Input value={reg.PASR_FatherMobleNo} onChange={(e) => handleInputChange('PASR_FatherMobleNo', e.target.value)} className='h-9' maxLength={10} /></div>
-                                            <div className='space-y-2'><Label className='text-[10px] font-bold uppercase text-slate-500'>Email *</Label><Input value={reg.PASR_FatheremailId} onChange={(e) => handleInputChange('PASR_FatheremailId', e.target.value)} className='h-9' /></div>
+                                            <div className='space-y-2'>
+                                                <Label className='font-bold text-[10px] text-slate-500 uppercase'>Father Name *</Label>
+                                                <Input
+                                                    value={reg.PASR_FatherName}
+                                                    onChange={(e) => handleInputChange('PASR_FatherName', e.target.value)}
+                                                    className='h-9 text-uppercase'
+                                                />
+                                            </div>
+                                            <div className='space-y-2'>
+                                                <Label className='font-bold text-[10px] text-slate-500 uppercase'>Surname *</Label>
+                                                <Input
+                                                    value={reg.PASR_FatherSurname}
+                                                    onChange={(e) => handleInputChange('PASR_FatherSurname', e.target.value)}
+                                                    className='h-9 text-uppercase'
+                                                />
+                                            </div>
                                         </div>
                                         <div className='grid grid-cols-2 gap-4'>
                                             <div className='space-y-2'>
-                                                <Label className='text-[10px] font-bold uppercase text-slate-500'>Religion *</Label>
-                                                <Select value={reg.PASR_FatherReligion?.toString()} onValueChange={(v) => handleInputChange('PASR_FatherReligion', Number(v))}>
-                                                    <SelectTrigger className='h-9'><SelectValue placeholder='Select' /></SelectTrigger>
-                                                    <SelectContent>{(initialData?.data as any)?.religiondrp?.map((r: any) => (<SelectItem key={r.ivrmmR_Id} value={r.ivrmmR_Id.toString()}>{r.ivrmmR_Name}</SelectItem>))}</SelectContent>
+                                                <Label className='font-bold text-[10px] text-slate-500 uppercase'>Mobile *</Label>
+                                                <Input
+                                                    value={reg.PASR_FatherMobleNo}
+                                                    onChange={(e) => handleInputChange('PASR_FatherMobleNo', e.target.value)}
+                                                    className='h-9'
+                                                    maxLength={10}
+                                                />
+                                            </div>
+                                            <div className='space-y-2'>
+                                                <Label className='font-bold text-[10px] text-slate-500 uppercase'>Email *</Label>
+                                                <Input
+                                                    value={reg.PASR_FatheremailId}
+                                                    onChange={(e) => handleInputChange('PASR_FatheremailId', e.target.value)}
+                                                    className='h-9'
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className='grid grid-cols-2 gap-4'>
+                                            <div className='space-y-2'>
+                                                <Label className='font-bold text-[10px] text-slate-500 uppercase'>Religion *</Label>
+                                                <Select
+                                                    value={reg.PASR_FatherReligion?.toString()}
+                                                    onValueChange={(v) => handleInputChange('PASR_FatherReligion', Number(v))}>
+                                                    <SelectTrigger className='h-9'>
+                                                        <SelectValue placeholder='Select' />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {(initialData?.data as any)?.religiondrp?.map((r: any) => (
+                                                            <SelectItem key={r.ivrmmR_Id} value={r.ivrmmR_Id.toString()}>
+                                                                {r.ivrmmR_Name}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
                                                 </Select>
                                             </div>
-                                            <div className='space-y-2'><Label className='text-[10px] font-bold uppercase text-slate-500'>Mother Tongue *</Label><Input value={reg.PASA_FatherMotherTongue} onChange={(e) => handleInputChange('PASA_FatherMotherTongue', e.target.value)} className='h-9 text-uppercase' /></div>
-                                        </div>
-                                        <div className='grid grid-cols-2 gap-4'>
-                                            <div className='space-y-2'><Label className='text-[10px] font-bold uppercase text-slate-500'>Qualification *</Label><Input value={reg.PASR_FatherEducation} onChange={(e) => handleInputChange('PASR_FatherEducation', e.target.value)} className='h-9 text-uppercase' /></div>
-                                            <div className='space-y-2'><Label className='text-[10px] font-bold uppercase text-slate-500'>Institution Attended *</Label><Input value={reg.PASA_FatherInstitution} onChange={(e) => handleInputChange('PASA_FatherInstitution', e.target.value)} className='h-9 text-uppercase' /></div>
-                                        </div>
-                                        <div className='grid grid-cols-2 gap-4'>
-                                            <div className='space-y-2'><Label className='text-[10px] font-bold uppercase text-slate-500'>Service *</Label><Input value={reg.PASR_FatherOccupation} onChange={(e) => handleInputChange('PASR_FatherOccupation', e.target.value)} className='h-9 text-uppercase' /></div>
-                                            <div className='space-y-2'><Label className='text-[10px] font-bold uppercase text-slate-500'>Business *</Label><Input value={reg.PASA_FatherBusiness} onChange={(e) => handleInputChange('PASA_FatherBusiness', e.target.value)} className='h-9 text-uppercase' /></div>
-                                        </div>
-                                        <div className='space-y-2'><Label className='text-[10px] font-bold uppercase text-slate-500'>Company Name *</Label><Input value={reg.PASA_FatherCompany} onChange={(e) => handleInputChange('PASA_FatherCompany', e.target.value)} className='h-9 text-uppercase' /></div>
-                                        <div className='space-y-2'><Label className='text-[10px] font-bold uppercase text-slate-500'>Address *</Label><Textarea value={reg.PASR_FatherOfficeAddr} onChange={(e) => handleInputChange('PASR_FatherOfficeAddr', e.target.value)} className='text-uppercase min-h-[60px]' /></div>
-                                        <div className='grid grid-cols-2 gap-4'>
-                                            <div className='space-y-2'><Label className='text-[10px] font-bold uppercase text-slate-500'>Designation *</Label><Input value={reg.PASR_FatherDesignation} onChange={(e) => handleInputChange('PASR_FatherDesignation', e.target.value)} className='h-9 text-uppercase' /></div>
-                                            <div className='space-y-2'><Label className='text-[10px] font-bold uppercase text-slate-500'>Monthly Income *</Label><Input value={reg.PASR_FatherMonIncome} onChange={(e) => handleInputChange('PASR_FatherMonIncome', e.target.value)} className='h-9' /></div>
-                                        </div>
-                                        <div className='flex items-center gap-4 p-4 border-2 border-dashed rounded-xl bg-slate-50/50'>
-                                            <div className='w-24 h-24 bg-white border rounded-lg overflow-hidden flex items-center justify-center shrink-0'>
-                                                {reg.PASR_FatherPhoto ? <img src={reg.PASR_FatherPhoto} className='w-full h-full object-cover' /> : <User className='h-8 w-8 text-slate-200' />}
+                                            <div className='space-y-2'>
+                                                <Label className='font-bold text-[10px] text-slate-500 uppercase'>Mother Tongue *</Label>
+                                                <Input
+                                                    value={reg.PASA_FatherMotherTongue}
+                                                    onChange={(e) => handleInputChange('PASA_FatherMotherTongue', e.target.value)}
+                                                    className='h-9 text-uppercase'
+                                                />
                                             </div>
-                                            <div className='space-y-2 flex-1'>
-                                                <Label className='text-[10px] font-black uppercase text-indigo-600'>Father Photo *</Label>
-                                                <Button variant='outline' size='sm' className='w-full h-8 border-dashed text-xs'>CHOOSE FILE</Button>
+                                        </div>
+                                        <div className='grid grid-cols-2 gap-4'>
+                                            <div className='space-y-2'>
+                                                <Label className='font-bold text-[10px] text-slate-500 uppercase'>Qualification *</Label>
+                                                <Input
+                                                    value={reg.PASR_FatherEducation}
+                                                    onChange={(e) => handleInputChange('PASR_FatherEducation', e.target.value)}
+                                                    className='h-9 text-uppercase'
+                                                />
+                                            </div>
+                                            <div className='space-y-2'>
+                                                <Label className='font-bold text-[10px] text-slate-500 uppercase'>
+                                                    Institution Attended *
+                                                </Label>
+                                                <Input
+                                                    value={reg.PASA_FatherInstitution}
+                                                    onChange={(e) => handleInputChange('PASA_FatherInstitution', e.target.value)}
+                                                    className='h-9 text-uppercase'
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className='grid grid-cols-2 gap-4'>
+                                            <div className='space-y-2'>
+                                                <Label className='font-bold text-[10px] text-slate-500 uppercase'>Service *</Label>
+                                                <Input
+                                                    value={reg.PASR_FatherOccupation}
+                                                    onChange={(e) => handleInputChange('PASR_FatherOccupation', e.target.value)}
+                                                    className='h-9 text-uppercase'
+                                                />
+                                            </div>
+                                            <div className='space-y-2'>
+                                                <Label className='font-bold text-[10px] text-slate-500 uppercase'>Business *</Label>
+                                                <Input
+                                                    value={reg.PASA_FatherBusiness}
+                                                    onChange={(e) => handleInputChange('PASA_FatherBusiness', e.target.value)}
+                                                    className='h-9 text-uppercase'
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className='space-y-2'>
+                                            <Label className='font-bold text-[10px] text-slate-500 uppercase'>Company Name *</Label>
+                                            <Input
+                                                value={reg.PASA_FatherCompany}
+                                                onChange={(e) => handleInputChange('PASA_FatherCompany', e.target.value)}
+                                                className='h-9 text-uppercase'
+                                            />
+                                        </div>
+                                        <div className='space-y-2'>
+                                            <Label className='font-bold text-[10px] text-slate-500 uppercase'>Address *</Label>
+                                            <Textarea
+                                                value={reg.PASR_FatherOfficeAddr}
+                                                onChange={(e) => handleInputChange('PASR_FatherOfficeAddr', e.target.value)}
+                                                className='min-h-[60px] text-uppercase'
+                                            />
+                                        </div>
+                                        <div className='grid grid-cols-2 gap-4'>
+                                            <div className='space-y-2'>
+                                                <Label className='font-bold text-[10px] text-slate-500 uppercase'>Designation *</Label>
+                                                <Input
+                                                    value={reg.PASR_FatherDesignation}
+                                                    onChange={(e) => handleInputChange('PASR_FatherDesignation', e.target.value)}
+                                                    className='h-9 text-uppercase'
+                                                />
+                                            </div>
+                                            <div className='space-y-2'>
+                                                <Label className='font-bold text-[10px] text-slate-500 uppercase'>Monthly Income *</Label>
+                                                <Input
+                                                    value={reg.PASR_FatherMonIncome}
+                                                    onChange={(e) => handleInputChange('PASR_FatherMonIncome', e.target.value)}
+                                                    className='h-9'
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className='flex items-center gap-4 rounded-xl border-2 border-dashed bg-slate-50/50 p-4'>
+                                            <div className='flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-white'>
+                                                {reg.PASR_FatherPhoto ? (
+                                                    <img src={reg.PASR_FatherPhoto} className='h-full w-full object-cover' />
+                                                ) : (
+                                                    <User className='h-8 w-8 text-slate-200' />
+                                                )}
+                                            </div>
+                                            <div className='flex-1 space-y-2'>
+                                                <Label className='font-black text-[10px] text-indigo-600 uppercase'>Father Photo *</Label>
+                                                <Button variant='outline' size='sm' className='h-8 w-full border-dashed text-xs'>
+                                                    CHOOSE FILE
+                                                </Button>
                                             </div>
                                         </div>
                                     </div>
                                 </CollapsibleSection>
 
-                                <CollapsibleSection title="MOTHER'S DETAILS" icon={<HeartPulse className='h-5 w-5 text-indigo-600' />} variant='outline'>
-                                    <div className='p-6 space-y-4'>
+                                <CollapsibleSection
+                                    title="MOTHER'S DETAILS"
+                                    icon={<HeartPulse className='h-5 w-5 text-indigo-600' />}
+                                    variant='outline'>
+                                    <div className='space-y-4 p-6'>
                                         <div className='grid grid-cols-2 gap-4'>
-                                            <div className='space-y-2'><Label className='text-[10px] font-bold uppercase text-slate-500'>Mother Name *</Label><Input value={reg.PASR_MotherName} onChange={(e) => handleInputChange('PASR_MotherName', e.target.value)} className='h-9 text-uppercase' /></div>
-                                            <div className='space-y-2'><Label className='text-[10px] font-bold uppercase text-slate-500'>Surname *</Label><Input value={reg.PASR_MotherSurname} onChange={(e) => handleInputChange('PASR_MotherSurname', e.target.value)} className='h-9 text-uppercase' /></div>
-                                        </div>
-                                        <div className='grid grid-cols-2 gap-4'>
-                                            <div className='space-y-2'><Label className='text-[10px] font-bold uppercase text-slate-500'>Mobile *</Label><Input value={reg.PASR_MotherMobleNo} onChange={(e) => handleInputChange('PASR_MotherMobleNo', e.target.value)} className='h-9' maxLength={10} /></div>
-                                            <div className='space-y-2'><Label className='text-[10px] font-bold uppercase text-slate-500'>Email *</Label><Input value={reg.PASR_MotheremailId} onChange={(e) => handleInputChange('PASR_MotheremailId', e.target.value)} className='h-9' /></div>
+                                            <div className='space-y-2'>
+                                                <Label className='font-bold text-[10px] text-slate-500 uppercase'>Mother Name *</Label>
+                                                <Input
+                                                    value={reg.PASR_MotherName}
+                                                    onChange={(e) => handleInputChange('PASR_MotherName', e.target.value)}
+                                                    className='h-9 text-uppercase'
+                                                />
+                                            </div>
+                                            <div className='space-y-2'>
+                                                <Label className='font-bold text-[10px] text-slate-500 uppercase'>Surname *</Label>
+                                                <Input
+                                                    value={reg.PASR_MotherSurname}
+                                                    onChange={(e) => handleInputChange('PASR_MotherSurname', e.target.value)}
+                                                    className='h-9 text-uppercase'
+                                                />
+                                            </div>
                                         </div>
                                         <div className='grid grid-cols-2 gap-4'>
                                             <div className='space-y-2'>
-                                                <Label className='text-[10px] font-bold uppercase text-slate-500'>Religion *</Label>
-                                                <Select value={reg.PASR_MotherReligion?.toString()} onValueChange={(v) => handleInputChange('PASR_MotherReligion', Number(v))}>
-                                                    <SelectTrigger className='h-9'><SelectValue placeholder='Select' /></SelectTrigger>
-                                                    <SelectContent>{(initialData?.data as any)?.religiondrp?.map((r: any) => (<SelectItem key={r.ivrmmR_Id} value={r.ivrmmR_Id.toString()}>{r.ivrmmR_Name}</SelectItem>))}</SelectContent>
+                                                <Label className='font-bold text-[10px] text-slate-500 uppercase'>Mobile *</Label>
+                                                <Input
+                                                    value={reg.PASR_MotherMobleNo}
+                                                    onChange={(e) => handleInputChange('PASR_MotherMobleNo', e.target.value)}
+                                                    className='h-9'
+                                                    maxLength={10}
+                                                />
+                                            </div>
+                                            <div className='space-y-2'>
+                                                <Label className='font-bold text-[10px] text-slate-500 uppercase'>Email *</Label>
+                                                <Input
+                                                    value={reg.PASR_MotheremailId}
+                                                    onChange={(e) => handleInputChange('PASR_MotheremailId', e.target.value)}
+                                                    className='h-9'
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className='grid grid-cols-2 gap-4'>
+                                            <div className='space-y-2'>
+                                                <Label className='font-bold text-[10px] text-slate-500 uppercase'>Religion *</Label>
+                                                <Select
+                                                    value={reg.PASR_MotherReligion?.toString()}
+                                                    onValueChange={(v) => handleInputChange('PASR_MotherReligion', Number(v))}>
+                                                    <SelectTrigger className='h-9'>
+                                                        <SelectValue placeholder='Select' />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {(initialData?.data as any)?.religiondrp?.map((r: any) => (
+                                                            <SelectItem key={r.ivrmmR_Id} value={r.ivrmmR_Id.toString()}>
+                                                                {r.ivrmmR_Name}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
                                                 </Select>
                                             </div>
-                                            <div className='space-y-2'><Label className='text-[10px] font-bold uppercase text-slate-500'>Mother Tongue *</Label><Input value={reg.PASA_MotherMotherTongue} onChange={(e) => handleInputChange('PASA_MotherMotherTongue', e.target.value)} className='h-9 text-uppercase' /></div>
-                                        </div>
-                                        <div className='grid grid-cols-2 gap-4'>
-                                            <div className='space-y-2'><Label className='text-[10px] font-bold uppercase text-slate-500'>Qualification *</Label><Input value={reg.PASR_MotherEducation} onChange={(e) => handleInputChange('PASR_MotherEducation', e.target.value)} className='h-9 text-uppercase' /></div>
-                                            <div className='space-y-2'><Label className='text-[10px] font-bold uppercase text-slate-500'>Institution Attended *</Label><Input value={reg.PASA_MotherInstitution} onChange={(e) => handleInputChange('PASA_MotherInstitution', e.target.value)} className='h-9 text-uppercase' /></div>
-                                        </div>
-                                        <div className='grid grid-cols-2 gap-4'>
-                                            <div className='space-y-2'><Label className='text-[10px] font-bold uppercase text-slate-500'>Service *</Label><Input value={reg.PASR_MotherOccupation} onChange={(e) => handleInputChange('PASR_MotherOccupation', e.target.value)} className='h-9 text-uppercase' /></div>
-                                            <div className='space-y-2'><Label className='text-[10px] font-bold uppercase text-slate-500'>Business *</Label><Input value={reg.PASA_MotherBusiness} onChange={(e) => handleInputChange('PASA_MotherBusiness', e.target.value)} className='h-9 text-uppercase' /></div>
-                                        </div>
-                                        <div className='space-y-2'><Label className='text-[10px] font-bold uppercase text-slate-500'>Company Name *</Label><Input value={reg.PASA_MotherCompany} onChange={(e) => handleInputChange('PASA_MotherCompany', e.target.value)} className='h-9 text-uppercase' /></div>
-                                        <div className='space-y-2'><Label className='text-[10px] font-bold uppercase text-slate-500'>Address *</Label><Textarea value={reg.PASR_MotherOfficeAddr} onChange={(e) => handleInputChange('PASR_MotherOfficeAddr', e.target.value)} className='text-uppercase min-h-[60px]' /></div>
-                                        <div className='grid grid-cols-2 gap-4'>
-                                            <div className='space-y-2'><Label className='text-[10px] font-bold uppercase text-slate-500'>Designation *</Label><Input value={reg.PASR_MotherDesignation} onChange={(e) => handleInputChange('PASR_MotherDesignation', e.target.value)} className='h-9 text-uppercase' /></div>
-                                            <div className='space-y-2'><Label className='text-[10px] font-bold uppercase text-slate-500'>Monthly Income *</Label><Input value={reg.PASR_MotherMonIncome} onChange={(e) => handleInputChange('PASR_MotherMonIncome', e.target.value)} className='h-9' /></div>
-                                        </div>
-                                        <div className='flex items-center gap-4 p-4 border-2 border-dashed rounded-xl bg-slate-50/50'>
-                                            <div className='w-24 h-24 bg-white border rounded-lg overflow-hidden flex items-center justify-center shrink-0'>
-                                                {reg.PASR_MotherPhoto ? <img src={reg.PASR_MotherPhoto} className='w-full h-full object-cover' /> : <User className='h-8 w-8 text-slate-200' />}
+                                            <div className='space-y-2'>
+                                                <Label className='font-bold text-[10px] text-slate-500 uppercase'>Mother Tongue *</Label>
+                                                <Input
+                                                    value={reg.PASA_MotherMotherTongue}
+                                                    onChange={(e) => handleInputChange('PASA_MotherMotherTongue', e.target.value)}
+                                                    className='h-9 text-uppercase'
+                                                />
                                             </div>
-                                            <div className='space-y-2 flex-1'>
-                                                <Label className='text-[10px] font-black uppercase text-indigo-600'>Mother Photo *</Label>
-                                                <Button variant='outline' size='sm' className='w-full h-8 border-dashed text-xs'>CHOOSE FILE</Button>
+                                        </div>
+                                        <div className='grid grid-cols-2 gap-4'>
+                                            <div className='space-y-2'>
+                                                <Label className='font-bold text-[10px] text-slate-500 uppercase'>Qualification *</Label>
+                                                <Input
+                                                    value={reg.PASR_MotherEducation}
+                                                    onChange={(e) => handleInputChange('PASR_MotherEducation', e.target.value)}
+                                                    className='h-9 text-uppercase'
+                                                />
+                                            </div>
+                                            <div className='space-y-2'>
+                                                <Label className='font-bold text-[10px] text-slate-500 uppercase'>
+                                                    Institution Attended *
+                                                </Label>
+                                                <Input
+                                                    value={reg.PASA_MotherInstitution}
+                                                    onChange={(e) => handleInputChange('PASA_MotherInstitution', e.target.value)}
+                                                    className='h-9 text-uppercase'
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className='grid grid-cols-2 gap-4'>
+                                            <div className='space-y-2'>
+                                                <Label className='font-bold text-[10px] text-slate-500 uppercase'>Service *</Label>
+                                                <Input
+                                                    value={reg.PASR_MotherOccupation}
+                                                    onChange={(e) => handleInputChange('PASR_MotherOccupation', e.target.value)}
+                                                    className='h-9 text-uppercase'
+                                                />
+                                            </div>
+                                            <div className='space-y-2'>
+                                                <Label className='font-bold text-[10px] text-slate-500 uppercase'>Business *</Label>
+                                                <Input
+                                                    value={reg.PASA_MotherBusiness}
+                                                    onChange={(e) => handleInputChange('PASA_MotherBusiness', e.target.value)}
+                                                    className='h-9 text-uppercase'
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className='space-y-2'>
+                                            <Label className='font-bold text-[10px] text-slate-500 uppercase'>Company Name *</Label>
+                                            <Input
+                                                value={reg.PASA_MotherCompany}
+                                                onChange={(e) => handleInputChange('PASA_MotherCompany', e.target.value)}
+                                                className='h-9 text-uppercase'
+                                            />
+                                        </div>
+                                        <div className='space-y-2'>
+                                            <Label className='font-bold text-[10px] text-slate-500 uppercase'>Address *</Label>
+                                            <Textarea
+                                                value={reg.PASR_MotherOfficeAddr}
+                                                onChange={(e) => handleInputChange('PASR_MotherOfficeAddr', e.target.value)}
+                                                className='min-h-[60px] text-uppercase'
+                                            />
+                                        </div>
+                                        <div className='grid grid-cols-2 gap-4'>
+                                            <div className='space-y-2'>
+                                                <Label className='font-bold text-[10px] text-slate-500 uppercase'>Designation *</Label>
+                                                <Input
+                                                    value={reg.PASR_MotherDesignation}
+                                                    onChange={(e) => handleInputChange('PASR_MotherDesignation', e.target.value)}
+                                                    className='h-9 text-uppercase'
+                                                />
+                                            </div>
+                                            <div className='space-y-2'>
+                                                <Label className='font-bold text-[10px] text-slate-500 uppercase'>Monthly Income *</Label>
+                                                <Input
+                                                    value={reg.PASR_MotherMonIncome}
+                                                    onChange={(e) => handleInputChange('PASR_MotherMonIncome', e.target.value)}
+                                                    className='h-9'
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className='flex items-center gap-4 rounded-xl border-2 border-dashed bg-slate-50/50 p-4'>
+                                            <div className='flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-white'>
+                                                {reg.PASR_MotherPhoto ? (
+                                                    <img src={reg.PASR_MotherPhoto} className='h-full w-full object-cover' />
+                                                ) : (
+                                                    <User className='h-8 w-8 text-slate-200' />
+                                                )}
+                                            </div>
+                                            <div className='flex-1 space-y-2'>
+                                                <Label className='font-black text-[10px] text-indigo-600 uppercase'>Mother Photo *</Label>
+                                                <Button variant='outline' size='sm' className='h-8 w-full border-dashed text-xs'>
+                                                    CHOOSE FILE
+                                                </Button>
                                             </div>
                                         </div>
                                     </div>
@@ -1023,26 +1532,81 @@ export default function SophiaRegistrationXI() {
                             </div>
 
                             {/* Section 4: Siblings and Previous School */}
-                            <CollapsibleSection title='Sibling Details' icon={<Users className='h-5 w-5 text-indigo-600' />} variant='outline'>
-                                <div className='p-6 space-y-4'>
+                            <CollapsibleSection
+                                title='Sibling Details'
+                                icon={<Users className='h-5 w-5 text-indigo-600' />}
+                                variant='outline'>
+                                <div className='space-y-4 p-6'>
                                     <Table>
-                                        <TableHeader><TableRow className='bg-slate-50'><TableHead className='w-12'>SL</TableHead><TableHead>Name</TableHead><TableHead>Class</TableHead><TableHead>School Name</TableHead><TableHead className='w-32'>Gender</TableHead><TableHead className='w-20'>Action</TableHead></TableRow></TableHeader>
+                                        <TableHeader>
+                                            <TableRow className='bg-slate-50'>
+                                                <TableHead className='w-12'>SL</TableHead>
+                                                <TableHead>Name</TableHead>
+                                                <TableHead>Class</TableHead>
+                                                <TableHead>School Name</TableHead>
+                                                <TableHead className='w-32'>Gender</TableHead>
+                                                <TableHead className='w-20'>Action</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
                                         <TableBody>
                                             {siblings.map((s, idx) => (
                                                 <TableRow key={idx} className='group'>
                                                     <TableCell className='font-bold text-slate-400'>{idx + 1}</TableCell>
-                                                    <TableCell><Input value={s.pasrS_SiblingsName} onChange={(e) => handleSiblingChange(idx, 'pasrS_SiblingsName', e.target.value)} className='h-9 text-uppercase' /></TableCell>
-                                                    <TableCell><Input value={s.pasrS_SiblingsClass} onChange={(e) => handleSiblingChange(idx, 'pasrS_SiblingsClass', e.target.value)} className='h-9 text-uppercase' /></TableCell>
-                                                    <TableCell><Input value={s.pasrS_SchoolName} onChange={(e) => handleSiblingChange(idx, 'pasrS_SchoolName', e.target.value)} className='h-9 text-uppercase' /></TableCell>
                                                     <TableCell>
-                                                        <Select value={s.pasrS_Gender} onValueChange={(v) => handleSiblingChange(idx, 'pasrS_Gender', v)}>
-                                                            <SelectTrigger className='h-9'><SelectValue /></SelectTrigger>
-                                                            <SelectContent><SelectItem value='Male'>Male</SelectItem><SelectItem value='Female'>Female</SelectItem></SelectContent>
+                                                        <Input
+                                                            value={s.pasrS_SiblingsName}
+                                                            onChange={(e) => handleSiblingChange(idx, 'pasrS_SiblingsName', e.target.value)}
+                                                            className='h-9 text-uppercase'
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Input
+                                                            value={s.pasrS_SiblingsClass}
+                                                            onChange={(e) =>
+                                                                handleSiblingChange(idx, 'pasrS_SiblingsClass', e.target.value)
+                                                            }
+                                                            className='h-9 text-uppercase'
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Input
+                                                            value={s.pasrS_SchoolName}
+                                                            onChange={(e) => handleSiblingChange(idx, 'pasrS_SchoolName', e.target.value)}
+                                                            className='h-9 text-uppercase'
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Select
+                                                            value={s.pasrS_Gender}
+                                                            onValueChange={(v) => handleSiblingChange(idx, 'pasrS_Gender', v)}>
+                                                            <SelectTrigger className='h-9'>
+                                                                <SelectValue />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value='Male'>Male</SelectItem>
+                                                                <SelectItem value='Female'>Female</SelectItem>
+                                                            </SelectContent>
                                                         </Select>
                                                     </TableCell>
                                                     <TableCell className='flex gap-1'>
-                                                        {idx === siblings.length - 1 && siblings.length < 5 && <Button size='icon' variant='ghost' className='h-8 w-8 text-indigo-600 hover:bg-indigo-50' onClick={handleAddSibling}><Plus className='h-4 w-4' /></Button>}
-                                                        {siblings.length > 1 && <Button size='icon' variant='ghost' className='h-8 w-8 text-red-500 hover:bg-red-50' onClick={() => handleRemoveSibling(idx)}><Trash2 className='h-4 w-4' /></Button>}
+                                                        {idx === siblings.length - 1 && siblings.length < 5 && (
+                                                            <Button
+                                                                size='icon'
+                                                                variant='ghost'
+                                                                className='h-8 w-8 text-indigo-600 hover:bg-indigo-50'
+                                                                onClick={handleAddSibling}>
+                                                                <Plus className='h-4 w-4' />
+                                                            </Button>
+                                                        )}
+                                                        {siblings.length > 1 && (
+                                                            <Button
+                                                                size='icon'
+                                                                variant='ghost'
+                                                                className='h-8 w-8 text-red-500 hover:bg-red-50'
+                                                                onClick={() => handleRemoveSibling(idx)}>
+                                                                <Trash2 className='h-4 w-4' />
+                                                            </Button>
+                                                        )}
                                                     </TableCell>
                                                 </TableRow>
                                             ))}
@@ -1052,20 +1616,67 @@ export default function SophiaRegistrationXI() {
                             </CollapsibleSection>
 
                             {reg.PASTCBAF_ExistingSchool !== 'YES' && (
-                                <CollapsibleSection title='Last Attended School' icon={<School className='h-5 w-5 text-indigo-600' />} variant='outline'>
-                                    <div className='p-6 space-y-4'>
+                                <CollapsibleSection
+                                    title='Last Attended School'
+                                    icon={<School className='h-5 w-5 text-indigo-600' />}
+                                    variant='outline'>
+                                    <div className='space-y-4 p-6'>
                                         <Table>
-                                            <TableHeader><TableRow className='bg-slate-50'><TableHead className='w-12'>SL</TableHead><TableHead>School Name</TableHead><TableHead>Address</TableHead><TableHead className='w-48'>Phone No / TC No</TableHead><TableHead className='w-20'>Action</TableHead></TableRow></TableHeader>
+                                            <TableHeader>
+                                                <TableRow className='bg-slate-50'>
+                                                    <TableHead className='w-12'>SL</TableHead>
+                                                    <TableHead>School Name</TableHead>
+                                                    <TableHead>Address</TableHead>
+                                                    <TableHead className='w-48'>Phone No / TC No</TableHead>
+                                                    <TableHead className='w-20'>Action</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
                                             <TableBody>
                                                 {prevSchools.map((s, idx) => (
                                                     <TableRow key={idx}>
                                                         <TableCell className='font-bold text-slate-400'>{idx + 1}</TableCell>
-                                                        <TableCell><Input value={s.pasrpS_PrvSchoolName} onChange={(e) => handleSchoolChange(idx, 'pasrpS_PrvSchoolName', e.target.value)} className='h-9 text-uppercase' /></TableCell>
-                                                        <TableCell><Input value={s.pasrpS_Address} onChange={(e) => handleSchoolChange(idx, 'pasrpS_Address', e.target.value)} className='h-9 text-uppercase' /></TableCell>
-                                                        <TableCell><Input value={s.pasrPS_TcNo} onChange={(e) => handleSchoolChange(idx, 'pasrPS_TcNo', e.target.value)} className='h-9 text-uppercase' /></TableCell>
+                                                        <TableCell>
+                                                            <Input
+                                                                value={s.pasrpS_PrvSchoolName}
+                                                                onChange={(e) =>
+                                                                    handleSchoolChange(idx, 'pasrpS_PrvSchoolName', e.target.value)
+                                                                }
+                                                                className='h-9 text-uppercase'
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Input
+                                                                value={s.pasrpS_Address}
+                                                                onChange={(e) => handleSchoolChange(idx, 'pasrpS_Address', e.target.value)}
+                                                                className='h-9 text-uppercase'
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Input
+                                                                value={s.pasrPS_TcNo}
+                                                                onChange={(e) => handleSchoolChange(idx, 'pasrPS_TcNo', e.target.value)}
+                                                                className='h-9 text-uppercase'
+                                                            />
+                                                        </TableCell>
                                                         <TableCell className='flex gap-1'>
-                                                            {idx === prevSchools.length - 1 && prevSchools.length < 5 && <Button size='icon' variant='ghost' className='h-8 w-8 text-indigo-600 hover:bg-indigo-50' onClick={handleAddSchool}><Plus className='h-4 w-4' /></Button>}
-                                                            {prevSchools.length > 1 && <Button size='icon' variant='ghost' className='h-8 w-8 text-red-500 hover:bg-red-50' onClick={() => handleRemoveSchool(idx)}><Trash2 className='h-4 w-4' /></Button>}
+                                                            {idx === prevSchools.length - 1 && prevSchools.length < 5 && (
+                                                                <Button
+                                                                    size='icon'
+                                                                    variant='ghost'
+                                                                    className='h-8 w-8 text-indigo-600 hover:bg-indigo-50'
+                                                                    onClick={handleAddSchool}>
+                                                                    <Plus className='h-4 w-4' />
+                                                                </Button>
+                                                            )}
+                                                            {prevSchools.length > 1 && (
+                                                                <Button
+                                                                    size='icon'
+                                                                    variant='ghost'
+                                                                    className='h-8 w-8 text-red-500 hover:bg-red-50'
+                                                                    onClick={() => handleRemoveSchool(idx)}>
+                                                                    <Trash2 className='h-4 w-4' />
+                                                                </Button>
+                                                            )}
                                                         </TableCell>
                                                     </TableRow>
                                                 ))}
@@ -1076,68 +1687,116 @@ export default function SophiaRegistrationXI() {
                             )}
 
                             {/* Section 5: Other Details */}
-                            <CollapsibleSection title='Other Details' icon={<MessageSquare className='h-5 w-5 text-indigo-600' />} variant='outline'>
-                                <div className='p-6 space-y-6'>
+                            <CollapsibleSection
+                                title='Other Details'
+                                icon={<MessageSquare className='h-5 w-5 text-indigo-600' />}
+                                variant='outline'>
+                                <div className='space-y-6 p-6'>
                                     <div className='space-y-2'>
-                                        <Label className='text-xs font-black uppercase text-slate-500'>Extra-Curricular Activities (IX & X) <span className='text-red-500'>*</span></Label>
-                                        <Textarea placeholder='List activities...' value={reg.PASTCBAF_ExtraActivities} onChange={(e) => handleInputChange('PASTCBAF_ExtraActivities', e.target.value)} className='min-h-[80px] text-uppercase' />
+                                        <Label className='font-black text-slate-500 text-xs uppercase'>
+                                            Extra-Curricular Activities (IX & X) <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <Textarea
+                                            placeholder='List activities...'
+                                            value={reg.PASTCBAF_ExtraActivities}
+                                            onChange={(e) => handleInputChange('PASTCBAF_ExtraActivities', e.target.value)}
+                                            className='min-h-[80px] text-uppercase'
+                                        />
                                     </div>
                                     <div className='space-y-2'>
-                                        <Label className='text-xs font-black uppercase text-slate-500'>Inter-School Competitions Won (IX & X) <span className='text-red-500'>*</span></Label>
-                                        <Textarea placeholder='List competitions...' value={reg.PASTCBAF_SchoolCompetitions} onChange={(e) => handleInputChange('PASTCBAF_SchoolCompetitions', e.target.value)} className='min-h-[80px] text-uppercase' />
+                                        <Label className='font-black text-slate-500 text-xs uppercase'>
+                                            Inter-School Competitions Won (IX & X) <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <Textarea
+                                            placeholder='List competitions...'
+                                            value={reg.PASTCBAF_SchoolCompetitions}
+                                            onChange={(e) => handleInputChange('PASTCBAF_SchoolCompetitions', e.target.value)}
+                                            className='min-h-[80px] text-uppercase'
+                                        />
                                     </div>
                                     <div className='space-y-2'>
-                                        <Label className='text-xs font-black uppercase text-slate-500'>Career Goal & Motivation <span className='text-red-500'>*</span></Label>
-                                        <Textarea placeholder='Your goal...' value={reg.PASTCBAF_CareerGoal} onChange={(e) => handleInputChange('PASTCBAF_CareerGoal', e.target.value)} className='min-h-[80px] text-uppercase' />
+                                        <Label className='font-black text-slate-500 text-xs uppercase'>
+                                            Career Goal & Motivation <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <Textarea
+                                            placeholder='Your goal...'
+                                            value={reg.PASTCBAF_CareerGoal}
+                                            onChange={(e) => handleInputChange('PASTCBAF_CareerGoal', e.target.value)}
+                                            className='min-h-[80px] text-uppercase'
+                                        />
                                     </div>
-                                    <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                                    <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                                         <div className='space-y-2'>
-                                            <Label className='text-xs font-black uppercase text-slate-500'>Expected Competitive Exams (XII) <span className='text-red-500'>*</span></Label>
-                                            <Textarea placeholder='JEE, NEET, etc...' value={reg.PASTCBAF_CompetitiveEntanceExams} onChange={(e) => handleInputChange('PASTCBAF_CompetitiveEntanceExams', e.target.value)} className='min-h-[80px] text-uppercase' />
+                                            <Label className='font-black text-slate-500 text-xs uppercase'>
+                                                Expected Competitive Exams (XII) <span className='text-red-500'>*</span>
+                                            </Label>
+                                            <Textarea
+                                                placeholder='JEE, NEET, etc...'
+                                                value={reg.PASTCBAF_CompetitiveEntanceExams}
+                                                onChange={(e) => handleInputChange('PASTCBAF_CompetitiveEntanceExams', e.target.value)}
+                                                className='min-h-[80px] text-uppercase'
+                                            />
                                         </div>
                                         <div className='space-y-2'>
-                                            <Label className='text-xs font-black uppercase text-slate-500'>Reason for pursuing XI & XII at Sophia <span className='text-red-500'>*</span></Label>
-                                            <Textarea placeholder='Why Sophia?' value={reg.PASTCBAF_PursueClasses} onChange={(e) => handleInputChange('PASTCBAF_PursueClasses', e.target.value)} className='min-h-[80px] text-uppercase' />
+                                            <Label className='font-black text-slate-500 text-xs uppercase'>
+                                                Reason for pursuing XI & XII at Sophia <span className='text-red-500'>*</span>
+                                            </Label>
+                                            <Textarea
+                                                placeholder='Why Sophia?'
+                                                value={reg.PASTCBAF_PursueClasses}
+                                                onChange={(e) => handleInputChange('PASTCBAF_PursueClasses', e.target.value)}
+                                                className='min-h-[80px] text-uppercase'
+                                            />
                                         </div>
                                     </div>
                                 </div>
                             </CollapsibleSection>
 
                             {/* Section 6: Marks Details */}
-                            <CollapsibleSection title='Academic Marks Details' icon={<Trophy className='h-5 w-5 text-indigo-600' />} variant='outline'>
-                                <div className='p-6 overflow-x-auto'>
+                            <CollapsibleSection
+                                title='Academic Marks Details'
+                                icon={<Trophy className='h-5 w-5 text-indigo-600' />}
+                                variant='outline'>
+                                <div className='overflow-x-auto p-6'>
                                     <Table className='border'>
                                         <TableHeader>
                                             <TableRow className='bg-indigo-600 hover:bg-indigo-600'>
-                                                <TableHead className='text-white font-bold w-12'>SL</TableHead>
-                                                <TableHead className='text-white font-bold min-w-[200px]'>Exams \ Subjects</TableHead>
-                                                {subjects.map(s => (
-                                                    <TableHead key={s.id} className='text-white font-bold text-center'>
+                                                <TableHead className='w-12 font-bold text-white'>SL</TableHead>
+                                                <TableHead className='min-w-[200px] font-bold text-white'>Exams \ Subjects</TableHead>
+                                                {subjects.map((s) => (
+                                                    <TableHead key={s.id} className='text-center font-bold text-white'>
                                                         <div className='underline'>{s.name}</div>
-                                                        <div className='text-[10px] font-normal opacity-80'>{s.desc}</div>
+                                                        <div className='font-normal text-[10px] opacity-80'>{s.desc}</div>
                                                     </TableHead>
                                                 ))}
-                                                <TableHead className='text-white font-bold text-center w-32'>Total</TableHead>
-                                                <TableHead className='text-white font-bold text-center w-32'>Percentage</TableHead>
+                                                <TableHead className='w-32 text-center font-bold text-white'>Total</TableHead>
+                                                <TableHead className='w-32 text-center font-bold text-white'>Percentage</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
                                             {exams.map((exam, eIdx) => (
                                                 <TableRow key={exam.id} className='hover:bg-indigo-50/50'>
                                                     <TableCell className='font-medium text-slate-400'>{eIdx + 1}</TableCell>
-                                                    <TableCell className='font-bold text-slate-700'>{exam.name} {exam.id !== 4 && <span className='text-red-500'>*</span>}</TableCell>
-                                                    {subjects.map(sub => (
+                                                    <TableCell className='font-bold text-slate-700'>
+                                                        {exam.name} {exam.id !== 4 && <span className='text-red-500'>*</span>}
+                                                    </TableCell>
+                                                    {subjects.map((sub) => (
                                                         <TableCell key={sub.id} className='p-1'>
-                                                            <Input 
+                                                            <Input
                                                                 type='number'
                                                                 value={marksMatrix[exam.id]?.[sub.id] || ''}
                                                                 onChange={(e) => handleMarksChange(exam.id, sub.id, e.target.value)}
-                                                                className='h-10 text-center font-bold bg-slate-50/50 focus:bg-white'
+                                                                className='h-10 bg-slate-50/50 text-center font-bold focus:bg-white'
                                                             />
                                                         </TableCell>
                                                     ))}
-                                                    <TableCell className='text-center font-black text-indigo-600 bg-indigo-50/30'>{calculateTotalMarks(exam.id)}</TableCell>
-                                                    <TableCell className='text-center font-black text-indigo-700 bg-indigo-50/50'>{calculatePercentage(exam.id)}{calculatePercentage(exam.id) ? '%' : ''}</TableCell>
+                                                    <TableCell className='bg-indigo-50/30 text-center font-black text-indigo-600'>
+                                                        {calculateTotalMarks(exam.id)}
+                                                    </TableCell>
+                                                    <TableCell className='bg-indigo-50/50 text-center font-black text-indigo-700'>
+                                                        {calculatePercentage(exam.id)}
+                                                        {calculatePercentage(exam.id) ? '%' : ''}
+                                                    </TableCell>
                                                 </TableRow>
                                             ))}
                                         </TableBody>
@@ -1146,18 +1805,30 @@ export default function SophiaRegistrationXI() {
                             </CollapsibleSection>
 
                             {/* Section 7: Subject Selection */}
-                            <CollapsibleSection title='Subject Selection' icon={<BookOpen className='h-5 w-5 text-indigo-600' />} variant='outline'>
-                                <div className='p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+                            <CollapsibleSection
+                                title='Subject Selection'
+                                icon={<BookOpen className='h-5 w-5 text-indigo-600' />}
+                                variant='outline'>
+                                <div className='grid grid-cols-1 gap-6 p-6 md:grid-cols-2 lg:grid-cols-3'>
                                     {['Compulsory', 'Option1', 'Option2', 'Option3', 'Option4', 'Option5'].map((field, idx) => (
                                         <div key={field} className='space-y-2'>
-                                            <Label className='text-xs font-bold uppercase text-slate-500'>
-                                                {field === 'Option5' ? 'Interdisciplinary Subject' : field === 'Compulsory' ? 'Compulsory Subject' : `Option ${idx}`} <span className='text-red-500'>*</span>
+                                            <Label className='font-bold text-slate-500 text-xs uppercase'>
+                                                {field === 'Option5'
+                                                    ? 'Interdisciplinary Subject'
+                                                    : field === 'Compulsory'
+                                                      ? 'Compulsory Subject'
+                                                      : `Option ${idx}`}{' '}
+                                                <span className='text-red-500'>*</span>
                                             </Label>
                                             <Select value={reg[field]} onValueChange={(v) => handleInputChange(field, v)}>
-                                                <SelectTrigger className='h-10'><SelectValue placeholder='--Select--' /></SelectTrigger>
+                                                <SelectTrigger className='h-10'>
+                                                    <SelectValue placeholder='--Select--' />
+                                                </SelectTrigger>
                                                 <SelectContent>
                                                     {(initialData?.data as any)?.syllabuslist?.map((s: any) => (
-                                                        <SelectItem key={s.asmsT_Id} value={s.asmsT_StreamName}>{s.asmsT_StreamName}</SelectItem>
+                                                        <SelectItem key={s.asmsT_Id} value={s.asmsT_StreamName}>
+                                                            {s.asmsT_StreamName}
+                                                        </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
@@ -1167,13 +1838,25 @@ export default function SophiaRegistrationXI() {
                             </CollapsibleSection>
 
                             {/* Section 8: Document Uploads */}
-                            <CollapsibleSection title='Document Upload Details' icon={<Upload className='h-5 w-5 text-indigo-600' />} variant='outline'>
+                            <CollapsibleSection
+                                title='Document Upload Details'
+                                icon={<Upload className='h-5 w-5 text-indigo-600' />}
+                                variant='outline'>
                                 <div className='p-6'>
                                     <Table>
-                                        <TableHeader><TableRow className='bg-slate-50'><TableHead className='w-12'>SL</TableHead><TableHead>Document Name</TableHead><TableHead className='w-64'>Choose File</TableHead><TableHead className='w-32'>Action</TableHead></TableRow></TableHeader>
+                                        <TableHeader>
+                                            <TableRow className='bg-slate-50'>
+                                                <TableHead className='w-12'>SL</TableHead>
+                                                <TableHead>Document Name</TableHead>
+                                                <TableHead className='w-64'>Choose File</TableHead>
+                                                <TableHead className='w-32'>Action</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
                                         <TableBody>
                                             {documentList.map((doc, idx) => {
-                                                const isRequired = doc.amsmD_FLAG || (isRomanCatholic && doc.amsmD_DocumentName.toLowerCase().includes('baptism'));
+                                                const isRequired =
+                                                    doc.amsmD_FLAG ||
+                                                    (isRomanCatholic && doc.amsmD_DocumentName.toLowerCase().includes('baptism'));
                                                 return (
                                                     <TableRow key={idx}>
                                                         <TableCell className='font-bold text-slate-400'>{idx + 1}</TableCell>
@@ -1182,12 +1865,21 @@ export default function SophiaRegistrationXI() {
                                                         </TableCell>
                                                         <TableCell>
                                                             <div className='flex items-center gap-2'>
-                                                                <Button variant='outline' size='sm' className='h-8 border-dashed border-indigo-200 text-indigo-600'><Upload className='h-3 w-3 mr-2' /> Choose File</Button>
+                                                                <Button
+                                                                    variant='outline'
+                                                                    size='sm'
+                                                                    className='h-8 border-indigo-200 border-dashed text-indigo-600'>
+                                                                    <Upload className='mr-2 h-3 w-3' /> Choose File
+                                                                </Button>
                                                                 {doc.document_Path && <CheckCircle2 className='h-4 w-4 text-emerald-500' />}
                                                             </div>
                                                         </TableCell>
                                                         <TableCell>
-                                                            {doc.document_Path && <Button variant='ghost' size='sm' className='text-indigo-600 font-bold'>VIEW</Button>}
+                                                            {doc.document_Path && (
+                                                                <Button variant='ghost' size='sm' className='font-bold text-indigo-600'>
+                                                                    VIEW
+                                                                </Button>
+                                                            )}
                                                         </TableCell>
                                                     </TableRow>
                                                 );
@@ -1198,16 +1890,29 @@ export default function SophiaRegistrationXI() {
                             </CollapsibleSection>
 
                             {/* Footer Actions */}
-                            <div className='sticky bottom-6 left-0 right-0 z-10 flex justify-center'>
-                                <Card className='shadow-2xl border-none bg-white/90 backdrop-blur-md rounded-full px-8 py-4 border border-slate-200/50 flex gap-4'>
-                                    <Button onClick={handleSave} disabled={saveMutation.isPending} className='bg-indigo-600 hover:bg-indigo-700 rounded-full px-12 h-12 shadow-lg shadow-indigo-100 transition-all active:scale-95'>
-                                        {saveMutation.isPending ? <Loader2 className='mr-2 h-5 w-5 animate-spin' /> : <Save className='mr-2 h-5 w-5' />}
+                            <div className='sticky right-0 bottom-6 left-0 z-10 flex justify-center'>
+                                <Card className='flex gap-4 rounded-full border border-slate-200/50 border-none bg-white/90 px-8 py-4 shadow-2xl backdrop-blur-md'>
+                                    <Button
+                                        onClick={handleSave}
+                                        disabled={saveMutation.isPending}
+                                        className='h-12 rounded-full bg-indigo-600 px-12 shadow-indigo-100 shadow-lg transition-all hover:bg-indigo-700 active:scale-95'>
+                                        {saveMutation.isPending ? (
+                                            <Loader2 className='mr-2 h-5 w-5 animate-spin' />
+                                        ) : (
+                                            <Save className='mr-2 h-5 w-5' />
+                                        )}
                                         SAVE REGISTRATION
                                     </Button>
-                                    <Button variant='outline' className='rounded-full px-12 h-12 border-slate-200 hover:bg-slate-100' onClick={() => setView('payment')}>
+                                    <Button
+                                        variant='outline'
+                                        className='h-12 rounded-full border-slate-200 px-12 hover:bg-slate-100'
+                                        onClick={() => setView('payment')}>
                                         PROCEED TO PAYMENT
                                     </Button>
-                                    <Button variant='ghost' className='rounded-full px-8 h-12 text-slate-500 hover:bg-slate-100' onClick={() => window.location.reload()}>
+                                    <Button
+                                        variant='ghost'
+                                        className='h-12 rounded-full px-8 text-slate-500 hover:bg-slate-100'
+                                        onClick={() => window.location.reload()}>
                                         CANCEL
                                     </Button>
                                 </Card>
@@ -1216,54 +1921,124 @@ export default function SophiaRegistrationXI() {
                     )}
                 </TabsContent>
 
-                <TabsContent value='list' className='animate-in fade-in slide-in-from-bottom-2 duration-300'>
-                    <Card className='shadow-xl border-none overflow-hidden rounded-2xl'>
-                        <CardHeader className='bg-slate-50/50 border-b p-6'>
+                <TabsContent value='list' className='fade-in slide-in-from-bottom-2 animate-in duration-300'>
+                    <Card className='overflow-hidden rounded-2xl border-none shadow-xl'>
+                        <CardHeader className='border-b bg-slate-50/50 p-6'>
                             <div className='flex items-center justify-between'>
                                 <div>
-                                    <CardTitle className='text-lg font-bold text-slate-800 flex items-center gap-2'>
+                                    <CardTitle className='flex items-center gap-2 font-bold text-lg text-slate-800'>
                                         <Search className='h-5 w-5 text-indigo-600' />
                                         Existing Registrations (Class XI)
                                     </CardTitle>
-                                    <CardDescription>View and manage all student applications for the current academic year.</CardDescription>
+                                    <CardDescription>
+                                        View and manage all student applications for the current academic year.
+                                    </CardDescription>
                                 </div>
                                 <div className='relative w-96'>
-                                    <Search className='absolute left-3 top-2.5 h-4 w-4 text-slate-400' />
-                                    <Input 
-                                        placeholder='Search by name, registration no or mobile...' 
+                                    <Search className='absolute top-2.5 left-3 h-4 w-4 text-slate-400' />
+                                    <Input
+                                        placeholder='Search by name, registration no or mobile...'
                                         value={studentSearch}
                                         onChange={(e) => setStudentSearch(e.target.value)}
-                                        className='pl-10 h-10 bg-white rounded-full border-slate-200 focus:ring-2 focus:ring-indigo-100'
+                                        className='h-10 rounded-full border-slate-200 bg-white pl-10 focus:ring-2 focus:ring-indigo-100'
                                     />
                                 </div>
                             </div>
                         </CardHeader>
                         <CardContent className='p-0'>
-                            <DataTable 
+                            <DataTable
                                 totalItems={filteredList.length}
                                 columns={[
-                                    { header: 'SL', cell: ({row}: any) => row.index + 1 },
-                                    { header: 'Reg No', accessorKey: 'pasR_RegistrationNo', cell: ({row}: any) => <span className='font-bold text-indigo-600'>{row.original.pasR_RegistrationNo}</span> },
-                                    { header: 'Student Name', accessorKey: 'pasR_FirstName', cell: ({row}: any) => <div className='font-medium'>{row.original.pasR_FirstName} {row.original.pasR_MiddleName || ''} {row.original.pasR_LastName || ''}</div> },
+                                    { header: 'SL', cell: ({ row }: any) => row.index + 1 },
+                                    {
+                                        header: 'Reg No',
+                                        accessorKey: 'pasR_RegistrationNo',
+                                        cell: ({ row }: any) => (
+                                            <span className='font-bold text-indigo-600'>{row.original.pasR_RegistrationNo}</span>
+                                        )
+                                    },
+                                    {
+                                        header: 'Student Name',
+                                        accessorKey: 'pasR_FirstName',
+                                        cell: ({ row }: any) => (
+                                            <div className='font-medium'>
+                                                {row.original.pasR_FirstName} {row.original.pasR_MiddleName || ''}{' '}
+                                                {row.original.pasR_LastName || ''}
+                                            </div>
+                                        )
+                                    },
                                     { header: 'Mobile', accessorKey: 'pasR_MobileNo' },
-                                    { header: 'Gender', accessorKey: 'pasR_Sex', cell: ({row}: any) => (
-                                        <Badge variant='outline' className={row.original.pasR_Sex === 'Male' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-pink-50 text-pink-600 border-pink-100'}>
-                                            {row.original.pasR_Sex}
-                                        </Badge>
-                                    )},
-                                    { header: 'Date', accessorKey: 'pasR_Date', cell: ({row}: any) => row.original.pasR_Date ? new Date(row.original.pasR_Date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-' },
-                                    { header: 'Status', accessorKey: 'pasR_ActiveFlag', cell: ({row}: any) => (
-                                        <Badge variant={row.original.pasR_ActiveFlag ? 'success' : 'destructive'} className='rounded-full px-4'>
-                                            {row.original.pasR_ActiveFlag ? 'Active' : 'Deactivated'}
-                                        </Badge>
-                                    )},
-                                    { header: 'Actions', id: 'actions', cell: ({row}: any) => (
-                                        <div className='flex gap-1'>
-                                            <Button variant='ghost' size='icon' className='h-8 w-8 text-indigo-600 hover:bg-indigo-50 rounded-full' title='View Details'><Eye className='h-4 w-4' /></Button>
-                                            <Button variant='ghost' size='icon' onClick={() => handleDelete(row.original.pasR_Id || row.original.pasr_id)} className='h-8 w-8 text-red-500 hover:bg-red-50 rounded-full' title='Delete'><Trash2 className='h-4 w-4' /></Button>
-                                            <Button variant='ghost' size='icon' onClick={() => toggleStatusMutation.mutate(row.original.pasR_Id || row.original.pasr_id)} className='h-8 w-8 text-slate-500 hover:bg-slate-100 rounded-full' title='Toggle Status'><ShieldAlert className='h-4 w-4' /></Button>
-                                        </div>
-                                    )}
+                                    {
+                                        header: 'Gender',
+                                        accessorKey: 'pasR_Sex',
+                                        cell: ({ row }: any) => (
+                                            <Badge
+                                                variant='outline'
+                                                className={
+                                                    row.original.pasR_Sex === 'Male'
+                                                        ? 'border-blue-100 bg-blue-50 text-blue-600'
+                                                        : 'border-pink-100 bg-pink-50 text-pink-600'
+                                                }>
+                                                {row.original.pasR_Sex}
+                                            </Badge>
+                                        )
+                                    },
+                                    {
+                                        header: 'Date',
+                                        accessorKey: 'pasR_Date',
+                                        cell: ({ row }: any) =>
+                                            row.original.pasR_Date
+                                                ? new Date(row.original.pasR_Date).toLocaleDateString('en-GB', {
+                                                      day: '2-digit',
+                                                      month: 'short',
+                                                      year: 'numeric'
+                                                  })
+                                                : '-'
+                                    },
+                                    {
+                                        header: 'Status',
+                                        accessorKey: 'pasR_ActiveFlag',
+                                        cell: ({ row }: any) => (
+                                            <Badge
+                                                variant={row.original.pasR_ActiveFlag ? 'success' : 'destructive'}
+                                                className='rounded-full px-4'>
+                                                {row.original.pasR_ActiveFlag ? 'Active' : 'Deactivated'}
+                                            </Badge>
+                                        )
+                                    },
+                                    {
+                                        header: 'Actions',
+                                        id: 'actions',
+                                        cell: ({ row }: any) => (
+                                            <div className='flex gap-1'>
+                                                <Button
+                                                    variant='ghost'
+                                                    size='icon'
+                                                    className='h-8 w-8 rounded-full text-indigo-600 hover:bg-indigo-50'
+                                                    title='View Details'>
+                                                    <Eye className='h-4 w-4' />
+                                                </Button>
+                                                <Button
+                                                    variant='ghost'
+                                                    size='icon'
+                                                    onClick={() => handleDelete(row.original.pasR_Id || row.original.pasr_id)}
+                                                    className='h-8 w-8 rounded-full text-red-500 hover:bg-red-50'
+                                                    title='Delete'>
+                                                    <Trash2 className='h-4 w-4' />
+                                                </Button>
+                                                <Button
+                                                    variant='ghost'
+                                                    size='icon'
+                                                    onClick={() =>
+                                                        toggleStatusMutation.mutate(row.original.pasR_Id || row.original.pasr_id)
+                                                    }
+                                                    className='h-8 w-8 rounded-full text-slate-500 hover:bg-slate-100'
+                                                    title='Toggle Status'>
+                                                    <ShieldAlert className='h-4 w-4' />
+                                                </Button>
+                                            </div>
+                                        )
+                                    }
                                 ]}
                                 data={filteredList}
                             />

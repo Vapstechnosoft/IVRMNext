@@ -1,4 +1,3 @@
-
 export interface IYear {
     asmaY_Id: number;
     asmaY_Year: string;
@@ -31,7 +30,6 @@ export interface ISportsYearEndReportClassData {
 export interface ISportsYearEndReportSectionData {
     sectionList: ISection[];
 }
-
 
 export interface ISportsYearEndReportData {
     asmcL_ClassName: string;

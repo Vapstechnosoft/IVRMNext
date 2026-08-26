@@ -1,12 +1,12 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
-import { ArrowUpDown, Edit, Ban } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
-import { LeaveApplication } from '../types';
+import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import type { ColumnDef } from '@tanstack/react-table';
+import { format } from 'date-fns';
+import { ArrowUpDown, Ban, Edit } from 'lucide-react';
+import type { LeaveApplication } from '../types';
 
 interface ColumnActionsProps {
     onCancel: (leave: LeaveApplication) => void;
@@ -19,112 +19,104 @@ export const createColumns = ({ onCancel, onEdit }: ColumnActionsProps): ColumnD
         id: 'serialNumber',
         header: 'SL.No.',
         cell: ({ row }) => row.index + 1,
-        enableSorting: false,
+        enableSorting: false
     },
     {
         accessorKey: 'amsT_FirstName',
         header: ({ column }) => {
             return (
                 <Button
-                    variant="ghost"
+                    variant='ghost'
                     onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-                    className="hover:bg-transparent"
-                >
+                    className='hover:bg-transparent'>
                     Student Name
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                    <ArrowUpDown className='ml-2 h-4 w-4' />
                 </Button>
             );
-        },
+        }
     },
     {
         accessorKey: 'asmcL_ClassName',
         header: ({ column }) => {
             return (
                 <Button
-                    variant="ghost"
+                    variant='ghost'
                     onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-                    className="hover:bg-transparent"
-                >
+                    className='hover:bg-transparent'>
                     Class
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                    <ArrowUpDown className='ml-2 h-4 w-4' />
                 </Button>
             );
-        },
+        }
     },
     {
         accessorKey: 'asmC_SectionName',
         header: ({ column }) => {
             return (
                 <Button
-                    variant="ghost"
+                    variant='ghost'
                     onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-                    className="hover:bg-transparent"
-                >
+                    className='hover:bg-transparent'>
                     Section
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                    <ArrowUpDown className='ml-2 h-4 w-4' />
                 </Button>
             );
-        },
+        }
     },
     {
         accessorKey: 'aslA_Flag',
         header: ({ column }) => {
             return (
                 <Button
-                    variant="ghost"
+                    variant='ghost'
                     onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-                    className="hover:bg-transparent"
-                >
+                    className='hover:bg-transparent'>
                     Leave Mode
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                    <ArrowUpDown className='ml-2 h-4 w-4' />
                 </Button>
             );
         },
-        cell: ({ row }) => (
-            <Badge variant={row.original.aslA_Flag === 'Leave' ? 'default' : 'secondary'}>
-                {row.original.aslA_Flag}
-            </Badge>
-        ),
+        cell: ({ row }) => <Badge variant={row.original.aslA_Flag === 'Leave' ? 'default' : 'secondary'}>{row.original.aslA_Flag}</Badge>
     },
     {
         accessorKey: 'aslA_ApplyDate',
         header: ({ column }) => {
             return (
                 <Button
-                    variant="ghost"
+                    variant='ghost'
                     onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-                    className="hover:bg-transparent"
-                >
+                    className='hover:bg-transparent'>
                     Apply Date
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                    <ArrowUpDown className='ml-2 h-4 w-4' />
                 </Button>
             );
         },
-        cell: ({ row }) => format(new Date(row.original.aslA_ApplyDate), 'dd/MM/yyyy'),
+        cell: ({ row }) => format(new Date(row.original.aslA_ApplyDate), 'dd/MM/yyyy')
     },
     {
         accessorKey: 'aslA_FromDate',
         header: 'From Date',
-        cell: ({ row }) => format(new Date(row.original.aslA_FromDate), 'dd/MM/yyyy'),
+        cell: ({ row }) => format(new Date(row.original.aslA_FromDate), 'dd/MM/yyyy')
     },
     {
         accessorKey: 'aslA_ToDate',
         header: 'To Date',
-        cell: ({ row }) => format(new Date(row.original.aslA_ToDate), 'dd/MM/yyyy'),
+        cell: ({ row }) => format(new Date(row.original.aslA_ToDate), 'dd/MM/yyyy')
     },
     {
         accessorKey: 'aslA_Status',
         header: 'Status',
         cell: ({ row }) => {
             const status = row.original.aslA_Status;
-            let variant: "default" | "secondary" | "destructive" | "outline" = "outline";
+            let variant: 'default' | 'secondary' | 'destructive' | 'outline' = 'outline';
 
-            if (status === 'Approved') variant = "default"; // Green-ish usually
-            else if (status === 'Rejected') variant = "destructive";
-            else if (status === 'Pending') variant = "secondary";
+            if (status === 'Approved')
+                variant = 'default'; // Green-ish usually
+            else if (status === 'Rejected') variant = 'destructive';
+            else if (status === 'Pending') variant = 'secondary';
 
             return <Badge variant={variant}>{status}</Badge>;
-        },
+        }
     },
     {
         id: 'actions',
@@ -134,14 +126,14 @@ export const createColumns = ({ onCancel, onEdit }: ColumnActionsProps): ColumnD
             const isPending = leave.aslA_Status === 'Pending';
 
             return (
-                <div className="flex items-center gap-2">
+                <div className='flex items-center gap-2'>
                     {isPending && (
                         <>
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <Button variant="ghost" size="icon" onClick={() => onCancel(leave)}>
-                                            <Ban className="h-4 w-4 text-red-500" />
+                                        <Button variant='ghost' size='icon' onClick={() => onCancel(leave)}>
+                                            <Ban className='h-4 w-4 text-red-500' />
                                         </Button>
                                     </TooltipTrigger>
                                     <TooltipContent>
@@ -153,8 +145,8 @@ export const createColumns = ({ onCancel, onEdit }: ColumnActionsProps): ColumnD
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <Button variant="ghost" size="icon" onClick={() => onEdit(leave)}>
-                                            <Edit className="h-4 w-4 text-blue-500" />
+                                        <Button variant='ghost' size='icon' onClick={() => onEdit(leave)}>
+                                            <Edit className='h-4 w-4 text-blue-500' />
                                         </Button>
                                     </TooltipTrigger>
                                     <TooltipContent>
@@ -166,6 +158,6 @@ export const createColumns = ({ onCancel, onEdit }: ColumnActionsProps): ColumnD
                     )}
                 </div>
             );
-        },
-    },
+        }
+    }
 ];

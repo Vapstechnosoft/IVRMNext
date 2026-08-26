@@ -9,8 +9,8 @@ import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { getSopiaExamReportTermExam } from '@/server/exam/exam-module/reports/SopiaExamReportTermExam';
 import {
     getClassDropDownByAcademicYearlist,
-    getSectionsDropDownByAcademicYearandClasslist,
     getExamsDropDownByAcademicYearandClassandSectionlist,
+    getSectionsDropDownByAcademicYearandClasslist,
     getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/cumulative-report';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -24,7 +24,7 @@ const sopiaExamReportVtoVIIISchema = z.object({
     asmcL_Id: z.number().min(1, 'Select Class'),
     asmS_Id: z.number().min(1, 'Select Section'),
     emE_Id: z.number().min(1, 'Select Exam'),
-    studentList: z.array(z.object({ amsT_Id: z.number() })).min(1, 'Select at least one student'),
+    studentList: z.array(z.object({ amsT_Id: z.number() })).min(1, 'Select at least one student')
 });
 
 type SopiaExamReportVtoVIIISchema = z.infer<typeof sopiaExamReportVtoVIIISchema>;
@@ -144,12 +144,12 @@ export default function SopiaExamReportVtoVIIIForm({
                 setStudents(
                     Array.isArray(data)
                         ? data.map((item: any) => ({
-                            amsT_Id: item.amsT_Id,
-                            studentName:
-                                item.studentName ||
-                                `${item.amsT_FirstName || ''} ${item.amsT_MiddleName || ''} ${item.amsT_LastName || ''}`.trim(),
-                            amsT_AdmNo: item.amsT_AdmNo || ''
-                        }))
+                              amsT_Id: item.amsT_Id,
+                              studentName:
+                                  item.studentName ||
+                                  `${item.amsT_FirstName || ''} ${item.amsT_MiddleName || ''} ${item.amsT_LastName || ''}`.trim(),
+                              amsT_AdmNo: item.amsT_AdmNo || ''
+                          }))
                         : []
                 );
                 setValue('studentList', []);
@@ -160,7 +160,6 @@ export default function SopiaExamReportVtoVIIIForm({
             }
         })();
     }, [selectedYear, selectedClass, selectedSection, selectedExam, setValue]);
-
 
     const onSubmit = async (data: SopiaExamReportVtoVIIISchema) => {
         try {
@@ -191,15 +190,23 @@ export default function SopiaExamReportVtoVIIIForm({
                                     name='asmaY_Id'
                                     render={({ field, fieldState }) => (
                                         <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                            <Label className='font-medium text-sm sm:w-32'>Academic Year <span className='text-red-500'>*</span></Label>
+                                            <Label className='font-medium text-sm sm:w-32'>
+                                                Academic Year <span className='text-red-500'>*</span>
+                                            </Label>
                                             <div className='flex-1'>
-                                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value ? String(field.value) : ''}>
+                                                <Select
+                                                    onValueChange={(v) => field.onChange(Number(v))}
+                                                    value={field.value ? String(field.value) : ''}>
                                                     <SelectTrigger className='w-full'>
-                                                        <SelectValue placeholder={academicYearLoading ? 'Loading years...' : 'Select Academic Year'} />
+                                                        <SelectValue
+                                                            placeholder={academicYearLoading ? 'Loading years...' : 'Select Academic Year'}
+                                                        />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {academicYears.map((y) => (
-                                                            <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>{y.asmaY_Year}</SelectItem>
+                                                            <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                                                {y.asmaY_Year}
+                                                            </SelectItem>
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
@@ -214,16 +221,28 @@ export default function SopiaExamReportVtoVIIIForm({
                                     name='asmcL_Id'
                                     render={({ field, fieldState }) => (
                                         <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                            <Label className='font-medium text-sm sm:w-32'>Class <span className='text-red-500'>*</span></Label>
+                                            <Label className='font-medium text-sm sm:w-32'>
+                                                Class <span className='text-red-500'>*</span>
+                                            </Label>
                                             <div className='flex-1'>
-                                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value ? String(field.value) : ''}>
+                                                <Select
+                                                    onValueChange={(v) => field.onChange(Number(v))}
+                                                    value={field.value ? String(field.value) : ''}>
                                                     <SelectTrigger className='w-full'>
                                                         <SelectValue placeholder='Select Class' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {loadingClasses ? <SelectItem value='0' disabled>Loading...</SelectItem> : classes.map((c) => (
-                                                            <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>{c.asmcL_ClassName}</SelectItem>
-                                                        ))}
+                                                        {loadingClasses ? (
+                                                            <SelectItem value='0' disabled>
+                                                                Loading...
+                                                            </SelectItem>
+                                                        ) : (
+                                                            classes.map((c) => (
+                                                                <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
+                                                                    {c.asmcL_ClassName}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -237,16 +256,28 @@ export default function SopiaExamReportVtoVIIIForm({
                                     name='asmS_Id'
                                     render={({ field, fieldState }) => (
                                         <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                            <Label className='font-medium text-sm sm:w-32'>Section <span className='text-red-500'>*</span></Label>
+                                            <Label className='font-medium text-sm sm:w-32'>
+                                                Section <span className='text-red-500'>*</span>
+                                            </Label>
                                             <div className='flex-1'>
-                                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value ? String(field.value) : ''}>
+                                                <Select
+                                                    onValueChange={(v) => field.onChange(Number(v))}
+                                                    value={field.value ? String(field.value) : ''}>
                                                     <SelectTrigger className='w-full'>
                                                         <SelectValue placeholder='Select Section' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {loadingSections ? <SelectItem value='0' disabled>Loading...</SelectItem> : sections.map((s) => (
-                                                            <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>{s.asmC_SectionName}</SelectItem>
-                                                        ))}
+                                                        {loadingSections ? (
+                                                            <SelectItem value='0' disabled>
+                                                                Loading...
+                                                            </SelectItem>
+                                                        ) : (
+                                                            sections.map((s) => (
+                                                                <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
+                                                                    {s.asmC_SectionName}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -260,16 +291,28 @@ export default function SopiaExamReportVtoVIIIForm({
                                     name='emE_Id'
                                     render={({ field, fieldState }) => (
                                         <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                            <Label className='font-medium text-sm sm:w-32'>Exam Name <span className='text-red-500'>*</span></Label>
+                                            <Label className='font-medium text-sm sm:w-32'>
+                                                Exam Name <span className='text-red-500'>*</span>
+                                            </Label>
                                             <div className='flex-1'>
-                                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value ? String(field.value) : ''}>
+                                                <Select
+                                                    onValueChange={(v) => field.onChange(Number(v))}
+                                                    value={field.value ? String(field.value) : ''}>
                                                     <SelectTrigger className='w-full'>
                                                         <SelectValue placeholder='Select Exam' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {loadingExams ? <SelectItem value='0' disabled>Loading...</SelectItem> : exams.map((e) => (
-                                                            <SelectItem key={e.emE_Id} value={String(e.emE_Id)}>{e.emE_ExamName}</SelectItem>
-                                                        ))}
+                                                        {loadingExams ? (
+                                                            <SelectItem value='0' disabled>
+                                                                Loading...
+                                                            </SelectItem>
+                                                        ) : (
+                                                            exams.map((e) => (
+                                                                <SelectItem key={e.emE_Id} value={String(e.emE_Id)}>
+                                                                    {e.emE_ExamName}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -286,7 +329,11 @@ export default function SopiaExamReportVtoVIIIForm({
                                             checked={selectedStudentsList?.length === students.length && students.length > 0}
                                             onCheckedChange={(checked) => {
                                                 if (checked) {
-                                                    setValue('studentList', students.map((e) => ({ amsT_Id: e.amsT_Id })), { shouldValidate: true });
+                                                    setValue(
+                                                        'studentList',
+                                                        students.map((e) => ({ amsT_Id: e.amsT_Id })),
+                                                        { shouldValidate: true }
+                                                    );
                                                 } else {
                                                     setValue('studentList', [], { shouldValidate: true });
                                                 }
@@ -295,38 +342,50 @@ export default function SopiaExamReportVtoVIIIForm({
                                         Students <span className='text-red-500'>*</span>
                                     </Label>
                                     <div className='flex-1 rounded-md border'>
-                                        <div className='p-2 border-bottom sticky top-0 bg-white z-10'>
+                                        <div className='sticky top-0 z-10 border-bottom bg-white p-2'>
                                             <input
                                                 type='text'
                                                 placeholder='Search student...'
-                                                className='w-full p-2 text-sm border rounded focus:outline-none focus:ring-1 focus:ring-primary'
+                                                className='w-full rounded border p-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary'
                                                 value={searchTerm}
                                                 onChange={(e) => setSearchTerm(e.target.value)}
                                             />
                                         </div>
-                                        <div className='overflow-y-auto max-h-48 p-4'>
+                                        <div className='max-h-48 overflow-y-auto p-4'>
                                             {loadingStudents ? (
-                                                <span className='text-sm text-muted-foreground'>Loading students...</span>
+                                                <span className='text-muted-foreground text-sm'>Loading students...</span>
                                             ) : students.length === 0 ? (
-                                                <span className='text-sm text-muted-foreground'>No students found</span>
+                                                <span className='text-muted-foreground text-sm'>No students found</span>
                                             ) : (
                                                 students
-                                                    .filter(s => s.studentName.toLowerCase().includes(searchTerm.toLowerCase()) || (s.amsT_AdmNo || '').toLowerCase().includes(searchTerm.toLowerCase()))
+                                                    .filter(
+                                                        (s) =>
+                                                            s.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                                            (s.amsT_AdmNo || '').toLowerCase().includes(searchTerm.toLowerCase())
+                                                    )
                                                     .map((s) => (
-                                                        <div key={s.amsT_Id} className='flex items-center space-x-2 mb-2'>
+                                                        <div key={s.amsT_Id} className='mb-2 flex items-center space-x-2'>
                                                             <Checkbox
                                                                 id={`student-${s.amsT_Id}`}
-                                                                checked={selectedStudentsList?.some(val => val.amsT_Id === s.amsT_Id)}
+                                                                checked={selectedStudentsList?.some((val) => val.amsT_Id === s.amsT_Id)}
                                                                 onCheckedChange={(checked) => {
                                                                     const current = selectedStudentsList || [];
                                                                     if (checked) {
-                                                                        setValue('studentList', [...current, { amsT_Id: s.amsT_Id }], { shouldValidate: true });
+                                                                        setValue('studentList', [...current, { amsT_Id: s.amsT_Id }], {
+                                                                            shouldValidate: true
+                                                                        });
                                                                     } else {
-                                                                        setValue('studentList', current.filter(v => v.amsT_Id !== s.amsT_Id), { shouldValidate: true });
+                                                                        setValue(
+                                                                            'studentList',
+                                                                            current.filter((v) => v.amsT_Id !== s.amsT_Id),
+                                                                            { shouldValidate: true }
+                                                                        );
                                                                     }
                                                                 }}
                                                             />
-                                                            <Label htmlFor={`student-${s.amsT_Id}`} className='text-sm font-medium leading-none'>
+                                                            <Label
+                                                                htmlFor={`student-${s.amsT_Id}`}
+                                                                className='font-medium text-sm leading-none'>
                                                                 {s.studentName} {s.amsT_AdmNo ? `/ ${s.amsT_AdmNo}` : ''}
                                                             </Label>
                                                         </div>
@@ -338,9 +397,13 @@ export default function SopiaExamReportVtoVIIIForm({
                             </div>
                         </div>
 
-                        <div className='flex justify-center gap-3 mt-6'>
-                            <Button type='submit' isLoading={isSubmitting} disabled={isSubmitting} className='min-w-[120px]'>Report</Button>
-                            <Button type='button' variant='outline' onClick={() => reset()} className='min-w-[100px]'>Clear</Button>
+                        <div className='mt-6 flex justify-center gap-3'>
+                            <Button type='submit' isLoading={isSubmitting} disabled={isSubmitting} className='min-w-[120px]'>
+                                Report
+                            </Button>
+                            <Button type='button' variant='outline' onClick={() => reset()} className='min-w-[100px]'>
+                                Clear
+                            </Button>
                         </div>
                     </form>
                 </FormProvider>

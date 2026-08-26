@@ -1,10 +1,10 @@
 'use client';
 
-import { ISRKVSReportData, ISRKVSReportItem } from '@/types/sports/reports/srkvs-sports-report';
 import { Button } from '@/components/ui/button';
-import { Printer, FileSpreadsheet } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import type { ISRKVSReportData } from '@/types/sports/reports/srkvs-sports-report';
+import { FileSpreadsheet, Printer } from 'lucide-react';
 import React from 'react';
+import * as XLSX from 'xlsx';
 
 interface ReportGridProps {
     data: ISRKVSReportData[];
@@ -50,8 +50,7 @@ function wrapHtml(title: string, tableHtml: string): string {
 }
 
 function buildRecordPrintHtml(data: ISRKVSReportData[]): string {
-    const headerCells = ['#', 'Category', 'Events', 'Timings', 'Year', 'Name']
-        .map(h => `<th style="${thStyle}">${h}</th>`).join('');
+    const headerCells = ['#', 'Category', 'Events', 'Timings', 'Year', 'Name'].map((h) => `<th style="${thStyle}">${h}</th>`).join('');
 
     let rows = '';
     data.forEach((group) => {
@@ -128,14 +127,14 @@ function buildConsolidatedPrintHtml(data: ISRKVSReportData[], type: string): str
     const headers = ['Place', 'Adm No', 'Name', 'Class', 'Section'];
     if (isConsolidated) headers.push('Time/Distance');
 
-    const headerCells = headers.map(h => `<th style="${thStyle}">${h}</th>`).join('');
+    const headerCells = headers.map((h) => `<th style="${thStyle}">${h}</th>`).join('');
 
     let rows = '';
     data.forEach((group) => {
         const colSpan = isConsolidated ? 6 : 5;
         rows += `<tr><th colspan="${colSpan}" style="${groupHeaderStyle}">${group.SPCCMSCCG_SportsCCGroupName || group.SPCCMCC_CompitionCategory || ''}</th></tr>`;
         (group.RecordDetails || []).forEach((record: any, recIdx: number) => {
-            const place = type === 'Selection' ? String(recIdx + 1) : (record.SPCCESTR_Rank || '');
+            const place = type === 'Selection' ? String(recIdx + 1) : record.SPCCESTR_Rank || '';
             rows += `<tr>
                 <td style="${tdStyle}">${place}</td>
                 <td style="${tdStyle}">${record.AMST_AdmNo || ''}</td>
@@ -168,7 +167,6 @@ function buildPrintHtml(data: ISRKVSReportData[], type: string): string {
 // ── Component ───────────────────────────────────────────────────────
 
 export const ReportGrid = ({ data, type }: ReportGridProps) => {
-
     const handlePrint = () => {
         if (!data || data.length === 0) return;
         const html = buildPrintHtml(data, type);
@@ -198,46 +196,48 @@ export const ReportGrid = ({ data, type }: ReportGridProps) => {
                 if (type === 'Record') {
                     rows.push({
                         'Sl.No': idx + 1,
-                        'Category': group.SPCCMCC_CompitionCategory || '',
-                        'Events': record.SPCCMSCCG_SportsCCGroupName || record.groupName || '',
-                        'Timings': `${record.SPCCESTR_Value ?? record.points ?? ''} ${record.SPCCMUOM_UOMName ?? record.uomName ?? ''}`.trim(),
-                        'Year': record.ASMAY_Year || record.academicYear || '',
-                        'Name': record.AMST_FirstName || record.studentName || '',
+                        Category: group.SPCCMCC_CompitionCategory || '',
+                        Events: record.SPCCMSCCG_SportsCCGroupName || record.groupName || '',
+                        Timings:
+                            `${record.SPCCESTR_Value ?? record.points ?? ''} ${record.SPCCMUOM_UOMName ?? record.uomName ?? ''}`.trim(),
+                        Year: record.ASMAY_Year || record.academicYear || '',
+                        Name: record.AMST_FirstName || record.studentName || ''
                     });
                 } else if (type === 'Start' || type === 'Finish') {
                     rows.push({
                         'Sl.No': idx + 1,
-                        'Category': group.SPCCMCC_CompitionCategory || '',
-                        'Group': group.SPCCMSCCG_SportsCCGroupName || '',
+                        Category: group.SPCCMCC_CompitionCategory || '',
+                        Group: group.SPCCMSCCG_SportsCCGroupName || '',
                         'Lane No': idx + 1,
                         'Roll No': record.AMAY_RollNo ?? record.rollNo ?? '',
-                        'Name': record.AMST_FirstName || record.studentName || '',
+                        Name: record.AMST_FirstName || record.studentName || '',
                         'Attempt I': record['I'] ?? '',
                         'Attempt II': record['II'] ?? '',
                         'Attempt III': record['III'] ?? '',
-                        ...(type === 'Finish' ? { 'Rank': record.SPCCESTR_Rank ?? record.rank ?? '' } : {}),
+                        ...(type === 'Finish' ? { Rank: record.SPCCESTR_Rank ?? record.rank ?? '' } : {})
                     });
                 } else if (type === 'Consolidated') {
                     rows.push({
                         'Sl.No': idx + 1,
-                        'Group': group.SPCCMSCCG_SportsCCGroupName || '',
-                        'Place': record.SPCCESTR_Rank ?? record.rank ?? '',
+                        Group: group.SPCCMSCCG_SportsCCGroupName || '',
+                        Place: record.SPCCESTR_Rank ?? record.rank ?? '',
                         'Adm No': record.AMST_AdmNo || record.admNo || '',
-                        'Name': record.AMST_FirstName || record.studentName || '',
-                        'Class': record.ASMCL_ClassName || record.className || '',
-                        'Section': record.ASMC_SectionName || record.sectionName || '',
-                        'Time/Distance': `${record.SPCCESTR_Value ?? record.points ?? ''} ${record.SPCCMUOM_UOMName ?? record.uomName ?? ''}`.trim(),
+                        Name: record.AMST_FirstName || record.studentName || '',
+                        Class: record.ASMCL_ClassName || record.className || '',
+                        Section: record.ASMC_SectionName || record.sectionName || '',
+                        'Time/Distance':
+                            `${record.SPCCESTR_Value ?? record.points ?? ''} ${record.SPCCMUOM_UOMName ?? record.uomName ?? ''}`.trim()
                     });
                 } else {
                     // Indoor / Outdoor / Team / Externals / Selection
                     rows.push({
                         'Sl.No': idx + 1,
-                        'Group': group.SPCCMSCCG_SportsCCGroupName || '',
-                        'Place': type === 'Selection' ? idx + 1 : (record.SPCCESTR_Rank ?? record.rank ?? ''),
+                        Group: group.SPCCMSCCG_SportsCCGroupName || '',
+                        Place: type === 'Selection' ? idx + 1 : (record.SPCCESTR_Rank ?? record.rank ?? ''),
                         'Adm No': record.AMST_AdmNo || record.admNo || '',
-                        'Name': record.AMST_FirstName || record.studentName || '',
-                        'Class': record.ASMCL_ClassName || record.className || '',
-                        'Section': record.ASMC_SectionName || record.sectionName || '',
+                        Name: record.AMST_FirstName || record.studentName || '',
+                        Class: record.ASMCL_ClassName || record.className || '',
+                        Section: record.ASMC_SectionName || record.sectionName || ''
                     });
                 }
             });
@@ -250,7 +250,7 @@ export const ReportGrid = ({ data, type }: ReportGridProps) => {
         // Generate Blob and trigger browser download
         const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
         const blob = new Blob([excelBuffer], {
-            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         });
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -269,56 +269,56 @@ export const ReportGrid = ({ data, type }: ReportGridProps) => {
     }
 
     return (
-        <div className="space-y-4">
-            <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm border">
-                <div className="flex items-center gap-4">
-                    <div className="text-sm font-medium">
-                        Total Groups: <span className="rounded bg-primary/10 px-3 py-1 font-bold text-primary">{data.length}</span>
+        <div className='space-y-4'>
+            <div className='flex items-center justify-between rounded-lg border bg-white p-4 shadow-sm'>
+                <div className='flex items-center gap-4'>
+                    <div className='font-medium text-sm'>
+                        Total Groups: <span className='rounded bg-primary/10 px-3 py-1 font-bold text-primary'>{data.length}</span>
                     </div>
-                    <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={handlePrint} className="border-2 hover:bg-primary/5">
-                            <Printer className="h-4 w-4 mr-2 text-primary" /> Print
+                    <div className='flex gap-2'>
+                        <Button variant='outline' size='sm' onClick={handlePrint} className='border-2 hover:bg-primary/5'>
+                            <Printer className='mr-2 h-4 w-4 text-primary' /> Print
                         </Button>
-                        <Button variant="outline" size="sm" onClick={exportToExcel} className="border-2 hover:bg-primary/5">
-                            <FileSpreadsheet className="h-4 w-4 mr-2 text-green-600" /> Excel
+                        <Button variant='outline' size='sm' onClick={exportToExcel} className='border-2 hover:bg-primary/5'>
+                            <FileSpreadsheet className='mr-2 h-4 w-4 text-green-600' /> Excel
                         </Button>
                     </div>
                 </div>
             </div>
 
-            <div className="border p-4 bg-white rounded-md shadow-sm">
-                <div className="text-center mb-4">
-                    <h3 className="text-xl font-bold">Sports Report - {type}</h3>
+            <div className='rounded-md border bg-white p-4 shadow-sm'>
+                <div className='mb-4 text-center'>
+                    <h3 className='font-bold text-xl'>Sports Report - {type}</h3>
                 </div>
 
                 {type === 'Record' && (
-                    <table className="w-full border-collapse border border-gray-300">
+                    <table className='w-full border-collapse border border-gray-300'>
                         <thead>
-                            <tr className="bg-gray-100">
-                                <th className="border border-gray-300 p-2">Category</th>
-                                <th className="border border-gray-300 p-2">Events</th>
-                                <th className="border border-gray-300 p-2">Timings</th>
-                                <th className="border border-gray-300 p-2">Year</th>
-                                <th className="border border-gray-300 p-2">Name</th>
+                            <tr className='bg-gray-100'>
+                                <th className='border border-gray-300 p-2'>Category</th>
+                                <th className='border border-gray-300 p-2'>Events</th>
+                                <th className='border border-gray-300 p-2'>Timings</th>
+                                <th className='border border-gray-300 p-2'>Year</th>
+                                <th className='border border-gray-300 p-2'>Name</th>
                             </tr>
                         </thead>
                         <tbody>
                             {data.map((group, groupIdx) => (
                                 <React.Fragment key={groupIdx}>
-                                    <tr className="bg-gray-50">
-                                        <th colSpan={5} className="border border-gray-300 p-2 text-left">
+                                    <tr className='bg-gray-50'>
+                                        <th colSpan={5} className='border border-gray-300 p-2 text-left'>
                                             {group.SPCCMCC_CompitionCategory}
                                         </th>
                                     </tr>
                                     {group.RecordDetails.map((record: any, recIdx: number) => (
                                         <tr key={recIdx}>
-                                            <td className="border border-gray-300 p-2 text-center">{recIdx + 1}</td>
-                                            <td className="border border-gray-300 p-2">{record.SPCCMSCCG_SportsCCGroupName}</td>
-                                            <td className="border border-gray-300 p-2">
+                                            <td className='border border-gray-300 p-2 text-center'>{recIdx + 1}</td>
+                                            <td className='border border-gray-300 p-2'>{record.SPCCMSCCG_SportsCCGroupName}</td>
+                                            <td className='border border-gray-300 p-2'>
                                                 {record.SPCCESTR_Value} {record.SPCCMUOM_UOMName}
                                             </td>
-                                            <td className="border border-gray-300 p-2">{record.ASMAY_Year || ''}</td>
-                                            <td className="border border-gray-300 p-2">{record.AMST_FirstName}</td>
+                                            <td className='border border-gray-300 p-2'>{record.ASMAY_Year || ''}</td>
+                                            <td className='border border-gray-300 p-2'>{record.AMST_FirstName}</td>
                                         </tr>
                                     ))}
                                 </React.Fragment>
@@ -328,44 +328,56 @@ export const ReportGrid = ({ data, type }: ReportGridProps) => {
                 )}
 
                 {(type === 'Start' || type === 'Finish') && (
-                    <div className="space-y-6">
+                    <div className='space-y-6'>
                         {data.map((group, groupIdx) => (
-                            <div key={groupIdx} className="border p-2 mb-4">
-                                <h4 className="font-bold text-center border-b pb-2 mb-2">
+                            <div key={groupIdx} className='mb-4 border p-2'>
+                                <h4 className='mb-2 border-b pb-2 text-center font-bold'>
                                     {group.SPCCMCC_CompitionCategory} : {group.SPCCMSCCG_SportsCCGroupName}
                                 </h4>
-                                <table className="w-full border-collapse border border-gray-300">
+                                <table className='w-full border-collapse border border-gray-300'>
                                     <thead>
                                         <tr>
-                                            <th rowSpan={2} className="border border-gray-300 p-2">Lane No</th>
-                                            <th rowSpan={2} className="border border-gray-300 p-2">Roll/Name</th>
-                                            <th colSpan={3} className="border border-gray-300 p-2">Attempts</th>
-                                            {type === 'Finish' && <th rowSpan={2} className="border border-gray-300 p-2">Rank</th>}
+                                            <th rowSpan={2} className='border border-gray-300 p-2'>
+                                                Lane No
+                                            </th>
+                                            <th rowSpan={2} className='border border-gray-300 p-2'>
+                                                Roll/Name
+                                            </th>
+                                            <th colSpan={3} className='border border-gray-300 p-2'>
+                                                Attempts
+                                            </th>
+                                            {type === 'Finish' && (
+                                                <th rowSpan={2} className='border border-gray-300 p-2'>
+                                                    Rank
+                                                </th>
+                                            )}
                                         </tr>
                                         <tr>
-                                            <th className="border border-gray-300 p-2">I</th>
-                                            <th className="border border-gray-300 p-2">II</th>
-                                            <th className="border border-gray-300 p-2">III</th>
+                                            <th className='border border-gray-300 p-2'>I</th>
+                                            <th className='border border-gray-300 p-2'>II</th>
+                                            <th className='border border-gray-300 p-2'>III</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {group.RecordDetails.map((record: any, recIdx: number) => (
                                             <tr key={recIdx}>
-                                                <td className="border border-gray-300 p-2 text-center">{recIdx + 1}</td>
-                                                <td className="border border-gray-300 p-2">
+                                                <td className='border border-gray-300 p-2 text-center'>{recIdx + 1}</td>
+                                                <td className='border border-gray-300 p-2'>
                                                     {record.AMAY_RollNo} : {record.AMST_FirstName}
                                                 </td>
-                                                <td className="border border-gray-300 p-2">{record['I']}</td>
-                                                <td className="border border-gray-300 p-2">{record['II']}</td>
-                                                <td className="border border-gray-300 p-2">{record['III']}</td>
-                                                {type === 'Finish' && <td className="border border-gray-300 p-2">{record.SPCCESTR_Rank}</td>}
+                                                <td className='border border-gray-300 p-2'>{record['I']}</td>
+                                                <td className='border border-gray-300 p-2'>{record['II']}</td>
+                                                <td className='border border-gray-300 p-2'>{record['III']}</td>
+                                                {type === 'Finish' && (
+                                                    <td className='border border-gray-300 p-2'>{record.SPCCESTR_Rank}</td>
+                                                )}
                                             </tr>
                                         ))}
                                     </tbody>
                                 </table>
                                 {type === 'Finish' && (
-                                    <div className="mt-4">
-                                        <h5 className="font-bold">RESULTS:</h5>
+                                    <div className='mt-4'>
+                                        <h5 className='font-bold'>RESULTS:</h5>
                                         {group.RecordDetails.filter((r: any) => r.SPCCESTR_Rank).map((r: any, i: number) => (
                                             <div key={i}>
                                                 {r.SPCCESTR_Rank === '1' && <span>I PLACE: {r.AMST_FirstName}</span>}
@@ -380,37 +392,42 @@ export const ReportGrid = ({ data, type }: ReportGridProps) => {
                     </div>
                 )}
 
-                {(type === 'Consolidated' || type === 'Indoor' || type === 'Outdoor' || type === 'Team' || type === 'Externals' || type === 'Selection') && (
-                    <table className="w-full border-collapse border border-gray-300">
+                {(type === 'Consolidated' ||
+                    type === 'Indoor' ||
+                    type === 'Outdoor' ||
+                    type === 'Team' ||
+                    type === 'Externals' ||
+                    type === 'Selection') && (
+                    <table className='w-full border-collapse border border-gray-300'>
                         <thead>
-                            <tr className="bg-gray-100">
-                                <th className="border border-gray-300 p-2">Place</th>
-                                <th className="border border-gray-300 p-2">Adm No / Name</th>
-                                <th className="border border-gray-300 p-2">Class / Sec</th>
-                                {type === 'Consolidated' && <th className="border border-gray-300 p-2">Time/Distance</th>}
+                            <tr className='bg-gray-100'>
+                                <th className='border border-gray-300 p-2'>Place</th>
+                                <th className='border border-gray-300 p-2'>Adm No / Name</th>
+                                <th className='border border-gray-300 p-2'>Class / Sec</th>
+                                {type === 'Consolidated' && <th className='border border-gray-300 p-2'>Time/Distance</th>}
                             </tr>
                         </thead>
                         <tbody>
                             {data.map((group, groupIdx) => (
                                 <React.Fragment key={groupIdx}>
-                                    <tr className="bg-gray-50">
-                                        <th colSpan={type === 'Consolidated' ? 4 : 3} className="border border-gray-300 p-2 text-left">
+                                    <tr className='bg-gray-50'>
+                                        <th colSpan={type === 'Consolidated' ? 4 : 3} className='border border-gray-300 p-2 text-left'>
                                             {group.SPCCMSCCG_SportsCCGroupName}
                                         </th>
                                     </tr>
                                     {group.RecordDetails.map((record: any, recIdx: number) => (
                                         <tr key={recIdx}>
-                                            <td className="border border-gray-300 p-2 text-center">
-                                                {type === 'Selection' ? recIdx + 1 : (record.SPCCESTR_Rank ? `${record.SPCCESTR_Rank}` : '')}
+                                            <td className='border border-gray-300 p-2 text-center'>
+                                                {type === 'Selection' ? recIdx + 1 : record.SPCCESTR_Rank ? `${record.SPCCESTR_Rank}` : ''}
                                             </td>
-                                            <td className="border border-gray-300 p-2">
+                                            <td className='border border-gray-300 p-2'>
                                                 {record.AMST_AdmNo} : {record.AMST_FirstName}
                                             </td>
-                                            <td className="border border-gray-300 p-2">
+                                            <td className='border border-gray-300 p-2'>
                                                 {record.ASMCL_ClassName} {record.ASMC_SectionName}
                                             </td>
                                             {type === 'Consolidated' && (
-                                                <td className="border border-gray-300 p-2">
+                                                <td className='border border-gray-300 p-2'>
                                                     {record.SPCCESTR_Value} {record.SPCCMUOM_UOMName}
                                                 </td>
                                             )}

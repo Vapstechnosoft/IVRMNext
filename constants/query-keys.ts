@@ -248,6 +248,7 @@ export const FEES_QUERY_KEYS = {
     FEE_TERM_DROPDOWNDATA_REPORTS: 'fee_term_dropdowndata_reports',
     FEE_DEFAULTER_REPORT: 'fee_defaulter_report',
     FEE_GROUP_DEFAULTER: 'fee_group_defaulter_report',
+    STUDENT_FEE_ENABLE_PARTIAL_PAYMENT: 'student_fee_enable_partial_payment',
     FEE_TERM_DEFAULTER: 'fee_term_defaulter_report',
     FEE_BUS_ROUTES_DEFAULTER: 'fee_bus_routes_defaulter_report',
     FEE_CUSTOM_GROUP_DEFAULTER: 'fee_custom_group_defaulter_report',
@@ -674,3 +675,19 @@ export const RECRUITMENT_QUERY_KEYS = {
     TRANSACTION_JOB_LIST_VMS: 'transaction_job_list_vms'
 };
 export const PRE_LIVE_MEETING_SCHEDULE = { DETAILS: () => ['PRE_LIVE_MEETING_SCHEDULE_DETAILS'] };
+
+export const ONLINE_EXAM_QUERY_KEYS = {
+    MASTER_QUESTION: 'online_exam_master_question',
+    MASTER_QUESTION_INITIAL_DATA: 'online_exam_master_question_initial_data',
+    MASTER_QUESTION_OPTIONS: 'online_exam_master_question_options',
+    MASTER_QUESTION_COLLEGE: 'online_exam_master_question_college',
+    MASTER_QUESTION_COLLEGE_INITIAL_DATA: 'online_exam_master_question_college_initial_data',
+    ANSWER_PAPER_CORRECTION: 'online_exam_answer_paper_correction',
+    ANSWER_PAPER_CORRECTION_STUDENTS: 'online_exam_answer_paper_correction_students',
+    ANSWER_PAPER_STUDENT_ANSWERS: 'online_exam_answer_paper_student_answers',
+    PUBLISH_TO_STUDENT: 'online_exam_publish_to_student',
+    PUBLISH_TO_STUDENT_LIST: 'online_exam_publish_to_student_list',
+    ONLINE_EXAM_REPORT: 'online_exam_report',
+    STAFF_WISE_REPORT: 'online_exam_staff_wise_report',
+    NOT_SUBMITTED_REPORT: 'online_exam_not_submitted_report'
+};

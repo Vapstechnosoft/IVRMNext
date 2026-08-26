@@ -1,4 +1,3 @@
-import { getFacilities } from '@/server/hostel/hostel-management/masters/hostel';
 import { z } from 'zod';
 
 export const masterRoomSchema = z.object({

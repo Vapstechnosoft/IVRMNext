@@ -1,19 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, RotateCcw } from 'lucide-react';
-import type {
-    IAttendanceReportInitialData,
-    IAttendanceReportSearch,
-    IClass,
-    ISection
-} from '@/types/staff-portal/attendance-report';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { IAttendanceReportInitialData, IAttendanceReportSearch, IClass, ISection } from '@/types/staff-portal/attendance-report';
+import { RotateCcw, Search } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 interface AttendanceFilterProps {
@@ -25,14 +20,7 @@ interface AttendanceFilterProps {
     getSections: (data: { ASMAY_Id: number; ASMCL_Id: number }) => Promise<ISection[]>;
 }
 
-export default function AttendanceFilter({
-    initialData,
-    isLoading,
-    onSearch,
-    onReset,
-    getClasses,
-    getSections
-}: AttendanceFilterProps) {
+export default function AttendanceFilter({ initialData, isLoading, onSearch, onReset, getClasses, getSections }: AttendanceFilterProps) {
     const [reportType, setReportType] = useState<number>(1); // 1: All, 2: Individual
     const [selectedYear, setSelectedYear] = useState<string>('');
     const [selectedCategory, setSelectedCategory] = useState<string>('0');
@@ -48,7 +36,7 @@ export default function AttendanceFilter({
     // Set default year
     useEffect(() => {
         if (initialData?.academicList && initialData.academicList.length > 0) {
-            const defaultYear = initialData.academicList.find(y => y.selected)?.asmaY_Id || initialData.academicList[0].asmaY_Id;
+            const defaultYear = initialData.academicList.find((y) => y.selected)?.asmaY_Id || initialData.academicList[0].asmaY_Id;
             setSelectedYear(String(defaultYear));
         }
     }, [initialData]);
@@ -145,35 +133,36 @@ export default function AttendanceFilter({
 
     return (
         <Card>
-            <CardHeader className="pb-3">
+            <CardHeader className='pb-3'>
                 <CardTitle>Filter Criteria</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="flex justify-center space-x-6 pb-4">
-                    <RadioGroup
-                        defaultValue="1"
-                        value={String(reportType)}
-                        onValueChange={handleTypeChange}
-                        className="flex space-x-6"
-                    >
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="1" id="all" />
-                            <Label htmlFor="all" className="cursor-pointer">All</Label>
+            <CardContent className='space-y-4'>
+                <div className='flex justify-center space-x-6 pb-4'>
+                    <RadioGroup defaultValue='1' value={String(reportType)} onValueChange={handleTypeChange} className='flex space-x-6'>
+                        <div className='flex items-center space-x-2'>
+                            <RadioGroupItem value='1' id='all' />
+                            <Label htmlFor='all' className='cursor-pointer'>
+                                All
+                            </Label>
                         </div>
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="2" id="individual" />
-                            <Label htmlFor="individual" className="cursor-pointer">Individual</Label>
+                        <div className='flex items-center space-x-2'>
+                            <RadioGroupItem value='2' id='individual' />
+                            <Label htmlFor='individual' className='cursor-pointer'>
+                                Individual
+                            </Label>
                         </div>
                     </RadioGroup>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="year">Academic Year <span className="text-red-500">*</span></Label>
+                <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+                    <div className='space-y-4'>
+                        <div className='space-y-2'>
+                            <Label htmlFor='year'>
+                                Academic Year <span className='text-red-500'>*</span>
+                            </Label>
                             <Select value={selectedYear} onValueChange={handleYearChange}>
-                                <SelectTrigger id="year">
-                                    <SelectValue placeholder="Select Year" />
+                                <SelectTrigger id='year'>
+                                    <SelectValue placeholder='Select Year' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {initialData?.academicList.map((year) => (
@@ -186,14 +175,14 @@ export default function AttendanceFilter({
                         </div>
 
                         {categoryFlag && (
-                            <div className="space-y-2">
-                                <Label htmlFor="category">Category</Label>
+                            <div className='space-y-2'>
+                                <Label htmlFor='category'>Category</Label>
                                 <Select value={selectedCategory} onValueChange={handleCategoryChange}>
-                                    <SelectTrigger id="category">
-                                        <SelectValue placeholder="Select Category" />
+                                    <SelectTrigger id='category'>
+                                        <SelectValue placeholder='Select Category' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="0">All</SelectItem>
+                                        <SelectItem value='0'>All</SelectItem>
                                         {initialData?.category_list.map((cat) => (
                                             <SelectItem key={cat.amC_Id} value={String(cat.amC_Id)}>
                                                 {cat.amC_Name}
@@ -205,16 +194,14 @@ export default function AttendanceFilter({
                         )}
                     </div>
 
-                    <div className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="class">Class <span className={reportType === 2 ? "text-red-500" : "hidden"}>*</span></Label>
-                            <Select
-                                value={selectedClass}
-                                onValueChange={handleClassChange}
-                                disabled={reportType === 1}
-                            >
-                                <SelectTrigger id="class">
-                                    <SelectValue placeholder="Select Class" />
+                    <div className='space-y-4'>
+                        <div className='space-y-2'>
+                            <Label htmlFor='class'>
+                                Class <span className={reportType === 2 ? 'text-red-500' : 'hidden'}>*</span>
+                            </Label>
+                            <Select value={selectedClass} onValueChange={handleClassChange} disabled={reportType === 1}>
+                                <SelectTrigger id='class'>
+                                    <SelectValue placeholder='Select Class' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {classes.map((cls) => (
@@ -226,31 +213,31 @@ export default function AttendanceFilter({
                             </Select>
                         </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="percentage">Percentage <span className="text-red-500">*</span></Label>
+                        <div className='space-y-2'>
+                            <Label htmlFor='percentage'>
+                                Percentage <span className='text-red-500'>*</span>
+                            </Label>
                             <Input
-                                id="percentage"
-                                type="number"
+                                id='percentage'
+                                type='number'
                                 value={percentage}
                                 onChange={(e) => setPercentage(e.target.value)}
-                                min="0"
-                                max="100"
-                                placeholder="Enter Percentage"
+                                min='0'
+                                max='100'
+                                placeholder='Enter Percentage'
                             />
                         </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="section">Section <span className={reportType === 2 ? "text-red-500" : "hidden"}>*</span></Label>
-                            <Select
-                                value={selectedSection}
-                                onValueChange={setSelectedSection}
-                                disabled={reportType === 1}
-                            >
-                                <SelectTrigger id="section">
-                                    <SelectValue placeholder="Select Section" />
+                        <div className='space-y-2'>
+                            <Label htmlFor='section'>
+                                Section <span className={reportType === 2 ? 'text-red-500' : 'hidden'}>*</span>
+                            </Label>
+                            <Select value={selectedSection} onValueChange={setSelectedSection} disabled={reportType === 1}>
+                                <SelectTrigger id='section'>
+                                    <SelectValue placeholder='Select Section' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="0">All</SelectItem>
+                                    <SelectItem value='0'>All</SelectItem>
                                     {sections.map((sec) => (
                                         <SelectItem key={sec.asmS_Id} value={String(sec.asmS_Id)}>
                                             {sec.asmC_SectionName}
@@ -262,13 +249,13 @@ export default function AttendanceFilter({
                     </div>
                 </div>
 
-                <div className="flex justify-center gap-4 pt-4">
+                <div className='flex justify-center gap-4 pt-4'>
                     <Button onClick={handleSearch} disabled={isLoading}>
-                        <Search className="mr-2 h-4 w-4" />
+                        <Search className='mr-2 h-4 w-4' />
                         Report
                     </Button>
-                    <Button variant="outline" onClick={handleReset} className="text-red-500 hover:text-red-600">
-                        <RotateCcw className="mr-2 h-4 w-4" />
+                    <Button variant='outline' onClick={handleReset} className='text-red-500 hover:text-red-600'>
+                        <RotateCcw className='mr-2 h-4 w-4' />
                         Cancel
                     </Button>
                 </div>

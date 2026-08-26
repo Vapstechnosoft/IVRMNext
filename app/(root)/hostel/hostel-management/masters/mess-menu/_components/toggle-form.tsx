@@ -2,7 +2,7 @@
 
 import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
 import { toggleMessMenuStatus } from '@/server/hostel/hostel-management/masters/menu';
-import { IMessMenu } from '@/types/hostel/hostel-management/masters';
+import type { IMessMenu } from '@/types/hostel/hostel-management/masters';
 import { toast } from 'sonner';
 
 interface ToggleMessMenuFormProps {

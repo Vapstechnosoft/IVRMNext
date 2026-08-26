@@ -28,7 +28,11 @@ interface FilterFormProps {
     onCancel: () => void;
 }
 
+import { useState } from 'react';
+
 export default function FilterForm({ years, classes, sections, onSubmit, onCancel }: FilterFormProps) {
+    const [resetKey, setResetKey] = useState(0);
+
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -44,7 +48,7 @@ export default function FilterForm({ years, classes, sections, onSubmit, onCance
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
+            <form key={resetKey} onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
                 <FormField
                     control={form.control}
                     name='filterdata'
@@ -83,7 +87,7 @@ export default function FilterForm({ years, classes, sections, onSubmit, onCance
                                 <FormLabel>
                                     Academic Year <span className='text-destructive'>*</span>
                                 </FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value || undefined}>
                                     <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Year' />
@@ -110,7 +114,7 @@ export default function FilterForm({ years, classes, sections, onSubmit, onCance
                                 <FormLabel>
                                     Class <span className='text-destructive'>*</span>
                                 </FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value || undefined}>
                                     <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Class' />
@@ -139,7 +143,7 @@ export default function FilterForm({ years, classes, sections, onSubmit, onCance
                                     <FormLabel>
                                         Section <span className='text-destructive'>*</span>
                                     </FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value || undefined}>
                                         <FormControl>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Section' />
@@ -165,7 +169,20 @@ export default function FilterForm({ years, classes, sections, onSubmit, onCance
                     <Button type='submit' className='w-32 bg-primary'>
                         <Eye className='mr-2 h-4 w-4' /> SHOW
                     </Button>
-                    <Button type='button' variant='destructive' onClick={onCancel} className='w-32'>
+                    <Button
+                        type='button'
+                        variant='destructive'
+                        onClick={() => {
+                            form.reset({
+                                filterdata: 'stureg',
+                                asmaY_Id: '',
+                                asmcL_Id: '',
+                                asmS_Id: ''
+                            });
+                            setResetKey((prev) => prev + 1);
+                            onCancel();
+                        }}
+                        className='w-32'>
                         <X className='mr-2 h-4 w-4' /> CANCEL
                     </Button>
                 </div>

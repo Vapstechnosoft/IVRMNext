@@ -321,42 +321,46 @@ export default function ViewDetailsDialog({ isOpen, onClose, title, description,
                         </Tabs>
                     ) : (
                         <div className='space-y-4'>
-                            {data && data.length > 0 && (data[0].coemE_SMSMessage !== undefined || data[0].coemE_MailSubject !== undefined) ? (
+                            {data &&
+                            data.length > 0 &&
+                            (data[0].coemE_SMSMessage !== undefined || data[0].coemE_MailSubject !== undefined) ? (
                                 <>
-                                    <div className='mb-4 text-center font-bold text-xl uppercase text-primary'>
-                                        Event Templates
-                                    </div>
+                                    <div className='mb-4 text-center font-bold text-primary text-xl uppercase'>Event Templates</div>
                                     <GenericDataTable
                                         isLoading={loading}
                                         columns={[
                                             {
                                                 id: 'sno',
-                                                header: () => <div className='text-center uppercase font-bold text-black'>SLNO</div>,
+                                                header: () => <div className='text-center font-bold text-black uppercase'>SLNO</div>,
                                                 cell: (info: any) => <div className='text-center'>{info.row.index + 1}</div>,
                                                 size: 80
                                             },
                                             {
-                                                header: () => <div className='text-center uppercase font-bold text-black'>SMS Message</div>,
+                                                header: () => <div className='text-center font-bold text-black uppercase'>SMS Message</div>,
                                                 accessorKey: 'coemE_SMSMessage',
                                                 cell: (info: any) => <div className='text-center'>{info.getValue() || '[NAME]'}</div>
                                             },
                                             {
-                                                header: () => <div className='text-center uppercase font-bold text-black'>Mail Subject</div>,
+                                                header: () => (
+                                                    <div className='text-center font-bold text-black uppercase'>Mail Subject</div>
+                                                ),
                                                 accessorKey: 'coemE_MailSubject',
                                                 cell: (info: any) => <div className='text-center'>{info.getValue() || '-'}</div>
                                             },
                                             {
-                                                header: () => <div className='text-center uppercase font-bold text-black'>Mail Header</div>,
+                                                header: () => <div className='text-center font-bold text-black uppercase'>Mail Header</div>,
                                                 accessorKey: 'coemE_MailHeader',
                                                 cell: (info: any) => <div className='text-center'>{info.getValue() || '-'}</div>
                                             },
                                             {
-                                                header: () => <div className='text-center uppercase font-bold text-black'>Mail Footer</div>,
+                                                header: () => <div className='text-center font-bold text-black uppercase'>Mail Footer</div>,
                                                 accessorKey: 'coemE_MailFooter',
                                                 cell: (info: any) => <div className='text-center'>{info.getValue() || '-'}</div>
                                             },
                                             {
-                                                header: () => <div className='text-center uppercase font-bold text-black'>Mail Message</div>,
+                                                header: () => (
+                                                    <div className='text-center font-bold text-black uppercase'>Mail Message</div>
+                                                ),
                                                 accessorKey: 'coemE_Mail_Message',
                                                 cell: (info: any) => <div className='text-center'>{info.getValue() || '[NAME]'}</div>
                                             }
@@ -371,32 +375,32 @@ export default function ViewDetailsDialog({ isOpen, onClose, title, description,
                                     columns={[
                                         {
                                             id: 'sno',
-                                            header: () => <div className='text-center uppercase font-bold text-black'>SL NO</div>,
+                                            header: () => <div className='text-center font-bold text-black uppercase'>SL NO</div>,
                                             cell: (info: any) => <div className='text-center'>{info.row.index + 1}</div>,
                                             size: 80
                                         },
                                         {
-                                            header: () => <div className='text-center uppercase font-bold text-black'>Event Name</div>,
+                                            header: () => <div className='text-center font-bold text-black uppercase'>Event Name</div>,
                                             accessorKey: 'coemE_EventName',
                                             cell: (info: any) => <div className='text-center'>{info.getValue()}</div>
                                         },
                                         {
-                                            header: () => <div className='text-center uppercase font-bold text-black'>Year</div>,
+                                            header: () => <div className='text-center font-bold text-black uppercase'>Year</div>,
                                             accessorKey: 'asmaY_Year',
                                             cell: (info: any) => <div className='text-center'>{info.getValue()}</div>
                                         },
                                         {
-                                            header: () => <div className='text-center uppercase font-bold text-black'>Start Date</div>,
+                                            header: () => <div className='text-center font-bold text-black uppercase'>Start Date</div>,
                                             accessorKey: 'coeE_EStartDate',
                                             cell: (info: any) => <div className='text-center'>{formatDate(info.getValue())}</div>
                                         },
                                         {
-                                            header: () => <div className='text-center uppercase font-bold text-black'>End Date</div>,
+                                            header: () => <div className='text-center font-bold text-black uppercase'>End Date</div>,
                                             accessorKey: 'coeE_EEndDate',
                                             cell: (info: any) => <div className='text-center'>{formatDate(info.getValue())}</div>
                                         },
                                         {
-                                            header: () => <div className='text-center uppercase font-bold text-black'>Status</div>,
+                                            header: () => <div className='text-center font-bold text-black uppercase'>Status</div>,
                                             accessorKey: 'coemE_ActiveFlag',
                                             cell: (info: any) => (
                                                 <div className='flex justify-center'>

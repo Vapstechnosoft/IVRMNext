@@ -1,9 +1,8 @@
 'use server';
 
-import { api, getSearchParamsUrl } from '@/lib/apiService';
+import { api } from '@/lib/apiService';
 import type { IHomeWork, IHomeWorkMarksSearch } from '@/schemas/upload/transactions/ivrm-homework.schema';
 import { revalidatePath } from 'next/cache';
-import type { ApiSearchparams } from '@/types';
 
 /**
  * Initial load data: Academic Year, Class, Section, Subjects, Grid
@@ -62,20 +61,21 @@ export async function saveHomeWork(payload: IHomeWork) {
     const mappedPayload = {
         IHW_Id: payload.ihW_Id || 0,
         ASMAY_Id: payload.asmaY_Id,
-        IHW_AssignmentNo: payload.ihW_AssignmentNo || "1",
+        IHW_AssignmentNo: payload.ihW_AssignmentNo || '1',
         ISMS_Id: payload.ismS_Id,
         ASMCL_Id: payload.asmcL_Id,
         IHW_Date: payload.ihW_Date,
         IHW_Topic: payload.ihW_Topic,
-        IHW_Assignment: payload.ihW_Assignment || "",
-        IHW_Attachment: "", // User example requested empty string if no single attachment
+        IHW_Assignment: payload.ihW_Assignment || '',
+        IHW_Attachment: '', // User example requested empty string if no single attachment
         hm_section_list: payload.hm_section_list.map((s) => ({
             ASMS_Id: s.asmS_Id
         })),
-        IHW_FilePath_Array: payload.ihW_FilePath_Array?.map((f) => ({
-            IHW_FilePath: f.ihW_FilePath,
-            fileName: f.fileName
-        })) || []
+        IHW_FilePath_Array:
+            payload.ihW_FilePath_Array?.map((f) => ({
+                IHW_FilePath: f.ihW_FilePath,
+                fileName: f.fileName
+            })) || []
     };
 
     const result = await api.post<any>('portal', url, mappedPayload);
@@ -96,7 +96,6 @@ export async function toggleHomeWork(payload: { ihW_Id: number }) {
     }
     return result;
 }
-
 
 /**
  * Fetch homework details for editing (including attachments)
@@ -183,10 +182,10 @@ export async function fetchStudentHomeworkMark(ihW_Id: number, amst_Id: number) 
  * Upload staff feedback documents for student homework
  */
 export async function uploadStaffHomeworkDocument(payload: {
-    ihwupl_Id: number,
-    filePath: string,
-    fileName: string,
-    remarks: string
+    ihwupl_Id: number;
+    filePath: string;
+    fileName: string;
+    remarks: string;
 }) {
     const url = '/EmployeeStudentHomework/stfupload';
     const mappedPayload = {

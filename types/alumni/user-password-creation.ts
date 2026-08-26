@@ -20,11 +20,13 @@ export interface ISection {
 }
 
 export interface IStudent {
+    amst_id: number;
     studentname: string;
     amst_admno: string;
     asmcl_classname: string;
     asmc_sectionname: string;
-    amst_id: number;
+    username?: string;
+    password?: string;
     selected?: boolean;
 }
 

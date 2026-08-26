@@ -1,11 +1,11 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type { 
-    IPDALoadDataResponse, 
-    IPDASectionResponse, 
-    IPDAStudentResponse, 
-    IPDAReportResponse 
+import type {
+    IPDALoadDataResponse,
+    IPDAReportResponse,
+    IPDASectionResponse,
+    IPDAStudentResponse
 } from '@/types/pda/report/debit-credit-report';
 
 export async function getPDAReportLoadData() {
@@ -19,10 +19,10 @@ export async function getPDASectionsSRS(data: { ASMAY_Id: number; classlsttwo: {
     return await api.post<IPDASectionResponse>('pettycashandassettracking', url, data);
 }
 
-export async function getPDAStudentsSRS(data: { 
-    ASMAY_Id: number; 
-    classlsttwo: { ASMCL_Id: number }[]; 
-    sectionlistarray: { AMSC_Id: number }[] 
+export async function getPDAStudentsSRS(data: {
+    ASMAY_Id: number;
+    classlsttwo: { ASMCL_Id: number }[];
+    sectionlistarray: { AMSC_Id: number }[];
 }) {
     const url = 'PDAReport/getstudentSRS';
     return await api.post<IPDAStudentResponse>('pettycashandassettracking', url, data);

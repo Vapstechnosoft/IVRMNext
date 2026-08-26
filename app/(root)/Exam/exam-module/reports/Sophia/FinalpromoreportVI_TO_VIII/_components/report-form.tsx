@@ -3,9 +3,9 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CollapsibleContent } from '@/components/ui/collapsible';
+import { DatePicker } from '@/components/ui/date-picker';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DatePicker } from '@/components/ui/date-picker';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { getFinalpromoreportVI_TO_VIII } from '@/server/exam/exam-module/reports/FinalpromoreportVI_TO_VIII';
 import {
@@ -24,7 +24,7 @@ const finalpromoreportSchema = z.object({
     asmcL_Id: z.number().min(1, 'Select Class'),
     asmS_Id: z.number().min(1, 'Select Section'),
     reopen_date: z.date({ required_error: 'Select Reopen Date' }),
-    studentList: z.array(z.object({ amsT_Id: z.number() })).min(1, 'Select at least one student'),
+    studentList: z.array(z.object({ amsT_Id: z.number() })).min(1, 'Select at least one student')
 });
 
 type FinalpromoreportSchema = z.infer<typeof finalpromoreportSchema>;
@@ -193,7 +193,9 @@ export default function FinalpromoreportForm({
                                     name='asmaY_Id'
                                     render={({ field, fieldState }) => (
                                         <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                            <Label className='font-medium text-sm sm:w-32'>Academic Year <span className='text-red-500'>*</span></Label>
+                                            <Label className='font-medium text-sm sm:w-32'>
+                                                Academic Year <span className='text-red-500'>*</span>
+                                            </Label>
                                             <div className='flex-1'>
                                                 <Select
                                                     key={field.value}
@@ -204,12 +206,18 @@ export default function FinalpromoreportForm({
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {academicYearLoading ? (
-                                                            <SelectItem value='0' disabled>Loading...</SelectItem>
+                                                            <SelectItem value='0' disabled>
+                                                                Loading...
+                                                            </SelectItem>
                                                         ) : academicYears.length === 0 ? (
-                                                            <SelectItem value='0' disabled>No Academic Year found</SelectItem>
+                                                            <SelectItem value='0' disabled>
+                                                                No Academic Year found
+                                                            </SelectItem>
                                                         ) : (
                                                             academicYears.map((y) => (
-                                                                <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>{y.asmaY_Year}</SelectItem>
+                                                                <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                                                    {y.asmaY_Year}
+                                                                </SelectItem>
                                                             ))
                                                         )}
                                                     </SelectContent>
@@ -225,7 +233,9 @@ export default function FinalpromoreportForm({
                                     name='asmcL_Id'
                                     render={({ field, fieldState }) => (
                                         <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                            <Label className='font-medium text-sm sm:w-32'>Class <span className='text-red-500'>*</span></Label>
+                                            <Label className='font-medium text-sm sm:w-32'>
+                                                Class <span className='text-red-500'>*</span>
+                                            </Label>
                                             <div className='flex-1'>
                                                 <Select
                                                     key={field.value}
@@ -236,12 +246,18 @@ export default function FinalpromoreportForm({
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {loadingClasses ? (
-                                                            <SelectItem value='0' disabled>Loading...</SelectItem>
+                                                            <SelectItem value='0' disabled>
+                                                                Loading...
+                                                            </SelectItem>
                                                         ) : classes.length === 0 ? (
-                                                            <SelectItem value='0' disabled>No Classes found</SelectItem>
+                                                            <SelectItem value='0' disabled>
+                                                                No Classes found
+                                                            </SelectItem>
                                                         ) : (
                                                             classes.map((c) => (
-                                                                <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>{c.asmcL_ClassName}</SelectItem>
+                                                                <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
+                                                                    {c.asmcL_ClassName}
+                                                                </SelectItem>
                                                             ))
                                                         )}
                                                     </SelectContent>
@@ -257,7 +273,9 @@ export default function FinalpromoreportForm({
                                     name='asmS_Id'
                                     render={({ field, fieldState }) => (
                                         <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                            <Label className='font-medium text-sm sm:w-32'>Section <span className='text-red-500'>*</span></Label>
+                                            <Label className='font-medium text-sm sm:w-32'>
+                                                Section <span className='text-red-500'>*</span>
+                                            </Label>
                                             <div className='flex-1'>
                                                 <Select
                                                     key={field.value}
@@ -268,12 +286,18 @@ export default function FinalpromoreportForm({
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {loadingSections ? (
-                                                            <SelectItem value='0' disabled>Loading...</SelectItem>
+                                                            <SelectItem value='0' disabled>
+                                                                Loading...
+                                                            </SelectItem>
                                                         ) : sections.length === 0 ? (
-                                                            <SelectItem value='0' disabled>No Sections found</SelectItem>
+                                                            <SelectItem value='0' disabled>
+                                                                No Sections found
+                                                            </SelectItem>
                                                         ) : (
                                                             sections.map((s) => (
-                                                                <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>{s.asmC_SectionName}</SelectItem>
+                                                                <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
+                                                                    {s.asmC_SectionName}
+                                                                </SelectItem>
                                                             ))
                                                         )}
                                                     </SelectContent>
@@ -289,7 +313,9 @@ export default function FinalpromoreportForm({
                                     name='reopen_date'
                                     render={({ field, fieldState }) => (
                                         <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                            <Label className='font-medium text-sm sm:w-32'>Reopen Date <span className='text-red-500'>*</span></Label>
+                                            <Label className='font-medium text-sm sm:w-32'>
+                                                Reopen Date <span className='text-red-500'>*</span>
+                                            </Label>
                                             <div className='flex-1'>
                                                 <DatePicker date={field.value} setDate={field.onChange} placeholder='Pick Reopen Date' />
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -307,7 +333,11 @@ export default function FinalpromoreportForm({
                                             checked={selectedStudentsList?.length === students.length && students.length > 0}
                                             onCheckedChange={(checked) => {
                                                 if (checked) {
-                                                    setValue('studentList', students.map((e) => ({ amsT_Id: e.amsT_Id })), { shouldValidate: true });
+                                                    setValue(
+                                                        'studentList',
+                                                        students.map((e) => ({ amsT_Id: e.amsT_Id })),
+                                                        { shouldValidate: true }
+                                                    );
                                                 } else {
                                                     setValue('studentList', [], { shouldValidate: true });
                                                 }
@@ -328,7 +358,8 @@ export default function FinalpromoreportForm({
                                                             <span className='text-muted-foreground text-sm'>No Students found</span>
                                                         ) : (
                                                             students.map((e) => {
-                                                                const isChecked = field.value?.some((val) => val.amsT_Id === e.amsT_Id) || false;
+                                                                const isChecked =
+                                                                    field.value?.some((val) => val.amsT_Id === e.amsT_Id) || false;
                                                                 return (
                                                                     <div key={e.amsT_Id} className='flex items-center space-x-2'>
                                                                         <Checkbox
@@ -336,13 +367,22 @@ export default function FinalpromoreportForm({
                                                                             checked={isChecked}
                                                                             onCheckedChange={(checked) => {
                                                                                 if (checked) {
-                                                                                    field.onChange([...(field.value || []), { amsT_Id: e.amsT_Id }]);
+                                                                                    field.onChange([
+                                                                                        ...(field.value || []),
+                                                                                        { amsT_Id: e.amsT_Id }
+                                                                                    ]);
                                                                                 } else {
-                                                                                    field.onChange((field.value || []).filter((val) => val.amsT_Id !== e.amsT_Id));
+                                                                                    field.onChange(
+                                                                                        (field.value || []).filter(
+                                                                                            (val) => val.amsT_Id !== e.amsT_Id
+                                                                                        )
+                                                                                    );
                                                                                 }
                                                                             }}
                                                                         />
-                                                                        <Label htmlFor={`student-${e.amsT_Id}`} className='font-medium text-sm leading-none'>
+                                                                        <Label
+                                                                            htmlFor={`student-${e.amsT_Id}`}
+                                                                            className='font-medium text-sm leading-none'>
                                                                             {e.studentName} {e.amsT_AdmNo ? `/ ${e.amsT_AdmNo}` : ''}
                                                                         </Label>
                                                                     </div>

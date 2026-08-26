@@ -3,9 +3,9 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { useToggleLeaveTransactionManual } from '@/hooks/hrms/leave-management/useLeaveTransactionManual';
-import type { LeaveCreditTransaction } from './columns';
-import { toast } from 'sonner';
 import { useState } from 'react';
+import { toast } from 'sonner';
+import type { LeaveCreditTransaction } from './columns';
 
 interface ToggleLeaveTransactionManualFormProps {
     rowData: LeaveCreditTransaction;
@@ -42,7 +42,8 @@ export function ToggleLeaveTransactionManualForm({ rowData, onClose, onSuccess }
             <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} the transaction for <strong>{rowData.employeeName}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} the transaction for{' '}
+                        <strong>{rowData.employeeName}</strong>?
                     </p>
                 </AdaptiveBody>
                 <AdaptiveFooter>
