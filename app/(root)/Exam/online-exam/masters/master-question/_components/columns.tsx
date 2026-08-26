@@ -64,16 +64,34 @@ export const getMasterQuestionColumns = ({
         header: ({ column }) => <DataTableColumnHeader column={column} title='Mappings & Options' className='text-center' />,
         cell: ({ row }) => {
             const q = row.original;
-            const className = q.asmcL_ClassName && q.asmcL_ClassName !== 'N/A' && q.asmcL_ClassName !== '' ? q.asmcL_ClassName : null;
+            const classList = q.classList || [];
+            const mappedNames =
+                classList.length > 0
+                    ? classList.map((c: any) => c.asmcL_ClassName || c).join(', ')
+                    : q.asmcL_ClassName && q.asmcL_ClassName !== 'N/A' && q.asmcL_ClassName !== ''
+                      ? q.asmcL_ClassName
+                      : null;
+
+            let classLabel = 'Classes';
+            if (mappedNames) {
+                if (mappedNames.includes(',')) {
+                    const count = mappedNames.split(',').length;
+                    classLabel = `Classes (${count})`;
+                } else {
+                    classLabel = `Class: ${mappedNames}`;
+                }
+            }
+
             return (
                 <div className='flex items-center justify-center gap-2'>
                     <Button
                         size='sm'
                         variant='outline'
+                        title={mappedNames ? `Mapped: ${mappedNames}` : 'Map to classes'}
                         className='flex h-8 items-center gap-1.5 text-xs hover:border-primary'
                         onClick={() => onOpenClassMappingModal(row.original)}>
                         <Layers className='h-3.5 w-3.5 text-blue-500' />
-                        {className ? `Class: ${className}` : 'Classes'}
+                        {classLabel}
                     </Button>
                     <Button
                         size='sm'

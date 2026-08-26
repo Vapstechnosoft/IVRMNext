@@ -53,6 +53,7 @@ export default function ClassMappingModal({ question, classes = [], open, onClos
 
         setIsSaving(true);
         try {
+            const mappedClasses = classes.filter((c) => selectedClassIds.includes(c.asmcL_Id));
             const payload = {
                 MI_Id: 30,
                 LPMOEQ_Id: question.lmsmoeQ_Id || (question as any).lpmoeQ_Id,
@@ -67,6 +68,9 @@ export default function ClassMappingModal({ question, classes = [], open, onClos
 
             const response = await saveMutation.mutateAsync(payload);
             if (response?.success !== false && !response?.error) {
+                // Update local question reference so modal and table immediately reflect all chosen classes
+                question.classList = mappedClasses;
+                question.asmcL_ClassName = mappedClasses.map((c) => c.asmcL_ClassName).join(', ');
                 toast.success('Class question mapping saved successfully!');
                 refetchAll();
                 onClose();
