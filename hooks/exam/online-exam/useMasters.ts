@@ -39,6 +39,28 @@ export function useMasterQuestion(searchParams?: ApiSearchparams, options?: { en
     };
 }
 
+// Hook to Save / Update Master Question
+export function useSaveMasterQuestion() {
+    const queryClient = useQueryClient();
+    return {
+        mutateAsync: async (payload: any) => {
+            const res = await fetch('/api/exam/master-question', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'save', ...payload })
+            });
+            const json = await res.json().catch(() => ({}));
+            if (!res.ok || json?.success === false) {
+                throw new Error(json?.message || json?.error || `Request failed with status ${res.status}`);
+            }
+            queryClient.invalidateQueries({
+                queryKey: [ONLINE_EXAM_QUERY_KEYS.MASTER_QUESTION]
+            });
+            return json;
+        }
+    };
+}
+
 // Hook for Question Options (School)
 export function useQuestionOptions(questionId: number | null) {
     return useQuery({

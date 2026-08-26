@@ -3,9 +3,8 @@
 import { Button } from '@/components/ui/button';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Label } from '@/components/ui/label';
-import { useMasterQuestion } from '@/hooks/exam/online-exam/useMasters';
+import { useMasterQuestion, useSaveMasterQuestion } from '@/hooks/exam/online-exam/useMasters';
 import { masterQuestionSchema } from '@/schemas/exam/online-exam/masters';
-import { saveMasterQuestion } from '@/server/exam/online-exam/masters/master-question';
 import type { IComplexityDropdown, IMasterQuestionList, ISubjectDropdown } from '@/types/exam/online-exam/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
@@ -31,6 +30,7 @@ export default function UpdateMasterQuestionForm({
     onCancel
 }: UpdateMasterQuestionFormProps) {
     const { refetchAll } = useMasterQuestion(undefined, { enabled: false });
+    const saveMutation = useSaveMasterQuestion();
 
     const {
         register,
@@ -66,22 +66,23 @@ export default function UpdateMasterQuestionForm({
     const onSubmit = async (data: FormFields) => {
         try {
             const payload = {
-                LMSMOEQ_Id: rowData.lmsmoeQ_Id,
+                MI_Id: 30,
+                LPMOEQ_Id: rowData.lmsmoeQ_Id || (rowData as any).lpmoeQ_Id,
                 ISMS_Id: Number(data.ismS_Id),
-                LMSMOEQ_Question: data.lmsmoeQ_Question.trim(),
-                LMSMOEQ_QuestionDesc: data.lmsmoeQ_QuestionDesc?.trim() || '',
-                LMSMOEQ_Marks: Number(data.lmsmoeQ_Marks),
-                LMSMOECX_Id: data.lmsmoecX_Id ? Number(data.lmsmoecX_Id) : null
+                LPMOEQ_Question: data.lmsmoeQ_Question.trim(),
+                LPMOEQ_QuestionDesc: data.lmsmoeQ_QuestionDesc?.trim() || '',
+                LPMOEQ_Marks: Number(data.lmsmoeQ_Marks),
+                LPMCOMP_Id: data.lmsmoecX_Id ? Number(data.lmsmoecX_Id) : 1
             };
 
-            const response = await saveMasterQuestion(payload);
+            const response = await saveMutation.mutateAsync(payload);
 
-            if (response?.success || response?.returnval === true || !response?.error) {
+            if (response?.success !== false && !response?.error) {
                 toast.success('Question updated successfully!');
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(response?.message || 'Failed to update question');
+                toast.error(response?.message || response?.error || 'Failed to update question');
             }
         } catch (error: any) {
             toast.error(error?.message || 'An error occurred while updating the question');

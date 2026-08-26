@@ -4,9 +4,8 @@ import { Button } from '@/components/ui/button';
 import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Label } from '@/components/ui/label';
-import { useMasterQuestion } from '@/hooks/exam/online-exam/useMasters';
+import { useMasterQuestion, useSaveMasterQuestion } from '@/hooks/exam/online-exam/useMasters';
 import { masterQuestionSchema } from '@/schemas/exam/online-exam/masters';
-import { saveMasterQuestion } from '@/server/exam/online-exam/masters/master-question';
 import type { IComplexityDropdown, ISubjectDropdown } from '@/types/exam/online-exam/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Trash2 } from 'lucide-react';
@@ -26,6 +25,7 @@ interface AddMasterQuestionFormProps {
 
 export default function AddMasterQuestionForm({ subjects = [], complexities = [], onSuccess, onCancel }: AddMasterQuestionFormProps) {
     const { refetchAll } = useMasterQuestion(undefined, { enabled: false });
+    const saveMutation = useSaveMasterQuestion();
     const [fileList, setFileList] = useState<{ fileName: string; filePath: string; fileType: string }[]>([]);
 
     const {
@@ -48,10 +48,10 @@ export default function AddMasterQuestionForm({ subjects = [], complexities = []
         name: 'options'
     });
 
-    const addOptionRow = () => {
+    const handleAddOption = () => {
         append({
             lmsmoeqoA_Option: '',
-            lmsmoeqoA_AnswerFlag: fields.length === 0,
+            lmsmoeqoA_AnswerFlag: false,
             lmsmoeqoA_Marks: 1
         });
     };
@@ -77,30 +77,31 @@ export default function AddMasterQuestionForm({ subjects = [], complexities = []
     const onSubmit = async (data: FormFields) => {
         try {
             const payload = {
+                MI_Id: 30,
                 ISMS_Id: Number(data.ismS_Id),
-                LMSMOEQ_Question: data.lmsmoeQ_Question.trim(),
-                LMSMOEQ_QuestionDesc: data.lmsmoeQ_QuestionDesc?.trim() || '',
-                LMSMOEQ_Marks: Number(data.lmsmoeQ_Marks),
-                LMSMOECX_Id: data.lmsmoecX_Id ? Number(data.lmsmoecX_Id) : null,
+                LPMOEQ_Question: data.lmsmoeQ_Question.trim(),
+                LPMOEQ_QuestionDesc: data.lmsmoeQ_QuestionDesc?.trim() || '',
+                LPMOEQ_Marks: Number(data.lmsmoeQ_Marks),
+                LPMCOMP_Id: data.lmsmoecX_Id ? Number(data.lmsmoecX_Id) : 1,
                 questionFiles: fileList,
                 questionOptions: data.options?.map((opt, idx) => ({
-                    LMSMOEQOA_Option: opt.lmsmoeqoA_Option.trim(),
-                    LMSMOEQOA_AnswerFlag: opt.lmsmoeqoA_AnswerFlag,
-                    LMSMOEQOA_Marks: Number(opt.lmsmoeqoA_Marks || 1),
-                    LMSMOEQOA_OptionOrder: idx + 1
+                    LPMOEQOA_Option: opt.lmsmoeqoA_Option.trim(),
+                    LPMOEQOA_AnswerFlag: opt.lmsmoeqoA_AnswerFlag,
+                    LPMOEQOA_Marks: Number(opt.lmsmoeqoA_Marks || 1),
+                    LPMOEQOA_Order: idx + 1
                 }))
             };
 
-            const response = await saveMasterQuestion(payload);
+            const response = await saveMutation.mutateAsync(payload);
 
-            if (response?.success || response?.returnval === true || !response?.error) {
+            if (response?.success !== false && !response?.error) {
                 toast.success('Question added successfully!');
                 reset();
                 setFileList([]);
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(response?.message || 'Failed to save question');
+                toast.error(response?.message || response?.error || 'Failed to save question');
             }
         } catch (error: any) {
             toast.error(error?.message || 'An error occurred while saving the question');
