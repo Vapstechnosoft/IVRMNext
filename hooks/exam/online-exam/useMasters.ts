@@ -10,7 +10,21 @@ export function useMasterQuestion(searchParams?: ApiSearchparams, options?: { en
 
     const query = useQuery({
         queryKey: [ONLINE_EXAM_QUERY_KEYS.MASTER_QUESTION, searchParams ?? {}],
-        queryFn: async () => getMasterQuestionInitialData(searchParams),
+        queryFn: async () => {
+            try {
+                const miId = searchParams?.MI_Id || 30;
+                const res = await fetch(`/api/exam/master-question?MI_Id=${miId}`, {
+                    cache: 'no-store'
+                });
+                if (res.ok) {
+                    const json = await res.json();
+                    if (json?.data) return json.data;
+                }
+            } catch (err) {
+                console.warn('[useMasterQuestion] Route fetch error, trying Server Action:', err);
+            }
+            return getMasterQuestionInitialData(searchParams);
+        },
         staleTime: 0,
         enabled: options?.enabled ?? true
     });

@@ -22,7 +22,7 @@ export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
     // ✅ Skip middleware for API routes that need public or direct access
-    if (pathname.startsWith('/api/auth/') || pathname.startsWith('/api/header-voice')) {
+    if (pathname.startsWith('/api/')) {
         return NextResponse.next();
     }
 
