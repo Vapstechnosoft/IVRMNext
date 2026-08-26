@@ -14,12 +14,12 @@ function extractArray(obj: any): any[] {
 
 // Get Initial dropdowns and Question list
 export async function getMasterQuestionInitialData(searchParams?: ApiSearchparams) {
-    const session = await auth();
-    const miId = searchParams?.MI_Id ? Number(searchParams.MI_Id) : session?.mi_id || 30;
-    const url = '/LP_OnlineExamFacade/getloaddata';
-    const res = await api.post<any>('exam', url, { MI_Id: miId });
-    if (res?.data) {
-        const raw = res.data;
+    try {
+        const session = await auth();
+        const miId = searchParams?.MI_Id ? Number(searchParams.MI_Id) : session?.mi_id || 30;
+        const url = '/LP_OnlineExamFacade/getloaddata';
+        const res = await api.post<any>('exam', url, { MI_Id: miId });
+        const raw = res?.data?.data || res?.data || res || {};
         const normalizedData: IMasterQuestionInitialData = {
             getSubjects: extractArray(raw.getSubjects || raw.getsubjectlist || raw.getsubjects || raw.getsubjectlistarray).map(
                 (s: any) => ({
@@ -63,11 +63,23 @@ export async function getMasterQuestionInitialData(searchParams?: ApiSearchparam
             }))
         };
         return {
-            ...res,
+            success: true,
             data: normalizedData
         };
+    } catch (err: any) {
+        console.error('[OnlineExam] Error in getMasterQuestionInitialData:', err);
+        return {
+            success: false,
+            message: err?.message || 'Error loading master question data',
+            data: {
+                getSubjects: [],
+                getClass: [],
+                getSection: [],
+                getComplexity: [],
+                questionList: []
+            }
+        };
     }
-    return res;
 }
 
 // Get Question listing
