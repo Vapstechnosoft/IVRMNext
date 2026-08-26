@@ -42,12 +42,15 @@ export async function POST(req: NextRequest) {
         }
 
         const res = await axios.post(targetUrl, payload);
+        const dto = res.data?.data || res.data || {};
+        const message = dto.message || res.data?.message || 'Operation successful';
+        const returnval = dto.returnval ?? res.data?.returnval ?? false;
 
         return NextResponse.json({
-            success: true,
-            data: res.data?.data || res.data || {},
-            message: res.data?.message || res.data?.data?.message || 'Operation successful',
-            returnval: res.data?.returnval ?? res.data?.data?.returnval ?? true
+            success: res.data?.success !== false,
+            data: dto,
+            message,
+            returnval
         });
     } catch (error: any) {
         console.error('Error in master complexity action:', error.message);

@@ -64,18 +64,20 @@ export default function UpdateMasterComplexityForm({ rowData, onSuccess, onCance
             };
 
             const response = await saveMutation.mutateAsync(payload);
+            const message = response?.message || response?.data?.message;
+            const returnval = response?.returnval ?? response?.data?.returnval;
 
-            if (response?.message === 'Duplicate') {
-                toast.error('Complexity Name already exists!');
+            if (message === 'Duplicate') {
+                toast.error('Complexity Name already exists! (Duplicate)');
                 return;
             }
 
-            if (response?.success !== false && (response?.returnval === true || response?.message === 'Update')) {
+            if (returnval === true || message === 'Update' || (response?.success && message !== 'Duplicate')) {
                 toast.success('Complexity updated successfully!');
                 refetchAll();
                 onSuccess();
             } else {
-                toast.error(response?.message || response?.error || 'Failed to update complexity');
+                toast.error(message || response?.error || 'Failed to update complexity');
             }
         } catch (error: any) {
             toast.error(error?.message || 'An error occurred while updating complexity');

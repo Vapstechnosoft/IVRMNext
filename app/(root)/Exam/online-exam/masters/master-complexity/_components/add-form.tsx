@@ -53,19 +53,21 @@ export default function AddMasterComplexityForm({ onSuccess, onCancel }: AddMast
             };
 
             const response = await saveMutation.mutateAsync(payload);
+            const message = response?.message || response?.data?.message;
+            const returnval = response?.returnval ?? response?.data?.returnval;
 
-            if (response?.message === 'Duplicate') {
-                toast.error('Complexity Name already exists!');
+            if (message === 'Duplicate') {
+                toast.error('Complexity Name already exists! (Duplicate)');
                 return;
             }
 
-            if (response?.success !== false && (response?.returnval === true || response?.message === 'Add')) {
+            if (returnval === true || message === 'Add' || (response?.success && message !== 'Duplicate')) {
                 toast.success('Complexity created successfully!');
                 reset();
                 refetchAll();
                 onSuccess();
             } else {
-                toast.error(response?.message || response?.error || 'Failed to create complexity');
+                toast.error(message || response?.error || 'Failed to create complexity');
             }
         } catch (error: any) {
             toast.error(error?.message || 'An error occurred while creating complexity');
