@@ -8,7 +8,7 @@ import { useClgMasterBranch } from '@/hooks/college/useCollegeMasters';
 import { tableSearchVariables } from '@/lib/data-table.config';
 import type { IClgMasterBranch } from '@/types/college/masters';
 import { Plus, X, ArrowDownUp } from 'lucide-react';
-import { parseAsString, useQueryState } from 'nuqs';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import { useMemo, useState } from 'react';
 import AddClgMasterBranchForm from './_components/add-form';
 import { clgMasterBranchColumns } from './_components/columns';
@@ -28,15 +28,24 @@ export default function ClgMasterBranchPage() {
 
 function ClgMasterBranchPageContent({ response, isLoading, error }: { response: any; isLoading: boolean; error: any }) {
     const { openAddForm } = useFormContext<IClgMasterBranch>();
+    const [currentPage] = useQueryState(tableSearchVariables.page, parseAsInteger.withDefault(1));
+    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withDefault(10));
     const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withDefault(''));
     const [isOrderFormOpen, setIsOrderFormOpen] = useState(false);
 
     const dataList = Array.isArray(response?.data) ? response.data : (response?.data?.getdetails || response?.data?.list || []);
 
     const filteredData = useMemo(() => {
-        if (!searchQuery) return dataList;
+        const sortedData = [...dataList].sort((a, b) => {
+            const orderA = Number(a.amB_Order) || 0;
+            const orderB = Number(b.amB_Order) || 0;
+            return orderA - orderB;
+        });
+
+        if (!searchQuery) return sortedData;
+
         const query = searchQuery.toLowerCase();
-        return dataList.filter((item: IClgMasterBranch) =>
+        return sortedData.filter((item: IClgMasterBranch) =>
             item.amB_BranchName?.toLowerCase().includes(query) ||
             item.amB_BranchCode?.toLowerCase().includes(query) ||
             item.amB_BranchInfo?.toLowerCase().includes(query) ||
@@ -47,7 +56,14 @@ function ClgMasterBranchPageContent({ response, isLoading, error }: { response: 
         );
     }, [dataList, searchQuery]);
 
-    const tableProps = useDataTableProps({ ...response, data: filteredData });
+    const startIndex = (currentPage - 1) * pageSize;
+    const paginatedData = filteredData.slice(startIndex, startIndex + pageSize);
+
+    const tableProps = useDataTableProps({ 
+        ...response, 
+        data: paginatedData,
+        total: filteredData.length 
+    });
 
     return (
         <div className='min-h-screen'>

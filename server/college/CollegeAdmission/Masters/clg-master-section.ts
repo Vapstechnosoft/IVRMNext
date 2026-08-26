@@ -18,11 +18,11 @@ export async function saveSection(data: any) {
 }
 
 export async function editSection(id: number) {
-    return await api.get<any>('college', `${BASE_URL}/Editdetails?ACMS_Id=${id}`);
+    return await api.post<any>('college', `${BASE_URL}/Editdetails?ACMS_Id=${id}`);
 }
 
 export async function toggleSection(id: number) {
-    return await api.get<any>('college', `${BASE_URL}/Deletedetails?ACMS_Id=${id}`);
+    return await api.post<any>('college', `${BASE_URL}/Deletedetails?ACMS_Id=${id}`);
 }
 
 export async function saveSectionOrder(data: any) {

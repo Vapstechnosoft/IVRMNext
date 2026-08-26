@@ -1,18 +1,11 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import { InputText } from '@/components/ui/extension/input-text';
+import { InputNumber } from '@/components/ui/extension/input-number';
 import { useSaveMasterSection } from '@/hooks/college/useCollegeMasters';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
@@ -66,59 +59,52 @@ export default function AddMasterSectionForm({ onSuccess }: { onSuccess: () => v
     };
 
     return (
-        <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4 p-4'>
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                    <FormField
-                        control={form.control}
-                        name='ACMS_SectionName'
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Section Name <span className='text-red-500'>*</span></FormLabel>
-                                <FormControl>
-                                    <Input placeholder='Enter Section Name' {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
+                    <InputText
+                        label='Section Name'
+                        id='ACMS_SectionName'
+                        placeholder='Enter Section Name'
+                        required
+                        {...form.register('ACMS_SectionName')}
+                        error={form.formState.errors.ACMS_SectionName?.message}
                     />
-                    <FormField
-                        control={form.control}
+                    <Controller
                         name='ACMS_Order'
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Section Order <span className='text-red-500'>*</span></FormLabel>
-                                <FormControl>
-                                    <Input type="number" placeholder='Enter Section Order' {...field} value={field.value ?? ''} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
+                        control={form.control}
+                        render={({ field, fieldState }) => (
+                            <InputNumber
+                                label='Section Order'
+                                id='ACMS_Order'
+                                placeholder='Enter Section Order'
+                                required
+                                value={field.value}
+                                onChange={field.onChange}
+                                error={fieldState.error?.message}
+                            />
                         )}
                     />
-                    <FormField
-                        control={form.control}
-                        name='ACMS_SectionCode'
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Section Code <span className='text-red-500'>*</span></FormLabel>
-                                <FormControl>
-                                    <Input placeholder='Enter Section Code' {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
+                    <InputText
+                        label='Section Code'
+                        id='ACMS_SectionCode'
+                        placeholder='Enter Section Code'
+                        required
+                        {...form.register('ACMS_SectionCode')}
+                        error={form.formState.errors.ACMS_SectionCode?.message}
                     />
-                    <FormField
-                        control={form.control}
+                    <Controller
                         name='ACMS_MaxCapacity'
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Section Capacity <span className='text-red-500'>*</span></FormLabel>
-                                <FormControl>
-                                    <Input type="number" placeholder='Enter Section Capacity' {...field} value={field.value ?? ''} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
+                        control={form.control}
+                        render={({ field, fieldState }) => (
+                            <InputNumber
+                                label='Section Capacity'
+                                id='ACMS_MaxCapacity'
+                                placeholder='Enter Section Capacity'
+                                required
+                                value={field.value}
+                                onChange={field.onChange}
+                                error={fieldState.error?.message}
+                            />
                         )}
                     />
                 </div>
@@ -136,6 +122,5 @@ export default function AddMasterSectionForm({ onSuccess }: { onSuccess: () => v
                     </Button>
                 </div>
             </form>
-        </Form>
     );
 }

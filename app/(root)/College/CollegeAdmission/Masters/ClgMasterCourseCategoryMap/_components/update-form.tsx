@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { FormError } from '@/components/ui/extension/field';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { useClgMasterCourseCategoryMap, useSaveClgMasterCourseCategoryMap } from '@/hooks/college/useCollegeMasters';
 import { clgMasterCourseCategoryMapSchema } from '@/schemas/college/masters';
 import { IClgMasterCourseCategoryMap } from '@/types/college/masters';
@@ -11,7 +11,6 @@ import { useEffect } from 'react';
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type FormFields = z.infer<typeof clgMasterCourseCategoryMapSchema.addOrUpdate>;
@@ -75,54 +74,54 @@ export default function UpdateCourseCategoryMapForm({ selectedRow, onSuccess, cl
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <div className='space-y-2'>
-                            <Label htmlFor='amcO_Id' className='flex items-center'>
-                                Course Name <span className='text-destructive ml-1'>*</span>
-                            </Label>
+                        <div className='group flex flex-col gap-1.5'>
+                            <Label isRequired>Course Name</Label>
                             <Controller
                                 name='amcO_Id'
                                 control={control}
-                                render={({ field }) => (
-                                    <Select value={field.value} onValueChange={field.onChange}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder='--Select--' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {masterCourseList.map((option: any) => (
-                                                <SelectItem key={option.amcO_Id} value={option.amcO_Id.toString()}>
-                                                    {option.amcO_CourseName}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                render={({ field, fieldState }) => (
+                                    <>
+                                        <Select value={field.value} onValueChange={field.onChange}>
+                                            <SelectTrigger className={fieldState.error ? 'border-destructive focus:ring-destructive/20' : 'transition-colors focus:ring-2 focus:ring-primary/20'}>
+                                                <SelectValue placeholder='--Select--' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {masterCourseList.map((option: any) => (
+                                                    <SelectItem key={option.amcO_Id} value={option.amcO_Id.toString()}>
+                                                        {option.amcO_CourseName}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        {fieldState.error?.message && <FormError>{fieldState.error.message}</FormError>}
+                                    </>
                                 )}
                             />
-                            {errors.amcO_Id && <FormError>{errors.amcO_Id.message}</FormError>}
                         </div>
 
-                        <div className='space-y-2'>
-                            <Label htmlFor='amcoC_Id' className='flex items-center'>
-                                Category Name <span className='text-destructive ml-1'>*</span>
-                            </Label>
+                        <div className='group flex flex-col gap-1.5'>
+                            <Label isRequired>Category Name</Label>
                             <Controller
                                 name='amcoC_Id'
                                 control={control}
-                                render={({ field }) => (
-                                    <Select value={field.value} onValueChange={field.onChange}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder='--Select--' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {masterCategoryList.map((option: any) => (
-                                                <SelectItem key={option.amcoC_Id} value={option.amcoC_Id.toString()}>
-                                                    {option.amcoC_Name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                render={({ field, fieldState }) => (
+                                    <>
+                                        <Select value={field.value} onValueChange={field.onChange}>
+                                            <SelectTrigger className={fieldState.error ? 'border-destructive focus:ring-destructive/20' : 'transition-colors focus:ring-2 focus:ring-primary/20'}>
+                                                <SelectValue placeholder='--Select--' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {masterCategoryList.map((option: any) => (
+                                                    <SelectItem key={option.amcoC_Id} value={option.amcoC_Id.toString()}>
+                                                        {option.amcoC_Name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        {fieldState.error?.message && <FormError>{fieldState.error.message}</FormError>}
+                                    </>
                                 )}
                             />
-                            {errors.amcoC_Id && <FormError>{errors.amcoC_Id.message}</FormError>}
                         </div>
                     </div>
                 </div>

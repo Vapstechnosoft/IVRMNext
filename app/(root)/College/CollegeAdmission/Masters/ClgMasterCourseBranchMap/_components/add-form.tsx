@@ -2,9 +2,8 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { FormError } from '@/components/ui/extension/field';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useClgMasterCourseBranchMap, useSaveClgMasterCourseBranchMap } from '@/hooks/college/useCollegeMasters';
 import { clgMasterCourseBranchMapSchema } from '@/schemas/college/masters';
@@ -127,43 +126,51 @@ export default function AddCourseBranchMapForm({ onSuccess }: AddCourseBranchMap
         <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
             <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                 {/* Course Name */}
-                <div className='space-y-2'>
-                    <Label htmlFor='amcO_Id' className='flex items-center'>Course Name <span className='text-destructive ml-1'>*</span></Label>
+                <div className='group flex flex-col gap-1.5'>
+                    <Label isRequired>Course Name</Label>
                     <Controller
                         name='amcO_Id'
                         control={control}
-                        render={({ field }) => (
-                            <Select value={field.value} onValueChange={field.onChange}>
-                                <SelectTrigger><SelectValue placeholder='--Select--' /></SelectTrigger>
-                                <SelectContent>
-                                    {masterCourseList.map((c: any) => (
-                                        <SelectItem key={c.amcO_Id} value={c.amcO_Id.toString()}>{c.amcO_CourseName}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                        render={({ field, fieldState }) => (
+                            <>
+                                <Select value={field.value} onValueChange={field.onChange}>
+                                    <SelectTrigger className={fieldState.error ? 'border-destructive focus:ring-destructive/20' : 'transition-colors focus:ring-2 focus:ring-primary/20'}>
+                                        <SelectValue placeholder='--Select--' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {masterCourseList.map((c: any) => (
+                                            <SelectItem key={c.amcO_Id} value={c.amcO_Id.toString()}>{c.amcO_CourseName}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {fieldState.error?.message && <FormError>{fieldState.error.message}</FormError>}
+                            </>
                         )}
                     />
-                    {errors.amcO_Id && <FormError>{errors.amcO_Id.message}</FormError>}
                 </div>
 
                 {/* Branch Name */}
-                <div className='space-y-2'>
-                    <Label htmlFor='amB_Id' className='flex items-center'>Branch Name <span className='text-destructive ml-1'>*</span></Label>
+                <div className='group flex flex-col gap-1.5'>
+                    <Label isRequired>Branch Name</Label>
                     <Controller
                         name='amB_Id'
                         control={control}
-                        render={({ field }) => (
-                            <Select value={field.value} onValueChange={field.onChange}>
-                                <SelectTrigger><SelectValue placeholder='--Select--' /></SelectTrigger>
-                                <SelectContent>
-                                    {masterBranchList.map((b: any) => (
-                                        <SelectItem key={b.amB_Id} value={b.amB_Id.toString()}>{b.amB_BranchName}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                        render={({ field, fieldState }) => (
+                            <>
+                                <Select value={field.value} onValueChange={field.onChange}>
+                                    <SelectTrigger className={fieldState.error ? 'border-destructive focus:ring-destructive/20' : 'transition-colors focus:ring-2 focus:ring-primary/20'}>
+                                        <SelectValue placeholder='--Select--' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {masterBranchList.map((b: any) => (
+                                            <SelectItem key={b.amB_Id} value={b.amB_Id.toString()}>{b.amB_BranchName}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {fieldState.error?.message && <FormError>{fieldState.error.message}</FormError>}
+                            </>
                         )}
                     />
-                    {errors.amB_Id && <FormError>{errors.amB_Id.message}</FormError>}
                 </div>
 
                 {/* Course-Branch Code */}
@@ -176,9 +183,9 @@ export default function AddCourseBranchMapForm({ onSuccess }: AddCourseBranchMap
                 />
 
                 {/* Semester Selection */}
-                <div className='space-y-2'>
-                    <Label className='flex items-center'>Semester Name <span className='text-destructive ml-1'>*</span></Label>
-                    <div className='max-h-40 overflow-y-auto rounded-md border p-3 space-y-2'>
+                <div className='group flex flex-col gap-1.5'>
+                    <Label isRequired>Semester Name</Label>
+                    <div className={`max-h-40 overflow-y-auto rounded-md border p-3 space-y-2 ${errors.selectedSemesters ? 'border-destructive' : 'border-input'}`}>
                         {masterSemesterList.length === 0 && (
                             <span className='text-sm text-muted-foreground'>No semesters available</span>
                         )}
@@ -189,11 +196,11 @@ export default function AddCourseBranchMapForm({ onSuccess }: AddCourseBranchMap
                                     checked={selectedSemesters.includes(sem.amsE_Id.toString())}
                                     onCheckedChange={(c) => handleSemesterChange(sem.amsE_Id.toString(), c as boolean)}
                                 />
-                                <Label htmlFor={`add-sem-${sem.amsE_Id}`} className='font-normal cursor-pointer'>{sem.amsE_SEMName}</Label>
+                                <label htmlFor={`add-sem-${sem.amsE_Id}`} className='font-normal cursor-pointer'>{sem.amsE_SEMName}</label>
                             </div>
                         ))}
                     </div>
-                    {errors.selectedSemesters && <FormError>{errors.selectedSemesters.message}</FormError>}
+                    {errors.selectedSemesters?.message && <FormError>{errors.selectedSemesters.message as string}</FormError>}
                 </div>
             </div>
 
@@ -208,26 +215,30 @@ export default function AddCourseBranchMapForm({ onSuccess }: AddCourseBranchMap
                                 <Checkbox id='amcobM_CBCSFlg' checked={field.value} onCheckedChange={field.onChange} />
                             )}
                         />
-                        <Label htmlFor='amcobM_CBCSFlg' className='font-semibold cursor-pointer'>CBCS Flag</Label>
+                        <label htmlFor='amcobM_CBCSFlg' className='font-semibold cursor-pointer'>CBCS Flag</label>
                     </div>
                     {cbcsFlag && (
-                        <div className='space-y-2'>
-                            <Label htmlFor='amcobM_CBCSIntroYear'>CBCS Intro Year <span className='text-destructive'>*</span></Label>
+                        <div className='group flex flex-col gap-1.5'>
+                            <Label isRequired>CBCS Intro Year</Label>
                             <Controller
                                 name='amcobM_CBCSIntroYear'
                                 control={control}
-                                render={({ field }) => (
-                                    <Select value={field.value} onValueChange={field.onChange}>
-                                        <SelectTrigger><SelectValue placeholder='--Select CBCS Year--' /></SelectTrigger>
-                                        <SelectContent>
-                                            {cbcsYearList.map((yr: any) => (
-                                                <SelectItem key={yr.cbcsyearid} value={yr.cbcsyearid.toString()}>{yr.cbcsyearname}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                render={({ field, fieldState }) => (
+                                    <>
+                                        <Select value={field.value} onValueChange={field.onChange}>
+                                            <SelectTrigger className={fieldState.error ? 'border-destructive focus:ring-destructive/20' : 'transition-colors focus:ring-2 focus:ring-primary/20'}>
+                                                <SelectValue placeholder='--Select CBCS Year--' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {cbcsYearList.map((yr: any) => (
+                                                    <SelectItem key={yr.cbcsyearid} value={yr.cbcsyearid.toString()}>{yr.cbcsyearname}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        {fieldState.error?.message && <FormError>{fieldState.error.message}</FormError>}
+                                    </>
                                 )}
                             />
-                            {errors.amcobM_CBCSIntroYear && <FormError>{errors.amcobM_CBCSIntroYear.message}</FormError>}
                         </div>
                     )}
                 </div>
@@ -241,26 +252,30 @@ export default function AddCourseBranchMapForm({ onSuccess }: AddCourseBranchMap
                                 <Checkbox id='amcobM_ElectiveFlg' checked={field.value} onCheckedChange={field.onChange} />
                             )}
                         />
-                        <Label htmlFor='amcobM_ElectiveFlg' className='font-semibold cursor-pointer'>Elective Flag</Label>
+                        <label htmlFor='amcobM_ElectiveFlg' className='font-semibold cursor-pointer'>Elective Flag</label>
                     </div>
                     {electiveFlag && (
-                        <div className='space-y-2'>
-                            <Label htmlFor='amcobM_ElectiveIntroYear'>Elective Intro Year <span className='text-destructive'>*</span></Label>
+                        <div className='group flex flex-col gap-1.5'>
+                            <Label isRequired>Elective Intro Year</Label>
                             <Controller
                                 name='amcobM_ElectiveIntroYear'
                                 control={control}
-                                render={({ field }) => (
-                                    <Select value={field.value} onValueChange={field.onChange}>
-                                        <SelectTrigger><SelectValue placeholder='--Select Elective Year--' /></SelectTrigger>
-                                        <SelectContent>
-                                            {electiveYearList.map((yr: any) => (
-                                                <SelectItem key={yr.electiveyearid} value={yr.electiveyearid.toString()}>{yr.electiveyearname}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                render={({ field, fieldState }) => (
+                                    <>
+                                        <Select value={field.value} onValueChange={field.onChange}>
+                                            <SelectTrigger className={fieldState.error ? 'border-destructive focus:ring-destructive/20' : 'transition-colors focus:ring-2 focus:ring-primary/20'}>
+                                                <SelectValue placeholder='--Select Elective Year--' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {electiveYearList.map((yr: any) => (
+                                                    <SelectItem key={yr.electiveyearid} value={yr.electiveyearid.toString()}>{yr.electiveyearname}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        {fieldState.error?.message && <FormError>{fieldState.error.message}</FormError>}
+                                    </>
                                 )}
                             />
-                            {errors.amcobM_ElectiveIntroYear && <FormError>{errors.amcobM_ElectiveIntroYear.message}</FormError>}
                         </div>
                     )}
                 </div>
@@ -278,10 +293,10 @@ export default function AddCourseBranchMapForm({ onSuccess }: AddCourseBranchMap
                             </Button>
                         </div>
                     )}
-                    <Label className='cursor-pointer inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 transition-colors'>
+                    <label className='cursor-pointer inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 transition-colors'>
                         <Upload className='mr-2 h-4 w-4' /> Choose File
                         <input ref={fileRef} type='file' className='hidden' accept='image/*, application/pdf, application/msword, application/vnd.ms-excel' onChange={handleFileChange} />
-                    </Label>
+                    </label>
                 </div>
             </div>
 

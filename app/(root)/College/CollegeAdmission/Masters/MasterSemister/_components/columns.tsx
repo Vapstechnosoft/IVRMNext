@@ -17,12 +17,12 @@ export const masterSemesterColumns: ColumnDef<IClgMasterSemester>[] = [
     {
         accessorKey: 'amsE_SEMName',
         header: () => <div className='text-center font-bold text-black'>Semester Name</div>,
-        cell: ({ row }) => <div className='text-left font-medium'>{row.original.amsE_SEMName}</div>,
+        cell: ({ row }) => <div className='text-center font-medium'>{row.original.amsE_SEMName}</div>,
     },
     {
         accessorKey: 'amsE_SEMCode',
         header: () => <div className='text-center font-bold text-black'>Semester Code</div>,
-        cell: ({ row }) => <div className='text-left'>{row.original.amsE_SEMCode}</div>,
+        cell: ({ row }) => <div className='text-center'>{row.original.amsE_SEMCode}</div>,
     },
     {
         accessorKey: 'amsE_SEMOrder',
@@ -32,7 +32,7 @@ export const masterSemesterColumns: ColumnDef<IClgMasterSemester>[] = [
     {
         accessorKey: 'amsE_SEMInfo',
         header: () => <div className='text-center font-bold text-black'>Semester Info</div>,
-        cell: ({ row }) => <div className='text-left'>{row.original.amsE_SEMInfo}</div>,
+        cell: ({ row }) => <div className='text-center'>{row.original.amsE_SEMInfo}</div>,
     },
     {
         accessorKey: 'amsE_Year',
@@ -42,7 +42,7 @@ export const masterSemesterColumns: ColumnDef<IClgMasterSemester>[] = [
     {
         accessorKey: 'amsE_SEMTypeFlag',
         header: () => <div className='text-center font-bold text-black'>Semester Type</div>,
-        cell: ({ row }) => <div className='text-left'>{row.original.amsE_SEMTypeFlag}</div>,
+        cell: ({ row }) => <div className='text-center'>{row.original.amsE_SEMTypeFlag}</div>,
     },
     {
         accessorKey: 'amsE_EvenOdd',
@@ -52,7 +52,7 @@ export const masterSemesterColumns: ColumnDef<IClgMasterSemester>[] = [
     {
         id: 'actions',
         header: () => <div className='font-bold text-black text-center'>Actions</div>,
-        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
+        cell: ({ row }) => <div className='flex justify-center'><ActionButtonsCell rowData={row.original} /></div>,
         size: 100
     }
 ];

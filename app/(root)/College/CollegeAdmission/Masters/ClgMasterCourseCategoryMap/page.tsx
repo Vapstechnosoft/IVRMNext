@@ -72,7 +72,16 @@ function ClgMasterCourseCategoryMapPageContent({
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                {/* Header removed as per request to not add new */}
+                <div className='flex items-center justify-end'>
+                    <Button
+                        onClick={openAddForm}
+                        size='sm'
+                        variant='default'
+                        className='group w-fit transition-all duration-300 hover:scale-105'>
+                        <Plus className='mr-2 h-4 w-4 transition-transform duration-300 group-hover:rotate-90' />
+                        Add New Map
+                    </Button>
+                </div>
 
                 {/* Data Table Section */}
                 <CollapsibleSection
@@ -116,7 +125,29 @@ function FormSections() {
 
     return (
         <>
-            {/* Add Form removed as per request */}
+            {/* Add Form */}
+            {isAddFormOpen && (
+                <div ref={addFormRef}>
+                    <CollapsibleSection
+                        title='Add Course Category Map'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeAddForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <AddCourseCategoryMapForm onSuccess={closeAddForm} />
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
 
             {/* Edit Form */}
             {isEditFormOpen && selectedRow && (

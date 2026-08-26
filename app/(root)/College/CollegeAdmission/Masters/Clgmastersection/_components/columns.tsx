@@ -17,7 +17,7 @@ export const masterSectionColumns: ColumnDef<IClgMasterSection>[] = [
     {
         accessorKey: 'acmS_SectionName',
         header: () => <div className='text-center font-bold text-black'>Section Name</div>,
-        cell: ({ row }) => <div className='text-left font-medium'>{row.original.acmS_SectionName}</div>,
+        cell: ({ row }) => <div className='text-center font-medium'>{row.original.acmS_SectionName}</div>,
     },
     {
         accessorKey: 'acmS_MaxCapacity',
@@ -27,7 +27,7 @@ export const masterSectionColumns: ColumnDef<IClgMasterSection>[] = [
     {
         accessorKey: 'acmS_SectionCode',
         header: () => <div className='text-center font-bold text-black'>Section Code</div>,
-        cell: ({ row }) => <div className='text-left'>{row.original.acmS_SectionCode}</div>,
+        cell: ({ row }) => <div className='text-center'>{row.original.acmS_SectionCode}</div>,
     },
     {
         accessorKey: 'acmS_Order',
@@ -36,7 +36,7 @@ export const masterSectionColumns: ColumnDef<IClgMasterSection>[] = [
     },
     {
         id: 'actions',
-        header: () => <div className='font-bold text-black text-center'>Actions</div>,
+        header: () => <div className='font-bold text-black '>Actions</div>,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
         size: 100
     }
@@ -62,7 +62,6 @@ function ActionButtonsCell({ rowData }: { rowData: IClgMasterSection }) {
             onEdit={handleEdit}
             onToggle={handleToggle}
             toggleConditionKey='acmS_ActiveFlag'
-            toggleTruthValue={1} // The legacy code uses 1 and 0 for true/false
         />
     );
 }
