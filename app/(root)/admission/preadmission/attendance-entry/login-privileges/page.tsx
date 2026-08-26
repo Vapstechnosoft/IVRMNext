@@ -347,10 +347,14 @@ function PrivilegeForm({
                     return acc;
                 }, []);
 
-                setMappingClassSections(csList);
+                if (csList.length > 0) {
+                    setMappingClassSections(csList);
+                }
 
                 const subList = result.subjectList || result.data?.subjectList || [];
-                setMappingSubjects(subList);
+                if (Array.isArray(subList) && subList.length > 0) {
+                    setMappingSubjects(subList);
+                }
 
                 const privileges =
                     result.loginPrivileges || result.data?.loginPrivileges || result.loginPData || result.data?.loginPData || [];
