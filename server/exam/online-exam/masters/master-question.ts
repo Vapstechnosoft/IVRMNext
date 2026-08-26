@@ -98,8 +98,13 @@ export async function getMasterQuestionList(searchParams?: ApiSearchparams) {
 
 // Save or Update Question details (Tab 1)
 export async function saveMasterQuestion(data: any) {
+    const session = await auth();
+    const miId = data.MI_Id ? Number(data.MI_Id) : session?.mi_id || 30;
+    const userId = session?.user?.roleId || session?.roleId || 231;
     const url = '/LP_OnlineExamFacade/savedetails';
     const payload = {
+        MI_Id: miId,
+        UserId: userId,
         LPMOEQ_Id: data.LPMOEQ_Id ?? data.LMSMOEQ_Id ?? data.lmsmoeQ_Id ?? data.lpmoeQ_Id ?? 0,
         ISMS_Id: data.ISMS_Id ?? data.ismS_Id ?? data.isms_Id ?? 0,
         ASMCL_Id: data.ASMCL_Id ?? data.asmcL_Id ?? data.asmcl_Id ?? 0,
@@ -114,10 +119,10 @@ export async function saveMasterQuestion(data: any) {
         LPMOEQ_Answer: data.LPMOEQ_Answer || '',
         tempoptionsDTO: (data.tempoptionsDTO || data.questionOptions || []).map((opt: any, idx: number) => ({
             LPMOEQOA_Id: opt.LPMOEQOA_Id ?? opt.lmsmoeqoA_Id ?? 0,
-            LPMOEQOA_Option: opt.LPMOEQOA_Option ?? opt.lmsmoeqoA_Option ?? opt.option ?? '',
+            LPMOEQOA_Option: opt.LPMOEQOA_Option ?? opt.lmsmoeqoA_Option ?? opt.LMSMOEQOA_Option ?? opt.option ?? '',
             LPMOEQOA_OptionCode: opt.LPMOEQOA_OptionCode ?? String.fromCharCode(65 + idx),
-            LPMOEQOA_AnswerFlag: Boolean(opt.LPMOEQOA_AnswerFlag ?? opt.lmsmoeqoA_AnswerFlag ?? false),
-            LPMOEQOA_Marks: Number(opt.LPMOEQOA_Marks ?? opt.lmsmoeqoA_Marks ?? 1),
+            LPMOEQOA_AnswerFlag: Boolean(opt.LPMOEQOA_AnswerFlag ?? opt.lmsmoeqoA_AnswerFlag ?? opt.LMSMOEQOA_AnswerFlag ?? false),
+            LPMOEQOA_Marks: Number(opt.LPMOEQOA_Marks ?? opt.lmsmoeqoA_Marks ?? opt.LMSMOEQOA_Marks ?? 1),
             LPMOEQOA_Order: idx + 1
         })),
         tempfilesDTO: (data.tempfilesDTO || data.questionFiles || []).map((file: any) => ({
