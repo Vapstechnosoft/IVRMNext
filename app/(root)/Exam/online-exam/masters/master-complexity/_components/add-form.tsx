@@ -1,7 +1,9 @@
 'use client';
-import { FieldContainer } from '@/components/ui/form/field-container';
-import { FormActions } from '@/components/ui/form/form-actions';
-import { InputText } from '@/components/ui/form/input-text';
+
+import { Button } from '@/components/ui/button';
+import { InputText } from '@/components/ui/extension/input-text';
+import { InputTextarea } from '@/components/ui/extension/input-textarea';
+import { Label } from '@/components/ui/label';
 import { useMasterComplexity, useSaveMasterComplexity } from '@/hooks/exam/online-exam/useMasters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -74,12 +76,16 @@ export default function AddMasterComplexityForm({ onSuccess, onCancel }: AddMast
         <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                 {/* Complexity Name */}
-                <FieldContainer label='Complexity Name' required error={errors.lpmcomP_ComplexityName?.message}>
-                    <InputText {...register('lpmcomP_ComplexityName')} placeholder='e.g., Easy, Medium, Hard' className='w-full' />
-                </FieldContainer>
+                <div className='space-y-2'>
+                    <Label htmlFor='lpmcomP_ComplexityName'>
+                        Complexity Name <span className='text-destructive'>*</span>
+                    </Label>
+                    <InputText id='lpmcomP_ComplexityName' {...register('lpmcomP_ComplexityName')} placeholder='e.g., Easy, Medium, Hard' />
+                    {errors.lpmcomP_ComplexityName && <p className='text-destructive text-xs'>{errors.lpmcomP_ComplexityName.message}</p>}
+                </div>
 
                 {/* Default Flag Checkbox */}
-                <div className='flex items-center pt-6'>
+                <div className='flex items-center pt-8'>
                     <label className='flex cursor-pointer items-center gap-2 font-medium text-sm'>
                         <input
                             type='checkbox'
@@ -91,20 +97,27 @@ export default function AddMasterComplexityForm({ onSuccess, onCancel }: AddMast
                 </div>
 
                 {/* Complexity Description */}
-                <div className='md:col-span-2'>
-                    <FieldContainer label='Complexity Description' error={errors.lpmcomP_ComplexityDesc?.message}>
-                        <textarea
-                            {...register('lpmcomP_ComplexityDesc')}
-                            rows={3}
-                            placeholder='Enter complexity description...'
-                            className='w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
-                        />
-                    </FieldContainer>
+                <div className='space-y-2 md:col-span-2'>
+                    <Label htmlFor='lpmcomP_ComplexityDesc'>Complexity Description</Label>
+                    <InputTextarea
+                        id='lpmcomP_ComplexityDesc'
+                        {...register('lpmcomP_ComplexityDesc')}
+                        rows={3}
+                        placeholder='Enter complexity description...'
+                    />
+                    {errors.lpmcomP_ComplexityDesc && <p className='text-destructive text-xs'>{errors.lpmcomP_ComplexityDesc.message}</p>}
                 </div>
             </div>
 
             {/* Form Actions */}
-            <FormActions submitLabel='Save Complexity' isSubmitting={isSubmitting} onCancel={onCancel} />
+            <div className='flex justify-end gap-3 border-t pt-4'>
+                <Button type='button' variant='outline' onClick={onCancel} disabled={isSubmitting}>
+                    Cancel
+                </Button>
+                <Button type='submit' disabled={isSubmitting}>
+                    {isSubmitting ? 'Saving...' : 'Save Complexity'}
+                </Button>
+            </div>
         </form>
     );
 }
