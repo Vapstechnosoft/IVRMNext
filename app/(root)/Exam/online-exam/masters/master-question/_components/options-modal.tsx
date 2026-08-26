@@ -25,16 +25,26 @@ export default function QuestionOptionsModal({ question, open, onClose }: Questi
 
     useEffect(() => {
         if (initialOptions && Array.isArray(initialOptions) && initialOptions.length > 0) {
-            setOptions(initialOptions);
+            setOptions(
+                initialOptions.map((opt, idx) => ({
+                    ...opt,
+                    lmsmoeqoA_Option: opt.lmsmoeqoA_Option || (opt as any).lpmoeqoA_Option || `Option ${String.fromCharCode(65 + idx)}`
+                }))
+            );
         } else if (question?.questionOptions && question.questionOptions.length > 0) {
-            setOptions(question.questionOptions);
+            setOptions(
+                question.questionOptions.map((opt, idx) => ({
+                    ...opt,
+                    lmsmoeqoA_Option: opt.lmsmoeqoA_Option || `Option ${String.fromCharCode(65 + idx)}`
+                }))
+            );
         } else {
-            // Default with 4 options
+            // Default with 4 prefilled options
             setOptions([
-                { lmsmoeqoA_Option: '', lmsmoeqoA_AnswerFlag: true, lmsmoeqoA_Marks: 1, lmsmoeqoA_OptionOrder: 1 },
-                { lmsmoeqoA_Option: '', lmsmoeqoA_AnswerFlag: false, lmsmoeqoA_Marks: 0, lmsmoeqoA_OptionOrder: 2 },
-                { lmsmoeqoA_Option: '', lmsmoeqoA_AnswerFlag: false, lmsmoeqoA_Marks: 0, lmsmoeqoA_OptionOrder: 3 },
-                { lmsmoeqoA_Option: '', lmsmoeqoA_AnswerFlag: false, lmsmoeqoA_Marks: 0, lmsmoeqoA_OptionOrder: 4 }
+                { lmsmoeqoA_Option: 'Option A', lmsmoeqoA_AnswerFlag: true, lmsmoeqoA_Marks: 1, lmsmoeqoA_OptionOrder: 1 },
+                { lmsmoeqoA_Option: 'Option B', lmsmoeqoA_AnswerFlag: false, lmsmoeqoA_Marks: 0, lmsmoeqoA_OptionOrder: 2 },
+                { lmsmoeqoA_Option: 'Option C', lmsmoeqoA_AnswerFlag: false, lmsmoeqoA_Marks: 0, lmsmoeqoA_OptionOrder: 3 },
+                { lmsmoeqoA_Option: 'Option D', lmsmoeqoA_AnswerFlag: false, lmsmoeqoA_Marks: 0, lmsmoeqoA_OptionOrder: 4 }
             ]);
         }
     }, [initialOptions, question]);
@@ -43,7 +53,7 @@ export default function QuestionOptionsModal({ question, open, onClose }: Questi
         setOptions((prev) => [
             ...prev,
             {
-                lmsmoeqoA_Option: '',
+                lmsmoeqoA_Option: `Option ${String.fromCharCode(65 + prev.length)}`,
                 lmsmoeqoA_AnswerFlag: false,
                 lmsmoeqoA_Marks: 0,
                 lmsmoeqoA_OptionOrder: prev.length + 1
@@ -80,14 +90,18 @@ export default function QuestionOptionsModal({ question, open, onClose }: Questi
     const handleSave = async () => {
         if (!question) return;
 
-        // Validation: user must enter text for at least 2 options
-        const validOptions = options.filter((o) => o.lmsmoeqoA_Option && o.lmsmoeqoA_Option.trim() !== '');
-        if (validOptions.length < 2) {
-            toast.error('Please enter text for at least 2 options for this question.');
+        // Auto-fill any blank option names so saving never fails on placeholder ambiguity
+        const sanitizedOptions = options.map((o, idx) => ({
+            ...o,
+            lmsmoeqoA_Option: o.lmsmoeqoA_Option?.trim() || `Option ${String.fromCharCode(65 + idx)}`
+        }));
+
+        if (sanitizedOptions.length < 2) {
+            toast.error('Please enter at least 2 options for this question.');
             return;
         }
 
-        const hasCorrect = validOptions.some((o) => o.lmsmoeqoA_AnswerFlag);
+        const hasCorrect = sanitizedOptions.some((o) => o.lmsmoeqoA_AnswerFlag);
         if (!hasCorrect) {
             toast.error('Please select at least one option as the Correct Answer.');
             return;
@@ -102,7 +116,7 @@ export default function QuestionOptionsModal({ question, open, onClose }: Questi
                 LPMOEQ_Question: question.lmsmoeQ_Question,
                 LPMOEQ_Marks: question.lmsmoeQ_Marks,
                 LPMCOMP_Id: question.lmsmoecX_Id || 1,
-                tempoptionsDTO: validOptions.map((o, idx) => ({
+                tempoptionsDTO: sanitizedOptions.map((o, idx) => ({
                     LPMOEQOA_Id: o.lmsmoeqoA_Id || (o as any).lpmoeqoA_Id || 0,
                     LPMOEQOA_Option: o.lmsmoeqoA_Option.trim(),
                     LPMOEQOA_OptionCode: String.fromCharCode(65 + idx),
