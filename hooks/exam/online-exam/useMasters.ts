@@ -126,3 +126,72 @@ export function useMasterQuestionCollege(searchParams?: ApiSearchparams) {
         }
     };
 }
+
+// Hook for Master Complexity
+export function useMasterComplexity(searchParams?: ApiSearchparams, options?: { enabled?: boolean }) {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['MASTER_COMPLEXITY', searchParams ?? {}],
+        queryFn: async () => {
+            const miId = searchParams?.MI_Id || 30;
+            const res = await fetch(`/api/exam/master-complexity?MI_Id=${miId}`, {
+                cache: 'no-store'
+            });
+            if (!res.ok) {
+                throw new Error('Failed to fetch master complexity');
+            }
+            const json = await res.json();
+            return json?.data || {};
+        },
+        staleTime: 0,
+        enabled: options?.enabled ?? true
+    });
+
+    return {
+        ...query,
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: ['MASTER_COMPLEXITY']
+            });
+        }
+    };
+}
+
+// Hook to Save / Update Master Complexity
+export function useSaveMasterComplexity() {
+    const queryClient = useQueryClient();
+    return {
+        mutateAsync: async (payload: any) => {
+            const res = await fetch('/api/exam/master-complexity', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'save', ...payload })
+            });
+            const json = await res.json();
+            await queryClient.invalidateQueries({
+                queryKey: ['MASTER_COMPLEXITY']
+            });
+            return json;
+        }
+    };
+}
+
+// Hook to Toggle Master Complexity Status
+export function useToggleMasterComplexity() {
+    const queryClient = useQueryClient();
+    return {
+        mutateAsync: async (complexityId: number) => {
+            const res = await fetch('/api/exam/master-complexity', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'toggle', LPMCOMP_Id: complexityId, MI_Id: 30 })
+            });
+            const json = await res.json();
+            await queryClient.invalidateQueries({
+                queryKey: ['MASTER_COMPLEXITY']
+            });
+            return json;
+        }
+    };
+}

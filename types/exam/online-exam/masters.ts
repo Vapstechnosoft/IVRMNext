@@ -133,3 +133,17 @@ export interface IMasterQuestionCollegeInitialData {
     getComplexity?: IComplexityDropdown[];
     questionList: IMasterQuestionCollegeList[];
 }
+
+export interface IMasterComplexity {
+    lpmcomP_Id: number;
+    lpmcomP_ComplexityName: string;
+    lpmcomP_ComplexityDesc?: string;
+    lpmcomP_DefaultFlg?: boolean;
+    lpmcomP_ActiveFlg: boolean;
+    lpmcomP_CreatedDate?: string;
+    lpmcomP_UpdatedDate?: string;
+}
+
+export interface IMasterComplexityInitialData {
+    getMasterComplexitiesdetails: IMasterComplexity[];
+}
