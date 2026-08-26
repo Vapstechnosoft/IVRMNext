@@ -48,7 +48,7 @@ export default function AddMasterQuestionForm({ subjects = [], complexities = []
         name: 'options'
     });
 
-    const handleAddOption = () => {
+    const addOptionRow = () => {
         append({
             lmsmoeqoA_Option: '',
             lmsmoeqoA_AnswerFlag: false,
