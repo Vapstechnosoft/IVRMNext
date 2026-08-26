@@ -62,26 +62,30 @@ export const getMasterQuestionColumns = ({
     {
         id: 'mappings',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Mappings & Options' className='text-center' />,
-        cell: ({ row }) => (
-            <div className='flex items-center justify-center gap-2'>
-                <Button
-                    size='sm'
-                    variant='outline'
-                    className='flex h-8 items-center gap-1.5 text-xs hover:border-primary'
-                    onClick={() => onOpenClassMappingModal(row.original)}>
-                    <Layers className='h-3.5 w-3.5 text-blue-500' />
-                    Classes
-                </Button>
-                <Button
-                    size='sm'
-                    variant='outline'
-                    className='flex h-8 items-center gap-1.5 text-xs hover:border-primary'
-                    onClick={() => onOpenOptionsModal(row.original)}>
-                    <BookOpen className='h-3.5 w-3.5 text-emerald-500' />
-                    Options
-                </Button>
-            </div>
-        ),
+        cell: ({ row }) => {
+            const q = row.original;
+            const className = q.asmcL_ClassName && q.asmcL_ClassName !== 'N/A' && q.asmcL_ClassName !== '' ? q.asmcL_ClassName : null;
+            return (
+                <div className='flex items-center justify-center gap-2'>
+                    <Button
+                        size='sm'
+                        variant='outline'
+                        className='flex h-8 items-center gap-1.5 text-xs hover:border-primary'
+                        onClick={() => onOpenClassMappingModal(row.original)}>
+                        <Layers className='h-3.5 w-3.5 text-blue-500' />
+                        {className ? `Class: ${className}` : 'Classes'}
+                    </Button>
+                    <Button
+                        size='sm'
+                        variant='outline'
+                        className='flex h-8 items-center gap-1.5 text-xs hover:border-primary'
+                        onClick={() => onOpenOptionsModal(row.original)}>
+                        <BookOpen className='h-3.5 w-3.5 text-emerald-500' />
+                        Options
+                    </Button>
+                </div>
+            );
+        },
         enableSorting: false
     },
     {

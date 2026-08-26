@@ -24,6 +24,8 @@ export default function ClassMappingModal({ question, classes = [], open, onClos
     useEffect(() => {
         if (question?.classList && question.classList.length > 0) {
             setSelectedClassIds(question.classList.map((c) => c.asmcL_Id));
+        } else if (question?.asmcL_Id && question.asmcL_Id > 0) {
+            setSelectedClassIds([question.asmcL_Id]);
         } else {
             setSelectedClassIds([]);
         }
