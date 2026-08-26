@@ -5,13 +5,14 @@ import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 // Hook for Master Question (School)
-export function useMasterQuestion(searchParams?: ApiSearchparams) {
+export function useMasterQuestion(searchParams?: ApiSearchparams, options?: { enabled?: boolean }) {
     const queryClient = useQueryClient();
 
     const query = useQuery({
         queryKey: [ONLINE_EXAM_QUERY_KEYS.MASTER_QUESTION, searchParams ?? {}],
         queryFn: async () => getMasterQuestionInitialData(searchParams),
-        staleTime: 0
+        staleTime: 0,
+        enabled: options?.enabled ?? true
     });
 
     return {

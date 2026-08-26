@@ -17,7 +17,7 @@ interface QuestionOptionsModalProps {
 }
 
 export default function QuestionOptionsModal({ question, open, onClose }: QuestionOptionsModalProps) {
-    const { refetchAll } = useMasterQuestion();
+    const { refetchAll } = useMasterQuestion(undefined, { enabled: false });
     const { data: initialOptions, isLoading: isOptionsLoading } = useQuestionOptions(question?.lmsmoeQ_Id ?? null);
 
     const [options, setOptions] = useState<IQuestionOption[]>([]);

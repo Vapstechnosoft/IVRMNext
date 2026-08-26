@@ -17,7 +17,7 @@ interface ClassMappingModalProps {
 }
 
 export default function ClassMappingModal({ question, classes = [], open, onClose }: ClassMappingModalProps) {
-    const { refetchAll } = useMasterQuestion();
+    const { refetchAll } = useMasterQuestion(undefined, { enabled: false });
     const [selectedClassIds, setSelectedClassIds] = useState<number[]>([]);
     const [isSaving, setIsSaving] = useState(false);
 

@@ -30,7 +30,7 @@ export default function UpdateMasterQuestionForm({
     onSuccess,
     onCancel
 }: UpdateMasterQuestionFormProps) {
-    const { refetchAll } = useMasterQuestion();
+    const { refetchAll } = useMasterQuestion(undefined, { enabled: false });
 
     const {
         register,

@@ -14,7 +14,7 @@ interface ToggleQuestionFormProps {
 }
 
 export default function ToggleQuestionForm({ rowData, onClose }: ToggleQuestionFormProps) {
-    const { refetchAll } = useMasterQuestion();
+    const { refetchAll } = useMasterQuestion(undefined, { enabled: false });
     const [isLoading, setIsLoading] = useState(false);
     const isActive = rowData.lmsmoeQ_ActiveFlg;
 

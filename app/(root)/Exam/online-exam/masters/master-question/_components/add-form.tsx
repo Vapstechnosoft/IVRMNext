@@ -25,7 +25,7 @@ interface AddMasterQuestionFormProps {
 }
 
 export default function AddMasterQuestionForm({ subjects = [], complexities = [], onSuccess, onCancel }: AddMasterQuestionFormProps) {
-    const { refetchAll } = useMasterQuestion();
+    const { refetchAll } = useMasterQuestion(undefined, { enabled: false });
     const [fileList, setFileList] = useState<{ fileName: string; filePath: string; fileType: string }[]>([]);
 
     const {
