@@ -3,8 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { InputText } from '@/components/ui/extension/input-text';
-import { useMasterQuestion, useQuestionOptions } from '@/hooks/exam/online-exam/useMasters';
-import { saveQuestionOptions } from '@/server/exam/online-exam/masters/master-question';
+import { useMasterQuestion, useQuestionOptions, useSaveMasterQuestion } from '@/hooks/exam/online-exam/useMasters';
 import type { IMasterQuestionList, IQuestionOption } from '@/types/exam/online-exam/masters';
 import { Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -18,6 +17,7 @@ interface QuestionOptionsModalProps {
 
 export default function QuestionOptionsModal({ question, open, onClose }: QuestionOptionsModalProps) {
     const { refetchAll } = useMasterQuestion(undefined, { enabled: false });
+    const saveMutation = useSaveMasterQuestion();
     const { data: initialOptions, isLoading: isOptionsLoading } = useQuestionOptions(question?.lmsmoeQ_Id ?? null);
 
     const [options, setOptions] = useState<IQuestionOption[]>([]);
@@ -29,7 +29,7 @@ export default function QuestionOptionsModal({ question, open, onClose }: Questi
         } else if (question?.questionOptions && question.questionOptions.length > 0) {
             setOptions(question.questionOptions);
         } else {
-            // Default with 4 blank options
+            // Default with 4 options
             setOptions([
                 { lmsmoeqoA_Option: '', lmsmoeqoA_AnswerFlag: true, lmsmoeqoA_Marks: 1, lmsmoeqoA_OptionOrder: 1 },
                 { lmsmoeqoA_Option: '', lmsmoeqoA_AnswerFlag: false, lmsmoeqoA_Marks: 0, lmsmoeqoA_OptionOrder: 2 },
@@ -59,12 +59,17 @@ export default function QuestionOptionsModal({ question, open, onClose }: Questi
         setOptions((prev) => prev.map((opt, i) => (i === index ? { ...opt, lmsmoeqoA_Option: text } : opt)));
     };
 
-    const handleAnswerFlagChange = (index: number) => {
+    const handleAnswerFlagToggle = (index: number) => {
         setOptions((prev) =>
-            prev.map((opt, i) => ({
-                ...opt,
-                lmsmoeqoA_AnswerFlag: i === index
-            }))
+            prev.map((opt, i) =>
+                i === index
+                    ? {
+                          ...opt,
+                          lmsmoeqoA_AnswerFlag: !opt.lmsmoeqoA_AnswerFlag,
+                          lmsmoeqoA_Marks: !opt.lmsmoeqoA_AnswerFlag ? opt.lmsmoeqoA_Marks || 1 : 0
+                      }
+                    : opt
+            )
         );
     };
 
@@ -75,42 +80,48 @@ export default function QuestionOptionsModal({ question, open, onClose }: Questi
     const handleSave = async () => {
         if (!question) return;
 
-        // Validation
-        const validOptions = options.filter((o) => o.lmsmoeqoA_Option.trim() !== '');
+        // Validation: user must enter text for at least 2 options
+        const validOptions = options.filter((o) => o.lmsmoeqoA_Option && o.lmsmoeqoA_Option.trim() !== '');
         if (validOptions.length < 2) {
-            toast.error('Please enter at least 2 options for this question.');
+            toast.error('Please enter text for at least 2 options for this question.');
             return;
         }
 
         const hasCorrect = validOptions.some((o) => o.lmsmoeqoA_AnswerFlag);
         if (!hasCorrect) {
-            toast.error('Please mark at least one option as the Correct Answer.');
+            toast.error('Please select at least one option as the Correct Answer.');
             return;
         }
 
         setIsSaving(true);
         try {
             const payload = {
-                LMSMOEQ_Id: question.lmsmoeQ_Id,
-                optiondetails: validOptions.map((o, idx) => ({
-                    LMSMOEQOA_Id: o.lmsmoeqoA_Id || 0,
-                    LMSMOEQOA_Option: o.lmsmoeqoA_Option.trim(),
-                    LMSMOEQOA_AnswerFlag: o.lmsmoeqoA_AnswerFlag,
-                    LMSMOEQOA_Marks: Number(o.lmsmoeqoA_Marks || (o.lmsmoeqoA_AnswerFlag ? question.lmsmoeQ_Marks : 0)),
-                    LMSMOEQOA_OptionOrder: idx + 1
+                MI_Id: 30,
+                LPMOEQ_Id: question.lmsmoeQ_Id || (question as any).lpmoeQ_Id,
+                ISMS_Id: question.ismS_Id,
+                LPMOEQ_Question: question.lmsmoeQ_Question,
+                LPMOEQ_Marks: question.lmsmoeQ_Marks,
+                LPMCOMP_Id: question.lmsmoecX_Id || 1,
+                tempoptionsDTO: validOptions.map((o, idx) => ({
+                    LPMOEQOA_Id: o.lmsmoeqoA_Id || (o as any).lpmoeqoA_Id || 0,
+                    LPMOEQOA_Option: o.lmsmoeqoA_Option.trim(),
+                    LPMOEQOA_OptionCode: String.fromCharCode(65 + idx),
+                    LPMOEQOA_AnswerFlag: Boolean(o.lmsmoeqoA_AnswerFlag),
+                    LPMOEQOA_Marks: Number(o.lmsmoeqoA_Marks || (o.lmsmoeqoA_AnswerFlag ? question.lmsmoeQ_Marks || 1 : 0)),
+                    LPMOEQOA_Order: idx + 1
                 }))
             };
 
-            const response = await saveQuestionOptions(payload);
-            if (response?.success || response?.returnval === true || !response?.error) {
+            const response = await saveMutation.mutateAsync(payload);
+            if (response?.success !== false && !response?.error) {
                 toast.success('Question options saved successfully!');
                 refetchAll();
                 onClose();
             } else {
-                toast.error(response?.message || 'Failed to save options');
+                toast.error(response?.message || response?.error || 'Failed to save options');
             }
         } catch (error: any) {
-            toast.error(error?.message || 'An error occurred');
+            toast.error(error?.message || 'An error occurred while saving options');
         } finally {
             setIsSaving(false);
         }
@@ -122,7 +133,7 @@ export default function QuestionOptionsModal({ question, open, onClose }: Questi
                 <DialogHeader>
                     <DialogTitle className='font-bold text-lg'>Manage Question Options</DialogTitle>
                     <DialogDescription className='text-muted-foreground text-xs'>
-                        Configure multiple-choice answers, correct option, and marks
+                        Configure multiple-choice answers, select 1 or more correct options, and set marks
                     </DialogDescription>
                 </DialogHeader>
 
@@ -152,7 +163,7 @@ export default function QuestionOptionsModal({ question, open, onClose }: Questi
                                     <InputText
                                         value={opt.lmsmoeqoA_Option}
                                         onChange={(e) => handleOptionTextChange(idx, e.target.value)}
-                                        placeholder={`Option ${String.fromCharCode(65 + idx)} text`}
+                                        placeholder={`Option ${String.fromCharCode(65 + idx)} text (e.g. Answer)`}
                                         className='h-9'
                                     />
                                 </div>
@@ -170,11 +181,10 @@ export default function QuestionOptionsModal({ question, open, onClose }: Questi
 
                                 <label className='flex cursor-pointer items-center gap-1.5 rounded-md border border-input px-2 py-1.5 font-semibold text-xs hover:bg-muted'>
                                     <input
-                                        type='radio'
-                                        name='correctAnswer'
-                                        checked={opt.lmsmoeqoA_AnswerFlag}
-                                        onChange={() => handleAnswerFlagChange(idx)}
-                                        className='h-4 w-4 text-emerald-600'
+                                        type='checkbox'
+                                        checked={Boolean(opt.lmsmoeqoA_AnswerFlag)}
+                                        onChange={() => handleAnswerFlagToggle(idx)}
+                                        className='h-4 w-4 rounded accent-emerald-600'
                                     />
                                     Correct
                                 </label>
