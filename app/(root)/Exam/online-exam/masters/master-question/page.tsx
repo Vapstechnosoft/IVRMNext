@@ -13,6 +13,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useMasterQuestion } from '@/hooks/exam/online-exam/useMasters';
 import type { IMasterQuestionList } from '@/types/exam/online-exam/masters';
 import { Plus, X } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 import { use, useMemo, useState } from 'react';
 import AddMasterQuestionForm from './_components/add-form';
 import ClassMappingModal from './_components/class-mapping-modal';
@@ -24,8 +25,12 @@ import UpdateMasterQuestionForm from './_components/update-form';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterQuestionPage(props: { searchParams: SearchParams }) {
-    const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useMasterQuestion(searchParams);
+    const searchParamsPromise = use(props.searchParams);
+    const searchParamsHook = useSearchParams();
+    const miId = searchParamsHook.get('MI_Id') || (searchParamsPromise as any)?.MI_Id;
+    const queryParams = useMemo(() => (miId ? { MI_Id: String(miId) } : {}), [miId]);
+
+    const { data: response, isLoading, error } = useMasterQuestion(queryParams);
 
     return (
         <FormProvider<IMasterQuestionList>>
@@ -62,7 +67,7 @@ function MasterQuestionPageContent({
     const rawComplexities = extractArray(initialData?.getComplexity || initialData?.getarratcomplexities || initialData?.arrayComplexity);
     const complexities = rawComplexities.map((c: any) => ({
         lmsmoecX_Id: c.lmsmoecX_Id ?? c.lpmcomP_Id ?? c.lpmcomp_Id ?? 0,
-        lmsmoecX_ComplexityName: c.lmsmoecX_ComplexityName ?? c.lpmcomP_ComplexityName ?? c.lpmcomp_ComplexityName ?? ''
+        lmsmoecX_ComplexityName: c.lmsmoecX_ComplexityName ?? c.lpmcomP_ComplexityName ?? c.lpmcomp_ComplexityName ?? 'Standard'
     }));
 
     const columns = useMemo(

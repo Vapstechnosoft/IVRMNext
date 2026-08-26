@@ -16,52 +16,75 @@ function extractArray(obj: any): any[] {
 export async function getMasterQuestionInitialData(searchParams?: ApiSearchparams) {
     try {
         const session = await auth();
-        const miId = searchParams?.MI_Id ? Number(searchParams.MI_Id) : session?.mi_id || 30;
+        let miId = 4;
+        if (searchParams?.MI_Id) {
+            miId = Number(searchParams.MI_Id);
+        } else if (session?.mi_id) {
+            miId = Number(session.mi_id);
+        }
+
+        console.log(`[OnlineExam] Fetching master question initial data for MI_Id: ${miId}`);
         const url = '/LP_OnlineExamFacade/getloaddata';
         const res = await api.post<any>('exam', url, { MI_Id: miId });
         const raw = res?.data?.data || res?.data || res || {};
+
+        const rawSubjects = extractArray(raw.getSubjects || raw.getsubjectlist || raw.getsubjects || raw.getsubjectlistarray);
+        const rawClasses = extractArray(raw.getClass || raw.getclasslist || raw.getclass);
+        const rawComplexities = extractArray(raw.getComplexity || raw.getarratcomplexities || raw.arrayComplexity);
+        const rawQuestions = extractArray(
+            raw.questionList || raw.getMasterQuestiondetails || raw.masterQuestiondetails || raw.getmasterquestiondetails
+        );
+
         const normalizedData: IMasterQuestionInitialData = {
-            getSubjects: extractArray(raw.getSubjects || raw.getsubjectlist || raw.getsubjects || raw.getsubjectlistarray).map(
-                (s: any) => ({
-                    ismS_Id: s.ismS_Id ?? s.isms_Id ?? s.ISMS_Id ?? 0,
-                    ismS_SubjectName: s.ismS_SubjectName ?? s.isms_SubjectName ?? s.ISMS_SubjectName ?? ''
-                })
-            ),
-            getClass: extractArray(raw.getClass || raw.getclasslist || raw.getclass).map((c: any) => ({
-                asmcL_Id: c.asmcL_Id ?? c.asmcl_Id ?? c.ASMCL_Id ?? 0,
-                asmcL_ClassName: c.asmcL_ClassName ?? c.asmcl_ClassName ?? c.ASMCL_ClassName ?? ''
+            getSubjects: rawSubjects.map((s: any) => ({
+                ismS_Id: Number(s.ismS_Id ?? s.isms_Id ?? s.ISMS_Id ?? s.id ?? 0),
+                ismS_SubjectName: String(s.ismS_SubjectName ?? s.isms_SubjectName ?? s.ISMS_SubjectName ?? s.subjectName ?? s.name ?? '')
+            })),
+            getClass: rawClasses.map((c: any) => ({
+                asmcL_Id: Number(c.asmcL_Id ?? c.asmcl_Id ?? c.ASMCL_Id ?? c.id ?? 0),
+                asmcL_ClassName: String(c.asmcL_ClassName ?? c.asmcl_ClassName ?? c.ASMCL_ClassName ?? c.className ?? c.name ?? '')
             })),
             getSection: extractArray(raw.getSection || raw.getsectionlist),
-            getComplexity: extractArray(raw.getComplexity || raw.getarratcomplexities || raw.arrayComplexity).map((c: any) => ({
-                lmsmoecX_Id: c.lmsmoecX_Id ?? c.lpmcomP_Id ?? c.lpmcomp_Id ?? c.LPMCOMP_Id ?? 0,
-                lmsmoecX_ComplexityName:
+            getComplexity: rawComplexities.map((c: any) => ({
+                lmsmoecX_Id: Number(c.lmsmoecX_Id ?? c.lpmcomP_Id ?? c.lpmcomp_Id ?? c.LPMCOMP_Id ?? c.id ?? 0),
+                lmsmoecX_ComplexityName: String(
                     c.lmsmoecX_ComplexityName ??
-                    c.lpmcomP_ComplexityName ??
-                    c.lpmcomp_ComplexityName ??
-                    c.LPMCOMP_ComplexityName ??
-                    'Standard'
+                        c.lpmcomP_ComplexityName ??
+                        c.lpmcomp_ComplexityName ??
+                        c.LPMCOMP_ComplexityName ??
+                        c.name ??
+                        'Standard'
+                )
             })),
-            questionList: extractArray(raw.questionList || raw.getMasterQuestiondetails || raw.masterQuestiondetails).map((q: any) => ({
-                lmsmoeQ_Id: q.lmsmoeQ_Id ?? q.lpmoeQ_Id ?? q.LPMOEQ_Id ?? 0,
-                lmsmoeQ_Question: q.lmsmoeQ_Question ?? q.lpmoeQ_Question ?? q.LPMOEQ_Question ?? '',
-                lmsmoeQ_QuestionDesc: q.lmsmoeQ_QuestionDesc ?? q.lpmoeQ_QuestionDesc ?? q.LPMOEQ_QuestionDesc ?? '',
-                ismS_Id: q.ismS_Id ?? q.isms_Id ?? q.ISMS_Id ?? 0,
-                ismS_SubjectName: q.ismS_SubjectName ?? q.isms_SubjectName ?? q.ISMS_SubjectName ?? '',
-                asmcL_Id: q.asmcL_Id ?? q.asmcl_Id ?? q.ASMCL_Id ?? 0,
-                asmcL_ClassName: q.asmcL_ClassName ?? q.asmcl_ClassName ?? q.ASMCL_ClassName ?? '',
-                lmsmoeQ_Marks: q.lmsmoeQ_Marks ?? q.lpmoeQ_Marks ?? q.LPMOEQ_Marks ?? 1,
-                lmsmoecX_Id: q.lmsmoecX_Id ?? q.lpmcomP_Id ?? q.lpmcomp_Id ?? q.LPMCOMP_Id ?? 0,
-                lmsmoecX_ComplexityName:
+            questionList: rawQuestions.map((q: any) => ({
+                lmsmoeQ_Id: Number(q.lmsmoeQ_Id ?? q.lpmoeQ_Id ?? q.LPMOEQ_Id ?? q.id ?? 0),
+                lmsmoeQ_Question: String(q.lmsmoeQ_Question ?? q.lpmoeQ_Question ?? q.LPMOEQ_Question ?? q.question ?? ''),
+                lmsmoeQ_QuestionDesc: String(
+                    q.lmsmoeQ_QuestionDesc ?? q.lpmoeQ_QuestionDesc ?? q.LPMOEQ_QuestionDesc ?? q.questionDesc ?? ''
+                ),
+                ismS_Id: Number(q.ismS_Id ?? q.isms_Id ?? q.ISMS_Id ?? 0),
+                ismS_SubjectName: String(q.ismS_SubjectName ?? q.isms_SubjectName ?? q.ISMS_SubjectName ?? ''),
+                asmcL_Id: Number(q.asmcL_Id ?? q.asmcl_Id ?? q.ASMCL_Id ?? 0),
+                asmcL_ClassName: String(q.asmcL_ClassName ?? q.asmcl_ClassName ?? q.ASMCL_ClassName ?? ''),
+                lmsmoeQ_Marks: Number(q.lmsmoeQ_Marks ?? q.lpmoeQ_Marks ?? q.LPMOEQ_Marks ?? 1),
+                lmsmoecX_Id: Number(q.lmsmoecX_Id ?? q.lpmcomP_Id ?? q.lpmcomp_Id ?? q.LPMCOMP_Id ?? 0),
+                lmsmoecX_ComplexityName: String(
                     q.lmsmoecX_ComplexityName ??
-                    q.lpmcomP_ComplexityName ??
-                    q.lpmcomp_ComplexityName ??
-                    q.LPMCOMP_ComplexityName ??
-                    'Standard',
-                lmsmoeQ_ActiveFlg: q.lmsmoeQ_ActiveFlg ?? q.lpmoeQ_ActiveFlg ?? q.LPMOEQ_ActiveFlg ?? true,
-                countoption: q.countoption ?? q.countOption ?? 0,
-                countdoc: q.countdoc ?? q.countDoc ?? 0
+                        q.lpmcomP_ComplexityName ??
+                        q.lpmcomp_ComplexityName ??
+                        q.LPMCOMP_ComplexityName ??
+                        'Standard'
+                ),
+                lmsmoeQ_ActiveFlg: Boolean(q.lmsmoeQ_ActiveFlg ?? q.lpmoeQ_ActiveFlg ?? q.LPMOEQ_ActiveFlg ?? true),
+                countoption: Number(q.countoption ?? q.countOption ?? 0),
+                countdoc: Number(q.countdoc ?? q.countDoc ?? 0)
             }))
         };
+
+        console.log(
+            `[OnlineExam] Loaded: ${normalizedData.getSubjects.length} subjects, ${normalizedData.getClass.length} classes, ${normalizedData.questionList.length} questions`
+        );
+
         return {
             success: true,
             data: normalizedData

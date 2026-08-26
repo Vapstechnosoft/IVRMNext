@@ -125,13 +125,16 @@ export default function AddMasterQuestionForm({ subjects = [], complexities = []
                         {...register('ismS_Id', { valueAsNumber: true })}
                         className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:font-medium file:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'>
                         <option value=''>-- Select Subject --</option>
-                        {subjects?.map((sub) => (
-                            <option
-                                key={sub.ismS_Id || (sub as any).isms_Id || (sub as any).ISMS_Id}
-                                value={sub.ismS_Id || (sub as any).isms_Id || (sub as any).ISMS_Id}>
-                                {sub.ismS_SubjectName || (sub as any).isms_SubjectName || (sub as any).ISMS_SubjectName}
-                            </option>
-                        ))}
+                        {(Array.isArray(subjects) ? subjects : (subjects as any)?.$values || [])?.map((sub: any) => {
+                            const id = sub.ismS_Id ?? sub.isms_Id ?? sub.ISMS_Id ?? sub.id;
+                            const name =
+                                sub.ismS_SubjectName ?? sub.isms_SubjectName ?? sub.ISMS_SubjectName ?? sub.subjectName ?? sub.name;
+                            return (
+                                <option key={id} value={id}>
+                                    {name}
+                                </option>
+                            );
+                        })}
                     </select>
                     {errors.ismS_Id && <p className='text-destructive text-xs'>{errors.ismS_Id.message}</p>}
                 </div>
@@ -163,11 +166,20 @@ export default function AddMasterQuestionForm({ subjects = [], complexities = []
                             {...register('lmsmoecX_Id', { valueAsNumber: true })}
                             className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'>
                             <option value=''>Standard</option>
-                            {(Array.isArray(complexities) ? complexities : (complexities as any)?.$values || [])?.map((comp: any) => (
-                                <option key={comp.lmsmoecX_Id} value={comp.lmsmoecX_Id}>
-                                    {comp.lmsmoecX_ComplexityName}
-                                </option>
-                            ))}
+                            {(Array.isArray(complexities) ? complexities : (complexities as any)?.$values || [])?.map((comp: any) => {
+                                const id = comp.lmsmoecX_Id ?? comp.lpmcomP_Id ?? comp.lpmcomp_Id ?? comp.LPMCOMP_Id ?? comp.id;
+                                const name =
+                                    comp.lmsmoecX_ComplexityName ??
+                                    comp.lpmcomP_ComplexityName ??
+                                    comp.lpmcomp_ComplexityName ??
+                                    comp.LPMCOMP_ComplexityName ??
+                                    comp.name;
+                                return (
+                                    <option key={id} value={id}>
+                                        {name}
+                                    </option>
+                                );
+                            })}
                         </select>
                     </div>
                 </div>
