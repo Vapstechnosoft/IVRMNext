@@ -64,22 +64,21 @@ export const getMasterQuestionColumns = ({
         header: ({ column }) => <DataTableColumnHeader column={column} title='Mappings & Options' className='text-center' />,
         cell: ({ row }) => {
             const q = row.original;
-            const classList = q.classList || [];
-            const mappedNames =
-                classList.length > 0
-                    ? classList.map((c: any) => c.asmcL_ClassName || c).join(', ')
-                    : q.asmcL_ClassName && q.asmcL_ClassName !== 'N/A' && q.asmcL_ClassName !== ''
-                      ? q.asmcL_ClassName
-                      : null;
+            const qId = q.lmsmoeQ_Id || (q as any).lpmoeQ_Id;
+            let storedIds: number[] = [];
+            try {
+                const saved = typeof window !== 'undefined' ? localStorage.getItem(`mapped_classes_q_${qId}`) : null;
+                if (saved) storedIds = JSON.parse(saved);
+            } catch (_) {}
 
+            const classList = q.classList || [];
             let classLabel = 'Classes';
-            if (mappedNames) {
-                if (mappedNames.includes(',')) {
-                    const count = mappedNames.split(',').length;
-                    classLabel = `Classes (${count})`;
-                } else {
-                    classLabel = `Class: ${mappedNames}`;
-                }
+            if (storedIds.length > 1) {
+                classLabel = `Classes (${storedIds.length})`;
+            } else if (classList.length > 1) {
+                classLabel = `Classes (${classList.length})`;
+            } else if (q.asmcL_ClassName && q.asmcL_ClassName !== 'N/A' && q.asmcL_ClassName !== '') {
+                classLabel = `Class: ${q.asmcL_ClassName}`;
             }
 
             return (
@@ -87,7 +86,7 @@ export const getMasterQuestionColumns = ({
                     <Button
                         size='sm'
                         variant='outline'
-                        title={mappedNames ? `Mapped: ${mappedNames}` : 'Map to classes'}
+                        title={classLabel}
                         className='flex h-8 items-center gap-1.5 text-xs hover:border-primary'
                         onClick={() => onOpenClassMappingModal(row.original)}>
                         <Layers className='h-3.5 w-3.5 text-blue-500' />

@@ -22,6 +22,19 @@ export default function ClassMappingModal({ question, classes = [], open, onClos
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
+        if (!question) return;
+        const qId = question.lmsmoeQ_Id || (question as any).lpmoeQ_Id;
+        try {
+            const saved = typeof window !== 'undefined' ? localStorage.getItem(`mapped_classes_q_${qId}`) : null;
+            if (saved) {
+                const ids = JSON.parse(saved);
+                if (Array.isArray(ids) && ids.length > 0) {
+                    setSelectedClassIds(ids);
+                    return;
+                }
+            }
+        } catch (_) {}
+
         if (question?.classList && question.classList.length > 0) {
             setSelectedClassIds(question.classList.map((c) => c.asmcL_Id));
         } else if (question?.asmcL_Id && question.asmcL_Id > 0) {
@@ -53,11 +66,17 @@ export default function ClassMappingModal({ question, classes = [], open, onClos
 
         setIsSaving(true);
         try {
+            const qId = question.lmsmoeQ_Id || (question as any).lpmoeQ_Id;
+            try {
+                localStorage.setItem(`mapped_classes_q_${qId}`, JSON.stringify(selectedClassIds));
+            } catch (_) {}
+
             const mappedClasses = classes.filter((c) => selectedClassIds.includes(c.asmcL_Id));
             const payload = {
                 MI_Id: 30,
-                LPMOEQ_Id: question.lmsmoeQ_Id || (question as any).lpmoeQ_Id,
+                LPMOEQ_Id: qId,
                 ISMS_Id: question.ismS_Id,
+                ASMCL_Id: selectedClassIds[0] || question.asmcL_Id,
                 LPMOEQ_Question: question.lmsmoeQ_Question,
                 LPMOEQ_Marks: question.lmsmoeQ_Marks,
                 LPMCOMP_Id: question.lmsmoecX_Id || 1,
