@@ -21,8 +21,7 @@ export interface ApiArrayResponse<T> extends Partial<PaginationData> {
     } | null;
     [key: string]: unknown;
 }
-// biome-ignore lint/style/useNodejsImportProtocol: <explanation>
-// import https from 'https'; // Removed to avoid client-side bundling errors
+
 import { signOut } from '@/lib/auth';
 import type { ApiSearchparams } from '@/types';
 import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios';
@@ -96,10 +95,21 @@ class ApiService {
         this.getOrCreateInstance('default');
     }
 
-    private getOrCreateInstance(key: ApiBaseUrlKey | string): AxiosInstance {
-        if (!this.instances.has(key)) {
-            const baseURL = typeof key === 'string' && key in this.baseUrls ? this.baseUrls[key as ApiBaseUrlKey] : this.baseUrls.default;
+    public getBaseUrl(key: ApiBaseUrlKey | string): string {
+        if (key === 'exam') {
+            return (
+                process.env.EXAM_API_BASE_URL ||
+                process.env.NEXT_PUBLIC_EXAM_API_BASE_URL ||
+                this.baseUrls.exam ||
+                'http://localhost:50006/api'
+            );
+        }
+        return typeof key === 'string' && key in this.baseUrls ? this.baseUrls[key as ApiBaseUrlKey] : this.baseUrls.default;
+    }
 
+    private getOrCreateInstance(key: ApiBaseUrlKey | string): AxiosInstance {
+        const baseURL = this.getBaseUrl(key);
+        if (!this.instances.has(key)) {
             // Check if this is a localhost URL in development mode
             const isLocalhost =
                 baseURL &&
@@ -133,6 +143,11 @@ class ApiService {
 
             this.setupInterceptors(instance);
             this.instances.set(key, instance);
+        } else {
+            const existing = this.instances.get(key);
+            if (existing && baseURL && existing.defaults.baseURL !== baseURL) {
+                existing.defaults.baseURL = baseURL;
+            }
         }
 
         return this.instances.get(key)!;
@@ -152,7 +167,7 @@ class ApiService {
 
                         // Check if the session is expired pre-emptively
                         // @ts-ignore
-                        if (session && session.expires_at) {
+                        if (session?.expires_at) {
                             const currentTimestamp = Math.round(Date.now() / 1000);
                             // @ts-ignore
                             if (currentTimestamp >= session.expires_at) {
@@ -398,13 +413,6 @@ class ApiService {
     // Helper method to add custom base URLs at runtime
     public addBaseUrl(key: string, baseUrl: string): void {
         this.baseUrls[key as ApiBaseUrlKey] = baseUrl;
-    }
-
-    /**
-     * Get the base URL for a given key (useful for debugging)
-     */
-    public getBaseUrl(key: ApiBaseUrlKey): string {
-        return this.baseUrls[key] || '';
     }
 
     public async postMultipart<T>(

@@ -1,6 +1,7 @@
 'use server';
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
+import { auth } from '@/lib/auth';
 import type { ApiSearchparams } from '@/types';
 import type { IMasterQuestionInitialData, IQuestionOption } from '@/types/exam/online-exam/masters';
 
@@ -13,10 +14,11 @@ function extractArray(obj: any): any[] {
 
 // Get Initial dropdowns and Question list
 export async function getMasterQuestionInitialData(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/MasterQuestion/getloaddata?${urlParams}`;
-    const res = await api.get<any>('exam', url);
-    if (res && res.data) {
+    const session = await auth();
+    const miId = searchParams?.MI_Id ? Number(searchParams.MI_Id) : session?.mi_id || 30;
+    const url = '/LP_OnlineExamFacade/getloaddata';
+    const res = await api.post<any>('exam', url, { MI_Id: miId });
+    if (res?.data) {
         const raw = res.data;
         const normalizedData: IMasterQuestionInitialData = {
             getSubjects: extractArray(raw.getSubjects || raw.getsubjectlist || raw.getsubjects || raw.getsubjectlistarray).map(
@@ -71,9 +73,9 @@ export async function getMasterQuestionInitialData(searchParams?: ApiSearchparam
 // Get Question listing
 export async function getMasterQuestionList(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/MasterQuestion/getQuestionList?${urlParams}`;
+    const url = `/LP_OnlineExamFacade/getQuestionList?${urlParams}`;
     const res = await api.get<any>('exam', url);
-    if (res && res.data) {
+    if (res?.data) {
         return {
             ...res,
             data: extractArray(res.data)
@@ -84,7 +86,7 @@ export async function getMasterQuestionList(searchParams?: ApiSearchparams) {
 
 // Save or Update Question details (Tab 1)
 export async function saveMasterQuestion(data: any) {
-    const url = '/MasterQuestion/savedetails';
+    const url = '/LP_OnlineExamFacade/savedetails';
     const payload = {
         LPMOEQ_Id: data.LPMOEQ_Id ?? data.LMSMOEQ_Id ?? data.lmsmoeQ_Id ?? data.lpmoeQ_Id ?? 0,
         ISMS_Id: data.ISMS_Id ?? data.ismS_Id ?? data.isms_Id ?? 0,
@@ -118,7 +120,7 @@ export async function saveMasterQuestion(data: any) {
 
 // Save Class Question Mapping (Tab 2)
 export async function saveClassQuestionMapping(data: any) {
-    const url = '/MasterQuestion/savedataclass';
+    const url = '/LP_OnlineExamFacade/savedataclass';
     const payload = {
         LPMOEQ_Id: data.LPMOEQ_Id ?? data.LMSMOEQ_Id ?? data.lmsmoeQ_Id ?? 0,
         clssids: (data.clssids || data.classIds || data.selectedClassIds || []).map((c: any) => ({
@@ -130,24 +132,24 @@ export async function saveClassQuestionMapping(data: any) {
 
 // Save / Update Question Options (Tab 3)
 export async function saveQuestionOptions(data: any) {
-    const url = '/MasterQuestion/savedetails1';
+    const url = '/LP_OnlineExamFacade/savedetails1';
     return await api.post<any>('exam', url, data);
 }
 
 // Get Options for a specific Question
 export async function getQuestionOptions(questionId: number) {
-    const url = '/MasterQuestion/optiondetails';
+    const url = '/LP_OnlineExamFacade/optiondetails';
     return await api.post<IQuestionOption[]>('exam', url, { LPMOEQ_Id: questionId, LMSMOEQ_Id: questionId });
 }
 
 // Toggle Question status (Activate / Deactivate)
 export async function toggleMasterQuestion(questionId: number) {
-    const url = '/MasterQuestion/deactiveparticulars';
+    const url = '/LP_OnlineExamFacade/deactiveparticulars';
     return await api.post<any>('exam', url, { LPMOEQ_Id: questionId, LMSMOEQ_Id: questionId });
 }
 
 // Delete Question
 export async function deleteMasterQuestion(questionId: number) {
-    const url = '/MasterQuestion/Deletedetails';
+    const url = '/LP_OnlineExamFacade/Deletedetails';
     return await api.post<any>('exam', url, { LPMOEQ_Id: questionId, LMSMOEQ_Id: questionId });
 }
