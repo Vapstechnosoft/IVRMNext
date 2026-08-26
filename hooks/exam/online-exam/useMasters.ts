@@ -61,6 +61,28 @@ export function useSaveMasterQuestion() {
     };
 }
 
+// Hook to Toggle Master Question Status
+export function useToggleMasterQuestion() {
+    const queryClient = useQueryClient();
+    return {
+        mutateAsync: async (questionId: number) => {
+            const res = await fetch('/api/exam/master-question', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'toggle', LPMOEQ_Id: questionId, MI_Id: 30 })
+            });
+            const json = await res.json().catch(() => ({}));
+            if (!res.ok || json?.success === false) {
+                throw new Error(json?.message || json?.error || `Request failed with status ${res.status}`);
+            }
+            queryClient.invalidateQueries({
+                queryKey: [ONLINE_EXAM_QUERY_KEYS.MASTER_QUESTION]
+            });
+            return json;
+        }
+    };
+}
+
 // Hook for Question Options (School)
 export function useQuestionOptions(questionId: number | null) {
     return useQuery({

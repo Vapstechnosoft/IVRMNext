@@ -2,8 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useMasterQuestion } from '@/hooks/exam/online-exam/useMasters';
-import { toggleMasterQuestion } from '@/server/exam/online-exam/masters/master-question';
+import { useMasterQuestion, useToggleMasterQuestion } from '@/hooks/exam/online-exam/useMasters';
 import type { IMasterQuestionList } from '@/types/exam/online-exam/masters';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -15,20 +14,22 @@ interface ToggleQuestionFormProps {
 
 export default function ToggleQuestionForm({ rowData, onClose }: ToggleQuestionFormProps) {
     const { refetchAll } = useMasterQuestion(undefined, { enabled: false });
+    const toggleMutation = useToggleMasterQuestion();
     const [isLoading, setIsLoading] = useState(false);
     const isActive = rowData.lmsmoeQ_ActiveFlg;
 
     const handleConfirm = async () => {
         setIsLoading(true);
         try {
-            const response = await toggleMasterQuestion(rowData.lmsmoeQ_Id);
+            const questionId = rowData.lmsmoeQ_Id || (rowData as any).lpmoeQ_Id;
+            const response = await toggleMutation.mutateAsync(questionId);
 
-            if (response?.success || response?.returnval === true || !response?.error) {
+            if (response?.success !== false && !response?.error) {
                 toast.success(`Question successfully ${isActive ? 'deactivated' : 'activated'}!`);
                 refetchAll();
                 onClose();
             } else {
-                toast.error(response?.message || 'Failed to toggle status');
+                toast.error(response?.message || response?.error || 'Failed to toggle status');
             }
         } catch (error: any) {
             toast.error(error?.message || 'An error occurred');

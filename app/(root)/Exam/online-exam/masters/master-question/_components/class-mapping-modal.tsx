@@ -2,8 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useMasterQuestion } from '@/hooks/exam/online-exam/useMasters';
-import { saveClassQuestionMapping } from '@/server/exam/online-exam/masters/master-question';
+import { useMasterQuestion, useSaveMasterQuestion } from '@/hooks/exam/online-exam/useMasters';
 import type { IClassDropdown, IMasterQuestionList } from '@/types/exam/online-exam/masters';
 import { Check, CheckSquare, Square } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -18,6 +17,7 @@ interface ClassMappingModalProps {
 
 export default function ClassMappingModal({ question, classes = [], open, onClose }: ClassMappingModalProps) {
     const { refetchAll } = useMasterQuestion(undefined, { enabled: false });
+    const saveMutation = useSaveMasterQuestion();
     const [selectedClassIds, setSelectedClassIds] = useState<number[]>([]);
     const [isSaving, setIsSaving] = useState(false);
 
@@ -52,22 +52,27 @@ export default function ClassMappingModal({ question, classes = [], open, onClos
         setIsSaving(true);
         try {
             const payload = {
-                LMSMOEQ_Id: question.lmsmoeQ_Id,
-                classList: selectedClassIds.map((id) => ({
+                MI_Id: 30,
+                LPMOEQ_Id: question.lmsmoeQ_Id || (question as any).lpmoeQ_Id,
+                ISMS_Id: question.ismS_Id,
+                LPMOEQ_Question: question.lmsmoeQ_Question,
+                LPMOEQ_Marks: question.lmsmoeQ_Marks,
+                LPMCOMP_Id: question.lmsmoecX_Id || 1,
+                classlist: selectedClassIds.map((id) => ({
                     ASMCL_Id: id
                 }))
             };
 
-            const response = await saveClassQuestionMapping(payload);
-            if (response?.success || response?.returnval === true || !response?.error) {
+            const response = await saveMutation.mutateAsync(payload);
+            if (response?.success !== false && !response?.error) {
                 toast.success('Class question mapping saved successfully!');
                 refetchAll();
                 onClose();
             } else {
-                toast.error(response?.message || 'Failed to save mapping');
+                toast.error(response?.message || response?.error || 'Failed to save mapping');
             }
         } catch (error: any) {
-            toast.error(error?.message || 'An error occurred');
+            toast.error(error?.message || 'An error occurred while saving class mapping');
         } finally {
             setIsSaving(false);
         }
