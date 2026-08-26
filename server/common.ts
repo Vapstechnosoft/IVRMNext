@@ -339,15 +339,7 @@ export async function getUserAccessibleModules() {
                                             url: '/alumni/alumni-module/transactions/student-password-creation',
                                             title: 'Student Password Creation',
                                             description: 'Student Credentials Management'
-<<<<<<< HEAD
                                         }
-=======
-<<<<<<< HEAD
-                                        },
-=======
-                                        }
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
->>>>>>> 9baeee8079c8c69dae5629031bd92b6e2f4d6ce5
                                     ]
                                 },
                                 {
@@ -738,9 +730,6 @@ export async function getUserAccessibleModules() {
                     ]
                 },
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
                 {
                     id: 9000,
                     name: 'Admission Client',
@@ -1674,8 +1663,7 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 },
-=======
->>>>>>> 9baeee8079c8c69dae5629031bd92b6e2f4d6ce5
+
                 // {
                 //     id: 9000,
                 //     name: 'Admission Client',
@@ -2609,10 +2597,9 @@ export async function getUserAccessibleModules() {
                 //         }
                 //     ]
                 // },
-<<<<<<< HEAD
-=======
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
->>>>>>> 9baeee8079c8c69dae5629031bd92b6e2f4d6ce5
+
+
+
                 {
                     id: 20002,
                     name: 'Fees Management',
@@ -3148,9 +3135,6 @@ export async function getUserAccessibleModules() {
                     ]
                 },
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
                 {
                     id: 90001,
                     name: 'Fees Client',
@@ -3397,8 +3381,7 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 },
-=======
->>>>>>> 9baeee8079c8c69dae5629031bd92b6e2f4d6ce5
+
                 // {
                 //     id: 90001,
                 //     name: 'Fees Client',
@@ -3644,10 +3627,9 @@ export async function getUserAccessibleModules() {
                 //         }
                 //     ]
                 // },
-<<<<<<< HEAD
-=======
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
->>>>>>> 9baeee8079c8c69dae5629031bd92b6e2f4d6ce5
+
+
+
 
                 {
                     id: 30003,
@@ -3805,11 +3787,7 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/masters/life-skills-area',
                                             title: 'Life Skills Area',
                                             description: 'Manage Life Skills Area Details'
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-                                        }
-                                        // ,
+                                        },
                                         // {
                                         //     id: 204,
                                         //     name: 'Baldwin Master Time Table Session',
@@ -3818,9 +3796,6 @@ export async function getUserAccessibleModules() {
                                         //     title: 'Baldwin Master Time Table Session',
                                         //     description: 'Manage Baldwin Master Time Table Session Details'
                                         // }
-=======
->>>>>>> 9baeee8079c8c69dae5629031bd92b6e2f4d6ce5
-                                        },
                                         {
                                             id: 204,
                                             name: 'Baldwin Master Time Table Session',
@@ -3829,10 +3804,9 @@ export async function getUserAccessibleModules() {
                                             title: 'Baldwin Master Time Table Session',
                                             description: 'Manage Baldwin Master Time Table Session Details'
                                         }
-<<<<<<< HEAD
-=======
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
->>>>>>> 9baeee8079c8c69dae5629031bd92b6e2f4d6ce5
+
+
+
                                     ]
                                 },
                                 {
@@ -4145,9 +4119,6 @@ export async function getUserAccessibleModules() {
                                     ]
                                 }
                             ]
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
                         },
                         {
                             id: 13,
@@ -5327,9 +5298,6 @@ export async function getUserAccessibleModules() {
                                 }
                             ]
                         }
-=======
->>>>>>> 9baeee8079c8c69dae5629031bd92b6e2f4d6ce5
-                        }
                         // {
                         //     id: 13,
                         //     name: 'Client Specific Reports',
@@ -6508,10 +6476,9 @@ export async function getUserAccessibleModules() {
                         //         }
                         //     ]
                         // }
-<<<<<<< HEAD
-=======
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
->>>>>>> 9baeee8079c8c69dae5629031bd92b6e2f4d6ce5
+
+
+
                     ]
                 },
                 {
@@ -7078,9 +7045,6 @@ export async function getUserAccessibleModules() {
                                         //     title: 'PS8 Form Report',
                                         //     description: 'Manage PS8 Form Report (st.james)'
                                         // },
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
                                         {
                                             id: 33,
                                             name: 'VPF YEARLY REPORT',
@@ -7113,8 +7077,7 @@ export async function getUserAccessibleModules() {
                                             title: 'PF Yearly Report',
                                             description: 'Manage PF Yearly Report'
                                         },
-=======
->>>>>>> 9baeee8079c8c69dae5629031bd92b6e2f4d6ce5
+
                                         // {
                                         //     id: 33,
                                         //     name: 'VPF YEARLY REPORT',
@@ -7147,10 +7110,9 @@ export async function getUserAccessibleModules() {
                                         //     title: 'PF Yearly Report',
                                         //     description: 'Manage PF Yearly Report'
                                         // },
-<<<<<<< HEAD
-=======
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
->>>>>>> 9baeee8079c8c69dae5629031bd92b6e2f4d6ce5
+
+
+
                                         // {
                                         //     id: 37,
                                         //     name: 'Employee Salary Slip SRKVS Report',
@@ -7174,9 +7136,6 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/cumulative-salary-report',
                                             title: 'Employee Salary Statement',
                                             description: 'Employee Salary Statement'
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
                                         },
                                         {
                                             id: 40,
@@ -7185,9 +7144,6 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/nda_employeeOfferAndExperienceReport',
                                             title: 'NDA Employee Offer Letter',
                                             description: 'Employee Offer Letter'
-                                        }
-=======
->>>>>>> 9baeee8079c8c69dae5629031bd92b6e2f4d6ce5
                                         }
                                         // ,
                                         // {
@@ -7198,10 +7154,9 @@ export async function getUserAccessibleModules() {
                                         //     title: 'NDA Employee Offer Letter',
                                         //     description: 'Employee Offer Letter'
                                         // }
-<<<<<<< HEAD
-=======
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
->>>>>>> 9baeee8079c8c69dae5629031bd92b6e2f4d6ce5
+
+
+
                                     ]
                                 }
                             ]
@@ -11667,9 +11622,6 @@ export async function getUserAccessibleModules() {
                                 }
                             ]
                         },
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
                         {
                             id: 80020,
                             name: 'Client Spcefic pages',
@@ -11692,8 +11644,7 @@ export async function getUserAccessibleModules() {
                                 }
                             ]
                         },
-=======
->>>>>>> 9baeee8079c8c69dae5629031bd92b6e2f4d6ce5
+
                         // {
                         //     id: 80020,
                         //     name: 'Client Spcefic pages',
@@ -11716,10 +11667,9 @@ export async function getUserAccessibleModules() {
                         //         }
                         //     ]
                         // },
-<<<<<<< HEAD
-=======
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
->>>>>>> 9baeee8079c8c69dae5629031bd92b6e2f4d6ce5
+
+
+
                         {
                             id: 25,
                             name: 'COE',
