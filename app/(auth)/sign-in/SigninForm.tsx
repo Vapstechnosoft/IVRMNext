@@ -15,16 +15,24 @@ import {
     GraduationCap,
     Laptop,
     Lock,
+    Mail,
     Monitor,
     Phone,
+    PhoneCall,
     Server,
     Smartphone,
     Terminal,
     TriangleAlert,
-    User
+    User,
+    X
 } from 'lucide-react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
+import { AdaptiveDialog } from '@/components/ui/extension/adaptive-dialog';
+import AddPreadmissionRegistrationForm from '@/app/(root)/admission/preadmission/transactions/preadmission-registration/_components/registration-form';
+import { toast } from 'sonner';
+import ForgotPasswordModal from '../forgot-password/ForgotPasswordModal';
+import AlumniRegistrationModal from '../alumni-registration/AlumniRegistrationModal';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 
@@ -34,13 +42,18 @@ export default function SigninForm() {
     const searchParams = useSearchParams();
     const { sub_domain } = useParams();
 
-    const { data: preadmissionLive } = useCheckPreadmissionLive(sub_domain?.toString() || '');
+    const { data: preadmissionLive, refetch: refetchPreadmission } = useCheckPreadmissionLive(sub_domain?.toString() || '');
 
     const callbackUrl = searchParams.get('callbackUrl') || '/';
     const [error, setError] = useState<string | undefined>('');
     const [isPending, startTransition] = useTransition();
     const [mounted, setMounted] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
+    const [forgotMode, setForgotMode] = useState<'username' | 'password'>('password');
+    const [isPreadmissionModalOpen, setIsPreadmissionModalOpen] = useState(false);
+    const [isAlumniModalOpen, setIsAlumniModalOpen] = useState(false);
+    const [showSupportModal, setShowSupportModal] = useState(false);
 
     useEffect(() => {
         setMounted(true);
@@ -198,10 +211,13 @@ export default function SigninForm() {
                             </div>
 
                             <div className='welcome-footer'>
-                                <div className='contact-pill'>
+                                <button
+                                    type='button'
+                                    onClick={() => setShowSupportModal(true)}
+                                    className='contact-pill cursor-pointer hover:scale-105 transition-all'>
                                     <Phone size={12} />
                                     <span>24/7 Digital Support Active</span>
-                                </div>
+                                </button>
                             </div>
                         </div>
                         <div className='card-inner-glow' />
@@ -224,7 +240,7 @@ export default function SigninForm() {
                                     <input
                                         {...register('email')}
                                         type='text'
-                                        className={`floating-input ${watch('email') ? 'has-value' : ''}`}
+                                        className={`floating-input ${watch('email') ? 'has-value' : ''} ${errors.email ? 'is-invalid' : ''}`}
                                         placeholder=' '
                                         id='email-input'
                                     />
@@ -243,7 +259,7 @@ export default function SigninForm() {
                                     <input
                                         {...register('password')}
                                         type={showPassword ? 'text' : 'password'}
-                                        className={`floating-input ${watch('password') ? 'has-value' : ''}`}
+                                        className={`floating-input ${watch('password') ? 'has-value' : ''} ${errors.password ? 'is-invalid' : ''}`}
                                         placeholder=' '
                                         id='password-input'
                                     />
@@ -257,6 +273,26 @@ export default function SigninForm() {
                                     </button>
                                 </div>
                                 {errors.password && <p className='field-error'>{errors.password?.message}</p>}
+                                <div className='forgot-links-wrapper'>
+                                    <button
+                                        type='button'
+                                        onClick={() => {
+                                            setForgotMode('username');
+                                            setIsForgotModalOpen(true);
+                                        }}
+                                        className='forgot-auth-link'>
+                                        Forgot Username?
+                                    </button>
+                                    <button
+                                        type='button'
+                                        onClick={() => {
+                                            setForgotMode('password');
+                                            setIsForgotModalOpen(true);
+                                        }}
+                                        className='forgot-auth-link'>
+                                        Forgot Password?
+                                    </button>
+                                </div>
                             </div>
 
                             {error && (
@@ -289,10 +325,30 @@ export default function SigninForm() {
                             <span>OR</span>
                         </div>
 
-                        <button className='btn-premium-secondary' type='button'>
+                        <button
+                            className='btn-premium-secondary'
+                            type='button'
+                            disabled={!Boolean(sub_domain)}
+                            onClick={() => {
+                                if (!sub_domain) return;
+                                if (preadmissionLive?.data === false) {
+                                    toast.info('Preadmission Registration is currently not live for this institution.');
+                                }
+                                setIsPreadmissionModalOpen(true);
+                            }}>
                             <Lock size={16} />
                             <span>Pre-Admission Portal</span>
                         </button>
+
+                        {Boolean(sub_domain) && (
+                            <button
+                                className='btn-premium-secondary mt-3'
+                                type='button'
+                                onClick={() => setIsAlumniModalOpen(true)}>
+                                <GraduationCap size={18} />
+                                <span>Alumni Registration</span>
+                            </button>
+                        )}
 
                         <div className='login-card-footer'>
                             <p className='secure-badge'>
@@ -304,6 +360,93 @@ export default function SigninForm() {
                     </div>
                 </div>
             </div>
+
+            {/* Forgot Password / Username Modal */}
+            <ForgotPasswordModal
+                isOpen={isForgotModalOpen}
+                onClose={() => setIsForgotModalOpen(false)}
+                initialUsername={watch('email')}
+                mode={forgotMode}
+            />
+
+            {/* Alumni Registration Modal */}
+            <AlumniRegistrationModal
+                isOpen={isAlumniModalOpen}
+                onClose={() => setIsAlumniModalOpen(false)}
+            />
+
+            {/* Pre-Admission Registration Adaptive Dialog */}
+            <AdaptiveDialog
+                title='Pre-Admission Registration'
+                isOpen={isPreadmissionModalOpen}
+                onClose={() => {
+                    setIsPreadmissionModalOpen(false);
+                    refetchPreadmission();
+                }}
+                size='lg'>
+                <AddPreadmissionRegistrationForm
+                    sub_domain={sub_domain?.toString() || ''}
+                    closeDialog={() => {
+                        setIsPreadmissionModalOpen(false);
+                        refetchPreadmission();
+                    }}
+                />
+            </AdaptiveDialog>
+
+            {/* 24/7 Digital Support Modal */}
+            {showSupportModal && (
+                <div className='forgot-modal-backdrop animate-fade-in'>
+                    <div className='forgot-modal-card glass-premium animate-scale-up max-w-sm text-center'>
+                        <button
+                            type='button'
+                            onClick={() => setShowSupportModal(false)}
+                            className='forgot-modal-close-btn'
+                            aria-label='Close'>
+                            <X size={20} />
+                        </button>
+                        <div className='forgot-icon-badge'>
+                            <PhoneCall size={28} className='text-warm-orange' />
+                        </div>
+                        <h2 className='forgot-modal-title text-xl mb-1'>24/7 Digital Support</h2>
+                        <p className='forgot-modal-subtitle text-xs mb-4'>We are here to assist you anytime. Contact us via Email or Mobile.</p>
+
+                        <div className='space-y-3 text-left my-4'>
+                            {/* Email Support */}
+                            <a
+                                href='mailto:support@aivrm.com'
+                                className='support-contact-card'>
+                                <div className='support-icon-box bg-blue-100 text-blue-600'>
+                                    <Mail size={20} />
+                                </div>
+                                <div>
+                                    <div className='text-xs font-semibold text-gray-500 uppercase tracking-wider'>Email Support</div>
+                                    <div className='text-sm font-bold text-gray-800 hover:text-blue-600 transition-colors'>support@aivrm.com</div>
+                                </div>
+                            </a>
+
+                            {/* Mobile Support */}
+                            <a
+                                href='tel:+919876543210'
+                                className='support-contact-card'>
+                                <div className='support-icon-box bg-emerald-100 text-emerald-600'>
+                                    <Phone size={20} />
+                                </div>
+                                <div>
+                                    <div className='text-xs font-semibold text-gray-500 uppercase tracking-wider'>Mobile Helpline</div>
+                                    <div className='text-sm font-bold text-gray-800 hover:text-emerald-600 transition-colors'>+91 98765 43210</div>
+                                </div>
+                            </a>
+                        </div>
+
+                        <button
+                            type='button'
+                            onClick={() => setShowSupportModal(false)}
+                            className='btn-premium-primary mt-2 text-sm h-11'>
+                            <span>Close</span>
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Hidden functional components for state management */}
             <div className='hidden'>

@@ -12,6 +12,12 @@ input:-webkit-autofill {
     /* Prevent flashing */
 }
 
+/* Hide native browser password reveal icon (Microsoft Edge / IE) to prevent double eye icons */
+input::-ms-reveal,
+input::-ms-clear {
+    display: none !important;
+}
+
 body {
     font-family: Arial, Helvetica, sans-serif;
 }

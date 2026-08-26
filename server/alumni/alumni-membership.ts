@@ -93,3 +93,8 @@ export async function checkStudent(alsreg_Id: number) {
     const url = `/AlumniMembership/check_student?alsreg_Id=${alsreg_Id}`;
     return await api.get<any>('alumni', url);
 }
+
+export async function registerAlumniRegistration(data: any) {
+    return await api.post<any>('default', '/Login/Regis', data);
+}
+

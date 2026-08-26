@@ -15,7 +15,7 @@
         "qa": "env-cmd -f .env.qa next dev",
         "prod": "env-cmd -f .env.prod next dev",
         "uat": "env-cmd -f .env.uat next dev",
-        "uat1": "env-cmd -f .env.uat1 next dev",
+        "uat1": "env-cmd -f .env.uat1 next dev --turbopack",
         "uat3": "env-cmd -f .env.uat3 next dev",
         "delite-beta-test": "env-cmd -f .env.delite-beta-test next dev",
         "elite-beta-test": "env-cmd -f .env.elite-beta-test next dev",
