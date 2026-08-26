@@ -247,7 +247,7 @@ body {
     }
 
     /* Fixed variant by moving out of @apply to avoid formatter issues */
-    [data-collapsible=icon] .menu-button {
+    [data-collapsible='icon'] .menu-button {
         width: 2rem !important;
         height: 2rem !important;
         padding: 0.5rem !important;
@@ -258,7 +258,7 @@ body {
     }
 
     /* Fixed variant by moving out of @apply */
-    [data-collapsible=icon] .menu-sub-button {
+    [data-collapsible='icon'] .menu-sub-button {
         display: none !important;
     }
 
@@ -379,9 +379,7 @@ body {
     /* Bento-Glassmorphism Design System */
     .card-bento {
         @apply rounded-[2.5rem] border border-slate-200/40 bg-white/90 transition-all duration-500 overflow-hidden relative;
-        box-shadow:
-            0 10px 30px -10px rgba(0, 0, 0, 0.05),
-            0 20px 50px -20px rgba(0, 0, 0, 0.02);
+        box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05), 0 20px 50px -20px rgba(0, 0, 0, 0.02);
     }
 
     .card-bento::before {
@@ -539,7 +537,6 @@ td button[disabled] {
 }
 
 @keyframes blink {
-
     0%,
     100% {
         opacity: 1;
@@ -554,9 +551,8 @@ td button[disabled] {
     animation: blink 1s step-end infinite;
 }
 
-
 /* Global Input Standardization */
-input[type="checkbox"],
+input[type='checkbox'],
 .form-checkbox {
     @apply h-4 w-4 shrink-0 rounded-[2px] border border-primary shadow transition-all;
     appearance: none;
@@ -568,12 +564,12 @@ input[type="checkbox"],
     position: relative;
 }
 
-input[type="checkbox"]:checked,
+input[type='checkbox']:checked,
 .form-checkbox:checked {
     @apply bg-primary;
 }
 
-input[type="checkbox"]:checked::after,
+input[type='checkbox']:checked::after,
 .form-checkbox:checked::after {
     content: '';
     @apply absolute border-primary-foreground;
@@ -584,7 +580,7 @@ input[type="checkbox"]:checked::after,
     top: 1px;
 }
 
-input[type="radio"],
+input[type='radio'],
 .form-radio {
     @apply h-4 w-4 shrink-0 rounded-full border border-primary shadow transition-all;
     appearance: none;
@@ -596,12 +592,12 @@ input[type="radio"],
     position: relative;
 }
 
-input[type="radio"]:checked,
+input[type='radio']:checked,
 .form-radio:checked {
     @apply border-primary;
 }
 
-input[type="radio"]:checked::after,
+input[type='radio']:checked::after,
 .form-radio:checked::after {
     content: '';
     @apply absolute rounded-full bg-primary;
@@ -646,7 +642,8 @@ input[type="radio"]:checked::after,
         border-collapse: collapse !important;
     }
 
-    th, td {
+    th,
+    td {
         border: 1px solid #ddd !important;
         padding: 8px !important;
         text-align: left !important;

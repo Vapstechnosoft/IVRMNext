@@ -19,17 +19,9 @@ export default function MultipleExamCumulativeReportPage() {
     };
 
     return (
-        <div className="container mx-auto py-6 space-y-8">
-            <ReportForm 
-                onReportGenerated={handleReportGenerated} 
-                onReset={handleReset} 
-            />
-            {reportData && reportParams && (
-                <ReportList 
-                    data={reportData} 
-                    params={reportParams} 
-                />
-            )}
+        <div className='container mx-auto space-y-8 py-6'>
+            <ReportForm onReportGenerated={handleReportGenerated} onReset={handleReset} />
+            {reportData && reportParams && <ReportList data={reportData} params={reportParams} />}
         </div>
     );
 }

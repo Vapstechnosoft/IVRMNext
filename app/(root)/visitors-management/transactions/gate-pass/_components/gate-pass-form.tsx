@@ -1,16 +1,16 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { gatePassSchema, GatePassSchema } from '@/schemas/visitors-management/transactions';
-import { useGatePass } from '@/hooks/visitors-management/transactions/useGatePass';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useGatePass } from '@/hooks/visitors-management/transactions/useGatePass';
+import { type GatePassSchema, gatePassSchema } from '@/schemas/visitors-management/transactions';
+import type { GatePassTransactionData } from '@/types/visitors-management/transactions';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
-import { GatePassTransactionData } from '@/types/visitors-management/transactions';
+import { useForm } from 'react-hook-form';
 
 interface GatePassFormProps {
     onSuccess: () => void;
@@ -54,7 +54,8 @@ export default function GatePassForm({ onSuccess, initialData }: GatePassFormPro
 
     // Reset hidden fields when type changes for cleaner data
     useEffect(() => {
-        if (!initialData) { // Only auto-clear when not in edit mode init (or user switched type manually)
+        if (!initialData) {
+            // Only auto-clear when not in edit mode init (or user switched type manually)
             if (gatePassType === 'student') {
                 form.setValue('employeeId', undefined);
             } else {
@@ -80,37 +81,31 @@ export default function GatePassForm({ onSuccess, initialData }: GatePassFormPro
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-
+            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
                 {/* Type Selection */}
                 <FormField
                     control={form.control}
-                    name="gatePassType"
+                    name='gatePassType'
                     render={({ field }) => (
-                        <FormItem className="space-y-3">
+                        <FormItem className='space-y-3'>
                             <FormLabel>Gate Pass Type</FormLabel>
                             <FormControl>
                                 <RadioGroup
                                     onValueChange={field.onChange}
                                     defaultValue={field.value}
                                     value={field.value}
-                                    className="flex flex-row space-x-4"
-                                >
-                                    <FormItem className="flex items-center space-x-3 space-y-0">
+                                    className='flex flex-row space-x-4'>
+                                    <FormItem className='flex items-center space-x-3 space-y-0'>
                                         <FormControl>
-                                            <RadioGroupItem value="student" />
+                                            <RadioGroupItem value='student' />
                                         </FormControl>
-                                        <FormLabel className="font-normal">
-                                            Student Gate Pass
-                                        </FormLabel>
+                                        <FormLabel className='font-normal'>Student Gate Pass</FormLabel>
                                     </FormItem>
-                                    <FormItem className="flex items-center space-x-3 space-y-0">
+                                    <FormItem className='flex items-center space-x-3 space-y-0'>
                                         <FormControl>
-                                            <RadioGroupItem value="employee" />
+                                            <RadioGroupItem value='employee' />
                                         </FormControl>
-                                        <FormLabel className="font-normal">
-                                            Employee Gate Pass
-                                        </FormLabel>
+                                        <FormLabel className='font-normal'>Employee Gate Pass</FormLabel>
                                     </FormItem>
                                 </RadioGroup>
                             </FormControl>
@@ -119,18 +114,20 @@ export default function GatePassForm({ onSuccess, initialData }: GatePassFormPro
                     )}
                 />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                     {gatePassType === 'student' && (
                         <FormField
                             control={form.control}
-                            name="studentId"
+                            name='studentId'
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Student <span className="text-red-500">*</span></FormLabel>
+                                    <FormLabel>
+                                        Student <span className='text-red-500'>*</span>
+                                    </FormLabel>
                                     <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                         <FormControl>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select Student" />
+                                                <SelectValue placeholder='Select Student' />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
@@ -143,20 +140,23 @@ export default function GatePassForm({ onSuccess, initialData }: GatePassFormPro
                                     </Select>
                                     <FormMessage />
                                 </FormItem>
-                            )} />
+                            )}
+                        />
                     )}
 
                     {gatePassType === 'employee' && (
                         <FormField
                             control={form.control}
-                            name="employeeId"
+                            name='employeeId'
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Employee <span className="text-red-500">*</span></FormLabel>
+                                    <FormLabel>
+                                        Employee <span className='text-red-500'>*</span>
+                                    </FormLabel>
                                     <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                         <FormControl>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select Employee" />
+                                                <SelectValue placeholder='Select Employee' />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
@@ -169,24 +169,34 @@ export default function GatePassForm({ onSuccess, initialData }: GatePassFormPro
                                     </Select>
                                     <FormMessage />
                                 </FormItem>
-                            )} />
+                            )}
+                        />
                     )}
 
                     <FormField
                         control={form.control}
-                        name="remarks"
+                        name='remarks'
                         render={({ field }) => (
-                            <FormItem className="col-span-1 md:col-span-2">
-                                <FormLabel>Remarks <span className="text-red-500">*</span></FormLabel>
-                                <FormControl><Textarea {...field} placeholder="Enter Remarks" maxLength={250} /></FormControl>
+                            <FormItem className='col-span-1 md:col-span-2'>
+                                <FormLabel>
+                                    Remarks <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <FormControl>
+                                    <Textarea {...field} placeholder='Enter Remarks' maxLength={250} />
+                                </FormControl>
                                 <FormMessage />
                             </FormItem>
-                        )} />
+                        )}
+                    />
                 </div>
 
-                <div className="flex justify-center gap-4">
-                    <Button type="submit" className="w-40">{initialData ? 'Update' : 'Generate'} Gate Pass</Button>
-                    <Button type="button" variant="outline" className="w-40" onClick={() => onSuccess()}>Cancel</Button>
+                <div className='flex justify-center gap-4'>
+                    <Button type='submit' className='w-40'>
+                        {initialData ? 'Update' : 'Generate'} Gate Pass
+                    </Button>
+                    <Button type='button' variant='outline' className='w-40' onClick={() => onSuccess()}>
+                        Cancel
+                    </Button>
                 </div>
             </form>
         </Form>

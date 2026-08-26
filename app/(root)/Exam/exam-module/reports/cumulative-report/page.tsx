@@ -53,7 +53,7 @@ export default function CumulativeReportPage() {
         try {
             setCurrentPayload(payload);
             const res = await getCumulativeReport(payload, setSearchParams);
-            console.log("cumulative res", res);
+            console.log('cumulative res', res);
             const institudtion_res = await getMasterInstitution();
             const { data: institudtion_data } = institudtion_res;
             setInstitution(institudtion_data);
@@ -97,17 +97,38 @@ export default function CumulativeReportPage() {
             );
 
             const formatted: ICumulativeReport[] = rawList.map((s: any) => {
-                const fullName = [
-                    s.amsT_FirstName ?? s.AMST_FirstName,
-                    s.amsT_MiddleName ?? s.AMST_MiddleName,
-                    s.amsT_LastName ?? s.AMST_LastName
-                ].filter(Boolean).join(' ').trim() || s.studentName || s.AMST_StudentName || s.studentname || s.amsT_StudentName;
+                const fullName =
+                    [s.amsT_FirstName ?? s.AMST_FirstName, s.amsT_MiddleName ?? s.AMST_MiddleName, s.amsT_LastName ?? s.AMST_LastName]
+                        .filter(Boolean)
+                        .join(' ')
+                        .trim() ||
+                    s.studentName ||
+                    s.AMST_StudentName ||
+                    s.studentname ||
+                    s.amsT_StudentName;
 
                 return {
                     amsT_FirstName: fullName || 'Unknown',
                     amaY_RollNo: s.amaY_RollNo ?? s.AMAY_RollNo ?? s.amaY_Rollno ?? s.rollNo ?? s.rollno ?? null,
-                    amsT_AdmNo: s.amsT_AdmNo ?? s.AMST_AdmNo ?? s.amsT_Admno ?? s.AMST_Admno ?? s.admNo ?? s.admno ?? s.amsT_AdmNoValue ?? s.AMST_AdmNoValue ?? null,
-                    amsT_RegistrationNo: s.amsT_RegistrationNo ?? s.AMST_RegistrationNo ?? s.amsT_Registrationno ?? s.AMST_Registrationno ?? s.registrationNo ?? s.regno ?? s.regNo ?? null,
+                    amsT_AdmNo:
+                        s.amsT_AdmNo ??
+                        s.AMST_AdmNo ??
+                        s.amsT_Admno ??
+                        s.AMST_Admno ??
+                        s.admNo ??
+                        s.admno ??
+                        s.amsT_AdmNoValue ??
+                        s.AMST_AdmNoValue ??
+                        null,
+                    amsT_RegistrationNo:
+                        s.amsT_RegistrationNo ??
+                        s.AMST_RegistrationNo ??
+                        s.amsT_Registrationno ??
+                        s.AMST_Registrationno ??
+                        s.registrationNo ??
+                        s.regno ??
+                        s.regNo ??
+                        null,
                     sub_list: (s.subjectsList ?? []).map((sub: any) => ({
                         ismS_Id: sub.ismS_Id,
                         estmpS_ObtainedMarks: sub.estmpS_ObtainedMarks ?? null,

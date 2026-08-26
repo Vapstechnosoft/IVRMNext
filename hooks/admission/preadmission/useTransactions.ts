@@ -7,6 +7,7 @@ import { getAdmissionClassDropdown } from '@/server/admission/preadmission/secti
 import {
     getCasteDropdown,
     getCountryDropdown,
+    getDistrictDropdown,
     getGenderDropdown,
     getPreadmissionClassDropdown,
     getPreadmissionDocumentDropdown,
@@ -15,9 +16,8 @@ import {
     getSourceDropdown,
     getStateDropdown,
     getStudentApplicationForm,
-    getStudentPrintData,
     getStudentApplicationList,
-    getDistrictDropdown
+    getStudentPrintData
 } from '@/server/admission/preadmission/transactions/application_form';
 import { getDocumentView, getDocumentpdf } from '@/server/admission/preadmission/transactions/document-view';
 import { getExportPreadmissionStudentList } from '@/server/admission/preadmission/transactions/export_preadmission';
@@ -86,7 +86,6 @@ export const useCountryDropdown = () => {
     };
 };
 
-
 export const useStateDropdown = (country_id: number) => {
     const queryClient = useQueryClient();
 
@@ -122,7 +121,6 @@ export const useDistrictDropdown = (state_id: number) => {
         }
     };
 };
-
 
 export const useGenderDropdown = () => {
     const queryClient = useQueryClient();
@@ -174,9 +172,6 @@ export const useReferenceDropdown = () => {
         }
     };
 };
-
-
-
 
 export const usePreadmissionDocumentsDropdown = () => {
     const queryClient = useQueryClient();
@@ -401,7 +396,7 @@ export const useStudentApplicationForm = (pasr_id: number) => {
     };
 };
 
-export const useStudentPrintData = (pasR_Id: number, ASMCL_Id: number, ASMAY_Id: number, ASMST_Id: number, isEnabled: boolean = true) => {
+export const useStudentPrintData = (pasR_Id: number, ASMCL_Id: number, ASMAY_Id: number, ASMST_Id: number, isEnabled = true) => {
     const queryClient = useQueryClient();
 
     return {

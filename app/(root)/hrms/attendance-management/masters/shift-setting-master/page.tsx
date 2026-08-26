@@ -7,7 +7,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useShiftSettingMaster } from '@/hooks/hrms/attendance-management/useMasters';
 import type { IMasterShiftSettingList } from '@/types/hrms/attendance-management/masters';
 import { Plus, X } from 'lucide-react';
-import React, { use } from 'react';
+import { use } from 'react';
 import AddShiftSettingMasterForm from './_components/add-form';
 import { shiftSettingColumns } from './_components/columns';
 import ToggleShiftSettingMasterForm from './_components/toggle-form';
@@ -19,7 +19,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function ShiftSettingMasterPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useShiftSettingMaster(searchParams);
-    console.log("response", response);
+    console.log('response', response);
     return (
         <FormProvider<IMasterShiftSettingList>>
             <ShiftSettingMasterPageContent response={response} isLoading={isLoading} error={error} />
@@ -98,11 +98,7 @@ function FormSections() {
     return (
         <>
             {/* View Details Modal */}
-            <ViewShiftSettingMasterDetails
-                isOpen={isDetailsViewOpen}
-                onClose={closeDetailsView}
-                rowData={selectedRow}
-            />
+            <ViewShiftSettingMasterDetails isOpen={isDetailsViewOpen} onClose={closeDetailsView} rowData={selectedRow} />
 
             {/* Add Form */}
             {isAddFormOpen && (

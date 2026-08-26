@@ -1,19 +1,17 @@
 'use client';
-
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { TimeTableGenerationValues, timeTableGenerationSchema } from '@/schemas/timetable/transactions';
+import { type TimeTableGenerationValues, timeTableGenerationSchema } from '@/schemas/timetable/transactions';
 import { generateTT, getGenerationCounts, getGenerationMasters, resetTT } from '@/server/timetable/transactions/timetablegeneration';
-import { AcademicYear, Category } from '@/types/timetable/Transaction/timetablegeneration';
+import type { AcademicYear, Category } from '@/types/timetable/Transaction/timetablegeneration';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, FileSpreadsheet, RefreshCcw, RotateCcw, Trash2 } from 'lucide-react';
+import { Eye, FileSpreadsheet, RefreshCcw, RotateCcw } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -109,9 +107,7 @@ export default function Forms({ onFetch }: FormsProps) {
 
         try {
             const albumNameArray =
-                String(ttmC_Id) === 'all'
-                    ? categories.map(c => ({ ttmC_Id: Number(c.ttmC_Id) }))
-                    : [{ ttmC_Id: Number(ttmC_Id) }];
+                String(ttmC_Id) === 'all' ? categories.map((c) => ({ ttmC_Id: Number(c.ttmC_Id) })) : [{ ttmC_Id: Number(ttmC_Id) }];
 
             const payload = {
                 asmaY_Id: Number(asmaY_Id),
@@ -119,7 +115,7 @@ export default function Forms({ onFetch }: FormsProps) {
             };
 
             const response = await getGenerationCounts(payload);
-            console.log("Generation Counts Response:", response);
+            console.log('Generation Counts Response:', response);
             const promise: any = response.data || {};
 
             if (promise?.countArray?.length > 0) {
@@ -177,7 +173,6 @@ export default function Forms({ onFetch }: FormsProps) {
                 setClassWorkloadData(promise.workloadpdf1 || []);
                 setPendingPeriods(promise.time_Table_new || []);
             }
-
         } catch (error: any) {
             console.error(error?.message);
             toast.error(error?.message || 'Failed to fetch counts');
@@ -198,9 +193,8 @@ export default function Forms({ onFetch }: FormsProps) {
 
         setGenerating(true);
         try {
-            const ttmc_idslist = data.ttmC_Id === 'all'
-                ? categories.map(c => ({ ttmC_Id: Number(c.ttmC_Id) }))
-                : [{ ttmC_Id: Number(data.ttmC_Id) }];
+            const ttmc_idslist =
+                data.ttmC_Id === 'all' ? categories.map((c) => ({ ttmC_Id: Number(c.ttmC_Id) })) : [{ ttmC_Id: Number(data.ttmC_Id) }];
 
             const payload = {
                 asmaY_Id: Number(data.asmaY_Id),
@@ -208,7 +202,12 @@ export default function Forms({ onFetch }: FormsProps) {
             };
 
             const response = await generateTT(payload);
-            const isSuccess = response.success === true || response.data === true || response.data?.returnval === true || (response as any) === true || (response as any)?.returnval === true;
+            const isSuccess =
+                response.success === true ||
+                response.data === true ||
+                response.data?.returnval === true ||
+                (response as any) === true ||
+                (response as any)?.returnval === true;
             if (isSuccess) {
                 toast.success('Time Table Generated successfully');
                 onFetch(data);
@@ -229,12 +228,21 @@ export default function Forms({ onFetch }: FormsProps) {
             return;
         }
 
-        if (confirm('Are you sure you want to Reset TimeTable? (Click OK to reset the timetable in the database, or Cancel to only clear the form fields)')) {
+        if (
+            confirm(
+                'Are you sure you want to Reset TimeTable? (Click OK to reset the timetable in the database, or Cancel to only clear the form fields)'
+            )
+        ) {
             setResetting(true);
             try {
                 const payload = { asmaY_Id: Number(asmaY_Id) };
                 const response = await resetTT(payload);
-                const isResetSuccess = response.success === true || response.data === true || response.data?.returnval === true || (response as any) === true || (response as any)?.returnval === true;
+                const isResetSuccess =
+                    response.success === true ||
+                    response.data === true ||
+                    response.data?.returnval === true ||
+                    (response as any) === true ||
+                    (response as any)?.returnval === true;
                 if (isResetSuccess) {
                     toast.success('Time Table successfully Reset!');
                     reset();
@@ -260,12 +268,12 @@ export default function Forms({ onFetch }: FormsProps) {
 
         const dataToExport = pendingPeriods.map((user, idx) => ({
             'SL. NO.': idx + 1,
-            'Class': user.asmcL_ClassName,
-            'Section': user.asmC_SectionName,
-            'Staff': user.staffName,
-            'Subject': user.ismS_SubjectName,
-            'Day': user.ttmD_DayName,
-            'Period': user.ttmP_PeriodName
+            Class: user.asmcL_ClassName,
+            Section: user.asmC_SectionName,
+            Staff: user.staffName,
+            Subject: user.ismS_SubjectName,
+            Day: user.ttmD_DayName,
+            Period: user.ttmP_PeriodName
         }));
 
         const worksheet = XLSX.utils.json_to_sheet(dataToExport);
@@ -276,7 +284,7 @@ export default function Forms({ onFetch }: FormsProps) {
 
     const FormSelect = ({ label, name, control, options, valueKey, labelKey, placeholder, error, isLoading, showAllOption }: any) => (
         <div className='space-y-2'>
-            <Label className='text-sm font-medium'>{label}</Label>
+            <Label className='font-medium text-sm'>{label}</Label>
             <Controller
                 name={name}
                 control={control}
@@ -287,7 +295,9 @@ export default function Forms({ onFetch }: FormsProps) {
                         </SelectTrigger>
                         <SelectContent>
                             {isLoading ? (
-                                <SelectItem value='loading' disabled>Loading...</SelectItem>
+                                <SelectItem value='loading' disabled>
+                                    Loading...
+                                </SelectItem>
                             ) : (
                                 <>
                                     {showAllOption && <SelectItem value='all'>All</SelectItem>}
@@ -308,7 +318,7 @@ export default function Forms({ onFetch }: FormsProps) {
 
     const FormInput = ({ label, name, control, error, readOnly }: any) => (
         <div className='space-y-2'>
-            <Label className='text-sm font-medium'>{label}</Label>
+            <Label className='font-medium text-sm'>{label}</Label>
             <Controller
                 name={name}
                 control={control}
@@ -316,7 +326,7 @@ export default function Forms({ onFetch }: FormsProps) {
                     <Input
                         {...field}
                         readOnly={readOnly}
-                        className={`w-full ${readOnly ? 'bg-muted text-muted-foreground cursor-not-allowed' : ''}`}
+                        className={`w-full ${readOnly ? 'cursor-not-allowed bg-muted text-muted-foreground' : ''}`}
                     />
                 )}
             />
@@ -396,11 +406,11 @@ export default function Forms({ onFetch }: FormsProps) {
                                                 <Eye className='h-4 w-4' />
                                             </Button>
                                         </DialogTrigger>
-                                        <DialogContent className='max-w-4xl max-h-[80vh] overflow-hidden flex flex-col'>
+                                        <DialogContent className='flex max-h-[80vh] max-w-4xl flex-col overflow-hidden'>
                                             <DialogHeader>
                                                 <DialogTitle>Not Confirmed (Pending) Periods</DialogTitle>
                                             </DialogHeader>
-                                            <ScrollArea className='flex-1 mt-4'>
+                                            <ScrollArea className='mt-4 flex-1'>
                                                 <Table>
                                                     <TableHeader>
                                                         <TableRow>
@@ -434,11 +444,8 @@ export default function Forms({ onFetch }: FormsProps) {
                             </div>
                         </div>
 
-                        <div className='flex flex-wrap items-center justify-start gap-4 pt-6 border-t'>
-                            <Button
-                                type='submit'
-                                className='min-w-[140px]'
-                                disabled={generating}>
+                        <div className='flex flex-wrap items-center justify-start gap-4 border-t pt-6'>
+                            <Button type='submit' className='min-w-[140px]' disabled={generating}>
                                 {generating ? (
                                     <RefreshCcw className='mr-2 h-4 w-4 animate-spin' />
                                 ) : (
@@ -457,17 +464,8 @@ export default function Forms({ onFetch }: FormsProps) {
                                 Check Workload
                             </Button>
 
-                            <Button
-                                type='button'
-                                variant='outline'
-                                className='min-w-[140px]'
-                                onClick={handleReset}
-                                disabled={resetting}>
-                                {resetting ? (
-                                    <RotateCcw className='mr-2 h-4 w-4 animate-spin' />
-                                ) : (
-                                    <RotateCcw className='mr-2 h-4 w-4' />
-                                )}
+                            <Button type='button' variant='outline' className='min-w-[140px]' onClick={handleReset} disabled={resetting}>
+                                {resetting ? <RotateCcw className='mr-2 h-4 w-4 animate-spin' /> : <RotateCcw className='mr-2 h-4 w-4' />}
                                 Reset
                             </Button>
                         </div>
@@ -477,4 +475,3 @@ export default function Forms({ onFetch }: FormsProps) {
         </CollapsibleSection>
     );
 }
-

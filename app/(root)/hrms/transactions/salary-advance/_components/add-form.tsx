@@ -5,9 +5,8 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useLeaveYearDropdown, useMonthDropdown } from '@/hooks/hrms/useMasters';
-import { useSaveSalaryAdvance, useEmployeeSalaryAdvanceDetails } from '@/hooks/hrms/useTransactions';
+import { useEmployeeSalaryAdvanceDetails, useSaveSalaryAdvance } from '@/hooks/hrms/useTransactions';
 import { cn } from '@/lib/utils';
 import { hrmsTransactionSchemas } from '@/schemas/hrms/transaction';
 import type { SalaryAdvanceEmployeeDropdownItem } from '@/types/hrms/salary-advance';
@@ -27,7 +26,6 @@ interface AddFormProps {
     className?: string;
 }
 
-
 export default function AddSalaryAdvanceForm({ employeeDropdown, onSuccess, className = '' }: AddFormProps) {
     const { mutate: saveAdvance, isPending } = useSaveSalaryAdvance();
 
@@ -36,11 +34,14 @@ export default function AddSalaryAdvanceForm({ employeeDropdown, onSuccess, clas
     const { data: monthsData } = useMonthDropdown();
 
     // Hardcoded mode of payments as they are standard and might not have a specific hook yet
-    const modeOfPayments = useMemo(() => [
-        { id: 'Cash', name: 'Cash' },
-        { id: 'Bank Transfer', name: 'Bank Transfer' },
-        { id: 'Cheque', name: 'Cheque' }
-    ], []);
+    const modeOfPayments = useMemo(
+        () => [
+            { id: 'Cash', name: 'Cash' },
+            { id: 'Bank Transfer', name: 'Bank Transfer' },
+            { id: 'Cheque', name: 'Cheque' }
+        ],
+        []
+    );
 
     const employees = useMemo(() => employeeDropdown || [], [employeeDropdown]);
     const leaveYears = useMemo(() => (leaveYearsData as any)?.data || [], [leaveYearsData]);
@@ -150,7 +151,9 @@ export default function AddSalaryAdvanceForm({ employeeDropdown, onSuccess, clas
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                     <div className='space-y-2'>
-                        <Label>Employee <span className='text-destructive'>*</span></Label>
+                        <Label>
+                            Employee <span className='text-destructive'>*</span>
+                        </Label>
                         <Controller
                             name='employeeId'
                             control={control}
@@ -160,11 +163,13 @@ export default function AddSalaryAdvanceForm({ employeeDropdown, onSuccess, clas
                                         <SelectValue placeholder='Select Employee' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {employees.filter(emp => emp.hrmE_Id).map((emp) => (
-                                            <SelectItem key={emp.hrmE_Id} value={String(emp.hrmE_Id)}>
-                                                {emp.employeeName}
-                                            </SelectItem>
-                                        ))}
+                                        {employees
+                                            .filter((emp) => emp.hrmE_Id)
+                                            .map((emp) => (
+                                                <SelectItem key={emp.hrmE_Id} value={String(emp.hrmE_Id)}>
+                                                    {emp.employeeName}
+                                                </SelectItem>
+                                            ))}
                                     </SelectContent>
                                 </Select>
                             )}
@@ -172,7 +177,9 @@ export default function AddSalaryAdvanceForm({ employeeDropdown, onSuccess, clas
                         {errors.employeeId && <FormError>{errors.employeeId.message}</FormError>}
                     </div>
                     <div className='space-y-2'>
-                        <Label>Entry Date <span className='text-destructive'>*</span></Label>
+                        <Label>
+                            Entry Date <span className='text-destructive'>*</span>
+                        </Label>
                         <Controller
                             name='entryDate'
                             control={control}
@@ -203,7 +210,9 @@ export default function AddSalaryAdvanceForm({ employeeDropdown, onSuccess, clas
                         {errors.entryDate && <FormError>{errors.entryDate.message}</FormError>}
                     </div>
                     <div className='space-y-2'>
-                        <Label>Advance Year <span className='text-destructive'>*</span></Label>
+                        <Label>
+                            Advance Year <span className='text-destructive'>*</span>
+                        </Label>
                         <Controller
                             name='advanceYear'
                             control={control}
@@ -213,11 +222,15 @@ export default function AddSalaryAdvanceForm({ employeeDropdown, onSuccess, clas
                                         <SelectValue placeholder='Select Year' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {(leaveYears as any[]).filter(year => year.hrmlY_LeaveYear || year.HRMLY_LeaveYear).map((year: any) => (
-                                            <SelectItem key={year.hrmlY_Id || year.HRMLY_Id} value={String(year.hrmlY_LeaveYear || year.HRMLY_LeaveYear)}>
-                                                {year.hrmlY_LeaveYear || year.HRMLY_LeaveYear}
-                                            </SelectItem>
-                                        ))}
+                                        {(leaveYears as any[])
+                                            .filter((year) => year.hrmlY_LeaveYear || year.HRMLY_LeaveYear)
+                                            .map((year: any) => (
+                                                <SelectItem
+                                                    key={year.hrmlY_Id || year.HRMLY_Id}
+                                                    value={String(year.hrmlY_LeaveYear || year.HRMLY_LeaveYear)}>
+                                                    {year.hrmlY_LeaveYear || year.HRMLY_LeaveYear}
+                                                </SelectItem>
+                                            ))}
                                     </SelectContent>
                                 </Select>
                             )}
@@ -249,11 +262,15 @@ export default function AddSalaryAdvanceForm({ employeeDropdown, onSuccess, clas
                                         <SelectValue placeholder='Select Month' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {(months as any[]).filter(month => month.IVRM_Month_Name || month.value).map((month: any) => (
-                                            <SelectItem key={month.IVRM_Month_Id || month.key} value={String(month.IVRM_Month_Name || month.value)}>
-                                                {month.IVRM_Month_Name || month.value}
-                                            </SelectItem>
-                                        ))}
+                                        {(months as any[])
+                                            .filter((month) => month.IVRM_Month_Name || month.value)
+                                            .map((month: any) => (
+                                                <SelectItem
+                                                    key={month.IVRM_Month_Id || month.key}
+                                                    value={String(month.IVRM_Month_Name || month.value)}>
+                                                    {month.IVRM_Month_Name || month.value}
+                                                </SelectItem>
+                                            ))}
                                     </SelectContent>
                                 </Select>
                             )}
@@ -261,7 +278,9 @@ export default function AddSalaryAdvanceForm({ employeeDropdown, onSuccess, clas
                         {errors.advanceMonth && <FormError>{errors.advanceMonth.message}</FormError>}
                     </div>
                     <div className='space-y-2'>
-                        <Label>Advanced Amount <span className='text-destructive'>*</span></Label>
+                        <Label>
+                            Advanced Amount <span className='text-destructive'>*</span>
+                        </Label>
                         <InputText
                             type='number'
                             step='0.01'
@@ -271,7 +290,9 @@ export default function AddSalaryAdvanceForm({ employeeDropdown, onSuccess, clas
                         />
                     </div>
                     <div className='space-y-2'>
-                        <Label>Mode of Payment <span className='text-destructive'>*</span></Label>
+                        <Label>
+                            Mode of Payment <span className='text-destructive'>*</span>
+                        </Label>
                         <Controller
                             name='modeOfPayment'
                             control={control}
@@ -294,15 +315,13 @@ export default function AddSalaryAdvanceForm({ employeeDropdown, onSuccess, clas
                     </div>
                     <div className='space-y-2'>
                         <Label>Reference No</Label>
-                        <InputText
-                            placeholder='Enter reference number'
-                            {...register('referenceNo')}
-                            error={errors.referenceNo?.message}
-                        />
+                        <InputText placeholder='Enter reference number' {...register('referenceNo')} error={errors.referenceNo?.message} />
                     </div>
                 </div>
                 <div className='space-y-2'>
-                    <Label>Remarks <span className='text-destructive'>*</span></Label>
+                    <Label>
+                        Remarks <span className='text-destructive'>*</span>
+                    </Label>
                     <InputText placeholder='Enter remarks' {...register('remarks')} error={errors.remarks?.message} />
                 </div>
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
@@ -330,4 +349,3 @@ export default function AddSalaryAdvanceForm({ employeeDropdown, onSuccess, clas
         </div>
     );
 }
-

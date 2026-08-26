@@ -1,6 +1,5 @@
 import { Chatbot } from '@/components/chatbot/chatbot';
 import { StudentChatbot } from '@/components/chatbot/student-chatbot';
-import { FloatingSchoolBot } from '@/components/chatbot/floating-school-bot';
 import Providers from '@/components/layout/providers';
 import { auth } from '@/lib/auth';
 import { cn } from '@/lib/utils';
@@ -10,7 +9,6 @@ import localFont from 'next/font/local';
 import NextTopLoader from 'nextjs-toploader';
 import type * as React from 'react';
 import { Toaster } from 'sonner';
-import Script from 'next/script';
 
 const geistSans = localFont({
     src: '../public/fonts/GeistVF.woff',
@@ -40,8 +38,9 @@ export default async function RootLayout({ children }: Readonly<RootLayoutProps>
     return (
         <html lang='en' suppressHydrationWarning>
             <head>
-                <script dangerouslySetInnerHTML={{
-                    __html: `
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `
                         if (window.performance && window.performance.getEntriesByType('navigation').length > 0) {
                             if (window.performance.getEntriesByType('navigation')[0].type === 'reload') {
                                 var url = new URL(window.location.href);
@@ -59,7 +58,8 @@ export default async function RootLayout({ children }: Readonly<RootLayoutProps>
                             }
                         }
                     `
-                }} />
+                    }}
+                />
             </head>
             <body
                 suppressHydrationWarning
@@ -82,9 +82,8 @@ export default async function RootLayout({ children }: Readonly<RootLayoutProps>
                         richColors
                         className={`${geistSans.className}`}
                         style={{
-                            zIndex: 99999,
+                            zIndex: 99999
                         }}
-
                     />
                 </Providers>
             </body>

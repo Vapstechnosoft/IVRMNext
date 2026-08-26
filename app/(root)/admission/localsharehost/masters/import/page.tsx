@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
-import ImportForm from './_components/import-form';
-import PreviewTable from './_components/preview-table';
 import { Button } from '@/components/ui/button';
-import { Save, X, Loader2 } from 'lucide-react';
+import { checkImportValidation, saveImportedData } from '@/server/admission/preadmission/masters/admission_import';
+import { Loader2, Save, X } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
-import { checkImportValidation, saveImportedData } from '@/server/admission/preadmission/masters/admission_import';
+import ImportForm from './_components/import-form';
+import PreviewTable from './_components/preview-table';
 
 export default function StudentImportPage() {
     const [importedData, setImportedData] = useState<any[]>([]);
@@ -34,8 +34,8 @@ export default function StudentImportPage() {
                 newlstget1: data.map((item) => ({
                     ...item,
                     asmaY_Id: 231,
-                    stuStatus: 'Active',
-                })),
+                    stuStatus: 'Active'
+                }))
             };
             const response = await checkImportValidation(dataToValidate);
 
@@ -44,7 +44,7 @@ export default function StudentImportPage() {
                     icon: 'warning',
                     title: 'Validation Failed',
                     text: String(response.stuStatus),
-                    confirmButtonColor: '#3085d6',
+                    confirmButtonColor: '#3085d6'
                 });
                 setImportedData([]); // Clear data if validation fails as per legacy logic
                 setHeaders([]);
@@ -74,22 +74,20 @@ export default function StudentImportPage() {
                 newlstget1: importedData.map((item) => ({
                     ...item,
                     asmaY_Id: 231,
-                    stuStatus: 'Active',
-                })),
+                    stuStatus: 'Active'
+                }))
             };
             const response = await saveImportedData(dataToSave);
-            
+
             // Support legacy responses where success is indicated by 'true' at the start of message or stuStatus
             const responseMessage = String(response.message || response.stuStatus || '');
-            const isSuccess = response.success || 
-                              response.stuStatus === 'true' || 
-                              responseMessage.toLowerCase().startsWith('true');
+            const isSuccess = response.success || response.stuStatus === 'true' || responseMessage.toLowerCase().startsWith('true');
 
             if (isSuccess) {
                 Swal.fire({
                     icon: 'success',
                     title: 'Import Result',
-                    text: responseMessage,
+                    text: responseMessage
                 }).then(() => {
                     window.location.reload();
                 });
@@ -97,7 +95,7 @@ export default function StudentImportPage() {
                 Swal.fire({
                     icon: 'error',
                     title: 'Save Failed',
-                    text: responseMessage || 'An error occurred while saving the data',
+                    text: responseMessage || 'An error occurred while saving the data'
                 });
             }
         } catch (error) {
@@ -115,15 +113,13 @@ export default function StudentImportPage() {
     };
 
     return (
-        <div className='container mx-auto py-8 space-y-8 animate-in fade-in duration-500'>
+        <div className='fade-in container mx-auto animate-in space-y-8 py-8 duration-500'>
             {/* Header section with page title */}
             <div className='flex flex-col space-y-2'>
-                <h1 className='text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent'>
+                <h1 className='bg-gradient-to-r from-primary to-primary/60 bg-clip-text font-extrabold text-3xl text-transparent tracking-tight'>
                     Excel Data Import
                 </h1>
-                <p className='text-muted-foreground'>
-                    Upload and manage student data imports effectively from Microsoft Excel files.
-                </p>
+                <p className='text-muted-foreground'>Upload and manage student data imports effectively from Microsoft Excel files.</p>
             </div>
 
             {/* Import Form Section */}
@@ -131,25 +127,16 @@ export default function StudentImportPage() {
 
             {/* Preview and Save Section */}
             {importedData.length > 0 && (
-                <div className='space-y-6 animate-in slide-in-from-bottom-4 duration-300'>
-                    <PreviewTable 
-                        data={importedData} 
-                        headers={headers} 
-                        isLoading={isValidating} 
-                    />
+                <div className='slide-in-from-bottom-4 animate-in space-y-6 duration-300'>
+                    <PreviewTable data={importedData} headers={headers} isLoading={isValidating} />
 
-                    <div className='flex items-center justify-center gap-4 py-8 bg-muted/20 rounded-xl border border-dashed'>
+                    <div className='flex items-center justify-center gap-4 rounded-xl border border-dashed bg-muted/20 py-8'>
                         <Button
                             size='lg'
                             onClick={handleSave}
                             disabled={!isValidated || isSaving || isValidating}
-                            className='min-w-[150px] shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300'
-                        >
-                            {isSaving ? (
-                                <Loader2 className='h-5 w-5 animate-spin mr-2' />
-                            ) : (
-                                <Save className='h-5 w-5 mr-2' />
-                            )}
+                            className='min-w-[150px] shadow-lg shadow-primary/20 transition-all duration-300 hover:shadow-primary/40'>
+                            {isSaving ? <Loader2 className='mr-2 h-5 w-5 animate-spin' /> : <Save className='mr-2 h-5 w-5' />}
                             {isSaving ? 'Saving...' : 'Save Data'}
                         </Button>
                         <Button
@@ -157,9 +144,8 @@ export default function StudentImportPage() {
                             size='lg'
                             onClick={handleClear}
                             disabled={isSaving}
-                            className='min-w-[150px] hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50 transition-all duration-300'
-                        >
-                            <X className='h-5 w-5 mr-2' />
+                            className='min-w-[150px] transition-all duration-300 hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive'>
+                            <X className='mr-2 h-5 w-5' />
                             Cancel
                         </Button>
                     </div>

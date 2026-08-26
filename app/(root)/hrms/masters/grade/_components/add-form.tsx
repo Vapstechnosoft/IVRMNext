@@ -23,7 +23,7 @@ const PayScaleRangeDisplay = ({ control }: PayScaleRangeDisplayProps) => {
     const inc = useWatch({ control, name: 'hrmG_IncrementOf' });
     const to = useWatch({ control, name: 'hrmG_PayScaleTo' });
 
-    // Only show values, if undefined show nothing or placeholder. 
+    // Only show values, if undefined show nothing or placeholder.
     // If user wants to see nothing when fields are empty:
     return <>{`${from ?? 0} - ${inc ?? 0} - ${to ?? 0}`}</>;
 };
@@ -196,7 +196,9 @@ export default function AddGradeForm({ onSuccess, className = '' }: AddGradeForm
                             <div className='flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50'>
                                 <PayScaleRangeDisplay control={control} />
                             </div>
-                            {errors.hrmG_PayScaleTo && <p className='text-[0.8rem] font-medium text-destructive'>{errors.hrmG_PayScaleTo.message}</p>}
+                            {errors.hrmG_PayScaleTo && (
+                                <p className='font-medium text-[0.8rem] text-destructive'>{errors.hrmG_PayScaleTo.message}</p>
+                            )}
                         </div>
 
                         {/* Order field removed as per request */}

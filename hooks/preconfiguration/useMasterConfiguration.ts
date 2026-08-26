@@ -1,11 +1,11 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
 import {
     deleteMasterConfiguration,
     getMasterConfigurationData,
     getMasterConfigurationEditData,
     saveMasterConfiguration
 } from '@/server/preconfiguration/master-configuration';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 const QUERY_KEYS = {
     masterConfiguration: ['masterConfiguration']
@@ -58,7 +58,7 @@ export function useSaveMasterConfiguration() {
         onSuccess: (response) => {
             const msg = response.message || '';
             const isActuallySuccess = response.success || msg.toLowerCase().includes('success');
-            
+
             if (isActuallySuccess) {
                 toast.success(msg || 'Configuration saved successfully');
                 queryClient.invalidateQueries({ queryKey: QUERY_KEYS.masterConfiguration });

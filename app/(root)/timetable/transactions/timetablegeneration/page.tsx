@@ -5,11 +5,11 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useTimeTableGenerationGridData } from '@/hooks/timetable/useTransactions';
-import {  TTGenerationGridData } from '@/types/timetable/Transaction/timetablegeneration';
+import type { TTGenerationGridData } from '@/types/timetable/Transaction/timetablegeneration';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
-import { columns } from './_components/columns';
 import Forms from './_components/Forms';
+import { columns } from './_components/columns';
 import ToggleTTGeneration from './_components/toggle';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -20,12 +20,7 @@ export default function TimeTableGenerationPage(props: { searchParams: SearchPar
 
     return (
         <FormProvider<TTGenerationGridData>>
-            <TimeTableGenerationPageContent
-                response={response}
-                isLoading={isLoading}
-                error={error}
-                refetchAll={refetchAll}
-            />
+            <TimeTableGenerationPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
         </FormProvider>
     );
 }
@@ -167,4 +162,3 @@ function FormSections({ refetchAll }: { refetchAll: () => void }) {
         </>
     );
 }
-

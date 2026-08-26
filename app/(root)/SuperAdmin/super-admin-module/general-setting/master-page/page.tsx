@@ -4,17 +4,17 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { PageHeader } from '@/components/ui/layout/page-header';
+import { SectionCard } from '@/components/ui/layout/section-card';
+import { tableSearchVariables } from '@/lib/data-table.config';
 import { getMasterPages } from '@/server/super-admin/super-admin-module/general-setting/master-page';
 import type { IMasterPage } from '@/types/super-admin/super-admin-module/general-setting/master-page';
 import { Plus, X } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
 import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
-import { tableSearchVariables } from '@/lib/data-table.config';
+import React, { useEffect, useState } from 'react';
 import AddMasterPageForm from './_components/add-form';
 import { columns } from './_components/columns';
 import { PageProvider } from './_components/page-context';
-import { PageHeader } from '@/components/ui/layout/page-header';
-import { SectionCard } from '@/components/ui/layout/section-card';
 
 export default function MasterPage() {
     return (
@@ -30,22 +30,10 @@ function MasterPageContent() {
     const [isLoading, setIsLoading] = useState(true);
 
     // Pagination State
-    const [page] = useQueryState(
-        tableSearchVariables.page,
-        parseAsInteger.withOptions({ shallow: false }).withDefault(1)
-    );
-    const [pageSize] = useQueryState(
-        tableSearchVariables.page_size,
-        parseAsInteger.withOptions({ shallow: false }).withDefault(10)
-    );
-    const [searchQuery] = useQueryState(
-        tableSearchVariables.search,
-        parseAsString.withOptions({ shallow: false }).withDefault('')
-    );
-    const [sortBy] = useQueryState(
-        tableSearchVariables.sort_column,
-        parseAsString.withOptions({ shallow: false }).withDefault('')
-    );
+    const [page] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
+    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
+    const [sortBy] = useQueryState(tableSearchVariables.sort_column, parseAsString.withOptions({ shallow: false }).withDefault(''));
     const [sortDirection] = useQueryState(
         tableSearchVariables.sort_direction,
         parseAsString.withOptions({ shallow: false }).withDefault('asc')
@@ -83,10 +71,9 @@ function MasterPageContent() {
         <PageProvider refreshData={fetchData}>
             <div className='container mx-auto space-y-8 p-6'>
                 <PageHeader
-                    title="Master Pages"
-                    highlightWord="Pages"
-                    description="Manage core application pages, define their properties, and control global visibility settings."
-                >
+                    title='Master Pages'
+                    highlightWord='Pages'
+                    description='Manage core application pages, define their properties, and control global visibility settings.'>
                     <Button
                         type='button'
                         onClick={openAddForm}
@@ -97,12 +84,7 @@ function MasterPageContent() {
                 </PageHeader>
 
                 <SectionCard>
-                    <CollapsibleSection
-                        title='Master Pages List'
-                        defaultOpen={true}
-                        variant='default'
-                        size='lg'
-                    >
+                    <CollapsibleSection title='Master Pages List' defaultOpen={true} variant='default' size='lg'>
                         <div className='p-4'>
                             <GenericDataTable
                                 data={data}
@@ -141,8 +123,7 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
                     defaultOpen={true}
                     variant='outline'
                     size='lg'
-                    className='shadow-lg animate-in slide-in-from-top-2'
-                >
+                    className='slide-in-from-top-2 animate-in shadow-lg'>
                     <div className='relative'>
                         <Button
                             type='button'

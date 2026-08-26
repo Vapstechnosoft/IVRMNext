@@ -23,14 +23,22 @@ export const EventsMappingColumns: ColumnDef<IEventsMapping>[] = [
     {
         accessorKey: 'asmaY_Year',
         header: ({ column }) => (
-            <DataTableColumnHeader column={column} title='Academic Year' className='justify-center text-center font-bold text-black uppercase' />
+            <DataTableColumnHeader
+                column={column}
+                title='Academic Year'
+                className='justify-center text-center font-bold text-black uppercase'
+            />
         ),
         cell: (info) => <div className='text-center'>{info.getValue() as string}</div>
     },
     {
         accessorKey: 'coemE_EventName',
         header: ({ column }) => (
-            <DataTableColumnHeader column={column} title='Event Name' className='justify-center text-center font-bold text-black uppercase' />
+            <DataTableColumnHeader
+                column={column}
+                title='Event Name'
+                className='justify-center text-center font-bold text-black uppercase'
+            />
         ),
         cell: (info) => <div className='text-center uppercase'>{info.getValue() as string}</div>
     },
@@ -67,7 +75,9 @@ export const EventsMappingColumns: ColumnDef<IEventsMapping>[] = [
                     fetchData={async () => {
                         const res = await getPageDetailsMap(row.original.coeE_Id || (row.original as any).COEE_Id);
                         const data = (res as any).event_mapping_list?.[0] || {};
-                        return (data.videos_list || []).map((v: any) => ({ COEEV_Videos: v.coeeV_Videos || v.COEEV_Videos || v.COEEV_VideoURL }));
+                        return (data.videos_list || []).map((v: any) => ({
+                            COEEV_Videos: v.coeeV_Videos || v.COEEV_Videos || v.COEEV_VideoURL
+                        }));
                     }}
                     trigger={
                         <Button variant='ghost' size='icon' className='h-8 w-8 text-blue-600'>

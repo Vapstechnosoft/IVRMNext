@@ -19,17 +19,9 @@ export default function SubjectSubReportPage() {
     };
 
     return (
-        <div className="container mx-auto py-6 space-y-6">
-            <AddForm 
-                onReportGenerated={handleReportGenerated} 
-                onReset={handleReset} 
-            />
-            {reportParams && (
-                <ReportList 
-                    data={reportData} 
-                    params={reportParams} 
-                />
-            )}
+        <div className='container mx-auto space-y-6 py-6'>
+            <AddForm onReportGenerated={handleReportGenerated} onReset={handleReset} />
+            {reportParams && <ReportList data={reportData} params={reportParams} />}
         </div>
     );
 }

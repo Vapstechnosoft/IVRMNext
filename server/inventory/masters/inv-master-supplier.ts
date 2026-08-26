@@ -1,14 +1,14 @@
 'use server';
- 
+
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
- 
+
 export async function getInvMasterSupplier(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/INV_MasterSupplierFacade/getloaddata?${urlParams}`;
     return await api.post<any>('inventory', url, {});
 }
- 
+
 export async function saveInvMasterSupplier(data: any) {
     const params = new URLSearchParams();
     const mapping: Record<string, string> = {
@@ -22,7 +22,7 @@ export async function saveInvMasterSupplier(data: any) {
         invmS_SupplierAddress: 'INVMS_SupplierAddress',
         invmS_ActiveFlg: 'INVMST_ActiveFlg'
     };
- 
+
     for (const key in data) {
         const apiKey = mapping[key] || key;
         const val = data[key];
@@ -33,7 +33,7 @@ export async function saveInvMasterSupplier(data: any) {
     const url = `/INV_MasterSupplierFacade/savedetails?${params.toString()}`;
     return await api.post<any>('inventory', url, {});
 }
- 
+
 export async function deactivateInvMasterSupplier(data: any) {
     const url = `/INV_MasterSupplierFacade/deactive?id=${data.invmS_Id}`;
     return await api.post<any>('inventory', url, {});

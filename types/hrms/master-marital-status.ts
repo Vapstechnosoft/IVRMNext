@@ -1,9 +1,11 @@
 export interface MasterMaritalStatusResponse {
     success?: boolean;
     message?: string;
-    data?: MaritalStatusDetail[] | {
-        maritalstatusList: MaritalStatusDetail[];
-    };
+    data?:
+        | MaritalStatusDetail[]
+        | {
+              maritalstatusList: MaritalStatusDetail[];
+          };
     maritalstatusList?: MaritalStatusDetail[];
     retrunMsg?: string;
     roleId?: number;

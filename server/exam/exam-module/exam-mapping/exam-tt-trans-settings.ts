@@ -37,7 +37,7 @@ export async function getSubjectListAndTimeSlots(params: {
 // -------------------------------------------------------
 // Save exam timetable trans settings
 // -------------------------------------------------------
-export async function saveExamTTTransSettings(data:any) {
+export async function saveExamTTTransSettings(data: any) {
     const url = 'exam_TT_Transaction_Settings/save_exam_tt_transaction_settings';
     return await api.post<any>('exam', url, data);
 }

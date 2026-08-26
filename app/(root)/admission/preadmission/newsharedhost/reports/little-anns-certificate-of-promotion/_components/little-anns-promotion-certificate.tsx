@@ -1,13 +1,13 @@
 'use client';
 
-import React from 'react';
-import { Dancing_Script } from 'next/font/google';
 import { cn } from '@/lib/utils';
+import { Dancing_Script } from 'next/font/google';
+import React from 'react';
 
 const dancingScript = Dancing_Script({
     subsets: ['latin'],
     weight: ['400', '700'],
-    variable: '--font-dancing-script',
+    variable: '--font-dancing-script'
 });
 
 type CertificateProps = {
@@ -28,7 +28,7 @@ const LittleAnnsPromotionCertificate = React.forwardRef<HTMLDivElement, Certific
         const fullName = student ? `${student.stuFN} ${student.stuMN || ''} ${student.stuLN || ''}`.trim() : '';
 
         return (
-            <div ref={ref} className={cn("printable-content", dancingScript.variable)}>
+            <div ref={ref} className={cn('printable-content', dancingScript.variable)}>
                 <style>
                     {`
                     @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap');
@@ -249,87 +249,85 @@ const LittleAnnsPromotionCertificate = React.forwardRef<HTMLDivElement, Certific
                     }
                 `}
                 </style>
-                
-                <div className="outer-wrap">
-                    <div className="certificate-container">
-                        <div className="wave-border">
-                            <div className="certificate-content">
-                                <div className="certificate-watermark">
+
+                <div className='outer-wrap'>
+                    <div className='certificate-container'>
+                        <div className='wave-border'>
+                            <div className='certificate-content'>
+                                <div className='certificate-watermark'>
                                     <img
-                                        src="https://dcampusstrg.blob.core.windows.net/files/0/ISM_Attachments/e909049e-8c6b-4e8e-b8a9-9787cb41b849.png"
-                                        alt="Watermark"
+                                        src='https://dcampusstrg.blob.core.windows.net/files/0/ISM_Attachments/e909049e-8c6b-4e8e-b8a9-9787cb41b849.png'
+                                        alt='Watermark'
                                     />
                                 </div>
 
-                                <h1 className="certificate-title-top">Certificate of Promotion</h1>
+                                <h1 className='certificate-title-top'>Certificate of Promotion</h1>
 
-                                <div className="certificate-body">
-                                    <div className="rows">
-                                        <div className="row">
-                                            <span className="label">This is to certify that</span>
-                                            <span className="fill-line">
-                                                <span className="highlight-text">{fullName}</span>
+                                <div className='certificate-body'>
+                                    <div className='rows'>
+                                        <div className='row'>
+                                            <span className='label'>This is to certify that</span>
+                                            <span className='fill-line'>
+                                                <span className='highlight-text'>{fullName}</span>
                                             </span>
                                         </div>
 
-                                        <div className="row">
-                                            <span className="label">student of</span>
-                                            <span className="fill-line">
-                                                <span className="highlight-text">{purpose}</span>
+                                        <div className='row'>
+                                            <span className='label'>student of</span>
+                                            <span className='fill-line'>
+                                                <span className='highlight-text'>{purpose}</span>
                                             </span>
                                         </div>
 
-                                        <div className="row">
-                                            <span className="label">has successfully completed</span>
-                                            <span className="fill-line">
-                                                <span className="highlight-text">{completedCourse}</span>
+                                        <div className='row'>
+                                            <span className='label'>has successfully completed</span>
+                                            <span className='fill-line'>
+                                                <span className='highlight-text'>{completedCourse}</span>
                                             </span>
                                         </div>
 
-                                        <div className="row">
-                                            <span className="label">and is now promoted to</span>
-                                            <span className="fill-line">
-                                                <span className="highlight-text">{promotedTo}</span>
+                                        <div className='row'>
+                                            <span className='label'>and is now promoted to</span>
+                                            <span className='fill-line'>
+                                                <span className='highlight-text'>{promotedTo}</span>
                                             </span>
                                         </div>
 
-                                        <div className="row">
-                                            <span className="label">
-                                                for the session {student?.acadamicyear || '____'} held on dated
-                                            </span>
-                                            <span className="fill-line">
-                                                <span className="highlight-text">{promotionDate}</span>
+                                        <div className='row'>
+                                            <span className='label'>for the session {student?.acadamicyear || '____'} held on dated</span>
+                                            <span className='fill-line'>
+                                                <span className='highlight-text'>{promotionDate}</span>
                                             </span>
                                         </div>
                                     </div>
 
-                                    <div className="signature-section">
+                                    <div className='signature-section'>
                                         <img
-                                            src="https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/89e83cbd-ca37-49f2-b3ee-1e3ba0d7798d.png"
-                                            alt="Signature"
-                                            className="rector-sign"
+                                            src='https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/89e83cbd-ca37-49f2-b3ee-1e3ba0d7798d.png'
+                                            alt='Signature'
+                                            className='rector-sign'
                                         />
-                                        <div className="signature-line" />
-                                        <p className="signature-text">Rector</p>
+                                        <div className='signature-line' />
+                                        <p className='signature-text'>Rector</p>
                                     </div>
 
                                     <img
-                                        src="https://dcampusstrg.blob.core.windows.net/files/0/ISM_Attachments/e909049e-8c6b-4e8e-b8a9-9787cb41b849.png"
-                                        alt="Little Ann’s Logo"
-                                        className="logo-bottom-right"
+                                        src='https://dcampusstrg.blob.core.windows.net/files/0/ISM_Attachments/e909049e-8c6b-4e8e-b8a9-9787cb41b849.png'
+                                        alt='Little Ann’s Logo'
+                                        className='logo-bottom-right'
                                     />
                                 </div>
 
-                                <h1 className="footer-brand">A Unit of St.Ann's Group of School</h1>
+                                <h1 className='footer-brand'>A Unit of St.Ann's Group of School</h1>
                             </div>
                         </div>
                     </div>
 
-                    <div className="bottom-bar">
+                    <div className='bottom-bar'>
                         <span>4000+ Happy Students</span>
-                        <span className="bottom-sep">|</span>
+                        <span className='bottom-sep'>|</span>
                         <span>350+ Dedicated Teachers</span>
-                        <span className="bottom-sep">|</span>
+                        <span className='bottom-sep'>|</span>
                         <span>55+ Years of Excellence</span>
                     </div>
                 </div>

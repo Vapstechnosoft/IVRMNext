@@ -1,9 +1,9 @@
 'use server';
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
-import { revalidatePath } from 'next/cache';
 import type { ApiSearchparams } from '@/types';
 import type { IMasterSportsCCNameUOMResponse } from '@/types/sports/masters/sports-cc-name-uom';
+import { revalidatePath } from 'next/cache';
 
 const BASE_URL = 'sports';
 

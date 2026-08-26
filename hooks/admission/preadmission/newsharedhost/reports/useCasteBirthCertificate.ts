@@ -1,32 +1,32 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
 import {
+    generateCasteBirthQRCode,
     getCasteBirthCertificateInitialData,
-    searchCasteBirthStudent,
     getCasteBirthStudentReport,
-    generateCasteBirthQRCode
+    searchCasteBirthStudent
 } from '@/server/admission/preadmission/newsharedhost/reports/caste-birth-certificate';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export function useCasteBirthCertificateInitialData() {
     return useQuery({
         queryKey: ['casteBirthCertificateInitialData'],
-        queryFn: () => getCasteBirthCertificateInitialData(),
+        queryFn: () => getCasteBirthCertificateInitialData()
     });
 }
 
 export function useSearchCasteBirthStudentMutation() {
     return useMutation({
-        mutationFn: (data: any) => searchCasteBirthStudent(data),
+        mutationFn: (data: any) => searchCasteBirthStudent(data)
     });
 }
 
 export function useCasteBirthStudentReportMutation() {
     return useMutation({
-        mutationFn: (data: any) => getCasteBirthStudentReport(data),
+        mutationFn: (data: any) => getCasteBirthStudentReport(data)
     });
 }
 
 export function useGenerateCasteBirthQRCodeMutation() {
     return useMutation({
-        mutationFn: (data: any) => generateCasteBirthQRCode(data),
+        mutationFn: (data: any) => generateCasteBirthQRCode(data)
     });
 }

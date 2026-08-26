@@ -6,7 +6,7 @@ const navigationContext: {
     setActiveNavigation: (nav: ActiveNavigation | null) => void;
 } = {
     activeNavigation: null,
-    setActiveNavigation: () => { }
+    setActiveNavigation: () => {}
 };
 
 // Hook for NavigationSystem to update the state

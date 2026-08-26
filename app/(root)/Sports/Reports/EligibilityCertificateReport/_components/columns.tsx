@@ -1,7 +1,7 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
 import type { IEligibilityCertificateReportDetail } from '@/types/sports/reports/eligibility-certificate-report';
+import type { ColumnDef } from '@tanstack/react-table';
 
 export const columns: ColumnDef<IEligibilityCertificateReportDetail>[] = [
     {
@@ -29,10 +29,10 @@ export const columns: ColumnDef<IEligibilityCertificateReportDetail>[] = [
     },
     {
         accessorKey: 'fatherName',
-        header: 'Father Name',
+        header: 'Father Name'
     },
     {
         accessorKey: 'motherName',
-        header: 'Mother Name',
-    },
+        header: 'Mother Name'
+    }
 ];

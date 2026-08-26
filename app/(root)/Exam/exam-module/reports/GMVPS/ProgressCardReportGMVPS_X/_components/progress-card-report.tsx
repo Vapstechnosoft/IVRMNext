@@ -26,16 +26,16 @@ export default function ProgressCardReport({
     onPrint
 }: ProgressCardReportProps) {
     return (
-        <div className="space-y-6">
-            <div className="flex justify-end no-print">
-                <Button onClick={onPrint} className="gap-2">
-                    <Printer className="h-4 w-4" />
+        <div className='space-y-6'>
+            <div className='no-print flex justify-end'>
+                <Button onClick={onPrint} className='gap-2'>
+                    <Printer className='h-4 w-4' />
                     Print Report
                 </Button>
             </div>
 
-            <div className="overflow-auto border rounded-lg bg-gray-50 p-4">
-                <div className="mx-auto bg-white shadow-lg origin-top scale-[0.8] md:scale-100">
+            <div className='overflow-auto rounded-lg border bg-gray-50 p-4'>
+                <div className='mx-auto origin-top scale-[0.8] bg-white shadow-lg md:scale-100'>
                     <ProgressCardPrintView
                         reportData={reportData}
                         saveList={saveList}

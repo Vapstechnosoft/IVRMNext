@@ -13,7 +13,6 @@ export async function getSSVNCertificateStudentsByStatus(data: {
     return await api.post<any>('admission', `/HHSStudyCertificate/getstudentlist?AMST_SOL=${data.AMST_SOL}`, {});
 }
 
-
 export async function getSSVNCertificateStudentsByYear(data: {
     ASMAY_Id: number;
     AMST_SOL: string;

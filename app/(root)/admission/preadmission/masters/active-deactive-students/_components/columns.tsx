@@ -6,13 +6,12 @@ import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Student } from '@/types/admission/preadmission/masters';
 import type { ColumnDef } from '@tanstack/react-table';
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
-const RemarkInput = ({ row, table }: { row: any; table: any }) => {
-    const meta = table.options.meta as any;
+const RemarkInput = ({ row, updateStudentData, studentDataRef }: { row: any; updateStudentData: any; studentDataRef: any }) => {
     const isSelected = row.getIsSelected();
-    const studentId = row.original.student_id;
-    const initialValue = meta?.studentData?.get(studentId)?.remark || '';
+    const studentId = Number(row.original.student_id);
+    const initialValue = studentDataRef.current?.get(studentId)?.remark || '';
 
     const [value, setValue] = useState(initialValue);
 
@@ -22,18 +21,23 @@ const RemarkInput = ({ row, table }: { row: any; table: any }) => {
 
     return (
         <input
-            type="text"
-            className="flex h-9 w-[180px] rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            type='text'
+            className='flex h-9 w-[180px] rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:font-medium file:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
             disabled={!isSelected}
             value={value}
-            onChange={(e) => setValue(e.target.value)}
-            onBlur={() => meta?.updateStudentData(studentId, 'remark', value)}
-            placeholder="Enter Remarks"
+            onChange={(e) => {
+                setValue(e.target.value);
+                updateStudentData(studentId, 'remark', e.target.value);
+            }}
+            placeholder='Enter Remarks'
         />
     );
 };
 
-export const activedeactiveColumns: ColumnDef<Student>[] = [
+export const getActiveDeactiveColumns = (
+    studentDataRef: any,
+    updateStudentData: (id: number, field: 'reason' | 'remark', value: string) => void
+): ColumnDef<Student>[] => [
     {
         id: 'select',
         header: ({ table }) => (
@@ -86,25 +90,20 @@ export const activedeactiveColumns: ColumnDef<Student>[] = [
     {
         id: 'reason',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Reason' className='font-bold text-black' />,
-        cell: ({ row, table }) => {
-            const meta = table.options.meta as any;
+        cell: ({ row }) => {
             const isSelected = row.getIsSelected();
-            const studentId = row.original.student_id;
-            const value = meta?.studentData?.get(studentId)?.reason || '';
+            const studentId = Number(row.original.student_id);
+            const value = studentDataRef.current?.get(studentId)?.reason || '';
 
             return (
-                <Select
-                    disabled={!isSelected}
-                    value={value}
-                    onValueChange={(val) => meta?.updateStudentData(studentId, 'reason', val)}
-                >
-                    <SelectTrigger className="w-[140px]">
-                        <SelectValue placeholder="Select Reason" />
+                <Select disabled={!isSelected} value={value} onValueChange={(val) => updateStudentData(studentId, 'reason', val)}>
+                    <SelectTrigger className='w-[140px]'>
+                        <SelectValue placeholder='Select Reason' />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="Fee Due">Fee Due</SelectItem>
-                        <SelectItem value="Long Absent">Long Absent</SelectItem>
-                        <SelectItem value="Medical">Medical</SelectItem>
+                        <SelectItem value='Fee Due'>Fee Due</SelectItem>
+                        <SelectItem value='Long Absent'>Long Absent</SelectItem>
+                        <SelectItem value='Medical'>Medical</SelectItem>
                     </SelectContent>
                 </Select>
             );
@@ -113,6 +112,6 @@ export const activedeactiveColumns: ColumnDef<Student>[] = [
     {
         id: 'remarks',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Remarks' className='font-bold text-black' />,
-        cell: ({ row, table }) => <RemarkInput row={row} table={table} />
+        cell: ({ row }) => <RemarkInput row={row} updateStudentData={updateStudentData} studentDataRef={studentDataRef} />
     }
 ];

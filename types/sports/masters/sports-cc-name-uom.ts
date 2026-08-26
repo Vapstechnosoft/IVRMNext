@@ -2,13 +2,13 @@ import { z } from 'zod';
 
 export const MasterSportsCCNameUOMSchema = z.object({
     spccmsccuoM_Id: z.number().default(0),
-    spccmscC_Id: z.number({ required_error: "Select Sports Name" }).min(1, "Select Sports Name"),
-    spccmuoM_Id: z.number({ required_error: "Select UOM" }).min(1, "Select UOM"),
+    spccmscC_Id: z.number({ required_error: 'Select Sports Name' }).min(1, 'Select Sports Name'),
+    spccmuoM_Id: z.number({ required_error: 'Select UOM' }).min(1, 'Select UOM'),
     spccmsccuoM_ActiveFlag: z.boolean().default(true).optional(),
 
     // Display fields for table - optional in schema as they come from API
     sportsCCName: z.string().optional(),
-    uomName: z.string().optional(),
+    uomName: z.string().optional()
 });
 
 export type IMasterSportsCCNameUOM = z.infer<typeof MasterSportsCCNameUOMSchema>;

@@ -143,9 +143,7 @@ export function ViewGroupsModal({
         if (formData.groupOrder < 1) {
             newErrors.groupOrder = 'Order must be at least 1';
         } else {
-            const duplicateOrder = groups.some(
-                (g) => g.EMPSG_Order === formData.groupOrder && g.id !== editingGroupId
-            );
+            const duplicateOrder = groups.some((g) => g.EMPSG_Order === formData.groupOrder && g.id !== editingGroupId);
             if (duplicateOrder) {
                 newErrors.groupOrder = 'already the order number exist';
             }
@@ -372,9 +370,7 @@ export function ViewGroupsModal({
 
     // Add or Update group
     const handleAddOrUpdate = () => {
-        const duplicateOrder = groups.some(
-            (g) => g.EMPSG_Order === formData.groupOrder && g.id !== editingGroupId
-        );
+        const duplicateOrder = groups.some((g) => g.EMPSG_Order === formData.groupOrder && g.id !== editingGroupId);
         if (duplicateOrder) {
             validateForm();
             return;
@@ -435,19 +431,19 @@ export function ViewGroupsModal({
             const groupExam = group.Exm_M_Prom_Subj_Group_Exams_master.find((g: { emE_Id: number }) => g.emE_Id === exam.id);
             return groupExam
                 ? {
-                    ...exam,
-                    isSelected: true,
-                    convertedMarks: groupExam.EMPSGE_ForMaxMarkrs.toString(),
-                    conversionRequired: groupExam.EMPSGE_ConvertionReqOrNot || false,
-                    error: undefined
-                }
+                      ...exam,
+                      isSelected: true,
+                      convertedMarks: groupExam.EMPSGE_ForMaxMarkrs.toString(),
+                      conversionRequired: groupExam.EMPSGE_ConvertionReqOrNot || false,
+                      error: undefined
+                  }
                 : {
-                    ...exam,
-                    isSelected: false,
-                    convertedMarks: '',
-                    conversionRequired: false,
-                    error: undefined
-                };
+                      ...exam,
+                      isSelected: false,
+                      convertedMarks: '',
+                      conversionRequired: false,
+                      error: undefined
+                  };
         });
 
         setLeftExams(updatedLeftExams);

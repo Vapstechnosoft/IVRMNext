@@ -1,41 +1,33 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { useQueryState, parseAsInteger, parseAsString } from 'nuqs';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
+import { toast } from 'sonner';
+import * as z from 'zod';
 
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DatePicker } from '@/components/ui/date-picker';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { TimePicker } from '@/components/ui/time-picker/time-picker';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Trash2, Edit, Minus, RefreshCw, ChevronUp, ChevronDown } from 'lucide-react';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { DatePicker } from '@/components/ui/date-picker';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { ChevronDown, ChevronUp, Minus, RefreshCw, Trash2 } from 'lucide-react';
 
 import {
-    getWrittenTestScheduleDetails,
-    saveWrittenTestSchedule,
     deleteWrittenTestSchedule,
     deleteWrittenTestScheduleStudentData,
+    getWrittenTestScheduleDetails,
     getWrittenTestSelectedRowDetails,
+    saveWrittenTestSchedule
 } from '@/server/admission/preadmission/transactions/written_test_schedule';
-import { IWrittenTestSchedule, IStudentDetails } from '@/types/admission/preadmission/transactions/written-test-schedule';
+import type { IStudentDetails } from '@/types/admission/preadmission/transactions/written-test-schedule';
 
 const formSchema = z.object({
     pawtS_Id: z.number().optional(),
@@ -47,7 +39,7 @@ const formSchema = z.object({
     skill: z.string().max(100).optional(),
     timeFrom: z.string().min(1, 'Time From is required'),
     timeTo: z.string().min(1, 'Time To is required'),
-    noOfStudents: z.string().optional(),
+    noOfStudents: z.string().optional()
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -69,8 +61,8 @@ export function WrittenTestScheduleForm() {
             skill: '',
             timeFrom: '12:00',
             timeTo: '12:00',
-            noOfStudents: '',
-        },
+            noOfStudents: ''
+        }
     });
 
     const watchClassId = useWatch({ control: form.control, name: 'classId' });
@@ -82,7 +74,7 @@ export function WrittenTestScheduleForm() {
     // Queries
     const { data: scheduleData, isLoading } = useQuery({
         queryKey: ['writtenTestSchedule', watchClassId],
-        queryFn: () => getWrittenTestScheduleDetails(Number(watchClassId) || 0),
+        queryFn: () => getWrittenTestScheduleDetails(Number(watchClassId) || 0)
     });
 
     // Mutations
@@ -99,7 +91,7 @@ export function WrittenTestScheduleForm() {
         },
         onError: () => {
             toast.error('Failed to save record');
-        },
+        }
     });
 
     const deleteScheduleMutation = useMutation({
@@ -110,7 +102,7 @@ export function WrittenTestScheduleForm() {
         },
         onError: () => {
             toast.error('Failed to delete record');
-        },
+        }
     });
 
     const deleteStudentMutation = useMutation({
@@ -122,7 +114,7 @@ export function WrittenTestScheduleForm() {
         },
         onError: () => {
             toast.error('Failed to delete record');
-        },
+        }
     });
 
     const fetchSelectedRowDetails = async (id: number) => {
@@ -139,7 +131,7 @@ export function WrittenTestScheduleForm() {
                     supervisor: schedule.pawtS_Superviser || '',
                     skill: schedule.pawtS_Skills || '',
                     timeFrom: schedule.pawtS_ScheduleTime,
-                    timeTo: schedule.pawtS_ScheduleTimeTo,
+                    timeTo: schedule.pawtS_ScheduleTimeTo
                 });
                 setIsEditMode(true);
                 setShowForm(true);
@@ -161,7 +153,7 @@ export function WrittenTestScheduleForm() {
             timeFrom: '',
             timeTo: '',
             noOfStudents: '',
-            scheduleDate: undefined,
+            scheduleDate: undefined
         });
         setCartStudents([]);
         setScheduledStudents([]);
@@ -189,7 +181,7 @@ export function WrittenTestScheduleForm() {
             PAWTS_Superviser: data.supervisor,
             PAWTS_Skills: data.skill,
             SelectedStudentData: cartStudents,
-            SelectedStudentDataForEdit: scheduledStudents,
+            SelectedStudentDataForEdit: scheduledStudents
         };
 
         saveMutation.mutate(payload);
@@ -224,57 +216,66 @@ export function WrittenTestScheduleForm() {
     const studentDetailsList = useMemo(() => {
         if (!searchQuery) return mappedStudentDetailsList;
         const lower = searchQuery.toLowerCase();
-        return mappedStudentDetailsList.filter(s => 
-            s.pasR_FirstName?.toLowerCase().includes(lower) ||
-            s.pasR_RegistrationNo?.toLowerCase().includes(lower) ||
-            s.classname?.toLowerCase().includes(lower) ||
-            s.pasR_Sex?.toLowerCase().includes(lower) ||
-            s.pasR_emailId?.toLowerCase().includes(lower) ||
-            s.pasR_MobileNo?.toString().includes(lower)
+        return mappedStudentDetailsList.filter(
+            (s) =>
+                s.pasR_FirstName?.toLowerCase().includes(lower) ||
+                s.pasR_RegistrationNo?.toLowerCase().includes(lower) ||
+                s.classname?.toLowerCase().includes(lower) ||
+                s.pasR_Sex?.toLowerCase().includes(lower) ||
+                s.pasR_emailId?.toLowerCase().includes(lower) ||
+                s.pasR_MobileNo?.toString().includes(lower)
         );
     }, [mappedStudentDetailsList, searchQuery]);
 
-    const rawMasterScheduleList: any[] = (dataAny?.data?.writtenTestSchedule || dataAny?.writtenTestSchedule || dataAny?.data?.WrittenTestSchedule || dataAny?.WrittenTestSchedule || []) as any[];
+    const rawMasterScheduleList: any[] = (dataAny?.data?.writtenTestSchedule ||
+        dataAny?.writtenTestSchedule ||
+        dataAny?.data?.WrittenTestSchedule ||
+        dataAny?.WrittenTestSchedule ||
+        []) as any[];
 
     const masterScheduleList = useMemo(() => {
         if (!searchQuery) return rawMasterScheduleList;
         const lower = searchQuery.toLowerCase();
         return rawMasterScheduleList.filter((item: any) => {
             const dateStr = item.pawtS_ScheduleDate ? format(new Date(item.pawtS_ScheduleDate), 'dd-MM-yyyy') : '';
-            return item.pawtS_ScheduleName?.toLowerCase().includes(lower) ||
-                   dateStr.includes(lower) ||
-                   item.pawtS_ScheduleTime?.toLowerCase().includes(lower) ||
-                   item.pawtS_ScheduleTimeTo?.toLowerCase().includes(lower) ||
-                   item.pawtS_Remarks?.toLowerCase().includes(lower);
+            return (
+                item.pawtS_ScheduleName?.toLowerCase().includes(lower) ||
+                dateStr.includes(lower) ||
+                item.pawtS_ScheduleTime?.toLowerCase().includes(lower) ||
+                item.pawtS_ScheduleTimeTo?.toLowerCase().includes(lower) ||
+                item.pawtS_Remarks?.toLowerCase().includes(lower)
+            );
         });
     }, [rawMasterScheduleList, searchQuery]);
 
     const filteredCartStudents = useMemo(() => {
         if (!searchQuery) return cartStudents;
         const lower = searchQuery.toLowerCase();
-        return cartStudents.filter(s => 
-            s.pasR_FirstName?.toLowerCase().includes(lower) ||
-            s.pasR_RegistrationNo?.toLowerCase().includes(lower) ||
-            s.pasR_Sex?.toLowerCase().includes(lower) ||
-            s.pasR_emailId?.toLowerCase().includes(lower) ||
-            s.pasR_MobileNo?.toString().includes(lower)
+        return cartStudents.filter(
+            (s) =>
+                s.pasR_FirstName?.toLowerCase().includes(lower) ||
+                s.pasR_RegistrationNo?.toLowerCase().includes(lower) ||
+                s.pasR_Sex?.toLowerCase().includes(lower) ||
+                s.pasR_emailId?.toLowerCase().includes(lower) ||
+                s.pasR_MobileNo?.toString().includes(lower)
         );
     }, [cartStudents, searchQuery]);
 
     const filteredScheduledStudents = useMemo(() => {
         if (!searchQuery) return scheduledStudents;
         const lower = searchQuery.toLowerCase();
-        return scheduledStudents.filter(s => 
-            s.pasR_FirstName?.toLowerCase().includes(lower) ||
-            s.pasR_RegistrationNo?.toLowerCase().includes(lower) ||
-            s.pasR_Sex?.toLowerCase().includes(lower) ||
-            s.pasR_emailId?.toLowerCase().includes(lower) ||
-            s.pasR_MobileNo?.toString().includes(lower)
+        return scheduledStudents.filter(
+            (s) =>
+                s.pasR_FirstName?.toLowerCase().includes(lower) ||
+                s.pasR_RegistrationNo?.toLowerCase().includes(lower) ||
+                s.pasR_Sex?.toLowerCase().includes(lower) ||
+                s.pasR_emailId?.toLowerCase().includes(lower) ||
+                s.pasR_MobileNo?.toString().includes(lower)
         );
     }, [scheduledStudents, searchQuery]);
 
     const handleAutoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const count = parseInt(e.target.value, 10);
+        const count = Number.parseInt(e.target.value, 10);
         const rawStudents = (dataAny?.data?.allname5 || dataAny?.allname5 || []) as any[];
         const students: IStudentDetails[] = rawStudents.map((s: any) => ({
             pasR_Id: s.pasr_id,
@@ -299,51 +300,53 @@ export function WrittenTestScheduleForm() {
     const studentListColumns = [
         {
             id: 'slno',
-            header: () => <div className="text-center font-bold text-black">Sl.No.</div>,
-            cell: ({ row }: any) => <div className="text-center">{(page - 1) * pageSize + row.index + 1}</div>,
+            header: () => <div className='text-center font-bold text-black'>Sl.No.</div>,
+            cell: ({ row }: any) => <div className='text-center'>{(page - 1) * pageSize + row.index + 1}</div>
         },
         {
             accessorKey: 'pasR_FirstName',
-            header: () => <div className="text-center font-bold text-black">Student Name</div>,
+            header: () => <div className='text-center font-bold text-black'>Student Name</div>,
             cell: ({ row }: any) => {
                 const s = row.original;
-                return <div className="text-center">{`${s.pasR_FirstName} ${s.pasR_MiddleName || ''} ${s.pasR_LastName || ''}`.trim()}</div>;
-            },
+                return (
+                    <div className='text-center'>{`${s.pasR_FirstName} ${s.pasR_MiddleName || ''} ${s.pasR_LastName || ''}`.trim()}</div>
+                );
+            }
         },
-        { 
-            accessorKey: 'pasR_RegistrationNo', 
-            header: () => <div className="text-center font-bold text-black">Registration No</div>,
-            cell: ({ row }: any) => <div className="text-center">{row.original.pasR_RegistrationNo}</div> 
+        {
+            accessorKey: 'pasR_RegistrationNo',
+            header: () => <div className='text-center font-bold text-black'>Registration No</div>,
+            cell: ({ row }: any) => <div className='text-center'>{row.original.pasR_RegistrationNo}</div>
         },
-        { 
-            accessorKey: 'classname', 
-            header: () => <div className="text-center font-bold text-black">Class</div>,
-            cell: ({ row }: any) => <div className="text-center">{row.original.classname}</div> 
+        {
+            accessorKey: 'classname',
+            header: () => <div className='text-center font-bold text-black'>Class</div>,
+            cell: ({ row }: any) => <div className='text-center'>{row.original.classname}</div>
         },
-        { 
-            accessorKey: 'pasR_Sex', 
-            header: () => <div className="text-center font-bold text-black">Gender</div>,
-            cell: ({ row }: any) => <div className="text-center">{row.original.pasR_Sex}</div> 
+        {
+            accessorKey: 'pasR_Sex',
+            header: () => <div className='text-center font-bold text-black'>Gender</div>,
+            cell: ({ row }: any) => <div className='text-center'>{row.original.pasR_Sex}</div>
         },
-        { 
-            accessorKey: 'pasR_MobileNo', 
-            header: () => <div className="text-center font-bold text-black">Mobile Number</div>,
-            cell: ({ row }: any) => <div className="text-center">{row.original.pasR_MobileNo}</div> 
+        {
+            accessorKey: 'pasR_MobileNo',
+            header: () => <div className='text-center font-bold text-black'>Mobile Number</div>,
+            cell: ({ row }: any) => <div className='text-center'>{row.original.pasR_MobileNo}</div>
         },
-        { 
-            accessorKey: 'pasR_emailId', 
-            header: () => <div className="text-center font-bold text-black">Email Id</div>,
-            cell: ({ row }: any) => <div className="text-center">{row.original.pasR_emailId}</div> 
+        {
+            accessorKey: 'pasR_emailId',
+            header: () => <div className='text-center font-bold text-black'>Email Id</div>,
+            cell: ({ row }: any) => <div className='text-center'>{row.original.pasR_emailId}</div>
         },
         {
             accessorKey: 'select',
-            header: () => <div className="text-center font-bold text-black">Select</div>,
+            header: () => <div className='text-center font-bold text-black'>Select</div>,
             cell: ({ row }: any) => {
                 const student = row.original as IStudentDetails;
                 const isSelected = cartStudents.some((s) => s.pasR_Id === student.pasR_Id);
                 const isScheduled = scheduledStudents.some((s) => s.pasR_Id === student.pasR_Id);
                 return (
-                    <div className="flex justify-center">
+                    <div className='flex justify-center'>
                         <Checkbox
                             checked={isSelected || isScheduled}
                             disabled={isScheduled || isEditMode}
@@ -351,145 +354,164 @@ export function WrittenTestScheduleForm() {
                         />
                     </div>
                 );
-            },
-        },
+            }
+        }
     ];
 
     const cartColumns = [
         {
             id: 'slno',
-            header: () => <div className="text-center font-bold text-black">Sl.No.</div>,
-            cell: ({ row }: any) => <div className="text-center">{(page - 1) * pageSize + row.index + 1}</div>,
+            header: () => <div className='text-center font-bold text-black'>Sl.No.</div>,
+            cell: ({ row }: any) => <div className='text-center'>{(page - 1) * pageSize + row.index + 1}</div>
         },
         {
             accessorKey: 'pasR_FirstName',
-            header: () => <div className="text-center font-bold text-black">Student Name</div>,
+            header: () => <div className='text-center font-bold text-black'>Student Name</div>,
             cell: ({ row }: any) => {
                 const s = row.original;
-                return <div className="text-center">{`${s.pasR_FirstName} ${s.pasR_MiddleName || ''} ${s.pasR_LastName || ''}`.trim()}</div>;
-            },
+                return (
+                    <div className='text-center'>{`${s.pasR_FirstName} ${s.pasR_MiddleName || ''} ${s.pasR_LastName || ''}`.trim()}</div>
+                );
+            }
         },
-        { 
-            accessorKey: 'pasR_RegistrationNo', 
-            header: () => <div className="text-center font-bold text-black">Registration No</div>,
-            cell: ({ row }: any) => <div className="text-center">{row.original.pasR_RegistrationNo}</div> 
+        {
+            accessorKey: 'pasR_RegistrationNo',
+            header: () => <div className='text-center font-bold text-black'>Registration No</div>,
+            cell: ({ row }: any) => <div className='text-center'>{row.original.pasR_RegistrationNo}</div>
         },
-        { 
-            accessorKey: 'pasR_Sex', 
-            header: () => <div className="text-center font-bold text-black">Gender</div>,
-            cell: ({ row }: any) => <div className="text-center">{row.original.pasR_Sex}</div> 
+        {
+            accessorKey: 'pasR_Sex',
+            header: () => <div className='text-center font-bold text-black'>Gender</div>,
+            cell: ({ row }: any) => <div className='text-center'>{row.original.pasR_Sex}</div>
         },
-        { 
-            accessorKey: 'pasR_MobileNo', 
-            header: () => <div className="text-center font-bold text-black">Mobile Number</div>,
-            cell: ({ row }: any) => <div className="text-center">{row.original.pasR_MobileNo}</div> 
+        {
+            accessorKey: 'pasR_MobileNo',
+            header: () => <div className='text-center font-bold text-black'>Mobile Number</div>,
+            cell: ({ row }: any) => <div className='text-center'>{row.original.pasR_MobileNo}</div>
         },
-        { 
-            accessorKey: 'pasR_emailId', 
-            header: () => <div className="text-center font-bold text-black">Email Id</div>,
-            cell: ({ row }: any) => <div className="text-center">{row.original.pasR_emailId}</div> 
+        {
+            accessorKey: 'pasR_emailId',
+            header: () => <div className='text-center font-bold text-black'>Email Id</div>,
+            cell: ({ row }: any) => <div className='text-center'>{row.original.pasR_emailId}</div>
         },
         {
             accessorKey: 'action',
-            header: () => <div className="text-center font-bold text-black">Action</div>,
+            header: () => <div className='text-center font-bold text-black'>Action</div>,
             cell: ({ row }: any) => (
-                <div className="flex justify-center gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => handleRemoveFromCart(row.original.pasR_Id)} title="Remove">
-                        <Trash2 className="w-4 h-4 text-red-500" />
+                <div className='flex justify-center gap-2'>
+                    <Button variant='ghost' size='icon' onClick={() => handleRemoveFromCart(row.original.pasR_Id)} title='Remove'>
+                        <Trash2 className='h-4 w-4 text-red-500' />
                     </Button>
                 </div>
-            ),
-        },
+            )
+        }
     ];
 
     const scheduledStudentColumns = [
         {
             id: 'slno',
-            header: () => <div className="text-center font-bold text-black">Sl.No.</div>,
-            cell: ({ row }: any) => <div className="text-center">{(page - 1) * pageSize + row.index + 1}</div>,
+            header: () => <div className='text-center font-bold text-black'>Sl.No.</div>,
+            cell: ({ row }: any) => <div className='text-center'>{(page - 1) * pageSize + row.index + 1}</div>
         },
         {
             accessorKey: 'pasR_FirstName',
-            header: () => <div className="text-center font-bold text-black">Student Name</div>,
+            header: () => <div className='text-center font-bold text-black'>Student Name</div>,
             cell: ({ row }: any) => {
                 const s = row.original;
-                return <div className="text-center">{`${s.pasR_FirstName} ${s.pasR_MiddleName || ''} ${s.pasR_LastName || ''}`.trim()}</div>;
-            },
+                return (
+                    <div className='text-center'>{`${s.pasR_FirstName} ${s.pasR_MiddleName || ''} ${s.pasR_LastName || ''}`.trim()}</div>
+                );
+            }
         },
-        { 
-            accessorKey: 'pasR_RegistrationNo', 
-            header: () => <div className="text-center font-bold text-black">Registration No</div>,
-            cell: ({ row }: any) => <div className="text-center">{row.original.pasR_RegistrationNo}</div> 
+        {
+            accessorKey: 'pasR_RegistrationNo',
+            header: () => <div className='text-center font-bold text-black'>Registration No</div>,
+            cell: ({ row }: any) => <div className='text-center'>{row.original.pasR_RegistrationNo}</div>
         },
-        { 
-            accessorKey: 'pasR_Sex', 
-            header: () => <div className="text-center font-bold text-black">Gender</div>,
-            cell: ({ row }: any) => <div className="text-center">{row.original.pasR_Sex}</div> 
+        {
+            accessorKey: 'pasR_Sex',
+            header: () => <div className='text-center font-bold text-black'>Gender</div>,
+            cell: ({ row }: any) => <div className='text-center'>{row.original.pasR_Sex}</div>
         },
-        { 
-            accessorKey: 'pasR_MobileNo', 
-            header: () => <div className="text-center font-bold text-black">Mobile Number</div>,
-            cell: ({ row }: any) => <div className="text-center">{row.original.pasR_MobileNo}</div> 
+        {
+            accessorKey: 'pasR_MobileNo',
+            header: () => <div className='text-center font-bold text-black'>Mobile Number</div>,
+            cell: ({ row }: any) => <div className='text-center'>{row.original.pasR_MobileNo}</div>
         },
-        { 
-            accessorKey: 'pasR_emailId', 
-            header: () => <div className="text-center font-bold text-black">Email Id</div>,
-            cell: ({ row }: any) => <div className="text-center">{row.original.pasR_emailId}</div> 
+        {
+            accessorKey: 'pasR_emailId',
+            header: () => <div className='text-center font-bold text-black'>Email Id</div>,
+            cell: ({ row }: any) => <div className='text-center'>{row.original.pasR_emailId}</div>
         },
         {
             accessorKey: 'action',
-            header: () => <div className="text-center font-bold text-black">Action</div>,
+            header: () => <div className='text-center font-bold text-black'>Action</div>,
             cell: ({ row }: any) => (
-                <div className="flex justify-center gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => deleteStudentMutation.mutate({ PAWTS_Id: row.original.pawtS_Id || form.getValues('pawtS_Id') || 0, PASR_Id: row.original.pasR_Id || row.original.pasr_id })} title="Delete">
-                        <Trash2 className="w-4 h-4 text-red-500" />
+                <div className='flex justify-center gap-2'>
+                    <Button
+                        variant='ghost'
+                        size='icon'
+                        onClick={() =>
+                            deleteStudentMutation.mutate({
+                                PAWTS_Id: row.original.pawtS_Id || form.getValues('pawtS_Id') || 0,
+                                PASR_Id: row.original.pasR_Id || row.original.pasr_id
+                            })
+                        }
+                        title='Delete'>
+                        <Trash2 className='h-4 w-4 text-red-500' />
                     </Button>
                 </div>
-            ),
-        },
+            )
+        }
     ];
 
     const masterScheduleColumns = [
         {
             id: 'slno',
-            header: () => <div className="text-center font-bold text-black">Sl.No.</div>,
-            cell: ({ row }: any) => <div className="text-center">{(page - 1) * pageSize + row.index + 1}</div>,
+            header: () => <div className='text-center font-bold text-black'>Sl.No.</div>,
+            cell: ({ row }: any) => <div className='text-center'>{(page - 1) * pageSize + row.index + 1}</div>
         },
         {
             accessorKey: 'pawtS_ScheduleName',
-            header: () => <div className="text-center font-bold text-black">Schedule Name</div>,
-            cell: ({ row }: any) => <div className="text-center">{row.original.pawtS_ScheduleName}</div>,
+            header: () => <div className='text-center font-bold text-black'>Schedule Name</div>,
+            cell: ({ row }: any) => <div className='text-center'>{row.original.pawtS_ScheduleName}</div>
         },
         {
             accessorKey: 'studentCount',
-            header: () => <div className="text-center font-bold text-black">Student Count</div>,
+            header: () => <div className='text-center font-bold text-black'>Student Count</div>,
             cell: ({ row }: any) => {
                 const dataAny: any = scheduleData;
-                const schedulecounts: any[] = (dataAny?.data?.studentDetails || dataAny?.studentDetails || dataAny?.data?.StudentDetails || dataAny?.StudentDetails || []) as any[];
-                const countObj = schedulecounts.find((c: any) => c.pawts_id === row.original.pawtS_Id || c.pawtS_Id === row.original.pawtS_Id);
-                return <div className="text-center">{countObj ? countObj.count : 0}</div>;
-            },
+                const schedulecounts: any[] = (dataAny?.data?.studentDetails ||
+                    dataAny?.studentDetails ||
+                    dataAny?.data?.StudentDetails ||
+                    dataAny?.StudentDetails ||
+                    []) as any[];
+                const countObj = schedulecounts.find(
+                    (c: any) => c.pawts_id === row.original.pawtS_Id || c.pawtS_Id === row.original.pawtS_Id
+                );
+                return <div className='text-center'>{countObj ? countObj.count : 0}</div>;
+            }
         },
         {
             accessorKey: 'pawtS_ScheduleDate',
-            header: () => <div className="text-center font-bold text-black">Schedule Date</div>,
-            cell: ({ row }: any) => <div className="text-center">{format(new Date(row.original.pawtS_ScheduleDate), 'dd-MM-yyyy')}</div>,
+            header: () => <div className='text-center font-bold text-black'>Schedule Date</div>,
+            cell: ({ row }: any) => <div className='text-center'>{format(new Date(row.original.pawtS_ScheduleDate), 'dd-MM-yyyy')}</div>
         },
         {
             accessorKey: 'pawtS_ScheduleTime',
-            header: () => <div className="text-center font-bold text-black">Time From</div>,
-            cell: ({ row }: any) => <div className="text-center">{row.original.pawtS_ScheduleTime}</div>,
+            header: () => <div className='text-center font-bold text-black'>Time From</div>,
+            cell: ({ row }: any) => <div className='text-center'>{row.original.pawtS_ScheduleTime}</div>
         },
         {
             accessorKey: 'pawtS_ScheduleTimeTo',
-            header: () => <div className="text-center font-bold text-black">To</div>,
-            cell: ({ row }: any) => <div className="text-center">{row.original.pawtS_ScheduleTimeTo}</div>,
+            header: () => <div className='text-center font-bold text-black'>To</div>,
+            cell: ({ row }: any) => <div className='text-center'>{row.original.pawtS_ScheduleTimeTo}</div>
         },
         {
             accessorKey: 'pawtS_Remarks',
-            header: () => <div className="text-center font-bold text-black">Remarks</div>,
-            cell: ({ row }: any) => <div className="text-center">{row.original.pawtS_Remarks || '-'}</div>,
-        },
+            header: () => <div className='text-center font-bold text-black'>Remarks</div>,
+            cell: ({ row }: any) => <div className='text-center'>{row.original.pawtS_Remarks || '-'}</div>
+        }
         // {
         //     accessorKey: 'actions',
         //     header: () => <div className="text-center font-semibold">Actions</div>,
@@ -507,16 +529,21 @@ export function WrittenTestScheduleForm() {
     ];
 
     return (
-        <div className="flex flex-col gap-4">
+        <div className='flex flex-col gap-4'>
             {!showForm ? (
-                <Card className="border-t-4 border-t-blue-600 rounded-none shadow-sm">
-                    <CardHeader className="flex flex-row items-center justify-between border-b pb-3 pt-3">
-                        <CardTitle className="text-blue-800 uppercase font-bold text-sm tracking-wide">Written/Apptitude Test Schedule List</CardTitle>
-                        <Button type="button" onClick={() => setShowForm(true)} className="bg-[#246bce] hover:bg-blue-700 h-8 px-4 text-xs font-semibold">
+                <Card className='rounded-none border-t-4 border-t-blue-600 shadow-sm'>
+                    <CardHeader className='flex flex-row items-center justify-between border-b pt-3 pb-3'>
+                        <CardTitle className='font-bold text-blue-800 text-sm uppercase tracking-wide'>
+                            Written/Apptitude Test Schedule List
+                        </CardTitle>
+                        <Button
+                            type='button'
+                            onClick={() => setShowForm(true)}
+                            className='h-8 bg-[#246bce] px-4 font-semibold text-xs hover:bg-blue-700'>
                             Add New
                         </Button>
                     </CardHeader>
-                    <CardContent className="pt-6">
+                    <CardContent className='pt-6'>
                         <GenericDataTable
                             data={masterScheduleList.slice((page - 1) * pageSize, page * pageSize)}
                             totalItems={masterScheduleList.length}
@@ -527,174 +554,239 @@ export function WrittenTestScheduleForm() {
                 </Card>
             ) : (
                 <>
-                    <Card className="border-t-4 border-t-blue-600 rounded-none shadow-sm">
-                        <CardHeader className="flex flex-row items-center justify-between border-b pb-3 pt-3">
-                            <CardTitle className="text-blue-800 uppercase font-bold text-sm tracking-wide">WRITTEN\APPTITUDE TEST SCHEDULE</CardTitle>
-                            <div className="flex items-center gap-2">
-                                <Button type="button" variant="default" size="sm" className="bg-[#246bce] hover:bg-blue-700 rounded-full h-8 px-4 text-xs font-semibold" onClick={() => window.location.reload()}>
-                                    <RefreshCw className="w-3.5 h-3.5 mr-1" /> Reset
+                    <Card className='rounded-none border-t-4 border-t-blue-600 shadow-sm'>
+                        <CardHeader className='flex flex-row items-center justify-between border-b pt-3 pb-3'>
+                            <CardTitle className='font-bold text-blue-800 text-sm uppercase tracking-wide'>
+                                WRITTEN\APPTITUDE TEST SCHEDULE
+                            </CardTitle>
+                            <div className='flex items-center gap-2'>
+                                <Button
+                                    type='button'
+                                    variant='default'
+                                    size='sm'
+                                    className='h-8 rounded-full bg-[#246bce] px-4 font-semibold text-xs hover:bg-blue-700'
+                                    onClick={() => window.location.reload()}>
+                                    <RefreshCw className='mr-1 h-3.5 w-3.5' /> Reset
                                 </Button>
-                                <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-gray-500" onClick={() => setShowForm(false)}>
-                                    <Minus className="w-4 h-4" />
+                                <Button
+                                    type='button'
+                                    variant='ghost'
+                                    size='icon'
+                                    className='h-8 w-8 text-gray-500'
+                                    onClick={() => setShowForm(false)}>
+                                    <Minus className='h-4 w-4' />
                                 </Button>
                             </div>
                         </CardHeader>
-                        <CardContent className="pt-6">
+                        <CardContent className='pt-6'>
                             <Form {...form}>
-                                <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-4">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
-                                        <div className="space-y-4">
+                                <form onSubmit={form.handleSubmit(onSubmit, onError)} className='space-y-4'>
+                                    <div className='grid grid-cols-1 gap-x-12 gap-y-4 md:grid-cols-2'>
+                                        <div className='space-y-4'>
                                             <FormField
                                                 control={form.control}
-                                                name="scheduleName"
+                                                name='scheduleName'
                                                 render={({ field }) => (
-                                                    <FormItem className="flex flex-row items-center space-y-0 gap-4">
-                                                        <FormLabel className="w-1/3 text-sm font-medium text-gray-700">Schedule Name:<span className="text-red-500">*</span></FormLabel>
-                                                        <div className="w-2/3">
+                                                    <FormItem className='flex flex-row items-center gap-4 space-y-0'>
+                                                        <FormLabel className='w-1/3 font-medium text-gray-700 text-sm'>
+                                                            Schedule Name:<span className='text-red-500'>*</span>
+                                                        </FormLabel>
+                                                        <div className='w-2/3'>
                                                             <FormControl>
-                                                                <Input {...field} disabled={isEditMode} className="h-9 border-[#96c8da] rounded-sm focus-visible:ring-0 focus-visible:border-blue-500" />
+                                                                <Input
+                                                                    {...field}
+                                                                    disabled={isEditMode}
+                                                                    className='h-9 rounded-sm border-[#96c8da] focus-visible:border-blue-500 focus-visible:ring-0'
+                                                                />
                                                             </FormControl>
-                                                            <FormMessage className="text-xs" />
+                                                            <FormMessage className='text-xs' />
                                                         </div>
                                                     </FormItem>
                                                 )}
                                             />
                                             <FormField
                                                 control={form.control}
-                                                name="classId"
+                                                name='classId'
                                                 render={({ field }) => (
-                                                    <FormItem className="flex flex-row items-center space-y-0 gap-4">
-                                                        <FormLabel className="w-1/3 text-sm font-medium text-gray-700">Class: <span className="text-red-500">*</span></FormLabel>
-                                                        <div className="w-2/3">
-                                                            <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                                                    <FormItem className='flex flex-row items-center gap-4 space-y-0'>
+                                                        <FormLabel className='w-1/3 font-medium text-gray-700 text-sm'>
+                                                            Class: <span className='text-red-500'>*</span>
+                                                        </FormLabel>
+                                                        <div className='w-2/3'>
+                                                            <Select
+                                                                onValueChange={field.onChange}
+                                                                value={field.value}
+                                                                defaultValue={field.value}>
                                                                 <FormControl>
-                                                                    <SelectTrigger className="h-9 border-[#96c8da] rounded-sm focus:ring-0">
-                                                                        <SelectValue placeholder="Select Class" />
+                                                                    <SelectTrigger className='h-9 rounded-sm border-[#96c8da] focus:ring-0'>
+                                                                        <SelectValue placeholder='Select Class' />
                                                                     </SelectTrigger>
                                                                 </FormControl>
                                                                 <SelectContent>
-                                                                    <SelectItem value="0">ALL</SelectItem>
+                                                                    <SelectItem value='0'>ALL</SelectItem>
                                                                     {classList.map((c: any) => (
-                                                                        <SelectItem key={c.asmcL_Id} value={c.asmcL_Id.toString()}>{c.asmcL_ClassName}</SelectItem>
+                                                                        <SelectItem key={c.asmcL_Id} value={c.asmcL_Id.toString()}>
+                                                                            {c.asmcL_ClassName}
+                                                                        </SelectItem>
                                                                     ))}
                                                                 </SelectContent>
                                                             </Select>
-                                                            <FormMessage className="text-xs" />
+                                                            <FormMessage className='text-xs' />
                                                         </div>
                                                     </FormItem>
                                                 )}
                                             />
                                             <FormField
                                                 control={form.control}
-                                                name="scheduleDate"
+                                                name='scheduleDate'
                                                 render={({ field }) => (
-                                                    <FormItem className="flex flex-row items-center space-y-0 gap-4">
-                                                        <FormLabel className="w-1/3 text-sm font-medium text-gray-700">Date:<span className="text-red-500">*</span></FormLabel>
-                                                        <div className="w-2/3 flex flex-col">
+                                                    <FormItem className='flex flex-row items-center gap-4 space-y-0'>
+                                                        <FormLabel className='w-1/3 font-medium text-gray-700 text-sm'>
+                                                            Date:<span className='text-red-500'>*</span>
+                                                        </FormLabel>
+                                                        <div className='flex w-2/3 flex-col'>
                                                             <DatePicker
                                                                 date={field.value}
                                                                 setDate={field.onChange}
-                                                                disabled={isEditMode ? true : { before: new Date(new Date().setHours(0, 0, 0, 0)) }}
+                                                                disabled={
+                                                                    isEditMode
+                                                                        ? true
+                                                                        : { before: new Date(new Date().setHours(0, 0, 0, 0)) }
+                                                                }
                                                             />
-                                                            <FormMessage className="text-xs mt-1" />
+                                                            <FormMessage className='mt-1 text-xs' />
                                                         </div>
                                                     </FormItem>
                                                 )}
                                             />
                                             <FormField
                                                 control={form.control}
-                                                name="remarks"
+                                                name='remarks'
                                                 render={({ field }) => (
-                                                    <FormItem className="flex flex-row items-center space-y-0 gap-4">
-                                                        <FormLabel className="w-1/3 text-sm font-medium text-gray-700">Remarks:</FormLabel>
-                                                        <div className="w-2/3">
+                                                    <FormItem className='flex flex-row items-center gap-4 space-y-0'>
+                                                        <FormLabel className='w-1/3 font-medium text-gray-700 text-sm'>Remarks:</FormLabel>
+                                                        <div className='w-2/3'>
                                                             <FormControl>
-                                                                <Input {...field} disabled={isEditMode} className="h-9 border-[#96c8da] rounded-sm focus-visible:ring-0 focus-visible:border-blue-500" />
+                                                                <Input
+                                                                    {...field}
+                                                                    disabled={isEditMode}
+                                                                    className='h-9 rounded-sm border-[#96c8da] focus-visible:border-blue-500 focus-visible:ring-0'
+                                                                />
                                                             </FormControl>
-                                                            <FormMessage className="text-xs" />
+                                                            <FormMessage className='text-xs' />
                                                         </div>
                                                     </FormItem>
                                                 )}
                                             />
                                             <FormField
                                                 control={form.control}
-                                                name="supervisor"
+                                                name='supervisor'
                                                 render={({ field }) => (
-                                                    <FormItem className="flex flex-row items-center space-y-0 gap-4">
-                                                        <FormLabel className="w-1/3 text-sm font-medium text-gray-700">Supervisor:</FormLabel>
-                                                        <div className="w-2/3">
+                                                    <FormItem className='flex flex-row items-center gap-4 space-y-0'>
+                                                        <FormLabel className='w-1/3 font-medium text-gray-700 text-sm'>
+                                                            Supervisor:
+                                                        </FormLabel>
+                                                        <div className='w-2/3'>
                                                             <FormControl>
-                                                                <Input {...field} disabled={isEditMode} className="h-9 border-[#96c8da] rounded-sm focus-visible:ring-0 focus-visible:border-blue-500" />
+                                                                <Input
+                                                                    {...field}
+                                                                    disabled={isEditMode}
+                                                                    className='h-9 rounded-sm border-[#96c8da] focus-visible:border-blue-500 focus-visible:ring-0'
+                                                                />
                                                             </FormControl>
-                                                            <FormMessage className="text-xs" />
+                                                            <FormMessage className='text-xs' />
                                                         </div>
                                                     </FormItem>
                                                 )}
                                             />
                                             <FormField
                                                 control={form.control}
-                                                name="skill"
+                                                name='skill'
                                                 render={({ field }) => (
-                                                    <FormItem className="flex flex-row items-start space-y-0 gap-4">
-                                                        <FormLabel className="w-1/3 text-sm font-medium text-gray-700 pt-2">Skill/Knowledge:</FormLabel>
-                                                        <div className="w-2/3">
+                                                    <FormItem className='flex flex-row items-start gap-4 space-y-0'>
+                                                        <FormLabel className='w-1/3 pt-2 font-medium text-gray-700 text-sm'>
+                                                            Skill/Knowledge:
+                                                        </FormLabel>
+                                                        <div className='w-2/3'>
                                                             <FormControl>
-                                                                <Textarea {...field} disabled={isEditMode} rows={2} className="border-[#96c8da] rounded-sm focus-visible:ring-0 focus-visible:border-blue-500 resize-none min-h-[60px]" placeholder="Enter Skills/Knowledge" />
+                                                                <Textarea
+                                                                    {...field}
+                                                                    disabled={isEditMode}
+                                                                    rows={2}
+                                                                    className='min-h-[60px] resize-none rounded-sm border-[#96c8da] focus-visible:border-blue-500 focus-visible:ring-0'
+                                                                    placeholder='Enter Skills/Knowledge'
+                                                                />
                                                             </FormControl>
-                                                            <FormMessage className="text-xs" />
+                                                            <FormMessage className='text-xs' />
                                                         </div>
                                                     </FormItem>
                                                 )}
                                             />
                                         </div>
-                                        <div className="space-y-4">
+                                        <div className='space-y-4'>
                                             <FormField
                                                 control={form.control}
-                                                name="timeFrom"
+                                                name='timeFrom'
                                                 render={({ field }) => (
-                                                    <FormItem className="flex flex-row items-center space-y-0 gap-4">
-                                                        <FormLabel className="w-1/3 text-sm font-medium text-gray-700">Schedule Time From:<span className="text-red-500">*</span></FormLabel>
-                                                        <div className="w-2/3">
+                                                    <FormItem className='flex flex-row items-center gap-4 space-y-0'>
+                                                        <FormLabel className='w-1/3 font-medium text-gray-700 text-sm'>
+                                                            Schedule Time From:<span className='text-red-500'>*</span>
+                                                        </FormLabel>
+                                                        <div className='w-2/3'>
                                                             <FormControl>
-                                                                <TimeSpinnerField value={field.value || "12:00"} onChange={field.onChange} disabled={isEditMode} />
+                                                                <TimeSpinnerField
+                                                                    value={field.value || '12:00'}
+                                                                    onChange={field.onChange}
+                                                                    disabled={isEditMode}
+                                                                />
                                                             </FormControl>
-                                                            <FormMessage className="text-xs" />
+                                                            <FormMessage className='text-xs' />
                                                         </div>
                                                     </FormItem>
                                                 )}
                                             />
                                             <FormField
                                                 control={form.control}
-                                                name="timeTo"
+                                                name='timeTo'
                                                 render={({ field }) => (
-                                                    <FormItem className="flex flex-row items-center space-y-0 gap-4">
-                                                        <FormLabel className="w-1/3 text-sm font-medium text-gray-700">Schedule Time To:<span className="text-red-500">*</span></FormLabel>
-                                                        <div className="w-2/3">
+                                                    <FormItem className='flex flex-row items-center gap-4 space-y-0'>
+                                                        <FormLabel className='w-1/3 font-medium text-gray-700 text-sm'>
+                                                            Schedule Time To:<span className='text-red-500'>*</span>
+                                                        </FormLabel>
+                                                        <div className='w-2/3'>
                                                             <FormControl>
-                                                                <TimeSpinnerField value={field.value || "12:00"} onChange={field.onChange} disabled={isEditMode} />
+                                                                <TimeSpinnerField
+                                                                    value={field.value || '12:00'}
+                                                                    onChange={field.onChange}
+                                                                    disabled={isEditMode}
+                                                                />
                                                             </FormControl>
-                                                            <FormMessage className="text-xs" />
+                                                            <FormMessage className='text-xs' />
                                                         </div>
                                                     </FormItem>
                                                 )}
                                             />
                                             <FormField
                                                 control={form.control}
-                                                name="noOfStudents"
+                                                name='noOfStudents'
                                                 render={({ field }) => (
-                                                    <FormItem className="flex flex-row items-center space-y-0 gap-4">
-                                                        <FormLabel className="w-1/3 text-sm font-medium text-gray-700">Auto Select Students:</FormLabel>
-                                                        <div className="w-2/3">
+                                                    <FormItem className='flex flex-row items-center gap-4 space-y-0'>
+                                                        <FormLabel className='w-1/3 font-medium text-gray-700 text-sm'>
+                                                            Auto Select Students:
+                                                        </FormLabel>
+                                                        <div className='w-2/3'>
                                                             <FormControl>
                                                                 <Input
                                                                     {...field}
                                                                     onChange={handleAutoSelect}
-                                                                    placeholder="Enter Students Count"
-                                                                    disabled={!form.watch('timeFrom') || !form.watch('timeTo') || isEditMode}
-                                                                    className="h-9 border-[#96c8da] rounded-sm focus-visible:ring-0 focus-visible:border-blue-500 bg-gray-100"
+                                                                    placeholder='Enter Students Count'
+                                                                    disabled={
+                                                                        !form.watch('timeFrom') || !form.watch('timeTo') || isEditMode
+                                                                    }
+                                                                    className='h-9 rounded-sm border-[#96c8da] bg-gray-100 focus-visible:border-blue-500 focus-visible:ring-0'
                                                                 />
                                                             </FormControl>
-                                                            <FormMessage className="text-xs" />
+                                                            <FormMessage className='text-xs' />
                                                         </div>
                                                     </FormItem>
                                                 )}
@@ -727,16 +819,20 @@ export function WrittenTestScheduleForm() {
                             <CardHeader>
                                 <CardTitle>Selected Student To Cart</CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-4">
+                            <CardContent className='space-y-4'>
                                 <GenericDataTable
                                     data={filteredCartStudents.slice((page - 1) * pageSize, page * pageSize)}
                                     totalItems={filteredCartStudents.length}
                                     columns={cartColumns}
                                     isLoading={isLoading}
                                 />
-                                <div className="flex justify-center gap-2">
-                                    <Button onClick={form.handleSubmit(onSubmit, onError)} disabled={saveMutation.isPending}>Save</Button>
-                                    <Button variant="destructive" onClick={() => window.location.reload()}>Cancel</Button>
+                                <div className='flex justify-center gap-2'>
+                                    <Button onClick={form.handleSubmit(onSubmit, onError)} disabled={saveMutation.isPending}>
+                                        Save
+                                    </Button>
+                                    <Button variant='destructive' onClick={() => window.location.reload()}>
+                                        Cancel
+                                    </Button>
                                 </div>
                             </CardContent>
                         </Card>
@@ -757,7 +853,6 @@ export function WrittenTestScheduleForm() {
                             </CardContent>
                         </Card>
                     )}
-
                 </>
             )}
         </div>
@@ -839,69 +934,86 @@ function TimeSpinnerField({
     }, [h, m, ampm, disabled]);
 
     return (
-        <div className={`flex items-center gap-2 ${disabled ? 'opacity-50 pointer-events-none' : ''}`}>
+        <div className={`flex items-center gap-2 ${disabled ? 'pointer-events-none opacity-50' : ''}`}>
             {/* Hours */}
             <div ref={hoursRef} className='flex flex-col items-center'>
-                <button type='button' onClick={() => emit((h % 12) + 1 || 12, m, ampm)} className='rounded p-0.5 hover:bg-muted focus:outline-none'>
+                <button
+                    type='button'
+                    onClick={() => emit((h % 12) + 1 || 12, m, ampm)}
+                    className='rounded p-0.5 hover:bg-muted focus:outline-none'>
                     <ChevronUp className='h-4 w-4' />
                 </button>
                 <input
-                    className='flex h-9 w-12 text-center rounded-md border border-input bg-transparent text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+                    className='flex h-9 w-12 rounded-md border border-input bg-transparent text-center font-medium text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
                     value={String(h).padStart(2, '0')}
                     disabled={disabled}
                     onChange={(e) => {
                         let val = e.target.value.replace(/\D/g, '');
                         if (val.length > 2) val = val.slice(-2);
-                        let num = parseInt(val, 10);
+                        let num = Number.parseInt(val, 10);
                         if (isNaN(num)) num = 12;
                         if (num > 12) num = 12;
                         if (num < 0) num = 12;
                         emit(num, m, ampm);
                     }}
                 />
-                <button type='button' onClick={() => emit(((h - 2 + 12) % 12) + 1, m, ampm)} className='rounded p-0.5 hover:bg-muted focus:outline-none'>
+                <button
+                    type='button'
+                    onClick={() => emit(((h - 2 + 12) % 12) + 1, m, ampm)}
+                    className='rounded p-0.5 hover:bg-muted focus:outline-none'>
                     <ChevronDown className='h-4 w-4' />
                 </button>
             </div>
 
-            <span className='text-lg font-bold leading-none'>:</span>
+            <span className='font-bold text-lg leading-none'>:</span>
 
             {/* Minutes */}
             <div ref={minutesRef} className='flex flex-col items-center'>
-                <button type='button' onClick={() => emit(h, (m + 1) % 60, ampm)} className='rounded p-0.5 hover:bg-muted focus:outline-none'>
+                <button
+                    type='button'
+                    onClick={() => emit(h, (m + 1) % 60, ampm)}
+                    className='rounded p-0.5 hover:bg-muted focus:outline-none'>
                     <ChevronUp className='h-4 w-4' />
                 </button>
                 <input
-                    className='flex h-9 w-12 text-center rounded-md border border-input bg-transparent text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+                    className='flex h-9 w-12 rounded-md border border-input bg-transparent text-center font-medium text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
                     value={String(m).padStart(2, '0')}
                     disabled={disabled}
                     onChange={(e) => {
                         let val = e.target.value.replace(/\D/g, '');
                         if (val.length > 2) val = val.slice(-2);
-                        let num = parseInt(val, 10);
+                        let num = Number.parseInt(val, 10);
                         if (isNaN(num)) num = 0;
                         if (num > 59) num = 59;
                         if (num < 0) num = 0;
                         emit(h, num, ampm);
                     }}
                 />
-                <button type='button' onClick={() => emit(h, (m - 1 + 60) % 60, ampm)} className='rounded p-0.5 hover:bg-muted focus:outline-none'>
+                <button
+                    type='button'
+                    onClick={() => emit(h, (m - 1 + 60) % 60, ampm)}
+                    className='rounded p-0.5 hover:bg-muted focus:outline-none'>
                     <ChevronDown className='h-4 w-4' />
                 </button>
             </div>
 
             {/* AM / PM toggle */}
             <div ref={ampmRef} className='flex flex-col items-center'>
-                <button type='button' onClick={() => emit(h, m, ampm === 'AM' ? 'PM' : 'AM')} className='rounded p-0.5 hover:bg-muted focus:outline-none'>
+                <button
+                    type='button'
+                    onClick={() => emit(h, m, ampm === 'AM' ? 'PM' : 'AM')}
+                    className='rounded p-0.5 hover:bg-muted focus:outline-none'>
                     <ChevronUp className='h-4 w-4' />
                 </button>
                 <div
-                    className='flex h-9 w-12 items-center justify-center rounded-md border border-input bg-transparent text-sm font-medium cursor-pointer select-none'
-                    onClick={() => emit(h, m, ampm === 'AM' ? 'PM' : 'AM')}
-                >
+                    className='flex h-9 w-12 cursor-pointer select-none items-center justify-center rounded-md border border-input bg-transparent font-medium text-sm'
+                    onClick={() => emit(h, m, ampm === 'AM' ? 'PM' : 'AM')}>
                     {ampm}
                 </div>
-                <button type='button' onClick={() => emit(h, m, ampm === 'AM' ? 'PM' : 'AM')} className='rounded p-0.5 hover:bg-muted focus:outline-none'>
+                <button
+                    type='button'
+                    onClick={() => emit(h, m, ampm === 'AM' ? 'PM' : 'AM')}
+                    className='rounded p-0.5 hover:bg-muted focus:outline-none'>
                     <ChevronDown className='h-4 w-4' />
                 </button>
             </div>

@@ -22,12 +22,7 @@ export default function TrustMasterPage(props: { searchParams: SearchParams }) {
         <FormProvider<ITrustMaster>>
             <div className='min-h-screen'>
                 <div className='container space-y-4 p-1'>
-                    <TrustMasterPageContent
-                        response={response}
-                        isLoading={isLoading}
-                        error={error}
-                        refetchAll={refetchAll}
-                    />
+                    <TrustMasterPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
                 </div>
             </div>
         </FormProvider>
@@ -56,7 +51,7 @@ function TrustMasterPageContent({
                         type='button'
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='h-4 w-4 mr-2' />
+                        <Plus className='mr-2 h-4 w-4' />
                         Add Master Trust
                     </Button>
                 </div>
@@ -67,8 +62,7 @@ function TrustMasterPageContent({
                 defaultOpen={true}
                 variant='default'
                 size='lg'
-                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
-            >
+                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                 <GenericDataTable<ITrustMaster>
                     {...tableProps}
                     total={response?.total}
@@ -89,14 +83,7 @@ function TrustMasterPageContent({
 }
 
 function FormSections({ refetchAll }: { refetchAll: any }) {
-    const {
-        isAddFormOpen,
-        isToggleFormOpen,
-        selectedRow,
-        closeAddForm,
-        closeToggleForm,
-        addFormRef
-    } = useFormContext<ITrustMaster>();
+    const { isAddFormOpen, isToggleFormOpen, selectedRow, closeAddForm, closeToggleForm, addFormRef } = useFormContext<ITrustMaster>();
 
     return (
         <>
@@ -126,11 +113,7 @@ function FormSections({ refetchAll }: { refetchAll: any }) {
 
             {/* Toggle Confirmation Modal */}
             {isToggleFormOpen && selectedRow && (
-                <ToggleTrustMasterForm
-                    rowData={selectedRow}
-                    onClose={closeToggleForm}
-                    onRefresh={refetchAll}
-                />
+                <ToggleTrustMasterForm rowData={selectedRow} onClose={closeToggleForm} onRefresh={refetchAll} />
             )}
         </>
     );

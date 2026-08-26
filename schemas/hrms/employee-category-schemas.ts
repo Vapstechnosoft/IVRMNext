@@ -41,5 +41,3 @@ export const EmployeeDetailSchema = z.object({
 });
 
 export type EmployeeDetailFields = z.infer<typeof EmployeeDetailSchema>;
-
-

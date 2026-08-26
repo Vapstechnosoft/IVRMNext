@@ -24,7 +24,11 @@ interface LeaveApprovalColumnsProps {
     onReject: (row: LeaveApprovalRow) => void;
     onViewBalance: (row: LeaveApprovalRow) => void;
 }
-export const getLeaveApprovalColumns = ({ onApprove, onReject, onViewBalance }: LeaveApprovalColumnsProps): ColumnDef<LeaveApprovalRow>[] => [
+export const getLeaveApprovalColumns = ({
+    onApprove,
+    onReject,
+    onViewBalance
+}: LeaveApprovalColumnsProps): ColumnDef<LeaveApprovalRow>[] => [
     {
         accessorKey: 'slNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
@@ -108,7 +112,12 @@ export const getLeaveApprovalColumns = ({ onApprove, onReject, onViewBalance }: 
                 <div className='flex items-center gap-2'>
                     {isPending && (
                         <>
-                            <Button variant='outline' size='sm' onClick={() => onApprove(entity)} className='text-green-700' title='Approve'>
+                            <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={() => onApprove(entity)}
+                                className='text-green-700'
+                                title='Approve'>
                                 <Check className='h-4 w-4' />
                             </Button>
                             <Button variant='outline' size='sm' onClick={() => onReject(entity)} className='text-red-700' title='Reject'>
@@ -116,7 +125,12 @@ export const getLeaveApprovalColumns = ({ onApprove, onReject, onViewBalance }: 
                             </Button>
                         </>
                     )}
-                    <Button variant='outline' size='sm' onClick={() => onViewBalance(entity)} className='text-blue-700' title='View Balance History'>
+                    <Button
+                        variant='outline'
+                        size='sm'
+                        onClick={() => onViewBalance(entity)}
+                        className='text-blue-700'
+                        title='View Balance History'>
                         View Balance
                     </Button>
                 </div>

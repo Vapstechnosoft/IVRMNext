@@ -16,26 +16,23 @@ import { useEffect, useState } from 'react';
 import { useStudentAdmissionFormById } from '@/hooks/admission/admissionForm';
 import type { IadmissionStudentApplicationList } from '@/types/admission/admission';
 import { toast } from 'sonner';
-import DeleteMasterClassForm from './toggle-form';
 import StudentProfileDialog from './student-profile-dialog';
+import DeleteMasterClassForm from './toggle-form';
 
 const StudentProfileCell = ({ row }: { row: any }) => {
     const [isOpen, setIsOpen] = useState(false);
     return (
         <>
-            <div 
-                className="cursor-pointer text-blue-600 hover:underline font-medium"
-                onClick={() => setIsOpen(true)}
-            >
+            <div className='cursor-pointer font-medium text-blue-600 hover:underline' onClick={() => setIsOpen(true)}>
                 {row.getValue('studentName') ?? 'N.A'}
             </div>
             {isOpen && (
-                <StudentProfileDialog 
-                    amstId={row.original?.amsT_Id || row.original?.AMST_Id || row.original?.id} 
+                <StudentProfileDialog
+                    amstId={row.original?.amsT_Id || row.original?.AMST_Id || row.original?.id}
                     asmclId={row.original?.asmcL_Id || row.original?.ASMCL_Id || row.original?.classId || 0}
                     asmsId={row.original?.asmS_Id || row.original?.ASMS_Id || row.original?.sectionId || 0}
-                    isOpen={isOpen} 
-                    onClose={() => setIsOpen(false)} 
+                    isOpen={isOpen}
+                    onClose={() => setIsOpen(false)}
                 />
             )}
         </>
@@ -239,7 +236,7 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
                         // merge those tabs into a single student payload so the edit form can autofill.
                         const hasTabbed = Boolean(
                             (resp && (resp.firstTab || resp.secondTab || resp.thirdTab)) ||
-                            (resp?.data && (resp.data.firstTab || resp.data.secondTab || resp.data.thirdTab))
+                                (resp?.data && (resp.data.firstTab || resp.data.secondTab || resp.data.thirdTab))
                         );
 
                         let payload: any;

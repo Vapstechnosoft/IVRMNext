@@ -7,5 +7,5 @@ interface GenConfigState {
 
 export const useConfigStore = create<GenConfigState>((set) => ({
     editId: null,
-    setEditId: (id) => set({ editId: id }),
+    setEditId: (id) => set({ editId: id })
 }));

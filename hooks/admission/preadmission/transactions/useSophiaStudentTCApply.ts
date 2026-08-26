@@ -21,23 +21,20 @@ export const useSophiaStudentTCApplyLoadData = () => {
 
 export const useSophiaStudentTCApplyOnChangeClass = () => {
     return useMutation({
-        mutationFn: (data: { ASMAY_Id: number; ASMCL_Id: number }) =>
-            getSophiaStudentTCApplyOnChangeClass(data)
+        mutationFn: (data: { ASMAY_Id: number; ASMCL_Id: number }) => getSophiaStudentTCApplyOnChangeClass(data)
     });
 };
 
 export const useSophiaStudentTCApplyStudentList = () => {
     return useMutation({
-        mutationFn: (data: { ASMAY_Id: number; ASMCL_Id: number; ASMS_Id: number }) =>
-            getSophiaStudentTCApplyStudentList(data)
+        mutationFn: (data: { ASMAY_Id: number; ASMCL_Id: number; ASMS_Id: number }) => getSophiaStudentTCApplyStudentList(data)
     });
 };
 
 export const useSophiaStudentTCApplySave = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (data: { studentTCdata: any[]; tcflagexists: string; transnumconfigsettings: any }) =>
-            saveSophiaStudentTCApply(data),
+        mutationFn: (data: { studentTCdata: any[]; tcflagexists: string; transnumconfigsettings: any }) => saveSophiaStudentTCApply(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: [ADMISSION_QUERY_KEYS.TRANSACTIONS, 'sophia_student_tc_apply', 'load_data'] });
         }

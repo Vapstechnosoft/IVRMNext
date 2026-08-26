@@ -18,7 +18,7 @@ export interface StudentHouseMappingDTO {
     spccmH_ActiveFlag?: boolean;
 
     // For saving
-    studList1?: { amsT_Id: number, stud?: boolean }[];
+    studList1?: { amsT_Id: number; stud?: boolean }[];
 }
 
 export interface MasterDataDTO {

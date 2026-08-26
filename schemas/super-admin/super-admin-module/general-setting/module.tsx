@@ -11,7 +11,7 @@ export const masterModuleSchema = z.object({
         .string({ required_error: 'Module Description is required' })
         .min(1, 'Module Description is required')
         .max(200, 'Module Description should not exceed 200 characters'),
-    module_ActiveFlag: z.number().optional().default(1),
+    module_ActiveFlag: z.number().optional().default(1)
 });
 
 export type MasterModuleSchema = z.infer<typeof masterModuleSchema>;

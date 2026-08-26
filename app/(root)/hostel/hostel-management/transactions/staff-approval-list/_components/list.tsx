@@ -12,7 +12,8 @@ export default function StaffApprovalList({ data, onProcess }: StaffApprovalList
     return (
         <GenericDataTable
             columns={staffApprovalListColumns(onProcess)}
-            data={data} isLoading={false}           // searchKey="empName"
+            data={data}
+            isLoading={false} // searchKey="empName"
         />
     );
 }

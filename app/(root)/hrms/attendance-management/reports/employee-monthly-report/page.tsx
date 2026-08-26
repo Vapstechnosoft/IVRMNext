@@ -7,17 +7,16 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useEmployeeMonthlyReport } from '@/hooks/hrms/attendance-management/useReports';
 import { exportToExcel } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
-import { FileSpreadsheet, Printer, X } from 'lucide-react';
-import { useState, useMemo, use, useRef, useEffect } from 'react';
+import { FileSpreadsheet, Printer } from 'lucide-react';
+import { use, useEffect, useMemo, useRef, useState } from 'react';
 import AddEmployeeMonthlyReportForm from './_components/add-from';
 import type { MonthlyRow } from './_components/columns';
 import {
     employeeMonthlyReportBaseColumns,
-    getDynamicDateColumns,
-    summaryColumns,
     formatOneColumns,
+    getDynamicDateColumns,
     getFormatOneEmployeeColumns,
-    getStatusBadge
+    summaryColumns
 } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -42,7 +41,10 @@ export default function EmployeeMonthlyReportPage(props: {
     );
 }
 
-function FormSections({ searchParams, onSearchParamsChange }: { searchParams?: any; onSearchParamsChange?: (params: Record<string, string | string[] | undefined>) => void }) {
+function FormSections({
+    searchParams,
+    onSearchParamsChange
+}: { searchParams?: any; onSearchParamsChange?: (params: Record<string, string | string[] | undefined>) => void }) {
     const { closeAddForm, addFormRef } = useFormContext<MonthlyRow>();
 
     return (
@@ -53,7 +55,7 @@ function FormSections({ searchParams, onSearchParamsChange }: { searchParams?: a
                 defaultOpen={true}
                 variant='outline'
                 size='md'
-                className='slide-in-from-top-4 animate-in shadow-lg duration-300 mt-10'>
+                className='slide-in-from-top-4 mt-10 animate-in shadow-lg duration-300'>
                 <AddEmployeeMonthlyReportForm
                     onSuccess={closeAddForm}
                     searchParams={searchParams}
@@ -90,11 +92,15 @@ function EmployeeMonthlyReportPageContent({
     // Data Processing
     const processedData = useMemo(() => {
         if (!response) return [];
-        
-        const rawData = Array.isArray(response?.data) 
-            ? response.data 
-            : (response?.data?.$values ? response.data.$values : (Array.isArray(response) ? response : []));
-            
+
+        const rawData = Array.isArray(response?.data)
+            ? response.data
+            : response?.data?.$values
+              ? response.data.$values
+              : Array.isArray(response)
+                ? response
+                : [];
+
         if (!Array.isArray(rawData) || rawData.length === 0) return [];
 
         const employees = rawData.map((emp: any) => {
@@ -126,7 +132,9 @@ function EmployeeMonthlyReportPageContent({
                     try {
                         const parsed = JSON.parse(emp.attendance_data);
                         attendance = parsed.daily_attendance || {};
-                    } catch (e) { /* noop */ }
+                    } catch (e) {
+                        /* noop */
+                    }
                 } else if (emp.attendance_data?.daily_attendance) {
                     attendance = emp.attendance_data.daily_attendance;
                 }
@@ -146,10 +154,14 @@ function EmployeeMonthlyReportPageContent({
     console.log('Processed Data:', processedData);
     // Columns Generation
     const columns = useMemo(() => {
-        const rawData = Array.isArray(response?.data) 
-            ? response.data 
-            : (response?.data?.$values ? response.data.$values : (Array.isArray(response) ? response : []));
-            
+        const rawData = Array.isArray(response?.data)
+            ? response.data
+            : response?.data?.$values
+              ? response.data.$values
+              : Array.isArray(response)
+                ? response
+                : [];
+
         if (!Array.isArray(rawData) || rawData.length === 0) return employeeMonthlyReportBaseColumns;
 
         if (isFormatOne) {
@@ -169,7 +181,9 @@ function EmployeeMonthlyReportPageContent({
                 try {
                     const parsed = JSON.parse(emp.attendance_data);
                     attendance = parsed.daily_attendance || {};
-                } catch (e) { /* noop */ }
+                } catch (e) {
+                    /* noop */
+                }
             } else if (emp.attendance_data?.daily_attendance) {
                 attendance = emp.attendance_data.daily_attendance;
             }
@@ -204,7 +218,7 @@ function EmployeeMonthlyReportPageContent({
             columns.forEach((col: any) => {
                 if (col.id === 'select' || col.accessorKey === 'slNo' || !col.accessorKey) return;
 
-                const header = typeof col.header === 'string' ? col.header : (col.title || col.accessorKey);
+                const header = typeof col.header === 'string' ? col.header : col.title || col.accessorKey;
                 let value = row[col.accessorKey];
 
                 if (col.accessorKey === 'hrme_doj') value = value ? format(parseISO(value), 'dd-MM-yyyy') : '';
@@ -282,12 +296,16 @@ function EmployeeMonthlyReportPageContent({
                         </tr>
                     </thead>
                     <tbody>
-                        ${rowsToPrint.map((row: any, idx: number) => `
+                        ${rowsToPrint
+                            .map(
+                                (row: any, idx: number) => `
                             <tr>
                                 <td>${idx + 1}</td>
                                 ${visibleColumns.map((col: any) => `<td>${formatCellValue(row, col.accessorKey)}</td>`).join('')}
                             </tr>
-                        `).join('')}
+                        `
+                            )
+                            .join('')}
                     </tbody>
                 </table>
             </body>
@@ -314,38 +332,45 @@ function EmployeeMonthlyReportPageContent({
 
                 {processedData?.length > 0 && (
                     <div ref={tableRef}>
-                    <CollapsibleSection  defaultOpen={true} variant='default' size='lg' className='shadow-lg' >
-                        { (
-                            <div className='flex items-center gap-2 rounded-lg p-4 shadow-sm'>
-                                {/* <span className='font-medium text-gray-700 text-sm '>
+                        <CollapsibleSection defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
+                            {
+                                <div className='flex items-center gap-2 rounded-lg p-4 shadow-sm'>
+                                    {/* <span className='font-medium text-gray-700 text-sm '>
                                     {selectedRows.length} row{selectedRows.length > 1 ? 's' : ''} selected
                                 </span> */}
-                                <div className='ml-auto flex items-center gap-2'>
-                                    <Button variant='outline' size='sm' onClick={handleExportToExcel} className='border-green-500 text-green-700 hover:bg-green-50'>
-                                        <FileSpreadsheet className='mr-2 h-4 w-4' /> Excel
-                                    </Button>
-                                    <Button variant='outline' size='sm' onClick={handlePrint} className='border-blue-500 text-blue-700 hover:bg-blue-50'>
-                                        <Printer className='mr-2 h-4 w-4' /> Print
-                                    </Button>
+                                    <div className='ml-auto flex items-center gap-2'>
+                                        <Button
+                                            variant='outline'
+                                            size='sm'
+                                            onClick={handleExportToExcel}
+                                            className='border-green-500 text-green-700 hover:bg-green-50'>
+                                            <FileSpreadsheet className='mr-2 h-4 w-4' /> Excel
+                                        </Button>
+                                        <Button
+                                            variant='outline'
+                                            size='sm'
+                                            onClick={handlePrint}
+                                            className='border-blue-500 text-blue-700 hover:bg-blue-50'>
+                                            <Printer className='mr-2 h-4 w-4' /> Print
+                                        </Button>
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            }
 
-                        <GenericDataTable<any>
-                            {...tableProps}
-                            columns={columns}
-                            isLoading={isLoading}
-                            error={error}
-                            showViewOptions={false}
-                            isPaginationRequired={false}
-                            maxHeight='400px'
-                            scrollable
-                            onRowSelectionChange={handleRowSelectionChange}
-                            loadingMessage='Loading Employee Monthly Reports...'
-                            noDataTitle='No Employee Monthly Reports Found'
-                        />
-
-                    </CollapsibleSection>
+                            <GenericDataTable<any>
+                                {...tableProps}
+                                columns={columns}
+                                isLoading={isLoading}
+                                error={error}
+                                showViewOptions={false}
+                                isPaginationRequired={false}
+                                maxHeight='400px'
+                                scrollable
+                                onRowSelectionChange={handleRowSelectionChange}
+                                loadingMessage='Loading Employee Monthly Reports...'
+                                noDataTitle='No Employee Monthly Reports Found'
+                            />
+                        </CollapsibleSection>
                     </div>
                 )}
             </div>

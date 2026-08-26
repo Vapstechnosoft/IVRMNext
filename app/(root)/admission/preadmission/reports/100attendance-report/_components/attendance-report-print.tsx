@@ -1,7 +1,7 @@
 'use client';
 
-import { forwardRef } from 'react';
 import { format } from 'date-fns';
+import { forwardRef } from 'react';
 
 interface ReportData {
     studentAttendanceList: any[];
@@ -24,7 +24,7 @@ export const AttendanceReportPrint = forwardRef<HTMLDivElement, AttendanceReport
             <div ref={ref} className='p-8 print:p-4'>
                 <div className='mb-6 flex flex-col items-center justify-center text-center'>
                     {logo && <img src={logo} alt='School Logo' className='mb-4 max-h-24' />}
-                    <h2 className='text-xl font-bold uppercase'>100% Attendance Report For Year {yearName}</h2>
+                    <h2 className='font-bold text-xl uppercase'>100% Attendance Report For Year {yearName}</h2>
                 </div>
 
                 <table className='w-full border-collapse border border-black text-center text-sm'>

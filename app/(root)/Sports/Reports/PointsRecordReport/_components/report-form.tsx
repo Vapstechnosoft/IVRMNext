@@ -1,20 +1,20 @@
 'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { RefreshCcw, FileText, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { PointsRecordReportFormSchema, pointsRecordReportSchema } from '../schema';
-import { usePointsRecordReport } from '@/hooks/sports/usePointsRecordReport';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { MultiSelect } from '@/components/ui/multi-select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { usePointsRecordReport } from '@/hooks/sports/usePointsRecordReport';
+import type { ICategory, IClass, IEvent, IHouse, ISection } from '@/types/sports/reports/points-record-report';
+import type { IPointsRecordReportData } from '@/types/sports/reports/points-record-report';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { FileText, Loader2, RefreshCcw } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { IClass, IEvent, IHouse, ISection, ICategory } from '@/types/sports/reports/points-record-report';
-import { IPointsRecordReportData } from '@/types/sports/reports/points-record-report';
+import { useForm, useWatch } from 'react-hook-form';
+import { toast } from 'sonner';
+import { type PointsRecordReportFormSchema, pointsRecordReportSchema } from '../schema';
 
 interface ReportFormProps {
     setReportData: (data: IPointsRecordReportData[] | null) => void;
@@ -42,7 +42,7 @@ export default function ReportForm({ setReportData, setFormData }: ReportFormPro
             placListData: [],
             ASMCL_Id: undefined,
             SPCCMCC_Id: undefined
-        },
+        }
     });
 
     const watchedType = useWatch({ control: form.control, name: 'Type' });
@@ -68,7 +68,7 @@ export default function ReportForm({ setReportData, setFormData }: ReportFormPro
         form.setValue('placListData', []);
         setReportData(null);
         setFormData(null);
-        // We keep House/Event/Sports selections? 
+        // We keep House/Event/Sports selections?
         // Report logic: clear them to avoid confusion
         form.setValue('selectedhouselist', []);
         form.setValue('selectedEventlist', []);
@@ -78,13 +78,16 @@ export default function ReportForm({ setReportData, setFormData }: ReportFormPro
     // Fetch Cascading Data (Classes, Houses, Events) when Year changes
     useEffect(() => {
         if (watchedYear) {
-            classHouseEventMutation.mutate({ asmaY_Id: watchedYear }, {
-                onSuccess: (data: { classList: any; houseList: any; eventList: any; }) => {
-                    setClassList(data.classList || []);
-                    setHouseList(data.houseList || []);
-                    setEventList(data.eventList || []);
+            classHouseEventMutation.mutate(
+                { asmaY_Id: watchedYear },
+                {
+                    onSuccess: (data: { classList: any; houseList: any; eventList: any }) => {
+                        setClassList(data.classList || []);
+                        setHouseList(data.houseList || []);
+                        setEventList(data.eventList || []);
+                    }
                 }
-            });
+            );
         } else {
             setClassList([]);
             setHouseList([]);
@@ -95,11 +98,14 @@ export default function ReportForm({ setReportData, setFormData }: ReportFormPro
     // Fetch Sections when Class changes (and Type is CS)
     useEffect(() => {
         if (watchedYear && watchedClass && watchedType === 'CS') {
-            sectionMutation.mutate({ asmaY_Id: watchedYear, asmcL_Id: watchedClass }, {
-                onSuccess: (data: { sectionList: any; }) => {
-                    setSectionList(data.sectionList || []);
+            sectionMutation.mutate(
+                { asmaY_Id: watchedYear, asmcL_Id: watchedClass },
+                {
+                    onSuccess: (data: { sectionList: any }) => {
+                        setSectionList(data.sectionList || []);
+                    }
                 }
-            });
+            );
         } else {
             setSectionList([]);
         }
@@ -114,7 +120,7 @@ export default function ReportForm({ setReportData, setFormData }: ReportFormPro
             asmaY_Id: Number(data.ASMAY_Id),
             selectedhouselist: data.selectedhouselist || [],
             selectedeventlist: data.selectedEventlist || [],
-            selectedsportslist: data.selectedSportslist || [],
+            selectedsportslist: data.selectedSportslist || []
         };
 
         if (data.Type === 'CS') {
@@ -155,47 +161,57 @@ export default function ReportForm({ setReportData, setFormData }: ReportFormPro
     };
 
     const rankList = [
-        { label: '1', value: '1' }, { label: '2', value: '2' }, { label: '3', value: '3' },
-        { label: '4', value: '4' }, { label: '5', value: '5' }, { label: '6', value: '6' },
-        { label: '7', value: '7' }, { label: '8', value: '8' }, { label: '9', value: '9' },
-        { label: '10', value: '10' },
+        { label: '1', value: '1' },
+        { label: '2', value: '2' },
+        { label: '3', value: '3' },
+        { label: '4', value: '4' },
+        { label: '5', value: '5' },
+        { label: '6', value: '6' },
+        { label: '7', value: '7' },
+        { label: '8', value: '8' },
+        { label: '9', value: '9' },
+        { label: '10', value: '10' }
     ];
 
     return (
         <Card>
-            <CardHeader className="bg-primary/5 border-b py-4">
-                <CardTitle className="text-lg font-bold flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-primary" />
+            <CardHeader className='border-b bg-primary/5 py-4'>
+                <CardTitle className='flex items-center gap-2 font-bold text-lg'>
+                    <FileText className='h-5 w-5 text-primary' />
                     Points Record Report Filter
                 </CardTitle>
             </CardHeader>
-            <CardContent className="pt-6">
+            <CardContent className='pt-6'>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-
+                    <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
                         {/* Report Type Radio */}
                         <FormField
                             control={form.control}
-                            name="Type"
+                            name='Type'
                             render={({ field }) => (
-                                <FormItem className="space-y-3">
+                                <FormItem className='space-y-3'>
                                     <FormControl>
                                         <RadioGroup
                                             onValueChange={field.onChange}
                                             defaultValue={field.value}
-                                            className="flex flex-col sm:flex-row gap-6 justify-center"
-                                        >
-                                            <div className="flex items-center space-x-2">
-                                                <RadioGroupItem value="House" id="r1" />
-                                                <label htmlFor="r1" className="cursor-pointer font-medium">By House</label>
+                                            className='flex flex-col justify-center gap-6 sm:flex-row'>
+                                            <div className='flex items-center space-x-2'>
+                                                <RadioGroupItem value='House' id='r1' />
+                                                <label htmlFor='r1' className='cursor-pointer font-medium'>
+                                                    By House
+                                                </label>
                                             </div>
-                                            <div className="flex items-center space-x-2">
-                                                <RadioGroupItem value="CS" id="r2" />
-                                                <label htmlFor="r2" className="cursor-pointer font-medium">By Class/Section</label>
+                                            <div className='flex items-center space-x-2'>
+                                                <RadioGroupItem value='CS' id='r2' />
+                                                <label htmlFor='r2' className='cursor-pointer font-medium'>
+                                                    By Class/Section
+                                                </label>
                                             </div>
-                                            <div className="flex items-center space-x-2">
-                                                <RadioGroupItem value="CC" id="r3" />
-                                                <label htmlFor="r3" className="cursor-pointer font-medium">Competition Category</label>
+                                            <div className='flex items-center space-x-2'>
+                                                <RadioGroupItem value='CC' id='r3' />
+                                                <label htmlFor='r3' className='cursor-pointer font-medium'>
+                                                    Competition Category
+                                                </label>
                                             </div>
                                         </RadioGroup>
                                     </FormControl>
@@ -204,22 +220,23 @@ export default function ReportForm({ setReportData, setFormData }: ReportFormPro
                             )}
                         />
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-end">
+                        <div className='grid grid-cols-1 items-end gap-6 md:grid-cols-2 lg:grid-cols-3'>
                             {/* Academic Year */}
                             <FormField
                                 control={form.control}
-                                name="ASMAY_Id"
+                                name='ASMAY_Id'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="font-semibold">Academic Year <span className="text-destructive">*</span></FormLabel>
+                                        <FormLabel className='font-semibold'>
+                                            Academic Year <span className='text-destructive'>*</span>
+                                        </FormLabel>
                                         <Select
                                             onValueChange={(value) => field.onChange(Number(value))}
                                             value={field.value?.toString()}
-                                            disabled={loadData.isLoading}
-                                        >
+                                            disabled={loadData.isLoading}>
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select Year" />
+                                                    <SelectValue placeholder='Select Year' />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
@@ -239,18 +256,19 @@ export default function ReportForm({ setReportData, setFormData }: ReportFormPro
                             {watchedType === 'CS' && (
                                 <FormField
                                     control={form.control}
-                                    name="ASMCL_Id"
+                                    name='ASMCL_Id'
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="font-semibold">Class <span className="text-destructive">*</span></FormLabel>
+                                            <FormLabel className='font-semibold'>
+                                                Class <span className='text-destructive'>*</span>
+                                            </FormLabel>
                                             <Select
                                                 onValueChange={(value) => field.onChange(Number(value))}
                                                 value={field.value?.toString()}
-                                                disabled={!watchedYear}
-                                            >
+                                                disabled={!watchedYear}>
                                                 <FormControl>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="Select Class" />
+                                                        <SelectValue placeholder='Select Class' />
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
@@ -271,16 +289,21 @@ export default function ReportForm({ setReportData, setFormData }: ReportFormPro
                             {watchedType === 'CS' && (
                                 <FormField
                                     control={form.control}
-                                    name="selectedSectionlist"
+                                    name='selectedSectionlist'
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="font-semibold">Section <span className="text-destructive">*</span></FormLabel>
+                                            <FormLabel className='font-semibold'>
+                                                Section <span className='text-destructive'>*</span>
+                                            </FormLabel>
                                             <FormControl>
                                                 <MultiSelect
-                                                    options={sectionList.map(s => ({ value: s.asmS_Id.toString(), label: s.asmC_SectionName }))}
-                                                    onValueChange={(vals) => field.onChange(vals.map(v => ({ asmS_Id: Number(v) })))}
-                                                    defaultValue={field.value?.map(v => v.asmS_Id.toString()) || []}
-                                                    placeholder="Select Sections"
+                                                    options={sectionList.map((s) => ({
+                                                        value: s.asmS_Id.toString(),
+                                                        label: s.asmC_SectionName
+                                                    }))}
+                                                    onValueChange={(vals) => field.onChange(vals.map((v) => ({ asmS_Id: Number(v) })))}
+                                                    defaultValue={field.value?.map((v) => v.asmS_Id.toString()) || []}
+                                                    placeholder='Select Sections'
                                                     disabled={!watchedClass || sectionMutation.isPending}
                                                 />
                                             </FormControl>
@@ -294,18 +317,20 @@ export default function ReportForm({ setReportData, setFormData }: ReportFormPro
                             {watchedType === 'CC' && (
                                 <FormField
                                     control={form.control}
-                                    name="SPCCMCC_Id"
+                                    name='SPCCMCC_Id'
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="font-semibold">Category <span className="text-destructive">*</span></FormLabel>
+                                            <FormLabel className='font-semibold'>
+                                                Category <span className='text-destructive'>*</span>
+                                            </FormLabel>
                                             <Select
                                                 onValueChange={(value) => field.onChange(Number(value))}
                                                 value={field.value?.toString()}
-                                            // disabled={!watchedYear} // Category might depend on year, but list comes from initial load currently
+                                                // disabled={!watchedYear} // Category might depend on year, but list comes from initial load currently
                                             >
                                                 <FormControl>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="Select Category" />
+                                                        <SelectValue placeholder='Select Category' />
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
@@ -326,16 +351,16 @@ export default function ReportForm({ setReportData, setFormData }: ReportFormPro
                             {watchedType === 'CC' && (
                                 <FormField
                                     control={form.control}
-                                    name="placListData"
+                                    name='placListData'
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="font-semibold">Place</FormLabel>
+                                            <FormLabel className='font-semibold'>Place</FormLabel>
                                             <FormControl>
                                                 <MultiSelect
                                                     options={rankList}
-                                                    onValueChange={(vals) => field.onChange(vals.map(v => ({ spccestR_Rank: v })))}
-                                                    defaultValue={field.value?.map(v => v.spccestR_Rank) || []}
-                                                    placeholder="Select Place"
+                                                    onValueChange={(vals) => field.onChange(vals.map((v) => ({ spccestR_Rank: v })))}
+                                                    defaultValue={field.value?.map((v) => v.spccestR_Rank) || []}
+                                                    placeholder='Select Place'
                                                 />
                                             </FormControl>
                                             <FormMessage />
@@ -347,16 +372,21 @@ export default function ReportForm({ setReportData, setFormData }: ReportFormPro
                             {/* House Selection */}
                             <FormField
                                 control={form.control}
-                                name="selectedhouselist"
+                                name='selectedhouselist'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="font-semibold">House <span className="text-destructive">*</span></FormLabel>
+                                        <FormLabel className='font-semibold'>
+                                            House <span className='text-destructive'>*</span>
+                                        </FormLabel>
                                         <FormControl>
                                             <MultiSelect
-                                                options={houseList.map(h => ({ value: h.spccmH_Id.toString(), label: h.spccmH_HouseName }))}
-                                                onValueChange={(vals) => field.onChange(vals.map(v => ({ spccmH_Id: Number(v) })))}
-                                                defaultValue={field.value?.map(v => v.spccmH_Id.toString()) || []}
-                                                placeholder="Select Houses"
+                                                options={houseList.map((h) => ({
+                                                    value: h.spccmH_Id.toString(),
+                                                    label: h.spccmH_HouseName
+                                                }))}
+                                                onValueChange={(vals) => field.onChange(vals.map((v) => ({ spccmH_Id: Number(v) })))}
+                                                defaultValue={field.value?.map((v) => v.spccmH_Id.toString()) || []}
+                                                placeholder='Select Houses'
                                                 disabled={!watchedYear}
                                             />
                                         </FormControl>
@@ -368,16 +398,19 @@ export default function ReportForm({ setReportData, setFormData }: ReportFormPro
                             {/* Event Selection */}
                             <FormField
                                 control={form.control}
-                                name="selectedEventlist"
+                                name='selectedEventlist'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="font-semibold">Event</FormLabel>
+                                        <FormLabel className='font-semibold'>Event</FormLabel>
                                         <FormControl>
                                             <MultiSelect
-                                                options={eventList.map(e => ({ value: e.spccmE_Id.toString(), label: e.spccmE_EventName }))}
-                                                onValueChange={(vals) => field.onChange(vals.map(v => ({ spccmE_Id: Number(v) })))}
-                                                defaultValue={field.value?.map(v => v.spccmE_Id.toString()) || []}
-                                                placeholder="Select Events"
+                                                options={eventList.map((e) => ({
+                                                    value: e.spccmE_Id.toString(),
+                                                    label: e.spccmE_EventName
+                                                }))}
+                                                onValueChange={(vals) => field.onChange(vals.map((v) => ({ spccmE_Id: Number(v) })))}
+                                                defaultValue={field.value?.map((v) => v.spccmE_Id.toString()) || []}
+                                                placeholder='Select Events'
                                                 disabled={!watchedYear}
                                             />
                                         </FormControl>
@@ -389,16 +422,21 @@ export default function ReportForm({ setReportData, setFormData }: ReportFormPro
                             {/* Sports Selection */}
                             <FormField
                                 control={form.control}
-                                name="selectedSportslist"
+                                name='selectedSportslist'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="font-semibold">Sports</FormLabel>
+                                        <FormLabel className='font-semibold'>Sports</FormLabel>
                                         <FormControl>
                                             <MultiSelect
-                                                options={loadData.data?.sportslist?.map(s => ({ value: s.spccmscC_Id.toString(), label: s.spccmscC_SportsCCName })) || []}
-                                                onValueChange={(vals) => field.onChange(vals.map(v => ({ spccmscC_Id: Number(v) })))}
-                                                defaultValue={field.value?.map(v => v.spccmscC_Id.toString()) || []}
-                                                placeholder="Select Sports"
+                                                options={
+                                                    loadData.data?.sportslist?.map((s) => ({
+                                                        value: s.spccmscC_Id.toString(),
+                                                        label: s.spccmscC_SportsCCName
+                                                    })) || []
+                                                }
+                                                onValueChange={(vals) => field.onChange(vals.map((v) => ({ spccmscC_Id: Number(v) })))}
+                                                defaultValue={field.value?.map((v) => v.spccmscC_Id.toString()) || []}
+                                                placeholder='Select Sports'
                                                 disabled={loadData.isLoading}
                                             />
                                         </FormControl>
@@ -406,30 +444,20 @@ export default function ReportForm({ setReportData, setFormData }: ReportFormPro
                                     </FormItem>
                                 )}
                             />
-
                         </div>
 
                         {/* Buttons */}
-                        <div className="flex justify-center gap-4 pt-4">
-                            <Button
-                                type="submit"
-                                className="min-w-[150px] font-bold"
-                                disabled={generateReport.isPending}
-                            >
+                        <div className='flex justify-center gap-4 pt-4'>
+                            <Button type='submit' className='min-w-[150px] font-bold' disabled={generateReport.isPending}>
                                 {generateReport.isPending ? (
-                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                                 ) : (
-                                    <FileText className="h-4 w-4 mr-2" />
+                                    <FileText className='mr-2 h-4 w-4' />
                                 )}
                                 Report
                             </Button>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={handleReset}
-                                className="min-w-[150px]"
-                            >
-                                <RefreshCcw className="h-4 w-4 mr-2" />
+                            <Button type='button' variant='outline' onClick={handleReset} className='min-w-[150px]'>
+                                <RefreshCcw className='mr-2 h-4 w-4' />
                                 Cancel
                             </Button>
                         </div>

@@ -1,10 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type {
-    Staff,
-    StaffReplacementReportResponse
-} from '@/types/timetable/Transaction/staffreplacementintheirtimetable';
+import type { Staff, StaffReplacementReportResponse } from '@/types/timetable/Transaction/staffreplacementintheirtimetable';
 
 export async function getStaffDetails() {
     const url = '/TimeTableCommon/GetStaffDetails';

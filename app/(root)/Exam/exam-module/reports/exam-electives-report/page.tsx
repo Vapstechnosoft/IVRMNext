@@ -18,12 +18,23 @@ const getClassRank = (className: string): number => {
     if (name.includes('UKG') || name.includes('U.K.G')) return -1;
 
     const romanMap: { [key: string]: number } = {
-        'I': 1, 'II': 2, 'III': 3, 'IV': 4, 'V': 5, 'VI': 6, 'VII': 7, 'VIII': 8, 'IX': 9, 'X': 10, 'XI': 11, 'XII': 12
+        I: 1,
+        II: 2,
+        III: 3,
+        IV: 4,
+        V: 5,
+        VI: 6,
+        VII: 7,
+        VIII: 8,
+        IX: 9,
+        X: 10,
+        XI: 11,
+        XII: 12
     };
 
     if (romanMap[name]) return romanMap[name];
 
-    const num = parseInt(name, 10);
+    const num = Number.parseInt(name, 10);
     if (!isNaN(num)) return num;
 
     return 100;
@@ -42,7 +53,7 @@ export default function ExamElectivesReportPage() {
 
         try {
             const res = await getExamElectivesReport(payload);
-            console.log("res from the ExamElectivesReport", res);
+            console.log('res from the ExamElectivesReport', res);
             if (!res?.success || !Array.isArray(res.data) || res.data.length === 0) {
                 toast.info('No students found for the selected criteria');
                 setIsReportVisible(false);
@@ -78,7 +89,8 @@ export default function ExamElectivesReportPage() {
                         amsT_emailId: row.amst_EmailId || '',
                         asmcL_ClassName: row.asmcl_ClassName,
                         asmC_SectionName: row.asmc_SectionName,
-                        asmcL_Order: row.asmcl_Order ?? row.asmcL_Order ?? row.Class_Order ?? row.ClassOrder ?? row.asmcL_ClassOrder ?? null,
+                        asmcL_Order:
+                            row.asmcl_Order ?? row.asmcL_Order ?? row.Class_Order ?? row.ClassOrder ?? row.asmcL_ClassOrder ?? null,
                         asmS_Order: row.asmS_Order ?? row.asmS_SectionOrder ?? row.Section_Order ?? row.SectionOrder ?? null,
                         subjectsByGroup: new Map<number, Set<string>>()
                     });

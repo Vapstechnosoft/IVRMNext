@@ -1,9 +1,9 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { format } from 'date-fns';
 import { Printer } from 'lucide-react';
 import { useMemo, useRef } from 'react';
-import { format } from 'date-fns';
 
 interface ReportListProps {
     data: any;
@@ -55,15 +55,15 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                 </Button>
             </div>
 
-            <div ref={printRef} id="print-area" className='print-area' style={{ fontFamily: "'Source Sans Pro', sans-serif" }}>
+            <div ref={printRef} id='print-area' className='print-area' style={{ fontFamily: "'Source Sans Pro', sans-serif" }}>
                 {reportList.length > 0 ? (
                     reportList.map((report: any, index: number) => {
                         const studentID = report.amsT_Id || report.AMST_Id;
 
                         // Filter savelist marks for this student
-                        const studentMarks = (data?.savelist || []).filter((m: any) => 
-                            (m.amsT_Id || m.AMST_Id) === studentID && 
-                            (m.eyceS_AplResultFlg === true || m.EYCES_AplResultFlg === true)
+                        const studentMarks = (data?.savelist || []).filter(
+                            (m: any) =>
+                                (m.amsT_Id || m.AMST_Id) === studentID && (m.eyceS_AplResultFlg === true || m.EYCES_AplResultFlg === true)
                         );
 
                         // Safe date formatting helper
@@ -79,55 +79,63 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                         return (
                             <div
                                 key={index}
-                                className={`mx-auto mb-8 w-[95%] bg-white p-6 shadow-sm border border-gray-300 ${index > 0 ? 'page-break-before-always' : ''}`}
+                                className={`mx-auto mb-8 w-[95%] border border-gray-300 bg-white p-6 shadow-sm ${index > 0 ? 'page-break-before-always' : ''}`}
                                 style={{ fontFamily: "'Source Sans Pro', sans-serif" }}>
-
                                 {/* School Logo */}
-                                <div className='mb-6 w-full flex justify-center'>
+                                <div className='mb-6 flex w-full justify-center'>
                                     <img
-                                        src="https://dcampusstrg.blob.core.windows.net/files/17/NAACDocumentsUpload/6a4bad20-fd91-45ff-b0cd-b152f3d07edc.jpg"
-                                        alt="School Header Logo"
+                                        src='https://dcampusstrg.blob.core.windows.net/files/17/NAACDocumentsUpload/6a4bad20-fd91-45ff-b0cd-b152f3d07edc.jpg'
+                                        alt='School Header Logo'
                                         className='w-full object-contain'
                                         style={{ maxWidth: '100%', height: 'auto' }}
                                     />
                                 </div>
 
                                 {/* Student Details Profile */}
-                                <div className='relative mb-8 px-4 flex justify-between items-start'>
-                                    <div className='flex flex-col space-y-2 text-[15px] w-2/3'>
+                                <div className='relative mb-8 flex items-start justify-between px-4'>
+                                    <div className='flex w-2/3 flex-col space-y-2 text-[15px]'>
                                         {[
                                             { label: 'Name', value: report.amsT_FirstName || report.studentname || report.studentName },
                                             { label: 'Admission No', value: report.amsT_AdmNo || report.admno || report.admissionNo },
-                                            { label: 'Class & Section', value: `${report.asmcL_ClassName || ''} - ${report.asmC_SectionName || ''}` },
+                                            {
+                                                label: 'Class & Section',
+                                                value: `${report.asmcL_ClassName || ''} - ${report.asmC_SectionName || ''}`
+                                            },
                                             { label: 'Date of birth', value: dobText },
-                                            { label: "Mother's name", value: report.amsT_MotherName || report.motherName || report.mothername },
-                                            { label: "Father's name", value: report.amsT_FatherName || report.fatherName || report.fathername }
+                                            {
+                                                label: "Mother's name",
+                                                value: report.amsT_MotherName || report.motherName || report.mothername
+                                            },
+                                            {
+                                                label: "Father's name",
+                                                value: report.amsT_FatherName || report.fatherName || report.fathername
+                                            }
                                         ].map((item, i) => (
                                             <div key={i} className='flex items-center'>
                                                 <div className='w-40 font-bold text-gray-700'>{item.label}</div>
                                                 <div className='w-4 font-bold text-gray-700'>:</div>
-                                                <div className='font-bold text-black ml-2'>{item.value || ''}</div>
+                                                <div className='ml-2 font-bold text-black'>{item.value || ''}</div>
                                             </div>
                                         ))}
                                     </div>
-                                    
+
                                     {/* Student Photo */}
-                                    <div className='border-2 border-gray-300 p-1 bg-gray-50 h-[140px] w-[120px] flex items-center justify-center shadow-sm'>
+                                    <div className='flex h-[140px] w-[120px] items-center justify-center border-2 border-gray-300 bg-gray-50 p-1 shadow-sm'>
                                         {report.amsT_Photoname || report.photo || report.AMST_Photoname ? (
                                             <img
                                                 src={report.amsT_Photoname || report.photo || report.AMST_Photoname}
-                                                alt="Student Photo"
+                                                alt='Student Photo'
                                                 className='h-full w-full object-cover'
                                             />
                                         ) : (
-                                            <span className='text-xs text-gray-400 font-bold'>PHOTO</span>
+                                            <span className='font-bold text-gray-400 text-xs'>PHOTO</span>
                                         )}
                                     </div>
                                 </div>
 
                                 {/* Exam Name Header */}
-                                <div className='text-center mb-6'>
-                                    <h3 className='text-xl font-bold uppercase tracking-wider text-sky-900'>
+                                <div className='mb-6 text-center'>
+                                    <h3 className='font-bold text-sky-900 text-xl uppercase tracking-wider'>
                                         {examName} - {academicYear}
                                     </h3>
                                 </div>
@@ -137,11 +145,19 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                                     <table className='w-full border-collapse border border-gray-400 text-sm'>
                                         <thead>
                                             <tr style={{ backgroundColor: '#c6dff7' }}>
-                                                <th className='border border-gray-400 p-2 text-center text-black font-bold w-16'>SL No</th>
-                                                <th className='border border-gray-400 p-2 text-left text-black font-bold'>SUBJECT(SCHOLASTIC)</th>
-                                                <th className='border border-gray-400 p-2 text-center text-black font-bold w-32'>Max Marks</th>
-                                                <th className='border border-gray-400 p-2 text-center text-black font-bold w-32'>Min Marks</th>
-                                                <th className='border border-gray-400 p-2 text-center text-black font-bold w-40'>Obtained Marks</th>
+                                                <th className='w-16 border border-gray-400 p-2 text-center font-bold text-black'>SL No</th>
+                                                <th className='border border-gray-400 p-2 text-left font-bold text-black'>
+                                                    SUBJECT(SCHOLASTIC)
+                                                </th>
+                                                <th className='w-32 border border-gray-400 p-2 text-center font-bold text-black'>
+                                                    Max Marks
+                                                </th>
+                                                <th className='w-32 border border-gray-400 p-2 text-center font-bold text-black'>
+                                                    Min Marks
+                                                </th>
+                                                <th className='w-40 border border-gray-400 p-2 text-center font-bold text-black'>
+                                                    Obtained Marks
+                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -152,22 +168,34 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
 
                                                 let obtainedMarksText = '';
                                                 if (pfFlag !== 'AB' && displayFlg) {
-                                                    obtainedMarksText = String(mark.estmpS_ObtainedMarks ?? mark.ESTMPS_ObtainedMarks ?? '');
+                                                    obtainedMarksText = String(
+                                                        mark.estmpS_ObtainedMarks ?? mark.ESTMPS_ObtainedMarks ?? ''
+                                                    );
                                                 } else if (pfFlag === 'AB' && displayFlg && subCode !== 'SE') {
                                                     obtainedMarksText = pfFlag;
                                                 } else if (pfFlag !== 'AB' && subCode === 'SE') {
                                                     obtainedMarksText = '-';
                                                 } else {
-                                                    obtainedMarksText = String(mark.estmpS_ObtainedMarks ?? mark.ESTMPS_ObtainedMarks ?? '');
+                                                    obtainedMarksText = String(
+                                                        mark.estmpS_ObtainedMarks ?? mark.ESTMPS_ObtainedMarks ?? ''
+                                                    );
                                                 }
 
                                                 return (
-                                                    <tr key={sIdx} className='hover:bg-slate-50 transition-colors'>
+                                                    <tr key={sIdx} className='transition-colors hover:bg-slate-50'>
                                                         <td className='border border-gray-400 p-2 text-center'>{sIdx + 1}</td>
-                                                        <td className='border border-gray-400 p-2 text-left font-bold'>{mark.ismS_SubjectName || mark.ISMS_SubjectName}</td>
-                                                        <td className='border border-gray-400 p-2 text-center bg-[#c6dff7]/30'>{mark.estmpS_MaxMarks || mark.ESTMPS_MaxMarks}</td>
-                                                        <td className='border border-gray-400 p-2 text-center bg-[#c6dff7]/30'>{mark.eyceS_MinMarks || mark.EYCES_MinMarks}</td>
-                                                        <td className='border border-gray-400 p-2 text-center bg-[#c6dff7]/30 font-semibold'>{obtainedMarksText}</td>
+                                                        <td className='border border-gray-400 p-2 text-left font-bold'>
+                                                            {mark.ismS_SubjectName || mark.ISMS_SubjectName}
+                                                        </td>
+                                                        <td className='border border-gray-400 bg-[#c6dff7]/30 p-2 text-center'>
+                                                            {mark.estmpS_MaxMarks || mark.ESTMPS_MaxMarks}
+                                                        </td>
+                                                        <td className='border border-gray-400 bg-[#c6dff7]/30 p-2 text-center'>
+                                                            {mark.eyceS_MinMarks || mark.EYCES_MinMarks}
+                                                        </td>
+                                                        <td className='border border-gray-400 bg-[#c6dff7]/30 p-2 text-center font-semibold'>
+                                                            {obtainedMarksText}
+                                                        </td>
                                                     </tr>
                                                 );
                                             })}
@@ -176,15 +204,23 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                                             <tr style={{ backgroundColor: '#c6dff7' }} className='font-bold'>
                                                 <td className='border border-gray-400 p-2 text-center'>&nbsp;</td>
                                                 <td className='border border-gray-400 p-2 text-left'>TOTAL</td>
-                                                <td className='border border-gray-400 p-2 text-center'>{report.estmP_TotalMaxMarks || report.ESTMP_TotalMaxMarks}</td>
-                                                <td className='border border-gray-400 p-2 text-center'>{report.estmP_MinMarks || report.ESTMP_MinMarks}</td>
-                                                <td className='border border-gray-400 p-2 text-center'>{report.estmP_TotalObtMarks || report.ESTMP_TotalObtMarks}</td>
+                                                <td className='border border-gray-400 p-2 text-center'>
+                                                    {report.estmP_TotalMaxMarks || report.ESTMP_TotalMaxMarks}
+                                                </td>
+                                                <td className='border border-gray-400 p-2 text-center'>
+                                                    {report.estmP_MinMarks || report.ESTMP_MinMarks}
+                                                </td>
+                                                <td className='border border-gray-400 p-2 text-center'>
+                                                    {report.estmP_TotalObtMarks || report.ESTMP_TotalObtMarks}
+                                                </td>
                                             </tr>
 
                                             {/* Percentage Row */}
                                             <tr style={{ backgroundColor: '#c6dff7' }} className='font-bold'>
                                                 <td className='border border-gray-400 p-2 text-center'>&nbsp;</td>
-                                                <td className='border border-gray-400 p-2 text-left' colSpan={2}>PERCENTAGE</td>
+                                                <td className='border border-gray-400 p-2 text-left' colSpan={2}>
+                                                    PERCENTAGE
+                                                </td>
                                                 <td className='border border-gray-400 p-2 text-center' colSpan={2}>
                                                     {report.estmP_Percentage || report.ESTMP_Percentage}%
                                                 </td>
@@ -194,22 +230,16 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                                 </div>
 
                                 {/* Signatures Footer */}
-                                <div className='mt-24 px-4 flex justify-between items-center text-sm font-bold text-gray-800'>
-                                    <div className='text-left w-1/3'>
-                                        Principal / H.M Signature
-                                    </div>
-                                    <div className='text-center w-1/3'>
-                                        Class Teacher Signature
-                                    </div>
-                                    <div className='text-right w-1/3'>
-                                        Parent Signature
-                                    </div>
+                                <div className='mt-24 flex items-center justify-between px-4 font-bold text-gray-800 text-sm'>
+                                    <div className='w-1/3 text-left'>Principal / H.M Signature</div>
+                                    <div className='w-1/3 text-center'>Class Teacher Signature</div>
+                                    <div className='w-1/3 text-right'>Parent Signature</div>
                                 </div>
                             </div>
                         );
                     })
                 ) : (
-                    <div className='p-10 text-center text-gray-500 bg-white border border-gray-200 rounded-lg shadow-sm'>
+                    <div className='rounded-lg border border-gray-200 bg-white p-10 text-center text-gray-500 shadow-sm'>
                         No student records found to display the report.
                     </div>
                 )}

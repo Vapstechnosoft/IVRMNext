@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import type { GatePassSchema } from '@/schemas/visitors-management/transactions';
 import { getGatePassData, saveGatePassData } from '@/server/visitors-management/transactions/gate-pass';
-import { GatePassSchema } from '@/schemas/visitors-management/transactions';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 export const useGatePass = () => {
@@ -8,7 +8,7 @@ export const useGatePass = () => {
 
     const { data, isLoading, refetch } = useQuery({
         queryKey: ['gatePassData'],
-        queryFn: () => getGatePassData(),
+        queryFn: () => getGatePassData()
     });
 
     const mutation = useMutation({
@@ -31,6 +31,6 @@ export const useGatePass = () => {
         data,
         isLoading,
         refetch,
-        saveGatePass: mutation.mutateAsync,
+        saveGatePass: mutation.mutateAsync
     };
 };

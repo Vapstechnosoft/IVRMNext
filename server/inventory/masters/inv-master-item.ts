@@ -38,4 +38,3 @@ export async function getTaxList() {
     const url = `/INV_MasterItemFacade/get_taxlist`;
     return await api.post<any>('inventory', url, {});
 }
-

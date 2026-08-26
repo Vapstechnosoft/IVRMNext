@@ -4,9 +4,9 @@ import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { useMasterCategoryListData } from '@/hooks/library/useMasters';
 import { toggleMasterCategory } from '@/server/library/masters/library_category';
-import { IMasterCategoryList } from '@/types/library/masters/masters';
-import { toast } from 'sonner';
+import type { IMasterCategoryList } from '@/types/library/masters/masters';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface ToggleMasterCategoryFormProps {
     rowData: IMasterCategoryList;
@@ -42,9 +42,7 @@ export default function ToggleMasterCategoryForm({ rowData, onClose }: ToggleMas
         <AdaptiveDialog title='Confirmation' isOpen={true} onClose={onClose}>
             <AdaptiveBody>
                 <div className='py-4 text-center'>
-                    <p className='text-lg font-medium'>
-                        Do You Want To {isActive ? 'Inactivate' : 'Activate'} Record?
-                    </p>
+                    <p className='font-medium text-lg'>Do You Want To {isActive ? 'Inactivate' : 'Activate'} Record?</p>
                 </div>
             </AdaptiveBody>
             <AdaptiveFooter className='justify-center border-t pt-4'>

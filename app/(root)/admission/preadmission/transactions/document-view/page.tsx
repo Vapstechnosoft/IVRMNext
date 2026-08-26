@@ -13,7 +13,7 @@ import {
     usePreadmissionClassDropdown,
     usePreadmissionDocumentsDropdown
 } from '@/hooks/admission/preadmission/useTransactions';
-import { IPreadmissionDocumentView } from '@/types/admission/preadmission/transactions';
+import type { IPreadmissionDocumentView } from '@/types/admission/preadmission/transactions';
 import { format } from 'date-fns';
 import { Calendar, CheckSquare } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -68,8 +68,8 @@ export default function DocumentView(props: { searchParams: SearchParams }) {
         if (!response?.data) return [];
 
         const { studentList, documentList } = response.data as any;
-        const students = Array.isArray(studentList) ? studentList : (studentList?.$values || []);
-        const docListGlobal = Array.isArray(documentList) ? documentList : (documentList?.$values || []);
+        const students = Array.isArray(studentList) ? studentList : studentList?.$values || [];
+        const docListGlobal = Array.isArray(documentList) ? documentList : documentList?.$values || [];
         const masterDocsList = masterDocs?.data || [];
 
         return students.map((student: any) => {
@@ -139,28 +139,32 @@ export default function DocumentView(props: { searchParams: SearchParams }) {
         <div className='min-h-screen'>
             {/* Active Preadmission Details */}
             {activePreadmission?.data && (
-                <div className='mb-4 bg-muted/50 border rounded-lg p-4 flex flex-wrap gap-6 items-center justify-between shadow-sm'>
+                <div className='mb-4 flex flex-wrap items-center justify-between gap-6 rounded-lg border bg-muted/50 p-4 shadow-sm'>
                     <div className='flex items-center gap-3'>
-                        <div className='p-2 bg-primary/10 rounded-full'>
+                        <div className='rounded-full bg-primary/10 p-2'>
                             <Calendar className='h-5 w-5 text-primary' />
                         </div>
                         <div>
-                            <p className='text-xs text-muted-foreground font-medium uppercase tracking-wider'>Active Academic Year</p>
-                            <p className='text-lg font-bold text-foreground'>{activePreadmission.data.asmaY_Year}</p>
+                            <p className='font-medium text-muted-foreground text-xs uppercase tracking-wider'>Active Academic Year</p>
+                            <p className='font-bold text-foreground text-lg'>{activePreadmission.data.asmaY_Year}</p>
                         </div>
                     </div>
 
                     <div className='flex gap-8'>
                         <div className='flex flex-col'>
-                            <p className='text-xs text-muted-foreground font-medium uppercase tracking-wider'>Preadmission Start Date</p>
+                            <p className='font-medium text-muted-foreground text-xs uppercase tracking-wider'>Preadmission Start Date</p>
                             <p className='font-semibold text-foreground'>
-                                {activePreadmission.data.asmaY_PreAdm_F_Date ? format(new Date(activePreadmission.data.asmaY_PreAdm_F_Date), 'dd-MM-yyyy') : 'N/A'}
+                                {activePreadmission.data.asmaY_PreAdm_F_Date
+                                    ? format(new Date(activePreadmission.data.asmaY_PreAdm_F_Date), 'dd-MM-yyyy')
+                                    : 'N/A'}
                             </p>
                         </div>
                         <div className='flex flex-col border-l pl-8'>
-                            <p className='text-xs text-muted-foreground font-medium uppercase tracking-wider'>Preadmission End Date</p>
+                            <p className='font-medium text-muted-foreground text-xs uppercase tracking-wider'>Preadmission End Date</p>
                             <p className='font-semibold text-foreground'>
-                                {activePreadmission.data.asmaY_PreAdm_T_Date ? format(new Date(activePreadmission.data.asmaY_PreAdm_T_Date), 'dd-MM-yyyy') : 'N/A'}
+                                {activePreadmission.data.asmaY_PreAdm_T_Date
+                                    ? format(new Date(activePreadmission.data.asmaY_PreAdm_T_Date), 'dd-MM-yyyy')
+                                    : 'N/A'}
                             </p>
                         </div>
                     </div>

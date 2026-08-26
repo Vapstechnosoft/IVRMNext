@@ -1,10 +1,10 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
-import { format } from 'date-fns';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
+import type { ColumnDef } from '@tanstack/react-table';
+import { format } from 'date-fns';
 
 export const staffApprovalListColumns = (onApprove: (data: any) => void): ColumnDef<any>[] => [
     {
@@ -20,19 +20,19 @@ export const staffApprovalListColumns = (onApprove: (data: any) => void): Column
     },
     {
         accessorKey: 'empName',
-        header: ({ column }) => <ColumnHeader column={column} title='Staff Name' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Staff Name' />
     },
     {
         accessorKey: 'HRMD_DepartmentName',
-        header: ({ column }) => <ColumnHeader column={column} title='Department' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Department' />
     },
     {
         accessorKey: 'HLMH_Name',
-        header: ({ column }) => <ColumnHeader column={column} title='Requested Hostel' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Requested Hostel' />
     },
     {
         accessorKey: 'HLMRCA_RoomCategory',
-        header: ({ column }) => <ColumnHeader column={column} title='Category' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Category' />
     },
     {
         accessorKey: 'HLHSTREQ_RequestDate',
@@ -40,29 +40,24 @@ export const staffApprovalListColumns = (onApprove: (data: any) => void): Column
         cell: ({ row }) => {
             const date = row.original.HLHSTREQ_RequestDate;
             return date ? format(new Date(date), 'dd/MM/yyyy') : '';
-        },
+        }
     },
     {
         accessorKey: 'HLHSTREQ_BookingStatus',
         header: ({ column }) => <ColumnHeader column={column} title='Status' />,
         cell: ({ row }) => {
             const status = row.original.HLHSTREQ_BookingStatus;
-            return (
-                <Badge variant={status === 'Waiting' ? 'outline' : status === 'Approved' ? 'secondary' : 'destructive'}>
-                    {status}
-                </Badge>
-            );
+            return <Badge variant={status === 'Waiting' ? 'outline' : status === 'Approved' ? 'secondary' : 'destructive'}>{status}</Badge>;
         }
     },
     {
         id: 'actions',
         header: ({ column }) => <ColumnHeader column={column} title='Action' className='text-center' />,
-        cell: ({ row }) => (
+        cell: ({ row }) =>
             row.original.HLHSTREQ_BookingStatus === 'Waiting' && (
-                <Button variant="outline" size="sm" onClick={() => onApprove(row.original)}>
+                <Button variant='outline' size='sm' onClick={() => onApprove(row.original)}>
                     Process
                 </Button>
             )
-        )
     }
 ];

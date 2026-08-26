@@ -14,7 +14,6 @@ export interface IModuleDropdown {
     ivrmM_ModuleDesc?: string;
 }
 
-
 export interface ISavedMapping {
     ivrmmP_Id: number; // Mapping ID
     ivrmM_Id: number;

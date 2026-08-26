@@ -11,7 +11,7 @@ export const CbsStudentTcSchema = z.object({
     Boardtype: z.enum(['ISC', 'ICSE']).default('ICSE'),
     resulttype: z.string().min(1, 'please select result type'),
     search: z.string().optional(),
-    Previous_School_Name: z.string().optional(),
+    Previous_School_Name: z.string().optional()
 });
 
 export type CbsStudentTcFields = z.infer<typeof CbsStudentTcSchema>;

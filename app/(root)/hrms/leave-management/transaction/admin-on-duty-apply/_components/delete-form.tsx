@@ -16,7 +16,7 @@ export default function DeleteAdminOnDutyForm({ rowData, onClose }: DeleteAdminO
     const { mutate: deleteLeave, isPending: isSubmitting } = useDeleteLeaveById();
     const [error, setError] = useState<string | null>(null);
 
-    console.log("rowData", rowData)
+    console.log('rowData', rowData);
     const handleDelete = () => {
         try {
             setError(null);
@@ -47,9 +47,8 @@ export default function DeleteAdminOnDutyForm({ rowData, onClose }: DeleteAdminO
                         <strong>{rowData.employeeName || 'this record'}</strong>?
                     </p>
                     {rowData.fromDate && rowData.toDate && (
-                        <p className='text-sm text-muted-foreground'>
-                            Period: {new Date(rowData.fromDate).toLocaleDateString()} to{' '}
-                            {new Date(rowData.toDate).toLocaleDateString()}
+                        <p className='text-muted-foreground text-sm'>
+                            Period: {new Date(rowData.fromDate).toLocaleDateString()} to {new Date(rowData.toDate).toLocaleDateString()}
                         </p>
                     )}
                     <FormError>{error || ''}</FormError>

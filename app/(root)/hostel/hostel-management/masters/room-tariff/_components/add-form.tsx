@@ -4,14 +4,12 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { FormInput } from '@/components/ui/form/form-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { IRoomTariffForm, roomTariffSchema } from '@/schemas/hostel/room-tariff.schema';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Save } from 'lucide-react';
-import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
-import { toast } from 'sonner';
-import { IRoomTariff } from '@/server/hostel/hostel-management/masters/room-tariff';
+import { type IRoomTariffForm, roomTariffSchema } from '@/schemas/hostel/room-tariff.schema';
+import type { IRoomTariff } from '@/server/hostel/hostel-management/masters/room-tariff';
 import { saveRoomTariff } from '@/server/hostel/hostel-management/masters/room-tariff';
-import { Input } from '@/components/ui/input';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Controller, FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 interface AddRoomTariffFormProps {
     onSuccess: () => void;
@@ -21,14 +19,7 @@ interface AddRoomTariffFormProps {
     initialData?: IRoomTariff;
 }
 
-export default function AddRoomTariffForm({
-    onSuccess,
-    onCancel,
-    yearList,
-    roomList,
-    initialData
-}: AddRoomTariffFormProps) {
-
+export default function AddRoomTariffForm({ onSuccess, onCancel, yearList, roomList, initialData }: AddRoomTariffFormProps) {
     // We can reuse the same form for Add and Update by passing initialData
     // Currently page.tsx separates them, but we can consolidate or keep them.
     // Given the props, I'll focus on the 'Add' aspect but respect initialData if provided.
@@ -41,8 +32,8 @@ export default function AddRoomTariffForm({
             asmaY_Id: '',
             hrmrM_Id: '',
             hlmrtF_SORate: '',
-            hlmrtF_RoomRate: '',
-        },
+            hlmrtF_RoomRate: ''
+        }
     });
 
     const {
@@ -58,7 +49,7 @@ export default function AddRoomTariffForm({
     // If we need bed capacity, we might need to fetch it or finding it in roomList if available.
     // The previous code had `getBedCount`. I should probably implement that too or check if roomList has it.
     // room_list usually just has id/name.
-    // Let's assume user enters both rates for now or we just let them type. 
+    // Let's assume user enters both rates for now or we just let them type.
     // The previous code did a fetch `getBedCount`. I should probably support that if important.
     // I'll stick to manual entry for simplicity unless directed otherwise, but the previous code had it.
     // I'll add `getBedCount` back to `room-tariff.ts` if needed.
@@ -74,7 +65,7 @@ export default function AddRoomTariffForm({
                 asmaY_Id: Number(data.asmaY_Id),
                 hrmrM_Id: Number(data.hrmrM_Id),
                 hlmrtF_SORate: Number(data.hlmrtF_SORate),
-                hlmrtF_RoomRate: Number(data.hlmrtF_RoomRate),
+                hlmrtF_RoomRate: Number(data.hlmrtF_RoomRate)
             };
 
             const result = await saveRoomTariff(payload);
@@ -97,7 +88,9 @@ export default function AddRoomTariffForm({
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                     {/* Academic Year */}
                     <div>
-                        <Label>Academic Year <span className='text-red-500'>*</span></Label>
+                        <Label>
+                            Academic Year <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             control={control}
                             name='asmaY_Id'
@@ -105,7 +98,7 @@ export default function AddRoomTariffForm({
                                 <>
                                     <Select value={field.value} onValueChange={field.onChange}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Academic Year" />
+                                            <SelectValue placeholder='Select Academic Year' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {yearList.map((year: any) => (
@@ -123,7 +116,9 @@ export default function AddRoomTariffForm({
 
                     {/* Room */}
                     <div>
-                        <Label>Room <span className='text-red-500'>*</span></Label>
+                        <Label>
+                            Room <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             control={control}
                             name='hrmrM_Id'
@@ -131,7 +126,7 @@ export default function AddRoomTariffForm({
                                 <>
                                     <Select value={field.value} onValueChange={field.onChange}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Room" />
+                                            <SelectValue placeholder='Select Room' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {roomList.map((room: any) => (
@@ -151,20 +146,20 @@ export default function AddRoomTariffForm({
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                     <FormInput
                         control={control}
-                        name="hlmrtF_SORate"
-                        label="Single Bed Rate"
+                        name='hlmrtF_SORate'
+                        label='Single Bed Rate'
                         required
-                        placeholder="Enter Rate"
-                        type="number"
+                        placeholder='Enter Rate'
+                        type='number'
                     />
 
                     <FormInput
                         control={control}
-                        name="hlmrtF_RoomRate"
-                        label="Entire Room Rate"
+                        name='hlmrtF_RoomRate'
+                        label='Entire Room Rate'
                         required
-                        placeholder="Enter Rate"
-                        type="number"
+                        placeholder='Enter Rate'
+                        type='number'
                     />
                 </div>
 

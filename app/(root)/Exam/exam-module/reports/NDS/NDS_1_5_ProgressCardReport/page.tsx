@@ -19,17 +19,9 @@ const NDS15ProgressCardReport = () => {
     };
 
     return (
-        <div className="flex flex-col gap-6 p-4">
-            <AddForm
-                onReportGenerated={handleReportGenerated}
-                onReset={handleReset}
-            />
-            {reportData && (
-                <ReportView
-                    data={reportData}
-                    params={reportParams}
-                />
-            )}
+        <div className='flex flex-col gap-6 p-4'>
+            <AddForm onReportGenerated={handleReportGenerated} onReset={handleReset} />
+            {reportData && <ReportView data={reportData} params={reportParams} />}
         </div>
     );
 };

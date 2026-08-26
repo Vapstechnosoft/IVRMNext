@@ -1,8 +1,7 @@
 'use server';
 
-import { api, getSearchParamsUrl } from '@/lib/apiService';
+import { api } from '@/lib/apiService';
 import { revalidatePath } from 'next/cache';
-import type { ApiSearchparams } from '@/types';
 
 /**
  * Initial load data: Academic Year, Class, Section, Subjects, Grid
@@ -97,11 +96,10 @@ export async function getClassWorkTopicList(payload: {
     return await api.post<any>('portal', url, {});
 }
 
-
 /**
  * Fetch subject list based on filters (Used in Verify ClassWork)
  */
-export async function SubjectsDropDownByAcademicYearandClassandSection(payload: { asmaY_Id: number, asmcL_Id: number, asmS_Id: number }) {
+export async function SubjectsDropDownByAcademicYearandClassandSection(payload: { asmaY_Id: number; asmcL_Id: number; asmS_Id: number }) {
     const url = `/IVRM_ClassWork/getsubjectlist?ASMAY_Id=${payload.asmaY_Id}&ASMCL_Id=${payload.asmcL_Id}&ASMS_Id=${payload.asmS_Id}`;
     return await api.post<any>('portal', url, {});
 }

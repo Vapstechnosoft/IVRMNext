@@ -1,7 +1,7 @@
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getMasterLocationData, saveMasterLocation } from '@/server/visitors-management/masters/location';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 export const useMasterLocation = () => {
@@ -15,7 +15,7 @@ export const useMasterLocation = () => {
                 throw new Error(response.message);
             }
             return response.data;
-        },
+        }
     });
 
     const saveMutation = useMutation({
@@ -30,7 +30,7 @@ export const useMasterLocation = () => {
         },
         onError: (error: any) => {
             toast.error(error.message || 'Failed to save location');
-        },
+        }
     });
 
     return {

@@ -2,16 +2,14 @@ import {
     deleteEmployeeLeaveById,
     getEmployeeLeaveDetails,
     getEmployeeLeaveStatusDetails,
-    saveOnlineLeaveApplication,
-    saveLeaveRequestDocument
+    saveLeaveRequestDocument,
+    saveOnlineLeaveApplication
 } from '@/server/hrms/leave-management/transaction/online-leave-application';
 import type {
-    EmployeeDetail,
     EmployeeLeaveDetail,
     EmployeeLeaveStatusDetail,
     LeaveApplication,
     LeaveBalance,
-    LeaveCount,
     SaveOnlineLeaveApplicationRequest
 } from '@/types/hrms/leave-management/online-leave-application';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';

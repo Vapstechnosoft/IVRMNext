@@ -30,10 +30,10 @@ import {
     type NoticeBoardData,
     type SportsData,
     achievementColumns,
+    classworkColumns,
     homeworkColumns,
     noticeColumns,
-    sportsColumns,
-    classworkColumns
+    sportsColumns
 } from './_components/columns';
 import { DashboardCharts } from './_components/dashboard-charts';
 import { DashboardWidget } from './_components/dashboard-widget';
@@ -144,7 +144,7 @@ export default function StudentDashboardPage() {
                     icon={<User className='h-6 w-6' />}
                     colorClass='bg-green-500'
                     footerText='STUDENT PROFILE'
-                    onViewClick={() => { }}>
+                    onViewClick={() => {}}>
                     <div className='mt-2 text-slate-700 dark:text-slate-300'>
                         {isLoading ? (
                             <div className='space-y-2'>
@@ -154,7 +154,8 @@ export default function StudentDashboardPage() {
                         ) : (
                             <>
                                 <h4 className='truncate font-semibold text-lg'>
-                                    {studentInfoDetails?.amsT_FirstName} {studentInfoDetails?.amsT_MiddleName} {studentInfoDetails?.amsT_LastName}
+                                    {studentInfoDetails?.amsT_FirstName} {studentInfoDetails?.amsT_MiddleName}{' '}
+                                    {studentInfoDetails?.amsT_LastName}
                                 </h4>
                                 <p className='text-sm'>
                                     {studentInfoDetails?.classname || 'N/A'} : {studentInfoDetails?.sectionname || 'N/A'}
@@ -196,7 +197,8 @@ export default function StudentDashboardPage() {
                     colorClass='bg-yellow-500'
                     footerText='ATTENDANCE DETAILS'
                     // onViewClick={() => router.push('/StudentPortal/student-dashboard/EnrolledStudents/Transaction/AttendanceDetails')}>
-                    onViewClick={() => router.push('/StudentPortal/masters/attendance-details')}>
+                    onViewClick={() => router.push('/StudentPortal/masters/attendance-details')}
+                >
                     <div className='mt-2 space-y-1 text-slate-700 text-sm dark:text-slate-300'>
                         <div className='flex justify-between'>
                             <span>Classes Held:</span>
@@ -219,7 +221,7 @@ export default function StudentDashboardPage() {
                     icon={<Calendar className='h-6 w-6' />}
                     colorClass='bg-pink-500'
                     footerText='VIEW CALENDAR OF EVENTS'
-                    onViewClick={() => { }}>
+                    onViewClick={() => {}}>
                     <div className='mt-4 flex justify-center'>
                         <p className='text-muted-foreground text-sm italic'>Check upcoming events & holidays</p>
                     </div>
@@ -273,7 +275,7 @@ export default function StudentDashboardPage() {
                     icon={<Clock className='h-6 w-6' />}
                     colorClass='bg-pink-500'
                     footerText='VIEW TT'
-                    onViewClick={() => { }}>
+                    onViewClick={() => {}}>
                     <div className='mt-4 flex justify-center'>
                         <p className='text-muted-foreground text-sm italic'>Weekly Schedule</p>
                     </div>
@@ -284,7 +286,7 @@ export default function StudentDashboardPage() {
                     icon={<FileText className='h-6 w-6' />}
                     colorClass='bg-green-500'
                     footerText='VIEW SYLLABUS'
-                    onViewClick={() => { }}>
+                    onViewClick={() => {}}>
                     <div className='mt-4 flex justify-center'>
                         <p className='text-muted-foreground text-sm italic'>Course Curriculum</p>
                     </div>
@@ -296,7 +298,7 @@ export default function StudentDashboardPage() {
                     icon={<Library className='h-6 w-6' />}
                     colorClass='bg-orange-500'
                     footerText='VIEW LIBRARY'
-                    onViewClick={() => { }}>
+                    onViewClick={() => {}}>
                     <div className='mt-4 flex justify-center'>
                         <p className='text-muted-foreground text-sm italic'>Books & Returns</p>
                     </div>
@@ -320,7 +322,7 @@ export default function StudentDashboardPage() {
                     icon={<ShoppingCart className='h-6 w-6' />}
                     colorClass='bg-pink-500'
                     footerText='VIEW INVENTORY'
-                    onViewClick={() => { }}>
+                    onViewClick={() => {}}>
                     <div className='mt-4 flex justify-center'>
                         <p className='text-muted-foreground text-sm italic'>Purchase Items</p>
                     </div>
@@ -332,7 +334,7 @@ export default function StudentDashboardPage() {
                     icon={<Briefcase className='h-6 w-6' />}
                     colorClass='bg-yellow-500'
                     footerText='VIEW PDA'
-                    onViewClick={() => { }}>
+                    onViewClick={() => {}}>
                     <div className='mt-4 flex justify-center'>
                         <p className='text-muted-foreground text-sm italic'>Personal Deposit Account</p>
                     </div>
@@ -343,7 +345,7 @@ export default function StudentDashboardPage() {
                     title='PROMOTION'
                     icon={<GraduationCap className='h-6 w-6' />}
                     colorClass='bg-yellow-500'
-                // footerText="View Details"
+                    // footerText="View Details"
                 >
                     <div className='mt-2 text-sm'>
                         <p>
@@ -358,7 +360,7 @@ export default function StudentDashboardPage() {
                     icon={<ImageIcon className='h-6 w-6' />}
                     colorClass='bg-emerald-400'
                     footerText='VIEW GALLERY'
-                    onViewClick={() => { }}>
+                    onViewClick={() => {}}>
                     <div className='mt-4 flex justify-center'>
                         <p className='text-muted-foreground text-sm italic'>School Photos</p>
                     </div>
@@ -370,7 +372,7 @@ export default function StudentDashboardPage() {
                     icon={<Book className='h-6 w-6' />}
                     colorClass='bg-blue-500'
                     footerText='VIEW BOOK LIST'
-                    onViewClick={() => { }}>
+                    onViewClick={() => {}}>
                     <div className='mt-2 text-sm'>
                         <p>
                             Total Books: <span className='font-semibold'>0</span>
@@ -383,7 +385,7 @@ export default function StudentDashboardPage() {
                     title='ACHIEVEMENTS'
                     icon={<Trophy className='h-6 w-6' />}
                     colorClass='bg-green-500'
-                // Custom footer handling for two links
+                    // Custom footer handling for two links
                 >
                     <div className='mt-2 space-y-3'>
                         <button

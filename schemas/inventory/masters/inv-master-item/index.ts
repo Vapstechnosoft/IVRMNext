@@ -16,11 +16,16 @@ export const invMasterItemSchema = z.object({
     invmI_Id: z.number().default(0),
     famcomP_Id: z.coerce.number().optional().nullable(),
     famleD_Id: z.coerce.number().optional().nullable(),
-    tax_Applicable: z.array(z.object({
-        invmiT_Id: z.number().default(0),
-        invmT_Id: z.number(),
-        invmiT_TaxValue: z.coerce.number()
-    })).optional().default([]),
+    tax_Applicable: z
+        .array(
+            z.object({
+                invmiT_Id: z.number().default(0),
+                invmT_Id: z.number(),
+                invmiT_TaxValue: z.coerce.number()
+            })
+        )
+        .optional()
+        .default([])
 });
 
 export type TInvMasterItem = z.infer<typeof invMasterItemSchema>;

@@ -1,5 +1,9 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { getCharacterLoadData, getCharacterSearchFilter, getCharacterStudDetails } from '../../../../server/admission/preadmission/reports/stj_character_certificate';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import {
+    getCharacterLoadData,
+    getCharacterSearchFilter,
+    getCharacterStudDetails
+} from '../../../../server/admission/preadmission/reports/stj_character_certificate';
 
 export const useStjCharacterCertificate = () => {
     const loadData = useQuery({

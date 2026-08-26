@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { useMasterActivityDetails } from '@/hooks/admission/preadmission/useMasterActivity';
-import { masterActivitySchema, type IMasterActivity } from '@/schemas/admission/preadmission/master_activity';
+import { type IMasterActivity, masterActivitySchema } from '@/schemas/admission/preadmission/master_activity';
 import { addOrUpdateMasterActivity } from '@/server/admission/preadmission/masters/master_activity';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save, RotateCcw } from 'lucide-react';
+import { RotateCcw, Save } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -99,7 +99,7 @@ export default function ActivityForm({ initialData, onSuccess, className = '' }:
                 </div>
 
                 {/* Action Buttons */}
-                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start pt-6 border-t'>
+                <div className='flex flex-col gap-3 border-t border-t pt-4 pt-6 sm:flex-row sm:justify-start'>
                     <Button
                         type='submit'
                         disabled={isSubmitting}

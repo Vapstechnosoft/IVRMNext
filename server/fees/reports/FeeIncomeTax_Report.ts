@@ -1,10 +1,6 @@
 'use server';
 
-import { api } from "@/lib/apiService";
-
-
-
-
+import { api } from '@/lib/apiService';
 
 export async function getAcademicDropDownDetails(data: any) {
     const url = '/FeesCommon/academic-year-list';
@@ -15,7 +11,6 @@ export async function getClassDropDownDetails(data: any) {
     const url = '/FeesCommon/class-details';
     return await api.get<any>('fees', url, { params: data });
 }
-
 
 export async function getSectionDropDownDetails(data: any) {
     // const url = '/FeesCommon/section-dropdown-by-class';
@@ -32,4 +27,3 @@ export async function getTaxReport(data: any) {
     const url = '/feeitreport/gettaxreport';
     return await api.post<any>('fees', url, data);
 }
-

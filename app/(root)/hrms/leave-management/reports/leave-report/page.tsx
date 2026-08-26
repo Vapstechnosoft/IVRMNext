@@ -1,15 +1,21 @@
 'use client';
+import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useMasterLeaveDropdown } from '@/hooks/hrms/useMasters';
-import { useLeaveReport, usePeriodLeaveReportEmployees, useReportDepartments, useReportDesignations, useReportGroupTypes } from '@/hooks/hrms/useReports';
+import {
+    useLeaveReport,
+    usePeriodLeaveReportEmployees,
+    useReportDepartments,
+    useReportDesignations,
+    useReportGroupTypes
+} from '@/hooks/hrms/useReports';
+import { format } from 'date-fns';
+import { FileSpreadsheet, Printer } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import * as XLSX from 'xlsx';
 import { type LeaveReportRow, leaveReportColumns } from './_components/columns';
 import { type LeaveReportFilters as FiltersType, LeaveReportFilters } from './_components/filters';
-import { Button } from '@/components/ui/button';
-import { Printer, FileSpreadsheet } from 'lucide-react';
-import * as XLSX from 'xlsx';
-import { format } from 'date-fns';
 
 export default function LeaveReportPage() {
     const [rows, setRows] = useState<LeaveReportRow[]>([]);
@@ -170,38 +176,33 @@ export default function LeaveReportPage() {
 
         setErrors({});
         setIsGenerating(true);
-        var payload ;
+        var payload;
 
         let selectedLeave = filters.leave;
         if (filters.leave === '999') {
-            selectedLeave = leavesDataTransformed.map(l => l.id).join(',');
+            selectedLeave = leavesDataTransformed.map((l) => l.id).join(',');
         }
 
         let selectedEmployee = '';
         if (!filters.isIndividual) {
-            selectedEmployee = employeesDataTransformed.map(e => e.id).join(',');
+            selectedEmployee = employeesDataTransformed.map((e) => e.id).join(',');
         } else if (filters.selectedEmployeeId) {
             selectedEmployee = filters.selectedEmployeeId.toString();
         }
-        if(filters.showEmployeeLeaveBalance === false) {
+        if (filters.showEmployeeLeaveBalance === false) {
             payload = {
-            selectedLeave,
-            selectedEmployee,
-            hreltD_FromDate: filters.fromDate
-                ? new Date(filters.fromDate).toISOString().split('T')[0]
-                : '',
-            hrelT_ToDate: filters.toDate
-                ? new Date(filters.toDate).toISOString().split('T')[0]
-                : '',
-            edit_flag: filters.showEmployeeLeaveBalance
-        };
-        }else{
-            payload = {
-                selectedEmployee: employeesDataTransformed.map(e => e.id).join(','),
+                selectedLeave,
+                selectedEmployee,
+                hreltD_FromDate: filters.fromDate ? new Date(filters.fromDate).toISOString().split('T')[0] : '',
+                hrelT_ToDate: filters.toDate ? new Date(filters.toDate).toISOString().split('T')[0] : '',
                 edit_flag: filters.showEmployeeLeaveBalance
-            }
+            };
+        } else {
+            payload = {
+                selectedEmployee: employeesDataTransformed.map((e) => e.id).join(','),
+                edit_flag: filters.showEmployeeLeaveBalance
+            };
         }
-         
 
         leaveReportMutation.mutate(payload, {
             onSuccess: (response) => {
@@ -296,76 +297,69 @@ export default function LeaveReportPage() {
                 />
                 {rows.length > 0 && (
                     <CollapsibleSection
-                    rightElement={
-                        <div className="flex gap-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={handlePrint}
-                                className="gap-2 text-primary border-primary hover:bg-primary hover:text-white"
-                            >
-                                <Printer className="h-4 w-4" />
-                                Print
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={handleExport}
-                                className="gap-2 text-green-600 border-green-600 hover:bg-green-600 hover:text-white"
-                            >
-                                <FileSpreadsheet className="h-4 w-4" />
-                                Export Excel
-                            </Button>
-                        </div>
-                    }
+                        rightElement={
+                            <div className='flex gap-2'>
+                                <Button
+                                    variant='outline'
+                                    size='sm'
+                                    onClick={handlePrint}
+                                    className='gap-2 border-primary text-primary hover:bg-primary hover:text-white'>
+                                    <Printer className='h-4 w-4' />
+                                    Print
+                                </Button>
+                                <Button
+                                    variant='outline'
+                                    size='sm'
+                                    onClick={handleExport}
+                                    className='gap-2 border-green-600 text-green-600 hover:bg-green-600 hover:text-white'>
+                                    <FileSpreadsheet className='h-4 w-4' />
+                                    Export Excel
+                                </Button>
+                            </div>
+                        }
                         title='Leave Report'
                         description=''
                         defaultOpen={rows.length > 0}
                         variant='default'
                         size='lg'
                         className='shadow-lg transition-shadow duration-300 hover:shadow-xl '>
-                        <div className="print:hidden">
-                            <GenericDataTable
-                                data={rows}
-                                columns={leaveReportColumns}
-                                totalItems={rows.length}
-                                isLoading={false}
-                            />
+                        <div className='print:hidden'>
+                            <GenericDataTable data={rows} columns={leaveReportColumns} totalItems={rows.length} isLoading={false} />
                         </div>
 
                         {/* Print View Table */}
-                        <div className="hidden print:block printable-content p-8">
-                            <h2 className="text-2xl font-bold text-center mb-6">Leave Report</h2>
-                            <table className="w-full border-collapse border border-gray-300 text-sm">
+                        <div className='printable-content hidden p-8 print:block'>
+                            <h2 className='mb-6 text-center font-bold text-2xl'>Leave Report</h2>
+                            <table className='w-full border-collapse border border-gray-300 text-sm'>
                                 <thead>
-                                    <tr className="bg-gray-100 italic">
-                                        <th className="border border-gray-300 p-2 text-xs">SL.No.</th>
-                                        <th className="border border-gray-300 p-2 text-left text-xs">Employee Code</th>
-                                        <th className="border border-gray-300 p-2 text-left text-xs">Employee Name</th>
-                                        <th className="border border-gray-300 p-2 text-left text-xs">Leave Name</th>
-                                        <th className="border border-gray-300 p-2 text-xs">From Date</th>
-                                        <th className="border border-gray-300 p-2 text-xs">To Date</th>
-                                        <th className="border border-gray-300 p-2 text-xs text-right">Applied Days</th>
-                                        <th className="border border-gray-300 p-2 text-left text-xs">Leave Status</th>
-                                        <th className="border border-gray-300 p-2 text-xs text-right">Leave Balance</th>
+                                    <tr className='bg-gray-100 italic'>
+                                        <th className='border border-gray-300 p-2 text-xs'>SL.No.</th>
+                                        <th className='border border-gray-300 p-2 text-left text-xs'>Employee Code</th>
+                                        <th className='border border-gray-300 p-2 text-left text-xs'>Employee Name</th>
+                                        <th className='border border-gray-300 p-2 text-left text-xs'>Leave Name</th>
+                                        <th className='border border-gray-300 p-2 text-xs'>From Date</th>
+                                        <th className='border border-gray-300 p-2 text-xs'>To Date</th>
+                                        <th className='border border-gray-300 p-2 text-right text-xs'>Applied Days</th>
+                                        <th className='border border-gray-300 p-2 text-left text-xs'>Leave Status</th>
+                                        <th className='border border-gray-300 p-2 text-right text-xs'>Leave Balance</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {rows.map((item, index) => (
-                                        <tr key={index} className="hover:bg-gray-50">
-                                            <td className="border border-gray-300 p-2 text-center text-xs">{item.slNo}</td>
-                                            <td className="border border-gray-300 p-2 text-xs">{item.employeeCode}</td>
-                                            <td className="border border-gray-300 p-2 text-xs">{item.employeeName}</td>
-                                            <td className="border border-gray-300 p-2 text-xs">{item.leaveName}</td>
-                                            <td className="border border-gray-300 p-2 text-center text-xs">
+                                        <tr key={index} className='hover:bg-gray-50'>
+                                            <td className='border border-gray-300 p-2 text-center text-xs'>{item.slNo}</td>
+                                            <td className='border border-gray-300 p-2 text-xs'>{item.employeeCode}</td>
+                                            <td className='border border-gray-300 p-2 text-xs'>{item.employeeName}</td>
+                                            <td className='border border-gray-300 p-2 text-xs'>{item.leaveName}</td>
+                                            <td className='border border-gray-300 p-2 text-center text-xs'>
                                                 {item.fromDate ? format(new Date(item.fromDate), 'dd/MM/yyyy') : '-'}
                                             </td>
-                                            <td className="border border-gray-300 p-2 text-center text-xs">
+                                            <td className='border border-gray-300 p-2 text-center text-xs'>
                                                 {item.toDate ? format(new Date(item.toDate), 'dd/MM/yyyy') : '-'}
                                             </td>
-                                            <td className="border border-gray-300 p-2 text-right text-xs">{item.appliedDays}</td>
-                                            <td className="border border-gray-300 p-2 text-xs">{item.leaveStatus}</td>
-                                            <td className="border border-gray-300 p-2 text-right text-xs">{item.leaveBalance}</td>
+                                            <td className='border border-gray-300 p-2 text-right text-xs'>{item.appliedDays}</td>
+                                            <td className='border border-gray-300 p-2 text-xs'>{item.leaveStatus}</td>
+                                            <td className='border border-gray-300 p-2 text-right text-xs'>{item.leaveBalance}</td>
                                         </tr>
                                     ))}
                                 </tbody>

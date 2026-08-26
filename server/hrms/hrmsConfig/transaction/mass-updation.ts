@@ -1,6 +1,11 @@
 'use server';
 import { api } from '@/lib/apiService';
-import type { MassUpdationOnloadRequest, MassUpdationOnloadResponse, MassUpdationSaveRequest, MassUpdationSearchRequest } from '@/types/hrms/mass-updation';
+import type {
+    MassUpdationOnloadRequest,
+    MassUpdationOnloadResponse,
+    MassUpdationSaveRequest,
+    MassUpdationSearchRequest
+} from '@/types/hrms/mass-updation';
 // Helper function to create a complete nested object structure matching API requirements
 function createCompleteRequestBody(baseFields: any): any {
     const now = new Date().toISOString();
@@ -160,7 +165,7 @@ export async function getMassUpdationOnload(payload: MassUpdationOnloadRequest) 
 
         console.log('✅ [MASS UPDATION - BACKEND] Responses received.');
 
-        const rawData = facadeResponse && facadeResponse.data ? facadeResponse.data : (facadeResponse || {});
+        const rawData = facadeResponse && facadeResponse.data ? facadeResponse.data : facadeResponse || {};
 
         // Use Group Types from MasterDropDown if available
         let groupTypes: any[] = [];
@@ -185,7 +190,7 @@ export async function getMassUpdationOnload(payload: MassUpdationOnloadRequest) 
             // Also populate the list variants to be safe
             groupTypedropdownlist: groupTypes.map(mapGroupType),
             departmentdropdownlist: (rawData.departmentdropdown || rawData.departmentdropdownlist || []).map(mapDepartment),
-            designationdropdownlist: (rawData.designationdropdown || rawData.designationdropdownlist || []).map(mapDesignation),
+            designationdropdownlist: (rawData.designationdropdown || rawData.designationdropdownlist || []).map(mapDesignation)
         };
 
         return {
@@ -259,7 +264,6 @@ export async function saveMassUpdation(data: MassUpdationSaveRequest) {
             message: errorMessage,
             data: undefined
         };
-
     } catch (error: any) {
         console.error('❌ [MASS UPDATION - BACKEND] Error in save:', error);
         return {
@@ -279,21 +283,20 @@ export async function searchMassUpdationEmployees(data: MassUpdationSearchReques
 
     // Prepare request body matching the API specification exactly as per user request
     const requestBody = {
-        type: "Head", // Seems fixed or derived? The user example showed "Head". Let's use a meaningful default or derive it. Detailed payload suggests it might depend on selection.
+        type: 'Head', // Seems fixed or derived? The user example showed "Head". Let's use a meaningful default or derive it. Detailed payload suggests it might depend on selection.
         // Re-mapping from data input to expected API payload
         hrmeD_Id: data.HRMED_Id || 0,
         groupTypeSelected: data.groupTypeIdList && data.groupTypeIdList.length > 0 ? data.groupTypeIdList : [],
         departmentSelected: data.hrmD_IdList && data.hrmD_IdList.length > 0 ? data.hrmD_IdList : [],
         designationSelected: data.hrmdeS_IdList && data.hrmdeS_IdList.length > 0 ? data.hrmdeS_IdList : [],
         employeeSelected: [],
-        amountPercentage: "string", // User example had "string", likely placeholder or default
+        amountPercentage: 'string', // User example had "string", likely placeholder or default
         hreeD_Amount: 0,
-        hreeD_Percentage: "string",
-        addRemove: "string"
+        hreeD_Percentage: 'string',
+        addRemove: 'string'
     };
 
     console.log('📤 [MASS UPDATION - BACKEND] Request body prepared:', JSON.stringify(requestBody, null, 2));
-
 
     try {
         const response = await api.post<any>('hrms', url, requestBody);
@@ -310,14 +313,14 @@ export async function searchMassUpdationEmployees(data: MassUpdationSearchReques
                 HRME_EmployeeFirstName: item.hrmE_EmployeeFirstName || item.HRME_EmployeeFirstName,
                 HRME_EmployeeMiddleName: item.hrmE_EmployeeMiddleName || item.HRME_EmployeeMiddleName || '',
                 HRME_EmployeeLastName: item.hrmE_EmployeeLastName || item.HRME_EmployeeLastName || '',
-                HRME_EmployeeOrder: item.hrmE_EmployeeOrder || 0,
+                HRME_EmployeeOrder: item.hrmE_EmployeeOrder || 0
             }));
 
             return {
                 success: true,
                 message: response.message || 'Employees fetched successfully',
                 data: {
-                    employeedropdown: mappedEmployees,
+                    employeedropdown: mappedEmployees
                     // preserve other fields if necessary, but search mainly needs employees
                 } as any
             };
@@ -358,14 +361,17 @@ export async function getEmployeeDetailsBySelection(data: MassUpdationSearchRequ
         groupTypedropdown: [],
         headdropdown: [],
         eardettypelist: [],
-        groupTypeselected: (data as any).groupTypeselected || (data.groupTypeIdList && data.groupTypeIdList.length > 0 ? data.groupTypeIdList : [0]),
+        groupTypeselected:
+            (data as any).groupTypeselected || (data.groupTypeIdList && data.groupTypeIdList.length > 0 ? data.groupTypeIdList : [0]),
         departmentselected: (data as any).departmentselected || (data.hrmD_IdList && data.hrmD_IdList.length > 0 ? data.hrmD_IdList : [0]),
-        designationselected: (data as any).designationselected || (data.hrmdeS_IdList && data.hrmdeS_IdList.length > 0 ? data.hrmdeS_IdList : [0]),
+        designationselected:
+            (data as any).designationselected || (data.hrmdeS_IdList && data.hrmdeS_IdList.length > 0 ? data.hrmdeS_IdList : [0]),
         EmployeeCode: 'string',
         HRME_EmployeeFirstName: 'string',
         HRME_EmployeeMiddleName: 'string',
         HRME_EmployeeLastName: 'string',
-        employeeselected: (data as any).employeeselected && (data as any).employeeselected.length > 0 ? (data as any).employeeselected : [0],
+        employeeselected:
+            (data as any).employeeselected && (data as any).employeeselected.length > 0 ? (data as any).employeeselected : [0],
         EarningDeduction: (data as any).EarningDeduction || 'string',
         AmountPercentage: (data as any).AmountPercentage || 'string',
         HREED_Amount: (data as any).HREED_Amount || 0,
@@ -514,7 +520,6 @@ export async function getMassUpdationDesignations(data: { MI_Id?: number; hrmgT_
             message: response.message || 'Failed to fetching designations',
             data: { designationdropdown: [] }
         };
-
     } catch (error: any) {
         return {
             success: false,

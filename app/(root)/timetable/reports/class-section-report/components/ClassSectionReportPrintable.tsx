@@ -1,6 +1,6 @@
 'use client';
 
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 
 interface ClassSectionReportPrintableProps {
     reportData: any;
@@ -35,8 +35,7 @@ const ClassSectionReportPrintable = forwardRef<HTMLDivElement, ClassSectionRepor
                 <h3 style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '24px', marginBottom: '20px', color: '#15803d' }}>
                     Time Table Report
                 </h3>
-                <table
-                    style={{ border: '2px solid #7e22ce', width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                <table style={{ border: '2px solid #7e22ce', width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                     <thead>
                         <tr style={{ backgroundColor: '#7e22ce', color: 'white' }}>
                             <th style={{ border: '1px solid #7e22ce', padding: '8px', textAlign: 'left' }}>Day / Period</th>
@@ -70,7 +69,7 @@ const ClassSectionReportPrintable = forwardRef<HTMLDivElement, ClassSectionRepor
                                             color: cell.color === 'red' ? '#dc2626' : 'black',
                                             fontWeight: cell.is_break ? 'bold' : 'normal'
                                         }}>
-                                        {cell.is_break ? (cell.content || 'BRK').toUpperCase() : (cell.content || '—')}
+                                        {cell.is_break ? (cell.content || 'BRK').toUpperCase() : cell.content || '—'}
                                     </td>
                                 ))}
                             </tr>

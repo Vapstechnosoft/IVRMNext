@@ -1,8 +1,6 @@
 'use server';
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import { IMasterFacility } from '@/schemas/hostel/masters';
-
 
 export async function fetchMasterFacilityData(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
@@ -19,6 +17,3 @@ export async function toggleMasterFacility(HLMFTY_Id: number) {
     const url = `/MasterFacility/deactivate_facility/${HLMFTY_Id}`;
     return await api.put('exam', url);
 }
-
-
-

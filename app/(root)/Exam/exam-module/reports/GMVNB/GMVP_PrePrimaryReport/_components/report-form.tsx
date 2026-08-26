@@ -1,24 +1,21 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
-import { FormError, Label } from '@/components/ui/extension/field';
+import { DatePicker } from '@/components/ui/date-picker';
+import { Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import { getMultipleExamProgressReport } from '@/server/exam/exam-module/reports/Baldwin/multiple-exam-progress-card-report-2';
 import {
     getClassDropDownByAcademicYearlist,
-    getSectionsDropDownByAcademicYearandClasslist,
-    getStudentsDropDownByAcademicYearandClassandSectionlist,
-    getExamsDropDownByAcademicYearandClassandSectionlist
+    getExamsDropDownByAcademicYearandClassandSectionlist,
+    getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/cumulative-report';
-import { getMultipleExamProgressReport } from '@/server/exam/exam-module/reports/Baldwin/multiple-exam-progress-card-report-2';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
-import { DatePicker } from '@/components/ui/date-picker';
-import { format } from 'date-fns';
 
 interface ReportFormProps {
     title: string;
@@ -96,7 +93,11 @@ export const ReportForm = ({ title, onReportGenerated, onReset }: ReportFormProp
         (async () => {
             try {
                 setLoadingExams(true);
-                const { data } = await getExamsDropDownByAcademicYearandClassandSectionlist(Number(watchYear), Number(watchClass), Number(watchSection));
+                const { data } = await getExamsDropDownByAcademicYearandClassandSectionlist(
+                    Number(watchYear),
+                    Number(watchClass),
+                    Number(watchSection)
+                );
                 setExams(Array.isArray(data) ? data : []);
             } catch {
                 toast.error('Failed to load exams');
@@ -114,8 +115,8 @@ export const ReportForm = ({ title, onReportGenerated, onReset }: ReportFormProp
 
         try {
             const selectedExamsList = exams
-                .filter(e => values.selectedExams.includes(String(e.emE_Id)))
-                .map(e => ({ EME_Id: Number(e.emE_Id), EME_ExamName: e.emE_ExamName }));
+                .filter((e) => values.selectedExams.includes(String(e.emE_Id)))
+                .map((e) => ({ EME_Id: Number(e.emE_Id), EME_ExamName: e.emE_ExamName }));
 
             const payload = {
                 ASMAY_Id: Number(values.ASMAY_Id),
@@ -137,7 +138,7 @@ export const ReportForm = ({ title, onReportGenerated, onReset }: ReportFormProp
                     getstudentwisesubjectlistnew = [],
                     getstudentwiseattendancedetails = [],
                     examwiseremarks = [],
-                    getstudentwiseactiviteslist = [],
+                    getstudentwiseactiviteslist = []
                 } = apiData;
 
                 if (!getstudentmarksdetails || getstudentmarksdetails.length === 0) {
@@ -151,7 +152,7 @@ export const ReportForm = ({ title, onReportGenerated, onReset }: ReportFormProp
                     if (examlist_new.length === 0) {
                         examlist_new.push(exm);
                     } else {
-                        const exists = examlist_new.some(existingExm => existingExm.emE_Id === exm.emE_Id);
+                        const exists = examlist_new.some((existingExm) => existingExm.emE_Id === exm.emE_Id);
                         if (!exists) {
                             examlist_new.push(exm);
                         }
@@ -171,22 +172,20 @@ export const ReportForm = ({ title, onReportGenerated, onReset }: ReportFormProp
                     const studentId = st.AMST_Id ?? st.amsT_Id;
 
                     // Obtained subject sub-exam marks
-                    const obtaioned_subject_wisemarks = getexamwisesubsubjectlist.filter((dev: any) => 
-                        (dev.AMST_Id ?? dev.amsT_Id) === studentId
+                    const obtaioned_subject_wisemarks = getexamwisesubsubjectlist.filter(
+                        (dev: any) => (dev.AMST_Id ?? dev.amsT_Id) === studentId
                     );
 
                     // Student subjects
-                    const studentSubjects = getstudentwisesubjectlist.filter((sub: any) => 
-                        (sub.AMST_Id ?? sub.amsT_Id) === studentId
-                    );
+                    const studentSubjects = getstudentwisesubjectlist.filter((sub: any) => (sub.AMST_Id ?? sub.amsT_Id) === studentId);
 
                     // Nested subexam_list under each subject
                     const subjectsWithSubExams = studentSubjects.map((stu_sub: any) => {
                         const subexam_list_for_this_subject: any[] = [];
                         getexamwisesubsubjectlist.forEach((sub_exam: any) => {
                             if (stu_sub.ISMS_Id === sub_exam.ISMS_Id) {
-                                const exists = subexam_list_for_this_subject.some(existingSubExam => 
-                                    existingSubExam.EMSS_Id === sub_exam.EMSS_Id
+                                const exists = subexam_list_for_this_subject.some(
+                                    (existingSubExam) => existingSubExam.EMSS_Id === sub_exam.EMSS_Id
                                 );
                                 if (!exists) {
                                     subexam_list_for_this_subject.push(sub_exam);
@@ -209,8 +208,8 @@ export const ReportForm = ({ title, onReportGenerated, onReset }: ReportFormProp
                     const ECACTA_SkillArea_temp = Array.from(studentActivitiesMap.values());
 
                     // Main student-wise activities
-                    const activity_mian_stu_wise = getstudentwiseactiviteslist.filter((act: any) => 
-                        (act.AMST_Id ?? act.amsT_Id) === studentId
+                    const activity_mian_stu_wise = getstudentwiseactiviteslist.filter(
+                        (act: any) => (act.AMST_Id ?? act.amsT_Id) === studentId
                     );
 
                     // Attendance sums
@@ -224,19 +223,13 @@ export const ReportForm = ({ title, onReportGenerated, onReset }: ReportFormProp
                     });
 
                     // Remarks
-                    const exam_wise_remarks = examwiseremarks.filter((atten: any) => 
-                        (atten.AMST_Id ?? atten.amsT_Id) === studentId
-                    );
+                    const exam_wise_remarks = examwiseremarks.filter((atten: any) => (atten.AMST_Id ?? atten.amsT_Id) === studentId);
 
                     // Grades
-                    const obtgrade = getstudentwisesubjectlistnew.filter((su: any) => 
-                        (su.AMST_Id ?? su.amsT_Id) === studentId
-                    );
+                    const obtgrade = getstudentwisesubjectlistnew.filter((su: any) => (su.AMST_Id ?? su.amsT_Id) === studentId);
 
                     // Marks
-                    const marks = getstudentmarksdetails.filter((su: any) => 
-                        (su.AMST_Id ?? su.amsT_Id) === studentId
-                    );
+                    const marks = getstudentmarksdetails.filter((su: any) => (su.AMST_Id ?? su.amsT_Id) === studentId);
 
                     return {
                         ...st,
@@ -301,86 +294,165 @@ export const ReportForm = ({ title, onReportGenerated, onReset }: ReportFormProp
                     <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                         {/* Left Column */}
                         <div className='space-y-4'>
-                            <Controller control={control} name='ASMAY_Id' render={({ field }) => (
-                                <div className='space-y-2'>
-                                    <Label>Academic Year <span className='text-red-500'>*</span></Label>
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                        <SelectTrigger><SelectValue placeholder='Select Academic Year' /></SelectTrigger>
-                                        <SelectContent>
-                                            {academicYearLoading ? <SelectItem value='loading' disabled>Loading...</SelectItem> :
-                                                academicYears.map((y: any) => (
-                                                    <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>{y.asmaY_Year}</SelectItem>
-                                                ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            )} />
-                            <Controller control={control} name='ASMCL_Id' render={({ field }) => (
-                                <div className='space-y-2'>
-                                    <Label>Class <span className='text-red-500'>*</span></Label>
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={!watchYear}>
-                                        <SelectTrigger><SelectValue placeholder='Select Class' /></SelectTrigger>
-                                        <SelectContent>
-                                            {loadingClasses ? <SelectItem value='loading' disabled>Loading...</SelectItem> :
-                                                classes.map((c) => (
-                                                    <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>{c.asmcL_ClassName}</SelectItem>
-                                                ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            )} />
-                            <Controller control={control} name='ASMS_Id' render={({ field }) => (
-                                <div className='space-y-2'>
-                                    <Label>Section <span className='text-red-500'>*</span></Label>
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={!watchClass}>
-                                        <SelectTrigger><SelectValue placeholder='Select Section' /></SelectTrigger>
-                                        <SelectContent>
-                                            {loadingSections ? <SelectItem value='loading' disabled>Loading...</SelectItem> :
-                                                sections.map((s) => (
-                                                    <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>{s.asmC_SectionName}</SelectItem>
-                                                ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            )} />
-                            <Controller control={control} name='Reopen_Date' render={({ field }) => (
-                                <div className='space-y-2'>
-                                    <Label>Reopen Date <span className='text-red-500'>*</span></Label>
-                                    <DatePicker date={field.value} setDate={field.onChange} />
-                                </div>
-                            )} />
-                            <Controller control={control} name='BG' render={({ field }) => (
-                                <div className='space-y-2'>
-                                    <Label>Color</Label>
-                                    <div className='flex gap-4'>
-                                        <Label className='flex items-center gap-2 cursor-pointer'>
-                                            <input type='radio' name='BG' value='BG1' checked={field.value === 'BG1'} onChange={() => field.onChange('BG1')} className='w-4 h-4 text-blue-600' />
-                                            <span className='w-4 h-4 inline-block rounded' style={{ backgroundColor: '#2E6F40' }}></span>
+                            <Controller
+                                control={control}
+                                name='ASMAY_Id'
+                                render={({ field }) => (
+                                    <div className='space-y-2'>
+                                        <Label>
+                                            Academic Year <span className='text-red-500'>*</span>
                                         </Label>
-                                        <Label className='flex items-center gap-2 cursor-pointer'>
-                                            <input type='radio' name='BG' value='BG2' checked={field.value === 'BG2'} onChange={() => field.onChange('BG2')} className='w-4 h-4 text-blue-600' />
-                                            <span className='w-4 h-4 inline-block rounded' style={{ backgroundColor: '#811414d4' }}></span>
-                                        </Label>
+                                        <Select onValueChange={field.onChange} value={field.value}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='Select Academic Year' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {academicYearLoading ? (
+                                                    <SelectItem value='loading' disabled>
+                                                        Loading...
+                                                    </SelectItem>
+                                                ) : (
+                                                    academicYears.map((y: any) => (
+                                                        <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                                            {y.asmaY_Year}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
+                                            </SelectContent>
+                                        </Select>
                                     </div>
-                                </div>
-                            )} />
+                                )}
+                            />
+                            <Controller
+                                control={control}
+                                name='ASMCL_Id'
+                                render={({ field }) => (
+                                    <div className='space-y-2'>
+                                        <Label>
+                                            Class <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <Select onValueChange={field.onChange} value={field.value} disabled={!watchYear}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='Select Class' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {loadingClasses ? (
+                                                    <SelectItem value='loading' disabled>
+                                                        Loading...
+                                                    </SelectItem>
+                                                ) : (
+                                                    classes.map((c) => (
+                                                        <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
+                                                            {c.asmcL_ClassName}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
+                            />
+                            <Controller
+                                control={control}
+                                name='ASMS_Id'
+                                render={({ field }) => (
+                                    <div className='space-y-2'>
+                                        <Label>
+                                            Section <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <Select onValueChange={field.onChange} value={field.value} disabled={!watchClass}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='Select Section' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {loadingSections ? (
+                                                    <SelectItem value='loading' disabled>
+                                                        Loading...
+                                                    </SelectItem>
+                                                ) : (
+                                                    sections.map((s) => (
+                                                        <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
+                                                            {s.asmC_SectionName}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
+                            />
+                            <Controller
+                                control={control}
+                                name='Reopen_Date'
+                                render={({ field }) => (
+                                    <div className='space-y-2'>
+                                        <Label>
+                                            Reopen Date <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <DatePicker date={field.value} setDate={field.onChange} />
+                                    </div>
+                                )}
+                            />
+                            <Controller
+                                control={control}
+                                name='BG'
+                                render={({ field }) => (
+                                    <div className='space-y-2'>
+                                        <Label>Color</Label>
+                                        <div className='flex gap-4'>
+                                            <Label className='flex cursor-pointer items-center gap-2'>
+                                                <input
+                                                    type='radio'
+                                                    name='BG'
+                                                    value='BG1'
+                                                    checked={field.value === 'BG1'}
+                                                    onChange={() => field.onChange('BG1')}
+                                                    className='h-4 w-4 text-blue-600'
+                                                />
+                                                <span
+                                                    className='inline-block h-4 w-4 rounded'
+                                                    style={{ backgroundColor: '#2E6F40' }}></span>
+                                            </Label>
+                                            <Label className='flex cursor-pointer items-center gap-2'>
+                                                <input
+                                                    type='radio'
+                                                    name='BG'
+                                                    value='BG2'
+                                                    checked={field.value === 'BG2'}
+                                                    onChange={() => field.onChange('BG2')}
+                                                    className='h-4 w-4 text-blue-600'
+                                                />
+                                                <span
+                                                    className='inline-block h-4 w-4 rounded'
+                                                    style={{ backgroundColor: '#811414d4' }}></span>
+                                            </Label>
+                                        </div>
+                                    </div>
+                                )}
+                            />
                         </div>
 
                         {/* Right Column */}
                         <div className='space-y-4'>
                             <div className='flex flex-col gap-2'>
-                                <Label className='font-medium'>Exam <span className='text-red-500'>*</span></Label>
-                                <Controller control={control} name='selectedExams' render={({ field, fieldState }) => (
-                                    <CustomMultiSelectBox
-                                        options={exams.map((e) => ({ label: e.emE_ExamName, value: String(e.emE_Id) }))}
-                                        onChange={field.onChange}
-                                        value={field.value}
-                                        placeholder='Select Exams'
-                                        height='150px'
-                                        isSearchRequired
-                                        error={fieldState.error?.message}
-                                    />
-                                )} />
+                                <Label className='font-medium'>
+                                    Exam <span className='text-red-500'>*</span>
+                                </Label>
+                                <Controller
+                                    control={control}
+                                    name='selectedExams'
+                                    render={({ field, fieldState }) => (
+                                        <CustomMultiSelectBox
+                                            options={exams.map((e) => ({ label: e.emE_ExamName, value: String(e.emE_Id) }))}
+                                            onChange={field.onChange}
+                                            value={field.value}
+                                            placeholder='Select Exams'
+                                            height='150px'
+                                            isSearchRequired
+                                            error={fieldState.error?.message}
+                                        />
+                                    )}
+                                />
                             </div>
                         </div>
                     </div>

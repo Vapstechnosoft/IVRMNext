@@ -292,4 +292,3 @@ export interface DeleteLeaveTransferResponse {
     retrunMsg?: string;
     returnval?: boolean;
 }
-

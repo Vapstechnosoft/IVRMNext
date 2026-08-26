@@ -23,7 +23,16 @@ const labelVariants = cva([
     'group-data-[invalid]:text-foreground'
 ]);
 
-const Label = ({ className, ...props }: AriaLabelProps) => <AriaLabel className={cn(labelVariants(), className)} {...props} />;
+interface LabelProps extends AriaLabelProps {
+    isRequired?: boolean;
+}
+
+const Label = ({ className, isRequired, children, ...props }: LabelProps) => (
+    <AriaLabel className={cn(labelVariants(), className)} {...props}>
+        {children}
+        {isRequired && <span className='ml-1 text-destructive'>*</span>}
+    </AriaLabel>
+);
 
 function FormDescription({ className, ...props }: AriaTextProps) {
     return <AriaText className={cn('text-[0.8rem] text-muted-foreground', className)} {...props} slot='description' />;
@@ -55,7 +64,7 @@ const fieldGroupVariants = cva('', {
     }
 });
 
-interface GroupProps extends AriaGroupProps, VariantProps<typeof fieldGroupVariants> { }
+interface GroupProps extends AriaGroupProps, VariantProps<typeof fieldGroupVariants> {}
 
 function FieldGroup({ className, variant, ...props }: GroupProps) {
     return (

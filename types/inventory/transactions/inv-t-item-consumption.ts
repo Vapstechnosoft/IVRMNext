@@ -1,4 +1,3 @@
-
 export interface InvTItemConsumption {
     invmiC_Id: number;
     invmsT_Id: number;

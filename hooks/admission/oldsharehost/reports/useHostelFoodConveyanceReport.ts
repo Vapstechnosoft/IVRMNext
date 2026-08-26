@@ -1,11 +1,11 @@
 'use client';
 
-import { useMutation, useQuery } from '@tanstack/react-query';
 import { ADMISSION_QUERY_KEYS } from '@/constants/query-keys';
 import {
-    getHostelFoodConveyanceReportInitialDetails,
-    getHostelFoodConveyanceReport
+    getHostelFoodConveyanceReport,
+    getHostelFoodConveyanceReportInitialDetails
 } from '@/server/admission/oldsharehost/reports/hostel_food_conveyance_report';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const useHostelFoodConveyanceReportInitialDetails = () => {
     return useQuery({

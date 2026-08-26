@@ -48,6 +48,8 @@ export async function getSubjectlistByCatGroupClass(asmay_Id: any, emCA_ID: numb
 export interface StudentSubjectData {
     amsT_Id?: number;
     amsT_FirstName?: string;
+    amsT_MiddleName?: string;
+    amsT_LastName?: string;
     amsT_AdmNo?: string;
     amaY_RollNo?: number;
     sub_list?: SubjectItem[];

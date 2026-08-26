@@ -2,11 +2,11 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { ILostBookList } from '@/types/library/transactions/transactions';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useCallback } from 'react';
 
 export const lostBookColumns: ColumnDef<ILostBookList>[] = [
@@ -89,7 +89,13 @@ export const lostBookColumns: ColumnDef<ILostBookList>[] = [
             else if (book.staff) type = 'Staff';
             else if (book.dept) type = 'Department';
 
-            return type ? <Badge variant='outline' className='bg-blue-50 text-blue-700 border-blue-200'>{type}</Badge> : '-';
+            return type ? (
+                <Badge variant='outline' className='border-blue-200 bg-blue-50 text-blue-700'>
+                    {type}
+                </Badge>
+            ) : (
+                '-'
+            );
         }
     },
     {
@@ -100,8 +106,7 @@ export const lostBookColumns: ColumnDef<ILostBookList>[] = [
             let name = '';
             if (book.std) {
                 name = book.std.includes(':') ? book.std.split(':')[0].trim() : book.std;
-            }
-            else if (book.staff) name = book.staff;
+            } else if (book.staff) name = book.staff;
             else if (book.dept) name = book.dept;
 
             return <div className='font-medium text-gray-700'>{name || '-'}</div>;

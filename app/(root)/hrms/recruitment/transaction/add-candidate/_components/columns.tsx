@@ -1,9 +1,7 @@
 'use client';
-import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Edit, Trash2, CreditCard } from 'lucide-react';
 export interface QualificationDetail {
     id: number;
     qualification: string;
@@ -56,7 +54,7 @@ export interface Candidate {
     hrcD_MobileNo: number;
     hrcD_CreatedBy: number;
     hrcD_ActiveFlg: boolean | number;
-    
+
     // Legacy fields for form state (if still used by the frontend)
     firstName: string;
     middleName?: string;
@@ -126,22 +124,22 @@ export const getCandidateColumns = ({ onEdit, onToggle }: CandidateColumnsProps)
         cell: ({ row }) => <div>{row.getValue('hrmJ_JobTiTle')}</div>
     },
     {
-            id: 'actions',
-            header: 'Action',
-            enableSorting: false,
-            cell: ({ row }) => {
-                const entity = row.original;
-                return (
-                    <ActionButtons
-                        rowData={entity}
-                        buttons={{ edit: true, toggle: true, delete: false }}
-                        onEdit={onEdit}
-                        onToggle={() => onToggle?.(entity)}
-                        toggleConditionKey='hrcD_ActiveFlg'
-                    />
-                );
-            }
+        id: 'actions',
+        header: 'Action',
+        enableSorting: false,
+        cell: ({ row }) => {
+            const entity = row.original;
+            return (
+                <ActionButtons
+                    rowData={entity}
+                    buttons={{ edit: true, toggle: true, delete: false }}
+                    onEdit={onEdit}
+                    onToggle={() => onToggle?.(entity)}
+                    toggleConditionKey='hrcD_ActiveFlg'
+                />
+            );
         }
+    }
 ];
 export const candidateColumns = getCandidateColumns({
     onEdit: () => {},

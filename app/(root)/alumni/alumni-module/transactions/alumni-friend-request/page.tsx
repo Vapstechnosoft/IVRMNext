@@ -82,7 +82,9 @@ export default function AlumniFriendRequestPage() {
                     ALSFRND_RequestDate: item.alsfrnD_RequestDate || item.ALSFRND_RequestDate || item.alsfrnd_requestdate,
                     ALSFRND_AcceptedDate: item.alsfrnD_AcceptedDate || item.ALSFRND_AcceptedDate || item.alsfrnd_accepteddate,
                     ALSFRND_AcceptFlag: item.alsfrnD_AcceptFlag || item.ALSFRND_AcceptFlag || item.alsfrnd_acceptflag,
-                    checktru: (item.alsfrnD_RequestDate || item.ALSFRND_RequestDate || item.alsfrnd_requestdate) !== null && (item.alsfrnD_RequestDate || item.ALSFRND_RequestDate || item.alsfrnd_requestdate) !== undefined,
+                    checktru:
+                        (item.alsfrnD_RequestDate || item.ALSFRND_RequestDate || item.alsfrnd_requestdate) !== null &&
+                        (item.alsfrnD_RequestDate || item.ALSFRND_RequestDate || item.alsfrnd_requestdate) !== undefined,
                     selected: false
                 }));
                 setSearchResult(list);

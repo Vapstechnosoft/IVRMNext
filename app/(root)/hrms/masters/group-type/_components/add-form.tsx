@@ -1,14 +1,13 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
 import { useMasterGroupType } from '@/hooks/hrms/useMasters';
 import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
 import { addOrUpdateMasterGroupType } from '@/server/hrms/hrmsConfig/master/group-type';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -90,7 +89,6 @@ export default function AddGroupTypeForm({ onSuccess, className = '' }: AddGroup
                             error={errors.hrmgT_Code?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
                     </div>
                 </div>
 

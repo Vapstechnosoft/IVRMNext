@@ -495,7 +495,9 @@ export default function FeeReceiptDeleteReportSamartha() {
                                                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                                                 <div className='flex items-center justify-between border-b bg-primary/5 px-8 py-6'>
                                                     <div className='text-center'>
-                                                        <h2 className='font-bold text-2xl text-primary'>Fee Receipt Delete Report Samartha</h2>
+                                                        <h2 className='font-bold text-2xl text-primary'>
+                                                            Fee Receipt Delete Report Samartha
+                                                        </h2>
                                                     </div>
                                                     <div className='flex gap-3'>
                                                         <Button size='sm' className='h-8 w-auto px-3 text-xs' onClick={handleExport}>

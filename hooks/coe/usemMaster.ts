@@ -1,7 +1,7 @@
-import { COE_QUERY_KEYS } from "@/constants/query-keys";
-import { getCoeInitialData, getMasterEventCoe } from "@/server/coe/masters/masterevent";
-import { ApiSearchparams } from "@/types";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { COE_QUERY_KEYS } from '@/constants/query-keys';
+import { getCoeInitialData, getMasterEventCoe } from '@/server/coe/masters/masterevent';
+import type { ApiSearchparams } from '@/types';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useMasterEventCoe = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
@@ -52,4 +52,4 @@ export const EventDropdown = (searchParams?: ApiSearchparams) => {
             });
         }
     };
-}; 
+};

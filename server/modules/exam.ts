@@ -488,6 +488,14 @@ export const examModule: IUserAccessibleModules = {
                             url: '/Exam/exam-module/reports/Hutching/HHSReport_Preparatory',
                             title: 'HHS Progress Card Preparatory',
                             description: 'View HHS Progress Card Preparatory Details'
+                        },
+                        {
+                            id: 91,
+                            name: 'HHS Progress Card 1st to 4th',
+                            icon: 'BookOpen',
+                            url: '/Exam/exam-module/reports/Hutching/HHSIIVReport',
+                            title: 'HHS Progress Card 1st to 4th',
+                            description: 'View HHS Progress Card 1st to 4th Details'
                         }
                     ]
                 }

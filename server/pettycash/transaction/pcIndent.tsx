@@ -1,7 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type { IPcIndent, IIndentFilters } from '@/types/pettycash/transaction/pcIndent';
+import type { IIndentFilters, IPcIndent } from '@/types/pettycash/transaction/pcIndent';
 
 /**
  * Fetches the indent data grid based on search/filter parameters.
@@ -17,7 +17,7 @@ export async function getIndentGrid(filters: IIndentFilters) {
  */
 export async function getOrganizationDropdown() {
     // Standard endpoint for organization/establishment dropdown
-    const url = `/PC_IndentFacade/GetOrganizations`; 
+    const url = `/PC_IndentFacade/GetOrganizations`;
     return await api.get<any[]>('pettycashandassettracking', url);
 }
 

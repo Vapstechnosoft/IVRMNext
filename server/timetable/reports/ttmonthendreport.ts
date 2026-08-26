@@ -2,8 +2,6 @@
 
 import { api } from '@/lib/apiService';
 
-
-
 export async function getTTMonthEndReportDetails() {
     const url = '/TimeTableCommon/GetAcademicYearData';
     console.info('TTMonthEndReportDetails', url);

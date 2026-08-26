@@ -47,7 +47,7 @@ export const eligibilityCertificateReportSchema = z.object({
     asmcL_Id: z.coerce.number().min(1, 'Class is required'),
     asmS_Id: z.coerce.number().min(1, 'Section is required'),
     spccmE_Id: z.coerce.number().min(1, 'Event Name is required'),
-    amsT_Date: z.union([z.date(), z.string()]).refine(val => val !== null && val !== '', 'Date is required'),
+    amsT_Date: z.union([z.date(), z.string()]).refine((val) => val !== null && val !== '', 'Date is required'),
     spccsH_Age: z.string().optional(),
     amsT_Id: z.coerce.number().min(1, 'Student is required'),
     spccmE_EventName: z.string().optional()

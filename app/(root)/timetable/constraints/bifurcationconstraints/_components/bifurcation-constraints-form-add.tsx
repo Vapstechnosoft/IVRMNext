@@ -17,7 +17,11 @@ import {
     useTimeTableCategoryDropDownData
 } from '@/hooks/timetable/useMasters';
 import { bifurcationConstraintsSchema, combinationTempSchema } from '@/schemas/timetable/constraints/bifurcationconstraints';
-import { getClassDetails, saveBifurcationConstraintsDetail, getBifurcationConstraintsEditDetails } from '@/server/timetable/constraints/bifurcationconstraints';
+import {
+    getBifurcationConstraintsEditDetails,
+    getClassDetails,
+    saveBifurcationConstraintsDetail
+} from '@/server/timetable/constraints/bifurcationconstraints';
 import type { ClassDropdownDataTTBifurcation } from '@/types/timetable/constraints/bifurcationconstraints';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Save, Trash } from 'lucide-react';
@@ -143,7 +147,13 @@ export default function BifurcationConstraintsForm({ onSuccess, selectedRow, onC
                             TTB_ConsecutiveFlag: data.ttB_ConsecutiveFlag ?? selectedRow?.ttB_ConsecutiveFlag ?? false,
                             TTB_NoOfConPeriods: data.ttB_NoOfConPeriods || selectedRow?.ttB_NoOfConPeriods || 0,
                             TTB_NoOfConDays: data.ttB_NoOfConDays || selectedRow?.ttB_NoOfConDays || 0,
-                            combinationlist: (editDataObj?.detailslist || editDataObj?.bifurcationlist || editDataObj?.data?.bifurcationlist || editDataObj?.viewdata || []).map((item: any) => ({
+                            combinationlist: (
+                                editDataObj?.detailslist ||
+                                editDataObj?.bifurcationlist ||
+                                editDataObj?.data?.bifurcationlist ||
+                                editDataObj?.viewdata ||
+                                []
+                            ).map((item: any) => ({
                                 ASMCL_Id: item.asmcL_Id,
                                 ASMS_Id: item.asmS_Id,
                                 HRME_Id: item.hrmE_Id,
@@ -160,7 +170,7 @@ export default function BifurcationConstraintsForm({ onSuccess, selectedRow, onC
                         });
                     }
                 } catch (error) {
-                    console.error("Failed to load edit details", error);
+                    console.error('Failed to load edit details', error);
                 }
             }
         };
@@ -326,7 +336,7 @@ export default function BifurcationConstraintsForm({ onSuccess, selectedRow, onC
             } else {
                 toast.error(response.message);
             }
-        } catch (error : any) {
+        } catch (error: any) {
             toast.error(error.message);
         }
     };

@@ -6,12 +6,20 @@
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
 import {
     activateDeactivateEmployeeLoan,
-    getEmployeeLoanById,
     getEmployeeLoanByEmployee,
+    getEmployeeLoanById,
     getEmployeeLoanGrid,
     getEmployeeLoanMasters,
     saveEmployeeLoan
 } from '@/server/hrms/hrmsConfig/transaction/employee-loan';
+import {
+    getEmployeeDetailsBySelection,
+    getMassUpdationDepartments,
+    getMassUpdationDesignations,
+    getMassUpdationOnload,
+    saveMassUpdation,
+    searchMassUpdationEmployees
+} from '@/server/hrms/hrmsConfig/transaction/mass-updation';
 import {
     addOrUpdateSalaryAdvance,
     getEmployeeSalaryAdvanceDetails,
@@ -19,7 +27,11 @@ import {
     getSalaryAdvanceGrid,
     toggleSalaryAdvance
 } from '@/server/hrms/hrmsConfig/transaction/salary-advance';
-import { approveSalaries, getSalaryApprovalOnload, searchSalaryApprovalEmployees } from '@/server/hrms/hrmsConfig/transaction/salary-approval';
+import {
+    approveSalaries,
+    getSalaryApprovalOnload,
+    searchSalaryApprovalEmployees
+} from '@/server/hrms/hrmsConfig/transaction/salary-approval';
 import {
     calculateEmployeeSalary,
     generateSalaryForSelectedEmployees,
@@ -27,9 +39,25 @@ import {
     searchEmployeesBySelection,
     searchSalaryCalculationBySelection
 } from '@/server/hrms/hrmsConfig/transaction/salary-calculation';
-import { deleteSalaryIncrement, getSalaryIncrementOnload, saveSalaryIncrement, deleteEmployeeIncrementMaster, getEmployeeIncrementGrid, addOrUpdateEmployeeSalaryIncrement } from '@/server/hrms/hrmsConfig/transaction/salary-increment';
-import { deleteSalaryUpdation, filterSalaryUpdationEmployees, getSalaryUpdationDepartments, getSalaryUpdationDesignations, getSalaryUpdationEmployeeDetailsBySelection, getSalaryUpdationList, getSalaryUpdationOnload, saveSalaryUpdation, updateEmployeesEarningsAndDeductions } from '@/server/hrms/hrmsConfig/transaction/salary-updation';
-import { getEmployeeDetailsBySelection, getMassUpdationDepartments, getMassUpdationDesignations, getMassUpdationOnload, saveMassUpdation, searchMassUpdationEmployees } from '@/server/hrms/hrmsConfig/transaction/mass-updation';
+import {
+    addOrUpdateEmployeeSalaryIncrement,
+    deleteEmployeeIncrementMaster,
+    deleteSalaryIncrement,
+    getEmployeeIncrementGrid,
+    getSalaryIncrementOnload,
+    saveSalaryIncrement
+} from '@/server/hrms/hrmsConfig/transaction/salary-increment';
+import {
+    deleteSalaryUpdation,
+    filterSalaryUpdationEmployees,
+    getSalaryUpdationDepartments,
+    getSalaryUpdationDesignations,
+    getSalaryUpdationEmployeeDetailsBySelection,
+    getSalaryUpdationOnload,
+    saveSalaryUpdation,
+    updateEmployeesEarningsAndDeductions
+} from '@/server/hrms/hrmsConfig/transaction/salary-updation';
+import type { ApiSearchparams } from '@/types';
 import type {
     EmployeeDetailsResponse,
     EmployeeLoanDeleteRequest,
@@ -41,11 +69,18 @@ import type {
     EmployeeLoanSaveResponse
 } from '@/types/hrms/employee-loan';
 import type {
+    MassUpdationOnloadRequest,
+    MassUpdationOnloadResponse,
+    MassUpdationSaveRequest,
+    MassUpdationSaveResponse,
+    MassUpdationSearchRequest
+} from '@/types/hrms/mass-updation';
+import type {
+    EmployeeSalaryAdvanceDetails,
+    SalaryAdvanceDetailsRequest,
     SalaryAdvanceEmployeeDropdownItem,
     SalaryAdvanceGridItem,
-    SalaryAdvanceSaveRequest,
-    SalaryAdvanceDetailsRequest,
-    EmployeeSalaryAdvanceDetails
+    SalaryAdvanceSaveRequest
 } from '@/types/hrms/salary-advance';
 import type {
     SalaryApprovalOnloadRequest,
@@ -56,25 +91,24 @@ import type {
     SalaryApprovalSearchResponse
 } from '@/types/hrms/salary-approval';
 import type {
+    ApiResponse,
+    NewSalaryCalculationGenerateRequest,
+    NewSalaryCalculationSearchRequest,
     SalaryCalculationGenerateRequest,
     SalaryCalculationGenerateResponse,
     SalaryCalculationOnloadRequest,
     SalaryCalculationOnloadResponse,
     SalaryCalculationSearchRequest,
-    NewSalaryCalculationSearchRequest,
-    NewSalaryCalculationGenerateRequest,
-    SelectionEmployee,
-    ApiResponse
+    SelectionEmployee
 } from '@/types/hrms/salary-calculation';
 import type {
-    SalaryIncrementDeleteRequest,
+    NewSalaryIncrementSaveRequest,
+    NewSalaryIncrementSaveResponse,
     SalaryIncrementDeleteResponse,
     SalaryIncrementOnloadRequest,
     SalaryIncrementOnloadResponse,
     SalaryIncrementSaveRequest,
-    SalaryIncrementSaveResponse,
-    NewSalaryIncrementSaveRequest,
-    NewSalaryIncrementSaveResponse
+    SalaryIncrementSaveResponse
 } from '@/types/hrms/salary-increment';
 import type {
     SalaryUpdationDeleteRequest,
@@ -90,15 +124,7 @@ import type {
     SalaryUpdationSaveRequest,
     SalaryUpdationSaveResponse
 } from '@/types/hrms/salary-updation';
-import type {
-    MassUpdationOnloadRequest,
-    MassUpdationOnloadResponse,
-    MassUpdationSaveRequest,
-    MassUpdationSaveResponse,
-    MassUpdationSearchRequest
-} from '@/types/hrms/mass-updation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { ApiSearchparams } from '@/types';
 import { toast } from 'sonner';
 // ============================================================================
 // EMPLOYEE LOAN
@@ -145,8 +171,7 @@ export function useSaveEmployeeLoan() {
             }),
         onSuccess: (data, variables) => {
             toast.success(
-                data.message ||
-                (variables.HREL_Id === 0 ? 'Employee loan created successfully!' : 'Employee loan updated successfully!')
+                data.message || (variables.HREL_Id === 0 ? 'Employee loan created successfully!' : 'Employee loan updated successfully!')
             );
             queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST]
@@ -224,7 +249,7 @@ export function useActivateDeactivateEmployeeLoan() {
 // SALARY ADVANCE
 // ============================================================================
 
-export function useSalaryAdvanceGrid(pageSize: number = 100) {
+export function useSalaryAdvanceGrid(pageSize = 100) {
     return useQuery<SalaryAdvanceGridItem[], Error>({
         queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST, 'grid', pageSize],
         queryFn: () =>
@@ -317,10 +342,8 @@ export const useToggleSalaryAdvanceStatus = () => {
     const mutation = useToggleSalaryAdvance();
     return {
         ...mutation,
-        mutate: (data: { hresaId: number; activeFlag?: boolean }, options?: any) =>
-            mutation.mutate(data.hresaId, options),
-        mutateAsync: (data: { hresaId: number; activeFlag?: boolean }, options?: any) =>
-            mutation.mutateAsync(data.hresaId, options)
+        mutate: (data: { hresaId: number; activeFlag?: boolean }, options?: any) => mutation.mutate(data.hresaId, options),
+        mutateAsync: (data: { hresaId: number; activeFlag?: boolean }, options?: any) => mutation.mutateAsync(data.hresaId, options)
     };
 };
 export const useGetSalaryAdvanceById = (id: number) => {
@@ -379,17 +402,19 @@ export function useSalaryApprovalOnload(payload: SalaryApprovalOnloadRequest) {
 export function useSearchSalaryApproval() {
     return useMutation<SalaryApprovalSearchResponse, Error, SalaryApprovalSearchRequest>({
         mutationFn: (data: SalaryApprovalSearchRequest) => {
-            return searchSalaryApprovalEmployees(data).then((res) => {
-                if (!res.success) {
-                    throw new Error(res.message);
-                }
-                const employeeCount = res.data?.ReportData?.length || 0;
-                if (employeeCount > 0) {
-                }
-                return res.data!;
-            }).catch((error) => {
-                throw error;
-            });
+            return searchSalaryApprovalEmployees(data)
+                .then((res) => {
+                    if (!res.success) {
+                        throw new Error(res.message);
+                    }
+                    const employeeCount = res.data?.ReportData?.length || 0;
+                    if (employeeCount > 0) {
+                    }
+                    return res.data!;
+                })
+                .catch((error) => {
+                    throw error;
+                });
         },
         onError: (error) => {
             toast.error(error.message || 'Failed to search employees for approval.');
@@ -400,14 +425,16 @@ export function useApproveSalaries() {
     const queryClient = useQueryClient();
     return useMutation<SalaryApprovalResponse, Error, SalaryApprovalRequest>({
         mutationFn: (data: SalaryApprovalRequest) => {
-            return approveSalaries(data).then((res) => {
-                if (!res.success) {
-                    throw new Error(res.message);
-                }
-                return res.data!;
-            }).catch((error) => {
-                throw error;
-            });
+            return approveSalaries(data)
+                .then((res) => {
+                    if (!res.success) {
+                        throw new Error(res.message);
+                    }
+                    return res.data!;
+                })
+                .catch((error) => {
+                    throw error;
+                });
         },
         onSuccess: (data, variables) => {
             if (data.approvedCount > 0) {
@@ -552,7 +579,7 @@ export function useSaveSalaryIncrement() {
         onSuccess: (data, variables) => {
             toast.success(
                 data.retrunMsg ||
-                (variables.HREIC_Id === 0 ? 'Salary increment created successfully!' : 'Salary increment updated successfully!')
+                    (variables.HREIC_Id === 0 ? 'Salary increment created successfully!' : 'Salary increment updated successfully!')
             );
             queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.SALARY_INCREMENT_ONLOAD]
@@ -679,7 +706,7 @@ export function useSalaryUpdationList(payload: SalaryUpdationOnloadRequest) {
         onSuccess: (data, variables) => {
             toast.success(
                 data.retrunMsg ||
-                (variables.HRESU_Id === 0 ? 'Salary updation created successfully!' : 'Salary updation updated successfully!')
+                    (variables.HRESU_Id === 0 ? 'Salary updation created successfully!' : 'Salary updation updated successfully!')
             );
             queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.SALARY_UPDATION_ONLOAD]
@@ -727,7 +754,7 @@ export function useSaveSalaryUpdation() {
         onSuccess: (data, variables) => {
             toast.success(
                 data.retrunMsg ||
-                (variables.HRESU_Id === 0 ? 'Salary updation created successfully!' : 'Salary updation updated successfully!')
+                    (variables.HRESU_Id === 0 ? 'Salary updation created successfully!' : 'Salary updation updated successfully!')
             );
             queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.SALARY_UPDATION_ONLOAD]
@@ -765,17 +792,19 @@ export function useDeleteSalaryUpdation() {
 export function useFilterSalaryUpdationEmployees() {
     return useMutation<SalaryUpdationOnloadResponse, Error, SalaryUpdationFilterRequest>({
         mutationFn: (data: SalaryUpdationFilterRequest) => {
-            return filterSalaryUpdationEmployees(data).then((res) => {
-                if (!res.success) {
-                    throw new Error(res.message);
-                }
-                const employeeCount = res.data?.employeedropdown?.length || 0;
-                if (employeeCount > 0) {
-                }
-                return res.data!;
-            }).catch((error) => {
-                throw error;
-            });
+            return filterSalaryUpdationEmployees(data)
+                .then((res) => {
+                    if (!res.success) {
+                        throw new Error(res.message);
+                    }
+                    const employeeCount = res.data?.employeedropdown?.length || 0;
+                    if (employeeCount > 0) {
+                    }
+                    return res.data!;
+                })
+                .catch((error) => {
+                    throw error;
+                });
         },
         onError: (error) => {
             toast.error(error.message || 'Failed to filter employees.');
@@ -788,17 +817,19 @@ export function useFilterSalaryUpdationEmployees() {
 export function useGetSalaryUpdationEmployeeDetailsBySelection() {
     return useMutation<SalaryUpdationEmployeeDetailsResponse, Error, SalaryUpdationEmployeeDetailsRequest>({
         mutationFn: (data: SalaryUpdationEmployeeDetailsRequest) => {
-            return getSalaryUpdationEmployeeDetailsBySelection(data).then((res) => {
-                if (!res.success) {
-                    throw new Error(res.message);
-                }
-                const employeeCount = res.data?.employeedropdown?.length || 0;
-                if (employeeCount > 0) {
-                }
-                return res.data!;
-            }).catch((error) => {
-                throw error;
-            });
+            return getSalaryUpdationEmployeeDetailsBySelection(data)
+                .then((res) => {
+                    if (!res.success) {
+                        throw new Error(res.message);
+                    }
+                    const employeeCount = res.data?.employeedropdown?.length || 0;
+                    if (employeeCount > 0) {
+                    }
+                    return res.data!;
+                })
+                .catch((error) => {
+                    throw error;
+                });
         },
         onError: (error) => {
             toast.error(error.message || 'Failed to get employee details.');
@@ -811,15 +842,17 @@ export function useGetSalaryUpdationEmployeeDetailsBySelection() {
 export function useGetSalaryUpdationDepartments() {
     return useMutation<SalaryUpdationDepartmentResponse, Error, SalaryUpdationDepartmentRequest>({
         mutationFn: (data: SalaryUpdationDepartmentRequest) => {
-            return getSalaryUpdationDepartments(data).then((res) => {
-                if (!res.success) {
-                    throw new Error(res.message);
-                }
-                const departmentCount = res.data?.departmentdropdown?.length || 0;
-                return res.data!;
-            }).catch((error) => {
-                throw error;
-            });
+            return getSalaryUpdationDepartments(data)
+                .then((res) => {
+                    if (!res.success) {
+                        throw new Error(res.message);
+                    }
+                    const departmentCount = res.data?.departmentdropdown?.length || 0;
+                    return res.data!;
+                })
+                .catch((error) => {
+                    throw error;
+                });
         },
         onError: (error) => {
             toast.error(error.message || 'Failed to get departments.');
@@ -832,15 +865,17 @@ export function useGetSalaryUpdationDepartments() {
 export function useGetSalaryUpdationDesignations() {
     return useMutation<SalaryUpdationDesignationResponse, Error, SalaryUpdationDesignationRequest>({
         mutationFn: (data: SalaryUpdationDesignationRequest) => {
-            return getSalaryUpdationDesignations(data).then((res) => {
-                if (!res.success) {
-                    throw new Error(res.message);
-                }
-                const designationCount = res.data?.designationdropdown?.length || 0;
-                return res.data!;
-            }).catch((error) => {
-                throw error;
-            });
+            return getSalaryUpdationDesignations(data)
+                .then((res) => {
+                    if (!res.success) {
+                        throw new Error(res.message);
+                    }
+                    const designationCount = res.data?.designationdropdown?.length || 0;
+                    return res.data!;
+                })
+                .catch((error) => {
+                    throw error;
+                });
         },
         onError: (error) => {
             toast.error(error.message || 'Failed to get designations.');
@@ -850,15 +885,17 @@ export function useGetSalaryUpdationDesignations() {
 export function useGetSalaryUpdationGroupTypes() {
     return useMutation<SalaryUpdationDesignationResponse, Error, SalaryUpdationDesignationRequest>({
         mutationFn: (data: SalaryUpdationDesignationRequest) => {
-            return getSalaryUpdationDesignations(data).then((res) => {
-                if (!res.success) {
-                    throw new Error(res.message);
-                }
-                const designationCount = res.data?.designationdropdown?.length || 0;
-                return res.data!;
-            }).catch((error) => {
-                throw error;
-            });
+            return getSalaryUpdationDesignations(data)
+                .then((res) => {
+                    if (!res.success) {
+                        throw new Error(res.message);
+                    }
+                    const designationCount = res.data?.designationdropdown?.length || 0;
+                    return res.data!;
+                })
+                .catch((error) => {
+                    throw error;
+                });
         },
         onError: (error) => {
             toast.error(error.message || 'Failed to get designations.');
@@ -871,7 +908,7 @@ export function useGetSalaryUpdationGroupTypes() {
  */
 export function useUpdateEmployeesEarningsAndDeductions() {
     const queryClient = useQueryClient();
-    return useMutation<any, Error, { earningResult?: any[], deductionResult?: any[], LoginUserId: number }>({
+    return useMutation<any, Error, { earningResult?: any[]; deductionResult?: any[]; LoginUserId: number }>({
         mutationFn: (data) => {
             return updateEmployeesEarningsAndDeductions(data).then((res: any) => {
                 if (!res.success) {
@@ -919,7 +956,7 @@ export function useSaveMassUpdation() {
                     throw new Error(res.message);
                 }
                 // If data is null, provide the message in a compatible object
-                return res.data || { retrunMsg: res.message } as any;
+                return res.data || ({ retrunMsg: res.message } as any);
             }),
         onSuccess: (data) => {
             toast.success(data?.retrunMsg || 'Mass updation completed successfully!');

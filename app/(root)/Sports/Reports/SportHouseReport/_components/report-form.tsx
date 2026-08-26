@@ -1,20 +1,20 @@
 'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, useWatch, Controller } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
-import { Form } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Form } from '@/components/ui/form';
 import { Label } from '@/components/ui/label';
-import { RefreshCcw, FileText, Loader2 } from 'lucide-react';
-import { SportHouseReportFormData, sportHouseReportSchema } from '../schema';
-import { useSportHouseReport } from '@/hooks/sports/useSportHouseReport';
 import { MultiSelect } from '@/components/ui/multi-select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useSportHouseReport } from '@/hooks/sports/useSportHouseReport';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { FileText, Loader2, RefreshCcw } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { IClass, IHouse, ISection, ISportHouseReportData } from '../types';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
+import { type SportHouseReportFormData, sportHouseReportSchema } from '../schema';
+import type { IClass, IHouse, ISection, ISportHouseReportData } from '../types';
 
 interface ReportFormProps {
     onReportGenerated: (data: ISportHouseReportData[] | null) => void;
@@ -133,8 +133,8 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
 
     return (
         <Card>
-            <CardHeader className="bg-primary/5 border-b py-4">
-                <CardTitle className="text-lg font-bold flex items-center gap-2">
+            <CardHeader className='border-b bg-primary/5 py-4'>
+                <CardTitle className='flex items-center gap-2 font-bold text-lg'>
                     <FileText className="h-5 w-5 text-primary" />
                     Sport House Report Filter
                 </CardTitle>
@@ -154,27 +154,27 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
                                         <RadioGroup
                                             onValueChange={field.onChange}
                                             defaultValue={field.value}
-                                            className="flex flex-col sm:flex-row gap-4"
+                                            className='flex flex-col gap-4 sm:flex-row'
                                         >
-                                            <div className="flex items-center space-x-2 border rounded-md p-3 w-full sm:w-auto hover:bg-muted/50 transition-colors">
+                                            <div className='flex w-full items-center space-x-2 rounded-md border p-3 transition-colors hover:bg-muted/50 sm:w-auto'>
                                                 <RadioGroupItem value="House" id="r1" />
                                                 <label htmlFor="r1" className="cursor-pointer font-medium">By House</label>
                                             </div>
-                                            <div className="flex items-center space-x-2 border rounded-md p-3 w-full sm:w-auto hover:bg-muted/50 transition-colors">
+                                            <div className='flex w-full items-center space-x-2 rounded-md border p-3 transition-colors hover:bg-muted/50 sm:w-auto'>
                                                 <RadioGroupItem value="CS" id="r2" />
                                                 <label htmlFor="r2" className="cursor-pointer font-medium">By Class/Section</label>
                                             </div>
                                         </RadioGroup>
-                                        {errors.type && <span className="text-xs font-medium text-destructive">{errors.type.message}</span>}
+                                        {errors.type && <span className='font-medium text-destructive text-xs'>{errors.type.message}</span>}
                                     </div>
                                 )}
                             />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-end">
+                        <div className='grid grid-cols-1 items-end gap-6 md:grid-cols-2 lg:grid-cols-3'>
                             {/* Academic Year */}
                             <div className="flex flex-col gap-2">
-                                <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Academic Year</Label>
+                                <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Academic Year</Label>
                                 <Controller
                                     control={control}
                                     name="asmaY_Id"
@@ -196,7 +196,7 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
                                                     ))}
                                                 </SelectContent>
                                             </Select>
-                                            {errors.asmaY_Id && <span className="text-xs font-medium text-destructive">{errors.asmaY_Id.message}</span>}
+                                            {errors.asmaY_Id && <span className='font-medium text-destructive text-xs'>{errors.asmaY_Id.message}</span>}
                                         </div>
                                     )}
                                 />
@@ -204,7 +204,7 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
 
                             {/* House Selection (Visible for both types) */}
                             <div className="flex flex-col gap-2">
-                                <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">House</Label>
+                                <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">House</Label>
                                 <Controller
                                     control={control}
                                     name="spccmH_Id"
@@ -218,7 +218,7 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
                                                 disabled={!watchedYear || classHouseMutation.isPending}
                                                 className={errors.spccmH_Id ? 'border-destructive ring-destructive/20' : ''}
                                             />
-                                            {errors.spccmH_Id && <span className="text-xs font-medium text-destructive">{errors.spccmH_Id.message}</span>}
+                                            {errors.spccmH_Id && <span className='font-medium text-destructive text-xs'>{errors.spccmH_Id.message}</span>}
                                         </div>
                                     )}
                                 />
@@ -227,7 +227,7 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
                             {/* Class Selection (Only if Type == CS) */}
                             {watchedType === 'CS' && (
                                 <div className="flex flex-col gap-2">
-                                    <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Class</Label>
+                                    <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Class</Label>
                                     <Controller
                                         control={control}
                                         name="asmcL_Id"
@@ -249,7 +249,7 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
-                                                {errors.asmcL_Id && <span className="text-xs font-medium text-destructive">{errors.asmcL_Id.message}</span>}
+                                                {errors.asmcL_Id && <span className='font-medium text-destructive text-xs'>{errors.asmcL_Id.message}</span>}
                                             </div>
                                         )}
                                     />
@@ -259,7 +259,7 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
                             {/* Section Selection (Only if Type == CS) */}
                             {watchedType === 'CS' && (
                                 <div className="flex flex-col gap-2">
-                                    <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Section</Label>
+                                    <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Section</Label>
                                     <Controller
                                         control={control}
                                         name="asmS_Id"
@@ -273,7 +273,7 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
                                                     disabled={!watchedClass || sectionMutation.isPending}
                                                     className={errors.asmS_Id ? 'border-destructive ring-destructive/20' : ''}
                                                 />
-                                                {errors.asmS_Id && <span className="text-xs font-medium text-destructive">{errors.asmS_Id.message}</span>}
+                                                {errors.asmS_Id && <span className='font-medium text-destructive text-xs'>{errors.asmS_Id.message}</span>}
                                             </div>
                                         )}
                                     />
@@ -285,13 +285,13 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
                         <div className="flex justify-center gap-4 pt-4">
                             <Button
                                 type="submit"
-                                className="min-w-[150px] font-bold shadow-md hover:shadow-lg transition-all"
+                                className='min-w-[150px] font-bold shadow-md transition-all hover:shadow-lg'
                                 disabled={reportMutation.isPending}
                             >
                                 {reportMutation.isPending ? (
-                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                                 ) : (
-                                    <FileText className="h-4 w-4 mr-2" />
+                                    <FileText className='mr-2 h-4 w-4' />
                                 )}
                                 Report
                             </Button>
@@ -301,7 +301,7 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
                                 onClick={handleReset}
                                 className="min-w-[150px] border-2 hover:bg-muted"
                             >
-                                <RefreshCcw className="h-4 w-4 mr-2" />
+                                <RefreshCcw className='mr-2 h-4 w-4' />
                                 Cancel
                             </Button>
                         </div>

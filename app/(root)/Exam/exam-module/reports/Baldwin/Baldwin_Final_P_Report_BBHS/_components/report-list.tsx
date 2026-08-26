@@ -1,9 +1,9 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { format } from 'date-fns';
 import { Printer } from 'lucide-react';
 import { useRef } from 'react';
-import { format } from 'date-fns';
 
 interface ReportListProps {
     data: any;
@@ -41,12 +41,14 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
     const getAttendance = (studentId: number, list: any[]) => {
         if (!list || !Array.isArray(list)) return {};
-        return list.find((a: any) => a && (a.studentId === studentId)) || {};
+        return list.find((a: any) => a && a.studentId === studentId) || {};
     };
 
     const getPromMarks = (studentId: number, subjectId: number) => {
         if (!promotion_student_marks || !Array.isArray(promotion_student_marks)) return undefined;
-        return promotion_student_marks.find((m: any) => m && (m.amsT_Id === studentId || m.AMST_Id === studentId) && m.ismS_Id === subjectId);
+        return promotion_student_marks.find(
+            (m: any) => m && (m.amsT_Id === studentId || m.AMST_Id === studentId) && m.ismS_Id === subjectId
+        );
     };
 
     const getPromMain = (studentId: number) => {
@@ -56,7 +58,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
     return (
         <div className='space-y-6'>
-            <div className='flex items-center justify-end gap-2 pb-4 pt-4'>
+            <div className='flex items-center justify-end gap-2 pt-4 pb-4'>
                 <Button onClick={handlePrint} className='bg-primary text-white'>
                     <Printer className='mr-2 h-4 w-4' />
                     Print
@@ -64,8 +66,9 @@ export const ReportList = ({ data, params }: ReportListProps) => {
             </div>
 
             <div ref={reportRef} className='report-container bg-white p-4 font-sans text-[#1a1a1a]'>
-                <style dangerouslySetInnerHTML={{
-                    __html: `
+                <style
+                    dangerouslySetInnerHTML={{
+                        __html: `
                     @media print {
                         body * { visibility: hidden; }
                         .report-container, .report-container * { visibility: visible; }
@@ -94,21 +97,23 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                     .remarks-section { margin-top: 20px; display: flex; border-bottom: 1px solid black; padding-bottom: 5px; }
                     .attendance-table { margin-top: 15px; border: 1.5px solid black; width: 100%; border-collapse: collapse; font-size: 12px; }
                     .attendance-table th, .attendance-table td { border: 1px solid black; padding: 3px; text-align: center; }
-                ` }} />
+                `
+                    }}
+                />
 
                 {students.map((stud: any, index: number) => (
                     <div key={stud.amsT_Id} className={`report-page ${index !== students.length - 1 ? 'page-break' : ''} mb-20`}>
                         {/* Header */}
                         <div className='header-section'>
-                            <div className='flex items-center justify-center gap-4 mb-2'>
+                            <div className='mb-2 flex items-center justify-center gap-4'>
                                 {/* {params.left_logo && data.masterinstitution?.mI_Logo && (
                                     <img src={data.masterinstitution.mI_Logo} alt="Logo" className='h-20 w-auto' />
                                 )} */}
                                 <div className='text-center'>
                                     {/* <h1 className='text-2xl font-black tracking-tight text-red-700'>{data.masterinstitution?.mI_Name}</h1>
                                     <p className='text-xs font-bold'>{data.masterinstitution?.mI_Address1}</p> */}
-                                    <h2 className='mt-2 text-lg font-bold bg-black text-white inline-block px-4 py-1'>PROGRESS REPORT</h2>
-                                    <p className='font-bold text-sm mt-1'>ACADEMIC YEAR : {data.selected_academicYear}</p>
+                                    <h2 className='mt-2 inline-block bg-black px-4 py-1 font-bold text-lg text-white'>PROGRESS REPORT</h2>
+                                    <p className='mt-1 font-bold text-sm'>ACADEMIC YEAR : {data.selected_academicYear}</p>
                                 </div>
                                 {/* {params.right_logo && data.masterinstitution?.mI_Logo && (
                                     <img src={data.masterinstitution.mI_Logo} alt="Logo" className='h-20 w-auto' />
@@ -119,16 +124,29 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                         {/* Student Details */}
                         <div className='student-info-grid'>
                             <div className='space-y-1'>
-                                <div className='info-item'><span className='info-label'>NAME</span>: <span>{stud.amsT_FirstName}</span></div>
-                                <div className='info-item'><span className='info-label'>TEACHER</span>: <span>{data.Class_Teacher_Name}</span></div>
+                                <div className='info-item'>
+                                    <span className='info-label'>NAME</span>: <span>{stud.amsT_FirstName}</span>
+                                </div>
+                                <div className='info-item'>
+                                    <span className='info-label'>TEACHER</span>: <span>{data.Class_Teacher_Name}</span>
+                                </div>
                             </div>
                             <div className='space-y-1'>
-                                <div className='info-item'><span className='info-label'>CLASS</span>: <span>{data.selected_class}</span></div>
-                                <div className='info-item'><span className='info-label'>D.O.B</span>: <span>{stud.amsT_DOB ? format(new Date(stud.amsT_DOB), 'dd/MMM/yyyy').toUpperCase() : ''}</span></div>
+                                <div className='info-item'>
+                                    <span className='info-label'>CLASS</span>: <span>{data.selected_class}</span>
+                                </div>
+                                <div className='info-item'>
+                                    <span className='info-label'>D.O.B</span>:{' '}
+                                    <span>{stud.amsT_DOB ? format(new Date(stud.amsT_DOB), 'dd/MMM/yyyy').toUpperCase() : ''}</span>
+                                </div>
                             </div>
                             <div className='space-y-1'>
-                                <div className='info-item'><span className='info-label'>SECTION</span>: <span>{data.selected_section}</span></div>
-                                <div className='info-item'><span className='info-label'>ADM. NO</span>: <span>{stud.amsT_AdmNo}</span></div>
+                                <div className='info-item'>
+                                    <span className='info-label'>SECTION</span>: <span>{data.selected_section}</span>
+                                </div>
+                                <div className='info-item'>
+                                    <span className='info-label'>ADM. NO</span>: <span>{stud.amsT_AdmNo}</span>
+                                </div>
                             </div>
                         </div>
 
@@ -137,70 +155,104 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                             <table className='baldwin-table'>
                                 <thead>
                                     <tr>
-                                        <th rowSpan={2} className='w-[180px]'>SUBJECTS</th>
-                                        {exam_list.map((exm: any) => !exm.emE_FinalExamFlag && (
-                                            <th key={exm.emE_Id}>{exm.emE_ExamName}</th>
-                                        ))}
-                                        {temp_headers.map((hdr: any, i: number) => hdr.flag !== 'F' && (
-                                            <th key={i} rowSpan={2}>{hdr.Per_val}%</th>
-                                        ))}
-                                        {exam_list.map((exm: any) => exm.emE_FinalExamFlag && (
-                                            <th key={exm.emE_Id}>{exm.emE_ExamName}</th>
-                                        ))}
-                                        {temp_headers.map((hdr: any, i: number) => hdr.flag === 'F' && !hdr.equal_flag && (
-                                            <th key={i} rowSpan={2}>{hdr.Per_val}%</th>
-                                        ))}
+                                        <th rowSpan={2} className='w-[180px]'>
+                                            SUBJECTS
+                                        </th>
+                                        {exam_list.map(
+                                            (exm: any) => !exm.emE_FinalExamFlag && <th key={exm.emE_Id}>{exm.emE_ExamName}</th>
+                                        )}
+                                        {temp_headers.map(
+                                            (hdr: any, i: number) =>
+                                                hdr.flag !== 'F' && (
+                                                    <th key={i} rowSpan={2}>
+                                                        {hdr.Per_val}%
+                                                    </th>
+                                                )
+                                        )}
+                                        {exam_list.map((exm: any) => exm.emE_FinalExamFlag && <th key={exm.emE_Id}>{exm.emE_ExamName}</th>)}
+                                        {temp_headers.map(
+                                            (hdr: any, i: number) =>
+                                                hdr.flag === 'F' &&
+                                                !hdr.equal_flag && (
+                                                    <th key={i} rowSpan={2}>
+                                                        {hdr.Per_val}%
+                                                    </th>
+                                                )
+                                        )}
                                         <th>TOTAL</th>
-                                        <th rowSpan={2} className='w-[300px]'>REMARKS</th>
+                                        <th rowSpan={2} className='w-[300px]'>
+                                            REMARKS
+                                        </th>
                                     </tr>
                                     <tr>
-                                        {exam_list.map((exm: any) => !exm.emE_FinalExamFlag && (
-                                            <th key={exm.emE_Id}>{exm.marks}</th>
-                                        ))}
-                                        {exam_list.map((exm: any) => exm.emE_FinalExamFlag && (
-                                            <th key={exm.emE_Id}>{exm.marks}</th>
-                                        ))}
+                                        {exam_list.map((exm: any) => !exm.emE_FinalExamFlag && <th key={exm.emE_Id}>{exm.marks}</th>)}
+                                        {exam_list.map((exm: any) => exm.emE_FinalExamFlag && <th key={exm.emE_Id}>{exm.marks}</th>)}
                                         <th>{data.total_max_sub_marks}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {stud.final_subj_marks.filter((s: any) => s.sub_details.flag).map((sub: any, i: number) => (
-                                        <tr key={i}>
-                                            <td className='text-left font-bold'>{sub.sub_details.ismS_SubjectName}</td>
-                                            {sub.subj_marks_details.map((m: any, mi: number) => (
-                                                <td key={mi} className='font-bold'>{m.estmpS_ObtainedMarks}</td>
-                                            ))}
-                                            <td className='font-bold'>{sub.sub_details.estmppS_ObtainedMarks}</td>
-                                            <td className='text-xs text-left'>{sub.sub_details.estmppS_Remarks}</td>
-                                        </tr>
-                                    ))}
-                                    <tr className='font-bold bg-gray-50'>
+                                    {stud.final_subj_marks
+                                        .filter((s: any) => s.sub_details.flag)
+                                        .map((sub: any, i: number) => (
+                                            <tr key={i}>
+                                                <td className='text-left font-bold'>{sub.sub_details.ismS_SubjectName}</td>
+                                                {sub.subj_marks_details.map((m: any, mi: number) => (
+                                                    <td key={mi} className='font-bold'>
+                                                        {m.estmpS_ObtainedMarks}
+                                                    </td>
+                                                ))}
+                                                <td className='font-bold'>{sub.sub_details.estmppS_ObtainedMarks}</td>
+                                                <td className='text-left text-xs'>{sub.sub_details.estmppS_Remarks}</td>
+                                            </tr>
+                                        ))}
+                                    <tr className='bg-gray-50 font-bold'>
                                         <td className='text-left'>TOTAL</td>
-                                        {exam_list.map((exm: any) => !exm.emE_FinalExamFlag && (
-                                            <td key={exm.emE_Id}>{getExamProcess(stud.amsT_Id, exm.emE_Id)?.estmP_TotalObtMarks}</td>
-                                        ))}
-                                        {temp_headers.map((hdr: any, i: number) => hdr.flag !== 'F' && (
-                                            <td key={i}>{stud.stu_Total_Array_Grp?.[0]?.total_s_o}</td>
-                                        ))}
-                                        {exam_list.map((exm: any) => exm.emE_FinalExamFlag && (
-                                            <td key={exm.emE_Id}>{getExamProcess(stud.amsT_Id, exm.emE_Id)?.estmP_TotalObtMarks}</td>
-                                        ))}
-                                        {temp_headers.map((hdr: any, i: number) => hdr.flag === 'F' && !hdr.equal_flag && (
-                                            <td key={i}>{stud.stu_Total_Array_Grp?.[0]?.total_s_f}</td>
-                                        ))}
+                                        {exam_list.map(
+                                            (exm: any) =>
+                                                !exm.emE_FinalExamFlag && (
+                                                    <td key={exm.emE_Id}>
+                                                        {getExamProcess(stud.amsT_Id, exm.emE_Id)?.estmP_TotalObtMarks}
+                                                    </td>
+                                                )
+                                        )}
+                                        {temp_headers.map(
+                                            (hdr: any, i: number) =>
+                                                hdr.flag !== 'F' && <td key={i}>{stud.stu_Total_Array_Grp?.[0]?.total_s_o}</td>
+                                        )}
+                                        {exam_list.map(
+                                            (exm: any) =>
+                                                exm.emE_FinalExamFlag && (
+                                                    <td key={exm.emE_Id}>
+                                                        {getExamProcess(stud.amsT_Id, exm.emE_Id)?.estmP_TotalObtMarks}
+                                                    </td>
+                                                )
+                                        )}
+                                        {temp_headers.map(
+                                            (hdr: any, i: number) =>
+                                                hdr.flag === 'F' &&
+                                                !hdr.equal_flag && <td key={i}>{stud.stu_Total_Array_Grp?.[0]?.total_s_f}</td>
+                                        )}
                                         <td>{stud.stu_Total_total_grp}</td>
                                         <td></td>
                                     </tr>
                                     <tr className='font-bold'>
                                         <td className='text-left'>PERCENTAGE</td>
-                                        {exam_list.map((exm: any) => !exm.emE_FinalExamFlag && (
-                                            <td key={exm.emE_Id}>{getExamProcess(stud.amsT_Id, exm.emE_Id)?.estmP_Percentage}%</td>
-                                        ))}
+                                        {exam_list.map(
+                                            (exm: any) =>
+                                                !exm.emE_FinalExamFlag && (
+                                                    <td key={exm.emE_Id}>{getExamProcess(stud.amsT_Id, exm.emE_Id)?.estmP_Percentage}%</td>
+                                                )
+                                        )}
                                         {temp_headers.map((hdr: any, i: number) => hdr.flag !== 'F' && <td key={i}></td>)}
-                                        {exam_list.map((exm: any) => exm.emE_FinalExamFlag && (
-                                            <td key={exm.emE_Id}>{getExamProcess(stud.amsT_Id, exm.emE_Id)?.estmP_Percentage}%</td>
-                                        ))}
-                                        {temp_headers.map((hdr: any, i: number) => hdr.flag === 'F' && !hdr.equal_flag && <td key={i}></td>)}
+                                        {exam_list.map(
+                                            (exm: any) =>
+                                                exm.emE_FinalExamFlag && (
+                                                    <td key={exm.emE_Id}>{getExamProcess(stud.amsT_Id, exm.emE_Id)?.estmP_Percentage}%</td>
+                                                )
+                                        )}
+                                        {temp_headers.map(
+                                            (hdr: any, i: number) => hdr.flag === 'F' && !hdr.equal_flag && <td key={i}></td>
+                                        )}
                                         <td>{stud.total_percentage}%</td>
                                         <td></td>
                                     </tr>
@@ -208,43 +260,71 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                         <>
                                             <tr className='font-bold'>
                                                 <td className='text-left'>RANK IN SECTION</td>
-                                                {exam_list.map((exm: any) => !exm.emE_FinalExamFlag && (
-                                                    <td key={exm.emE_Id}>{getExamProcess(stud.amsT_Id, exm.emE_Id)?.estmP_SectionRank}</td>
-                                                ))}
+                                                {exam_list.map(
+                                                    (exm: any) =>
+                                                        !exm.emE_FinalExamFlag && (
+                                                            <td key={exm.emE_Id}>
+                                                                {getExamProcess(stud.amsT_Id, exm.emE_Id)?.estmP_SectionRank}
+                                                            </td>
+                                                        )
+                                                )}
                                                 {temp_headers.map((hdr: any, i: number) => hdr.flag !== 'F' && <td key={i}></td>)}
-                                                {exam_list.map((exm: any) => exm.emE_FinalExamFlag && (
-                                                    <td key={exm.emE_Id}>{getExamProcess(stud.amsT_Id, exm.emE_Id)?.estmP_SectionRank}</td>
-                                                ))}
-                                                {temp_headers.map((hdr: any, i: number) => hdr.flag === 'F' && !hdr.equal_flag && <td key={i}></td>)}
+                                                {exam_list.map(
+                                                    (exm: any) =>
+                                                        exm.emE_FinalExamFlag && (
+                                                            <td key={exm.emE_Id}>
+                                                                {getExamProcess(stud.amsT_Id, exm.emE_Id)?.estmP_SectionRank}
+                                                            </td>
+                                                        )
+                                                )}
+                                                {temp_headers.map(
+                                                    (hdr: any, i: number) => hdr.flag === 'F' && !hdr.equal_flag && <td key={i}></td>
+                                                )}
                                                 <td></td>
                                                 <td></td>
                                             </tr>
                                             <tr className='font-bold'>
                                                 <td className='text-left'>RANK IN CLASS</td>
-                                                {exam_list.map((exm: any) => !exm.emE_FinalExamFlag && (
-                                                    <td key={exm.emE_Id}>{getExamProcess(stud.amsT_Id, exm.emE_Id)?.estmP_ClassRank}</td>
-                                                ))}
+                                                {exam_list.map(
+                                                    (exm: any) =>
+                                                        !exm.emE_FinalExamFlag && (
+                                                            <td key={exm.emE_Id}>
+                                                                {getExamProcess(stud.amsT_Id, exm.emE_Id)?.estmP_ClassRank}
+                                                            </td>
+                                                        )
+                                                )}
                                                 {temp_headers.map((hdr: any, i: number) => hdr.flag !== 'F' && <td key={i}></td>)}
-                                                {exam_list.map((exm: any) => exm.emE_FinalExamFlag && (
-                                                    <td key={exm.emE_Id}>{getExamProcess(stud.amsT_Id, exm.emE_Id)?.estmP_ClassRank}</td>
-                                                ))}
-                                                {temp_headers.map((hdr: any, i: number) => hdr.flag === 'F' && !hdr.equal_flag && <td key={i}></td>)}
+                                                {exam_list.map(
+                                                    (exm: any) =>
+                                                        exm.emE_FinalExamFlag && (
+                                                            <td key={exm.emE_Id}>
+                                                                {getExamProcess(stud.amsT_Id, exm.emE_Id)?.estmP_ClassRank}
+                                                            </td>
+                                                        )
+                                                )}
+                                                {temp_headers.map(
+                                                    (hdr: any, i: number) => hdr.flag === 'F' && !hdr.equal_flag && <td key={i}></td>
+                                                )}
                                                 <td></td>
                                                 <td></td>
                                             </tr>
                                         </>
                                     )}
                                     {/* Grade Subjects */}
-                                    {stud.final_subj_marks.filter((s: any) => !s.sub_details.flag).map((sub: any, i: number) => (
-                                        <tr key={i}>
-                                            <td className='text-left font-bold'>{sub.sub_details.ismS_SubjectName}</td>
-                                            {sub.subj_marks_details.map((m: any, mi: number) => (
-                                                <td key={mi} className='font-bold'>{m.estmpS_ObtainedGrade}</td>
-                                            ))}
-                                            <td></td>
-                                            <td></td>
-                                        </tr>
-                                    ))}
+                                    {stud.final_subj_marks
+                                        .filter((s: any) => !s.sub_details.flag)
+                                        .map((sub: any, i: number) => (
+                                            <tr key={i}>
+                                                <td className='text-left font-bold'>{sub.sub_details.ismS_SubjectName}</td>
+                                                {sub.subj_marks_details.map((m: any, mi: number) => (
+                                                    <td key={mi} className='font-bold'>
+                                                        {m.estmpS_ObtainedGrade}
+                                                    </td>
+                                                ))}
+                                                <td></td>
+                                                <td></td>
+                                            </tr>
+                                        ))}
                                 </tbody>
                             </table>
                         )}
@@ -254,33 +334,51 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                             <table className='baldwin-table'>
                                 <thead>
                                     <tr>
-                                        <th rowSpan={2} className='w-[180px]'>SUBJECTS</th>
-                                        {exam_list.map((exm: any) => !exm.emE_FinalExamFlag && <th key={exm.emE_Id}>{exm.emE_ExamName}</th>)}
+                                        <th rowSpan={2} className='w-[180px]'>
+                                            SUBJECTS
+                                        </th>
+                                        {exam_list.map(
+                                            (exm: any) => !exm.emE_FinalExamFlag && <th key={exm.emE_Id}>{exm.emE_ExamName}</th>
+                                        )}
                                         {exam_list.map((exm: any) => exm.emE_FinalExamFlag && <th key={exm.emE_Id}>{exm.emE_ExamName}</th>)}
                                         <th>TOTAL</th>
-                                        <th rowSpan={2} className='w-[300px]'>REMARKS</th>
+                                        <th rowSpan={2} className='w-[300px]'>
+                                            REMARKS
+                                        </th>
                                     </tr>
                                     <tr>
                                         {exam_list.map((exm: any) => !exm.emE_FinalExamFlag && <th key={exm.emE_Id}>{exm.marks}</th>)}
                                         {exam_list.map((exm: any) => exm.emE_FinalExamFlag && <th key={exm.emE_Id}>{exm.marks}</th>)}
-                                        <th>{data.EMP_MarksPerFlg === 'T' ? data.total_max_sub_marks : 'Note:Remarks are based on Final Exam Marks'}</th>
+                                        <th>
+                                            {data.EMP_MarksPerFlg === 'T'
+                                                ? data.total_max_sub_marks
+                                                : 'Note:Remarks are based on Final Exam Marks'}
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {stud.stu_subjects.filter((s: any) => s.flag).map((sub: any, i: number) => {
-                                        const promMarks = getPromMarks(stud.amsT_Id, sub.ismS_Id);
-                                        return (
-                                            <tr key={i}>
-                                                <td className='text-left font-bold'>{sub.ismS_SubjectName}</td>
-                                                {exam_list.map((exm: any) => (
-                                                    <td key={exm.emE_Id} className='font-bold'>{stud.stu_student_marks.find((m: any) => m.ismS_Id === sub.ismS_Id && m.emE_Id === exm.emE_Id)?.estmpS_ObtainedMarks}</td>
-                                                ))}
-                                                <td className='font-bold'>{promMarks?.estmppS_ObtainedMarks}</td>
-                                                <td className='text-xs text-left'>{promMarks?.estmppS_Remarks}</td>
-                                            </tr>
-                                        );
-                                    })}
-                                    <tr className='font-bold bg-gray-50'>
+                                    {stud.stu_subjects
+                                        .filter((s: any) => s.flag)
+                                        .map((sub: any, i: number) => {
+                                            const promMarks = getPromMarks(stud.amsT_Id, sub.ismS_Id);
+                                            return (
+                                                <tr key={i}>
+                                                    <td className='text-left font-bold'>{sub.ismS_SubjectName}</td>
+                                                    {exam_list.map((exm: any) => (
+                                                        <td key={exm.emE_Id} className='font-bold'>
+                                                            {
+                                                                stud.stu_student_marks.find(
+                                                                    (m: any) => m.ismS_Id === sub.ismS_Id && m.emE_Id === exm.emE_Id
+                                                                )?.estmpS_ObtainedMarks
+                                                            }
+                                                        </td>
+                                                    ))}
+                                                    <td className='font-bold'>{promMarks?.estmppS_ObtainedMarks}</td>
+                                                    <td className='text-left text-xs'>{promMarks?.estmppS_Remarks}</td>
+                                                </tr>
+                                            );
+                                        })}
+                                    <tr className='bg-gray-50 font-bold'>
                                         <td className='text-left'>TOTAL</td>
                                         {exam_list.map((exm: any) => (
                                             <td key={exm.emE_Id}>{getExamProcess(stud.amsT_Id, exm.emE_Id)?.estmP_TotalObtMarks}</td>
@@ -307,16 +405,24 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                         </tr>
                                     )}
                                     {/* Grade Subjects */}
-                                    {stud.stu_subjects.filter((s: any) => !s.flag).map((sub: any, i: number) => (
-                                        <tr key={i}>
-                                            <td className='text-left font-bold'>{sub.ismS_SubjectName}</td>
-                                            {exam_list.map((exm: any) => (
-                                                <td key={exm.emE_Id} className='font-bold'>{stud.stu_student_marks.find((m: any) => m.ismS_Id === sub.ismS_Id && m.emE_Id === exm.emE_Id)?.estmpS_ObtainedGrade}</td>
-                                            ))}
-                                            <td></td>
-                                            <td></td>
-                                        </tr>
-                                    ))}
+                                    {stud.stu_subjects
+                                        .filter((s: any) => !s.flag)
+                                        .map((sub: any, i: number) => (
+                                            <tr key={i}>
+                                                <td className='text-left font-bold'>{sub.ismS_SubjectName}</td>
+                                                {exam_list.map((exm: any) => (
+                                                    <td key={exm.emE_Id} className='font-bold'>
+                                                        {
+                                                            stud.stu_student_marks.find(
+                                                                (m: any) => m.ismS_Id === sub.ismS_Id && m.emE_Id === exm.emE_Id
+                                                            )?.estmpS_ObtainedGrade
+                                                        }
+                                                    </td>
+                                                ))}
+                                                <td></td>
+                                                <td></td>
+                                            </tr>
+                                        ))}
                                 </tbody>
                             </table>
                         )}
@@ -325,30 +431,74 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                         <table className='attendance-table'>
                             <thead>
                                 <tr>
-                                    <th colSpan={15} className='bg-gray-100 uppercase'>ATTENDANCE</th>
+                                    <th colSpan={15} className='bg-gray-100 uppercase'>
+                                        ATTENDANCE
+                                    </th>
                                 </tr>
                                 <tr>
                                     <th colSpan={2}>MONTH</th>
-                                    <th>JUN</th><th>JUL</th><th>AUG</th><th>SEP</th><th>OCT</th><th>NOV</th><th>DEC</th><th>JAN</th><th>FEB</th><th>MAR</th><th>APR</th>
+                                    <th>JUN</th>
+                                    <th>JUL</th>
+                                    <th>AUG</th>
+                                    <th>SEP</th>
+                                    <th>OCT</th>
+                                    <th>NOV</th>
+                                    <th>DEC</th>
+                                    <th>JAN</th>
+                                    <th>FEB</th>
+                                    <th>MAR</th>
+                                    <th>APR</th>
                                     <th>TOTAL</th>
                                     <th>TOTAL%</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td colSpan={2} className='font-bold'>WORKING DAYS</td>
-                                    {['june', 'july', 'august', 'september', 'october', 'november', 'december', 'january', 'febrauary', 'march', 'april'].map(m => (
+                                    <td colSpan={2} className='font-bold'>
+                                        WORKING DAYS
+                                    </td>
+                                    {[
+                                        'june',
+                                        'july',
+                                        'august',
+                                        'september',
+                                        'october',
+                                        'november',
+                                        'december',
+                                        'january',
+                                        'febrauary',
+                                        'march',
+                                        'april'
+                                    ].map((m) => (
                                         <td key={m}>{getAttendance(stud.amsT_Id, stud_work_attendence)[m]}</td>
                                     ))}
-                                    <td className='font-bold'>{getAttendance(stud.amsT_Id, stud_work_attendence).TotalWorkingDays || params.workingDays}</td>
+                                    <td className='font-bold'>
+                                        {getAttendance(stud.amsT_Id, stud_work_attendence).TotalWorkingDays || params.workingDays}
+                                    </td>
                                     <td className='font-bold'>{getAttendance(stud.amsT_Id, stud_work_attendence).Total_Percentage}%</td>
                                 </tr>
                                 <tr>
-                                    <td colSpan={2} className='font-bold'>PRESENT DAYS</td>
-                                    {['june', 'july', 'august', 'september', 'october', 'november', 'december', 'january', 'febrauary', 'march', 'april'].map(m => (
+                                    <td colSpan={2} className='font-bold'>
+                                        PRESENT DAYS
+                                    </td>
+                                    {[
+                                        'june',
+                                        'july',
+                                        'august',
+                                        'september',
+                                        'october',
+                                        'november',
+                                        'december',
+                                        'january',
+                                        'febrauary',
+                                        'march',
+                                        'april'
+                                    ].map((m) => (
                                         <td key={m}>{getAttendance(stud.amsT_Id, stud_present_attendence)[m]}</td>
                                     ))}
-                                    <td className='font-bold'>{getAttendance(stud.amsT_Id, stud_present_attendence).TotalPresentDays || params.presentDays}</td>
+                                    <td className='font-bold'>
+                                        {getAttendance(stud.amsT_Id, stud_present_attendence).TotalPresentDays || params.presentDays}
+                                    </td>
                                     <td className='font-bold'>{getAttendance(stud.amsT_Id, stud_present_attendence).Total_Percentage}%</td>
                                 </tr>
                             </tbody>
@@ -356,7 +506,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
                         {/* Remarks */}
                         <div className='remarks-section'>
-                            <span className='font-black mr-2 whitespace-nowrap uppercase'>CLASS TEACHER'S REMARKS :</span>
+                            <span className='mr-2 whitespace-nowrap font-black uppercase'>CLASS TEACHER'S REMARKS :</span>
                             <div className='flex-1 italic'>Promoted to Std X. Excellent performance in Mathematics and Science.</div>
                         </div>
 

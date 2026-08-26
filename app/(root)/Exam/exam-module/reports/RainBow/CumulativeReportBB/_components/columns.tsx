@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import type { ICumulativeReport, IMasterInstitution, Institution, IReportHeader, ISubject } from '@/types/exam/exam-module/report';
+import type { ICumulativeReport, IMasterInstitution, IReportHeader, ISubject, Institution } from '@/types/exam/exam-module/report';
 import { FileSpreadsheetIcon, Printer } from 'lucide-react';
 import { useState } from 'react';
 import * as XLSX from 'xlsx';
@@ -82,7 +82,7 @@ export default function CumulativeReportGridView({
 
         const applicableSubjects = columnFlags.applicable ? subjects.filter((s) => s.eyceS_AplResultFlg) : [];
         const nonApplicableSubjects = columnFlags.nonapplicable ? subjects.filter((s) => !s.eyceS_AplResultFlg) : [];
-        console.log('headerInfo: ', headerInfo)
+        console.log('headerInfo: ', headerInfo);
         // Title rows
         const titleRows = [
             [institution?.mI_Name || ''],
@@ -210,10 +210,7 @@ export default function CumulativeReportGridView({
             });
 
             // Total columns
-            row.push(
-                isAbsent ? '' : (student.estmP_TotalMaxMarks ?? ''),
-                isAbsent ? '' : (student.estmP_TotalObtMarks ?? '')
-            );
+            row.push(isAbsent ? '' : (student.estmP_TotalMaxMarks ?? ''), isAbsent ? '' : (student.estmP_TotalObtMarks ?? ''));
 
             if (columnFlags.readmit) {
                 row.push(isAbsent || student.estmP_Percentage == null ? '' : `${Number(student.estmP_Percentage).toFixed(2)}%`);
@@ -348,7 +345,7 @@ export default function CumulativeReportGridView({
         const mark = student.sub_list?.find((m) => m.ismS_Id === subj.ismS_Id);
         if (!mark) return '-';
         if (mark.estmpS_PassFailFlg === 'AB') {
-            return <span className='text-red-600 font-bold'>AB</span>;
+            return <span className='font-bold text-red-600'>AB</span>;
         }
 
         const showMarks = columnFlags.marksdisplay;
@@ -437,20 +434,22 @@ export default function CumulativeReportGridView({
                                 {columnFlags.admno && <th className='border border-blue-900 px-3 py-3'>Admission No</th>}
                                 {columnFlags.regno && <th className='border border-blue-900 px-3 py-3'>Registration No</th>}
 
-                                {columnFlags.applicable && subjects
-                                    .filter((s) => s.eyceS_AplResultFlg)
-                                    .map((subj) => (
-                                        <th key={subj.ismS_Id} className='border border-blue-900 px-3 py-3'>
-                                            {getSubjectHeaderName(subj)}
-                                        </th>
-                                    ))}
-                                {columnFlags.nonapplicable && subjects
-                                    .filter((s) => !s.eyceS_AplResultFlg)
-                                    .map((subj) => (
-                                        <th key={subj.ismS_Id} className='border border-blue-900 px-3 py-3'>
-                                            {subj.ismS_SubjectName} (M | G)
-                                        </th>
-                                    ))}
+                                {columnFlags.applicable &&
+                                    subjects
+                                        .filter((s) => s.eyceS_AplResultFlg)
+                                        .map((subj) => (
+                                            <th key={subj.ismS_Id} className='border border-blue-900 px-3 py-3'>
+                                                {getSubjectHeaderName(subj)}
+                                            </th>
+                                        ))}
+                                {columnFlags.nonapplicable &&
+                                    subjects
+                                        .filter((s) => !s.eyceS_AplResultFlg)
+                                        .map((subj) => (
+                                            <th key={subj.ismS_Id} className='border border-blue-900 px-3 py-3'>
+                                                {subj.ismS_SubjectName} (M | G)
+                                            </th>
+                                        ))}
                                 <th className='border border-blue-900 px-3 py-3'>Total</th>
                                 <th className='border border-blue-900 px-3 py-3'>Obtained</th>
                                 {columnFlags.readmit && <th className='border border-blue-900 px-3 py-3'>%</th>}
@@ -482,26 +481,30 @@ export default function CumulativeReportGridView({
                                             <td className='border border-gray-400 px-3 py-2 text-center'>{student.amsT_AdmNo ?? '-'}</td>
                                         )}
                                         {columnFlags.regno && (
-                                            <td className='border border-gray-400 px-3 py-2 text-center'>{student.amsT_RegistrationNo ?? '-'}</td>
+                                            <td className='border border-gray-400 px-3 py-2 text-center'>
+                                                {student.amsT_RegistrationNo ?? '-'}
+                                            </td>
                                         )}
 
                                         {/* Applicable Subjects */}
-                                        {columnFlags.applicable && subjects
-                                            .filter((s) => s.eyceS_AplResultFlg)
-                                            .map((subj) => (
-                                                <td key={subj.ismS_Id} className='border border-gray-400 py-2 text-center'>
-                                                    {renderMarkCellContent(subj, student)}
-                                                </td>
-                                            ))}
+                                        {columnFlags.applicable &&
+                                            subjects
+                                                .filter((s) => s.eyceS_AplResultFlg)
+                                                .map((subj) => (
+                                                    <td key={subj.ismS_Id} className='border border-gray-400 py-2 text-center'>
+                                                        {renderMarkCellContent(subj, student)}
+                                                    </td>
+                                                ))}
 
                                         {/* Non-applicable Subjects */}
-                                        {columnFlags.nonapplicable && subjects
-                                            .filter((s) => !s.eyceS_AplResultFlg)
-                                            .map((subj) => (
-                                                <td key={subj.ismS_Id} className='border border-gray-400 py-2 text-center'>
-                                                    {renderMarkCellContent(subj, student)}
-                                                </td>
-                                            ))}
+                                        {columnFlags.nonapplicable &&
+                                            subjects
+                                                .filter((s) => !s.eyceS_AplResultFlg)
+                                                .map((subj) => (
+                                                    <td key={subj.ismS_Id} className='border border-gray-400 py-2 text-center'>
+                                                        {renderMarkCellContent(subj, student)}
+                                                    </td>
+                                                ))}
 
                                         <td className='border border-gray-400 py-2 text-center'>
                                             {isAbsent ? '' : (student.estmP_TotalMaxMarks ?? '-')}
@@ -514,8 +517,8 @@ export default function CumulativeReportGridView({
                                                 {isAbsent
                                                     ? '-'
                                                     : student.estmP_Percentage
-                                                        ? `${Number(student.estmP_Percentage).toFixed(1)}%`
-                                                        : '-'}
+                                                      ? `${Number(student.estmP_Percentage).toFixed(1)}%`
+                                                      : '-'}
                                             </td>
                                         )}
                                         {columnFlags.gradecolm && (

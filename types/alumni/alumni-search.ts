@@ -39,7 +39,7 @@ export interface IAlumniSearchResultItem {
     ALMST_ConCity?: string;
     ALMST_FullAddess?: string;
     ALMST_PerPincode?: string;
-    ASMAY_Id_NEW_Left?: string; 
+    ASMAY_Id_NEW_Left?: string;
     Leftclass?: string;
     ASMCL_Id_Join?: number;
     ALMST_District?: string;
@@ -60,7 +60,9 @@ export interface IAlumniSearchResultItem {
     amst_date?: string;
 }
 
-export type IAlumniSearchResponse = {
-    searchResult: IAlumniSearchResultItem[];
-    count: number;
-} | IAlumniSearchResultItem[];
+export type IAlumniSearchResponse =
+    | {
+          searchResult: IAlumniSearchResultItem[];
+          count: number;
+      }
+    | IAlumniSearchResultItem[];

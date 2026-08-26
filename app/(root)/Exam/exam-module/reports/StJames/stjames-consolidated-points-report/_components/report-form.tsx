@@ -102,7 +102,7 @@ export default function StJamesConsolidatedPointsReportForm({
         const selectedYearObj = academicYears.find((y) => y.asmaY_Id === data.asmaY_Id);
         const selectedClassObj = classes.find((c) => c.asmcL_Id === data.asmcL_Id);
         const selectedSectionObj = sections.find((s) => s.asmS_Id === data.asmS_Id);
-        
+
         const payload = {
             ...data,
             asmaY_Year: selectedYearObj?.asmaY_Year || '',
@@ -246,11 +246,13 @@ export default function StJamesConsolidatedPointsReportForm({
                                         <Checkbox id='StjamesPoints' checked={field.value} onCheckedChange={field.onChange} />
                                     )}
                                 />
-                                <Label htmlFor='StjamesPoints' className='cursor-pointer'>Total Points Wise ?</Label>
+                                <Label htmlFor='StjamesPoints' className='cursor-pointer'>
+                                    Total Points Wise ?
+                                </Label>
                             </div>
                         </div>
 
-                        <div className='flex justify-center gap-3 mt-6'>
+                        <div className='mt-6 flex justify-center gap-3'>
                             <Button
                                 type='submit'
                                 isLoading={isSubmitting || externalLoading}
@@ -258,11 +260,7 @@ export default function StJamesConsolidatedPointsReportForm({
                                 className='min-w-[140px]'>
                                 Report
                             </Button>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                onClick={() => reset()}
-                                className='min-w-[100px]'>
+                            <Button type='button' variant='outline' onClick={() => reset()} className='min-w-[100px]'>
                                 Cancel
                             </Button>
                         </div>

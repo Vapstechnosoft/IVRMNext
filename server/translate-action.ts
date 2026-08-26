@@ -16,17 +16,17 @@ export async function translateText(query: string) {
         }
 
         // 3. Azure Cognitive Services Translator API Configuration
-        const key = "ae1549ade3594811b31d5b7eedf42758";
-        const endpoint = "https://api.cognitive.microsofttranslator.com";
-        const location = "centralindia";
-        
+        const key = 'ae1549ade3594811b31d5b7eedf42758';
+        const endpoint = 'https://api.cognitive.microsofttranslator.com';
+        const location = 'centralindia';
+
         // Auto-detect the source language and translate to English ('to=en')
         const url = `${endpoint}/translate?api-version=3.0&to=en`;
 
         const body = [{ Text: normalized }];
 
         console.log('[TRANSLATE-ACTION] Sending translation request to Azure for:', normalized);
-        
+
         const response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -40,7 +40,7 @@ export async function translateText(query: string) {
         if (response.ok) {
             const jsonResponse = await response.json();
             const translatedText = jsonResponse?.[0]?.translations?.[0]?.text;
-            
+
             if (translatedText) {
                 console.log('[TRANSLATE-ACTION] Translated successfully, input:', query, 'output:', translatedText);
                 return { success: true, text: translatedText };
@@ -53,7 +53,6 @@ export async function translateText(query: string) {
 
         // Fallback to the original text if translation failed
         return { success: false, text: normalized };
-
     } catch (error: any) {
         console.error('[TRANSLATE-ACTION] Translate Error:', error);
         return { success: false, text: query };

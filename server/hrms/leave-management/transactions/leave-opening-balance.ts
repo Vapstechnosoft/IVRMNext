@@ -1,28 +1,28 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type {
+    DeleteLeaveOpeningBalanceRequest,
+    DeleteLeaveOpeningBalanceResponseData,
+    GetEmployeOBRequest,
+    GetEmployeOBResponseData,
     GetLeaveOBRequest,
     GetLeaveOBResponseData,
     GetLeaveOpeningBalanceDepartmentsRequest,
     GetLeaveOpeningBalanceDepartmentsResponseData,
     GetLeaveOpeningBalanceDesignationRequest,
     GetLeaveOpeningBalanceDesignationResponseData,
+    GetLeaveOpeningBalancePageDetailsRequest,
+    GetLeaveOpeningBalancePageDetailsResponseData,
     GetOBDetailsRequest,
     GetOBDetailsResponseData,
-    GetEmployeOBRequest,
-    GetEmployeOBResponseData,
     SaveLeaveOpeningBalanceRequest,
-    SaveLeaveOpeningBalanceResponseData,
-    DeleteLeaveOpeningBalanceRequest,
-    DeleteLeaveOpeningBalanceResponseData,
-    GetLeaveOpeningBalancePageDetailsRequest,
-    GetLeaveOpeningBalancePageDetailsResponseData
+    SaveLeaveOpeningBalanceResponseData
 } from '@/types/hrms/leave-management/leave-opening-balance';
 /**
  * Get leave opening balance data
  * POST /api/LeaveOpeningBalanceWrapperFacade/GetLeaveOB
- * 
+ *
  * @param request - Request payload with MI_Id
  * @returns Leave opening balance data
  */
@@ -47,10 +47,8 @@ export async function getLeaveOB(request: GetLeaveOBRequest): Promise<ApiRespons
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to fetch leave opening balance';
+        const errorMessage =
+            error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to fetch leave opening balance';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -58,11 +56,13 @@ export async function getLeaveOB(request: GetLeaveOBRequest): Promise<ApiRespons
 /**
  * Get departments for leave opening balance
  * POST /api/LeaveOpeningBalanceWrapperFacade/GetDepartments
- * 
+ *
  * @param request - Request payload with MI_Id
  * @returns Departments data
  */
-export async function getLeaveOpeningBalanceDepartments(request: GetLeaveOpeningBalanceDepartmentsRequest): Promise<ApiResponse<GetLeaveOpeningBalanceDepartmentsResponseData>> {
+export async function getLeaveOpeningBalanceDepartments(
+    request: GetLeaveOpeningBalanceDepartmentsRequest
+): Promise<ApiResponse<GetLeaveOpeningBalanceDepartmentsResponseData>> {
     const url = '/api/LeaveOpeningBalanceWrapperFacade/GetDepartments';
     const requestBody: GetLeaveOpeningBalanceDepartmentsRequest = {
         MI_Id: request.MI_Id || HRMS_MI_ID
@@ -77,15 +77,14 @@ export async function getLeaveOpeningBalanceDepartments(request: GetLeaveOpening
         // Wrap raw response data
         return {
             success: (response as any)?.success ?? true,
-            message: (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
+            message:
+                (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
             data: response as unknown as GetLeaveOpeningBalanceDepartmentsResponseData
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to fetch departments';
+        const errorMessage =
+            error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to fetch departments';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -93,11 +92,13 @@ export async function getLeaveOpeningBalanceDepartments(request: GetLeaveOpening
 /**
  * Get designations for leave opening balance
  * POST /api/LeaveOpeningBalanceWrapperFacade/GetDesignation
- * 
+ *
  * @param request - Request payload with MI_Id
  * @returns Designations data
  */
-export async function getLeaveOpeningBalanceDesignation(request: GetLeaveOpeningBalanceDesignationRequest): Promise<ApiResponse<GetLeaveOpeningBalanceDesignationResponseData>> {
+export async function getLeaveOpeningBalanceDesignation(
+    request: GetLeaveOpeningBalanceDesignationRequest
+): Promise<ApiResponse<GetLeaveOpeningBalanceDesignationResponseData>> {
     const url = '/api/LeaveOpeningBalanceWrapperFacade/GetDesignation';
     const requestBody: GetLeaveOpeningBalanceDesignationRequest = {
         MI_Id: request.MI_Id || HRMS_MI_ID
@@ -112,15 +113,14 @@ export async function getLeaveOpeningBalanceDesignation(request: GetLeaveOpening
         // Wrap raw response data
         return {
             success: (response as any)?.success ?? true,
-            message: (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
+            message:
+                (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
             data: response as unknown as GetLeaveOpeningBalanceDesignationResponseData
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to fetch designations';
+        const errorMessage =
+            error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to fetch designations';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -128,7 +128,7 @@ export async function getLeaveOpeningBalanceDesignation(request: GetLeaveOpening
 /**
  * Get OB details for leave opening balance
  * POST /api/LeaveOpeningBalanceWrapperFacade/GetOBDetails
- * 
+ *
  * @param request - Request payload with MI_Id
  * @returns OB details data
  */
@@ -147,15 +147,14 @@ export async function getOBDetails(request: GetOBDetailsRequest): Promise<ApiRes
         // Wrap raw response data
         return {
             success: (response as any)?.success ?? true,
-            message: (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
+            message:
+                (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
             data: response as unknown as GetOBDetailsResponseData
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to fetch OB details';
+        const errorMessage =
+            error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to fetch OB details';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -163,7 +162,7 @@ export async function getOBDetails(request: GetOBDetailsRequest): Promise<ApiRes
 /**
  * Get employee OB data for leave opening balance
  * POST /api/LeaveOpeningBalanceWrapperFacade/GetEmployeOB
- * 
+ *
  * @param request - Request payload with MI_Id and optional filter arrays (emptypes, empdept, empdesg)
  * @returns Employee OB data
  */
@@ -186,15 +185,14 @@ export async function getEmployeOB(request: GetEmployeOBRequest): Promise<ApiRes
         // Wrap raw response data
         return {
             success: (response as any)?.success ?? true,
-            message: (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
+            message:
+                (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
             data: response as unknown as GetEmployeOBResponseData
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to fetch employee OB data';
+        const errorMessage =
+            error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to fetch employee OB data';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -202,11 +200,13 @@ export async function getEmployeOB(request: GetEmployeOBRequest): Promise<ApiRes
 /**
  * Save leave opening balance data
  * POST /api/LeaveOpeningBalanceWrapperFacade/Save
- * 
+ *
  * @param data - Request payload with MI_Id, HRME_Id, HRMLY_Id, and temp_table_data
  * @returns Save response data
  */
-export async function saveLeaveOpeningBalance(data: SaveLeaveOpeningBalanceRequest): Promise<ApiResponse<SaveLeaveOpeningBalanceResponseData>> {
+export async function saveLeaveOpeningBalance(
+    data: SaveLeaveOpeningBalanceRequest
+): Promise<ApiResponse<SaveLeaveOpeningBalanceResponseData>> {
     const url = '/api/LeaveOpeningBalanceWrapperFacade/Save';
     const requestBody: SaveLeaveOpeningBalanceRequest = {
         ...data, // Include any additional fields first
@@ -223,12 +223,15 @@ export async function saveLeaveOpeningBalance(data: SaveLeaveOpeningBalanceReque
         } else {
             responseData = response as unknown as SaveLeaveOpeningBalanceResponseData;
         }
-        const successMessage = responseData?.retrunMsg || 
-                              responseData?.message || 
-                              (response as any)?.message || 
-                              (responseData?.returnval_add ? 'Leave opening balance created successfully' : 
-                               responseData?.returnval_Update ? 'Leave opening balance updated successfully' : 
-                               'Leave opening balance saved successfully');
+        const successMessage =
+            responseData?.retrunMsg ||
+            responseData?.message ||
+            (response as any)?.message ||
+            (responseData?.returnval_add
+                ? 'Leave opening balance created successfully'
+                : responseData?.returnval_Update
+                  ? 'Leave opening balance updated successfully'
+                  : 'Leave opening balance saved successfully');
         if (responseData?.dupr || responseData?.returnduplicatestatus) {
             const duplicateMessage = responseData?.returnduplicatestatus || 'Duplicate record found';
             return {
@@ -243,21 +246,21 @@ export async function saveLeaveOpeningBalance(data: SaveLeaveOpeningBalanceReque
             data: responseData
         };
     } catch (error: any) {
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to save leave opening balance';
+        const errorMessage =
+            error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to save leave opening balance';
         throw new Error(errorMessage);
     }
 }
 /**
  * Delete leave opening balance record
  * POST /api/LeaveOpeningBalanceWrapperFacade/DeletePages
- * 
+ *
  * @param request - Request payload with HREOBL_Id
  * @returns Delete response data
  */
-export async function deleteLeaveOpeningBalance(request: DeleteLeaveOpeningBalanceRequest): Promise<ApiResponse<DeleteLeaveOpeningBalanceResponseData>> {
+export async function deleteLeaveOpeningBalance(
+    request: DeleteLeaveOpeningBalanceRequest
+): Promise<ApiResponse<DeleteLeaveOpeningBalanceResponseData>> {
     const url = '/api/LeaveOpeningBalanceWrapperFacade/DeletePages';
     const requestBody: DeleteLeaveOpeningBalanceRequest = {
         HREOBL_Id: request.HREOBL_Id || 0
@@ -273,15 +276,20 @@ export async function deleteLeaveOpeningBalance(request: DeleteLeaveOpeningBalan
         const responseData = response as unknown as DeleteLeaveOpeningBalanceResponseData;
         return {
             success: responseData?.returnval ?? (response as any)?.success ?? true,
-            message: responseData?.retrunMsg || responseData?.message || (response as any)?.message || 'Leave opening balance deleted successfully',
+            message:
+                responseData?.retrunMsg ||
+                responseData?.message ||
+                (response as any)?.message ||
+                'Leave opening balance deleted successfully',
             data: responseData
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to delete leave opening balance';
+        const errorMessage =
+            error?.response?.data?.message ||
+            error?.response?.data?.retrunMsg ||
+            error?.message ||
+            'Failed to delete leave opening balance';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
@@ -289,11 +297,13 @@ export async function deleteLeaveOpeningBalance(request: DeleteLeaveOpeningBalan
 /**
  * Get page details for leave opening balance
  * POST /api/LeaveOpeningBalanceWrapperFacade/GetPageDetails
- * 
+ *
  * @param request - Request payload with Id
  * @returns Page details data
  */
-export async function getLeaveOpeningBalancePageDetails(request: GetLeaveOpeningBalancePageDetailsRequest): Promise<ApiResponse<GetLeaveOpeningBalancePageDetailsResponseData>> {
+export async function getLeaveOpeningBalancePageDetails(
+    request: GetLeaveOpeningBalancePageDetailsRequest
+): Promise<ApiResponse<GetLeaveOpeningBalancePageDetailsResponseData>> {
     const url = '/api/LeaveOpeningBalanceWrapperFacade/GetPageDetails';
     const requestBody: GetLeaveOpeningBalancePageDetailsRequest = {
         Id: request.Id || 0
@@ -308,15 +318,14 @@ export async function getLeaveOpeningBalancePageDetails(request: GetLeaveOpening
         // Wrap raw response data
         return {
             success: (response as any)?.success ?? true,
-            message: (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
+            message:
+                (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
             data: response as unknown as GetLeaveOpeningBalancePageDetailsResponseData
         };
     } catch (error: any) {
         // Extract error message from API response
-        const errorMessage = error?.response?.data?.message || 
-                           error?.response?.data?.retrunMsg || 
-                           error?.message || 
-                           'Failed to fetch page details';
+        const errorMessage =
+            error?.response?.data?.message || error?.response?.data?.retrunMsg || error?.message || 'Failed to fetch page details';
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }

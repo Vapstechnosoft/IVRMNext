@@ -1,4 +1,3 @@
-
 export interface FeedbackType {
     fmtY_Id: number;
     fmtY_FeedbackTypeName: string;

@@ -1,13 +1,13 @@
 'use client';
 
-import React from 'react';
-import { Dancing_Script } from 'next/font/google';
 import { cn } from '@/lib/utils';
+import { Dancing_Script } from 'next/font/google';
+import React from 'react';
 
 const dancingScript = Dancing_Script({
     subsets: ['latin'],
     weight: ['400', '700'],
-    variable: '--font-dancing-script',
+    variable: '--font-dancing-script'
 });
 
 type CertificateProps = {
@@ -22,14 +22,13 @@ type CertificateProps = {
     sessionDate: string;
 };
 
-const LittleAnnsCertificate = React.forwardRef<HTMLDivElement, CertificateProps>(
-    ({ student, purpose, awardName, sessionDate }, ref) => {
-        const fullName = student ? `${student.stuFN} ${student.stuMN || ''} ${student.stuLN || ''}`.trim() : '';
+const LittleAnnsCertificate = React.forwardRef<HTMLDivElement, CertificateProps>(({ student, purpose, awardName, sessionDate }, ref) => {
+    const fullName = student ? `${student.stuFN} ${student.stuMN || ''} ${student.stuLN || ''}`.trim() : '';
 
-        return (
-            <div ref={ref} className={cn("printable-content", dancingScript.variable)}>
-                <style>
-                    {`
+    return (
+        <div ref={ref} className={cn('printable-content', dancingScript.variable)}>
+            <style>
+                {`
                     @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap');
                     
                     @media print {
@@ -239,92 +238,92 @@ const LittleAnnsCertificate = React.forwardRef<HTMLDivElement, CertificateProps>
                         margin: 0 10px;
                     }
                 `}
-                </style>
-                
-                <div className="outer-wrap">
-                    <div className="certificate-container">
-                        <div className="inner-border" />
+            </style>
 
-                        <div className="certificate-header">
-                            <div className="header-left">
-                                <div className="certificate-title" aria-label="Certificate of Appreciation">
-                                    <span className="big-c">C</span>
-                                    <span className="rest">
-                                        ERTIFICATE OF
-                                        <br />
-                                        APPRECIATION
-                                    </span>
-                                </div>
-                            </div>
-                            <img
-                                src="https://dcampusstrg.blob.core.windows.net/files/0/ISM_Attachments/e909049e-8c6b-4e8e-b8a9-9787cb41b849.png"
-                                alt="Little Ann’s Logo"
-                                className="logo"
-                            />
-                        </div>
+            <div className='outer-wrap'>
+                <div className='certificate-container'>
+                    <div className='inner-border' />
 
-                        <div className="certificate-body">
-                            <p>
-                                This is to certify that Master/Miss
-                                <span className="line line-name">
-                                    <span className="highlight-text">{fullName}</span>
+                    <div className='certificate-header'>
+                        <div className='header-left'>
+                            <div className='certificate-title' aria-label='Certificate of Appreciation'>
+                                <span className='big-c'>C</span>
+                                <span className='rest'>
+                                    ERTIFICATE OF
+                                    <br />
+                                    APPRECIATION
                                 </span>
-                            </p>
-
-                            <p>
-                                had participated in
-                                <span className="line line-event">
-                                    <span className="highlight-text">{purpose}</span>
-                                </span>
-                            </p>
-
-                            <p>
-                                for the session {student?.acadamicyear || '____'} held on dated
-                                <span className="line line-date">
-                                    <span className="highlight-text">{sessionDate}</span>
-                                </span>
-                            </p>
-
-                            <p>
-                                and awarded
-                                <span className="line line-award">
-                                    <span className="highlight-text">{awardName}</span>
-                                </span>.
-                            </p>
-
-                            <div className="signature-section">
-                                <img
-                                    src="https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/89e83cbd-ca37-49f2-b3ee-1e3ba0d7798d.png"
-                                    alt="Rector Signature"
-                                    className="rector-sign"
-                                />
-                                <div className="signature-line" />
-                                <p className="signature-text">Rector</p>
                             </div>
                         </div>
+                        <img
+                            src='https://dcampusstrg.blob.core.windows.net/files/0/ISM_Attachments/e909049e-8c6b-4e8e-b8a9-9787cb41b849.png'
+                            alt='Little Ann’s Logo'
+                            className='logo'
+                        />
+                    </div>
 
-                        <h1 className="certificate-title-bottom">A Unit of St.Ann&apos;s Group of School</h1>
+                    <div className='certificate-body'>
+                        <p>
+                            This is to certify that Master/Miss
+                            <span className='line line-name'>
+                                <span className='highlight-text'>{fullName}</span>
+                            </span>
+                        </p>
 
-                        <div className="kids-image">
+                        <p>
+                            had participated in
+                            <span className='line line-event'>
+                                <span className='highlight-text'>{purpose}</span>
+                            </span>
+                        </p>
+
+                        <p>
+                            for the session {student?.acadamicyear || '____'} held on dated
+                            <span className='line line-date'>
+                                <span className='highlight-text'>{sessionDate}</span>
+                            </span>
+                        </p>
+
+                        <p>
+                            and awarded
+                            <span className='line line-award'>
+                                <span className='highlight-text'>{awardName}</span>
+                            </span>
+                            .
+                        </p>
+
+                        <div className='signature-section'>
                             <img
-                                src="https://dcampusstrg.blob.core.windows.net/files/0/ISM_Attachments/900f92aa-c2ff-4df4-8018-6f3300ad5cf9.png"
-                                alt="Kids Playing"
+                                src='https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/89e83cbd-ca37-49f2-b3ee-1e3ba0d7798d.png'
+                                alt='Rector Signature'
+                                className='rector-sign'
                             />
+                            <div className='signature-line' />
+                            <p className='signature-text'>Rector</p>
                         </div>
                     </div>
 
-                    <div className="bottom-bar">
-                        <span>4000+ Happy Students</span>
-                        <span className="bottom-sep">|</span>
-                        <span>350+ Dedicated Teachers</span>
-                        <span className="bottom-sep">|</span>
-                        <span>55+ Years of Excellence</span>
+                    <h1 className='certificate-title-bottom'>A Unit of St.Ann&apos;s Group of School</h1>
+
+                    <div className='kids-image'>
+                        <img
+                            src='https://dcampusstrg.blob.core.windows.net/files/0/ISM_Attachments/900f92aa-c2ff-4df4-8018-6f3300ad5cf9.png'
+                            alt='Kids Playing'
+                        />
                     </div>
                 </div>
+
+                <div className='bottom-bar'>
+                    <span>4000+ Happy Students</span>
+                    <span className='bottom-sep'>|</span>
+                    <span>350+ Dedicated Teachers</span>
+                    <span className='bottom-sep'>|</span>
+                    <span>55+ Years of Excellence</span>
+                </div>
             </div>
-        );
-    }
-);
+        </div>
+    );
+});
 
 LittleAnnsCertificate.displayName = 'LittleAnnsCertificate';
 

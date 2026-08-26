@@ -1,17 +1,11 @@
 'use client';
 
-import React, { useRef } from 'react';
-import { useReactToPrint } from 'react-to-print';
-import { Printer, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { format } from 'date-fns';
+import { Printer, X } from 'lucide-react';
+import { useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
 
 interface AdmissionFormModalProps {
     isOpen: boolean;
@@ -24,7 +18,7 @@ export default function AdmissionFormModal({ isOpen, onClose, data, logo }: Admi
     const componentRef = useRef<HTMLDivElement>(null);
 
     const handlePrint = useReactToPrint({
-        contentRef: componentRef,
+        contentRef: componentRef
     });
 
     if (!data) return null;
@@ -37,9 +31,9 @@ export default function AdmissionFormModal({ isOpen, onClose, data, logo }: Admi
         { label: 'FULL NAME OF PUPIL', value: student.StudentName },
         { label: 'GENDER', value: student.AMST_Sex },
         { label: 'RELIGION', value: student.IVRMMR_Name },
-        { 
-            label: 'COMMUNITY: SC / ST / OBC / GENERAL / OTHERS (CERTIFICATE MUST BE ENCLOSED)', 
-            value: student.IMC_CasteName 
+        {
+            label: 'COMMUNITY: SC / ST / OBC / GENERAL / OTHERS (CERTIFICATE MUST BE ENCLOSED)',
+            value: student.IMC_CasteName
         },
         { label: 'NATIONALITY', value: student.IVRMMC_CountryName },
         { label: 'MOTHER TONGUE', value: student.AMST_MotherTongue },
@@ -47,34 +41,39 @@ export default function AdmissionFormModal({ isOpen, onClose, data, logo }: Admi
         { label: 'CLASS TO WHICH ADMISSION IS SOUGHT', value: student.ASMCL_ClassName },
         { label: "FATHER'S NAME", value: student.FatherName },
         { label: "MOTHER'S NAME", value: student.MotherName },
-        { 
-            label: 'PERMANENT ADDRESS', 
-            value: `${student.PermanentAddress || ''}, ${student.IVRMMS_Name || ''}, ${student.IVRMMC_CountryName || ''}, ${student.AMST_PerPincode || ''}` 
+        {
+            label: 'PERMANENT ADDRESS',
+            value: `${student.PermanentAddress || ''}, ${student.IVRMMS_Name || ''}, ${student.IVRMMC_CountryName || ''}, ${student.AMST_PerPincode || ''}`
         },
         { label: "FATHER'S MOBILE NUMBER", value: student.AMST_FatherMobleNo },
         { label: "MOTHER'S MOBILE NUMBER", value: student.AMST_MotherMobileNo },
         { label: "FATHER'S EMAIL", value: student.AMST_FatheremailId },
-        { label: "MOTHER'S EMAIL", value: student.AMST_MotherEmailId },
+        { label: "MOTHER'S EMAIL", value: student.AMST_MotherEmailId }
     ];
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader className="flex flex-row items-center justify-between border-b pb-2">
+            <DialogContent className='max-h-[90vh] max-w-4xl overflow-y-auto'>
+                <DialogHeader className='flex flex-row items-center justify-between border-b pb-2'>
                     <DialogTitle>Admission Form</DialogTitle>
-                    <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={handlePrint}>
-                            <Printer className="w-4 h-4 mr-2" />
+                    <div className='flex gap-2'>
+                        <Button variant='outline' size='sm' onClick={handlePrint}>
+                            <Printer className='mr-2 h-4 w-4' />
                             Print
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={onClose}>
-                            <X className="w-4 h-4" />
+                        <Button variant='ghost' size='sm' onClick={onClose}>
+                            <X className='h-4 w-4' />
                         </Button>
                     </div>
                 </DialogHeader>
 
-                <div ref={componentRef} className="p-8 font-serif text-[14px] print:p-0 print:text-[12px] leading-relaxed admission-modal-print">
-                    <style type="text/css" dangerouslySetInnerHTML={{ __html: `
+                <div
+                    ref={componentRef}
+                    className='admission-modal-print p-8 font-serif text-[14px] leading-relaxed print:p-0 print:text-[12px]'>
+                    <style
+                        type='text/css'
+                        dangerouslySetInnerHTML={{
+                            __html: `
                         @media print {
                             @page { size: A4; margin: 8mm 12mm; }
                             body {
@@ -145,60 +144,68 @@ export default function AdmissionFormModal({ isOpen, onClose, data, logo }: Admi
                                 font-size: 9.5px !important;
                             }
                         }
-                    ` }} />
-                    <div className="space-y-6 main-container">
+                    `
+                        }}
+                    />
+                    <div className='main-container space-y-6'>
                         {/* Header */}
-                        <div className="text-center">
-                            {logo && <img src={logo} alt="Logo" className="h-24 mx-auto mb-4 object-contain" />}
+                        <div className='text-center'>
+                            {logo && <img src={logo} alt='Logo' className='mx-auto mb-4 h-24 object-contain' />}
                         </div>
 
-                        <h1 className="text-center text-2xl font-bold uppercase tracking-widest border-b-2 border-black pb-2 inline-block mx-auto w-full">
+                        <h1 className='mx-auto inline-block w-full border-black border-b-2 pb-2 text-center font-bold text-2xl uppercase tracking-widest'>
                             ADMISSION FORM
                         </h1>
 
-                        <div className="space-y-3 pt-4 info-list">
+                        <div className='info-list space-y-3 pt-4'>
                             {infoRows.map((row, idx) => (
-                                <div key={idx} className="grid grid-cols-[300px_1fr] items-start gap-2 info-row">
-                                    <div className="font-bold uppercase text-[12px] info-row-label">{row.label}</div>
-                                    <div className="flex gap-2">
+                                <div key={idx} className='info-row grid grid-cols-[300px_1fr] items-start gap-2'>
+                                    <div className='info-row-label font-bold text-[12px] uppercase'>{row.label}</div>
+                                    <div className='flex gap-2'>
                                         <span>:</span>
-                                        <span className="font-medium">{row.value || 'N/A'}</span>
+                                        <span className='font-medium'>{row.value || 'N/A'}</span>
                                     </div>
                                 </div>
                             ))}
                         </div>
 
-                        <div className="space-y-6 pt-6 declaration-section">
-                            <h4 className="font-bold text-center underline italic text-lg">Declaration</h4>
-                            
-                            <p className="text-justify indent-8">
-                                I <strong>{student.FatherName}</strong> (F/O) <strong>{student.StudentName}</strong> hereby certify that the above details furnished by me is complete and true.
+                        <div className='declaration-section space-y-6 pt-6'>
+                            <h4 className='text-center font-bold text-lg italic underline'>Declaration</h4>
+
+                            <p className='text-justify indent-8'>
+                                I <strong>{student.FatherName}</strong> (F/O) <strong>{student.StudentName}</strong> hereby certify that the
+                                above details furnished by me is complete and true.
                             </p>
 
-                            <p className="text-justify indent-8">
-                                I shall be responsible for my ward’s behaviour and academic progress in the school. I have read and understood the rules and regulations of the school and am aware of the disciplinary practices existing in the school (which may change from time to time) in all matters. I hereby state that I shall cooperate with the school management in all matters and support its efforts to run the school efficiently.
+                            <p className='text-justify indent-8'>
+                                I shall be responsible for my ward’s behaviour and academic progress in the school. I have read and
+                                understood the rules and regulations of the school and am aware of the disciplinary practices existing in
+                                the school (which may change from time to time) in all matters. I hereby state that I shall cooperate with
+                                the school management in all matters and support its efforts to run the school efficiently.
                             </p>
 
-                            <div className="grid grid-cols-3 gap-8 pt-12 text-center signature-row">
-                                <div className="space-y-2">
-                                    <div className="border-b border-dotted border-black h-4 mx-4"></div>
-                                    <div className="text-[12px] font-bold">Father's Signature</div>
+                            <div className='signature-row grid grid-cols-3 gap-8 pt-12 text-center'>
+                                <div className='space-y-2'>
+                                    <div className='mx-4 h-4 border-black border-b border-dotted'></div>
+                                    <div className='font-bold text-[12px]'>Father's Signature</div>
                                 </div>
-                                <div className="space-y-2">
-                                    <div className="border-b border-dotted border-black h-4 mx-4"></div>
-                                    <div className="text-[12px] font-bold">Mother's Signature</div>
+                                <div className='space-y-2'>
+                                    <div className='mx-4 h-4 border-black border-b border-dotted'></div>
+                                    <div className='font-bold text-[12px]'>Mother's Signature</div>
                                 </div>
-                                <div className="space-y-2">
-                                    <div className="border-b border-dotted border-black h-4 mx-4"></div>
-                                    <div className="text-[12px] font-bold">Guardian's Signature</div>
+                                <div className='space-y-2'>
+                                    <div className='mx-4 h-4 border-black border-b border-dotted'></div>
+                                    <div className='font-bold text-[12px]'>Guardian's Signature</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <DialogFooter className="print:hidden">
-                    <Button variant="destructive" onClick={onClose}>Close</Button>
+                <DialogFooter className='print:hidden'>
+                    <Button variant='destructive' onClick={onClose}>
+                        Close
+                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

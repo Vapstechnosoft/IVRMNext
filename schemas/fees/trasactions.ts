@@ -734,3 +734,41 @@ export const GMthirdPartyTransactionSchema = {
         fyptP_Id: deleteIdSchema('fyptP_Id')
     })
 };
+
+export const studentFeeEnablePartialPaymentSchema = {
+    addOrUpdate: z.object({
+        asmaY_Id: z.coerce
+            .number({ required_error: 'Academic Year is required', invalid_type_error: 'Academic Year is required' })
+            .min(1, 'Academic Year is required'),
+        asmcL_Id: z
+            .union([z.number(), z.string()], {
+                required_error: 'Class is required',
+                invalid_type_error: 'Class is required'
+            })
+            .refine((val) => val !== '' && val !== undefined && val !== null, {
+                message: 'Class is required'
+            }),
+        amsC_Id: z
+            .union([z.number(), z.string()], {
+                required_error: 'Section is required',
+                invalid_type_error: 'Section is required'
+            })
+            .refine((val) => val !== '' && val !== undefined && val !== null, {
+                message: 'Section is required'
+            }),
+        amsT_Id: z.coerce
+            .number({ required_error: 'Student is required', invalid_type_error: 'Student is required' })
+            .min(1, 'Student is required'),
+        fsepP_RemarksDate: z
+            .string({ required_error: 'Request Date is required', invalid_type_error: 'Request Date is required' })
+            .min(1, 'Request Date is required'),
+        fsepP_Remarks: z
+            .string({ required_error: 'Remarks is required', invalid_type_error: 'Remarks is required' })
+            .trim()
+            .min(1, 'Remarks is required')
+            .max(500, 'Remarks cannot exceed 500 characters')
+    }),
+    delete: z.object({
+        fsepP_Id: deleteIdSchema('fsepP_Id')
+    })
+};

@@ -4,8 +4,8 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { getGmvpsProgressCardIXReport } from '@/server/exam/exam-module/reports/gmvps-report-card-ix';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import BurnpurReportCardForm from './_components/burnpur-report-form';
 import BurnpurProgressCardXIIReport from './_components/burnpur-progress-card-xii-report';
+import BurnpurReportCardForm from './_components/burnpur-report-form';
 
 export default function BurnpurProgressCardReportXIIPage() {
     const [reportData, setReportData] = useState<any>(null);
@@ -15,8 +15,8 @@ export default function BurnpurProgressCardReportXIIPage() {
     const handleReportSuccess = async (payload: any) => {
         try {
             const res = await getGmvpsProgressCardIXReport(payload);
-            console.log("response data: ", res);
-            
+            console.log('response data: ', res);
+
             const reportContent = res?.data || res; // Fallback if not wrapped
 
             if (!reportContent || !reportContent.getstudentdetails || reportContent.getstudentdetails.length === 0) {
@@ -50,10 +50,7 @@ export default function BurnpurProgressCardReportXIIPage() {
 
             {isReportVisible && reportData && (
                 <CollapsibleSection title='Progress Cards Report' defaultOpen>
-                    <BurnpurProgressCardXIIReport 
-                        data={reportData} 
-                        date={reportDate}
-                    />
+                    <BurnpurProgressCardXIIReport data={reportData} date={reportDate} />
                 </CollapsibleSection>
             )}
         </div>

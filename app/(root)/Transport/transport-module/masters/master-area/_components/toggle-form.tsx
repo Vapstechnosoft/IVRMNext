@@ -38,7 +38,6 @@ export default function ToggleMasterAreaForm({
         }
     };
 
-
     return (
         <AdaptiveDialog title={isActive ? 'Deactivate Record' : 'Activate Record'} isOpen={true} onClose={onClose}>
             <div className='flex flex-col gap-4'>

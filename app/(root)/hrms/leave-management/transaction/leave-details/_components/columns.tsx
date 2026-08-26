@@ -37,8 +37,5 @@ export const columns: ColumnDef<any>[] = [
         accessorKey: 'hrmlD_MaxLeaveApplicable',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Max Leave Applicable' className='whitespace-nowrap' />,
         cell: ({ row }) => <div className='text-center'>{row.getValue('hrmlD_MaxLeaveApplicable')}</div>
-    },
-   
+    }
 ];
-
-

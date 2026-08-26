@@ -4,23 +4,27 @@ export const studentRequestConfirmSchema = z.object({
     HLHSREQ_Id: z.number(),
     HLHSREQC_Id: z.number().default(0),
     HLHSREQC_Remarks: z.string({
-        required_error: "Remarks are required",
+        required_error: 'Remarks are required'
     }),
-    HRMRM_Id: z.string({
-        required_error: "Room assignment is required for approval",
-    }).optional(),
-    HLHSREQ_RequestDate: z.any().optional(),
+    HRMRM_Id: z
+        .string({
+            required_error: 'Room assignment is required for approval'
+        })
+        .optional(),
+    HLHSREQ_RequestDate: z.any().optional()
 });
 
 export const staffApprovalSchema = z.object({
     HLHSTREQ_Id: z.number(),
     HLHSTREQC_Id: z.number().default(0),
     HLHSTREQC_Remarks: z.string({
-        required_error: "Remarks are required",
+        required_error: 'Remarks are required'
     }),
-    HRMRM_Id: z.string({
-        required_error: "Room assignment is required for approval",
-    }).optional(),
+    HRMRM_Id: z
+        .string({
+            required_error: 'Room assignment is required for approval'
+        })
+        .optional()
 });
 
 export type StudentRequestConfirmValues = z.infer<typeof studentRequestConfirmSchema>;

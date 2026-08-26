@@ -70,7 +70,6 @@ export interface IMasterCategoryDropDown {
     asmcL_ClassName?: string;
 }
 
-
 export interface IMasterClassDropDown {
     asmcL_Id: number;
     asmcL_ClassCode: string;

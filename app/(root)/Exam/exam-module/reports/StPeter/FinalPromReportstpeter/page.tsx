@@ -1,11 +1,11 @@
 'use client';
 
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { getNDS9Report } from '@/server/exam/exam-module/reports/NDS/NDS_9_ProgressNewCardReport';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import FinalPromReportForm from './_components/final-prom-report-form';
 import FinalPromReportDisplay from './_components/final-prom-report-display';
-import { getNDS9Report } from '@/server/exam/exam-module/reports/NDS/NDS_9_ProgressNewCardReport';
+import FinalPromReportForm from './_components/final-prom-report-form';
 
 export default function FinalPromReportstpeterPage() {
     const [reportData, setReportData] = useState<any>(null);
@@ -15,7 +15,7 @@ export default function FinalPromReportstpeterPage() {
     const handleReportSuccess = async (payload: any) => {
         try {
             const res = await getNDS9Report(payload);
-            console.log(res, "response");
+            console.log(res, 'response');
 
             const reportContent = res?.data || res;
 
@@ -58,8 +58,8 @@ export default function FinalPromReportstpeterPage() {
 
             {isReportVisible && reportData && metaData && (
                 <CollapsibleSection title='Seniors Progress Card Report Display' defaultOpen>
-                    <FinalPromReportDisplay 
-                        data={reportData} 
+                    <FinalPromReportDisplay
+                        data={reportData}
                         date={metaData.date}
                         exmname={metaData.exmname}
                         logo={metaData.logo}

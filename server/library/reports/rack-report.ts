@@ -22,7 +22,14 @@ const normalizeLibraryList = (list: any[]) => {
     return list.map((lib: any) => {
         if (!lib || typeof lib !== 'object') return lib;
         const lmaL_Id = lib.lmaL_Id ?? lib.lmal_Id ?? lib.LMAL_Id ?? lib.lmal_id ?? lib.lmalId ?? lib.id;
-        const lmaL_LibraryName = lib.lmaL_LibraryName ?? lib.lmal_LibraryName ?? lib.LMAL_LibraryName ?? lib.lmal_libraryname ?? lib.libraryname ?? lib.libraryName ?? lib.name;
+        const lmaL_LibraryName =
+            lib.lmaL_LibraryName ??
+            lib.lmal_LibraryName ??
+            lib.LMAL_LibraryName ??
+            lib.lmal_libraryname ??
+            lib.libraryname ??
+            lib.libraryName ??
+            lib.name;
         return {
             ...lib,
             lmaL_Id: Number(lmaL_Id),
@@ -35,7 +42,14 @@ const normalizeRackList = (list: any[]) => {
     return list.map((rack: any) => {
         if (!rack || typeof rack !== 'object') return rack;
         const lmrA_Id = rack.lmrA_Id ?? rack.lmra_Id ?? rack.LMRA_Id ?? rack.lmra_id ?? rack.lmraId ?? rack.id;
-        const lmrA_RackName = rack.lmrA_RackName ?? rack.lmra_RackName ?? rack.LMRA_RackName ?? rack.lmra_rackname ?? rack.rackname ?? rack.rackName ?? rack.name;
+        const lmrA_RackName =
+            rack.lmrA_RackName ??
+            rack.lmra_RackName ??
+            rack.LMRA_RackName ??
+            rack.lmra_rackname ??
+            rack.rackname ??
+            rack.rackName ??
+            rack.name;
         return {
             ...rack,
             lmrA_Id: Number(lmrA_Id),

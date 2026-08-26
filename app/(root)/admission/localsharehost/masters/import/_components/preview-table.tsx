@@ -1,9 +1,9 @@
 'use client';
 
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TableProperties } from 'lucide-react';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import type { ColumnDef } from '@tanstack/react-table';
+import { TableProperties } from 'lucide-react';
 import { useMemo } from 'react';
 
 interface PreviewTableProps {
@@ -18,14 +18,14 @@ export default function PreviewTable({ data, headers, isLoading }: PreviewTableP
             {
                 accessorKey: 'slno',
                 header: 'SLNO',
-                cell: ({ row }) => row.index + 1,
-            },
+                cell: ({ row }) => row.index + 1
+            }
         ];
 
         const dynamicColumns: ColumnDef<any>[] = headers.map((header) => ({
             accessorKey: header,
             header: header,
-            cell: ({ row }) => row.getValue(header) ?? '-',
+            cell: ({ row }) => row.getValue(header) ?? '-'
         }));
 
         return [...baseColumns, ...dynamicColumns];
@@ -34,7 +34,7 @@ export default function PreviewTable({ data, headers, isLoading }: PreviewTableP
     return (
         <Card className='shadow-lg'>
             <CardHeader className='border-b bg-muted/50 py-4'>
-                <CardTitle className='text-lg font-bold flex items-center gap-2'>
+                <CardTitle className='flex items-center gap-2 font-bold text-lg'>
                     <TableProperties className='h-5 w-5 text-primary' />
                     Imported Data From Excel
                 </CardTitle>

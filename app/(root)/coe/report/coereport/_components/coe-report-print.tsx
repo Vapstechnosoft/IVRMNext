@@ -1,20 +1,19 @@
 'use client';
 
-import React from 'react';
 import { format } from 'date-fns';
+import React from 'react';
 
 interface CoeReportPrintProps {
     coeReportData: any[];
 }
 
-export const CoeReportPrint = React.forwardRef<HTMLDivElement, CoeReportPrintProps>(
-    ({ coeReportData }, ref) => {
-        const currentDate = format(new Date(), 'dd/MM/yyyy');
+export const CoeReportPrint = React.forwardRef<HTMLDivElement, CoeReportPrintProps>(({ coeReportData }, ref) => {
+    const currentDate = format(new Date(), 'dd/MM/yyyy');
 
-        return (
-            <div ref={ref} className='print-preview-container bg-white text-black min-h-full w-full'>
-                <style>
-                    {`
+    return (
+        <div ref={ref} className='print-preview-container min-h-full w-full bg-white text-black'>
+            <style>
+                {`
                         @media print {
                             @page {
                                 margin: 10mm;
@@ -78,67 +77,59 @@ export const CoeReportPrint = React.forwardRef<HTMLDivElement, CoeReportPrintPro
                             }
                         }
                     `}
-                </style>
+            </style>
 
-                <table className='main-table no-border'>
-                    <thead>
-                        <tr>
-                            <td className='no-border'>
-                                {/* Header */}
-                                <div className='header-section'>
-                                    <h2 className='text-md font-bold uppercase'>
-                                        COE Report
-                                    </h2>
-                                    <p className='text-xs mt-2'>Date: {currentDate}</p>
-                                </div>
-                            </td>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td className='no-border'>
-                                {/* Table */}
-                                <table className='data-table w-full'>
-                                    <thead>
-                                        <tr className='bg-gray-100 uppercase'>
-                                            <th className='w-12'>Sl No</th>
-                                            <th className='text-left'>Event Name</th>
-                                            <th className='text-left'>Event Description</th>
-                                            <th className='w-24'>Event Start Date</th>
-                                            <th className='w-24'>Event End Date</th>
+            <table className='main-table no-border'>
+                <thead>
+                    <tr>
+                        <td className='no-border'>
+                            {/* Header */}
+                            <div className='header-section'>
+                                <h2 className='font-bold text-md uppercase'>COE Report</h2>
+                                <p className='mt-2 text-xs'>Date: {currentDate}</p>
+                            </div>
+                        </td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td className='no-border'>
+                            {/* Table */}
+                            <table className='data-table w-full'>
+                                <thead>
+                                    <tr className='bg-gray-100 uppercase'>
+                                        <th className='w-12'>Sl No</th>
+                                        <th className='text-left'>Event Name</th>
+                                        <th className='text-left'>Event Description</th>
+                                        <th className='w-24'>Event Start Date</th>
+                                        <th className='w-24'>Event End Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {coeReportData.map((row, idx) => (
+                                        <tr key={idx}>
+                                            <td>{idx + 1}</td>
+                                            <td className='text-left font-medium'>{row.eventName ?? row.coemE_EventName ?? 'NA'}</td>
+                                            <td className='text-left'>{row.eventDesc ?? row.coemE_EventDesc ?? 'NA'}</td>
+                                            <td>{row.coeE_EStartDate ? new Date(row.coeE_EStartDate).toISOString().slice(0, 10) : 'NA'}</td>
+                                            <td>{row.coeE_EEndDate ? new Date(row.coeE_EEndDate).toISOString().slice(0, 10) : 'NA'}</td>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        {coeReportData.map((row, idx) => (
-                                            <tr key={idx}>
-                                                <td>{idx + 1}</td>
-                                                <td className='text-left font-medium'>{row.eventName ?? row.coemE_EventName ?? 'NA'}</td>
-                                                <td className='text-left'>{row.eventDesc ?? row.coemE_EventDesc ?? 'NA'}</td>
-                                                <td>
-                                                    {row.coeE_EStartDate ? new Date(row.coeE_EStartDate).toISOString().slice(0, 10) : 'NA'}
-                                                </td>
-                                                <td>
-                                                    {row.coeE_EEndDate ? new Date(row.coeE_EEndDate).toISOString().slice(0, 10) : 'NA'}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                        {coeReportData.length === 0 && (
-                                            <tr>
-                                                <td colSpan={5} className="py-4 text-center font-bold">
-                                                    No records found
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </td>
-                        </tr>
-                    </tbody>
-
-                </table>
-            </div>
-        );
-    }
-);
+                                    ))}
+                                    {coeReportData.length === 0 && (
+                                        <tr>
+                                            <td colSpan={5} className='py-4 text-center font-bold'>
+                                                No records found
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    );
+});
 
 CoeReportPrint.displayName = 'CoeReportPrint';

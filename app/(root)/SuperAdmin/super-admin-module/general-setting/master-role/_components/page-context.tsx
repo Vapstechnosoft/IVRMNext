@@ -9,11 +9,7 @@ interface PageContextType {
 const PageContext = createContext<PageContextType | null>(null);
 
 export function PageProvider({ children, refreshData }: { children: React.ReactNode; refreshData: () => void }) {
-    return (
-        <PageContext.Provider value={{ refreshData }}>
-            {children}
-        </PageContext.Provider>
-    );
+    return <PageContext.Provider value={{ refreshData }}>{children}</PageContext.Provider>;
 }
 
 export function usePageContext() {

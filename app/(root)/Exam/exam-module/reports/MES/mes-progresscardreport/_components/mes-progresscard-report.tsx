@@ -1,13 +1,17 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Printer } from 'lucide-react';
-import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { useReactToPrint } from 'react-to-print';
 import type { IMasterInstitution, Institution } from '@/types/exam/exam-module/report';
+import { Printer } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useReactToPrint } from 'react-to-print';
 
 /* ---------- Performance Chart Component ---------- */
-function PerformanceChart({ studentId, chartData, onChartReady }: {
+function PerformanceChart({
+    studentId,
+    chartData,
+    onChartReady
+}: {
     studentId: number;
     chartData?: { subjects: string[]; marks: number[] };
     onChartReady?: (id: number, dataUrl: string) => void;
@@ -26,13 +30,15 @@ function PerformanceChart({ studentId, chartData, onChartReady }: {
                 type: 'bar',
                 data: {
                     labels: chartData.subjects,
-                    datasets: [{
-                        label: 'Marks Obtained',
-                        data: chartData.marks,
-                        backgroundColor: 'rgba(30, 144, 255, 0.6)',
-                        borderColor: 'rgba(30, 144, 255, 1)',
-                        borderWidth: 1
-                    }]
+                    datasets: [
+                        {
+                            label: 'Marks Obtained',
+                            data: chartData.marks,
+                            backgroundColor: 'rgba(30, 144, 255, 0.6)',
+                            borderColor: 'rgba(30, 144, 255, 1)',
+                            borderWidth: 1
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
@@ -103,7 +109,7 @@ export default function MESProgressCardReport({
     const [chartImages, setChartImages] = useState<Record<number, string>>({});
 
     const handlePrint = useReactToPrint({
-        contentRef: printRef,
+        contentRef: printRef
     });
 
     const handleChartReady = useCallback((id: number, dataUrl: string) => {
@@ -113,7 +119,7 @@ export default function MESProgressCardReport({
     if (!reportData || reportData.length === 0) return null;
 
     return (
-        <div className="space-y-6">
+        <div className='space-y-6'>
             <style jsx global>{`
                 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
 
@@ -182,71 +188,74 @@ export default function MESProgressCardReport({
                 }
             `}</style>
 
-            <div className="flex justify-end mb-4 no-print">
-                <Button onClick={() => handlePrint()} className="flex items-center gap-2">
-                    <Printer className="h-4 w-4" />
+            <div className='no-print mb-4 flex justify-end'>
+                <Button onClick={() => handlePrint()} className='flex items-center gap-2'>
+                    <Printer className='h-4 w-4' />
                     Print All Progress Cards
                 </Button>
             </div>
 
-            <div id="mes-print-area" ref={printRef} className="mes-report-container">
+            <div id='mes-print-area' ref={printRef} className='mes-report-container'>
                 {reportData.map((report, index) => {
-                    const studentMarks = saveList.filter(m => m.amsT_Id === report.amsT_Id);
-                    const scholasticMarks = studentMarks.filter(m => m.eyceS_AplResultFlg === true);
-                    const coScholasticMarks = studentMarks.filter(m => m.eyceS_AplResultFlg === false);
+                    const studentMarks = saveList.filter((m) => m.amsT_Id === report.amsT_Id);
+                    const scholasticMarks = studentMarks.filter((m) => m.eyceS_AplResultFlg === true);
+                    const coScholasticMarks = studentMarks.filter((m) => m.eyceS_AplResultFlg === false);
 
                     const chartData = {
-                        subjects: scholasticMarks.map(m => m.ismS_SubjectName),
-                        marks: scholasticMarks.map(m => m.estmpS_ObtainedMarks || 0)
+                        subjects: scholasticMarks.map((m) => m.ismS_SubjectName),
+                        marks: scholasticMarks.map((m) => m.estmpS_ObtainedMarks || 0)
                     };
 
                     return (
-                        <div key={report.amsT_Id} className="mes-card p-8 shadow-sm mx-auto" style={{ width: '210mm', minHeight: '290mm' }}>
-
+                        <div key={report.amsT_Id} className='mes-card mx-auto p-8 shadow-sm' style={{ width: '210mm', minHeight: '290mm' }}>
                             {/* Header Image */}
-                            <div className="text-center mb-6">
+                            <div className='mb-6 text-center'>
                                 <img
-                                    src="https://vapsclg.blob.core.windows.net/files/78/ISM_Attachments/bdb3c5ea-581f-46bd-9516-d391b5a2b53e.jpg"
-                                    alt="School Header"
-                                    className="w-full h-auto max-h-32 object-contain mx-auto"
+                                    src='https://vapsclg.blob.core.windows.net/files/78/ISM_Attachments/bdb3c5ea-581f-46bd-9516-d391b5a2b53e.jpg'
+                                    alt='School Header'
+                                    className='mx-auto h-auto max-h-32 w-full object-contain'
                                 />
                             </div>
 
                             {/* Report Title */}
-                            <div className="text-center mb-6">
-                                <div className="inline-block bg-blue-900 text-white px-8 py-2 rounded-sm mb-2">
-                                    <h2 className="text-xl font-bold tracking-widest uppercase">PROGRESS REPORT CARD</h2>
+                            <div className='mb-6 text-center'>
+                                <div className='mb-2 inline-block rounded-sm bg-blue-900 px-8 py-2 text-white'>
+                                    <h2 className='font-bold text-xl uppercase tracking-widest'>PROGRESS REPORT CARD</h2>
                                 </div>
-                                <h3 className="text-lg font-bold text-gray-800">{examName || report.emE_ExamName} - ({year})</h3>
+                                <h3 className='font-bold text-gray-800 text-lg'>
+                                    {examName || report.emE_ExamName} - ({year})
+                                </h3>
                             </div>
 
                             {/* Student Info Table */}
-                            <table className="mes-table" style={{ border: 'none', marginBottom: '1.5rem' }}>
+                            <table className='mes-table' style={{ border: 'none', marginBottom: '1.5rem' }}>
                                 <tbody style={{ border: 'none' }}>
                                     <tr style={{ border: 'none' }}>
                                         <td style={{ border: 'none', textAlign: 'left', width: '33%' }}>
-                                            <span className="mes-info-label">Name :</span> {report.amsT_FirstName}
+                                            <span className='mes-info-label'>Name :</span> {report.amsT_FirstName}
                                         </td>
                                         <td style={{ border: 'none', textAlign: 'left', width: '33%' }}>
-                                            <span className="mes-info-label">Class :</span> {report.asmcL_ClassName}
+                                            <span className='mes-info-label'>Class :</span> {report.asmcL_ClassName}
                                         </td>
                                         <td style={{ border: 'none', textAlign: 'left', width: '33%' }}>
-                                            <span className="mes-info-label">Roll No :</span> {report.amaY_RollNo}
+                                            <span className='mes-info-label'>Roll No :</span> {report.amaY_RollNo}
                                         </td>
                                     </tr>
                                     <tr style={{ border: 'none' }}>
                                         <td style={{ border: 'none', textAlign: 'left' }}>
-                                            <span className="mes-info-label">Adm No :</span> {report.amsT_AdmNo}
+                                            <span className='mes-info-label'>Adm No :</span> {report.amsT_AdmNo}
                                         </td>
                                         <td style={{ border: 'none', textAlign: 'left' }}>
-                                            <span className="mes-info-label">Section :</span> {report.asmC_SectionName}
+                                            <span className='mes-info-label'>Section :</span> {report.asmC_SectionName}
                                         </td>
                                         <td style={{ border: 'none', textAlign: 'left' }}>
-                                            <span className="mes-info-label">Attendance :</span>
+                                            <span className='mes-info-label'>Attendance :</span>
                                             {(() => {
-                                                const workAtt = workAttendance.find(att => att.AMST_Id === report.amsT_Id);
-                                                const presAtt = presentAttendance.find(att => att.AMST_Id === report.amsT_Id);
-                                                return workAtt && presAtt ? ` ${presAtt.TotalPresentDays} / ${workAtt.TotalWorkingDays}` : ' -';
+                                                const workAtt = workAttendance.find((att) => att.AMST_Id === report.amsT_Id);
+                                                const presAtt = presentAttendance.find((att) => att.AMST_Id === report.amsT_Id);
+                                                return workAtt && presAtt
+                                                    ? ` ${presAtt.TotalPresentDays} / ${workAtt.TotalWorkingDays}`
+                                                    : ' -';
                                             })()}
                                         </td>
                                     </tr>
@@ -254,75 +263,89 @@ export default function MESProgressCardReport({
                             </table>
 
                             {/* Scholastic Table */}
-                            <div className="mb-8">
-                                <table className="mes-table">
+                            <div className='mb-8'>
+                                <table className='mes-table'>
                                     <thead>
-                                        <tr className="mes-header-bg">
-                                            <th className="w-12">SL</th>
-                                            <th className="text-left px-4">SCHOLASTIC SUBJECTS</th>
-                                            <th className="w-20">MAX</th>
-                                            <th className="w-20">MIN</th>
-                                            <th className="w-20">OBTAINED</th>
-                                            <th className="w-16">GRADE</th>
+                                        <tr className='mes-header-bg'>
+                                            <th className='w-12'>SL</th>
+                                            <th className='px-4 text-left'>SCHOLASTIC SUBJECTS</th>
+                                            <th className='w-20'>MAX</th>
+                                            <th className='w-20'>MIN</th>
+                                            <th className='w-20'>OBTAINED</th>
+                                            <th className='w-16'>GRADE</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {scholasticMarks.map((marks, mIndex) => (
                                             <tr key={mIndex}>
                                                 <td>{mIndex + 1}</td>
-                                                <td className="text-left px-4 font-medium">{marks.ismS_SubjectName}</td>
+                                                <td className='px-4 text-left font-medium'>{marks.ismS_SubjectName}</td>
                                                 <td>{marks.eyceS_MaxMarks}</td>
                                                 <td>{marks.eyceS_MinMarks}</td>
-                                                <td className="font-bold">
-                                                    {marks.estmpS_PassFailFlg === 'AB' ? 'AB' : (marks.eyceS_MarksDisplayFlg ? marks.estmpS_ObtainedMarks : '-')}
+                                                <td className='font-bold'>
+                                                    {marks.estmpS_PassFailFlg === 'AB'
+                                                        ? 'AB'
+                                                        : marks.eyceS_MarksDisplayFlg
+                                                          ? marks.estmpS_ObtainedMarks
+                                                          : '-'}
                                                 </td>
-                                                <td className="font-bold">
+                                                <td className='font-bold'>
                                                     {marks.estmpS_PassFailFlg === 'AB' ? 'AB' : marks.estmpS_ObtainedGrade}
                                                 </td>
                                             </tr>
                                         ))}
-                                        <tr className="mes-header-bg font-bold">
-                                            <td colSpan={2} className="text-right px-4 uppercase">GRAND TOTAL</td>
+                                        <tr className='mes-header-bg font-bold'>
+                                            <td colSpan={2} className='px-4 text-right uppercase'>
+                                                GRAND TOTAL
+                                            </td>
                                             <td>{report.estmP_TotalMaxMarks}</td>
                                             <td>{report.estmP_MinMarks}</td>
                                             <td>{report.estmP_TotalObtMarks}</td>
                                             <td>{report.estmP_TotalGrade}</td>
                                         </tr>
-                                        <tr className="mes-header-bg font-bold">
-                                            <td colSpan={2} className="text-right px-4 uppercase">PERCENTAGE</td>
-                                            <td colSpan={4} className="text-center">{report.estmP_Percentage}%</td>
+                                        <tr className='mes-header-bg font-bold'>
+                                            <td colSpan={2} className='px-4 text-right uppercase'>
+                                                PERCENTAGE
+                                            </td>
+                                            <td colSpan={4} className='text-center'>
+                                                {report.estmP_Percentage}%
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
 
                             {/* Co-Scholastic & Chart Grid */}
-                            <div className="grid grid-cols-2 gap-8 mb-8">
+                            <div className='mb-8 grid grid-cols-2 gap-8'>
                                 <div>
-                                    <div className="bg-blue-900 text-white text-center py-1 mb-1 font-bold text-xs uppercase">Co-Scholastic Performance</div>
-                                    <table className="mes-table">
+                                    <div className='mb-1 bg-blue-900 py-1 text-center font-bold text-white text-xs uppercase'>
+                                        Co-Scholastic Performance
+                                    </div>
+                                    <table className='mes-table'>
                                         <thead>
-                                            <tr className="mes-header-bg">
-                                                <th className="text-left px-4">Subject</th>
-                                                <th className="w-20">Grade</th>
+                                            <tr className='mes-header-bg'>
+                                                <th className='px-4 text-left'>Subject</th>
+                                                <th className='w-20'>Grade</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {coScholasticMarks.map((marks, mIndex) => (
                                                 <tr key={mIndex}>
-                                                    <td className="text-left px-4">{marks.ismS_SubjectName}</td>
-                                                    <td className="font-bold">{marks.estmpS_ObtainedGrade}</td>
+                                                    <td className='px-4 text-left'>{marks.ismS_SubjectName}</td>
+                                                    <td className='font-bold'>{marks.estmpS_ObtainedGrade}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
                                     </table>
                                 </div>
 
-                                <div className="flex flex-col border border-gray-300 p-2 rounded">
-                                    <div className="bg-blue-900 text-white text-center py-1 mb-2 font-bold text-xs uppercase">Subject Analysis</div>
-                                    <div className="flex-1 min-h-[150px] relative">
+                                <div className='flex flex-col rounded border border-gray-300 p-2'>
+                                    <div className='mb-2 bg-blue-900 py-1 text-center font-bold text-white text-xs uppercase'>
+                                        Subject Analysis
+                                    </div>
+                                    <div className='relative min-h-[150px] flex-1'>
                                         {/* Canvas for screen */}
-                                        <div className="no-print">
+                                        <div className='no-print'>
                                             <PerformanceChart
                                                 studentId={report.amsT_Id}
                                                 chartData={chartData}
@@ -333,8 +356,8 @@ export default function MESProgressCardReport({
                                         {chartImages[report.amsT_Id] && (
                                             <img
                                                 src={chartImages[report.amsT_Id]}
-                                                alt="Performance Analysis"
-                                                className="hidden print:block w-full h-auto object-contain"
+                                                alt='Performance Analysis'
+                                                className='hidden h-auto w-full object-contain print:block'
                                                 style={{ maxHeight: '200px' }}
                                             />
                                         )}
@@ -343,48 +366,63 @@ export default function MESProgressCardReport({
                             </div>
 
                             {/* Remarks */}
-                            <div className="mb-8">
-                                <div className="bg-blue-900 text-white px-4 py-1 font-bold text-xs uppercase inline-block mb-2">Class Teacher's Remarks</div>
-                                <div className="border-b-2 border-dotted border-gray-400 pb-2 italic text-sm">
-                                    {promotionRemarks.find(p => p.amsT_Id === report.amsT_Id)?.emeR_Remarks || 'Satisfactory progress shown in all subjects.'}
+                            <div className='mb-8'>
+                                <div className='mb-2 inline-block bg-blue-900 px-4 py-1 font-bold text-white text-xs uppercase'>
+                                    Class Teacher's Remarks
+                                </div>
+                                <div className='border-gray-400 border-b-2 border-dotted pb-2 text-sm italic'>
+                                    {promotionRemarks.find((p) => p.amsT_Id === report.amsT_Id)?.emeR_Remarks ||
+                                        'Satisfactory progress shown in all subjects.'}
                                 </div>
                             </div>
 
                             {/* Signatures */}
-                            <div className="grid grid-cols-3 gap-8 text-center mt-12 mb-8">
-                                <div className="pt-2 border-t border-black">
-                                    <p className="text-xs font-bold uppercase">Class Teacher</p>
+                            <div className='mt-12 mb-8 grid grid-cols-3 gap-8 text-center'>
+                                <div className='border-black border-t pt-2'>
+                                    <p className='font-bold text-xs uppercase'>Class Teacher</p>
                                 </div>
-                                <div className="pt-2 border-t border-black">
-                                    <p className="text-xs font-bold uppercase">Principal</p>
+                                <div className='border-black border-t pt-2'>
+                                    <p className='font-bold text-xs uppercase'>Principal</p>
                                 </div>
-                                <div className="pt-2 border-t border-black">
-                                    <p className="text-xs font-bold uppercase">Parent</p>
+                                <div className='border-black border-t pt-2'>
+                                    <p className='font-bold text-xs uppercase'>Parent</p>
                                 </div>
                             </div>
 
                             {/* Grading Scale */}
-                            <div className="mt-auto pt-4">
-                                <table className="mes-table" style={{ fontSize: '10px', width: '80%', margin: '0 auto' }}>
+                            <div className='mt-auto pt-4'>
+                                <table className='mes-table' style={{ fontSize: '10px', width: '80%', margin: '0 auto' }}>
                                     <thead>
-                                        <tr className="mes-header-bg">
+                                        <tr className='mes-header-bg'>
                                             <th colSpan={8}>ACADEMIC GRADING SCALE</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td className="font-bold mes-header-bg">Grade</td>
-                                            <td>A+</td><td>A</td><td>B+</td><td>B</td><td>C+</td><td>C</td><td>D</td>
+                                            <td className='mes-header-bg font-bold'>Grade</td>
+                                            <td>A+</td>
+                                            <td>A</td>
+                                            <td>B+</td>
+                                            <td>B</td>
+                                            <td>C+</td>
+                                            <td>C</td>
+                                            <td>D</td>
                                         </tr>
                                         <tr>
-                                            <td className="font-bold mes-header-bg">Range</td>
-                                            <td>91-100</td><td>81-90</td><td>71-80</td><td>61-70</td><td>51-60</td><td>41-50</td><td>0-40</td>
+                                            <td className='mes-header-bg font-bold'>Range</td>
+                                            <td>91-100</td>
+                                            <td>81-90</td>
+                                            <td>71-80</td>
+                                            <td>61-70</td>
+                                            <td>51-60</td>
+                                            <td>41-50</td>
+                                            <td>0-40</td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
 
-                            {index < reportData.length - 1 && <div className="mes-page-break" />}
+                            {index < reportData.length - 1 && <div className='mes-page-break' />}
                         </div>
                     );
                 })}

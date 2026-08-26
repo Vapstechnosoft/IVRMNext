@@ -5,8 +5,16 @@ import type { IExamReportCard, IMasterInstitution, ISubject, Institution } from 
 import { Printer } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-interface SubSubject { EMSS_Id: number; EMSS_SubSubjectName: string; }
-interface SubSubjectMark { EMSS_Id: number; ISMS_Id: number; ESTMPSSS_ObtainedMarks: number | null; ESTMPSSS_PassFailFlg: string; }
+interface SubSubject {
+    EMSS_Id: number;
+    EMSS_SubSubjectName: string;
+}
+interface SubSubjectMark {
+    EMSS_Id: number;
+    ISMS_Id: number;
+    ESTMPSSS_ObtainedMarks: number | null;
+    ESTMPSSS_PassFailFlg: string;
+}
 
 interface BrsIXReportData extends IExamReportCard {
     amaY_RollNo?: any;
@@ -25,14 +33,14 @@ interface BrsIXReportData extends IExamReportCard {
 interface Props {
     reportData: BrsIXReportData[];
     subjects: ISubject[];
-    headerInfo: { cla?: string; sec?: string; };
+    headerInfo: { cla?: string; sec?: string };
     examName: string;
     examCode: string;
     year: string;
     institution: Institution | IMasterInstitution | null | undefined;
     onPrint?: () => void;
     remarksMap?: Record<number, string>;
-    chartDataMap?: Record<number, { subjects: string[]; marks: number[]; highest: number[]; average: number[]; }>;
+    chartDataMap?: Record<number, { subjects: string[]; marks: number[]; highest: number[]; average: number[] }>;
 }
 
 const GRADING_SCALE = [
@@ -47,9 +55,13 @@ const GRADING_SCALE = [
 ];
 
 /* ---------- Performance Chart Component ---------- */
-function PerformanceChart({ studentId, chartData, onChartReady }: {
+function PerformanceChart({
+    studentId,
+    chartData,
+    onChartReady
+}: {
     studentId: number;
-    chartData?: { subjects: string[]; marks: number[]; highest: number[]; average: number[]; };
+    chartData?: { subjects: string[]; marks: number[]; highest: number[]; average: number[] };
     onChartReady?: (id: number, dataUrl: string) => void;
 }) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -75,11 +87,29 @@ function PerformanceChart({ studentId, chartData, onChartReady }: {
             const chart = new ChartJS(ctx, {
                 type: 'bar',
                 data: {
-                    labels: chartData.subjects.map((s) => s.length > 12 ? s.split(' ') : s),
+                    labels: chartData.subjects.map((s) => (s.length > 12 ? s.split(' ') : s)),
                     datasets: [
-                        { label: 'M.O', data: chartData.marks, backgroundColor: gradientMark, borderColor: 'rgba(0,0,0,0.6)', borderWidth: 1 },
-                        { label: 'Highest', data: chartData.highest, backgroundColor: gradientHighest, borderColor: 'rgba(0,0,0,0.6)', borderWidth: 1 },
-                        { label: 'Average', data: chartData.average, backgroundColor: gradientAverage, borderColor: 'rgba(0,0,0,0.6)', borderWidth: 1 }
+                        {
+                            label: 'M.O',
+                            data: chartData.marks,
+                            backgroundColor: gradientMark,
+                            borderColor: 'rgba(0,0,0,0.6)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Highest',
+                            data: chartData.highest,
+                            backgroundColor: gradientHighest,
+                            borderColor: 'rgba(0,0,0,0.6)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Average',
+                            data: chartData.average,
+                            backgroundColor: gradientAverage,
+                            borderColor: 'rgba(0,0,0,0.6)',
+                            borderWidth: 1
+                        }
                     ]
                 },
                 options: {
@@ -91,10 +121,17 @@ function PerformanceChart({ studentId, chartData, onChartReady }: {
                             offset: true,
                             grid: { display: true, color: 'rgba(200,200,200,0.4)' },
                             border: { display: true, color: '#000', width: 3 },
-                            ticks: { font: { size: 12, family: 'Arial', weight: 'bold' }, color: '#000', maxRotation: 0, minRotation: 0, padding: 10 }
+                            ticks: {
+                                font: { size: 12, family: 'Arial', weight: 'bold' },
+                                color: '#000',
+                                maxRotation: 0,
+                                minRotation: 0,
+                                padding: 10
+                            }
                         },
                         y: {
-                            beginAtZero: true, max: 100,
+                            beginAtZero: true,
+                            max: 100,
                             grid: { display: true, color: 'rgba(200,200,200,0.4)' },
                             border: { display: true, color: '#000', width: 3 },
                             ticks: { font: { size: 20, family: 'Arial', weight: 'bold' }, color: '#000', stepSize: 10 }
@@ -102,13 +139,29 @@ function PerformanceChart({ studentId, chartData, onChartReady }: {
                     },
                     plugins: {
                         legend: {
-                            position: 'right', align: 'center',
-                            labels: { font: { size: 15, weight: 'bold', family: 'Arial' }, usePointStyle: true, pointStyle: 'rect', padding: 30, boxWidth: 12, boxHeight: 12 }
+                            position: 'right',
+                            align: 'center',
+                            labels: {
+                                font: { size: 15, weight: 'bold', family: 'Arial' },
+                                usePointStyle: true,
+                                pointStyle: 'rect',
+                                padding: 30,
+                                boxWidth: 12,
+                                boxHeight: 12
+                            }
                         },
-                        tooltip: { enabled: true, backgroundColor: 'rgba(0,0,0,0.8)', titleColor: '#fff', bodyColor: '#fff', cornerRadius: 4, displayColors: true }
+                        tooltip: {
+                            enabled: true,
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            cornerRadius: 4,
+                            displayColors: true
+                        }
                     },
                     animation: {
-                        duration: 1000, easing: 'easeOutBounce',
+                        duration: 1000,
+                        easing: 'easeOutBounce',
                         onComplete: () => {
                             if (onChartReady && canvasRef.current) {
                                 onChartReady(studentId, canvasRef.current.toDataURL());
@@ -116,21 +169,25 @@ function PerformanceChart({ studentId, chartData, onChartReady }: {
                         }
                     }
                 },
-                plugins: [{
-                    id: 'valueLabels',
-                    afterDatasetsDraw(c) {
-                        const cx = c.ctx;
-                        c.data.datasets.forEach((dataset, di) => {
-                            c.getDatasetMeta(di).data.forEach((bar, index) => {
-                                const value = dataset.data[index];
-                                if (value == null) return;
-                                cx.fillStyle = '#000'; cx.font = 'bold 16px Arial';
-                                cx.textAlign = 'center'; cx.textBaseline = 'bottom';
-                                cx.fillText(String(value), bar.x, bar.y - 20);
+                plugins: [
+                    {
+                        id: 'valueLabels',
+                        afterDatasetsDraw(c) {
+                            const cx = c.ctx;
+                            c.data.datasets.forEach((dataset, di) => {
+                                c.getDatasetMeta(di).data.forEach((bar, index) => {
+                                    const value = dataset.data[index];
+                                    if (value == null) return;
+                                    cx.fillStyle = '#000';
+                                    cx.font = 'bold 16px Arial';
+                                    cx.textAlign = 'center';
+                                    cx.textBaseline = 'bottom';
+                                    cx.fillText(String(value), bar.x, bar.y - 20);
+                                });
                             });
-                        });
+                        }
                     }
-                }]
+                ]
             });
 
             return () => chart.destroy();
@@ -149,7 +206,13 @@ function PerformanceChart({ studentId, chartData, onChartReady }: {
 
 /* ---------- Main Report Component ---------- */
 export default function BrsProgressCardIXReport({
-    reportData, subjects, examName, year, onPrint, remarksMap = {}, chartDataMap = {}
+    reportData,
+    subjects,
+    examName,
+    year,
+    onPrint,
+    remarksMap = {},
+    chartDataMap = {}
 }: Props) {
     const [chartImages, setChartImages] = useState<Record<number, string>>({});
 
@@ -158,7 +221,9 @@ export default function BrsProgressCardIXReport({
         try {
             const d = new Date(dateStr);
             return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
-        } catch { return 'N/A'; }
+        } catch {
+            return 'N/A';
+        }
     };
 
     const today = new Date();
@@ -307,9 +372,7 @@ export default function BrsProgressCardIXReport({
                             {/* ---------- PROGRESS REPORT Banner ---------- */}
                             <div style={{ textAlign: 'center', marginBottom: '8px' }}>
                                 <div className='brsix-goldenrod-banner' style={{ width: '23%', marginLeft: '38%', height: '37px' }}>
-                                    <h3 style={{ color: 'black', margin: 0, fontWeight: 'bold', fontSize: '16px' }}>
-                                        PROGRESS REPORT
-                                    </h3>
+                                    <h3 style={{ color: 'black', margin: 0, fontWeight: 'bold', fontSize: '16px' }}>PROGRESS REPORT</h3>
                                 </div>
                             </div>
 
@@ -330,7 +393,9 @@ export default function BrsProgressCardIXReport({
                                             &nbsp;&nbsp;&nbsp;&nbsp;<b>Name : {report.amsT_FirstName}</b>
                                         </td>
                                         <td style={{ textAlign: 'left', width: '33%' }}>
-                                            <b>Class &amp; Section : {report.asmcL_ClassName}/{report.asmC_SectionName}</b>
+                                            <b>
+                                                Class &amp; Section : {report.asmcL_ClassName}/{report.asmC_SectionName}
+                                            </b>
                                         </td>
                                         <td style={{ textAlign: 'left', width: '33%' }}>
                                             <b>Admn. No. : {report.amsT_AdmNo}</b>
@@ -338,7 +403,10 @@ export default function BrsProgressCardIXReport({
                                     </tr>
                                     <tr>
                                         <td style={{ textAlign: 'left' }}>
-                                            <b>&nbsp;&nbsp;&nbsp;&nbsp;Mother&apos;s Name : {report.amsT_MotherName || (report as any)._MotherName || 'N/A'}</b>
+                                            <b>
+                                                &nbsp;&nbsp;&nbsp;&nbsp;Mother&apos;s Name :{' '}
+                                                {report.amsT_MotherName || (report as any)._MotherName || 'N/A'}
+                                            </b>
                                         </td>
                                         <td style={{ textAlign: 'left' }}>
                                             <b>Date of Birth : {formatDate(report.amsT_DOB)}</b>
@@ -363,14 +431,24 @@ export default function BrsProgressCardIXReport({
                             <table className='brsix-table' style={{ marginTop: '10px', fontFamily: 'Arial, sans-serif' }}>
                                 <thead>
                                     <tr className='brsix-marks-header' style={{ height: '50px' }}>
-                                        <td style={{ textAlign: 'left', fontWeight: 'bold', fontSize: '18px', padding: '10px', borderLeft: 'none', borderRight: 'none' }}>
+                                        <td
+                                            style={{
+                                                textAlign: 'left',
+                                                fontWeight: 'bold',
+                                                fontSize: '18px',
+                                                padding: '10px',
+                                                borderLeft: 'none',
+                                                borderRight: 'none'
+                                            }}>
                                             <b>SUBJECTS</b>
                                         </td>
                                         <td style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '18px' }}>
                                             <b>Max Mark</b>
                                         </td>
                                         {subSubjects.map((sub) => (
-                                            <td key={sub.EMSS_Id} style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '18px', padding: '10px' }}>
+                                            <td
+                                                key={sub.EMSS_Id}
+                                                style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '18px', padding: '10px' }}>
                                                 <b>{sub.EMSS_SubSubjectName}</b>
                                             </td>
                                         ))}
@@ -399,34 +477,69 @@ export default function BrsProgressCardIXReport({
                                                     <td style={{ textAlign: 'left', fontWeight: 'bold', fontSize: '18px' }}>
                                                         <b>{subj?.ismS_SubjectName || 'N/A'}</b>
                                                     </td>
-                                                    <td style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '18px', border: '1px solid black' }}>
+                                                    <td
+                                                        style={{
+                                                            textAlign: 'center',
+                                                            fontWeight: 'bold',
+                                                            fontSize: '18px',
+                                                            border: '1px solid black'
+                                                        }}>
                                                         <b>{mark.estmpS_MaxMarks}</b>
                                                     </td>
                                                     {subSubjects.map((sub) => {
-                                                        const ssm = subSubjectMarks.find((m) => m.EMSS_Id === sub.EMSS_Id && m.ISMS_Id === mark.ismS_Id);
+                                                        const ssm = subSubjectMarks.find(
+                                                            (m) => m.EMSS_Id === sub.EMSS_Id && m.ISMS_Id === mark.ismS_Id
+                                                        );
                                                         return (
-                                                            <td key={sub.EMSS_Id} style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '18px', border: '1px solid black' }}>
-                                                                {ssm?.ESTMPSSS_PassFailFlg === 'AB'
-                                                                    ? <b>AB</b>
-                                                                    : showMarks
-                                                                        ? <b>{ssm?.ESTMPSSS_ObtainedMarks ?? '-'}</b>
-                                                                        : <b>-</b>}
+                                                            <td
+                                                                key={sub.EMSS_Id}
+                                                                style={{
+                                                                    textAlign: 'center',
+                                                                    fontWeight: 'bold',
+                                                                    fontSize: '18px',
+                                                                    border: '1px solid black'
+                                                                }}>
+                                                                {ssm?.ESTMPSSS_PassFailFlg === 'AB' ? (
+                                                                    <b>AB</b>
+                                                                ) : showMarks ? (
+                                                                    <b>{ssm?.ESTMPSSS_ObtainedMarks ?? '-'}</b>
+                                                                ) : (
+                                                                    <b>-</b>
+                                                                )}
                                                             </td>
                                                         );
                                                     })}
-                                                    <td style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '18px', border: '1px solid black', padding: '10px' }}>
-                                                        {isAbsent
-                                                            ? <b>AB</b>
-                                                            : showMarks
-                                                                ? <b>{mark.estmpS_ObtainedMarks ?? '-'}</b>
-                                                                : <b>-</b>}
+                                                    <td
+                                                        style={{
+                                                            textAlign: 'center',
+                                                            fontWeight: 'bold',
+                                                            fontSize: '18px',
+                                                            border: '1px solid black',
+                                                            padding: '10px'
+                                                        }}>
+                                                        {isAbsent ? (
+                                                            <b>AB</b>
+                                                        ) : showMarks ? (
+                                                            <b>{mark.estmpS_ObtainedMarks ?? '-'}</b>
+                                                        ) : (
+                                                            <b>-</b>
+                                                        )}
                                                     </td>
-                                                    <td style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '18px', border: '1px solid black', padding: '10px' }}>
-                                                        {isAbsent
-                                                            ? <b>AB</b>
-                                                            : showGrade
-                                                                ? <b>{mark.estmpS_ObtainedGrade || '-'}</b>
-                                                                : <b>-</b>}
+                                                    <td
+                                                        style={{
+                                                            textAlign: 'center',
+                                                            fontWeight: 'bold',
+                                                            fontSize: '18px',
+                                                            border: '1px solid black',
+                                                            padding: '10px'
+                                                        }}>
+                                                        {isAbsent ? (
+                                                            <b>AB</b>
+                                                        ) : showGrade ? (
+                                                            <b>{mark.estmpS_ObtainedGrade || '-'}</b>
+                                                        ) : (
+                                                            <b>-</b>
+                                                        )}
                                                     </td>
                                                 </tr>
                                             );
@@ -435,7 +548,14 @@ export default function BrsProgressCardIXReport({
                             </table>
 
                             {/* ---------- PERFORMANCE ANALYSIS ---------- */}
-                            <div style={{ border: '1px solid black', borderLeft: 'none', borderRight: 'none', borderBottom: 'none', padding: '10px' }}>
+                            <div
+                                style={{
+                                    border: '1px solid black',
+                                    borderLeft: 'none',
+                                    borderRight: 'none',
+                                    borderBottom: 'none',
+                                    padding: '10px'
+                                }}>
                                 <div style={{ textAlign: 'left', fontWeight: 'bold', fontSize: '22px', marginBottom: '10px' }}>
                                     PERFORMANCE ANALYSIS
                                 </div>
@@ -474,7 +594,9 @@ export default function BrsProgressCardIXReport({
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td colSpan={2} style={{ padding: '15px', fontSize: '16px', verticalAlign: 'top', textAlign: 'left' }}>
+                                            <td
+                                                colSpan={2}
+                                                style={{ padding: '15px', fontSize: '16px', verticalAlign: 'top', textAlign: 'left' }}>
                                                 <b>{studentRemarks || ''}</b>
                                             </td>
                                         </tr>
@@ -484,7 +606,14 @@ export default function BrsProgressCardIXReport({
                             </div>
 
                             {/* ---------- Signatures ---------- */}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', marginTop: '10px' }}>
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    marginBottom: '20px',
+                                    marginTop: '10px'
+                                }}>
                                 <div style={{ flex: 1, textAlign: 'left', marginTop: '1%' }}>
                                     <span style={{ fontSize: '16px' }}>
                                         &nbsp;<b>Date : {todayFormatted}</b>
@@ -492,7 +621,11 @@ export default function BrsProgressCardIXReport({
                                 </div>
                                 <div style={{ flex: 1, textAlign: 'center', marginTop: '1%' }}>
                                     <span style={{ fontSize: '16px' }}>
-                                        <b>Signature of<br />Class Teacher</b>
+                                        <b>
+                                            Signature of
+                                            <br />
+                                            Class Teacher
+                                        </b>
                                     </span>
                                 </div>
                                 <div style={{ flex: 1, textAlign: 'center' }}>
@@ -510,23 +643,41 @@ export default function BrsProgressCardIXReport({
                                     />
                                     <br />
                                     <span style={{ fontSize: '16px' }}>
-                                        <b>Signature of<br />Director &amp; Principal</b>
+                                        <b>
+                                            Signature of
+                                            <br />
+                                            Director &amp; Principal
+                                        </b>
                                     </span>
                                 </div>
                             </div>
 
                             {/* ---------- Grading Scale ---------- */}
                             <div style={{ textAlign: 'center' }}>
-                                <table className='brsix-table' style={{ width: '60%', margin: '0 auto', textAlign: 'center', fontSize: '15px', borderCollapse: 'collapse' }}>
+                                <table
+                                    className='brsix-table'
+                                    style={{
+                                        width: '60%',
+                                        margin: '0 auto',
+                                        textAlign: 'center',
+                                        fontSize: '15px',
+                                        borderCollapse: 'collapse'
+                                    }}>
                                     <thead>
                                         <tr>
-                                            <th colSpan={2} style={{ textAlign: 'center', fontSize: '16px', border: '1px solid #ddd', padding: '6px' }}>
+                                            <th
+                                                colSpan={2}
+                                                style={{ textAlign: 'center', fontSize: '16px', border: '1px solid #ddd', padding: '6px' }}>
                                                 <b>Grading Scale</b>
                                             </th>
                                         </tr>
                                         <tr>
-                                            <th style={{ border: '1px solid #ddd', padding: '6px' }}><b>Marks Range(%)</b></th>
-                                            <th style={{ border: '1px solid #ddd', padding: '6px' }}><b>Grade</b></th>
+                                            <th style={{ border: '1px solid #ddd', padding: '6px' }}>
+                                                <b>Marks Range(%)</b>
+                                            </th>
+                                            <th style={{ border: '1px solid #ddd', padding: '6px' }}>
+                                                <b>Grade</b>
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -538,7 +689,9 @@ export default function BrsProgressCardIXReport({
                                         ))}
                                     </tbody>
                                 </table>
-                                <br /><br /><br />
+                                <br />
+                                <br />
+                                <br />
                             </div>
 
                             {/* Page break between students */}

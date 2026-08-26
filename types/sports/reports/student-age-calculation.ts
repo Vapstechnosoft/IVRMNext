@@ -52,44 +52,47 @@ export interface IStudentAgeCalculationDropdowns {
     }[];
 }
 
+export const StudentAgeReportSchema = z
+    .object({
+        type: z.enum(['House', 'CS']),
+        asmaY_Id: z
+            .number({ required_error: 'Select Academic Year', invalid_type_error: 'Select Academic Year' })
+            .min(1, 'Select Academic Year'),
+        spccmcC_Id: z.number().optional(),
+        asmcL_Id: z.number().optional(),
+        selectedhouselist: z.array(z.object({ spccmH_Id: z.number() })),
+        selectedSectionlist: z.array(z.object({ asmS_Id: z.number() }))
+    })
+    .superRefine((data, ctx) => {
+        // Academic Year is already handled by .min(1) above,
+        // but we can be extra sure if needed.
 
-export const StudentAgeReportSchema = z.object({
-    type: z.enum(['House', 'CS']),
-    asmaY_Id: z.number({ required_error: "Select Academic Year", invalid_type_error: "Select Academic Year" }).min(1, 'Select Academic Year'),
-    spccmcC_Id: z.number().optional(),
-    asmcL_Id: z.number().optional(),
-    selectedhouselist: z.array(z.object({ spccmH_Id: z.number() })),
-    selectedSectionlist: z.array(z.object({ asmS_Id: z.number() })),
-}).superRefine((data, ctx) => {
-    // Academic Year is already handled by .min(1) above, 
-    // but we can be extra sure if needed.
+        if (data.type === 'CS') {
+            if (!data.asmcL_Id || data.asmcL_Id === 0) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Select Class',
+                    path: ['asmcL_Id']
+                });
+            }
+            if (!data.selectedSectionlist || data.selectedSectionlist.length === 0) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Select at least one section',
+                    path: ['selectedSectionlist']
+                });
+            }
+        }
 
-    if (data.type === 'CS') {
-        if (!data.asmcL_Id || data.asmcL_Id === 0) {
+        // House selection is mandatory for both types in this report?
+        // Usually yes, if it's displayed and has an asterisk.
+        if (!data.selectedhouselist || data.selectedhouselist.length === 0) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
-                message: "Select Class",
-                path: ["asmcL_Id"],
+                message: 'Select at least one house',
+                path: ['selectedhouselist']
             });
         }
-        if (!data.selectedSectionlist || data.selectedSectionlist.length === 0) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: "Select at least one section",
-                path: ["selectedSectionlist"],
-            });
-        }
-    }
-    
-    // House selection is mandatory for both types in this report? 
-    // Usually yes, if it's displayed and has an asterisk.
-    if (!data.selectedhouselist || data.selectedhouselist.length === 0) {
-        ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Select at least one house",
-            path: ["selectedhouselist"],
-        });
-    }
-});
+    });
 
 export type StudentAgeReportFormSchema = z.infer<typeof StudentAgeReportSchema>;

@@ -137,7 +137,7 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                 ASMAY_ReggularFlg: Boolean(data.asmaY_ReggularFlg),
                 ASMAY_NewFlg: Boolean(data.asmaY_NewFlg),
                 ASMAY_NewAdmissionFlg: Boolean(data.asmaY_NewAdmissionFlg),
-                
+
                 ASMAY_TransportSDate: sanitizeDate(data.asmaY_TransportSDate),
                 asmaY_TransportSDate: sanitizeDate(data.asmaY_TransportSDate),
                 ASMAY_TransportEDate: sanitizeDate(data.asmaY_TransportEDate),
@@ -1074,7 +1074,10 @@ export function TimeSpinnerField({
             <div className='flex items-center gap-2'>
                 {/* Hours */}
                 <div className='flex flex-col items-center'>
-                    <button type='button' onClick={() => emit((h % 12) + 1 || 12, m, localAmpm || 'AM')} className='rounded p-0.5 hover:bg-muted'>
+                    <button
+                        type='button'
+                        onClick={() => emit((h % 12) + 1 || 12, m, localAmpm || 'AM')}
+                        className='rounded p-0.5 hover:bg-muted'>
                         <ChevronUp className='h-4 w-4' />
                     </button>
                     <input
@@ -1097,7 +1100,10 @@ export function TimeSpinnerField({
                         }}
                         className='flex h-9 w-12 items-center justify-center rounded-md border border-input bg-transparent text-center font-medium text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
                     />
-                    <button type='button' onClick={() => emit(((h - 2 + 12) % 12) + 1, m, localAmpm || 'AM')} className='rounded p-0.5 hover:bg-muted'>
+                    <button
+                        type='button'
+                        onClick={() => emit(((h - 2 + 12) % 12) + 1, m, localAmpm || 'AM')}
+                        className='rounded p-0.5 hover:bg-muted'>
                         <ChevronDown className='h-4 w-4' />
                     </button>
                 </div>
@@ -1129,14 +1135,20 @@ export function TimeSpinnerField({
                         }}
                         className='flex h-9 w-12 items-center justify-center rounded-md border border-input bg-transparent text-center font-medium text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
                     />
-                    <button type='button' onClick={() => emit(h, (m - 1 + 60) % 60, localAmpm || 'AM')} className='rounded p-0.5 hover:bg-muted'>
+                    <button
+                        type='button'
+                        onClick={() => emit(h, (m - 1 + 60) % 60, localAmpm || 'AM')}
+                        className='rounded p-0.5 hover:bg-muted'>
                         <ChevronDown className='h-4 w-4' />
                     </button>
                 </div>
 
                 {/* AM / PM select dropdown */}
                 <div className='flex flex-col items-center'>
-                    <button type='button' onClick={() => emit(h, m, (localAmpm || 'AM') === 'AM' ? 'PM' : 'AM')} className='rounded p-0.5 hover:bg-muted'>
+                    <button
+                        type='button'
+                        onClick={() => emit(h, m, (localAmpm || 'AM') === 'AM' ? 'PM' : 'AM')}
+                        className='rounded p-0.5 hover:bg-muted'>
                         <ChevronUp className='h-4 w-4' />
                     </button>
                     <select
@@ -1144,7 +1156,9 @@ export function TimeSpinnerField({
                         value={localAmpm}
                         onChange={(e) => emit(h, m, e.target.value)}
                         className='flex h-9 w-14 cursor-pointer appearance-none items-center justify-center rounded-md border border-input bg-transparent px-1 text-center font-medium text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'>
-                        <option value='' disabled className='hidden'>--</option>
+                        <option value='' disabled className='hidden'>
+                            --
+                        </option>
                         <option value='AM' className='bg-background text-foreground'>
                             AM
                         </option>
@@ -1152,7 +1166,10 @@ export function TimeSpinnerField({
                             PM
                         </option>
                     </select>
-                    <button type='button' onClick={() => emit(h, m, (localAmpm || 'AM') === 'AM' ? 'PM' : 'AM')} className='rounded p-0.5 hover:bg-muted'>
+                    <button
+                        type='button'
+                        onClick={() => emit(h, m, (localAmpm || 'AM') === 'AM' ? 'PM' : 'AM')}
+                        className='rounded p-0.5 hover:bg-muted'>
                         <ChevronDown className='h-4 w-4' />
                     </button>
                 </div>

@@ -1,7 +1,6 @@
 'use server';
 
-import { api, getSearchParamsUrl } from '@/lib/apiService';
-import type { ApiSearchparams } from '@/types';
+import { api } from '@/lib/apiService';
 
 /**
  * Get holiday report data

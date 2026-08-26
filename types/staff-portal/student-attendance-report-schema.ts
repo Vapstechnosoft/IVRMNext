@@ -1,4 +1,3 @@
-
 import { z } from 'zod';
 
 export const studentAttendanceReportSchema = z.object({
@@ -12,7 +11,7 @@ export const studentAttendanceReportSchema = z.object({
     todate: z.date().optional(),
     fromdaily: z.date().optional(),
     amst_Id: z.coerce.number().optional(),
-    checkoruncheck: z.boolean().default(false), // Month Date Wise
+    checkoruncheck: z.boolean().default(false) // Month Date Wise
 });
 
 export type StudentAttendanceReportValues = z.infer<typeof studentAttendanceReportSchema>;

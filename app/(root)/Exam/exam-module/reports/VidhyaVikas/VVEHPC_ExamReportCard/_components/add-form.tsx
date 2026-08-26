@@ -183,6 +183,11 @@ export default function ProgressCardReportForm({
             return;
         }
 
+        const selectedClassObj = classes.find((c) => c.asmcL_Id === data.asmcL_Id);
+        const selectedSectionObj = sections.find((s) => s.asmS_Id === data.asmS_Id);
+        const selectedExamObj = exams.find((e) => e.emE_Id === data.emE_Id);
+        const selectedYearObj = academicYears.find((y) => y.asmaY_Id === data.asmaY_Id);
+
         const currentDateTime = new Date().toISOString();
         const payload: any = {
             // mI_Id: 30,
@@ -190,6 +195,10 @@ export default function ProgressCardReportForm({
             asmcL_Id: data.asmcL_Id,
             asmS_Id: data.asmS_Id,
             emE_Id: data.emE_Id,
+            selectedClassName: selectedClassObj?.asmcL_ClassName,
+            selectedSectionName: selectedSectionObj?.asmC_SectionName,
+            selectedExamName: selectedExamObj?.emE_ExamName,
+            selectedYearName: selectedYearObj?.asmaY_Year,
             amsT_Ids: data.studentList.map((s) => s.amsT_Id).join(','),
             fromDate: currentDateTime,
             toDate: currentDateTime
