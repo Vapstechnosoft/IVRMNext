@@ -1,25 +1,25 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { GenericDataTable } from '@/components/ui/generic-data-table';
-import { useMasterComplexity } from '@/hooks/exam/online-exam/useMasters';
-import { useDataTableProps } from '@/hooks/useDataTableProps';
-import type { IMasterComplexity } from '@/types/exam/online-exam/masters';
-import { Plus, X } from 'lucide-react';
-import { useMemo } from 'react';
-import AddMasterComplexityForm from './_components/add-form';
-import { masterComplexityColumns } from './_components/columns';
-import ToggleMasterComplexityForm from './_components/toggle-form';
-import UpdateMasterComplexityForm from './_components/update-form';
-
 function extractArray(val: any): any[] {
     if (!val) return [];
     if (Array.isArray(val)) return val;
     if (val.$values && Array.isArray(val.$values)) return val.$values;
     return [];
 }
+
+import { Button } from '@/components/ui/button';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { useMasterComplexity } from '@/hooks/exam/online-exam/useMasters';
+import type { IMasterComplexity } from '@/types/exam/online-exam/masters';
+import { Plus, X } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { useMemo } from 'react';
+import AddMasterComplexityForm from './_components/add-form';
+import { masterComplexityColumns } from './_components/columns';
+import ToggleMasterComplexityForm from './_components/toggle-form';
+import UpdateMasterComplexityForm from './_components/update-form';
 
 export default function MasterComplexityPage() {
     return (
@@ -30,7 +30,9 @@ export default function MasterComplexityPage() {
 }
 
 function MasterComplexityContent() {
-    const { data: response, isLoading, error } = useMasterComplexity();
+    const searchParams = useSearchParams();
+    const miId = searchParams.get('MI_Id') || '30';
+    const { data: response, isLoading, error } = useMasterComplexity({ MI_Id: Number(miId) });
     const { openAddForm } = useFormContext<IMasterComplexity>();
     const initialData = (response?.data || response || {}) as any;
 
