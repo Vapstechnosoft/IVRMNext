@@ -50,25 +50,56 @@ function MasterQuestionPageContent({
 }) {
     const { openAddForm } = useFormContext<IMasterQuestionList>();
     const initialData = (response?.data || response || {}) as any;
-    const questionList = extractArray(
-        initialData?.questionList ||
-            initialData?.getMasterQuestiondetails ||
-            initialData?.masterQuestiondetails ||
-            response?.data ||
-            response
-    );
+
+    const questionList: IMasterQuestionList[] = useMemo(() => {
+        const raw = extractArray(initialData?.getMasterQuestiondetails || initialData?.questionList || initialData?.masterQuestiondetails);
+        return raw.map((q: any) => ({
+            lmsmoeQ_Id: Number(q.lpmoeQ_Id ?? q.lmsmoeQ_Id ?? q.LPMOEQ_Id ?? q.id ?? 0),
+            lmsmoeQ_Question: String(q.lpmoeQ_Question ?? q.lmsmoeQ_Question ?? q.LPMOEQ_Question ?? ''),
+            lmsmoeQ_QuestionDesc: String(q.lpmoeQ_QuestionDesc ?? q.lmsmoeQ_QuestionDesc ?? q.LPMOEQ_QuestionDesc ?? ''),
+            ismS_Id: Number(q.ismS_Id ?? q.isms_Id ?? q.ISMS_Id ?? 0),
+            ismS_SubjectName: String(q.ismS_SubjectName ?? q.isms_SubjectName ?? q.ISMS_SubjectName ?? 'N/A'),
+            asmcL_Id: Number(q.asmcL_Id ?? q.asmcl_Id ?? q.ASMCL_Id ?? 0),
+            asmcL_ClassName: String(q.asmcL_ClassName ?? q.asmcl_ClassName ?? q.ASMCL_ClassName ?? 'N/A'),
+            lmsmoeQ_Marks: Number(q.lpmoeQ_Marks ?? q.lmsmoeQ_Marks ?? q.LPMOEQ_Marks ?? 1),
+            lmsmoecX_Id: Number(q.lpmcomP_Id ?? q.lmsmoecX_Id ?? q.lpmcomp_Id ?? 0),
+            lmsmoecX_ComplexityName: String(
+                q.lpmcomP_ComplexityName ?? q.lmsmoecX_ComplexityName ?? q.lpmcomp_ComplexityName ?? 'Standard'
+            ),
+            lmsmoeQ_ActiveFlg: Boolean(q.lpmoeQ_ActiveFlg ?? q.lmsmoeQ_ActiveFlg ?? q.LPMOEQ_ActiveFlg ?? true),
+            countoption: Number(q.countoption ?? q.countOption ?? 0),
+            countdoc: Number(q.countdoc ?? q.countDoc ?? 0)
+        }));
+    }, [initialData]);
+
     const tableProps = useDataTableProps(questionList);
 
     const [selectedQuestionForOptions, setSelectedQuestionForOptions] = useState<IMasterQuestionList | null>(null);
     const [selectedQuestionForMapping, setSelectedQuestionForMapping] = useState<IMasterQuestionList | null>(null);
 
-    const subjects = extractArray(initialData?.getSubjects || initialData?.getsubjectlist || initialData?.getsubjects);
-    const classes = extractArray(initialData?.getClass || initialData?.getclasslist || initialData?.getclass);
-    const rawComplexities = extractArray(initialData?.getComplexity || initialData?.getarratcomplexities || initialData?.arrayComplexity);
-    const complexities = rawComplexities.map((c: any) => ({
-        lmsmoecX_Id: c.lmsmoecX_Id ?? c.lpmcomP_Id ?? c.lpmcomp_Id ?? 0,
-        lmsmoecX_ComplexityName: c.lmsmoecX_ComplexityName ?? c.lpmcomP_ComplexityName ?? c.lpmcomp_ComplexityName ?? 'Standard'
-    }));
+    const subjects = useMemo(() => {
+        const list = extractArray(initialData?.getsubjectlist || initialData?.getSubjects || initialData?.getsubjects);
+        return list.map((s: any) => ({
+            ismS_Id: Number(s.ismS_Id ?? s.isms_Id ?? s.ISMS_Id ?? 0),
+            ismS_SubjectName: String(s.ismS_SubjectName ?? s.isms_SubjectName ?? s.ISMS_SubjectName ?? '')
+        }));
+    }, [initialData]);
+
+    const classes = useMemo(() => {
+        const list = extractArray(initialData?.getclasslist || initialData?.getClass || initialData?.getclass);
+        return list.map((c: any) => ({
+            asmcL_Id: Number(c.asmcL_Id ?? c.asmcl_Id ?? c.ASMCL_Id ?? 0),
+            asmcL_ClassName: String(c.asmcL_ClassName ?? c.asmcl_ClassName ?? c.ASMCL_ClassName ?? '')
+        }));
+    }, [initialData]);
+
+    const complexities = useMemo(() => {
+        const list = extractArray(initialData?.getarratcomplexities || initialData?.getComplexity || initialData?.arrayComplexity);
+        return list.map((c: any) => ({
+            lmsmoecX_Id: Number(c.lpmcomP_Id ?? c.lmsmoecX_Id ?? c.lpmcomp_Id ?? 0),
+            lmsmoecX_ComplexityName: String(c.lpmcomP_ComplexityName ?? c.lmsmoecX_ComplexityName ?? c.lpmcomp_ComplexityName ?? 'Standard')
+        }));
+    }, [initialData]);
 
     const columns = useMemo(
         () =>
