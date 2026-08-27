@@ -2,185 +2,127 @@
 
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Bookmark, CalendarDays, Clock, FileText, UserCheck } from 'lucide-react';
-import React from 'react'; // Required for React.Fragment
+import { CalendarDays, Clock, UserCheck } from 'lucide-react';
+import React from 'react';
 
-export default function DeputationReport({ data }: { data: any }) {
-    if (!data) return null;
+export default function DeputationReport({ data, popupData }: { data?: any; popupData?: any }) {
+    if (!data && !popupData) return null;
+
+    const dataObj = data?.data !== undefined ? data.data : data;
+    const popupDataObj = popupData?.data !== undefined ? popupData.data : popupData;
+
+    const periodsList =
+        dataObj?.periodslst ||
+        dataObj?.gridweeks ||
+        dataObj?.absentStaffTimeTable ||
+        dataObj?.period_list ||
+        dataObj?.time_Table ||
+        (Array.isArray(dataObj) ? dataObj : []);
+
+    const recordsList =
+        popupDataObj?.vlist ||
+        popupDataObj?.absentDetails ||
+        popupDataObj?.staffList ||
+        popupDataObj?.stafflist ||
+        popupDataObj?.dpcount ||
+        popupDataObj?.absentstfcnt ||
+        popupDataObj?.weeklycntlist ||
+        (Array.isArray(popupDataObj) ? popupDataObj : []);
 
     return (
-        <div className='space-y-8'>
-            {/* ==========================================================
-          NEW SECTION: ABSENT DETAILS (ROW-WISE VIEW)
-          ========================================================== */}
-            <CollapsibleSection defaultOpen className='overflow-hidden rounded-xl border-none shadow-lg'>
-                <div className='relative border border-indigo-100 bg-white'>
-                    {/* Section Header */}
-                    <div className='flex items-center gap-2 bg-gradient-to-r from-indigo-700 via-blue-600 to-indigo-800 px-4 py-3'>
-                        <Bookmark className='h-4 w-4 text-blue-200' />
-                        <span className='font-bold text-white text-xs uppercase tracking-wider'>Absent Staff Time Table</span>
-                    </div>
-                    <Table>
-                        <TableHeader className='bg-purple-50'>
-                            <TableRow>
-                                <TableHead className='text-purple-900'>Period</TableHead>
-                                <TableHead className='text-purple-900'>Class-Section / Subject</TableHead>
-                            </TableRow>
-                        </TableHeader>
+        <div className='space-y-6'>
+            {/* ABSENT STAFF PERIOD SCHEDULE */}
+            {periodsList && periodsList.length > 0 && (
+                <CollapsibleSection title='Absent Staff Period Schedule' defaultOpen className='overflow-hidden rounded-xl border-none shadow-md'>
+                    <div className='relative border border-indigo-100 bg-white rounded-xl overflow-hidden'>
+                        <div className='flex items-center gap-2 bg-gradient-to-r from-indigo-700 via-purple-700 to-indigo-800 px-4 py-3'>
+                            <Clock className='h-4 w-4 text-white' />
+                            <span className='font-bold text-white text-xs uppercase tracking-wider'>Periods Requiring Replacement</span>
+                        </div>
 
-                        <TableBody>
-                            {data.absentStaffTimeTable?.map((r: any, i: number) => (
-                                <TableRow key={i} className='hover:bg-purple-50/40'>
-                                    {/* COLUMN 1 */}
-                                    <TableCell className='font-bold text-purple-700'>{r.period ?? i + 1}</TableCell>
-
-                                    {/* COLUMN 2 */}
-                                    <TableCell className='font-semibold text-slate-700'>{r.classSubject}</TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-
-                    <div className='overflow-hidden'>
                         <Table>
-                            <TableBody>
-                                {data.absentStaffTimeTable?.map((r: any, i: number) => (
-                                    <React.Fragment key={`row-view-${i}`}>
-                                        {/* Row 1: Periods */}
-                                        <TableRow className='border-none bg-indigo-50/30'>
-                                            <TableCell className='w-[220px] border-indigo-100 border-r bg-indigo-50/50 font-black text-[10px] text-indigo-900 uppercase tracking-widest'>
-                                                <div className='flex items-center gap-2'>
-                                                    <Clock className='h-3 w-3 text-indigo-400' />
-                                                    Periods
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className='px-6 py-4 font-bold text-indigo-700 text-lg'>
-                                                {r.period || i + 1}
-                                            </TableCell>
-                                        </TableRow>
-
-                                        {/* Row 2: Class-Section/Subject */}
-                                        <TableRow className='border-white border-b-4'>
-                                            <TableCell className='w-[220px] border-indigo-100 border-r bg-indigo-50/50 font-black text-[10px] text-indigo-900 uppercase tracking-widest'>
-                                                <div className='flex items-center gap-2'>
-                                                    <FileText className='h-3 w-3 text-indigo-400' />
-                                                    Class-Section/Subject
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className='px-6 py-4 font-semibold text-base text-slate-700'>
-                                                {r.classSubject || 'VIII ICSE-C / MATHEMATICS'}
-                                            </TableCell>
-                                        </TableRow>
-                                    </React.Fragment>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </div>
-                </div>
-            </CollapsibleSection>
-
-            {/* ==========================================================
-          1. EXISTING: Absent Staff Time Table (Column View)
-          ========================================================== */}
-            <CollapsibleSection title='Absent Staff Time Table' defaultOpen className='overflow-hidden rounded-xl border-none shadow-md'>
-                <div className='relative border border-purple-100 bg-white'>
-                    <div className='flex items-center gap-2 bg-gradient-to-r from-purple-700 via-purple-600 to-purple-800 px-4 py-3'>
-                        <Bookmark className='h-4 w-4 text-blue-200' />
-                        <span className='font-bold text-white text-xs uppercase tracking-wider'>Absent DETAILS</span>
-                    </div>
-
-                    <div className='overflow-x-auto'>
-                        <Table>
-                            <TableHeader className='bg-purple-50/50'>
+                            <TableHeader className='bg-indigo-50/60'>
                                 <TableRow>
-                                    <TableHead className='text-purple-900'>Staff Name</TableHead>
-                                    <TableHead className='text-purple-900'>Absent On</TableHead>
-                                    <TableHead className='text-purple-900'>WEEKLY ABSENT COUNT</TableHead>
-                                    <TableHead className='text-purple-900'>MONTHLY ABSENT COUNT</TableHead>
-                                    <TableHead className='text-purple-900'>YEARLY ABSENT COUNT</TableHead>
+                                    <TableHead className='font-bold text-indigo-900'>Period</TableHead>
+                                    <TableHead className='font-bold text-indigo-900'>Class / Section</TableHead>
+                                    <TableHead className='font-bold text-indigo-900'>Subject</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {data.absentStaffTimeTable?.length > 0 ? (
-                                    data.absentStaffTimeTable.map((r: any, i: number) => (
-                                        <TableRow key={i} className='border-purple-50 transition-colors hover:bg-purple-50/30'>
-                                            <TableCell className='font-bold text-purple-700'>
-                                                <span className='flex items-center gap-2'>
-                                                    <span className='flex h-5 w-5 items-center justify-center rounded bg-purple-100 text-[10px]'>
-                                                        {r.period || i + 1}
-                                                    </span>
-                                                    Period
+                                {periodsList.map((r: any, i: number) => {
+                                    const periodName = r.ttmP_PeriodName || r.period || `Period ${i + 1}`;
+                                    const className = r.asmcL_ClassName || r.className || '--';
+                                    const sectionName = r.asmS_SectionName || r.sectionName || '--';
+                                    const subjectName = r.ismS_SubjectName || r.subjectName || r.classSubject || '--';
+
+                                    return (
+                                        <TableRow key={i} className='hover:bg-indigo-50/30 transition-colors'>
+                                            <TableCell className='font-bold text-indigo-700'>
+                                                <span className='inline-flex h-6 px-2.5 items-center justify-center rounded bg-indigo-100 text-xs text-indigo-800 font-semibold'>
+                                                    {periodName}
                                                 </span>
                                             </TableCell>
                                             <TableCell className='font-semibold text-slate-700'>
-                                                {r.classSubject || 'VIII ICSE-C / MATHEMATICS'}
+                                                {className} {sectionName !== '--' ? `- ${sectionName}` : ''}
                                             </TableCell>
+                                            <TableCell className='font-medium text-slate-600'>{subjectName}</TableCell>
                                         </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={5} className='h-24 text-center text-slate-400 italic'>
-                                            No periods found for replacement.
-                                        </TableCell>
-                                    </TableRow>
-                                )}
+                                    );
+                                })}
                             </TableBody>
                         </Table>
                     </div>
-                </div>
-            </CollapsibleSection>
+                </CollapsibleSection>
+            )}
 
-            {data.absentDetails && data.absentDetails.length > 0 && (
+            {/* STAFF ABSENCE STATISTICS & RECORDS POPUP DATA */}
+            {recordsList && recordsList.length > 0 && (
                 <CollapsibleSection
-                    title='Absent Staff Attendance Summary'
+                    title='Staff Absence Statistics & Deputation Summary'
                     defaultOpen
                     className='overflow-hidden rounded-xl border-none shadow-md'>
-                    <div className='relative border border-orange-100 bg-white'>
-                        <div className='flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-3'>
+                    <div className='relative border border-orange-100 bg-white rounded-xl overflow-hidden'>
+                        <div className='flex items-center gap-2 bg-gradient-to-r from-orange-500 to-amber-600 px-4 py-3'>
                             <CalendarDays className='h-4 w-4 text-white' />
-                            <span className='font-bold text-white text-xs uppercase tracking-wider'>Staff Absence Statistics</span>
+                            <span className='font-bold text-white text-xs uppercase tracking-wider'>Staff Absence & Deputation History</span>
                         </div>
 
                         <div className='overflow-x-auto'>
                             <Table>
-                                <TableHeader className='bg-orange-50/50'>
+                                <TableHeader className='bg-orange-50/60'>
                                     <TableRow>
-                                        <TableHead className='font-black text-[11px] text-orange-900 uppercase'>Staff Name</TableHead>
-                                        <TableHead className='font-black text-[11px] text-orange-900 uppercase'>Absent On</TableHead>
-                                        <TableHead className='text-center font-black text-[11px] text-orange-900 uppercase'>
-                                            Weekly
-                                        </TableHead>
-                                        <TableHead className='text-center font-black text-[11px] text-orange-900 uppercase'>
-                                            Monthly
-                                        </TableHead>
-                                        <TableHead className='text-center font-black text-[11px] text-orange-900 uppercase'>
-                                            Yearly
-                                        </TableHead>
+                                        <TableHead className='font-bold text-orange-900 text-xs uppercase'>Staff Name</TableHead>
+                                        <TableHead className='font-bold text-orange-900 text-xs uppercase'>Date / Period</TableHead>
+                                        <TableHead className='text-center font-bold text-orange-900 text-xs uppercase'>Weekly Count</TableHead>
+                                        <TableHead className='text-center font-bold text-orange-900 text-xs uppercase'>Monthly Count</TableHead>
+                                        <TableHead className='text-center font-bold text-orange-900 text-xs uppercase'>Yearly Count</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {data.absentDetails.map((r: any, i: number) => (
+                                    {recordsList.map((r: any, i: number) => (
                                         <TableRow key={i} className='border-orange-50 transition-colors hover:bg-orange-50/30'>
                                             <TableCell className='font-bold text-slate-800'>
                                                 <div className='flex items-center gap-2'>
-                                                    <UserCheck className='h-3.5 w-3.5 text-orange-400' />
-                                                    {r.staffName}
+                                                    <UserCheck className='h-3.5 w-3.5 text-orange-500' />
+                                                    {r.staffName || r.hrmE_EmployeeFirstName || `Staff #${r.hrmE_Id || i + 1}`}
                                                 </div>
                                             </TableCell>
-                                            <TableCell className='font-medium text-slate-600'>{r.absentOn}</TableCell>
+                                            <TableCell className='font-medium text-slate-600'>
+                                                {r.absentOn || r.ttsD_Date || r.date || '--'}
+                                            </TableCell>
                                             <TableCell className='text-center'>
-                                                <span className='inline-flex h-6 w-8 items-center justify-center rounded-full bg-orange-100 font-bold text-[11px] text-orange-700'>
-                                                    {r.weeklyCount}
+                                                <span className='inline-flex h-6 w-8 items-center justify-center rounded-full bg-orange-100 font-bold text-xs text-orange-700'>
+                                                    {r.weeklyCount ?? r.weekly_count ?? 0}
                                                 </span>
                                             </TableCell>
                                             <TableCell className='text-center'>
-                                                <span className='inline-flex h-6 w-8 items-center justify-center rounded-full bg-orange-100 font-bold text-[11px] text-orange-700'>
-                                                    {r.monthlyCount}
+                                                <span className='inline-flex h-6 w-8 items-center justify-center rounded-full bg-orange-100 font-bold text-xs text-orange-700'>
+                                                    {r.monthlyCount ?? r.monthly_count ?? 0}
                                                 </span>
                                             </TableCell>
                                             <TableCell className='text-center'>
-                                                <span className='inline-flex h-6 w-8 items-center justify-center rounded-full bg-orange-100 font-bold text-[11px] text-orange-700'>
-                                                    {r.yearlyCount}
+                                                <span className='inline-flex h-6 w-8 items-center justify-center rounded-full bg-orange-100 font-bold text-xs text-orange-700'>
+                                                    {r.yearlyCount ?? r.yearly_count ?? 0}
                                                 </span>
                                             </TableCell>
                                         </TableRow>
@@ -194,3 +136,4 @@ export default function DeputationReport({ data }: { data: any }) {
         </div>
     );
 }
+
