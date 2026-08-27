@@ -11,7 +11,7 @@ export async function getMasterStudentList(
     asms_id: number,
     searchParams?: ApiSearchparams
 ) {
-    const urlParams = getSearchParamsUrl(searchParams, 'imcC_CategoryCode,imcC_CategoryName,imcC_CategoryDesc');
+    const urlParams = getSearchParamsUrl(searchParams, 'student_name,registration_no,admission_no');
     const url = `/activate_deactivate_students/${amst_sol}?asmay_id=${asmay_id}&asmcl_id=${asmcl_id}&asms_id=${asms_id}&${urlParams}`;
 
     return await api.get<Student[]>('admission', url);

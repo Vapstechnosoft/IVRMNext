@@ -109,6 +109,7 @@
         "@tanstack/react-query-devtools": "^5.62.11",
         "@tanstack/react-table": "^8.20.6",
         "@types/pdf-parse": "^1.1.5",
+        "@types/qrcode.react": "^1.0.5",
         "axios": "^1.7.9",
         "busboy": "^1.6.0",
         "chart.js": "^4.5.1",
@@ -181,8 +182,6 @@
         "typescript": "^5.7.2"
     },
     "lint-staged": {
-        "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
-            "biome check --write --no-errors-on-unmatched"
-        ]
+        "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": ["biome check --write --no-errors-on-unmatched"]
     }
 }

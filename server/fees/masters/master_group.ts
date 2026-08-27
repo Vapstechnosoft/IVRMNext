@@ -11,7 +11,7 @@ export async function getMasterGroup(searchParams?: ApiSearchparams) {
 }
 
 export async function addOrUpdateMasterGroup(data: any) {
-    const url = '/fee_group';
+    const url = '/fee_group/fee_group_savedetails';
     return await api.post<any>('fees', url, data);
 }
 

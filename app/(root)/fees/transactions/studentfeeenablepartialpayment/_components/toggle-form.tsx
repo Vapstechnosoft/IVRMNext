@@ -21,7 +21,10 @@ interface ToggleStudentFeeEnablePartialPaymentFormProps {
 
 export default function ToggleStudentFeeEnablePartialPaymentForm({ rowData, onClose }: ToggleStudentFeeEnablePartialPaymentFormProps) {
     const { refetchAll } = useStudentFeeEnablePartialPayment();
-    const isActive = rowData.fsepP_ActiveFlag;
+    const id = rowData.fsepP_Id ?? (rowData as any).FSEPP_Id ?? 0;
+    const isActive = Boolean(
+        rowData.fsepP_ActiveFlag ?? (rowData as any).FSEPP_ActiveFlag ?? (rowData as any).is_Active ?? (rowData as any).isActive
+    );
 
     const {
         register,
@@ -32,7 +35,7 @@ export default function ToggleStudentFeeEnablePartialPaymentForm({ rowData, onCl
         resolver: zodResolver(studentFeeEnablePartialPaymentSchema.delete),
         mode: 'onChange',
         defaultValues: {
-            fsepP_Id: String(rowData.fsepP_Id)
+            fsepP_Id: String(id)
         }
     });
 
@@ -44,17 +47,28 @@ export default function ToggleStudentFeeEnablePartialPaymentForm({ rowData, onCl
     const onSubmit: SubmitHandler<FormFields> = async () => {
         try {
             const payload = {
-                FSEPP_Id: rowData.fsepP_Id
+                FSEPP_Id: Number(id)
             };
             const response = await toggleStudentFeeEnablePartialPayment(payload);
 
-            if (response && (response.retrunMsg === 'Activated' || response.retrunMsg === 'Deactivated' || response.success)) {
-                const actionText = isActive ? 'deactivated' : 'activated';
-                toast.success(response.message || `Record ${actionText} successfully`);
-                refetchAll();
-                closeDialog();
-            } else if (response?.retrunMsg) {
-                toast.success(`Record ${response.retrunMsg} successfully`);
+            const isSuccess =
+                response?.retrunMsg === 'Activated' ||
+                response?.retrunMsg === 'Deactivated' ||
+                response?.success === true ||
+                Boolean(response?.retrunMsg);
+
+            if (isSuccess) {
+                const msg =
+                    response?.message ||
+                    (response?.retrunMsg ? `Record ${response.retrunMsg} successfully` : '') ||
+                    `Record ${isActive ? 'deactivated' : 'activated'} successfully`;
+
+                if (isActive || msg.toLowerCase().includes('deactivated')) {
+                    toast.error(msg);
+                } else {
+                    toast.success(msg);
+                }
+
                 refetchAll();
                 closeDialog();
             } else {

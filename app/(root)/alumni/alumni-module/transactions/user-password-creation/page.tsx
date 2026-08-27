@@ -33,7 +33,7 @@ export default function UserPasswordCreationPage() {
     const fetchInitialData = useCallback(async () => {
         setIsLoading(true);
         try {
-            const res = await getInitialData(1);
+            const res = await getInitialData();
             if (res.success && res.data) {
                 setYears(res.data.yearList || []);
                 setClasses(res.data.classlist || []);

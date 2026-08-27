@@ -1273,33 +1273,64 @@ export interface StudentPortalPrintDetails {
 
 export interface IStudentFeeEnablePartialPaymentYear {
     asmaY_Id: number;
+    mI_Id?: number;
     asmaY_Year: string;
+    asmaY_From_Date?: string;
+    asmaY_To_Date?: string;
+    asmaY_PreAdm_F_Date?: string;
+    asmaY_PreAdm_T_Date?: string;
+    asmaY_Order?: number;
+    asmaY_ActiveFlag?: number;
+    asmaY_Cut_Of_Date?: string;
+    asmaY_Pre_ActiveFlag?: number;
+    is_Active?: boolean;
+    asmaY_ReggularFlg?: boolean;
+    asmaY_NewFlg?: boolean;
+    asmaY_NewAdmissionFlg?: boolean;
+    asmaY_AcademicYearCode?: string;
     Selected?: boolean;
+    [key: string]: any;
 }
 
 export interface IStudentFeeEnablePartialPaymentClass {
-    asmcL_Id?: number;
-    asmcL_ID?: number;
-    asmcL_ClassName?: string;
-    className?: string;
+    asmcL_Id: number;
+    mI_Id?: number;
+    asmcL_ClassName: string;
+    asmcL_MinAgeYear?: number;
+    asmcL_MinAgeMonth?: number;
+    asmcL_MinAgeDays?: number;
+    asmcL_MaxAgeYear?: number;
+    asmcL_MaxAgeMonth?: number;
+    asmcL_MaxAgeDays?: number;
+    asmcL_Order?: number;
+    asmcL_ClassCode?: string;
+    asmcL_ActiveFlag?: boolean;
+    asmcL_MaxCapacity?: number;
+    asmcL_PreadmFlag?: number;
     Selected?: boolean;
+    [key: string]: any;
 }
 
 export interface IStudentFeeEnablePartialPaymentSection {
-    amsC_Id: number;
-    asmc_sectionname: string;
+    amsC_Id?: number;
+    asmS_Id?: number;
+    asmc_sectionname?: string;
+    asmC_SectionName?: string;
     Selected?: boolean;
+    [key: string]: any;
 }
 
 export interface IStudentFeeEnablePartialPaymentStudent {
     amsT_Id: number;
-    amsT_AdmNo: string;
-    amsT_FirstName: string;
+    amsT_AdmNo?: string;
+    amsT_FirstName?: string;
     amsT_MiddleName?: string | null;
     amsT_LastName?: string | null;
+    studentName?: string;
     amaY_RollNo?: number | null;
     amsT_RegistrationNo?: string | null;
     Selected?: boolean;
+    [key: string]: any;
 }
 
 export interface IStudentFeeEnablePartialPaymentList {
@@ -1311,6 +1342,12 @@ export interface IStudentFeeEnablePartialPaymentList {
     amsT_FirstName: string;
     fsepP_Remarks: string;
     asmaY_Id?: number;
+    asmcL_ClassName?: string;
+    asmC_SectionName?: string;
+    amsT_MiddleName?: string | null;
+    amsT_LastName?: string | null;
+    amsT_AdmNo?: string;
+    [key: string]: any;
 }
 
 export interface IStudentFeeEnablePartialPaymentInitialData {
@@ -1318,26 +1355,12 @@ export interface IStudentFeeEnablePartialPaymentInitialData {
     fillclass?: IStudentFeeEnablePartialPaymentClass[];
     alldata?: IStudentFeeEnablePartialPaymentList[];
     retrunMsg?: string;
+    [key: string]: any;
 }
 
 export interface IStudentFeeEnablePartialPaymentSavePayload {
-    FSEPP_Id?: number;
-    ASMAY_Id: number;
-    AMST_Id: number;
-    FSEPP_RemarksDate: string;
-    FSEPP_Remarks: string;
-    ASMAY_Year?: string;
-    AMST_FirstName?: string;
-    AMST_MiddleName?: string;
-    AMST_LastName?: string;
-    AMST_AdmNo?: string;
-    AMST_RegistrationNo?: string;
-    retrunMsg?: string;
-    alldata?: any[];
-    yearlist?: any[];
-    fillclass?: any[];
-    fillsection?: any[];
-    sectionlist?: any[];
-    studentlist?: any[];
+    amsT_Id: number;
+    fsepP_RemarksDate: string;
+    fsepP_Remarks: string;
     [key: string]: any;
 }
