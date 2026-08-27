@@ -194,10 +194,7 @@ export const CirculationParameterForm = ({
                                     Class <span className='text-red-500'>*</span>
                                 </FormLabel>
                                 <Select
-<<<<<<< HEAD
-=======
                                     key={field.value ? String(field.value) : 'empty-class'}
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
                                     onValueChange={(val) => field.onChange(Number(val))}
                                     value={field.value ? String(field.value) : undefined}>
                                     <FormControl>
@@ -229,10 +226,7 @@ export const CirculationParameterForm = ({
                                     Employee Group <span className='text-red-500'>*</span>
                                 </FormLabel>
                                 <Select
-<<<<<<< HEAD
-=======
                                     key={field.value ? String(field.value) : 'empty-employeeGroup'}
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
                                     onValueChange={(val) => field.onChange(Number(val))}
                                     value={field.value ? String(field.value) : undefined}>
                                     <FormControl>
@@ -264,10 +258,7 @@ export const CirculationParameterForm = ({
                                     Department <span className='text-red-500'>*</span>
                                 </FormLabel>
                                 <Select
-<<<<<<< HEAD
-=======
                                     key={field.value ? String(field.value) : 'empty-department'}
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
                                     onValueChange={(val) => field.onChange(Number(val))}
                                     value={field.value ? String(field.value) : undefined}>
                                     <FormControl>
@@ -299,10 +290,7 @@ export const CirculationParameterForm = ({
                                     Guest Name <span className='text-red-500'>*</span>
                                 </FormLabel>
                                 <Select
-<<<<<<< HEAD
-=======
                                     key={field.value ? String(field.value) : 'empty-guest'}
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
                                     onValueChange={(val) => field.onChange(Number(val))}
                                     value={field.value ? String(field.value) : undefined}>
                                     <FormControl>

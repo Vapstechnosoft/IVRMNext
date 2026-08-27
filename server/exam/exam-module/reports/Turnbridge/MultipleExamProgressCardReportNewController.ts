@@ -7,100 +7,9 @@ import { api } from '@/lib/apiService';
  * Ported from AngularJS: MultipleExamProgressCardReportNewController
  */
 
-<<<<<<< HEAD
-function ensureArray(arr: any): any[] {
-    if (!arr) return [];
-    if (Array.isArray(arr)) return arr;
-    if (arr.$values && Array.isArray(arr.$values)) return arr.$values;
-    return [];
-}
-
-function hasDataItems(res: any): boolean {
-    if (!res) return false;
-    const dataObj = res.data || res;
-    const checkArray = (arr: any) => {
-        if (!arr) return false;
-        if (Array.isArray(arr) && arr.length > 0) return true;
-        if (arr.$values && Array.isArray(arr.$values) && arr.$values.length > 0) return true;
-        return false;
-    };
-    return Boolean(checkArray(dataObj.getstudentdetails) || checkArray(dataObj.studentdetails) || checkArray(dataObj.studentlist));
-}
-
-export async function getMultipleExamProgressCardReportNew(data: any) {
-    try {
-        const asmaY_Id = Number(data.ASMAY_Id ?? data.asmaY_Id ?? 0);
-        const asmcL_Id = Number(data.ASMCL_Id ?? data.asmcL_Id ?? 0);
-        const asmS_Id = Number(data.ASMS_Id ?? data.asmS_Id ?? 0);
-
-        // 1. Auto-fetch students for class & section if not provided
-        let rawStudentIds: number[] = [];
-        if (Array.isArray(data.temp_Amstids)) {
-            rawStudentIds = data.temp_Amstids.map((item: any) => Number(item.amsT_Id ?? item.AMST_Id ?? item));
-        } else if (Array.isArray(data.Temp_AmstIds)) {
-            rawStudentIds = data.Temp_AmstIds.map((item: any) => Number(item.amsT_Id ?? item.AMST_Id ?? item));
-        }
-
-        if (rawStudentIds.length === 0 && asmaY_Id > 0 && asmcL_Id > 0 && asmS_Id > 0) {
-            try {
-                const studentUrl = `/exam_master_category/students_drop_down_by_year_class_section_list?ASMAY_Id=${asmaY_Id}&ASMCL_Id=${asmcL_Id}&ASMS_Id=${asmS_Id}`;
-                const resStu = await api.get<any>('exam', studentUrl).catch(() => null);
-                const rawStus = resStu?.data || resStu || [];
-                const studentArr = ensureArray(rawStus);
-                if (studentArr.length > 0) {
-                    rawStudentIds = studentArr.map((s: any) => Number(s.amsT_Id ?? s.AMST_Id ?? s.id ?? s)).filter((id) => id > 0);
-                }
-            } catch (err) {
-                console.error('[MultipleExamProgressCardReportNewController] Error auto-fetching students:', err);
-            }
-        }
-
-        const temp_Amstids = rawStudentIds
-            .filter((id) => id > 0)
-            .map((id) => ({
-                AMST_Id: id,
-                amsT_Id: id
-            }));
-
-        // 2. Format exam list
-        let rawExamIds: number[] = [];
-        if (Array.isArray(data.examlist)) {
-            rawExamIds = data.examlist.map((item: any) => Number(item.emE_Id ?? item.EME_Id ?? item));
-        } else if (Array.isArray(data.examList)) {
-            rawExamIds = data.examList.map((item: any) => Number(item.emE_Id ?? item.EME_Id ?? item));
-        } else if (Array.isArray(data.selectedExams)) {
-            rawExamIds = data.selectedExams.map((item: any) => Number(item.emE_Id ?? item.EME_Id ?? item));
-        }
-
-        const formattedExamList = (data.examlist || data.examList || []).map((e: any) => ({
-            EME_Id: Number(e.EME_Id ?? e.emE_Id ?? e.eme_id ?? e),
-            emE_Id: Number(e.EME_Id ?? e.emE_Id ?? e.eme_id ?? e),
-            EME_ExamName: String(e.EME_ExamName ?? e.emE_ExamName ?? ''),
-            emE_ExamName: String(e.EME_ExamName ?? e.emE_ExamName ?? '')
-        }));
-
-        const examlist = rawExamIds.map((id) => ({ EME_Id: id, emE_Id: id }));
-
-        // 3. Auto-fetch Grade ID if 0
-        let emgR_Id = Number(data.emgR_Id ?? data.EMGR_Id ?? 0);
-        if (emgR_Id === 0) {
-            try {
-                const resGrade = await api.get<any>('exam', '/exam_master_category/get_grade_list').catch(() => null);
-                const rawGrades = resGrade?.data?.gradelist || resGrade?.gradelist || resGrade?.data || [];
-                const gradeArr = ensureArray(rawGrades);
-                if (gradeArr.length > 0) {
-                    emgR_Id = Number(gradeArr[0].emgR_Id ?? gradeArr[0].EMGR_Id ?? 1);
-                }
-            } catch (err) {
-                console.error('[MultipleExamProgressCardReportNewController] Error fetching grade list:', err);
-            }
-        }
-
-=======
 export async function getMultipleExamProgressCardReportNew(data: any) {
     try {
         const url = '/JSHSExamReports/BGHS_GetMultiple_Exam_Progress_Report';
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
         const payload = {
             ASMAY_Id: data.ASMAY_Id,
             ASMCL_Id: data.ASMCL_Id,
@@ -110,40 +19,12 @@ export async function getMultipleExamProgressCardReportNew(data: any) {
 
         const response = await api.post<any>('exam', url, payload);
 
-<<<<<<< HEAD
-        let firstValidRes: any = null;
-        for (const ep of endpoints) {
-            console.log(`[MultipleExamProgressCardReportNewController] Posting to endpoint: ${ep}`);
-            const res = await api.post<any>('exam', ep, payload).catch(() => null);
-
-            if (res) {
-                console.log(`=== RESPONSE FROM ${ep} ===`);
-                console.log(JSON.stringify(res, null, 2)?.substring(0, 1500));
-
-                if (!firstValidRes && (res.getstudentdetails || res.studentdetails || res.data)) {
-                    firstValidRes = res;
-                }
-                if (hasDataItems(res)) {
-                    const rawObj = res?.data || res;
-                    const transformedData = transformReportData(rawObj);
-                    return {
-                        success: true,
-                        data: transformedData
-                    };
-                }
-            }
-        }
-
-        if (firstValidRes) {
-            const rawObj = firstValidRes?.data || firstValidRes;
-=======
         if (response?.success && response.data) {
             return {
                 ...response,
                 data: transformReportData(response.data)
             };
         } else if (response && !response.data && response.getstudentmarksdetails) {
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
             return {
                 success: true,
                 data: transformReportData(response)
@@ -175,41 +56,8 @@ function transformReportData(data: any) {
     }
 
     const processedExamDetails = [...getexamdetails];
-<<<<<<< HEAD
-    if (getexamdetails.length > 0 && !processedExamDetails.some((e: any) => (e.emE_ExamName || e.EME_ExamName) === 'Total')) {
-        processedExamDetails.push({
-            emE_Id: 150001,
-            EME_Id: 150001,
-            emE_ExamName: 'Total',
-            EME_ExamName: 'Total',
-            eyceS_MaxMarks: totalMaxMarks
-        });
-        processedExamDetails.push({ emE_Id: 150002, EME_Id: 150002, emE_ExamName: 'Grade', EME_ExamName: 'Grade', eyceS_MaxMarks: '' });
-    }
-
-    // Extract subjects if getstudentwisesubjectlist is empty
-    let finalSubjects = getstudentwisesubjectlist;
-    if (finalSubjects.length === 0 && getstudentmarksdetails.length > 0) {
-        const subMap = new Map();
-        getstudentmarksdetails.forEach((m: any) => {
-            const id = Number(m.ISMS_Id ?? m.ismS_Id);
-            const name = m.ISMS_SubjectName || m.ismS_SubjectName;
-            if (id > 0 && name && !subMap.has(id)) {
-                subMap.set(id, {
-                    ISMS_Id: id,
-                    ismS_Id: id,
-                    ISMS_SubjectName: name,
-                    ismS_SubjectName: name,
-                    EYCES_AplResultFlg: true
-                });
-            }
-        });
-        finalSubjects = Array.from(subMap.values());
-    }
-=======
     processedExamDetails.push({ emE_Id: 150001, emE_ExamName: 'Total', eyceS_MaxMarks: totalMaxMarks });
     processedExamDetails.push({ emE_Id: 150002, emE_ExamName: 'Grade', eyceS_MaxMarks: '' });
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
 
     // 2. Map subjects and marks to students (Optimization for rendering)
     const transformedStudents = getstudentdetails.map((stu: any) => {
@@ -218,36 +66,14 @@ function transformReportData(data: any) {
 
         return {
             ...stu,
-<<<<<<< HEAD
-            AMST_Id: amstId,
-            amsT_Id: amstId,
-            studentname: stu.studentname || stu.studentName || stu.amsT_FirstName || stu.AMST_FirstName || '',
-            admno: stu.admno || stu.admNo || stu.amsT_AdmNo || stu.AMST_AdmNo || '',
-            rollno: stu.rollno ?? stu.amaY_RollNo ?? stu.AMST_RollNo ?? '',
-            classname: stu.classname || stu.className || stu.asmcL_ClassName || stu.ASMCL_ClassName || '',
-            sectionname: stu.sectionname || stu.sectionName || stu.asmC_SectionName || stu.ASMC_SectionName || '',
-            dob: stu.dob || stu.AMST_DOB || stu.amsT_DOB || '',
-            clastechname: stu.clastechname || stu.classTeacherName || stu.HRME_EmployeeFirstName || '',
-            subjects: studentSubjects.length > 0 ? studentSubjects : finalSubjects,
-=======
             subjects: studentSubjects,
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
             marks: studentMarks
         };
     });
 
     return {
         ...data,
-<<<<<<< HEAD
-        getexamdetails: processedExamDetails.length > 0 ? processedExamDetails : getexamdetails,
-        getstudentdetails: transformedStudents,
-        getstudentwisesubjectlist: finalSubjects,
-        getstudentmarksdetails,
-        work_attendence: ensureArray(data.work_attendence || data.work_attendance),
-        present_attendence: ensureArray(data.present_attendence || data.present_attendance)
-=======
         getexamdetails: processedExamDetails,
         getstudentdetails: transformedStudents
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
     };
 }

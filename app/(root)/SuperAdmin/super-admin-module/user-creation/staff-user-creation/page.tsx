@@ -432,17 +432,17 @@ export default function StaffUserCreationPage() {
             if (result.success && result.data) {
                 const mappedPages = Array.isArray(result.data)
                     ? result.data.map((item: any) => ({
-                          pageMappingId: item.pageMappingId || item.ivrmimP_Id || item.ivrmmP_Id || item.ivrmP_Id,
-                          pageName: item.pageName || item.pageName,
-                          moduleName: item.moduleName || item.ivrmM_ModuleName || item.moduleName || '',
-                          institutionName: item.institutionName || item.instituteName || item.institutionName || '',
-                          addFlag: Boolean(item.ivrmrP_AddFlag ?? item.addFlag),
-                          deleteFlag: Boolean(item.ivrmrP_DeleteFlag ?? item.deleteFlag),
-                          updateFlag: Boolean(item.ivrmrP_UpdateFlag ?? item.updateFlag),
-                          processFlag: Boolean(item.ivrmrP_ProcessFlag ?? item.processFlag),
-                          reportFlag: Boolean(item.ivrmrP_ReportFlag ?? item.reportFlag),
-                          checked: stagedWebPages.some((s) => s.pageMappingId === (item.ivrmmP_Id || item.pageMappingId))
-                      }))
+                        pageMappingId: item.pageMappingId || item.ivrmimP_Id || item.ivrmmP_Id || item.ivrmP_Id,
+                        pageName: item.pageName || item.pageName,
+                        moduleName: item.moduleName || item.ivrmM_ModuleName || item.moduleName || '',
+                        institutionName: item.institutionName || item.instituteName || item.institutionName || '',
+                        addFlag: Boolean(item.ivrmrP_AddFlag ?? item.addFlag),
+                        deleteFlag: Boolean(item.ivrmrP_DeleteFlag ?? item.deleteFlag),
+                        updateFlag: Boolean(item.ivrmrP_UpdateFlag ?? item.updateFlag),
+                        processFlag: Boolean(item.ivrmrP_ProcessFlag ?? item.processFlag),
+                        reportFlag: Boolean(item.ivrmrP_ReportFlag ?? item.reportFlag),
+                        checked: stagedWebPages.some((s) => s.pageMappingId === (item.ivrmmP_Id || item.pageMappingId))
+                    }))
                     : [];
 
                 setWebPages(mappedPages);
@@ -770,17 +770,17 @@ export default function StaffUserCreationPage() {
             if (result.success) {
                 const mappedPages = Array.isArray(result.data)
                     ? result.data.map((item: any) => ({
-                          pageMappingId: item.ivrmimP_Id || item.ivrmmP_Id || item.ivrmP_Id,
-                          pageName: item.ivrmmP_PageName,
-                          moduleName: item.ivrmm_ModuleName || item.ivrmM_ModuleName || '',
-                          institutionName: item.intname || item.instituteName || '',
-                          addFlag: Boolean(item.ivrmrP_AddFlag),
-                          deleteFlag: Boolean(item.ivrmrP_DeleteFlag),
-                          updateFlag: Boolean(item.ivrmrP_UpdateFlag),
-                          processFlag: Boolean(item.ivrmrP_ProcessFlag),
-                          reportFlag: Boolean(item.ivrmrP_ReportFlag),
-                          checked: false
-                      }))
+                        pageMappingId: item.ivrmimP_Id || item.ivrmmP_Id || item.ivrmP_Id,
+                        pageName: item.ivrmmP_PageName,
+                        moduleName: item.ivrmm_ModuleName || item.ivrmM_ModuleName || '',
+                        institutionName: item.intname || item.instituteName || '',
+                        addFlag: Boolean(item.ivrmrP_AddFlag),
+                        deleteFlag: Boolean(item.ivrmrP_DeleteFlag),
+                        updateFlag: Boolean(item.ivrmrP_UpdateFlag),
+                        processFlag: Boolean(item.ivrmrP_ProcessFlag),
+                        reportFlag: Boolean(item.ivrmrP_ReportFlag),
+                        checked: false
+                    }))
                     : [];
 
                 setWebPages(mappedPages);
@@ -862,51 +862,6 @@ export default function StaffUserCreationPage() {
                                             isStaffDataLoading={isStaffDataLoading}
                                         />
 
-<<<<<<< HEAD
-                            {/* Conditional Rendering of Mapping Grids */}
-                            {(watchFilterData === 'Single' ? isUserNameDisabled : staffList.some((s) => s.Selected)) && (
-                                <PageMappingGrids
-                                    webPages={webPages}
-                                    onWebPageUpdate={setWebPages}
-                                    stagedWebPages={stagedWebPages}
-                                    onStagedWebPageUpdate={setStagedWebPages}
-                                    webPageTotal={webPageTotal}
-                                    onWebPageParamsChange={setWebPageParams}
-                                    currentWebPageParams={webPageParams}
-                                    isWebPageLoading={isWebPageLoading}
-                                    savedGridTotal={savedGridTotal}
-                                    onSavedGridParamsChange={setSavedGridParams}
-                                    currentSavedGridParams={savedGridParams}
-                                    isSavedGridLoading={isSavedGridLoading}
-                                    mobilePageTotal={mobilePageTotal}
-                                    onMobilePageParamsChange={setMobilePageParams}
-                                    currentMobilePageParams={mobilePageParams}
-                                    isMobilePageLoading={isMobilePageLoading}
-                                    savedMobilePageTotal={savedMobilePageTotal}
-                                    onSavedMobilePageParamsChange={setSavedMobilePageParams}
-                                    currentSavedMobilePageParams={savedMobilePageParams}
-                                    isSavedMobilePageLoading={isSavedMobilePageLoading}
-                                    mobilePages={mobilePages}
-                                    onMobilePageUpdate={setMobilePages}
-                                    savedGrid={savedGrid}
-                                    onSavedGridUpdate={setSavedGrid}
-                                    savedMobilePages={savedMobilePages}
-                                    onSavedMobileUpdate={setSavedMobilePages}
-                                    showInstitution={!!watchTrust}
-                                />
-                            )}
-
-                            <div className='flex justify-center gap-4'>
-                                <Button type='submit' className='px-8 shadow-md' size='lg' disabled={isSaving}>
-                                    {isSaving ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Save className='mr-2 h-4 w-4' />}
-                                    {isSaving ? 'Saving...' : 'Save'}
-                                </Button>
-                                <Button type='button' variant='outline' onClick={() => methods.reset()} className='px-8' size='lg'>
-                                    <X className='mr-2 h-4 w-4' />
-                                    Cancel
-                                </Button>
-                            </div>
-=======
                                         {/* Conditional Rendering of Mapping Grids */}
                                         {(watchFilterData === 'Single' ? isUserNameDisabled : staffList.some((s) => s.Selected)) && (
                                             <PageMappingGrids
@@ -961,7 +916,6 @@ export default function StaffUserCreationPage() {
                                         </div>
                                     </>
                                 )}
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
                         </form>
                     </FormProvider>
                 </CardContent>

@@ -20,7 +20,7 @@ export default function StudentFeeEnablePartialPaymentPage(props: { searchParams
 
     return (
         <FormProvider<IStudentFeeEnablePartialPaymentList>>
-<<<<<<< HEAD
+
             <StudentFeeEnablePartialPaymentContent
                 response={response}
                 isLoading={isLoading}
@@ -28,9 +28,7 @@ export default function StudentFeeEnablePartialPaymentPage(props: { searchParams
                 refetchAll={refetchAll}
                 searchParams={searchParams}
             />
-=======
-            <StudentFeeEnablePartialPaymentContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
+
         </FormProvider>
     );
 }
@@ -53,14 +51,10 @@ function StudentFeeEnablePartialPaymentContent({
     // Extract table grid data from response
     // Response can be { data: { alldata: [...] } } or { alldata: [...] } or direct array
     const rawData = response?.data ?? response;
-<<<<<<< HEAD
     const tableData: IStudentFeeEnablePartialPaymentList[] =
         (Array.isArray(rawData?.alldata) ? rawData.alldata : null) ??
         (Array.isArray((response as any)?.alldata) ? (response as any).alldata : null) ??
         (Array.isArray(rawData) ? rawData : []);
-=======
-    const tableData: IStudentFeeEnablePartialPaymentList[] = rawData?.alldata ?? (Array.isArray(rawData) ? rawData : []);
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
 
     const totalCount = response?.total ?? rawData?.total ?? response?.data?.total ?? (Array.isArray(tableData) ? tableData.length : 0);
 

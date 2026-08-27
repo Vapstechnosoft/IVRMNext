@@ -1427,7 +1427,7 @@ export const useeditThirdpartytrasaction_GM = (mi_id: number, asmaY_Id: number, 
     };
 };
 
-export const useStudentFeeEnablePartialPayment = (pageId: number = 2) => {
+export const useStudentFeeEnablePartialPayment = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {

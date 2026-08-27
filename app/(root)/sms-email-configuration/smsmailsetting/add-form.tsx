@@ -13,11 +13,7 @@ import { useHeader, useModulePage, useParameter, useSaveSmsMailSetting } from '@
 import type { SmsMailSettingDetailsResponse, SmsMailSettingInitialData } from '@/types/sms-email-configuration/sms-mail-setting';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Trash2, Upload, X } from 'lucide-react';
-<<<<<<< HEAD
-import { useEffect, useState } from 'react';
-=======
 import React, { useEffect, useState } from 'react';
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
 import { useFieldArray, useForm } from 'react-hook-form';
 import * as z from 'zod';
 
@@ -47,10 +43,7 @@ const formSchema = z.object({
     // Mail Settings
     ISMHTML_Id: z.coerce.number().optional(),
     ISES_MailSubject: z.string().min(1, { message: 'Enter Subject' }),
-<<<<<<< HEAD
-=======
     ISES_MailHTMLTemplate: z.string().optional(),
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
     ISES_MailFooter: z.string().min(1, { message: 'Enter Mail Footer' }),
     ISES_MailActiveFlag: z.boolean(),
     filelist: z
@@ -223,13 +216,10 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
 
             form.setValue('ISMHTML_Id', editData.ismhtmL_Id || 0);
             form.setValue('ISES_MailSubject', setting.iseS_MailSubject || '');
-<<<<<<< HEAD
-=======
             form.setValue(
                 'ISES_MailHTMLTemplate',
                 setting.iseS_MailHTMLTemplate || setting.iseS_Mail_Message || setting.iseS_MailBody || ''
             );
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
             form.setValue('ISES_MailFooter', setting.iseS_MailFooter || '');
             form.setValue('ISES_MailActiveFlag', setting.iseS_MailActiveFlag);
 
@@ -281,24 +271,6 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
     }, [editData, initialData, form]);
 
     const institutionModuleList = (initialData?.institutionModuleList as any[]) || [];
-<<<<<<< HEAD
-    const institutionPageLists =
-        ((modulePageData as any)?.data as any[]) ||
-        ((modulePageData as any)?.institutionPageList as any[]) ||
-        ((editData as any)?.institutionPageList as any[]) ||
-        (initialData?.institutionPageList as any[]) ||
-        [];
-    const pageWiseHeaderList =
-        ((headerDataResponse as any)?.data as any[]) ||
-        ((headerDataResponse as any)?.pageWiseHeaderList as any[]) ||
-        ((editData as any)?.pageWiseHeaderList as any[]) ||
-        [];
-    const parameters =
-        ((parameterData as any)?.data as any[]) ||
-        ((parameterData as any)?.parameterList as any[]) ||
-        ((editData as any)?.parameterList as any[]) ||
-        [];
-=======
 
     const institutionPageLists = React.useMemo(() => {
         if (
@@ -354,7 +326,6 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
         return fromParam && fromParam.length > 0 ? fromParam : [];
     }, [editData, parameterData]);
 
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
     const emailTemplates = (initialData?.emailtemplatelist as any[]) || [];
 
     useEffect(() => {
@@ -368,13 +339,9 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
                     (h: any) => h.ivrmhE_Name === templateVal || h.ivrmhE_Id.toString() === templateVal
                 );
                 if (matched) {
-<<<<<<< HEAD
-                    setSelectedHeaderId(matched.ivrmhE_Id);
-=======
                     if (!isNaN(Number(matched.ivrmhE_Id))) {
                         setSelectedHeaderId(Number(matched.ivrmhE_Id));
                     }
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
                     form.setValue('ISES_Template_Name', matched.ivrmhE_Id.toString());
                 }
             }
@@ -396,10 +363,7 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
             iseS_SMSMessage: values.ISES_SMSMessage,
             iseS_SMSActiveFlag: values.ISES_SMSActiveFlag,
             iseS_MailSubject: values.ISES_MailSubject,
-<<<<<<< HEAD
-=======
             iseS_MailHTMLTemplate: values.ISES_MailHTMLTemplate,
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
             iseS_MailFooter: values.ISES_MailFooter,
             iseS_MailActiveFlag: values.ISES_MailActiveFlag,
             iseS_EnableSMSCCFlg: values.ISES_EnableSMSCCFlg,
@@ -466,13 +430,8 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-<<<<<<< HEAD
-                                                {institutionModuleList.map((m) => (
-                                                    <SelectItem key={m.ivrmiM_Id} value={m.ivrmiM_Id.toString()}>
-=======
                                                 {institutionModuleList.map((m, index) => (
                                                     <SelectItem key={`${m.ivrmiM_Id}-${index}`} value={m.ivrmiM_Id.toString()}>
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
                                                         {m.ivrmM_ModuleName}
                                                     </SelectItem>
                                                 ))}
@@ -504,13 +463,8 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-<<<<<<< HEAD
-                                                {institutionPageLists.map((p) => (
-                                                    <SelectItem key={p.ivrmimP_Id} value={p.ivrmimP_Id.toString()}>
-=======
                                                 {institutionPageLists.map((p, index) => (
                                                     <SelectItem key={`${p.ivrmimP_Id}-${index}`} value={p.ivrmimP_Id.toString()}>
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
                                                         {p.ivrmmP_PageName}
                                                     </SelectItem>
                                                 ))}
@@ -542,13 +496,8 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-<<<<<<< HEAD
-                                                {pageWiseHeaderList.map((h: any) => (
-                                                    <SelectItem key={h.ivrmhE_Id} value={h.ivrmhE_Id.toString()}>
-=======
                                                 {pageWiseHeaderList.map((h: any, index: number) => (
                                                     <SelectItem key={`${h.ivrmhE_Id}-${index}`} value={h.ivrmhE_Id.toString()}>
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
                                                         {h.ivrmhE_Name || h.ivrmhE_Id.toString()}
                                                     </SelectItem>
                                                 ))}
@@ -562,11 +511,7 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
                     </CardContent>
                 </Card>
 
-<<<<<<< HEAD
-                {selectedHeaderId > 0 && (
-=======
                 {(selectedHeaderId > 0 || !!form.watch('ISES_Template_Name')) && (
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
                     <>
                         {/* Sms Setting */}
                         <Card>
@@ -607,13 +552,8 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
                                                             }
                                                         }
                                                     }}>
-<<<<<<< HEAD
-                                                    {parameters.map((p: any) => (
-                                                        <option key={p.ismP_ID} value={p.ismP_NAME}>
-=======
                                                     {parameters.map((p: any, index: number) => (
                                                         <option key={`${p.ismP_ID}-${index}`} value={p.ismP_NAME}>
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
                                                             {p.ismP_NAME}
                                                         </option>
                                                     ))}
@@ -748,15 +688,10 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
                                                             </SelectTrigger>
                                                         </FormControl>
                                                         <SelectContent>
-<<<<<<< HEAD
-                                                            {emailTemplates.map((t) => (
-                                                                <SelectItem key={t.ismhtmL_Id} value={t.ismhtmL_Id.toString()}>
-=======
                                                             {emailTemplates.map((t, index) => (
                                                                 <SelectItem
                                                                     key={`${t.ismhtmL_Id}-${index}`}
                                                                     value={t.ismhtmL_Id.toString()}>
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
                                                                     {t.ismhtmL_HTMLName}
                                                                 </SelectItem>
                                                             ))}
@@ -784,8 +719,6 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
 
                                         <FormField
                                             control={form.control}
-<<<<<<< HEAD
-=======
                                             name='ISES_MailHTMLTemplate'
                                             render={({ field }) => (
                                                 <FormItem className='grid grid-cols-3 items-center gap-4'>
@@ -800,7 +733,6 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
 
                                         <FormField
                                             control={form.control}
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
                                             name='ISES_MailFooter'
                                             render={({ field }) => (
                                                 <FormItem className='grid grid-cols-3 items-center gap-4'>
@@ -916,21 +848,21 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
                                                                         {(fileFields.length > 1 ||
                                                                             (fileFields.length === 1 &&
                                                                                 form.watch(`filelist.0.cfilename`))) && (
-                                                                            <button
-                                                                                type='button'
-                                                                                onClick={() => {
-                                                                                    if (fileFields.length > 1) {
-                                                                                        removeFile(index);
-                                                                                    } else {
-                                                                                        form.setValue('filelist', [
-                                                                                            { cfilepath: '', cfilename: '', filetype: '' }
-                                                                                        ]);
-                                                                                    }
-                                                                                }}
-                                                                                className='text-black hover:text-gray-700'>
-                                                                                <Trash2 className='h-4 w-4 text-black' />
-                                                                            </button>
-                                                                        )}
+                                                                                <button
+                                                                                    type='button'
+                                                                                    onClick={() => {
+                                                                                        if (fileFields.length > 1) {
+                                                                                            removeFile(index);
+                                                                                        } else {
+                                                                                            form.setValue('filelist', [
+                                                                                                { cfilepath: '', cfilename: '', filetype: '' }
+                                                                                            ]);
+                                                                                        }
+                                                                                    }}
+                                                                                    className='text-black hover:text-gray-700'>
+                                                                                    <Trash2 className='h-4 w-4 text-black' />
+                                                                                </button>
+                                                                            )}
                                                                     </div>
                                                                 </td>
                                                             </tr>
@@ -1077,13 +1009,8 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
                                                             }
                                                         }
                                                     }}>
-<<<<<<< HEAD
-                                                    {parameters.map((p: any) => (
-                                                        <option key={p.ismP_ID} value={p.ismP_NAME}>
-=======
                                                     {parameters.map((p: any, index: number) => (
                                                         <option key={`${p.ismP_ID}-${index}`} value={p.ismP_NAME}>
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
                                                             {p.ismP_NAME}
                                                         </option>
                                                     ))}
@@ -1161,13 +1088,8 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
                                                             }
                                                         }
                                                     }}>
-<<<<<<< HEAD
-                                                    {parameters.map((p: any) => (
-                                                        <option key={p.ismP_ID} value={p.ismP_NAME}>
-=======
                                                     {parameters.map((p: any, index: number) => (
                                                         <option key={`${p.ismP_ID}-${index}`} value={p.ismP_NAME}>
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
                                                             {p.ismP_NAME}
                                                         </option>
                                                     ))}
@@ -1205,11 +1127,7 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
                                                     <ScrollArea className='h-32 p-3'>
                                                         {form.watch('roleids')?.map((role, index) => (
                                                             <FormField
-<<<<<<< HEAD
-                                                                key={role.ivrmrT_Id}
-=======
                                                                 key={`${role.ivrmrT_Id}-${index}`}
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
                                                                 control={form.control}
                                                                 name={`roleids.${index}.empck`}
                                                                 render={({ field }) => (
@@ -1241,14 +1159,6 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
                                 <i className='fa fa-floppy-o mr-2' aria-hidden='true'></i>
                                 Save
                             </Button>
-<<<<<<< HEAD
-                            <Button type='button' variant='destructive' onClick={handleClear}>
-                                <X className='mr-2 h-4 w-4' />
-                                Clear
-                            </Button>
-=======
-
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
                             <Button
                                 type='button'
                                 variant='outline'

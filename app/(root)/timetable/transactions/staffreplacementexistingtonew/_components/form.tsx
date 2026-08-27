@@ -11,21 +11,11 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 import { StaffRepacementExistingToNewSchema, type StaffReplacementExistingToNewValues } from '@/schemas/timetable/transactions';
-<<<<<<< HEAD
-
-import {
-    useSaveStaffReplacementExistingToNew,
-    useSectionDropdown,
-    useStaffReplacementExistingToNewMasters
-} from '@/hooks/timetable/useTransactions';
-
-=======
 
 import { useSectionDropdown, useStaffReplacementExistingToNewMasters } from '@/hooks/timetable/useTransactions';
 import { saveStaffReplacementExistingToNew } from '@/server/timetable/transactions/staffreplacementexistingtonew';
 import { useState } from 'react';
 
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
 const extractList = (data: any, preferredKey?: string) => {
     if (!data) return [];
     if (Array.isArray(data)) return data;

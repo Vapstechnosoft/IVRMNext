@@ -6,16 +6,12 @@ import { DateField } from '@/components/ui/dateField';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-<<<<<<< HEAD
-import { useStudentFeeEnablePartialPayment } from '@/hooks/fees/useTrasactions';
-=======
 import {
     useStudentFeeEnablePartialPayment,
     useopeningClassdropdowndatafee,
     useopeningSectiondropdowndatafee,
     useopeningacademicyerdropdowndatafee
 } from '@/hooks/fees/useTrasactions';
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
 import { studentFeeEnablePartialPaymentSchema } from '@/schemas/fees/trasactions';
 import { studentNameDropdown } from '@/server/fees/trasactions/fee_opening_balance';
 import {
@@ -187,11 +183,8 @@ export default function AddStudentFeeEnablePartialPaymentForm({
 
                 if (!isMounted) return;
 
-<<<<<<< HEAD
-=======
                 const studentlist = (res?.data as any) ?? (res as any)?.studentlist ?? (Array.isArray(res) ? res : []);
 
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
                 if (Array.isArray(studentlist) && studentlist.length > 0) {
                     setStudents(studentlist);
                 } else {
@@ -233,12 +226,9 @@ export default function AddStudentFeeEnablePartialPaymentForm({
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
-<<<<<<< HEAD
-=======
             const selectedStudent = students.find((s: any) => (s.amst_Id ?? s.amsT_Id ?? s.AMST_Id) === Number(data.amsT_Id));
             const selectedYearObj = yearlist.find((y: any) => (y.asmaY_Id ?? y.ASMAY_Id) === Number(data.asmaY_Id));
 
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
             const payload: IStudentFeeEnablePartialPaymentSavePayload = {
                 amsT_Id: Number(data.amsT_Id),
                 fsepP_RemarksDate: new Date(data.fsepP_RemarksDate).toISOString(),
