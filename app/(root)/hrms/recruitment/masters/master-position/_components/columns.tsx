@@ -31,17 +31,17 @@ export const getMasterPositionColumns = ({ onEdit, onToggle }: MasterPositionCol
     {
         accessorKey: 'hrmP_Position',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Position Name' />,
-        cell: ({ row }) => <div className='font-medium'>{row.original.hrmP_Position}</div>,
+        cell: ({ row }) => <div className='font-medium'>{row.original.hrmP_Position}</div>
     },
     {
         accessorKey: 'hrmP_Skills',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Skill' />,
-        cell: ({ row }) => <div className='font-medium'>{row.original.hrmP_Skills}</div>,
+        cell: ({ row }) => <div className='font-medium'>{row.original.hrmP_Skills}</div>
     },
     {
         accessorKey: 'hrmP_Desc',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Description' />,
-        cell: ({ row }) => <div className='font-medium'>{row.original.hrmP_Desc}</div>,
+        cell: ({ row }) => <div className='font-medium'>{row.original.hrmP_Desc}</div>
     },
     {
         id: 'actions',

@@ -5,7 +5,7 @@ export const invTGRNItemTaxSchema = z.object({
     invtgrN_Id: z.number().default(0),
     invmT_Id: z.number().min(1, 'Select Tax'),
     invtgrnT_TaxPer: z.number().default(0),
-    invtgrnT_TaxAmt: z.number().default(0),
+    invtgrnT_TaxAmt: z.number().default(0)
 });
 
 export const invTGRNItemSchema = z.object({
@@ -25,7 +25,7 @@ export const invTGRNItemSchema = z.object({
     invtgrN_Amount: z.number().default(0),
     invtgrN_Naration: z.string().optional(),
     invtgrN_TaxAmt: z.number().default(0),
-    GRNItemTax: z.array(invTGRNItemTaxSchema).optional(),
+    GRNItemTax: z.array(invTGRNItemTaxSchema).optional()
 });
 
 export const invTGRNSchema = z.object({
@@ -53,7 +53,7 @@ export const invTGRNSchema = z.object({
     invmgrN_Challandate: z.union([z.date(), z.string(), z.null()]).optional(),
     invmgrN_Challanverfied: z.string().optional(),
     invmgrN_KitNo: z.string().optional(),
-    GRNItem: z.array(invTGRNItemSchema).min(1, 'Add at least one item'),
+    GRNItem: z.array(invTGRNItemSchema).min(1, 'Add at least one item')
 });
 
 export type InvTGRNSchema = z.infer<typeof invTGRNSchema>;

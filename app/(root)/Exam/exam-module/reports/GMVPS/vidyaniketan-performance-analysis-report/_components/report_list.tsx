@@ -2,10 +2,9 @@
 
 import { Button } from '@/components/ui/button';
 
-import { useRef } from "react";
-import * as XLSX from "xlsx";
-import { Printer, FileSpreadsheet, Info } from "lucide-react";
-import { CollapsibleSection } from "@/components/ui/form/collapsible-section";
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FileSpreadsheet, Printer } from 'lucide-react';
+import { useRef } from 'react';
 // import page from "../../../masters/page";
 
 interface ReportListProps {

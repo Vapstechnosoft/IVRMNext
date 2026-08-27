@@ -5,8 +5,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, UserCog } from 'lucide-react';
 import type { CategoryDTO, ModuleDTO } from '@/types/super-admin/user-creation/staff-user-creation';
+import { Loader2, UserCog } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
 
 interface UserDetailsProps {
@@ -48,29 +48,26 @@ export default function UserDetails({
     return (
         <div className='grid grid-cols-1 gap-8 rounded-lg border border-gray-100 bg-white p-6 shadow-sm md:grid-cols-2'>
             {/* User Credentials */}
-            <div className={`space-y-6 ${filterData === 'Multiple' ? 'opacity-40 pointer-events-none grayscale' : ''}`}>
+            <div className={`space-y-6 ${filterData === 'Multiple' ? 'pointer-events-none opacity-40 grayscale' : ''}`}>
                 <div className='space-y-2'>
                     <Label className='font-semibold text-sm'>User Name:</Label>
-                    <div className='flex gap-2 items-center'>
-                            <Input
-                                {...register('userName')}
-                                className='bg-gray-50 uppercase placeholder:text-gray-500 placeholder:normal-case'
-                                placeholder={filterData === 'Multiple' ? 'N/A FOR MULTIPLE' : 'USERNAME'}
-                                readOnly={isUserNameDisabled}
-                                disabled={filterData === 'Multiple'}
-                            />
-                            {isStaffDataLoading && (
-                                <Loader2 className='h-6 w-6 animate-spin text-primary' />
-                            )}
+                    <div className='flex items-center gap-2'>
+                        <Input
+                            {...register('userName')}
+                            className='bg-gray-50 uppercase placeholder:text-gray-500 placeholder:normal-case'
+                            placeholder={filterData === 'Multiple' ? 'N/A FOR MULTIPLE' : 'USERNAME'}
+                            readOnly={isUserNameDisabled}
+                            disabled={filterData === 'Multiple'}
+                        />
+                        {isStaffDataLoading && <Loader2 className='h-6 w-6 animate-spin text-primary' />}
                         <Button
                             type='button'
-                            variant="secondary"
+                            variant='secondary'
                             onClick={onChangeUsernameToggle}
                             disabled={filterData === 'Multiple' || !isUserNameDisabled}
-                            size="sm"
-                            className='text-[10px] uppercase font-bold'
-                        >
-                            <UserCog className="mr-2 h-3.5 w-3.5" />
+                            size='sm'
+                            className='font-bold text-[10px] uppercase'>
+                            <UserCog className='mr-2 h-3.5 w-3.5' />
                             Change Username
                         </Button>
                     </div>
@@ -78,10 +75,13 @@ export default function UserDetails({
 
                 <div className='rounded-md border-orange-400 border-l-4 bg-orange-50 p-4'>
                     <p className='font-medium text-orange-800 text-sm'>
-                        {filterData === 'Multiple'
-                            ? "Password settings will be managed individually for each selected staff."
-                            : <>Initial password for staff is "<strong>vaps@123</strong>"</>
-                        }
+                        {filterData === 'Multiple' ? (
+                            'Password settings will be managed individually for each selected staff.'
+                        ) : (
+                            <>
+                                Initial password for staff is "<strong>vaps@123</strong>"
+                            </>
+                        )}
                     </p>
                 </div>
             </div>
@@ -124,9 +124,7 @@ export default function UserDetails({
                     </Label>
                     <div className='rounded-md border bg-gray-50 p-2'>
                         <ScrollArea className='h-40'>
-                            {modules.length === 0 && (
-                                <p className='text-center text-gray-500'>Please Select Staff to view modules.</p>
-                            )}
+                            {modules.length === 0 && <p className='text-center text-gray-500'>Please Select Staff to view modules.</p>}
                             {modules.map((mod) => (
                                 <div
                                     key={mod.ivrmM_Id}

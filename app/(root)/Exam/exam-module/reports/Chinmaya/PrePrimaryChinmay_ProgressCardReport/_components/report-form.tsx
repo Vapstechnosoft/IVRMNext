@@ -5,18 +5,18 @@ import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { DatePicker } from '@/components/ui/date-picker';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import {
+    getClassDropDownByAcademicYearlist,
+    getExamsDropDownByAcademicYearandClassandSectionlist,
+    getSectionsDropDownByAcademicYearandClasslist,
+    getStudentsDropDownByAcademicYearandClassandSectionlist
+} from '@/server/exam/exam-module/reports/cumulative-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import {
-    getClassDropDownByAcademicYearlist,
-    getSectionsDropDownByAcademicYearandClasslist,
-    getStudentsDropDownByAcademicYearandClassandSectionlist,
-    getExamsDropDownByAcademicYearandClassandSectionlist
-} from '@/server/exam/exam-module/reports/cumulative-report';
 
 const prePrimaryChinmaySchema = z.object({
     asmaY_Id: z.number().min(1, 'Select Academic Year'),
@@ -24,7 +24,7 @@ const prePrimaryChinmaySchema = z.object({
     asmS_Id: z.number().min(1, 'Select Section'),
     amsT_Id: z.number().min(1, 'Select Student'),
     reopen_date: z.date({ required_error: 'Select Reopen Date' }),
-    selectedExamIds: z.array(z.string()).min(1, 'Select at least one exam'),
+    selectedExamIds: z.array(z.string()).min(1, 'Select at least one exam')
 });
 
 type PrePrimaryChinmaySchema = z.infer<typeof prePrimaryChinmaySchema>;
@@ -42,8 +42,8 @@ export function PrePrimaryChinmayReportForm({ onSuccess }: PrePrimaryChinmayRepo
             asmS_Id: 0,
             amsT_Id: 0,
             selectedExamIds: [],
-            reopen_date: new Date('2026-05-13'),
-        },
+            reopen_date: new Date('2026-05-13')
+        }
     });
 
     const { control, handleSubmit, setValue, reset, formState } = methods;
@@ -101,12 +101,13 @@ export function PrePrimaryChinmayReportForm({ onSuccess }: PrePrimaryChinmayRepo
 
     const onSubmit = async (values: PrePrimaryChinmaySchema) => {
         try {
-            const selectedExamList = exams.filter(e => values.selectedExamIds.includes(String(e.emE_Id)))
-                .map(e => ({ EME_Id: e.emE_Id, EME_ExamName: e.emE_ExamName }));
+            const selectedExamList = exams
+                .filter((e) => values.selectedExamIds.includes(String(e.emE_Id)))
+                .map((e) => ({ EME_Id: e.emE_Id, EME_ExamName: e.emE_ExamName }));
 
             const payload = {
                 ...values,
-                examlist: selectedExamList,
+                examlist: selectedExamList
             };
 
             onSuccess({ apiData: null, payload, academicYears, students });
@@ -118,10 +119,12 @@ export function PrePrimaryChinmayReportForm({ onSuccess }: PrePrimaryChinmayRepo
     return (
         <FormProvider {...methods}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6' noValidate>
-                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+                <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                     {/* Academic Year */}
                     <div className='space-y-2'>
-                        <Label>Academic Year <span className='text-red-500'>*</span></Label>
+                        <Label>
+                            Academic Year <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             name='asmaY_Id'
                             control={control}
@@ -132,13 +135,17 @@ export function PrePrimaryChinmayReportForm({ onSuccess }: PrePrimaryChinmayRepo
                                             <SelectValue placeholder='--Select Year--' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {academicLoading ? <SelectItem value="0" disabled>Loading...</SelectItem> :
+                                            {academicLoading ? (
+                                                <SelectItem value='0' disabled>
+                                                    Loading...
+                                                </SelectItem>
+                                            ) : (
                                                 academicYears.map((year: any) => (
                                                     <SelectItem key={year.asmaY_Id} value={String(year.asmaY_Id)}>
                                                         {year.asmaY_Year}
                                                     </SelectItem>
                                                 ))
-                                            }
+                                            )}
                                         </SelectContent>
                                     </Select>
                                     {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -149,7 +156,9 @@ export function PrePrimaryChinmayReportForm({ onSuccess }: PrePrimaryChinmayRepo
 
                     {/* Class */}
                     <div className='space-y-2'>
-                        <Label>Class <span className='text-red-500'>*</span></Label>
+                        <Label>
+                            Class <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             name='asmcL_Id'
                             control={control}
@@ -175,7 +184,9 @@ export function PrePrimaryChinmayReportForm({ onSuccess }: PrePrimaryChinmayRepo
 
                     {/* Section */}
                     <div className='space-y-2'>
-                        <Label>Section <span className='text-red-500'>*</span></Label>
+                        <Label>
+                            Section <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             name='asmS_Id'
                             control={control}
@@ -201,7 +212,9 @@ export function PrePrimaryChinmayReportForm({ onSuccess }: PrePrimaryChinmayRepo
 
                     {/* Student */}
                     <div className='space-y-2'>
-                        <Label>Student <span className='text-red-500'>*</span></Label>
+                        <Label>
+                            Student <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             name='amsT_Id'
                             control={control}
@@ -214,7 +227,8 @@ export function PrePrimaryChinmayReportForm({ onSuccess }: PrePrimaryChinmayRepo
                                         <SelectContent>
                                             {students.map((stu: any) => (
                                                 <SelectItem key={stu.amsT_Id} value={String(stu.amsT_Id)}>
-                                                    {stu.studentName || `${stu.amsT_FirstName || ''} ${stu.amsT_MiddleName || ''} ${stu.amsT_LastName || ''}`.trim()}
+                                                    {stu.studentName ||
+                                                        `${stu.amsT_FirstName || ''} ${stu.amsT_MiddleName || ''} ${stu.amsT_LastName || ''}`.trim()}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -227,7 +241,9 @@ export function PrePrimaryChinmayReportForm({ onSuccess }: PrePrimaryChinmayRepo
 
                     {/* Reopen Date */}
                     <div className='space-y-2'>
-                        <Label>Reopen Date <span className='text-red-500'>*</span></Label>
+                        <Label>
+                            Reopen Date <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             name='reopen_date'
                             control={control}
@@ -242,13 +258,15 @@ export function PrePrimaryChinmayReportForm({ onSuccess }: PrePrimaryChinmayRepo
 
                     {/* Exam Multi-select */}
                     <div className='space-y-2 lg:col-span-3'>
-                        <Label>Exam <span className='text-red-500'>*</span></Label>
+                        <Label>
+                            Exam <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             name='selectedExamIds'
                             control={control}
                             render={({ field, fieldState }) => (
                                 <CustomMultiSelectBox
-                                    options={exams.map(e => ({ label: e.emE_ExamName, value: String(e.emE_Id) }))}
+                                    options={exams.map((e) => ({ label: e.emE_ExamName, value: String(e.emE_Id) }))}
                                     value={field.value}
                                     onChange={field.onChange}
                                     placeholder='--Select Exams--'
@@ -267,18 +285,22 @@ export function PrePrimaryChinmayReportForm({ onSuccess }: PrePrimaryChinmayRepo
                     <Button
                         type='button'
                         variant='secondary'
-                        onClick={() => onSuccess({
-                            apiData: null,
-                            payload: {
-                                asmaY_Id: 1,
-                                amsT_Id: 1,
-                                reopen_date: new Date(),
-                                examlist: [{ EME_Id: 1, EME_ExamName: 'TERM 1' }, { EME_Id: 2, EME_ExamName: 'TERM 2' }]
-                            },
-                            academicYears: [],
-                            students: []
-                        })}
-                    >
+                        onClick={() =>
+                            onSuccess({
+                                apiData: null,
+                                payload: {
+                                    asmaY_Id: 1,
+                                    amsT_Id: 1,
+                                    reopen_date: new Date(),
+                                    examlist: [
+                                        { EME_Id: 1, EME_ExamName: 'TERM 1' },
+                                        { EME_Id: 2, EME_ExamName: 'TERM 2' }
+                                    ]
+                                },
+                                academicYears: [],
+                                students: []
+                            })
+                        }>
                         Preview Mock
                     </Button>
                     <Button type='button' variant='outline' onClick={() => reset()} className='min-w-[100px]'>

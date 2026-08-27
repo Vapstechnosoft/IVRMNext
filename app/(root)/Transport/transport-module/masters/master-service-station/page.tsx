@@ -23,12 +23,7 @@ export default function MasterServiceStationPage(props: { searchParams: SearchPa
         <FormProvider<IMasterServiceStation>>
             <div className='min-h-screen'>
                 <div className='container space-y-4 p-1'>
-                    <MasterServiceStationPageContent
-                        response={response}
-                        isLoading={isLoading}
-                        error={error}
-                        refetchAll={refetchAll}
-                    />
+                    <MasterServiceStationPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
                 </div>
             </div>
         </FormProvider>
@@ -149,11 +144,7 @@ function FormSections() {
                 </div>
             )}
 
-            {isToggleFormOpen && selectedRow &&
-                <ToggleServiceStationForm
-                    rowData={selectedRow}
-                    onClose={closeToggleForm}
-                />}
+            {isToggleFormOpen && selectedRow && <ToggleServiceStationForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

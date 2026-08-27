@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState, Fragment } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface Props {
     data: any;
@@ -16,7 +16,11 @@ interface Props {
     onPrint?: () => void;
 }
 
-function PerformanceChart({ studentId, chartData, onChartReady }: {
+function PerformanceChart({
+    studentId,
+    chartData,
+    onChartReady
+}: {
     studentId: number;
     chartData?: { subjects: string[]; marks: number[]; average: number[] };
     onChartReady?: (id: number, dataUrl: string) => void;
@@ -55,14 +59,14 @@ function PerformanceChart({ studentId, chartData, onChartReady }: {
                             data: chartData.marks,
                             backgroundColor: 'rgb(63,81,181)',
                             borderColor: 'black',
-                            borderWidth: 1,
+                            borderWidth: 1
                         },
                         {
                             label: 'Average Marks',
                             data: chartData.average,
                             backgroundColor: 'rgb(255,87,34)',
                             borderColor: 'black',
-                            borderWidth: 0,
+                            borderWidth: 0
                         }
                     ]
                 },
@@ -74,7 +78,7 @@ function PerformanceChart({ studentId, chartData, onChartReady }: {
                             ticks: { maxRotation: 70, minRotation: 70 }
                         },
                         y: {
-                            beginAtZero: true,
+                            beginAtZero: true
                         }
                     },
                     plugins: {
@@ -107,13 +111,23 @@ function PerformanceChart({ studentId, chartData, onChartReady }: {
     if (!chartData || chartData.subjects.length === 0) return null;
 
     return (
-        <div className="relative w-full h-[250px]">
-            <canvas ref={canvasRef} id={`pieChart${studentId}`} className="max-w-full h-[250px]" />
+        <div className='relative h-[250px] w-full'>
+            <canvas ref={canvasRef} id={`pieChart${studentId}`} className='h-[250px] max-w-full' />
         </div>
     );
 }
 
-export default function FinalPromReportDisplay({ data, date, exmname, logo, academicYear, className, sectionName, studentsCount, onPrint }: Props) {
+export default function FinalPromReportDisplay({
+    data,
+    date,
+    exmname,
+    logo,
+    academicYear,
+    className,
+    sectionName,
+    studentsCount,
+    onPrint
+}: Props) {
     const [chartImages, setChartImages] = useState<Record<number, string>>({});
 
     const {
@@ -141,15 +155,21 @@ export default function FinalPromReportDisplay({ data, date, exmname, logo, acad
             if (dd.empG_DistplayName === d.empG_DistplayName) {
                 counttotal += d.empsgE_ForMaxMarkrs;
                 temp.push({
-                    EMPG_GroupName: d.empG_GroupName, EME_Id: d.emE_Id,
-                    EME_ExamName: d.emE_ExamName, EME_ExamOrder: d.emE_ExamOrder, EMPG_DistplayName: d.empG_DistplayName,
+                    EMPG_GroupName: d.empG_GroupName,
+                    EME_Id: d.emE_Id,
+                    EME_ExamName: d.emE_ExamName,
+                    EME_ExamOrder: d.emE_ExamOrder,
+                    EMPG_DistplayName: d.empG_DistplayName,
                     EMPSGE_ForMaxMarkrs: d.empsgE_ForMaxMarkrs,
                     examnamedisplay: d.emE_ExamCode || d.emE_ExamName // Use code or name as fallback
                 });
 
                 groupwiseexamlist.push({
-                    EMPG_GroupName: d.empG_GroupName, EME_Id: d.emE_Id,
-                    EME_ExamName: d.emE_ExamName, EME_ExamOrder: d.emE_ExamOrder, EMPG_DistplayName: d.empG_DistplayName,
+                    EMPG_GroupName: d.empG_GroupName,
+                    EME_Id: d.emE_Id,
+                    EME_ExamName: d.emE_ExamName,
+                    EME_ExamOrder: d.emE_ExamOrder,
+                    EMPG_DistplayName: d.empG_DistplayName,
                     EMPSGE_ForMaxMarkrs: d.empsgE_ForMaxMarkrs,
                     examnamedisplay: d.emE_ExamCode || d.emE_ExamName
                 });
@@ -157,15 +177,23 @@ export default function FinalPromReportDisplay({ data, date, exmname, logo, acad
         });
 
         temp.push({
-            EMPG_GroupName: dd.empG_GroupName, EME_Id: 9800000,
-            EME_ExamName: "Marks Obtained", EME_ExamOrder: 9800000, EMPG_DistplayName: dd.empG_DistplayName,
-            EMPSGE_ForMaxMarkrs: counttotal, examnamedisplay: 'Total'
+            EMPG_GroupName: dd.empG_GroupName,
+            EME_Id: 9800000,
+            EME_ExamName: 'Marks Obtained',
+            EME_ExamOrder: 9800000,
+            EMPG_DistplayName: dd.empG_DistplayName,
+            EMPSGE_ForMaxMarkrs: counttotal,
+            examnamedisplay: 'Total'
         });
 
         groupwiseexamlist.push({
-            EMPG_GroupName: dd.empG_GroupName, EME_Id: 9800000,
-            EME_ExamName: "Marks Obtained", EME_ExamOrder: 9800000, EMPG_DistplayName: dd.empG_DistplayName,
-            EMPSGE_ForMaxMarkrs: counttotal, examnamedisplay: 'Total'
+            EMPG_GroupName: dd.empG_GroupName,
+            EME_Id: 9800000,
+            EME_ExamName: 'Marks Obtained',
+            EME_ExamOrder: 9800000,
+            EMPG_DistplayName: dd.empG_DistplayName,
+            EMPSGE_ForMaxMarkrs: counttotal,
+            examnamedisplay: 'Total'
         });
 
         return { ...dd, empsG_MarksValue: counttotal, groupewiseexam: temp };
@@ -246,61 +274,113 @@ export default function FinalPromReportDisplay({ data, date, exmname, logo, acad
                     const chartData = {
                         subjects: chartSubjects.map((s: any) => s.subjectName),
                         marks: chartSubjects.map((s: any) => s.subjectObtainedMarks || 0),
-                        average: chartSubjects.map((s: any) => s.subjectPercentage || 0),
+                        average: chartSubjects.map((s: any) => s.subjectPercentage || 0)
                     };
 
                     return (
                         <div key={report.amsT_Id} className={index > 0 ? 'page-break' : ''}>
                             {logo ? (
-                                <div className="col-sm-12" style={{ textAlign: 'center', margin: '10px 0' }}>
-                                    <img src="https://kusumadata.blob.core.windows.net/files/20/ISM_Attachments/1d090996-9909-403b-aed1-4a45291e3797.jpg"
-                                        style={{ width: '100%', height: 'auto' }} alt="Logo" />
+                                <div className='col-sm-12' style={{ textAlign: 'center', margin: '10px 0' }}>
+                                    <img
+                                        src='https://kusumadata.blob.core.windows.net/files/20/ISM_Attachments/1d090996-9909-403b-aed1-4a45291e3797.jpg'
+                                        style={{ width: '100%', height: 'auto' }}
+                                        alt='Logo'
+                                    />
                                 </div>
                             ) : (
-                                <div className="col-sm-12" style={{ marginTop: '130px' }}>&nbsp;</div>
+                                <div className='col-sm-12' style={{ marginTop: '130px' }}>
+                                    &nbsp;
+                                </div>
                             )}
 
-                            <div className="pagelayout">
-                                <table className="prom-table watermark-bg">
+                            <div className='pagelayout'>
+                                <table className='prom-table watermark-bg'>
                                     <tbody>
                                         <tr>
                                             <td style={{ border: 'none' }}>
-                                                <table className="prom-table" style={{ border: 'none' }}>
+                                                <table className='prom-table' style={{ border: 'none' }}>
                                                     <tbody>
                                                         <tr>
-                                                            <th colSpan={4} style={{ textAlign: 'center', width: '100%', fontSize: '18px', border: 'none' }}>
-                                                                <span>{exmname} REPORT CARD {academicYear}</span>
+                                                            <th
+                                                                colSpan={4}
+                                                                style={{
+                                                                    textAlign: 'center',
+                                                                    width: '100%',
+                                                                    fontSize: '18px',
+                                                                    border: 'none'
+                                                                }}>
+                                                                <span>
+                                                                    {exmname} REPORT CARD {academicYear}
+                                                                </span>
                                                             </th>
                                                         </tr>
                                                         <tr>
-                                                            <td style={{ fontSize: '12px', border: 'none' }} className="text-left" width="80%">
-                                                                <div className="flex">
-                                                                    <div className="w-[10%]">&nbsp;</div>
-                                                                    <div className="w-[90%]"><b>NAME &nbsp;:&nbsp;{report.studentName?.toUpperCase()}</b></div>
+                                                            <td
+                                                                style={{ fontSize: '12px', border: 'none' }}
+                                                                className='text-left'
+                                                                width='80%'>
+                                                                <div className='flex'>
+                                                                    <div className='w-[10%]'>&nbsp;</div>
+                                                                    <div className='w-[90%]'>
+                                                                        <b>NAME &nbsp;:&nbsp;{report.studentName?.toUpperCase()}</b>
+                                                                    </div>
                                                                 </div>
-                                                                <div className="flex">
-                                                                    <div className="w-[10%]">&nbsp;</div>
-                                                                    <div className="w-[90%]"><b>CLASS &nbsp;:&nbsp;{className}-{sectionName?.toUpperCase()}</b></div>
+                                                                <div className='flex'>
+                                                                    <div className='w-[10%]'>&nbsp;</div>
+                                                                    <div className='w-[90%]'>
+                                                                        <b>
+                                                                            CLASS &nbsp;:&nbsp;{className}-{sectionName?.toUpperCase()}
+                                                                        </b>
+                                                                    </div>
                                                                 </div>
                                                             </td>
-                                                            <td width="20%" style={{ fontSize: '12px', border: 'none', verticalAlign: 'top' }}><b>NO. IN CLASS&nbsp;:&nbsp;{studentsCount}</b></td>
-                                                            <td width="20%" style={{ fontSize: '12px', border: 'none', verticalAlign: 'top' }}>
-                                                                <b>ATTENDANCE&nbsp;: {studentAttendance ? `${Number(studentAttendance.ATTENDANCEPERCENTAGE).toFixed(0)}%` : ''}</b>
+                                                            <td
+                                                                width='20%'
+                                                                style={{ fontSize: '12px', border: 'none', verticalAlign: 'top' }}>
+                                                                <b>NO. IN CLASS&nbsp;:&nbsp;{studentsCount}</b>
                                                             </td>
-                                                            <td width="20%" style={{ fontSize: '12px', border: 'none', verticalAlign: 'top' }}><b>STUDENT&apos;S ID&nbsp;:&nbsp;{report.admissionNo}</b></td>
+                                                            <td
+                                                                width='20%'
+                                                                style={{ fontSize: '12px', border: 'none', verticalAlign: 'top' }}>
+                                                                <b>
+                                                                    ATTENDANCE&nbsp;:{' '}
+                                                                    {studentAttendance
+                                                                        ? `${Number(studentAttendance.ATTENDANCEPERCENTAGE).toFixed(0)}%`
+                                                                        : ''}
+                                                                </b>
+                                                            </td>
+                                                            <td
+                                                                width='20%'
+                                                                style={{ fontSize: '12px', border: 'none', verticalAlign: 'top' }}>
+                                                                <b>STUDENT&apos;S ID&nbsp;:&nbsp;{report.admissionNo}</b>
+                                                            </td>
                                                         </tr>
                                                         <tr>
-                                                            <th colSpan={4} style={{ textAlign: 'center', fontSize: '13px', border: 'none', paddingTop: '10px' }}><b>STATEMENT OF MARKS</b></th>
+                                                            <th
+                                                                colSpan={4}
+                                                                style={{
+                                                                    textAlign: 'center',
+                                                                    fontSize: '13px',
+                                                                    border: 'none',
+                                                                    paddingTop: '10px'
+                                                                }}>
+                                                                <b>STATEMENT OF MARKS</b>
+                                                            </th>
                                                         </tr>
                                                     </tbody>
                                                 </table>
 
-                                                <table className="prom-table mt-2">
+                                                <table className='prom-table mt-2'>
                                                     <thead>
                                                         <tr>
-                                                            <th style={{ fontSize: '13px' }} className="width-250">SUBJECTS</th>
+                                                            <th style={{ fontSize: '13px' }} className='width-250'>
+                                                                SUBJECTS
+                                                            </th>
                                                             {getgroupdetails_computed.map((grp: any, idx: number) => (
-                                                                <th key={idx} style={{ fontSize: '13px' }} colSpan={grp.groupewiseexam.length}>
+                                                                <th
+                                                                    key={idx}
+                                                                    style={{ fontSize: '13px' }}
+                                                                    colSpan={grp.groupewiseexam.length}>
                                                                     <span>{grp.empG_DistplayName}</span>
                                                                 </th>
                                                             ))}
@@ -308,20 +388,30 @@ export default function FinalPromReportDisplay({ data, date, exmname, logo, acad
                                                         <tr>
                                                             <th style={{ borderBottom: '0.5px solid #727272 !important' }}></th>
                                                             {groupwiseexamlist.map((grpexam: any, eIdx: number) => (
-                                                                <th key={eIdx} style={{ fontSize: '13px', textAlign: 'center', width: '70px' }}>
-                                                                    {grpexam.examnamedisplay !== 'Total' && grpexam.examnamedisplay !== 'AVG' && (
-                                                                        gettermlist.filter((m: any) => grpexam.EME_Id === m.EME_Id).map((maxmarks: any, mIdx: number) => (
-                                                                            <span key={mIdx}>
-                                                                                {maxmarks.ROWNUMBER === 1 ? maxmarks.EYCES_MarksEntryMax : `/${maxmarks.EYCES_MarksEntryMax}`}
-                                                                            </span>
-                                                                        ))
-                                                                    )}
-                                                                    {grpexam.examnamedisplay === 'Total' && grpexam.examnamedisplay !== 'AVG' && grpexam.examnamedisplay !== 'Marks Obtained' && (
-                                                                        <span>{grpexam.EMPSGE_ForMaxMarkrs}</span>
-                                                                    )}
-                                                                    {grpexam.examnamedisplay === 'AVG' && grpexam.examnamedisplay !== 'Total' && grpexam.examnamedisplay !== 'Marks Obtained' && (
-                                                                        <span>{grpexam.examnamedisplay}</span>
-                                                                    )}
+                                                                <th
+                                                                    key={eIdx}
+                                                                    style={{ fontSize: '13px', textAlign: 'center', width: '70px' }}>
+                                                                    {grpexam.examnamedisplay !== 'Total' &&
+                                                                        grpexam.examnamedisplay !== 'AVG' &&
+                                                                        gettermlist
+                                                                            .filter((m: any) => grpexam.EME_Id === m.EME_Id)
+                                                                            .map((maxmarks: any, mIdx: number) => (
+                                                                                <span key={mIdx}>
+                                                                                    {maxmarks.ROWNUMBER === 1
+                                                                                        ? maxmarks.EYCES_MarksEntryMax
+                                                                                        : `/${maxmarks.EYCES_MarksEntryMax}`}
+                                                                                </span>
+                                                                            ))}
+                                                                    {grpexam.examnamedisplay === 'Total' &&
+                                                                        grpexam.examnamedisplay !== 'AVG' &&
+                                                                        grpexam.examnamedisplay !== 'Marks Obtained' && (
+                                                                            <span>{grpexam.EMPSGE_ForMaxMarkrs}</span>
+                                                                        )}
+                                                                    {grpexam.examnamedisplay === 'AVG' &&
+                                                                        grpexam.examnamedisplay !== 'Total' &&
+                                                                        grpexam.examnamedisplay !== 'Marks Obtained' && (
+                                                                            <span>{grpexam.examnamedisplay}</span>
+                                                                        )}
                                                                 </th>
                                                             ))}
                                                         </tr>
@@ -329,28 +419,52 @@ export default function FinalPromReportDisplay({ data, date, exmname, logo, acad
                                                     <tbody>
                                                         {studentSubjects.map((subj: any, sIdx: number) => (
                                                             <tr key={sIdx}>
-                                                                <td style={{ fontSize: '12px', wordWrap: 'break-word' }} className="text-left">
-                                                                    <span style={{ fontWeight: 600 }}>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{subj.subjectName}</span>
+                                                                <td
+                                                                    style={{ fontSize: '12px', wordWrap: 'break-word' }}
+                                                                    className='text-left'>
+                                                                    <span style={{ fontWeight: 600 }}>
+                                                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{subj.subjectName}
+                                                                    </span>
                                                                 </td>
                                                                 {groupwiseexamlist.map((grpexam: any, eIdx: number) => {
-                                                                    const mrks = studentMarks.find((m: any) => subj.subjectName === m.ismS_SubjectName && grpexam.EME_Id === m.emE_Id && m.empsG_DisplayName === grpexam.EMPG_DistplayName);
+                                                                    const mrks = studentMarks.find(
+                                                                        (m: any) =>
+                                                                            subj.subjectName === m.ismS_SubjectName &&
+                                                                            grpexam.EME_Id === m.emE_Id &&
+                                                                            m.empsG_DisplayName === grpexam.EMPG_DistplayName
+                                                                    );
                                                                     return (
-                                                                        <td key={eIdx} style={{ fontSize: '12px' }} className="text-center width-50">
+                                                                        <td
+                                                                            key={eIdx}
+                                                                            style={{ fontSize: '12px' }}
+                                                                            className='width-50 text-center'>
                                                                             {mrks && (
                                                                                 <>
-                                                                                    {['AB', 'M', 'L'].includes(mrks.passFailFlag) && <span>{mrks.passFailFlag}</span>}
-                                                                                    {mrks.obtainedMarks >= 0 && !['AB', 'M', 'L'].includes(mrks.passFailFlag) && grpexam.EME_ExamName !== 'AVG' && mrks.eyceS_MarksDisplayFlg === 'true' && (
-                                                                                        <span>{mrks.obtainedMarks}</span>
+                                                                                    {['AB', 'M', 'L'].includes(mrks.passFailFlag) && (
+                                                                                        <span>{mrks.passFailFlag}</span>
                                                                                     )}
-                                                                                    {mrks.obtainedMarks >= 0 && !['AB', 'M', 'L'].includes(mrks.passFailFlag) && grpexam.EME_ExamName !== 'AVG' && mrks.eyceS_GradeDisplayFlg === 'true' && (
-                                                                                        <span>{mrks.obtainedGrade}</span>
-                                                                                    )}
-                                                                                    {!['AB', 'M', 'L'].includes(mrks.passFailFlag) && grpexam.EME_ExamName === 'AVG' && mrks.eyceS_MarksDisplayFlg === 'true' && (
-                                                                                        <b>{mrks.obtainedMarks}</b>
-                                                                                    )}
-                                                                                    {!['AB', 'M', 'L'].includes(mrks.passFailFlag) && grpexam.EME_ExamName === 'AVG' && mrks.eyceS_GradeDisplayFlg === 'true' && (
-                                                                                        <b>{mrks.obtainedGrade}</b>
-                                                                                    )}
+                                                                                    {mrks.obtainedMarks >= 0 &&
+                                                                                        !['AB', 'M', 'L'].includes(mrks.passFailFlag) &&
+                                                                                        grpexam.EME_ExamName !== 'AVG' &&
+                                                                                        mrks.eyceS_MarksDisplayFlg === 'true' && (
+                                                                                            <span>{mrks.obtainedMarks}</span>
+                                                                                        )}
+                                                                                    {mrks.obtainedMarks >= 0 &&
+                                                                                        !['AB', 'M', 'L'].includes(mrks.passFailFlag) &&
+                                                                                        grpexam.EME_ExamName !== 'AVG' &&
+                                                                                        mrks.eyceS_GradeDisplayFlg === 'true' && (
+                                                                                            <span>{mrks.obtainedGrade}</span>
+                                                                                        )}
+                                                                                    {!['AB', 'M', 'L'].includes(mrks.passFailFlag) &&
+                                                                                        grpexam.EME_ExamName === 'AVG' &&
+                                                                                        mrks.eyceS_MarksDisplayFlg === 'true' && (
+                                                                                            <b>{mrks.obtainedMarks}</b>
+                                                                                        )}
+                                                                                    {!['AB', 'M', 'L'].includes(mrks.passFailFlag) &&
+                                                                                        grpexam.EME_ExamName === 'AVG' &&
+                                                                                        mrks.eyceS_GradeDisplayFlg === 'true' && (
+                                                                                            <b>{mrks.obtainedGrade}</b>
+                                                                                        )}
                                                                                 </>
                                                                             )}
                                                                         </td>
@@ -359,34 +473,81 @@ export default function FinalPromReportDisplay({ data, date, exmname, logo, acad
                                                             </tr>
                                                         ))}
                                                         <tr>
-                                                            <td style={{ fontSize: '12px' }} className="text-left"><span style={{ fontWeight: 700 }}>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TOTAL</span></td>
+                                                            <td style={{ fontSize: '12px' }} className='text-left'>
+                                                                <span style={{ fontWeight: 700 }}>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TOTAL</span>
+                                                            </td>
                                                             {groupwiseexamlist.map((grpexam: any, eIdx: number) => {
-                                                                const mrks = getstudent_examwisemarks.find((m: any) => grpexam.EME_Id === m.emE_Id && m.empsG_DisplayName === grpexam.EMPG_DistplayName && grpexam.EME_Id === 9800000 && m.amsT_Id === report.amsT_Id);
+                                                                const mrks = getstudent_examwisemarks.find(
+                                                                    (m: any) =>
+                                                                        grpexam.EME_Id === m.emE_Id &&
+                                                                        m.empsG_DisplayName === grpexam.EMPG_DistplayName &&
+                                                                        grpexam.EME_Id === 9800000 &&
+                                                                        m.amsT_Id === report.amsT_Id
+                                                                );
                                                                 return (
-                                                                    <td key={eIdx} style={{ fontSize: '12px' }} className="text-center">
-                                                                        {mrks && <span style={{ fontWeight: 700 }}>{mrks.obtainedMarks || mrks.ESTMPP_TotalObtMarks || mrks.TotalMarks}</span>}
+                                                                    <td key={eIdx} style={{ fontSize: '12px' }} className='text-center'>
+                                                                        {mrks && (
+                                                                            <span style={{ fontWeight: 700 }}>
+                                                                                {mrks.obtainedMarks ||
+                                                                                    mrks.ESTMPP_TotalObtMarks ||
+                                                                                    mrks.TotalMarks}
+                                                                            </span>
+                                                                        )}
                                                                     </td>
                                                                 );
                                                             })}
                                                         </tr>
                                                         <tr>
-                                                            <td style={{ fontSize: '12px' }} className="text-left"><span style={{ fontWeight: 700 }}>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PERCENTAGE</span></td>
+                                                            <td style={{ fontSize: '12px' }} className='text-left'>
+                                                                <span style={{ fontWeight: 700 }}>
+                                                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PERCENTAGE
+                                                                </span>
+                                                            </td>
                                                             {groupwiseexamlist.map((grpexam: any, eIdx: number) => {
-                                                                const mrks = getstudent_examwisemarks.find((m: any) => grpexam.EME_Id === m.emE_Id && m.empsG_DisplayName === grpexam.EMPG_DistplayName && grpexam.EME_Id === 9800000 && m.amsT_Id === report.amsT_Id);
+                                                                const mrks = getstudent_examwisemarks.find(
+                                                                    (m: any) =>
+                                                                        grpexam.EME_Id === m.emE_Id &&
+                                                                        m.empsG_DisplayName === grpexam.EMPG_DistplayName &&
+                                                                        grpexam.EME_Id === 9800000 &&
+                                                                        m.amsT_Id === report.amsT_Id
+                                                                );
                                                                 return (
-                                                                    <td key={eIdx} style={{ fontSize: '12px' }} className="text-center">
-                                                                        {mrks && <span style={{ fontWeight: 700 }}>{Number(mrks.totalPercentage || mrks.TotalPercentage || mrks.ESTMPP_Percentage || 0).toFixed(0)}</span>}
+                                                                    <td key={eIdx} style={{ fontSize: '12px' }} className='text-center'>
+                                                                        {mrks && (
+                                                                            <span style={{ fontWeight: 700 }}>
+                                                                                {Number(
+                                                                                    mrks.totalPercentage ||
+                                                                                        mrks.TotalPercentage ||
+                                                                                        mrks.ESTMPP_Percentage ||
+                                                                                        0
+                                                                                ).toFixed(0)}
+                                                                            </span>
+                                                                        )}
                                                                     </td>
                                                                 );
                                                             })}
                                                         </tr>
                                                         <tr>
-                                                            <td style={{ fontSize: '12px' }} className="text-left"><span style={{ fontWeight: 700 }}>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;RANK</span></td>
+                                                            <td style={{ fontSize: '12px' }} className='text-left'>
+                                                                <span style={{ fontWeight: 700 }}>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;RANK</span>
+                                                            </td>
                                                             {groupwiseexamlist.map((grpexam: any, eIdx: number) => {
-                                                                const mrks = getstudent_examwisemarks.find((m: any) => grpexam.EME_Id === m.emE_Id && m.empsG_DisplayName === grpexam.EMPG_DistplayName && grpexam.EME_Id === 9800000 && m.amsT_Id === report.amsT_Id);
+                                                                const mrks = getstudent_examwisemarks.find(
+                                                                    (m: any) =>
+                                                                        grpexam.EME_Id === m.emE_Id &&
+                                                                        m.empsG_DisplayName === grpexam.EMPG_DistplayName &&
+                                                                        grpexam.EME_Id === 9800000 &&
+                                                                        m.amsT_Id === report.amsT_Id
+                                                                );
                                                                 return (
-                                                                    <td key={eIdx} style={{ fontSize: '12px' }} className="text-center">
-                                                                        {mrks && <span style={{ fontWeight: 700 }}>{mrks.estmpP_SectionRank || mrks.ESTMPP_SectionRank || mrks.SectionRank}</span>}
+                                                                    <td key={eIdx} style={{ fontSize: '12px' }} className='text-center'>
+                                                                        {mrks && (
+                                                                            <span style={{ fontWeight: 700 }}>
+                                                                                {mrks.estmpP_SectionRank ||
+                                                                                    mrks.ESTMPP_SectionRank ||
+                                                                                    mrks.SectionRank}
+                                                                            </span>
+                                                                        )}
                                                                     </td>
                                                                 );
                                                             })}
@@ -394,13 +555,15 @@ export default function FinalPromReportDisplay({ data, date, exmname, logo, acad
                                                     </tbody>
                                                 </table>
 
-                                                <div className="flex mt-2 w-full gap-2">
+                                                <div className='mt-2 flex w-full gap-2'>
                                                     {/* Personality Profile */}
-                                                    <div className="w-[60%]">
-                                                        <table className="prom-table">
+                                                    <div className='w-[60%]'>
+                                                        <table className='prom-table'>
                                                             <thead>
                                                                 <tr>
-                                                                    <th style={{ fontSize: '10px', fontWeight: 500 }} className="text-left">&nbsp;&nbsp;&nbsp;PERSONALITY PROFILE</th>
+                                                                    <th style={{ fontSize: '10px', fontWeight: 500 }} className='text-left'>
+                                                                        &nbsp;&nbsp;&nbsp;PERSONALITY PROFILE
+                                                                    </th>
                                                                     <th style={{ fontSize: '13px' }}>First Term</th>
                                                                     <th style={{ fontSize: '13px' }}>Second Term</th>
                                                                 </tr>
@@ -418,30 +581,48 @@ export default function FinalPromReportDisplay({ data, date, exmname, logo, acad
                                                                     'ACCEPTS RESPONSIBILITY FOR LEARNING'
                                                                 ].map((item, idx) => (
                                                                     <tr key={idx}>
-                                                                        <td style={{ fontSize: '11px', textAlign: 'left' }}>&middot;  &nbsp;{item}</td>
-                                                                        <td className="text-center"><input type="checkbox" readOnly /></td>
-                                                                        <td className="text-center"><input type="checkbox" readOnly /></td>
+                                                                        <td style={{ fontSize: '11px', textAlign: 'left' }}>
+                                                                            &middot; &nbsp;{item}
+                                                                        </td>
+                                                                        <td className='text-center'>
+                                                                            <input type='checkbox' readOnly />
+                                                                        </td>
+                                                                        <td className='text-center'>
+                                                                            <input type='checkbox' readOnly />
+                                                                        </td>
                                                                     </tr>
                                                                 ))}
                                                                 {(getallgrade?.length || 0) <= 1 && (
-                                                                    <tr><td style={{ fontSize: '11px' }}>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+                                                                    <tr>
+                                                                        <td style={{ fontSize: '11px' }}>&nbsp;</td>
+                                                                        <td>&nbsp;</td>
+                                                                        <td>&nbsp;</td>
+                                                                    </tr>
                                                                 )}
                                                             </tbody>
                                                         </table>
                                                     </div>
 
                                                     {/* Performance Analysis Chart */}
-                                                    <div className="w-[40%]">
-                                                        <table className="prom-table h-full">
+                                                    <div className='w-[40%]'>
+                                                        <table className='prom-table h-full'>
                                                             <thead>
                                                                 <tr>
-                                                                    <th style={{ fontSize: '13px', borderLeft: '0px !important' }}>PERFORMANCE ANALYSIS(TOTAL)</th>
+                                                                    <th style={{ fontSize: '13px', borderLeft: '0px !important' }}>
+                                                                        PERFORMANCE ANALYSIS(TOTAL)
+                                                                    </th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
                                                                 <tr>
-                                                                    <td style={{ borderLeft: 'none !important', borderBottom: '0px !important', height: '252px', position: 'relative' }}>
-                                                                        <div className="chart-canvas">
+                                                                    <td
+                                                                        style={{
+                                                                            borderLeft: 'none !important',
+                                                                            borderBottom: '0px !important',
+                                                                            height: '252px',
+                                                                            position: 'relative'
+                                                                        }}>
+                                                                        <div className='chart-canvas'>
                                                                             <PerformanceChart
                                                                                 studentId={report.amsT_Id}
                                                                                 chartData={chartData}
@@ -449,7 +630,11 @@ export default function FinalPromReportDisplay({ data, date, exmname, logo, acad
                                                                             />
                                                                         </div>
                                                                         {chartImages[report.amsT_Id] && (
-                                                                            <img src={chartImages[report.amsT_Id]} className="chart-image" alt="Chart" />
+                                                                            <img
+                                                                                src={chartImages[report.amsT_Id]}
+                                                                                className='chart-image'
+                                                                                alt='Chart'
+                                                                            />
                                                                         )}
                                                                     </td>
                                                                 </tr>
@@ -458,11 +643,19 @@ export default function FinalPromReportDisplay({ data, date, exmname, logo, acad
                                                     </div>
                                                 </div>
 
-                                                <div className="w-full mt-2">
-                                                    <table className="prom-table">
+                                                <div className='mt-2 w-full'>
+                                                    <table className='prom-table'>
                                                         <tbody>
                                                             <tr>
-                                                                <td style={{ width: '183px', borderRight: 'none !important', fontSize: '12px', height: '70px', padding: '10px' }} className="text-left">
+                                                                <td
+                                                                    style={{
+                                                                        width: '183px',
+                                                                        borderRight: 'none !important',
+                                                                        fontSize: '12px',
+                                                                        height: '70px',
+                                                                        padding: '10px'
+                                                                    }}
+                                                                    className='text-left'>
                                                                     <span>REMARKS :</span>
                                                                 </td>
                                                                 <td style={{ verticalAlign: 'top', padding: '10px' }}>
@@ -472,13 +665,49 @@ export default function FinalPromReportDisplay({ data, date, exmname, logo, acad
                                                         </tbody>
                                                     </table>
 
-                                                    <table className="prom-table mt-4" style={{ border: 'none' }}>
+                                                    <table className='prom-table mt-4' style={{ border: 'none' }}>
                                                         <tbody>
                                                             <tr>
-                                                                <th style={{ height: '70px', fontSize: '12px', verticalAlign: 'bottom', border: 'none' }} className="width-250"><span>DATE</span></th>
-                                                                <th style={{ height: '70px', fontSize: '12px', verticalAlign: 'bottom', border: 'none' }} className="width-250"><span>PRINCIPAL&apos;S SIGNATURE</span></th>
-                                                                <th style={{ height: '70px', fontSize: '12px', verticalAlign: 'bottom', border: 'none' }} className="width-250"><span>CLASS TEACHER&apos;S SIGNATURE</span></th>
-                                                                <th style={{ height: '70px', fontSize: '12px', verticalAlign: 'bottom', border: 'none' }} className="width-250"><span>PARENT&apos;S SIGNATURE</span></th>
+                                                                <th
+                                                                    style={{
+                                                                        height: '70px',
+                                                                        fontSize: '12px',
+                                                                        verticalAlign: 'bottom',
+                                                                        border: 'none'
+                                                                    }}
+                                                                    className='width-250'>
+                                                                    <span>DATE</span>
+                                                                </th>
+                                                                <th
+                                                                    style={{
+                                                                        height: '70px',
+                                                                        fontSize: '12px',
+                                                                        verticalAlign: 'bottom',
+                                                                        border: 'none'
+                                                                    }}
+                                                                    className='width-250'>
+                                                                    <span>PRINCIPAL&apos;S SIGNATURE</span>
+                                                                </th>
+                                                                <th
+                                                                    style={{
+                                                                        height: '70px',
+                                                                        fontSize: '12px',
+                                                                        verticalAlign: 'bottom',
+                                                                        border: 'none'
+                                                                    }}
+                                                                    className='width-250'>
+                                                                    <span>CLASS TEACHER&apos;S SIGNATURE</span>
+                                                                </th>
+                                                                <th
+                                                                    style={{
+                                                                        height: '70px',
+                                                                        fontSize: '12px',
+                                                                        verticalAlign: 'bottom',
+                                                                        border: 'none'
+                                                                    }}
+                                                                    className='width-250'>
+                                                                    <span>PARENT&apos;S SIGNATURE</span>
+                                                                </th>
                                                             </tr>
                                                         </tbody>
                                                     </table>

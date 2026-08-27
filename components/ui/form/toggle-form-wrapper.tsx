@@ -8,9 +8,9 @@ import {
     AlertDialogDescription,
     AlertDialogFooter,
     AlertDialogHeader,
-    AlertDialogTitle,
+    AlertDialogTitle
 } from '@/components/ui/alert-dialog';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 interface ToggleFormWrapperProps {
     isOpen: boolean;
@@ -38,9 +38,7 @@ export function ToggleFormWrapper({
             <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle>{title}</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        {description}
-                    </AlertDialogDescription>
+                    <AlertDialogDescription>{description}</AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel onClick={onClose}>{cancelText}</AlertDialogCancel>
@@ -49,8 +47,7 @@ export function ToggleFormWrapper({
                             e.preventDefault();
                             onConfirm();
                         }}
-                        className={variant === 'destructive' ? 'bg-destructive hover:bg-destructive/90' : ''}
-                    >
+                        className={variant === 'destructive' ? 'bg-destructive hover:bg-destructive/90' : ''}>
                         {confirmText}
                     </AlertDialogAction>
                 </AlertDialogFooter>

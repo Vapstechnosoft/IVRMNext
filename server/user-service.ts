@@ -1,7 +1,5 @@
 'use server';
 
-import type { UserResponseData } from '@/types';
-
 export async function getUserByEmail(username: string, password: string) {
     const baseUrl = process.env.NEXT_PUBLIC_PREADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
     const url = `${baseUrl}/configuration/login?username=${username}&password=${password}`;

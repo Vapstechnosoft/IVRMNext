@@ -4,18 +4,18 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
+import { useFormContext } from '@/components/ui/form/form-provider';
 import { Spinner as LoadingSpinner } from '@/components/ui/spinner';
-import { masterModuleSchema, type MasterModuleSchema } from '@/schemas/super-admin/super-admin-module/general-setting/module';
+import { type MasterModuleSchema, masterModuleSchema } from '@/schemas/super-admin/super-admin-module/general-setting/module';
 import { saveMasterModule } from '@/server/super-admin/super-admin-module/general-setting/module';
+import { getMasterModuleById } from '@/server/super-admin/super-admin-module/general-setting/module';
+import type { IMasterModule } from '@/types/super-admin/super-admin-module/general-setting/module';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save, X } from 'lucide-react';
 import { useState } from 'react';
+import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { useFormContext } from '@/components/ui/form/form-provider';
-import { getMasterModuleById } from '@/server/super-admin/super-admin-module/general-setting/module';
-import type { IMasterModule } from '@/types/super-admin/super-admin-module/general-setting/module';
-import { useEffect } from 'react';
 
 interface AddMasterModuleFormProps {
     onSuccess?: () => void;
@@ -24,13 +24,18 @@ interface AddMasterModuleFormProps {
 export default function AddMasterModuleForm({ onSuccess }: AddMasterModuleFormProps) {
     const [isLoading, setIsLoading] = useState(false);
 
-    const { control, handleSubmit, reset, formState: { errors } } = useForm<MasterModuleSchema>({
+    const {
+        control,
+        handleSubmit,
+        reset,
+        formState: { errors }
+    } = useForm<MasterModuleSchema>({
         resolver: zodResolver(masterModuleSchema),
         defaultValues: {
             ivrmM_ModuleName: '',
             ivrmM_ModuleDesc: '',
-            module_ActiveFlag: 1,
-        },
+            module_ActiveFlag: 1
+        }
     });
 
     const { selectedRow } = useFormContext<IMasterModule>();
@@ -55,7 +60,7 @@ export default function AddMasterModuleForm({ onSuccess }: AddMasterModuleFormPr
                 reset({
                     ivrmM_ModuleName: '',
                     ivrmM_ModuleDesc: '',
-                    module_ActiveFlag: 1,
+                    module_ActiveFlag: 1
                 });
             }
         };
@@ -72,7 +77,7 @@ export default function AddMasterModuleForm({ onSuccess }: AddMasterModuleFormPr
                 userid: selectedRow?.userid || 0,
                 createdDate: selectedRow?.createdDate || new Date().toISOString(),
                 updatedDate: new Date().toISOString(),
-                module_ActiveFlag: selectedRow?.module_ActiveFlag ?? data.module_ActiveFlag ?? 1, // Prefer existing, then form default (if added), then 1
+                module_ActiveFlag: selectedRow?.module_ActiveFlag ?? data.module_ActiveFlag ?? 1 // Prefer existing, then form default (if added), then 1
             };
 
             const result = await saveMasterModule(payload);
@@ -95,7 +100,7 @@ export default function AddMasterModuleForm({ onSuccess }: AddMasterModuleFormPr
             <div className='p-4'>
                 <div className='mx-auto max-w-2xl space-y-4'>
                     <div className='grid grid-cols-12 items-center gap-4'>
-                        <Label className='col-span-12 md:col-span-4 text-left md:text-right'>
+                        <Label className='col-span-12 text-left md:col-span-4 md:text-right'>
                             Module Name: <span className='text-red-500'>*</span>
                         </Label>
                         <div className='col-span-12 md:col-span-8'>
@@ -116,7 +121,7 @@ export default function AddMasterModuleForm({ onSuccess }: AddMasterModuleFormPr
                     </div>
 
                     <div className='grid grid-cols-12 items-center gap-4'>
-                        <Label className='col-span-12 md:col-span-4 text-left md:text-right'>
+                        <Label className='col-span-12 text-left md:col-span-4 md:text-right'>
                             Module Description: <span className='text-red-500'>*</span>
                         </Label>
                         <div className='col-span-12 md:col-span-8'>
@@ -142,19 +147,17 @@ export default function AddMasterModuleForm({ onSuccess }: AddMasterModuleFormPr
                     <Button
                         type='button'
                         variant='destructive'
-                        onClick={() => { reset(); onSuccess?.(); }}
-                        className='bg-red-500 hover:bg-red-600 w-32'
-                    >
+                        onClick={() => {
+                            reset();
+                            onSuccess?.();
+                        }}
+                        className='w-32 bg-red-500 hover:bg-red-600'>
                         <X className='mr-2 h-4 w-4' />
                         Cancel
                     </Button>
 
                     {/* Save Right */}
-                    <Button
-                        type='submit'
-                        disabled={isLoading}
-                        className='bg-blue-600 hover:bg-blue-700 w-32'
-                    >
+                    <Button type='submit' disabled={isLoading} className='w-32 bg-blue-600 hover:bg-blue-700'>
                         {isLoading ? <LoadingSpinner /> : <Save className='mr-2 h-4 w-4' />}
                         Save
                     </Button>

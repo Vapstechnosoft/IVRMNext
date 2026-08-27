@@ -1,18 +1,18 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { FormError, Label } from '@/components/ui/extension/field';
-import { useFormContext } from '@/components/ui/form/form-provider';
-import { FormInput } from '@/components/ui/form/form-input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { MasterBedSchema, MasterBedSchemaType } from '@/schemas/hostel/master-bed.schema';
+import { FormError, Label } from '@/components/ui/extension/field';
+import { FormInput } from '@/components/ui/form/form-input';
+import { useFormContext } from '@/components/ui/form/form-provider';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MasterBedSchema, type MasterBedSchemaType } from '@/schemas/hostel/master-bed.schema';
+import { fetchFloors, fetchRooms, saveBed } from '@/server/hostel/hostel-management/masters/bed';
+import type { IFloor, IHostel, IRoom } from '@/types/hostel/hostel-management/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { IBedDisplay, IFloor, IHostel, IRoom } from '@/types/hostel/hostel-management/masters';
-import { fetchFloors, fetchRooms, saveBed } from '@/server/hostel/hostel-management/masters/bed';
 
 interface AddMasterBedFormProps {
     onSuccess: () => void;
@@ -35,11 +35,17 @@ export default function AddMasterBedForm({ onSuccess, hostels }: AddMasterBedFor
             HLMB_BedSheetFlg: false,
             HLMB_PillowFlg: false,
             HLMB_StudyTableFlg: false,
-            HLMB_LampFlg: false,
-        },
+            HLMB_LampFlg: false
+        }
     });
 
-    const { control, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = form;
+    const {
+        control,
+        handleSubmit,
+        setValue,
+        watch,
+        formState: { errors, isSubmitting }
+    } = form;
 
     const selectedHostel = watch('HLMH_Id');
     const selectedFloor = watch('HLMF_Id');
@@ -82,17 +88,17 @@ export default function AddMasterBedForm({ onSuccess, hostels }: AddMasterBedFor
     };
 
     return (
-        <div className="p-4 bg-background rounded-lg border">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className='rounded-lg border bg-background p-4'>
+            <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
+                <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                     {/* LEFT COLUMN */}
-                    <div className="space-y-4">
+                    <div className='space-y-4'>
                         {/* Hostel */}
-                        <div className="space-y-2">
-                            <Label >Hostel Name</Label>
+                        <div className='space-y-2'>
+                            <Label>Hostel Name</Label>
                             <Controller
                                 control={control}
-                                name="HLMH_Id"
+                                name='HLMH_Id'
                                 render={({ field }) => (
                                     <Select
                                         onValueChange={(val) => {
@@ -100,10 +106,9 @@ export default function AddMasterBedForm({ onSuccess, hostels }: AddMasterBedFor
                                             setValue('HLMF_Id', 0); // Reset floor
                                             setValue('HRMRM_Id', 0); // Reset room
                                         }}
-                                        value={field.value ? field.value.toString() : ''}
-                                    >
+                                        value={field.value ? field.value.toString() : ''}>
                                         <SelectTrigger className={errors.HLMH_Id ? 'border-destructive' : ''}>
-                                            <SelectValue placeholder="--Select--" />
+                                            <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {hostels.map((h) => (
@@ -119,11 +124,11 @@ export default function AddMasterBedForm({ onSuccess, hostels }: AddMasterBedFor
                         </div>
 
                         {/* Floor */}
-                        <div className="space-y-2">
-                            <Label >Floor Name</Label>
+                        <div className='space-y-2'>
+                            <Label>Floor Name</Label>
                             <Controller
                                 control={control}
-                                name="HLMF_Id"
+                                name='HLMF_Id'
                                 render={({ field }) => (
                                     <Select
                                         onValueChange={(val) => {
@@ -131,10 +136,9 @@ export default function AddMasterBedForm({ onSuccess, hostels }: AddMasterBedFor
                                             setValue('HRMRM_Id', 0); // Reset room
                                         }}
                                         value={field.value ? field.value.toString() : ''}
-                                        disabled={!selectedHostel}
-                                    >
+                                        disabled={!selectedHostel}>
                                         <SelectTrigger className={errors.HLMF_Id ? 'border-destructive' : ''}>
-                                            <SelectValue placeholder="--Select--" />
+                                            <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {floors.map((f) => (
@@ -150,19 +154,18 @@ export default function AddMasterBedForm({ onSuccess, hostels }: AddMasterBedFor
                         </div>
 
                         {/* Room */}
-                        <div className="space-y-2">
+                        <div className='space-y-2'>
                             <Label>Room Details</Label>
                             <Controller
                                 control={control}
-                                name="HRMRM_Id"
+                                name='HRMRM_Id'
                                 render={({ field }) => (
                                     <Select
                                         onValueChange={(val) => field.onChange(Number(val))}
                                         value={field.value ? field.value.toString() : ''}
-                                        disabled={!selectedFloor}
-                                    >
+                                        disabled={!selectedFloor}>
                                         <SelectTrigger className={errors.HRMRM_Id ? 'border-destructive' : ''}>
-                                            <SelectValue placeholder="--Select--" />
+                                            <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {rooms.map((r) => (
@@ -178,66 +181,50 @@ export default function AddMasterBedForm({ onSuccess, hostels }: AddMasterBedFor
                         </div>
 
                         {/* Bed Name */}
-                        <FormInput
-                            control={control}
-                            name="HLMB_BedName"
-                            label="Bed Name"
-                            placeholder="Enter Bed Name"
-                            required
-                        />
+                        <FormInput control={control} name='HLMB_BedName' label='Bed Name' placeholder='Enter Bed Name' required />
                     </div>
 
                     {/* RIGHT COLUMN - Facilities */}
-                    <div className="space-y-4">
+                    <div className='space-y-4'>
                         <Label>Facility Flag :</Label>
-                        <div className="flex flex-wrap gap-4 p-4 border rounded-md">
-                            <div className="flex items-center space-x-2">
+                        <div className='flex flex-wrap gap-4 rounded-md border p-4'>
+                            <div className='flex items-center space-x-2'>
                                 <Controller
                                     control={control}
-                                    name="HLMB_MattressFlg"
-                                    render={({ field }) => (
-                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                                    )}
+                                    name='HLMB_MattressFlg'
+                                    render={({ field }) => <Checkbox checked={field.value} onCheckedChange={field.onChange} />}
                                 />
                                 <span>Mattress</span>
                             </div>
-                            <div className="flex items-center space-x-2">
+                            <div className='flex items-center space-x-2'>
                                 <Controller
                                     control={control}
-                                    name="HLMB_BedSheetFlg"
-                                    render={({ field }) => (
-                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                                    )}
+                                    name='HLMB_BedSheetFlg'
+                                    render={({ field }) => <Checkbox checked={field.value} onCheckedChange={field.onChange} />}
                                 />
                                 <span>BedSheet</span>
                             </div>
-                            <div className="flex items-center space-x-2">
+                            <div className='flex items-center space-x-2'>
                                 <Controller
                                     control={control}
-                                    name="HLMB_PillowFlg"
-                                    render={({ field }) => (
-                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                                    )}
+                                    name='HLMB_PillowFlg'
+                                    render={({ field }) => <Checkbox checked={field.value} onCheckedChange={field.onChange} />}
                                 />
                                 <span>Pillow</span>
                             </div>
-                            <div className="flex items-center space-x-2">
+                            <div className='flex items-center space-x-2'>
                                 <Controller
                                     control={control}
-                                    name="HLMB_StudyTableFlg"
-                                    render={({ field }) => (
-                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                                    )}
+                                    name='HLMB_StudyTableFlg'
+                                    render={({ field }) => <Checkbox checked={field.value} onCheckedChange={field.onChange} />}
                                 />
                                 <span>StudyTable</span>
                             </div>
-                            <div className="flex items-center space-x-2">
+                            <div className='flex items-center space-x-2'>
                                 <Controller
                                     control={control}
-                                    name="HLMB_LampFlg"
-                                    render={({ field }) => (
-                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                                    )}
+                                    name='HLMB_LampFlg'
+                                    render={({ field }) => <Checkbox checked={field.value} onCheckedChange={field.onChange} />}
                                 />
                                 <span>Lamp</span>
                             </div>
@@ -246,11 +233,11 @@ export default function AddMasterBedForm({ onSuccess, hostels }: AddMasterBedFor
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex justify-center gap-4 pt-4 border-t mt-4">
-                    <Button type="submit" disabled={isSubmitting} className="w-32">
+                <div className='mt-4 flex justify-center gap-4 border-t pt-4'>
+                    <Button type='submit' disabled={isSubmitting} className='w-32'>
                         {isSubmitting ? 'Saving...' : 'Save'}
                     </Button>
-                    <Button type="button" variant="destructive" onClick={closeAddForm} className="w-32">
+                    <Button type='button' variant='destructive' onClick={closeAddForm} className='w-32'>
                         Cancel
                     </Button>
                 </div>

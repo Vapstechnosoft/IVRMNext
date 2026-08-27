@@ -398,4 +398,3 @@ export default function TimeTableGrid({ params }: TimeTableGridProps) {
         </div>
     );
 }
-

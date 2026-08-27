@@ -81,11 +81,7 @@ function ActionButtonsCell({ rowData }: { rowData: IExamTTTransSettings }) {
             <button type='button' onClick={handleView} className='rounded-md p-2 transition hover:bg-muted' title='View Records'>
                 <Eye className='h-4 w-4 text-blue-600' />
             </button>
-            <ActionButtons
-                rowData={rowData}
-                buttons={{ edit: true, delete: false, toggle: false }}
-                onEdit={handleEdit}
-            />
+            <ActionButtons rowData={rowData} buttons={{ edit: true, delete: false, toggle: false }} onEdit={handleEdit} />
         </div>
     );
 }

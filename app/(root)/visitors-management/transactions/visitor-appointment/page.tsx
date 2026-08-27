@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useVisitorAppointment } from '@/hooks/visitors-management/transactions/useVisitorAppointment';
-import { VisitorAppointmentData } from '@/types/visitors-management/transactions';
+import type { VisitorAppointmentData } from '@/types/visitors-management/transactions';
 import { Plus, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 import AppointmentForm from './_components/appointment-form';
@@ -44,20 +44,20 @@ export default function VisitorAppointmentPage() {
     const columns = getColumns({ onEdit: handleEdit });
 
     return (
-        <div className="min-h-screen">
+        <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-self-end'>
                     <Button
                         type='button'
                         onClick={handleAddNew}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='h-4 w-4 mr-2' />
+                        <Plus className='mr-2 h-4 w-4' />
                         Add Appointment
                     </Button>
                 </div>
 
                 <CollapsibleSection
-                    title="Appointment Entry List"
+                    title='Appointment Entry List'
                     defaultOpen={true}
                     variant='default'
                     size='lg'

@@ -1,18 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
+import type { IClass, IExam, IExamwiseRemarksInitialData, ISection } from '@/types/staff-portal/examwise-student-remarks';
 import { Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import type {
-    IExamwiseRemarksInitialData,
-    IClass,
-    ISection,
-    IExam
-} from '@/types/staff-portal/examwise-student-remarks';
 
 interface ExamwiseRemarksFilterProps {
     initialData?: IExamwiseRemarksInitialData;
@@ -69,21 +64,27 @@ export default function ExamwiseRemarksFilter({
         try {
             const res = await getClasses({ ASMAY_Id: yearId });
             setClasses(res.classlist || []);
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            console.error(e);
+        }
     };
 
     const fetchSections = async (yearId: number, classId: number) => {
         try {
             const res = await getSections({ ASMAY_Id: yearId, ASMCL_Id: classId });
             setSections(res.sectionlist || []);
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            console.error(e);
+        }
     };
 
     const fetchExams = async (yearId: number, classId: number, sectionId: number) => {
         try {
             const res = await getExams({ ASMAY_Id: yearId, ASMCL_Id: classId, ASMS_Id: sectionId });
             setExams(res.examlist || []);
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            console.error(e);
+        }
     };
 
     const handleYearChange = (val: string) => {
@@ -127,73 +128,93 @@ export default function ExamwiseRemarksFilter({
     };
 
     return (
-        <Card className="mb-6">
-            <CardHeader><CardTitle>Selection</CardTitle></CardHeader>
+        <Card className='mb-6'>
+            <CardHeader>
+                <CardTitle>Selection</CardTitle>
+            </CardHeader>
             <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="space-y-2">
-                        <Label>Year <span className="text-red-500">*</span></Label>
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
+                    <div className='space-y-2'>
+                        <Label>
+                            Year <span className='text-red-500'>*</span>
+                        </Label>
                         <Select value={selectedYear} onValueChange={handleYearChange} disabled={disabled}>
                             <SelectTrigger>
-                                <SelectValue placeholder="Select Year" />
+                                <SelectValue placeholder='Select Year' />
                             </SelectTrigger>
                             <SelectContent>
-                                {initialData?.yearlist.map(y => (
-                                    <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>{y.asmaY_Year}</SelectItem>
+                                {initialData?.yearlist.map((y) => (
+                                    <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                        {y.asmaY_Year}
+                                    </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label>Class <span className="text-red-500">*</span></Label>
+                    <div className='space-y-2'>
+                        <Label>
+                            Class <span className='text-red-500'>*</span>
+                        </Label>
                         <Select value={selectedClass} onValueChange={handleClassChange} disabled={disabled}>
                             <SelectTrigger>
-                                <SelectValue placeholder="Select Class" />
+                                <SelectValue placeholder='Select Class' />
                             </SelectTrigger>
                             <SelectContent>
-                                {classes.map(c => (
-                                    <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>{c.asmcL_ClassName}</SelectItem>
+                                {classes.map((c) => (
+                                    <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
+                                        {c.asmcL_ClassName}
+                                    </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label>Section <span className="text-red-500">*</span></Label>
+                    <div className='space-y-2'>
+                        <Label>
+                            Section <span className='text-red-500'>*</span>
+                        </Label>
                         <Select value={selectedSection} onValueChange={handleSectionChange} disabled={disabled}>
                             <SelectTrigger>
-                                <SelectValue placeholder="Select Section" />
+                                <SelectValue placeholder='Select Section' />
                             </SelectTrigger>
                             <SelectContent>
-                                {sections.map(s => (
-                                    <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>{s.asmC_SectionName}</SelectItem>
+                                {sections.map((s) => (
+                                    <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
+                                        {s.asmC_SectionName}
+                                    </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label>Exam <span className="text-red-500">*</span></Label>
+                    <div className='space-y-2'>
+                        <Label>
+                            Exam <span className='text-red-500'>*</span>
+                        </Label>
                         <Select value={selectedExam} onValueChange={setSelectedExam} disabled={disabled}>
                             <SelectTrigger>
-                                <SelectValue placeholder="Select Exam" />
+                                <SelectValue placeholder='Select Exam' />
                             </SelectTrigger>
                             <SelectContent>
-                                {exams.map(e => (
-                                    <SelectItem key={e.emE_Id} value={String(e.emE_Id)}>{e.emE_ExamName}</SelectItem>
+                                {exams.map((e) => (
+                                    <SelectItem key={e.emE_Id} value={String(e.emE_Id)}>
+                                        {e.emE_ExamName}
+                                    </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
                     </div>
                 </div>
 
-                <div className="flex justify-center gap-4 pt-6">
+                <div className='flex justify-center gap-4 pt-6'>
                     <Button onClick={handleSearch} disabled={isLoading || disabled}>
-                        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                        {isLoading ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
                         Search
                     </Button>
-                    <Button variant="outline" onClick={onReset} className="text-red-500">Cancel</Button>
+                    <Button variant='outline' onClick={onReset} className='text-red-500'>
+                        Cancel
+                    </Button>
                 </div>
             </CardContent>
         </Card>

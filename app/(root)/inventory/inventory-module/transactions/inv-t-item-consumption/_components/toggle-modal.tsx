@@ -30,12 +30,13 @@ export function ToggleItemConsumptionModal({ rowData, onClose }: ToggleItemConsu
     };
 
     return (
-        <AdaptiveDialog title='Toggle Consumption Status' isOpen={true} onClose={onClose} size="md">
+        <AdaptiveDialog title='Toggle Consumption Status' isOpen={true} onClose={onClose} size='md'>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <div className='space-y-3'>
                         <p className='text-sm text-warning-foreground'>
-                            Are you sure you want to {isActive ? 'deactivate' : 'activate'} Consumption <strong>{rowData.invmiC_ICNo}</strong>?
+                            Are you sure you want to {isActive ? 'deactivate' : 'activate'} Consumption{' '}
+                            <strong>{rowData.invmiC_ICNo}</strong>?
                         </p>
                     </div>
                 </AdaptiveBody>

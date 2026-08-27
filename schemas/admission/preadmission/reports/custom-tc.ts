@@ -6,7 +6,7 @@ export const CustomTcSchema = z.object({
     ASMS_Id: z.number().optional().default(0),
     admnoorname: z.enum(['regno', 'stdname']),
     tctemporper: z.enum(['temp', 'per']),
-    AMST_Id: z.number().min(1, { message: 'Please select a student' }),
+    AMST_Id: z.number().min(1, { message: 'Please select a student' })
 });
 
 export type CustomTcFields = z.infer<typeof CustomTcSchema>;

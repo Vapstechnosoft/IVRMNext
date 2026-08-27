@@ -72,10 +72,14 @@ export default function MasterHeaderDetails() {
         if (!searchQuery) return headerdata;
         const lowerQuery = searchQuery.toLowerCase();
         return headerdata.filter(
+<<<<<<< HEAD
             (item) =>
                 item.ivrmhE_Name?.toLowerCase().includes(lowerQuery) ||
                 item.ivrmM_ModuleName?.toLowerCase().includes(lowerQuery) ||
                 item.ivrmmP_PageName?.toLowerCase().includes(lowerQuery)
+=======
+            (item) => item.ivrmhE_Name?.toLowerCase().includes(lowerQuery) || item.ivrmmP_PageName?.toLowerCase().includes(lowerQuery)
+>>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
         );
     }, [headerdata, searchQuery]);
 

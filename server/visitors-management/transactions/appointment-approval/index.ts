@@ -1,9 +1,9 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { AppointmentApprovalLoadData } from '@/types/visitors-management/appointment-approval-types';
+import type { AppointmentApprovalLoadData } from '@/types/visitors-management/appointment-approval-types';
 
-import { AppointmentApprovalSchema, FeedbackSchema } from '@/schemas/visitors-management/appointment-approval-schema';
+import type { AppointmentApprovalSchema, FeedbackSchema } from '@/schemas/visitors-management/appointment-approval-schema';
 
 const API_URL = 'V_AppointmentApprovalStatus';
 

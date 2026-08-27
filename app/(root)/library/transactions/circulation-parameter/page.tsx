@@ -21,15 +21,27 @@ export default function CirculationParameterPage() {
     const [editingId, setEditingId] = useState<number | null>(null);
     const [dynamicCategoryList, setDynamicCategoryList] = useState<any[]>([]);
 
+    const defaultFormValues: CirculationParameterFormValues = {
+        id: undefined,
+        bookParameterFlag: 'BP',
+        issuerType: 'STUDENT',
+        status: true,
+        bookType: undefined,
+        categoryId: undefined,
+        categoryName: undefined,
+        classId: undefined,
+        employeeGroupId: undefined,
+        departmentId: undefined,
+        guestId: undefined,
+        maxIssueItems: undefined,
+        maxIssueDays: undefined,
+        maxRenewals: undefined
+    };
+
     // Form initialization
     const form = useForm<CirculationParameterFormValues>({
         resolver: zodResolver(circulationParameterSchema),
-        defaultValues: {
-            bookParameterFlag: 'BP',
-            issuerType: 'STUDENT',
-            status: true,
-            bookType: 'Issue'
-        }
+        defaultValues: defaultFormValues
     });
 
     const bookParameterFlag = form.watch('bookParameterFlag');
@@ -41,40 +53,36 @@ export default function CirculationParameterPage() {
     const toggleStatusMutation = useToggleCirculationParameterStatus();
 
     // Fetch category list when Non-Book Parameter is selected
-   useEffect(() => {
-    if (bookParameterFlag === 'NBP') {
-        const payload = {
-            pk_id: 0,
-            lmC_CategoryName: "BP",
-            reflag: "Y",
-            issue: 5,
-            items: 10,
-            renewal: 2,
-            activeflg: true,
-            flgtype: "Non-Book",
-            type: "Library",
-            alldata: [],
-            fillemp: []
-        };
+    useEffect(() => {
+        if (bookParameterFlag === 'NBP') {
+            const payload = {
+                pk_id: 0,
+                lmC_CategoryName: 'BP',
+                reflag: 'Y',
+                issue: 5,
+                items: 10,
+                renewal: 2,
+                activeflg: true,
+                flgtype: 'Non-Book',
+                type: 'Library',
+                alldata: [],
+                fillemp: []
+            };
 
-        categoryMutation.mutate(payload, {
-            onSuccess: (res) => {
-                setDynamicCategoryList(
-                    Array.isArray(res?.categorylist)
-                        ? res.categorylist
-                        : []
-                );
-            }
-        });
-    }
-}, [bookParameterFlag]);
+            categoryMutation.mutate(payload, {
+                onSuccess: (res) => {
+                    setDynamicCategoryList(Array.isArray(res?.categorylist) ? res.categorylist : []);
+                }
+            });
+        }
+    }, [bookParameterFlag]);
 
     // Extracting data from API response
     const details = apiResponse?.data || {};
     const gridData: CirculationParameterGridData[] = details.getdetails || [];
 
     // Fallback to dynamicCategoryList if NBP, otherwise use what comes from details
-    const categoryList = bookParameterFlag === 'NBP' ? dynamicCategoryList : (details.categorylist || []);
+    const categoryList = bookParameterFlag === 'NBP' ? dynamicCategoryList : details.categorylist || [];
     const bookTypeList = details.booktypelist || [];
     const classList = details.classlist || [];
     const departmentList = details.departmentlist || [];
@@ -84,7 +92,7 @@ export default function CirculationParameterPage() {
     const columns = useMemo(
         () =>
             createCirculationParameterColumns({
-                onEdit: (data) => {
+                onEdit: (data: any) => {
                     setEditingId(data.lmC_Id);
                     form.reset({
                         id: data.lmC_Id,
@@ -94,9 +102,13 @@ export default function CirculationParameterPage() {
                         maxIssueDays: data.lmC_MaxIssueDays,
                         maxRenewals: data.lmC_MaxRenewals,
                         status: data.lmC_ActiveFlag,
-                        bookType: data.lmB_BookTypeflag === 'BP' ? data.lmC_CategoryName : undefined,
+                        bookType: data.lmB_BookTypeflag === 'BP' ? data.lmB_BookType || data.lmC_CategoryName || undefined : undefined,
                         categoryId: data.lmB_BookTypeflag === 'NBP' ? data.lmC_Id : undefined,
-                        categoryName: data.lmB_BookTypeflag === 'NBP' ? data.lmC_CategoryName : undefined
+                        categoryName: data.lmB_BookTypeflag === 'NBP' ? data.lmC_CategoryName : undefined,
+                        classId: data.asmcl_id || data.asmcL_Id || undefined,
+                        employeeGroupId: data.hrmgt_id || data.hrmgT_Id || undefined,
+                        departmentId: data.hrmd_id || data.hrmD_Id || undefined,
+                        guestId: data.guest_id || data.guest_Id || undefined
                     });
                 },
                 onToggleStatus: (data) => {
@@ -124,24 +136,14 @@ export default function CirculationParameterPage() {
 
         saveMutation.mutate(payload, {
             onSuccess: () => {
-                form.reset({
-                    bookParameterFlag: values.bookParameterFlag,
-                    issuerType: values.issuerType,
-                    status: true,
-                    bookType: 'Issue'
-                });
+                form.reset(defaultFormValues);
                 setEditingId(null);
             }
         });
     };
 
     const handleCancel = () => {
-        form.reset({
-            bookParameterFlag: 'BP',
-            issuerType: 'STUDENT',
-            status: true,
-            bookType: 'Issue'
-        });
+        form.reset(defaultFormValues);
         setEditingId(null);
     };
 
@@ -150,10 +152,8 @@ export default function CirculationParameterPage() {
             <FormProvider {...form}>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)}>
-                        <div className='bg-white rounded-lg shadow-sm border border-t-4 border-t-orange-400 overflow-hidden'>
-                            <div className='bg-[#4251b1] text-white px-4 py-2 font-semibold text-sm'>
-                                CIRCULATION PARAMETER
-                            </div>
+                        <div className='overflow-hidden rounded-lg border border-t-4 border-t-orange-400 bg-white shadow-sm'>
+                            <div className='bg-[#4251b1] px-4 py-2 font-semibold text-sm text-white'>CIRCULATION PARAMETER</div>
                             <div className='p-6'>
                                 <CirculationParameterForm
                                     categoryList={categoryList}
@@ -164,7 +164,10 @@ export default function CirculationParameterPage() {
                                     guestList={guestList}
                                 />
                                 <div className='mt-8 flex justify-center gap-4'>
-                                    <Button type='submit' disabled={saveMutation.isPending} className='w-auto h-8 px-8 py-1 text-xs min-w-[120px] bg-[#4251b1] hover:bg-[#35418e] text-white shadow-sm rounded-sm'>
+                                    <Button
+                                        type='submit'
+                                        disabled={saveMutation.isPending}
+                                        className='h-8 w-auto min-w-[120px] rounded-sm bg-[#4251b1] px-8 py-1 text-white text-xs shadow-sm hover:bg-[#35418e]'>
                                         {saveMutation.isPending ? (
                                             <Loader2 className='mr-1.5 h-3.5 w-3.5 animate-spin' />
                                         ) : (
@@ -172,7 +175,10 @@ export default function CirculationParameterPage() {
                                         )}
                                         {editingId ? 'UPDATE' : 'SAVE'}
                                     </Button>
-                                    <Button type='button' onClick={handleCancel} className='w-auto h-8 px-8 py-1 text-xs min-w-[120px] bg-[#ff5a30] hover:bg-[#e64d26] text-white shadow-sm rounded-sm'>
+                                    <Button
+                                        type='button'
+                                        onClick={handleCancel}
+                                        className='h-8 w-auto min-w-[120px] rounded-sm bg-[#ff5a30] px-8 py-1 text-white text-xs shadow-sm hover:bg-[#e64d26]'>
                                         <XCircle className='mr-1.5 h-3.5 w-3.5' />
                                         CANCEL
                                     </Button>
@@ -183,10 +189,8 @@ export default function CirculationParameterPage() {
                 </Form>
             </FormProvider>
 
-            <div className='bg-white rounded-lg shadow-sm border border-t-4 border-t-orange-400 overflow-hidden'>
-                <div className='bg-[#4251b1] text-white px-4 py-2 font-semibold text-sm'>
-                    CIRCULATION PARAMETER LIST
-                </div>
+            <div className='overflow-hidden rounded-lg border border-t-4 border-t-orange-400 bg-white shadow-sm'>
+                <div className='bg-[#4251b1] px-4 py-2 font-semibold text-sm text-white'>CIRCULATION PARAMETER LIST</div>
                 <div className='p-6'>
                     <GenericDataTable columns={columns as any} data={gridData} isLoading={isDetailsLoading} />
                 </div>

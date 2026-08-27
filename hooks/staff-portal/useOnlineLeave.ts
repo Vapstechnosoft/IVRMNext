@@ -1,36 +1,30 @@
-
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-    getInitialLeaveData,
-    getLeaveHistory,
-    applyLeave,
-    cancelLeave
-} from '@/server/staff-portal/online-leave';
-import { ILeaveBalance, ILeaveApplicationRequest } from '@/types/staff-portal/online-leave';
-import { toast } from 'sonner';
-import { useState, useMemo } from 'react';
-import { format, differenceInDays } from 'date-fns';
 import { getMasterLeave } from '@/server/hrms/leave-management/masters/master-leave';
+import { applyLeave, cancelLeave, getInitialLeaveData, getLeaveHistory } from '@/server/staff-portal/online-leave';
+import type { ILeaveApplicationRequest } from '@/types/staff-portal/online-leave';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { differenceInDays } from 'date-fns';
+import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 
 export function useOnlineLeave() {
     const queryClient = useQueryClient();
-    
+
     // 1. Queries
     const { data: initialData, isLoading: isInitLoading } = useQuery({
         queryKey: ['online-leave-initial'],
-        queryFn: () => getInitialLeaveData(),
+        queryFn: () => getInitialLeaveData()
     });
 
     const { data: masterLeaveData, isLoading: isMasterLoading } = useQuery({
         queryKey: ['master-leave-list'],
-        queryFn: () => getMasterLeave(),
+        queryFn: () => getMasterLeave()
     });
 
     const { data: historyData, isLoading: isHistoryLoading } = useQuery({
         queryKey: ['online-leave-history'],
-        queryFn: () => getLeaveHistory(),
+        queryFn: () => getLeaveHistory()
     });
 
     // 2. Mutations
@@ -45,7 +39,7 @@ export function useOnlineLeave() {
                 toast.error(res.message || 'Failed to apply leave');
             }
         },
-        onError: (err: any) => toast.error(err.message || 'An error occurred while applying leave'),
+        onError: (err: any) => toast.error(err.message || 'An error occurred while applying leave')
     });
 
     const cancelMutation = useMutation({
@@ -59,7 +53,7 @@ export function useOnlineLeave() {
                 toast.error(res.message || 'Failed to cancel leave');
             }
         },
-        onError: (err: any) => toast.error(err.message || 'An error occurred while cancelling leave'),
+        onError: (err: any) => toast.error(err.message || 'An error occurred while cancelling leave')
     });
 
     // 3. States for Integrated Leave Card (copied from admin logic)

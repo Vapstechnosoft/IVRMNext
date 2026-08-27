@@ -75,6 +75,7 @@ export const studentFeeEnablePartialPaymentColumns: ColumnDef<IStudentFeeEnableP
         id: 'fsepP_Remarks',
         accessorFn: (row: any) => row.fsepP_Remarks ?? row.FSEPP_Remarks ?? '',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Remarks' className='font-bold text-black' />,
+<<<<<<< HEAD
         cell: ({ row }) => {
             const remarks = row.original.fsepP_Remarks ?? (row.original as any).FSEPP_Remarks ?? '-';
             return (
@@ -83,6 +84,13 @@ export const studentFeeEnablePartialPaymentColumns: ColumnDef<IStudentFeeEnableP
                 </div>
             );
         },
+=======
+        cell: ({ row }) => (
+            <div className='max-w-[300px] truncate' title={row.getValue('fsepP_Remarks')}>
+                {row.getValue('fsepP_Remarks') || '-'}
+            </div>
+        ),
+>>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
         enableSorting: true,
         enableHiding: true
     },

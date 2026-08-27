@@ -1,12 +1,12 @@
 'use client';
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ColumnDef } from '@tanstack/react-table';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { IFacility, IRoomDisplay } from '@/types/hostel/hostel-management/masters';
-import { useEffect, useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 import { getMappedFacilitiesForRoom } from '@/server/hostel/hostel-management/masters/room';
+import type { IFacility, IRoomDisplay } from '@/types/hostel/hostel-management/masters';
+import type { ColumnDef } from '@tanstack/react-table';
+import { useEffect, useState } from 'react';
 
 interface ViewFacilitiesModalProps {
     isOpen: boolean;
@@ -26,12 +26,12 @@ export function ViewFacilitiesModal({ isOpen, onClose, room }: ViewFacilitiesMod
                     const res = await getMappedFacilitiesForRoom(room.hrmrM_Id);
                     if (res.success && res.data) {
                         // Assuming response might be directly the list or within a property
-                        setData(Array.isArray(res.data) ? res.data : (res.data.facilities_list || []));
+                        setData(Array.isArray(res.data) ? res.data : res.data.facilities_list || []);
                     } else {
                         setData([]);
                     }
                 } catch (error) {
-                    console.error("Failed to fetch facilities", error);
+                    console.error('Failed to fetch facilities', error);
                     setData([]);
                 } finally {
                     setIsLoading(false);
@@ -49,17 +49,17 @@ export function ViewFacilitiesModal({ isOpen, onClose, room }: ViewFacilitiesMod
         {
             accessorKey: 'hlmftY_FacilityName',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Facility Name' />,
-            cell: ({ row }) => <div>{row.getValue('hlmftY_FacilityName')}</div>,
+            cell: ({ row }) => <div>{row.getValue('hlmftY_FacilityName')}</div>
         }
     ];
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogContent className='max-h-[80vh] max-w-2xl overflow-y-auto'>
                 <DialogHeader>
                     <DialogTitle>Facilities for Room {room?.hrmrM_RoomNo}</DialogTitle>
                 </DialogHeader>
-                <div className="mt-4">
+                <div className='mt-4'>
                     <GenericDataTable
                         {...tableProps}
                         data={data}

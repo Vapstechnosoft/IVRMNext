@@ -8,12 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 import { cn } from '@/lib/utils';
 import { type IVerifyClassWorkSearch, verifyClassWorkSearchSchema } from '@/schemas/upload/transactions/ivrm-classwork.schema';
-import { 
+import {
     SubjectsDropDownByAcademicYearandClassandSection,
-    fetchInitialData,
-    getClassWorkList,
     fetchClasses,
-    fetchSections
+    fetchInitialData,
+    fetchSections,
+    getClassWorkList
 } from '@/server/upload/transactions/ivrm-classwork/server-action';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
@@ -30,13 +30,7 @@ interface SearchFormProps {
     onResetTrigger?: () => void;
 }
 
-export default function SearchForm({ 
-    onSearchResults, 
-    onVerifiedList, 
-    onTopicsLoaded,
-    onSearchTrigger,
-    onResetTrigger 
-}: SearchFormProps) {
+export default function SearchForm({ onSearchResults, onVerifiedList, onTopicsLoaded, onSearchTrigger, onResetTrigger }: SearchFormProps) {
     const defaultValues: Partial<IVerifyClassWorkSearch> = {
         asmaY_Id: undefined,
         asmcL_Id: undefined,
@@ -188,15 +182,15 @@ export default function SearchForm({
             };
 
             const response = await getClassWorkList(payload);
-            
+
             if (response.success && response.data) {
                 const list = response.data.classworklst || [];
                 const topics = response.data.topicList || [];
-                
+
                 if (list.length === 0) {
                     toast.info('No records found for the selected criteria');
                 }
-                
+
                 onSearchResults(list, topics);
                 onTopicsLoaded(topics);
                 onSearchTrigger?.();
@@ -226,20 +220,20 @@ export default function SearchForm({
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
                 {/* Academic Year */}
                 <div className='group flex flex-col gap-1'>
-                    <Label className='text-xs font-black uppercase text-slate-600'>
+                    <Label className='font-black text-slate-600 text-xs uppercase'>
                         Academic Year <span className='text-red-500'>*</span>
                     </Label>
                     <Controller
                         control={control}
                         name='asmaY_Id'
                         render={({ field }) => (
-                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ""}>
+                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
                                 <SelectTrigger className='h-10 border-slate-200 transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500'>
                                     <SelectValue placeholder='--SELECT YEAR--' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {yearList?.map((year: any) => (
-                                        <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()} className='text-xs font-bold'>
+                                        <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()} className='font-bold text-xs'>
                                             {year.asmaY_Year}
                                         </SelectItem>
                                     ))}
@@ -252,20 +246,23 @@ export default function SearchForm({
 
                 {/* Class */}
                 <div className='group flex flex-col gap-1'>
-                    <Label className='text-xs font-black uppercase text-slate-600'>
+                    <Label className='font-black text-slate-600 text-xs uppercase'>
                         Class <span className='text-red-500'>*</span>
                     </Label>
                     <Controller
                         control={control}
                         name='asmcL_Id'
                         render={({ field }) => (
-                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ""}>
+                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
                                 <SelectTrigger className='h-10 border-slate-200 transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500'>
                                     <SelectValue placeholder='--SELECT CLASS--' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {classelist?.map((cls: any) => (
-                                        <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()} className='text-xs font-bold font-medium'>
+                                        <SelectItem
+                                            key={cls.asmcL_Id}
+                                            value={cls.asmcL_Id.toString()}
+                                            className='font-bold font-medium text-xs'>
                                             {cls.asmcL_ClassName}
                                         </SelectItem>
                                     ))}
@@ -278,20 +275,23 @@ export default function SearchForm({
 
                 {/* Section */}
                 <div className='group flex flex-col gap-1'>
-                    <Label className='text-xs font-black uppercase text-slate-600'>
+                    <Label className='font-black text-slate-600 text-xs uppercase'>
                         Section <span className='text-red-500'>*</span>
                     </Label>
                     <Controller
                         control={control}
                         name='asmS_Id'
                         render={({ field }) => (
-                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ""}>
+                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
                                 <SelectTrigger className='h-10 border-slate-200 transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500'>
                                     <SelectValue placeholder='--SELECT SECTION--' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {sectionslist?.map((cls: any) => (
-                                        <SelectItem key={cls.asmS_Id} value={cls.asmS_Id.toString()} className='text-xs font-bold font-medium text-blue-600'>
+                                        <SelectItem
+                                            key={cls.asmS_Id}
+                                            value={cls.asmS_Id.toString()}
+                                            className='font-bold font-medium text-blue-600 text-xs'>
                                             {cls.asmC_SectionName}
                                         </SelectItem>
                                     ))}
@@ -304,21 +304,24 @@ export default function SearchForm({
 
                 {/* Subject */}
                 <div className='group flex flex-col gap-1'>
-                    <Label className='text-xs font-black uppercase text-slate-600'>
-                        Subject
-                    </Label>
+                    <Label className='font-black text-slate-600 text-xs uppercase'>Subject</Label>
                     <Controller
                         control={control}
                         name='ismS_Id'
                         render={({ field }) => (
-                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || "0"}>
+                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || '0'}>
                                 <SelectTrigger className='h-10 border-slate-200 transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500'>
                                     <SelectValue placeholder='--SELECT SUBJECT--' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="0" className='text-xs font-bold text-slate-400'>ALL SUBJECTS</SelectItem>
+                                    <SelectItem value='0' className='font-bold text-slate-400 text-xs'>
+                                        ALL SUBJECTS
+                                    </SelectItem>
                                     {subjects.map((sub: any) => (
-                                        <SelectItem key={sub.ismS_Id} value={sub.ismS_Id.toString()} className='text-xs font-bold font-medium text-emerald-600'>
+                                        <SelectItem
+                                            key={sub.ismS_Id}
+                                            value={sub.ismS_Id.toString()}
+                                            className='font-bold font-medium text-emerald-600 text-xs'>
                                             {sub.ismS_SubjectName}
                                         </SelectItem>
                                     ))}
@@ -330,7 +333,7 @@ export default function SearchForm({
 
                 {/* Date Ranges */}
                 <div className='flex flex-col gap-1'>
-                    <Label className='text-xs font-black uppercase text-slate-600 font-bold'>From Date</Label>
+                    <Label className='font-black font-bold text-slate-600 text-xs uppercase'>From Date</Label>
                     <Controller
                         control={control}
                         name='from_date'
@@ -339,18 +342,16 @@ export default function SearchForm({
                                 <PopoverTrigger asChild>
                                     <Button
                                         variant={'outline'}
-                                        className={cn('h-10 justify-start text-left font-normal border-slate-200', !field.value && 'text-muted-foreground')}>
+                                        className={cn(
+                                            'h-10 justify-start border-slate-200 text-left font-normal',
+                                            !field.value && 'text-muted-foreground'
+                                        )}>
                                         <CalendarIcon className='mr-2 h-4 w-4 text-blue-500' />
                                         {field.value ? format(field.value, 'dd-MM-yyyy') : <span>PICK A DATE</span>}
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className='w-auto p-0' align='start'>
-                                    <Calendar
-                                        mode='single'
-                                        selected={field.value}
-                                        onSelect={field.onChange}
-                                        initialFocus
-                                    />
+                                    <Calendar mode='single' selected={field.value} onSelect={field.onChange} initialFocus />
                                 </PopoverContent>
                             </Popover>
                         )}
@@ -358,7 +359,7 @@ export default function SearchForm({
                 </div>
 
                 <div className='flex flex-col gap-1'>
-                    <Label className='text-xs font-black uppercase text-slate-600 font-bold font-medium'>To Date</Label>
+                    <Label className='font-black font-bold font-medium text-slate-600 text-xs uppercase'>To Date</Label>
                     <Controller
                         control={control}
                         name='to_date'
@@ -367,18 +368,16 @@ export default function SearchForm({
                                 <PopoverTrigger asChild>
                                     <Button
                                         variant={'outline'}
-                                        className={cn('h-10 justify-start text-left font-normal border-slate-200', !field.value && 'text-muted-foreground')}>
+                                        className={cn(
+                                            'h-10 justify-start border-slate-200 text-left font-normal',
+                                            !field.value && 'text-muted-foreground'
+                                        )}>
                                         <CalendarIcon className='mr-2 h-4 w-4 text-blue-500' />
                                         {field.value ? format(field.value, 'dd-MM-yyyy') : <span>PICK A DATE</span>}
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className='w-auto p-0' align='start'>
-                                    <Calendar
-                                        mode='single'
-                                        selected={field.value}
-                                        onSelect={field.onChange}
-                                        initialFocus
-                                    />
+                                    <Calendar mode='single' selected={field.value} onSelect={field.onChange} initialFocus />
                                 </PopoverContent>
                             </Popover>
                         )}
@@ -387,20 +386,18 @@ export default function SearchForm({
             </div>
 
             <div className='flex items-center justify-center gap-4 border-t pt-4'>
-                <Button 
-                    type='submit' 
+                <Button
+                    type='submit'
                     disabled={isSearching}
-                    className='bg-blue-600 text-white hover:bg-blue-700 min-w-[120px] shadow-md font-bold uppercase transition-all duration-200 active:scale-95'
-                >
-                    {isSearching ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    className='min-w-[120px] bg-blue-600 font-bold text-white uppercase shadow-md transition-all duration-200 hover:bg-blue-700 active:scale-95'>
+                    {isSearching ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
                     GET LIST
                 </Button>
                 <Button
                     type='button'
                     variant='outline'
                     onClick={handleCancel}
-                    className='border-red-200 text-red-600 hover:bg-red-50 min-w-[120px] font-bold uppercase transition-all duration-200 active:scale-95'
-                >
+                    className='min-w-[120px] border-red-200 font-bold text-red-600 uppercase transition-all duration-200 hover:bg-red-50 active:scale-95'>
                     <X className='mr-2 h-4 w-4 text-red-500' /> CANCEL
                 </Button>
             </div>

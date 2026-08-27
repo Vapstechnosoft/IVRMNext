@@ -26,14 +26,9 @@ interface StaffWiseFormProps {
 }
 
 export default function StaffWiseForm({ onReportGenerated, onCancel }: StaffWiseFormProps) {
-    const {
-        data: academicyeardata,
-        isLoading: academicyearloading,
-    } = useTimeTableAcademicYear();
+    const { data: academicyeardata, isLoading: academicyearloading } = useTimeTableAcademicYear();
 
-    const {
-        data: staffdata,
-    } = staffdropdowndatattstaffreport();
+    const { data: staffdata } = staffdropdowndatattstaffreport();
 
     const academicList = Array.isArray(academicyeardata) ? academicyeardata : (academicyeardata as any)?.data || [];
     const staffList = Array.isArray(staffdata) ? staffdata : (staffdata as any)?.data || [];
@@ -72,8 +67,7 @@ export default function StaffWiseForm({ onReportGenerated, onCancel }: StaffWise
         defaultValues: {
             staffId: [],
             asmaY_Id: undefined,
-            rpttyp: 'SAWC',
-
+            rpttyp: 'SAWC'
         }
     });
 
@@ -81,17 +75,18 @@ export default function StaffWiseForm({ onReportGenerated, onCancel }: StaffWise
         // Construct payload exactly as requested by user
         const payload = {
             asmaY_Id: data.asmaY_Id,
-            staffarray: data.staffId?.map(id => ({ hrmE_Id: id })) || [],
+            staffarray: data.staffId?.map((id) => ({ hrmE_Id: id })) || []
         };
-        console.log("staff data payload", JSON.stringify(payload));
+        console.log('staff data payload', JSON.stringify(payload));
 
         try {
             const response = await getStaffWiseReportUsingFacade(payload);
-            console.log("staff data response", response);
-            const selectedStaffObjects = data.staffId?.map(id => {
-                const s = staffOptions.find(opt => opt.value === id.toString());
-                return { hrmE_Id: id, staffName: s?.label || '' };
-            }) || [];
+            console.log('staff data response', response);
+            const selectedStaffObjects =
+                data.staffId?.map((id) => {
+                    const s = staffOptions.find((opt) => opt.value === id.toString());
+                    return { hrmE_Id: id, staffName: s?.label || '' };
+                }) || [];
 
             // Pass the rpttyp along for processing purposes, even if not in API payload
             onReportGenerated(response, { ...payload, staffarray: selectedStaffObjects, rpttyp: data.rpttyp });
@@ -116,22 +111,18 @@ export default function StaffWiseForm({ onReportGenerated, onCancel }: StaffWise
                     </Label>
                     <Controller
                         control={control}
-                        name="asmaY_Id"
+                        name='asmaY_Id'
                         render={({ field }) => (
                             <Select
                                 key={field.value ?? 'empty'}
                                 value={field.value ? field.value.toString() : undefined}
-                                onValueChange={(val) => field.onChange(Number(val))}
-                            >
-                                <SelectTrigger id="asmaY_Id">
-                                    <SelectValue placeholder="--Select--" />
+                                onValueChange={(val) => field.onChange(Number(val))}>
+                                <SelectTrigger id='asmaY_Id'>
+                                    <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {academicList?.map((item: any) => (
-                                        <SelectItem
-                                            key={item.asmaY_Id}
-                                            value={item.asmaY_Id.toString()}
-                                        >
+                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
                                             {item.asmaY_Year}
                                         </SelectItem>
                                     ))}
@@ -190,7 +181,7 @@ export default function StaffWiseForm({ onReportGenerated, onCancel }: StaffWise
                     <Search className='mr-2 h-4 w-4' />
                     Report
                 </Button>
-                <Button type='button' variant='outline' onClick={handleCancelClick} className='min-w-[120px]' >
+                <Button type='button' variant='outline' onClick={handleCancelClick} className='min-w-[120px]'>
                     <X className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>

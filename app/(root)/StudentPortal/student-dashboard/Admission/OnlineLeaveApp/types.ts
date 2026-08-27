@@ -1,5 +1,3 @@
-
-
 export interface OnlineLeaveApp_DTO {
     aslA_Id?: number;
     asmS_Id?: number;

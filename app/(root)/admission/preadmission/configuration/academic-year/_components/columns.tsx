@@ -32,7 +32,12 @@ export const masterAcademicYearColumns: ColumnDef<IMasterAcademicYearMasterList>
     {
         accessorKey: 'mI_Name',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Institute Name' className='font-bold text-black' />,
-        cell: ({ row }) => <div>{row.getValue('mI_Name') ?? '-'}</div>,
+        cell: ({ row }) => {
+            const original = row.original as any;
+            return (
+                <div>{row.getValue('mI_Name') || original?.institution_name || original?.Institution_name || original?.mI_Name || '-'}</div>
+            );
+        },
         enableSorting: true,
         enableHiding: true
     },

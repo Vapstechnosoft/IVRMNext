@@ -1,8 +1,7 @@
-
+import { getInvVendorDetails, getInvVendorPaymentReport } from '@/server/inventory/reports/inv-r-vendor-payment';
+import type { IInvVendorPaymentDetailsPayload, IInvVendorPaymentReportPayload } from '@/types/inventory/reports/inv-r-vendor-payment';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { getInvVendorPaymentReport, getInvVendorDetails } from '@/server/inventory/reports/inv-r-vendor-payment';
 import { toast } from 'sonner';
-import { IInvVendorPaymentReportPayload, IInvVendorPaymentDetailsPayload } from '@/types/inventory/reports/inv-r-vendor-payment';
 
 export const useInvVendorPaymentReport = () => {
     return useMutation({

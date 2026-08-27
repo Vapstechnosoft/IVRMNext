@@ -1,7 +1,12 @@
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getAddVisitorData, saveAddVisitor, getPreviousVisitors, getAppointmentVisitors } from '@/server/visitors-management/transactions/add-visitor';
+import {
+    getAddVisitorData,
+    getAppointmentVisitors,
+    getPreviousVisitors,
+    saveAddVisitor
+} from '@/server/visitors-management/transactions/add-visitor';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 export const useAddVisitor = () => {
@@ -15,7 +20,7 @@ export const useAddVisitor = () => {
                 throw new Error(response.message);
             }
             return response.data;
-        },
+        }
     });
 
     const saveMutation = useMutation({
@@ -30,7 +35,7 @@ export const useAddVisitor = () => {
         },
         onError: (error: any) => {
             toast.error(error.message || 'Failed to save visitor data');
-        },
+        }
     });
 
     const searchPrevious = async (query: string) => {
@@ -45,11 +50,11 @@ export const useAddVisitor = () => {
     const searchAppointment = async (query: string) => {
         const response = await getAppointmentVisitors(query);
         if (!response.success) {
-             toast.error(response.message);
-             return [];
+            toast.error(response.message);
+            return [];
         }
         return response.data || [];
-    }
+    };
 
     return {
         data: query.data,

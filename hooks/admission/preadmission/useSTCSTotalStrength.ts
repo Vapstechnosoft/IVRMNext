@@ -3,12 +3,12 @@
 import { ADMISSION_QUERY_KEYS } from '@/constants/query-keys';
 import {
     exportTotalStrengthReportToExcel,
+    getMasterCompany,
     getTotalStrengthClasses,
     getTotalStrengthElectives,
     getTotalStrengthInitialDetails,
     getTotalStrengthReportDetails,
-    getTotalStrengthSections,
-    getMasterCompany
+    getTotalStrengthSections
 } from '@/server/admission/preadmission/reports/total_strength';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 

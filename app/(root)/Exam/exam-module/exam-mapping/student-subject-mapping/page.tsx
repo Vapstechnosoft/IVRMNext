@@ -55,6 +55,8 @@ interface StudentSubjectMapping {
 interface Student {
     amsT_Id: number;
     amsT_FirstName: string;
+    amsT_MiddleName?: string;
+    amsT_LastName?: string;
     amsT_AdmNo: string;
     amaY_RollNo: number;
     sub_list: StudentSubjectMapping[];
@@ -315,28 +317,49 @@ function StudentSubjectMappingContent() {
             }));
 
             // Transform students data
-            const transformedStudents = data.map((student: any) => ({
-                amsT_Id: student.amsT_Id || 0,
-                amsT_FirstName: student.amsT_FirstName || '',
-                amsT_AdmNo: student.amsT_AdmNo || '',
-                amaY_RollNo: student.amaY_RollNo || 0,
-                sub_list: (student.sub_list || []).map((sub: any) => ({
-                    id: sub.id,
-                    name: sub.name,
-                    abc: sub.abc || false,
-                    estsU_ElecetiveFlag: sub.estsU_ElecetiveFlag || true,
-                    estsU_ActiveFlg: sub.estsU_ActiveFlg || true,
-                    estsU_CreatedBy: sub.estsU_CreatedBy || 0,
-                    estsU_UpdatedBy: sub.estsU_UpdatedBy || 0,
-                    createdDate: sub.createdDate || new Date().toISOString(),
-                    updatedDate: sub.updatedDate || new Date().toISOString()
-                })),
-                sub_list_view: (student.sub_list_view || []).map((sub: any) => ({
-                    id: sub.id,
-                    name: sub.name,
-                    abc: sub.abc || false
-                }))
-            }));
+            const transformedStudents = data.map((student: any) => {
+                const nameParts = [
+                    student.amsT_FirstName || student.AMST_FirstName || student.amst_firstname,
+                    student.amsT_MiddleName || student.AMST_MiddleName || student.amst_middlename,
+                    student.amsT_LastName || student.AMST_LastName || student.amst_lastname
+                ]
+                    .filter((part) => part && String(part).trim() !== '' && String(part).trim() !== '0')
+                    .map((part) => String(part).trim());
+
+                const fullName =
+                    (nameParts.length > 0 ? nameParts.join(' ') : '') ||
+                    student.studentName ||
+                    student.studentname ||
+                    student.ambS_StudentName ||
+                    student.amsT_FirstName ||
+                    student.AMST_FirstName ||
+                    '';
+
+                return {
+                    amsT_Id: student.amsT_Id || 0,
+                    amsT_FirstName: fullName,
+                    amsT_MiddleName: student.amsT_MiddleName || student.AMST_MiddleName || student.amst_middlename || '',
+                    amsT_LastName: student.amsT_LastName || student.AMST_LastName || student.amst_lastname || '',
+                    amsT_AdmNo: student.amsT_AdmNo || '',
+                    amaY_RollNo: student.amaY_RollNo || 0,
+                    sub_list: (student.sub_list || []).map((sub: any) => ({
+                        id: sub.id,
+                        name: sub.name,
+                        abc: sub.abc || false,
+                        estsU_ElecetiveFlag: sub.estsU_ElecetiveFlag || true,
+                        estsU_ActiveFlg: sub.estsU_ActiveFlg || true,
+                        estsU_CreatedBy: sub.estsU_CreatedBy || 0,
+                        estsU_UpdatedBy: sub.estsU_UpdatedBy || 0,
+                        createdDate: sub.createdDate || new Date().toISOString(),
+                        updatedDate: sub.updatedDate || new Date().toISOString()
+                    })),
+                    sub_list_view: (student.sub_list_view || []).map((sub: any) => ({
+                        id: sub.id,
+                        name: sub.name,
+                        abc: sub.abc || false
+                    }))
+                };
+            });
 
             setStudents(transformedStudents);
             setSubjects(transformedSubjects);

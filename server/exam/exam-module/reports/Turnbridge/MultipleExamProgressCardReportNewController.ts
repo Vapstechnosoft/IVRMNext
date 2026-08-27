@@ -4,13 +4,10 @@ import { api } from '@/lib/apiService';
 
 /**
  * Multiple Exam Progress Card Report New Controller (Server Action)
- * Supports all Turnbridge backend endpoints with automatic fallback:
- * 1. /JSHSExamReports/BGHS_GetMultiple_Exam_Progress_Report
- * 2. /JSHSExamReports/promotion_report_TBSchool
- * 3. /JSHSExamReports_/promotion_report_TBSchool
- * 4. /JSHSExamReports/TBSPrimarySchool
+ * Ported from AngularJS: MultipleExamProgressCardReportNewController
  */
 
+<<<<<<< HEAD
 function ensureArray(arr: any): any[] {
     if (!arr) return [];
     if (Array.isArray(arr)) return arr;
@@ -99,37 +96,21 @@ export async function getMultipleExamProgressCardReportNew(data: any) {
             }
         }
 
+=======
+export async function getMultipleExamProgressCardReportNew(data: any) {
+    try {
+        const url = '/JSHSExamReports/BGHS_GetMultiple_Exam_Progress_Report';
+>>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
         const payload = {
-            ASMAY_Id: asmaY_Id,
-            ASMCL_Id: asmcL_Id,
-            ASMS_Id: asmS_Id,
-            asmaY_Id: asmaY_Id,
-            asmcL_Id: asmcL_Id,
-            asmS_Id: asmS_Id,
-            temp_Amstids,
-            Temp_AmstIds: temp_Amstids,
-            temp_amstids: temp_Amstids,
-            studentList: temp_Amstids,
-            studentlist: temp_Amstids,
-            selectedStudents: rawStudentIds,
-            examlist: formattedExamList.length > 0 ? formattedExamList : examlist,
-            examList: formattedExamList.length > 0 ? formattedExamList : examlist,
-            selectedExams: rawExamIds,
-            emgR_Id,
-            EMGR_Id: emgR_Id,
-            empsG_PercentValue: 0,
-            flag: '',
-            reporttype: 'REPORT',
-            ecteX_NotApplToTotalFlg: true
+            ASMAY_Id: data.ASMAY_Id,
+            ASMCL_Id: data.ASMCL_Id,
+            ASMS_Id: data.ASMS_Id,
+            examlist: data.examlist || []
         };
 
-        const endpoints = [
-            '/JSHSExamReports/BGHS_GetMultiple_Exam_Progress_Report',
-            '/JSHSExamReports/promotion_report_TBSchool',
-            '/JSHSExamReports_/promotion_report_TBSchool',
-            '/JSHSExamReports/TBSPrimarySchool'
-        ];
+        const response = await api.post<any>('exam', url, payload);
 
+<<<<<<< HEAD
         let firstValidRes: any = null;
         for (const ep of endpoints) {
             console.log(`[MultipleExamProgressCardReportNewController] Posting to endpoint: ${ep}`);
@@ -155,17 +136,21 @@ export async function getMultipleExamProgressCardReportNew(data: any) {
 
         if (firstValidRes) {
             const rawObj = firstValidRes?.data || firstValidRes;
+=======
+        if (response?.success && response.data) {
+            return {
+                ...response,
+                data: transformReportData(response.data)
+            };
+        } else if (response && !response.data && response.getstudentmarksdetails) {
+>>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
             return {
                 success: true,
-                data: transformReportData(rawObj)
+                data: transformReportData(response)
             };
         }
 
-        return {
-            success: false,
-            message: 'No student records found for selected criteria',
-            data: null
-        };
+        return response;
     } catch (error) {
         console.error('MultipleExamProgressCardReportNewController error:', error);
         return {
@@ -178,20 +163,19 @@ export async function getMultipleExamProgressCardReportNew(data: any) {
 }
 
 /**
- * Data Transformation logic
+ * Data Transformation logic (Equivalent to logic in legacy JS controller)
  */
 function transformReportData(data: any) {
-    const getstudentmarksdetails = ensureArray(data.getstudentmarksdetails || data.studentmarksdetails || data.getstudent_examwisemarks);
-    const getstudentwisesubjectlist = ensureArray(data.getstudentwisesubjectlist || data.studentwisesubjectlist);
-    const getstudentdetails = ensureArray(data.getstudentdetails || data.studentdetails || data.studentlist || data.studentList);
-    const getexamdetails = ensureArray(data.getexamdetails || data.examdetails);
+    const { getstudentmarksdetails = [], getstudentwisesubjectlist = [], getstudentdetails = [], getexamdetails = [] } = data;
 
+    // 1. Calculate Total Max Marks and append Total/Grade columns to exam details
     let totalMaxMarks = 0;
     for (const exam of getexamdetails) {
-        totalMaxMarks += Number(exam.eyceS_MaxMarks ?? exam.eyces_maxmarks ?? exam.maxMarks ?? 0);
+        totalMaxMarks += exam.eyceS_MaxMarks || 0;
     }
 
     const processedExamDetails = [...getexamdetails];
+<<<<<<< HEAD
     if (getexamdetails.length > 0 && !processedExamDetails.some((e: any) => (e.emE_ExamName || e.EME_ExamName) === 'Total')) {
         processedExamDetails.push({
             emE_Id: 150001,
@@ -222,22 +206,19 @@ function transformReportData(data: any) {
         });
         finalSubjects = Array.from(subMap.values());
     }
+=======
+    processedExamDetails.push({ emE_Id: 150001, emE_ExamName: 'Total', eyceS_MaxMarks: totalMaxMarks });
+    processedExamDetails.push({ emE_Id: 150002, emE_ExamName: 'Grade', eyceS_MaxMarks: '' });
+>>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
 
+    // 2. Map subjects and marks to students (Optimization for rendering)
     const transformedStudents = getstudentdetails.map((stu: any) => {
-        const amstId = Number(stu.AMST_Id ?? stu.amsT_Id ?? stu.amst_id);
-
-        const studentSubjects = finalSubjects.filter((sub: any) => {
-            const subAmstId = Number(sub.AMST_Id ?? sub.amsT_Id ?? 0);
-            return subAmstId === 0 || subAmstId === amstId || getstudentdetails.length === 1;
-        });
-
-        const studentMarks = getstudentmarksdetails.filter((mark: any) => {
-            const markAmstId = Number(mark.AMST_Id ?? mark.amsT_Id ?? 0);
-            return markAmstId === 0 || markAmstId === amstId || getstudentdetails.length === 1;
-        });
+        const studentSubjects = getstudentwisesubjectlist.filter((sub: any) => sub.AMST_Id === stu.AMST_Id);
+        const studentMarks = getstudentmarksdetails.filter((mark: any) => mark.AMST_Id === stu.AMST_Id);
 
         return {
             ...stu,
+<<<<<<< HEAD
             AMST_Id: amstId,
             amsT_Id: amstId,
             studentname: stu.studentname || stu.studentName || stu.amsT_FirstName || stu.AMST_FirstName || '',
@@ -248,17 +229,25 @@ function transformReportData(data: any) {
             dob: stu.dob || stu.AMST_DOB || stu.amsT_DOB || '',
             clastechname: stu.clastechname || stu.classTeacherName || stu.HRME_EmployeeFirstName || '',
             subjects: studentSubjects.length > 0 ? studentSubjects : finalSubjects,
+=======
+            subjects: studentSubjects,
+>>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
             marks: studentMarks
         };
     });
 
     return {
         ...data,
+<<<<<<< HEAD
         getexamdetails: processedExamDetails.length > 0 ? processedExamDetails : getexamdetails,
         getstudentdetails: transformedStudents,
         getstudentwisesubjectlist: finalSubjects,
         getstudentmarksdetails,
         work_attendence: ensureArray(data.work_attendence || data.work_attendance),
         present_attendence: ensureArray(data.present_attendence || data.present_attendance)
+=======
+        getexamdetails: processedExamDetails,
+        getstudentdetails: transformedStudents
+>>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
     };
 }

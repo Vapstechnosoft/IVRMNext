@@ -5,7 +5,7 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useStudentLateIn } from '@/hooks/visitors-management/transactions/useStudentLateIn';
-import { StudentLateInData } from '@/types/visitors-management/transactions';
+import type { StudentLateInData } from '@/types/visitors-management/transactions';
 import { Plus, X } from 'lucide-react';
 import { studentLateInColumns } from './_components/columns';
 import StudentLateInForm from './_components/student-late-in-form';
@@ -53,7 +53,7 @@ function StudentLateInPageContent({
                         type='button'
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='h-4 w-4 mr-2' />
+                        <Plus className='mr-2 h-4 w-4' />
                         Add Late In Entry
                     </Button>
                 </div>
@@ -64,7 +64,7 @@ function StudentLateInPageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
-                    title="Student Late In Details">
+                    title='Student Late In Details'>
                     <GenericDataTable<StudentLateInData>
                         {...tableProps}
                         columns={studentLateInColumns}

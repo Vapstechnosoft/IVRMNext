@@ -12,4 +12,3 @@ export async function getAlumniSearchDropdownData(data: any) {
     const url = '/AlumniSearch/Getdetails';
     return await api.post<IAlumniSearchDetailsResponse>('alumni', url, data);
 }
-

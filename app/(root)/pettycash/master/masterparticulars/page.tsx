@@ -7,7 +7,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useMasterParticulars } from '@/hooks/pettycash/master/useMasters';
 import type { IMasterParticulars } from '@/types/pettycash/master/masters';
 import { Plus, X } from 'lucide-react';
-import { use, useEffect } from 'react';
+import { use } from 'react';
 import AddMasterParticularsForm from './_components/add-form';
 import { masterParticularsColumns } from './_components/columns';
 import ToggleMasterParticularsForm from './_components/toggle-form';
@@ -45,8 +45,7 @@ function MasterParticularsPageContent({
             <div className='container space-y-4 p-1'>
                 {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                    </div>
+                    <div className='space-y-1'></div>
 
                     <Button
                         type='button'

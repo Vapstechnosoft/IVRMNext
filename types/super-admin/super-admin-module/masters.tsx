@@ -11,7 +11,6 @@ export interface ISuperAdminMaster {
     emsA_UpdatedDate: string;
 }
 
-
 export interface ISuperAdminMasterOrder {
     emsA_Id: number;
     emsA_SuperAdminOrder: number;

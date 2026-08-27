@@ -1,22 +1,14 @@
-
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Search, X, HelpCircle } from 'lucide-react';
-import type {
-    IMarksEntryInitialData,
-    IClass,
-    ISection,
-    IExam,
-    ISubject,
-    IMarksEntrySearchRequest
-} from '@/types/staff-portal/marks-entry';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import type { IClass, IExam, IMarksEntryInitialData, IMarksEntrySearchRequest, ISection, ISubject } from '@/types/staff-portal/marks-entry';
+import { HelpCircle, Search, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface MarksEntryFilterProps {
     initialData?: IMarksEntryInitialData | null;
@@ -112,37 +104,40 @@ export default function MarksEntryFilter({
 
     const handleSearch = () => {
         if (selectedYear && selectedClass && selectedSection && selectedExam && selectedSubject) {
-            onSearch({
-                ASMAY_Id: Number(selectedYear),
-                ASMCL_Id: Number(selectedClass),
-                ASMS_Id: Number(selectedSection),
-                EME_Id: Number(selectedExam),
-                ISMS_Id: Number(selectedSubject)
-            }, markCalculation);
+            onSearch(
+                {
+                    ASMAY_Id: Number(selectedYear),
+                    ASMCL_Id: Number(selectedClass),
+                    ASMS_Id: Number(selectedSection),
+                    EME_Id: Number(selectedExam),
+                    ISMS_Id: Number(selectedSubject)
+                },
+                markCalculation
+            );
         }
     };
 
     const handleReset = () => {
-        // Only reset if you want to clear everything. 
+        // Only reset if you want to clear everything.
         // In many cases we keep the year and class.
         onReset();
     };
 
     return (
-        <Card className="shadow-md border-primary/10">
-            <CardHeader className="pb-3">
-                <CardTitle className="text-lg font-semibold flex items-center gap-2 text-primary">
-                    <Search className="h-5 w-5" />
+        <Card className='border-primary/10 shadow-md'>
+            <CardHeader className='pb-3'>
+                <CardTitle className='flex items-center gap-2 font-semibold text-lg text-primary'>
+                    <Search className='h-5 w-5' />
                     Marks Entry Filter
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="year">Academic Year</Label>
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-5'>
+                    <div className='space-y-2'>
+                        <Label htmlFor='year'>Academic Year</Label>
                         <Select value={selectedYear} onValueChange={handleYearChange}>
-                            <SelectTrigger id="year">
-                                <SelectValue placeholder="Select Year" />
+                            <SelectTrigger id='year'>
+                                <SelectValue placeholder='Select Year' />
                             </SelectTrigger>
                             <SelectContent>
                                 {initialData?.yearlist?.map((yr) => (
@@ -154,11 +149,11 @@ export default function MarksEntryFilter({
                         </Select>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="class">Class</Label>
+                    <div className='space-y-2'>
+                        <Label htmlFor='class'>Class</Label>
                         <Select value={selectedClass} onValueChange={handleClassChange} disabled={!selectedYear}>
-                            <SelectTrigger id="class">
-                                <SelectValue placeholder="Select Class" />
+                            <SelectTrigger id='class'>
+                                <SelectValue placeholder='Select Class' />
                             </SelectTrigger>
                             <SelectContent>
                                 {classes.map((cls) => (
@@ -170,11 +165,11 @@ export default function MarksEntryFilter({
                         </Select>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="section">Section</Label>
+                    <div className='space-y-2'>
+                        <Label htmlFor='section'>Section</Label>
                         <Select value={selectedSection} onValueChange={handleSectionChange} disabled={!selectedClass}>
-                            <SelectTrigger id="section">
-                                <SelectValue placeholder="Select Section" />
+                            <SelectTrigger id='section'>
+                                <SelectValue placeholder='Select Section' />
                             </SelectTrigger>
                             <SelectContent>
                                 {sections.map((sec) => (
@@ -186,11 +181,11 @@ export default function MarksEntryFilter({
                         </Select>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="exam">Exam</Label>
+                    <div className='space-y-2'>
+                        <Label htmlFor='exam'>Exam</Label>
                         <Select value={selectedExam} onValueChange={handleExamChange} disabled={!selectedSection}>
-                            <SelectTrigger id="exam">
-                                <SelectValue placeholder="Select Exam" />
+                            <SelectTrigger id='exam'>
+                                <SelectValue placeholder='Select Exam' />
                             </SelectTrigger>
                             <SelectContent>
                                 {exams.map((ex) => (
@@ -202,11 +197,11 @@ export default function MarksEntryFilter({
                         </Select>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="subject">Subject</Label>
+                    <div className='space-y-2'>
+                        <Label htmlFor='subject'>Subject</Label>
                         <Select value={selectedSubject} onValueChange={handleSubjectChange} disabled={!selectedExam}>
-                            <SelectTrigger id="subject">
-                                <SelectValue placeholder="Select Subject" />
+                            <SelectTrigger id='subject'>
+                                <SelectValue placeholder='Select Subject' />
                             </SelectTrigger>
                             <SelectContent>
                                 {subjects.map((sub) => (
@@ -219,20 +214,20 @@ export default function MarksEntryFilter({
                     </div>
                 </div>
 
-                <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex items-center space-x-2 bg-muted/30 p-2 rounded-md transition-colors hover:bg-muted/50">
+                <div className='mt-6 flex flex-wrap items-center justify-between gap-4'>
+                    <div className='flex items-center space-x-2 rounded-md bg-muted/30 p-2 transition-colors hover:bg-muted/50'>
                         <Checkbox
-                            id="calculate"
+                            id='calculate'
                             checked={markCalculation}
                             onCheckedChange={(checked) => setMarkCalculation(checked === true)}
                             disabled
                         />
-                        <Label htmlFor="calculate" className="flex items-center gap-1 cursor-not-allowed text-sm font-medium">
+                        <Label htmlFor='calculate' className='flex cursor-not-allowed items-center gap-1 font-medium text-sm'>
                             Do You Want Calculate Marks
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <HelpCircle className="h-4 w-4 text-primary cursor-help" />
+                                        <HelpCircle className='h-4 w-4 cursor-help text-primary' />
                                     </TooltipTrigger>
                                     <TooltipContent>
                                         <p>Automatic mark calculation based on sub-marks.</p>
@@ -242,21 +237,16 @@ export default function MarksEntryFilter({
                         </Label>
                     </div>
 
-                    <div className="flex items-center gap-3 ml-auto">
-                        <Button
-                            variant="outline"
-                            onClick={handleReset}
-                            className="flex items-center gap-2"
-                        >
-                            <X className="h-4 w-4" />
+                    <div className='ml-auto flex items-center gap-3'>
+                        <Button variant='outline' onClick={handleReset} className='flex items-center gap-2'>
+                            <X className='h-4 w-4' />
                             Clear
                         </Button>
                         <Button
                             onClick={handleSearch}
                             disabled={isLoading || !selectedSubject}
-                            className="bg-primary hover:bg-primary/90 flex items-center gap-2 min-w-[120px]"
-                        >
-                            <Search className="h-4 w-4" />
+                            className='flex min-w-[120px] items-center gap-2 bg-primary hover:bg-primary/90'>
+                            <Search className='h-4 w-4' />
                             {isLoading ? 'Searching...' : 'Search'}
                         </Button>
                     </div>

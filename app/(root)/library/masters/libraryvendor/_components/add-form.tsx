@@ -50,7 +50,7 @@ export default function AddMasterVendorForm({ onSuccess, className = '' }: AddMa
                 lmV_VendorName,
                 lmV_Address,
                 lmV_EMailId,
-                lmV_PhoneNo: "",
+                lmV_PhoneNo: '',
                 lmV_ActiveFlg: true
             };
 
@@ -101,7 +101,13 @@ export default function AddMasterVendorForm({ onSuccess, className = '' }: AddMa
                         placeholder='e.g. Acme Books Dist'
                     />
 
-                    <InputText label='Email Id' id='lmV_EMailId' {...register('lmV_EMailId')} error={errors.lmV_EMailId?.message} placeholder='e.g. contact@vendor.com' />
+                    <InputText
+                        label='Email Id'
+                        id='lmV_EMailId'
+                        {...register('lmV_EMailId')}
+                        error={errors.lmV_EMailId?.message}
+                        placeholder='e.g. contact@vendor.com'
+                    />
                 </div>
 
                 {/* Row 2 */}

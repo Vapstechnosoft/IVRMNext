@@ -1,26 +1,25 @@
 'use client';
 
+import {
+    useStudentNameChange,
+    useStudentNameRegNo,
+    useTCGetDetailsRecord,
+    useTCInitialData,
+    useTCYearChange
+} from '@/hooks/admission/preadmission/reports/useSophiaTCReport';
 import { format } from 'date-fns';
-import { Download, Loader2, Printer, RotateCcw, Search, FileText, User } from 'lucide-react';
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { FileText, Loader2, Printer, RotateCcw, Search } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
-import {
-    useTCInitialData,
-    useTCYearChange,
-    useStudentNameRegNo,
-    useStudentNameChange,
-    useTCGetDetailsRecord
-} from '@/hooks/admission/preadmission/reports/useSophiaTCReport';
 
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/extension/field';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Card, CardContent } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/extension/field';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 
 export default function SophiaTransferCertificate() {
@@ -77,7 +76,7 @@ export default function SophiaTransferCertificate() {
         const sId = Number(val);
         setAmstId(sId);
         setPrintFlag(false);
-        // We could call studentNameChange API if needed for label updates, 
+        // We could call studentNameChange API if needed for label updates,
         // but getTcdetails usually returns everything.
     };
 
@@ -148,37 +147,41 @@ export default function SophiaTransferCertificate() {
 
     const formatClassName = (className: string) => {
         const classMap: Record<string, string> = {
-            'I': 'FIRST', 'II': 'SECOND', 'III': 'THIRD', 'IV': 'FOURTH',
-            'V': 'FIFTH', 'VI': 'SIXTH', 'VII': 'SEVENTH', 'VIII': 'EIGHTH',
-            'IX': 'NINTH', 'X': 'TENTH'
+            I: 'FIRST',
+            II: 'SECOND',
+            III: 'THIRD',
+            IV: 'FOURTH',
+            V: 'FIFTH',
+            VI: 'SIXTH',
+            VII: 'SEVENTH',
+            VIII: 'EIGHTH',
+            IX: 'NINTH',
+            X: 'TENTH'
         };
         return classMap[className] || className;
     };
 
     const filteredDropdown = useMemo(() => {
         if (!studentSearch) return studentDropdown;
-        return studentDropdown.filter(s =>
-            s.studentname?.toLowerCase().includes(studentSearch.toLowerCase())
-        );
+        return studentDropdown.filter((s) => s.studentname?.toLowerCase().includes(studentSearch.toLowerCase()));
     }, [studentDropdown, studentSearch]);
 
     /* -------------------- UI -------------------- */
     return (
-        <div className='p-6 space-y-8 min-h-screen bg-gray-50/30'>
+        <div className='min-h-screen space-y-8 bg-gray-50/30 p-6'>
             <CollapsibleSection
                 title='TC Custom Report'
                 description='Generate detailed transfer certificate for a student'
                 defaultOpen={true}
                 variant='outline'
                 className='shadow-lg'>
-
-                <div className='bg-white p-8 rounded-xl'>
-                    <div className='grid grid-cols-1 lg:grid-cols-2 gap-12'>
+                <div className='rounded-xl bg-white p-8'>
+                    <div className='grid grid-cols-1 gap-12 lg:grid-cols-2'>
                         {/* Left Column */}
                         <div className='space-y-8'>
                             <div className='space-y-3'>
-                                <Label className='text-sm font-bold text-gray-700 flex items-center'>
-                                    Left Year:<span className='text-red-500 ml-1'>*</span>
+                                <Label className='flex items-center font-bold text-gray-700 text-sm'>
+                                    Left Year:<span className='ml-1 text-red-500'>*</span>
                                 </Label>
                                 <Select value={asmayId?.toString()} onValueChange={handleYearChange}>
                                     <SelectTrigger className='h-11 rounded-lg border-gray-200 shadow-sm'>
@@ -186,22 +189,34 @@ export default function SophiaTransferCertificate() {
                                     </SelectTrigger>
                                     <SelectContent>
                                         {(initialData?.data as any)?.accyear?.map((y: any) => (
-                                            <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>{y.asmaY_Year}</SelectItem>
+                                            <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>
+                                                {y.asmaY_Year}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
                             </div>
 
-                            <div className='p-4 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-4'>
-                                <Label className='text-xs font-bold uppercase tracking-wider text-indigo-600'>Search By:</Label>
-                                <RadioGroup value={admName} onValueChange={(v) => { setAdmName(v); fetchStudents(asmayId, v, tcTempPer); }} className='flex gap-6'>
+                            <div className='space-y-4 rounded-xl border border-indigo-100 bg-indigo-50/50 p-4'>
+                                <Label className='font-bold text-indigo-600 text-xs uppercase tracking-wider'>Search By:</Label>
+                                <RadioGroup
+                                    value={admName}
+                                    onValueChange={(v) => {
+                                        setAdmName(v);
+                                        fetchStudents(asmayId, v, tcTempPer);
+                                    }}
+                                    className='flex gap-6'>
                                     <div className='flex items-center space-x-2'>
                                         <RadioGroupItem value='regno' id='regno' />
-                                        <Label htmlFor='regno' className='font-medium cursor-pointer'>Adm. No</Label>
+                                        <Label htmlFor='regno' className='cursor-pointer font-medium'>
+                                            Adm. No
+                                        </Label>
                                     </div>
                                     <div className='flex items-center space-x-2'>
                                         <RadioGroupItem value='stdname' id='stdname' />
-                                        <Label htmlFor='stdname' className='font-medium cursor-pointer'>Student Name</Label>
+                                        <Label htmlFor='stdname' className='cursor-pointer font-medium'>
+                                            Student Name
+                                        </Label>
                                     </div>
                                 </RadioGroup>
                             </div>
@@ -209,32 +224,45 @@ export default function SophiaTransferCertificate() {
 
                         {/* Right Column */}
                         <div className='space-y-8'>
-                            <div className='p-4 bg-orange-50/50 rounded-xl border border-orange-100 space-y-4'>
-                                <Label className='text-xs font-bold uppercase tracking-wider text-orange-600'>Student Type:</Label>
-                                <RadioGroup value={tcTempPer} onValueChange={(v) => { setTcTempPer(v); fetchStudents(asmayId, admName, v); }} className='flex gap-6'>
+                            <div className='space-y-4 rounded-xl border border-orange-100 bg-orange-50/50 p-4'>
+                                <Label className='font-bold text-orange-600 text-xs uppercase tracking-wider'>Student Type:</Label>
+                                <RadioGroup
+                                    value={tcTempPer}
+                                    onValueChange={(v) => {
+                                        setTcTempPer(v);
+                                        fetchStudents(asmayId, admName, v);
+                                    }}
+                                    className='flex gap-6'>
                                     <div className='flex items-center space-x-2'>
                                         <RadioGroupItem value='temp' id='temp' />
-                                        <Label htmlFor='temp' className='font-medium cursor-pointer'>Temporary</Label>
+                                        <Label htmlFor='temp' className='cursor-pointer font-medium'>
+                                            Temporary
+                                        </Label>
                                     </div>
                                     <div className='flex items-center space-x-2'>
                                         <RadioGroupItem value='per' id='per' />
-                                        <Label htmlFor='per' className='font-medium cursor-pointer'>Permanent</Label>
+                                        <Label htmlFor='per' className='cursor-pointer font-medium'>
+                                            Permanent
+                                        </Label>
                                     </div>
                                 </RadioGroup>
                             </div>
 
                             <div className='space-y-3'>
-                                <Label className='text-sm font-bold text-gray-700 flex items-center'>
-                                    Student:<span className='text-red-500 ml-1'>*</span>
+                                <Label className='flex items-center font-bold text-gray-700 text-sm'>
+                                    Student:<span className='ml-1 text-red-500'>*</span>
                                 </Label>
-                                <Select value={amstId?.toString()} onValueChange={handleStudentChange} disabled={studentDropdown.length === 0}>
+                                <Select
+                                    value={amstId?.toString()}
+                                    onValueChange={handleStudentChange}
+                                    disabled={studentDropdown.length === 0}>
                                     <SelectTrigger className='h-11 rounded-lg border-gray-200 shadow-sm'>
                                         <SelectValue placeholder={studentDropdown.length > 0 ? 'Select Student' : 'No students found'} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <div className='p-2 border-b'>
+                                        <div className='border-b p-2'>
                                             <div className='relative'>
-                                                <Search className='absolute left-2 top-2.5 h-3.5 w-3.5 text-muted-foreground' />
+                                                <Search className='absolute top-2.5 left-2 h-3.5 w-3.5 text-muted-foreground' />
                                                 <Input
                                                     placeholder='Search student...'
                                                     value={studentSearch}
@@ -257,16 +285,26 @@ export default function SophiaTransferCertificate() {
                     <Separator className='my-8' />
 
                     <div className='flex justify-center gap-4'>
-                        <Button onClick={handleGenerateReport} disabled={getTCDetailsMutation.isPending || !amstId} className='bg-indigo-600 hover:bg-indigo-700 rounded-full px-10 h-11 shadow-lg shadow-indigo-200 transition-all active:scale-95'>
-                            {getTCDetailsMutation.isPending ? <Loader2 className='mr-2 h-5 w-5 animate-spin' /> : <FileText className='mr-2 h-5 w-5' />}
+                        <Button
+                            onClick={handleGenerateReport}
+                            disabled={getTCDetailsMutation.isPending || !amstId}
+                            className='h-11 rounded-full bg-indigo-600 px-10 shadow-indigo-200 shadow-lg transition-all hover:bg-indigo-700 active:scale-95'>
+                            {getTCDetailsMutation.isPending ? (
+                                <Loader2 className='mr-2 h-5 w-5 animate-spin' />
+                            ) : (
+                                <FileText className='mr-2 h-5 w-5' />
+                            )}
                             REPORT
                         </Button>
-                        <Button variant='outline' onClick={() => window.location.reload()} className='rounded-full px-10 h-11 border-gray-200 hover:bg-gray-50'>
+                        <Button
+                            variant='outline'
+                            onClick={() => window.location.reload()}
+                            className='h-11 rounded-full border-gray-200 px-10 hover:bg-gray-50'>
                             <RotateCcw className='mr-2 h-5 w-5' />
                             CANCEL
                         </Button>
                         {printFlag && (
-                            <Button variant='secondary' onClick={() => handlePrint()} className='rounded-full px-10 h-11 shadow-lg'>
+                            <Button variant='secondary' onClick={() => handlePrint()} className='h-11 rounded-full px-10 shadow-lg'>
                                 <Printer className='mr-2 h-5 w-5' />
                                 PRINT
                             </Button>
@@ -277,42 +315,71 @@ export default function SophiaTransferCertificate() {
 
             {/* TC Preview Section */}
             {printFlag && report && (
-                <Card className='shadow-2xl border-none overflow-hidden'>
+                <Card className='overflow-hidden border-none shadow-2xl'>
                     <CardContent className='p-0'>
-                        <div className='bg-gray-100 p-4 md:p-8 flex justify-center'>
-                            <div ref={printRef} className='bg-white shadow-sm p-8 sm:p-12 print-content' style={{ width: '176mm', minHeight: '250mm', fontFamily: '"Times New Roman", Times, serif' }}>
-                                <div className='relative flex flex-col h-full'>
-                                    <h1 className='text-center mt-12 mb-8'>
-                                        <span style={{ borderBottom: '2px solid black', paddingBottom: '2px', fontSize: '26px', fontWeight: 'bold' }}>
+                        <div className='flex justify-center bg-gray-100 p-4 md:p-8'>
+                            <div
+                                ref={printRef}
+                                className='print-content bg-white p-8 shadow-sm sm:p-12'
+                                style={{ width: '176mm', minHeight: '250mm', fontFamily: '"Times New Roman", Times, serif' }}>
+                                <div className='relative flex h-full flex-col'>
+                                    <h1 className='mt-12 mb-8 text-center'>
+                                        <span
+                                            style={{
+                                                borderBottom: '2px solid black',
+                                                paddingBottom: '2px',
+                                                fontSize: '26px',
+                                                fontWeight: 'bold'
+                                            }}>
                                             TRANSFER CERTIFICATE
                                         </span>
                                     </h1>
 
                                     <div className='pt-2 pb-1'>
-                                        <div className='flex justify-between items-center px-2 text-[15px] font-bold text-black'>
+                                        <div className='flex items-center justify-between px-2 font-bold text-[15px] text-black'>
                                             <div>Admission Number: {report.amst_admno}</div>
                                             <div>Sl. No: {report.astc_tcno}</div>
                                         </div>
                                     </div>
-                                    <div className='border-t border-black mb-6'></div>
+                                    <div className='mb-6 border-black border-t'></div>
 
-                                    <div className='space-y-2.5 text-[15px] leading-relaxed text-black mb-4'>
+                                    <div className='mb-4 space-y-2.5 text-[15px] text-black leading-relaxed'>
                                         {[
                                             { label: 'Name of Pupil', value: report.studentname?.trim(), num: '1' },
                                             { label: "Father's Name", value: report.amst_fathername, num: '2' },
                                             { label: "Mother's Name", value: report.amst_mothername, num: '3' },
-                                            { label: 'Religion/Caste', value: `${report.religion || '-'} / ${report.caste || '-'}`, num: '4' },
+                                            {
+                                                label: 'Religion/Caste',
+                                                value: `${report.religion || '-'} / ${report.caste || '-'}`,
+                                                num: '4'
+                                            },
                                             { label: 'Nationality', value: report.nationality || 'Indian', num: '5' },
-                                            { label: 'Date of Birth', value: report.amst_dob ? format(new Date(report.amst_dob), 'dd-MMM-yyyy') : '', num: '6' },
+                                            {
+                                                label: 'Date of Birth',
+                                                value: report.amst_dob ? format(new Date(report.amst_dob), 'dd-MMM-yyyy') : '',
+                                                num: '6'
+                                            },
                                             { label: 'School Last Attended', value: report.institutionname || 'N/A', num: '7' },
-                                            { label: 'Date Of Admission', value: report.amst_date ? format(new Date(report.amst_date), 'dd-MMM-yyyy') : '', num: '8' },
+                                            {
+                                                label: 'Date Of Admission',
+                                                value: report.amst_date ? format(new Date(report.amst_date), 'dd-MMM-yyyy') : '',
+                                                num: '8'
+                                            },
                                             { label: 'Conduct', value: report.astc_conduct || 'good', num: '9' },
-                                            { label: 'Date Of Leaving', value: report.tcdatess ? format(new Date(report.tcdatess), 'dd-MMM-yyyy') : '', num: '10' },
-                                            { label: 'Studying In', value: `${report.classname || report.last_class_studied || '-'} ${report.asmc_sectionname || ''}`, num: '11' },
+                                            {
+                                                label: 'Date Of Leaving',
+                                                value: report.tcdatess ? format(new Date(report.tcdatess), 'dd-MMM-yyyy') : '',
+                                                num: '10'
+                                            },
+                                            {
+                                                label: 'Studying In',
+                                                value: `${report.classname || report.last_class_studied || '-'} ${report.asmc_sectionname || ''}`,
+                                                num: '11'
+                                            },
                                             { label: 'Remarks', value: report.astc_remarks || '-', num: '12' }
                                         ].map((item, i) => (
                                             <div key={i} className='grid grid-cols-[50px_180px_20px_1fr] items-baseline'>
-                                                <div className='text-right mr-6'>{item.num}</div>
+                                                <div className='mr-6 text-right'>{item.num}</div>
                                                 <div className='font-medium'>{item.label}</div>
                                                 <div className='text-center'>:</div>
                                                 <div className='pl-2'>{item.value}</div>
@@ -320,20 +387,25 @@ export default function SophiaTransferCertificate() {
                                         ))}
                                     </div>
 
-                                    <div className='border-t-2 border-black mb-10'></div>
-                                    <div className='space-y-12 mt-2'>
-                                        <div className='flex justify-between items-center text-[15px] font-medium text-black px-4'>
+                                    <div className='mb-10 border-black border-t-2'></div>
+                                    <div className='mt-2 space-y-12'>
+                                        <div className='flex items-center justify-between px-4 font-medium text-[15px] text-black'>
                                             <div>PEN No.</div>
                                             <div>SATS No.</div>
                                         </div>
 
-                                        <div className='text-[15px] px-2 text-black leading-relaxed whitespace-nowrap'>
+                                        <div className='whitespace-nowrap px-2 text-[15px] text-black leading-relaxed'>
                                             Certified that the above-mentioned information is in accordance with the school register.
                                         </div>
 
-                                        <div className='flex justify-between items-center mt-24 px-4 text-black'>
-                                            <div className='text-[15px] font-medium'>Date: {report.astc_tcissuedate ? format(new Date(report.astc_tcissuedate), 'dd-MMM-yyyy') : format(new Date(), 'dd-MMM-yyyy')}</div>
-                                            <div className='text-[15px] font-bold'>PRINCIPAL</div>
+                                        <div className='mt-24 flex items-center justify-between px-4 text-black'>
+                                            <div className='font-medium text-[15px]'>
+                                                Date:{' '}
+                                                {report.astc_tcissuedate
+                                                    ? format(new Date(report.astc_tcissuedate), 'dd-MMM-yyyy')
+                                                    : format(new Date(), 'dd-MMM-yyyy')}
+                                            </div>
+                                            <div className='font-bold text-[15px]'>PRINCIPAL</div>
                                         </div>
                                     </div>
                                 </div>
@@ -342,8 +414,6 @@ export default function SophiaTransferCertificate() {
                     </CardContent>
                 </Card>
             )}
-
-
         </div>
     );
 }

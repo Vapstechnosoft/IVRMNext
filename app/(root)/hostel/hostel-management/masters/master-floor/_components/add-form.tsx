@@ -6,24 +6,21 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { FormInput } from '@/components/ui/form/form-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { IMasterFloorForm, masterFloorSchema } from '@/schemas/hostel/master-floor.schema';
+import { useMasterFloor } from '@/hooks/hostel/useMasterFloor';
+import { useFacilityDropdownList, useHostelDropdownList } from '@/hooks/hostel/useMasterHostel';
+import { type IMasterFloorForm, masterFloorSchema } from '@/schemas/hostel/master-floor.schema';
+import { getFloorDetails, saveFloor } from '@/server/hostel/hostel-management/masters/floor';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { useMasterFloor } from '@/hooks/hostel/useMasterFloor';
-import { useHostelDropdownList, useFacilityDropdownList } from '@/hooks/hostel/useMasterHostel';
-import { getFloorDetails, saveFloor } from '@/server/hostel/hostel-management/masters/floor';
 
 interface AddMasterFloorFormProps {
     onSuccess: () => void;
     initialData?: any;
 }
 
-export default function AddMasterFloorForm({
-    onSuccess,
-    initialData
-}: AddMasterFloorFormProps) {
+export default function AddMasterFloorForm({ onSuccess, initialData }: AddMasterFloorFormProps) {
     const { refetch } = useMasterFloor();
     // Using hooks as requested
     const { data: hostels } = useHostelDropdownList();
@@ -74,10 +71,9 @@ export default function AddMasterFloorForm({
                     setValue('hrmF_TotalRooms', initialData.hrmF_TotalRooms || 0);
                     // Ensure hlmH_Id is a string for the Select component
                     setValue('hlmH_Id', initialData.hlmH_Id?.toString() || '');
-
                 } catch (error) {
-                    console.error("Failed to fetch floor details", error);
-                    toast.error("Failed to load floor details.");
+                    console.error('Failed to fetch floor details', error);
+                    toast.error('Failed to load floor details.');
                 } finally {
                     setIsLoadingDetails(false);
                 }
@@ -89,7 +85,6 @@ export default function AddMasterFloorForm({
             fetchEditDetails();
         }
     }, [initialData, setValue]);
-
 
     const onSubmit = async (data: IMasterFloorForm) => {
         try {
@@ -103,7 +98,7 @@ export default function AddMasterFloorForm({
                 hrmF_FloorDesc: data.hrmF_FloorDesc,
                 hrmF_TotalRooms: data.hrmF_TotalRooms,
                 hlmH_Id: Number(data.hlmH_Id),
-                selected_facilities: (data.selectedFacilityIds || []).map(id => ({
+                selected_facilities: (data.selectedFacilityIds || []).map((id) => ({
                     hlmftY_Id: Number(id),
                     hlmfF_ActiveFlg: true
                 }))
@@ -127,7 +122,7 @@ export default function AddMasterFloorForm({
     };
 
     if (isLoadingDetails) {
-        return <div className="p-4 text-center">Loading floor details...</div>;
+        return <div className='p-4 text-center'>Loading floor details...</div>;
     }
 
     return (
@@ -136,10 +131,11 @@ export default function AddMasterFloorForm({
                 <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md' noValidate>
                     <div className='flex flex-col gap-6 md:flex-row'>
                         <div className='flex flex-1 flex-col gap-4'>
-
                             {/* Hostel Selection */}
                             <div>
-                                <Label>Hostel Name <span className='text-red-500'>*</span></Label>
+                                <Label>
+                                    Hostel Name <span className='text-red-500'>*</span>
+                                </Label>
                                 <Controller
                                     control={control}
                                     name='hlmH_Id'
@@ -147,13 +143,16 @@ export default function AddMasterFloorForm({
                                         <>
                                             <Select value={field.value?.toString()} onValueChange={field.onChange}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select Hostel" />
+                                                    <SelectValue placeholder='Select Hostel' />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {/* biome-ignore lint/complexity/useOptionalChain: <explanation> */}
-                                                    {hostels && hostels.map((h: any) => (
-                                                        <SelectItem key={h.hlmH_Id} value={h.hlmH_Id.toString()}>{h.hlmH_Name}</SelectItem>
-                                                    ))}
+                                                    {hostels &&
+                                                        hostels.map((h: any) => (
+                                                            <SelectItem key={h.hlmH_Id} value={h.hlmH_Id.toString()}>
+                                                                {h.hlmH_Name}
+                                                            </SelectItem>
+                                                        ))}
                                                 </SelectContent>
                                             </Select>
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -162,28 +161,33 @@ export default function AddMasterFloorForm({
                                 />
                             </div>
 
-                            <FormInput control={control} name="hrmF_FloorName" label="Floor Name" required placeholder='Enter Floor Name' />
+                            <FormInput control={control} name='hrmF_FloorName' label='Floor Name' required placeholder='Enter Floor Name' />
 
-                            <FormInput control={control} name="hrmF_TotalRooms" type="number" label="No of Room" required placeholder='Enter Number of Rooms' />
+                            <FormInput
+                                control={control}
+                                name='hrmF_TotalRooms'
+                                type='number'
+                                label='No of Room'
+                                required
+                                placeholder='Enter Number of Rooms'
+                            />
 
                             <div>
                                 <Label>Description</Label>
                                 <Controller
                                     control={control}
                                     name='hrmF_FloorDesc'
-                                    render={({ field }) => (
-                                        <Textarea {...field} placeholder='Enter Description' />
-                                    )}
+                                    render={({ field }) => <Textarea {...field} placeholder='Enter Description' />}
                                 />
                             </div>
 
                             {/* Facilities MultiSelect */}
                             <Controller
                                 control={control}
-                                name="selectedFacilityIds"
+                                name='selectedFacilityIds'
                                 render={({ field }) => (
                                     <CustomMultiSelectBox
-                                        label="Facilities"
+                                        label='Facilities'
                                         options={(facilities?.data || []).map((f: any) => ({
                                             label: f.hlmftY_FacilityName,
                                             value: f.hlmftY_Id.toString()
@@ -196,13 +200,12 @@ export default function AddMasterFloorForm({
                                     />
                                 )}
                             />
-
                         </div>
                     </div>
 
                     <div className='flex justify-center gap-2'>
                         <Button type='submit' disabled={isSubmitting}>
-                            {isSubmitting ? (initialData ? 'Updating...' : 'Saving...') : (initialData ? 'Update' : 'Save')}
+                            {isSubmitting ? (initialData ? 'Updating...' : 'Saving...') : initialData ? 'Update' : 'Save'}
                         </Button>
                         <Button
                             type='button'
@@ -210,8 +213,7 @@ export default function AddMasterFloorForm({
                             onClick={() => {
                                 reset();
                                 onSuccess();
-                            }}
-                        >
+                            }}>
                             Cancel
                         </Button>
                     </div>

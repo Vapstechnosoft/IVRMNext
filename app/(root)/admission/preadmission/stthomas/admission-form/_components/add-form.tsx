@@ -3420,7 +3420,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     placeholder='Auto-filled from DOB'
                                                     {...register('amsT_DOB_Words')}
                                                     error={errors.amsT_DOB_Words?.message}
-                                                    disabled
+                                                    readOnly
+                                                    className='cursor-not-allowed bg-muted font-medium text-gray-800'
                                                 />
 
                                                 {/* Row 6: Caste Category & Caste */}

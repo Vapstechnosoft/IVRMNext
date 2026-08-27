@@ -5,7 +5,7 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -21,14 +21,14 @@ const MOCK_CLASSES = [
     { asmcL_Id: 390, asmcL_ClassName: 'Class VII' },
     { asmcL_Id: 391, asmcL_ClassName: 'Class VIII' },
     { asmcL_Id: 392, asmcL_ClassName: 'Class IX' },
-    { asmcL_Id: 393, asmcL_ClassName: 'Class X' },
+    { asmcL_Id: 393, asmcL_ClassName: 'Class X' }
 ];
 
 const MOCK_EXAMS = [
     { emE_Id: 1, emE_ExamName: 'Unit Test - 1' },
     { emE_Id: 2, emE_ExamName: 'Midterm Examination' },
     { emE_Id: 3, emE_ExamName: 'Unit Test - 2' },
-    { emE_Id: 4, emE_ExamName: 'Annual Examination' },
+    { emE_Id: 4, emE_ExamName: 'Annual Examination' }
 ];
 
 const MOCK_REPORT_DATA = {
@@ -61,7 +61,7 @@ const MOCK_REPORT_DATA = {
             Above50to59: 4,
             Above40to49: 5,
             Above33to39: 2,
-            Below33: 0,
+            Below33: 0
         }
     ],
     subjectlists: [
@@ -70,7 +70,7 @@ const MOCK_REPORT_DATA = {
         { ISMS_Id: 103, ISMS_SubjectName: 'Kannada' },
         { ISMS_Id: 104, ISMS_SubjectName: 'Mathematics' },
         { ISMS_Id: 105, ISMS_SubjectName: 'Science' },
-        { ISMS_Id: 106, ISMS_SubjectName: 'Social Science' },
+        { ISMS_Id: 106, ISMS_SubjectName: 'Social Science' }
     ],
     subjectcountlist: [
         { ISMS_Id: 101, HighestMarks: 99, LowestMarks: 28, AverageMarks: 72.5 },
@@ -78,9 +78,9 @@ const MOCK_REPORT_DATA = {
         { ISMS_Id: 103, HighestMarks: 97, LowestMarks: 25, AverageMarks: 65.2 },
         { ISMS_Id: 104, HighestMarks: 100, LowestMarks: 22, AverageMarks: 70.8 },
         { ISMS_Id: 105, HighestMarks: 96, LowestMarks: 30, AverageMarks: 73.1 },
-        { ISMS_Id: 106, HighestMarks: 98, LowestMarks: 35, AverageMarks: 76.3 },
+        { ISMS_Id: 106, HighestMarks: 98, LowestMarks: 35, AverageMarks: 76.3 }
     ],
-    asmcL_Id: 389,
+    asmcL_Id: 389
 };
 
 // ─── Form types ────────────────────────────────────────────────────────────────
@@ -105,7 +105,12 @@ export const AnalysisReportForm = ({ title, onReportGenerated, onReset }: Analys
     const [exams] = useState(MOCK_EXAMS);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const { control, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
+    const {
+        control,
+        handleSubmit,
+        reset,
+        formState: { errors }
+    } = useForm<FormValues>({
         defaultValues: { ASMAY_Id: '', ASMCL_Id: '', emE_Id: '' }
     });
 
@@ -116,17 +121,17 @@ export const AnalysisReportForm = ({ title, onReportGenerated, onReset }: Analys
         setIsSubmitting(true);
         try {
             // APIs not ready — use mock data
-            await new Promise(res => setTimeout(res, 600));
-            const selectedClass = classes.find(c => String(c.asmcL_Id) === values.ASMCL_Id);
-            const selectedExam = exams.find(e => String(e.emE_Id) === values.emE_Id);
+            await new Promise((res) => setTimeout(res, 600));
+            const selectedClass = classes.find((c) => String(c.asmcL_Id) === values.ASMCL_Id);
+            const selectedExam = exams.find((e) => String(e.emE_Id) === values.emE_Id);
             const mockData = {
                 ...MOCK_REPORT_DATA,
-                studlist: MOCK_REPORT_DATA.studlist.map(r => ({
+                studlist: MOCK_REPORT_DATA.studlist.map((r) => ({
                     ...r,
                     ClassName: selectedClass?.asmcL_ClassName ?? r.ClassName,
-                    ExamName: selectedExam?.emE_ExamName ?? r.ExamName,
+                    ExamName: selectedExam?.emE_ExamName ?? r.ExamName
                 })),
-                asmcL_Id: selectedClass?.asmcL_Id ?? MOCK_REPORT_DATA.asmcL_Id,
+                asmcL_Id: selectedClass?.asmcL_Id ?? MOCK_REPORT_DATA.asmcL_Id
             };
             onReportGenerated(mockData, values);
             toast.success('Report generated successfully');
@@ -156,14 +161,18 @@ export const AnalysisReportForm = ({ title, onReportGenerated, onReset }: Analys
                         rules={{ required: 'Please select Academic Year' }}
                         render={({ field, fieldState }) => (
                             <div className='space-y-2'>
-                                <Label>Academic Year <span className='text-red-500'>*</span></Label>
+                                <Label>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </Label>
                                 <Select onValueChange={field.onChange} value={field.value}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='Select Academic Year' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {academicYearLoading ? (
-                                            <SelectItem value='loading' disabled>Loading...</SelectItem>
+                                            <SelectItem value='loading' disabled>
+                                                Loading...
+                                            </SelectItem>
                                         ) : (
                                             academicYears.map((y: any) => (
                                                 <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
@@ -185,13 +194,15 @@ export const AnalysisReportForm = ({ title, onReportGenerated, onReset }: Analys
                         rules={{ required: 'Please select Class' }}
                         render={({ field, fieldState }) => (
                             <div className='space-y-2'>
-                                <Label>Class <span className='text-red-500'>*</span></Label>
+                                <Label>
+                                    Class <span className='text-red-500'>*</span>
+                                </Label>
                                 <Select onValueChange={field.onChange} value={field.value} disabled={!watchYear}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='Select Class' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {classes.map(c => (
+                                        {classes.map((c) => (
                                             <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
                                                 {c.asmcL_ClassName}
                                             </SelectItem>
@@ -210,13 +221,15 @@ export const AnalysisReportForm = ({ title, onReportGenerated, onReset }: Analys
                         rules={{ required: 'Please select Exam' }}
                         render={({ field, fieldState }) => (
                             <div className='space-y-2'>
-                                <Label>Exam Name <span className='text-red-500'>*</span></Label>
+                                <Label>
+                                    Exam Name <span className='text-red-500'>*</span>
+                                </Label>
                                 <Select onValueChange={field.onChange} value={field.value} disabled={!watchClass}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='Select Exam Name' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {exams.map(e => (
+                                        {exams.map((e) => (
                                             <SelectItem key={e.emE_Id} value={String(e.emE_Id)}>
                                                 {e.emE_ExamName}
                                             </SelectItem>

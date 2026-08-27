@@ -1,7 +1,6 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { staffAllotmentSchema } from '@/schemas/hostel/transactions/staff-allotment.schema';
 import { revalidatePath } from 'next/cache';
 
 const SERVICE_NAME = 'default';
@@ -49,75 +48,74 @@ export interface StaffInfoResponse {
 }
 
 export const getStaffAllotmentLoadData = async (): Promise<ApiResponse<StaffAllotmentLoadData>> => {
-  try {
-    const response = await api.get<StaffAllotmentLoadData>(SERVICE_NAME, `${API_BASE_URL}/loaddata/2`);
-    return response;
-  } catch (error) {
-    console.error('Error fetching staff allotment load data:', error);
-    return {
-        success: false,
-        message: 'Failed to fetch data',
-        data: {
-            yearlist: [],
-            hostel_list: [],
-            student_allotlist: [],
-            deptlist: [],
-            desglist: [],
-            roomcatgry_list: [],
-            room_list: []
-        }
+    try {
+        const response = await api.get<StaffAllotmentLoadData>(SERVICE_NAME, `${API_BASE_URL}/loaddata/2`);
+        return response;
+    } catch (error) {
+        console.error('Error fetching staff allotment load data:', error);
+        return {
+            success: false,
+            message: 'Failed to fetch data',
+            data: {
+                yearlist: [],
+                hostel_list: [],
+                student_allotlist: [],
+                deptlist: [],
+                desglist: [],
+                roomcatgry_list: [],
+                room_list: []
+            }
+        };
     }
-  }
 };
 
 export const getStaffInfo = async (payload: { HLMH_Id: number }): Promise<ApiResponse<StaffInfoResponse>> => {
-  try {
-    const response = await api.post<StaffInfoResponse>(SERVICE_NAME, `${API_BASE_URL}/get_studInfo`, payload);
-    return response;
-  } catch (error) {
-    console.error('Error fetching staff info:', error);
-    return {
-        success: false,
-        message: 'Failed to fetch staff info',
-        data: { housewise_studentList: [] }
-    };
-  }
+    try {
+        const response = await api.post<StaffInfoResponse>(SERVICE_NAME, `${API_BASE_URL}/get_studInfo`, payload);
+        return response;
+    } catch (error) {
+        console.error('Error fetching staff info:', error);
+        return {
+            success: false,
+            message: 'Failed to fetch staff info',
+            data: { housewise_studentList: [] }
+        };
+    }
 };
 
 export const getRoomDetails = async (payload: { HRMRM_Id: number }): Promise<ApiResponse<any>> => {
-  try {
-    const response = await api.post<any>(SERVICE_NAME, `${API_BASE_URL}/get_roomdetails`, payload);
-    return response;
-  } catch (error) {
-    console.error('Error fetching room details:', error);
-    return {
-        success: false,
-        message: 'Failed to fetch room details',
-        data: null
-    };
-  }
+    try {
+        const response = await api.post<any>(SERVICE_NAME, `${API_BASE_URL}/get_roomdetails`, payload);
+        return response;
+    } catch (error) {
+        console.error('Error fetching room details:', error);
+        return {
+            success: false,
+            message: 'Failed to fetch room details',
+            data: null
+        };
+    }
 };
 
 export const saveStaffAllotment = async (data: any): Promise<ApiResponse<any>> => {
-  try {
-    const payload = {
-      ...data,
-      HLHSTALT_AllotmentDate: data.HLHSTALT_AllotmentDate,
-    };
+    try {
+        const payload = {
+            ...data,
+            HLHSTALT_AllotmentDate: data.HLHSTALT_AllotmentDate
+        };
 
-    const response = await api.post<any>(SERVICE_NAME, `${API_BASE_URL}/savedata`, payload);
-    
-    if (response.data?.returnval === true) {
-       revalidatePath('/hostel/hostel-management/transactions/staff-allotment');
+        const response = await api.post<any>(SERVICE_NAME, `${API_BASE_URL}/savedata`, payload);
+
+        if (response.data?.returnval === true) {
+            revalidatePath('/hostel/hostel-management/transactions/staff-allotment');
+        }
+        return response;
+    } catch (error) {
+        console.error('Error saving staff allotment:', error);
+        return {
+            success: false,
+            message: 'Failed to save staff allotment',
+            data: null
+        };
     }
-    return response;
-
-  } catch (error) {
-    console.error('Error saving staff allotment:', error);
-    return {
-        success: false,
-        message: 'Failed to save staff allotment',
-        data: null
-    };
-  }
 };

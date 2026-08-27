@@ -88,7 +88,7 @@ export const paymentgatewaydetailsColumns: ColumnDef<IMasterPaymentGatewayList>[
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterPaymentGatewayList }) {
-    const { openEditForm, openToggleForm,openDeleteForm } = useFormContext<IMasterPaymentGatewayList>();
+    const { openEditForm, openToggleForm, openDeleteForm } = useFormContext<IMasterPaymentGatewayList>();
 
     const handleEdit = useCallback(
         (data: IMasterPaymentGatewayList) => {
@@ -103,7 +103,6 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterPaymentGatewayList }) 
         },
         [openToggleForm]
     );
-
 
     const handleDelete = useCallback(
         (data: IMasterPaymentGatewayList) => {

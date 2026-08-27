@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 import { ReportForm } from './_components/report-form';
 import { ReportList } from './_components/report-list';
 
-
 export default function GmvpsProgressCardIXPage() {
     const [reportData, setReportData] = useState<any>(null);
     const [reportParams, setReportParams] = useState<any>(null);

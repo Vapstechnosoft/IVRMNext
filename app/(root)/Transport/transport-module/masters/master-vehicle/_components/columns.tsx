@@ -1,5 +1,6 @@
 'use client';
 import { getStatusBadge } from '@/components/extras/helpers/helper';
+import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
@@ -8,29 +9,28 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { Eye } from 'lucide-react';
 import { useCallback } from 'react';
-import { Button } from '@/components/ui/button';
 
 export const vehicleColumns: ColumnDef<IMasterVehicle>[] = [
     {
         id: 'select',
         header: ({ table }) => (
             <input
-                type="checkbox"
+                type='checkbox'
                 checked={table.getIsAllPageRowsSelected()}
                 onChange={(e) => table.toggleAllPageRowsSelected(!!e.target.checked)}
-                className="translate-y-[2px]"
+                className='translate-y-[2px]'
             />
         ),
         cell: ({ row }) => (
             <input
-                type="checkbox"
+                type='checkbox'
                 checked={row.getIsSelected()}
                 onChange={(e) => row.toggleSelected(!!e.target.checked)}
-                className="translate-y-[2px]"
+                className='translate-y-[2px]'
             />
         ),
         enableSorting: false,
-        enableHiding: false,
+        enableHiding: false
     },
     {
         accessorKey: 'slNo',
@@ -125,14 +125,13 @@ function ViewDocumentsCell({ rowData }: { rowData: IMasterVehicle }) {
     const { openDocumentView } = useFormContext<IMasterVehicle>();
 
     return (
-        <div className="flex justify-center">
+        <div className='flex justify-center'>
             <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 text-blue-500 hover:text-blue-700"
-                onClick={() => openDocumentView(rowData)}
-            >
-                <Eye className="h-4 w-4" />
+                variant='ghost'
+                size='sm'
+                className='h-8 w-8 p-0 text-blue-500 hover:text-blue-700'
+                onClick={() => openDocumentView(rowData)}>
+                <Eye className='h-4 w-4' />
             </Button>
         </div>
     );

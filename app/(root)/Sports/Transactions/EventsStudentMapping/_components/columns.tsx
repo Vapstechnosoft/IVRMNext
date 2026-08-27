@@ -1,10 +1,10 @@
 'use client';
 
-import { ColumnDef, Row } from '@tanstack/react-table';
-import { ActionButtons } from '@/components/ui/form/action-buttons';
-import { IEventsStudentMappingData } from '@/types/sports/events-student-mapping';
-import { useEventsStudentMapping } from '@/hooks/sports/useEventsStudentMapping';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { useEventsStudentMapping } from '@/hooks/sports/useEventsStudentMapping';
+import type { IEventsStudentMappingData } from '@/types/sports/events-student-mapping';
+import type { ColumnDef, Row } from '@tanstack/react-table';
 
 // Simple columns for the display grid (the "Saved" list)
 export const eventsStudentMappingColumns: ColumnDef<IEventsStudentMappingData>[] = [
@@ -22,35 +22,35 @@ export const eventsStudentMappingColumns: ColumnDef<IEventsStudentMappingData>[]
     },
     {
         accessorKey: 'studentName',
-        header: 'Student Name',
+        header: 'Student Name'
     },
     {
         accessorKey: 'amsT_AdmNo',
-        header: 'Adm No.',
+        header: 'Adm No.'
     },
     {
         accessorKey: 'asmcL_ClassName',
-        header: 'Class',
+        header: 'Class'
     },
     {
         accessorKey: 'asmC_SectionName',
-        header: 'Section',
+        header: 'Section'
     },
     {
         accessorKey: 'spccmH_HouseName',
-        header: 'House',
+        header: 'House'
     },
     {
         accessorKey: 'eventName',
-        header: 'Event',
+        header: 'Event'
     },
     {
         accessorKey: 'spccestR_Points',
-        header: 'Points',
+        header: 'Points'
     },
     {
         accessorKey: 'spccestR_Rank',
-        header: 'Rank',
+        header: 'Rank'
     },
     {
         id: 'actions',

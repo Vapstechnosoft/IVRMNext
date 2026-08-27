@@ -68,7 +68,7 @@ export default function LibraryMonthEndReportPage() {
 
             {reportDisplayData.length > 0 && (
                 <div className='print-container'>
-                    <style type="text/css" media="print">
+                    <style type='text/css' media='print'>
                         {`
                             @page { size: portrait; margin: 10mm; }
                             body * { visibility: hidden; }
@@ -92,7 +92,7 @@ export default function LibraryMonthEndReportPage() {
                         `}
                     </style>
                     <CollapsibleSection title='Library Month End Report List' defaultOpen={true}>
-                        <div className="print-title hidden print:block text-center text-xl font-bold mb-4 uppercase">
+                        <div className='print-title mb-4 hidden text-center font-bold text-xl uppercase print:block'>
                             Library Month End Report
                         </div>
                         <GenericDataTable columns={LibraryMonthEndReportColumns} data={reportDisplayData} isLoading={false} />

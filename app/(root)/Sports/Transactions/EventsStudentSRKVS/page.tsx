@@ -1,15 +1,15 @@
 'use client';
 
-import React, { use, useState } from 'react';
-import { useForm, FormProvider } from 'react-hook-form';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Button } from '@/components/ui/button';
-import { Plus, X } from 'lucide-react';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useEventsStudentSRKVS } from '@/hooks/sports/useEventsStudentSRKVS';
-import EventsStudentSRKVSForm from './_components/srkvs-form';
+import type { IEventsStudentSRKVSData } from '@/types/sports/events-student-srkvs';
+import { Plus, X } from 'lucide-react';
+import { use, useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
 import { eventsStudentSRKVSColumns } from './_components/columns';
-import { IEventsStudentSRKVSData } from '@/types/sports/events-student-srkvs';
+import EventsStudentSRKVSForm from './_components/srkvs-form';
 
 export default function EventsStudentSRKVSPage(props: { searchParams: Promise<any> }) {
     const searchParams = use(props.searchParams);
@@ -17,11 +17,11 @@ export default function EventsStudentSRKVSPage(props: { searchParams: Promise<an
 
     return (
         <FormProvider {...useForm()}>
-            <EventsStudentSRKVSPageContent 
-                response={loadData.data} 
-                isLoading={loadData.isPending || loadData.isFetching} 
-                error={loadData.error} 
-                refetchAll={refetchAll} 
+            <EventsStudentSRKVSPageContent
+                response={loadData.data}
+                isLoading={loadData.isPending || loadData.isFetching}
+                error={loadData.error}
+                refetchAll={refetchAll}
             />
         </FormProvider>
     );
@@ -32,7 +32,7 @@ function EventsStudentSRKVSPageContent({ response, isLoading, error, refetchAll 
 
     // Normalize: response.data is ApiResponse<IEventsStudentSRKVSData[]>
     const dataList = response?.data || (Array.isArray(response) ? response : []) || [];
-    
+
     const tableProps = {
         data: dataList,
         totalItems: dataList.length,

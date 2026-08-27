@@ -1,10 +1,10 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
-import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
-import { IRoomTariff } from '@/server/hostel/hostel-management/masters/room-tariff';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import type { IRoomTariff } from '@/server/hostel/hostel-management/masters/room-tariff';
+import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
 export const roomTariffColumns: ColumnDef<IRoomTariff, any>[] = [
@@ -21,25 +21,25 @@ export const roomTariffColumns: ColumnDef<IRoomTariff, any>[] = [
     },
     {
         accessorKey: 'asmaY_Year',
-        header: ({ column }) => <ColumnHeader column={column} title="Year" />,
+        header: ({ column }) => <ColumnHeader column={column} title='Year' />
     },
     {
         accessorKey: 'hrmrM_RoomNo',
-        header: ({ column }) => <ColumnHeader column={column} title="Room" />,
+        header: ({ column }) => <ColumnHeader column={column} title='Room' />
     },
     {
         accessorKey: 'hlmrtF_SORate',
-        header: ({ column }) => <ColumnHeader column={column} title="Single Bed Rate" />,
+        header: ({ column }) => <ColumnHeader column={column} title='Single Bed Rate' />
     },
     {
         accessorKey: 'hlmrtF_RoomRate',
-        header: ({ column }) => <ColumnHeader column={column} title="Entire Room Rate" />,
+        header: ({ column }) => <ColumnHeader column={column} title='Entire Room Rate' />
     },
     {
         id: 'actions',
         header: ({ column }) => <ColumnHeader column={column} title='Actions' className='text-center' />,
-        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
-    },
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
+    }
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IRoomTariff }) {
@@ -65,7 +65,7 @@ function ActionButtonsCell({ rowData }: { rowData: IRoomTariff }) {
             buttons={{ edit: true, toggle: true }}
             onEdit={handleEdit}
             onToggle={handleToggle}
-            toggleConditionKey="hlmrtF_ActiveFlag"
+            toggleConditionKey='hlmrtF_ActiveFlag'
         />
     );
 }

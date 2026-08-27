@@ -22,12 +22,7 @@ export default function MasterAreaPage(props: { searchParams: SearchParams }) {
         <FormProvider<IMasterArea>>
             <div className='min-h-screen'>
                 <div className='container space-y-4 p-1'>
-                    <MasterAreaPageContent
-                        response={response}
-                        isLoading={isLoading}
-                        error={error}
-                        refetchAll={refetchAll}
-                    />
+                    <MasterAreaPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
                 </div>
             </div>
         </FormProvider>
@@ -148,11 +143,7 @@ function FormSections() {
                 </div>
             )}
 
-            {isToggleFormOpen && selectedRow &&
-                <ToggleMasterAreaForm
-                    rowData={selectedRow}
-                    onClose={closeToggleForm}
-                />}
+            {isToggleFormOpen && selectedRow && <ToggleMasterAreaForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

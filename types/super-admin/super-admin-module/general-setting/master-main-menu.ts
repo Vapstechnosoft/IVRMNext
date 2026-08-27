@@ -1,4 +1,3 @@
-
 export interface IMasterMainMenu {
     ivrmmM_Id: number;
     ivrmM_Id?: number;

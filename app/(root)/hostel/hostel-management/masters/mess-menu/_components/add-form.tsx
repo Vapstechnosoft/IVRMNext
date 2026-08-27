@@ -6,7 +6,7 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMessDropdownList } from '@/hooks/hostel/useMasterHostel';
 import { useMasterMessCategoryDropdown } from '@/hooks/hostel/useMasterMessCategory';
-import { MessMenuSchema, MessMenuSchemaType } from '@/schemas/hostel/mess-menu.schema';
+import { MessMenuSchema, type MessMenuSchemaType } from '@/schemas/hostel/mess-menu.schema';
 import { saveMessMenu } from '@/server/hostel/hostel-management/masters/menu';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RefreshCw, Save } from 'lucide-react';
@@ -33,8 +33,8 @@ export default function AddMessMenuForm({ onSuccess, className = '' }: AddMessMe
             hlmM_Id: 0,
             hlmmC_Id: 0,
             hlmmN_MenuName: '',
-            hlmmN_MenuDesc: '',
-        },
+            hlmmN_MenuDesc: ''
+        }
     });
     const { data: messes } = useMessDropdownList();
     const { data: messcategories } = useMasterMessCategoryDropdown();
@@ -60,7 +60,7 @@ export default function AddMessMenuForm({ onSuccess, className = '' }: AddMessMe
             hlmM_Id: 0,
             hlmmC_Id: 0,
             hlmmN_MenuName: '',
-            hlmmN_MenuDesc: '',
+            hlmmN_MenuDesc: ''
         });
         toast.info('Form reset');
     };
@@ -75,12 +75,9 @@ export default function AddMessMenuForm({ onSuccess, className = '' }: AddMessMe
                             <Label htmlFor='hlmM_Id'>
                                 Mess Name <span className='ml-1 text-red-500'>*</span>
                             </Label>
-                            <Select
-                                onValueChange={(val) => setValue('hlmM_Id', Number(val))}
-                                defaultValue=''
-                            >
+                            <Select onValueChange={(val) => setValue('hlmM_Id', Number(val))} defaultValue=''>
                                 <SelectTrigger className={errors.hlmM_Id ? 'border-red-500' : ''}>
-                                    <SelectValue placeholder="Select Mess" />
+                                    <SelectValue placeholder='Select Mess' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {messes?.data?.map((mess: any) => (
@@ -98,12 +95,9 @@ export default function AddMessMenuForm({ onSuccess, className = '' }: AddMessMe
                             <Label htmlFor='hlmmC_Id'>
                                 Mess Category <span className='ml-1 text-red-500'>*</span>
                             </Label>
-                            <Select
-                                onValueChange={(val) => setValue('hlmmC_Id', Number(val))}
-                                defaultValue=''
-                            >
+                            <Select onValueChange={(val) => setValue('hlmmC_Id', Number(val))} defaultValue=''>
                                 <SelectTrigger className={errors.hlmmC_Id ? 'border-red-500' : ''}>
-                                    <SelectValue placeholder="Select Category" />
+                                    <SelectValue placeholder='Select Category' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {messcategories?.data?.map((cat: any) => (
@@ -130,9 +124,7 @@ export default function AddMessMenuForm({ onSuccess, className = '' }: AddMessMe
 
                         {/* Description */}
                         <div className='group flex flex-col gap-2'>
-                            <Label htmlFor='hlmmN_MenuDesc'>
-                                Description
-                            </Label>
+                            <Label htmlFor='hlmmN_MenuDesc'>Description</Label>
                             <textarea
                                 id='hlmmN_MenuDesc'
                                 {...register('hlmmN_MenuDesc')}

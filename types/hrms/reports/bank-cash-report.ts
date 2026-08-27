@@ -1,5 +1,3 @@
-import type { ApiResponse } from '@/lib/apiService';
-
 /**
  * Request interface for Bank Cash Report onload
  */
@@ -152,4 +150,3 @@ export interface BankCashReportSearchResponse {
     employeeDetails?: any[];
     [key: string]: any;
 }
-

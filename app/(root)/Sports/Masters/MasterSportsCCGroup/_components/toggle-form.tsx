@@ -47,7 +47,8 @@ export default function ToggleMasterSportsCCGroupForm({ rowData, onClose, onSucc
             <div className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.spccmsccG_SportsCCGroupName}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'}{' '}
+                        <strong>{rowData.spccmsccG_SportsCCGroupName}</strong>?
                     </p>
                 </AdaptiveBody>
                 <AdaptiveFooter>

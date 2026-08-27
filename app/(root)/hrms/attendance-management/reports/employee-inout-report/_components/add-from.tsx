@@ -6,21 +6,19 @@ import { FormError } from '@/components/ui/extension/field';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
-import { cn } from '@/lib/utils';
-import { employeeInOutReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
-import { getEmployeeInOutReport } from '@/server/hrms/hrmsConfig/reports/employee-inout-report';
 import {
     useReportDepartments,
     useReportDesignations,
-    useReportEmployeesByDeptAndDesignation,
     useReportEmployeesByGroupTypeDeptAndDesignation,
     useReportGroupTypes
 } from '@/hooks/hrms/useReports';
+import { employeeInOutReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
+import { getEmployeeInOutReport } from '@/server/hrms/hrmsConfig/reports/employee-inout-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
+import { addMonths } from 'date-fns';
+import { Save } from 'lucide-react';
 import { useMemo } from 'react';
-import { addMonths, format } from 'date-fns';
-import { Calendar as CalendarIcon, Save } from 'lucide-react';
 import { Label } from 'react-aria-components';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -92,7 +90,11 @@ export default function AddEmployeeInOutReportForm({
     const { data: groupTypesData, isLoading: isGroupTypesLoading } = useReportGroupTypes();
     const { data: departmentsData, isLoading: isDepartmentsLoading } = useReportDepartments(groupTypeIds.toString());
     const { data: designationsData, isLoading: isDesignationsLoading } = useReportDesignations(groupTypeIds.toString(), deptIds.toString());
-    const { data: employeesData, isLoading: isEmployeesLoading } = useReportEmployeesByGroupTypeDeptAndDesignation(groupTypeIds, deptIds, desigIds);
+    const { data: employeesData, isLoading: isEmployeesLoading } = useReportEmployeesByGroupTypeDeptAndDesignation(
+        groupTypeIds,
+        deptIds,
+        desigIds
+    );
 
     const groupTypesDataTransformed = useMemo(() => {
         return (
@@ -148,11 +150,7 @@ export default function AddEmployeeInOutReportForm({
                     emp.employeeName ||
                     'Unknown Employee';
 
-                const employeeCode =
-                    emp.HRME_EmployeeCode ||
-                    emp.hrmE_EmployeeCode ||
-                    emp.employeeCode ||
-                    id.toString();
+                const employeeCode = emp.HRME_EmployeeCode || emp.hrmE_EmployeeCode || emp.employeeCode || id.toString();
 
                 return {
                     id: Number(id),
@@ -163,12 +161,10 @@ export default function AddEmployeeInOutReportForm({
             .filter(Boolean);
     }, [employeesData]);
 
-    console.log("employeesDataTransformed", employeesDataTransformed);
+    console.log('employeesDataTransformed', employeesDataTransformed);
 
     const onSubmit: SubmitHandler<FormFields> = async (data: FormFields) => {
         try {
-
-
             console.log('form data', data);
             // Determine employee IDs as an array of numbers
             let hrmeIds: number[] = [];
@@ -184,7 +180,7 @@ export default function AddEmployeeInOutReportForm({
                 hrme_ids: hrmeIds
             };
 
-            const response = await getEmployeeInOutReport(payload) as any;
+            const response = (await getEmployeeInOutReport(payload)) as any;
 
             // Allow filtering logic *after* getting the API response
             if (response.success && response.data?.report_data) {
@@ -243,22 +239,25 @@ export default function AddEmployeeInOutReportForm({
     };
 
     const handleReset = () => {
-        reset({
-            type: [],
-            department: [],
-            designation: [],
-            allOrIndividual: 'All',
-            codeOrName: 'Code',
-            query: '',
-            fromDate: '',
-            toDate: '',
-        }, {
-            keepDefaultValues: false,
-            keepErrors: false,
-            keepDirty: false,
-            keepTouched: false,
-            keepIsValid: false
-        });
+        reset(
+            {
+                type: [],
+                department: [],
+                designation: [],
+                allOrIndividual: 'All',
+                codeOrName: 'Code',
+                query: '',
+                fromDate: '',
+                toDate: ''
+            },
+            {
+                keepDefaultValues: false,
+                keepErrors: false,
+                keepDirty: false,
+                keepTouched: false,
+                keepIsValid: false
+            }
+        );
         // Explicitly clear all errors to ensure a clean state on the first click
         // Using setTimeout to ensure it runs after any immediate re-validation triggered by reset()
         setTimeout(() => {
@@ -389,16 +388,15 @@ export default function AddEmployeeInOutReportForm({
                                                     <SelectValue placeholder={`${isEmployeesLoading ? 'Loading...' : 'Select Employee'}`} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {
-                                                        employeesDataTransformed.length === 0 ? (
-                                                            <div className='p-4 text-center text-sm text-gray-500'>No employees found</div>
-                                                        ) : employeesDataTransformed.map((emp: any) => (
+                                                    {employeesDataTransformed.length === 0 ? (
+                                                        <div className='p-4 text-center text-gray-500 text-sm'>No employees found</div>
+                                                    ) : (
+                                                        employeesDataTransformed.map((emp: any) => (
                                                             <SelectItem key={emp.id} value={String(emp.id)}>
                                                                 {emp.employeeName} - [{emp.employeeCode}]
                                                             </SelectItem>
                                                         ))
-                                                    }
-
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                         )}
@@ -439,7 +437,6 @@ export default function AddEmployeeInOutReportForm({
                                             }}
                                             placeholder='From date'
                                             className={errors.fromDate ? 'border-red-500' : ''}
-
                                         />
                                     )}
                                 />
@@ -459,10 +456,7 @@ export default function AddEmployeeInOutReportForm({
                                             date={field.value ? new Date(field.value) : undefined}
                                             disabled={
                                                 fromDateObject
-                                                    ? [
-                                                        { before: fromDateObject },
-                                                        { after: effectiveToDateMax }
-                                                    ]
+                                                    ? [{ before: fromDateObject }, { after: effectiveToDateMax }]
                                                     : [{ after: today }]
                                             }
                                             setDate={(date) => {

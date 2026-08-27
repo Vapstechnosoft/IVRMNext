@@ -13,7 +13,11 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
-import { useDobCertificateDetails, useDobCertificateLoadData, useDobCertificateStudentList } from '@/hooks/admission/preadmission/useReports';
+import {
+    useDobCertificateDetails,
+    useDobCertificateLoadData,
+    useDobCertificateStudentList
+} from '@/hooks/admission/preadmission/useReports';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -41,11 +45,7 @@ export default function BirthCertificatePageReport(_props: { searchParams: Searc
         }
     };
 
-    const {
-        data: dobLoadData,
-        isLoading: dobLoadDataLoading,
-        isError: dobLoadDataError
-    } = useDobCertificateLoadData(true);
+    const { data: dobLoadData, isLoading: dobLoadDataLoading, isError: dobLoadDataError } = useDobCertificateLoadData(true);
 
     const [academicYearId, setAcademicYearId] = useState<number>(0);
     const [classId, setClassId] = useState<number>(0);
@@ -342,11 +342,7 @@ export default function BirthCertificatePageReport(_props: { searchParams: Searc
 
                 {showReport && transformedData && transformedData.length > 0 && (
                     <div className='no-print slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                        <CollapsibleSection
-                            title='Birth Certificate Preview'
-                            defaultOpen={true}
-                            variant='outline'
-                            size='md'>
+                        <CollapsibleSection title='Birth Certificate Preview' defaultOpen={true} variant='outline' size='md'>
                             <div className='rounded-lg border bg-white p-4 shadow-sm'>
                                 <BirthCertificatePrint
                                     students={transformedData}
@@ -364,11 +360,11 @@ export default function BirthCertificatePageReport(_props: { searchParams: Searc
                         ref={printRef}
                         students={allReportData?.data?.studentList || transformedData}
                         purpose={purpose}
-                        masterCompany={(allReportData?.data || detailsResponse?.data as any)?.masterCompany}
-                        principalSign={(allReportData?.data || detailsResponse?.data as any)?.principalSign}
+                        masterCompany={(allReportData?.data || (detailsResponse?.data as any))?.masterCompany}
+                        principalSign={(allReportData?.data || (detailsResponse?.data as any))?.principalSign}
                     />
                 </div>
             </div>
-        </div >
+        </div>
     );
 }

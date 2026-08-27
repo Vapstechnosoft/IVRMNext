@@ -1,6 +1,6 @@
 'use server';
 
-import { api, getSearchParamsUrl, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type { IEventSponsorInitialData } from '@/types/sports/transactions/events-sponsor';
 
@@ -46,7 +46,7 @@ export async function getEditEventsSponsorMapping(id: number): Promise<ApiRespon
 /**
  * Deactivate or Activate Events Sponsor Mapping.
  */
-export async function deactivateEventsSponsorMapping(data: { spccesP_Id: number, spccesP_ActiveFlag: boolean }): Promise<ApiResponse<any>> {
+export async function deactivateEventsSponsorMapping(data: { spccesP_Id: number; spccesP_ActiveFlag: boolean }): Promise<ApiResponse<any>> {
     const payload = {
         SPCCESP_Id: data.spccesP_Id,
         SPCCESP_ActiveFlag: data.spccesP_ActiveFlag

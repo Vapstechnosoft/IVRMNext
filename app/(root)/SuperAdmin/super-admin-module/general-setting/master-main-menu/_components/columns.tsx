@@ -12,22 +12,22 @@ export const columns: ColumnDef<IMasterMainMenu>[] = [
         id: 'serialNumber',
         header: ({ column }) => <ColumnHeader column={column} title='SL.NO' />,
         cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
-        enableSorting: false,
+        enableSorting: false
     },
     {
         accessorKey: 'modulename',
-        header: ({ column }) => <ColumnHeader column={column} title='Module Name' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Module Name' />
     },
     {
         accessorKey: 'ivrmmM_MenuName',
-        header: ({ column }) => <ColumnHeader column={column} title='Main Menu Name' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Main Menu Name' />
     },
     {
         id: 'actions',
         header: ({ column }) => <ColumnHeader column={column} title='Edit/Delete' className='text-center' />,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
-        enableSorting: false,
-    },
+        enableSorting: false
+    }
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterMainMenu }) {

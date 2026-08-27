@@ -4,7 +4,10 @@ import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
 import { useMasterMessCategory } from '@/hooks/hostel/useMasterMessCategory';
-import { masterMessCategoryMappingDeleteSchema, IMasterMessCategoryMappingDisplay } from '@/schemas/hostel/mess-category-mapping.schema';
+import {
+    type IMasterMessCategoryMappingDisplay,
+    masterMessCategoryMappingDeleteSchema
+} from '@/schemas/hostel/mess-category-mapping.schema';
 import { deactivateMessCategory } from '@/server/hostel/hostel-management/masters/mess-category';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
@@ -62,7 +65,8 @@ export default function ToggleMasterMessCategoryForm({ rowData, onClose }: Toggl
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <input type='hidden' {...register('hlmmmC_Id')} />
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} the mapping between <strong>{rowData.hlmM_Name}</strong> and <strong>{rowData.hlmmC_Name}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} the mapping between{' '}
+                        <strong>{rowData.hlmM_Name}</strong> and <strong>{rowData.hlmmC_Name}</strong>?
                     </p>
                     {errors.hlmmmC_Id && <FormError>{errors.hlmmmC_Id.message}</FormError>}
                 </AdaptiveBody>

@@ -1,5 +1,3 @@
-import { type ApiResponse } from '@/lib/apiService';
-
 // Report Request
 export interface SalaryIncrementReportRequest {
     hrmE_Id: string;

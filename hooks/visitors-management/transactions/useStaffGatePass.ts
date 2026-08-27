@@ -1,10 +1,10 @@
+import {
+    deactivateStaffGatePass,
+    getStaffGatePassData,
+    saveStaffGatePass
+} from '@/server/visitors-management/transactions/staff-gate-pass';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { 
-    getStaffGatePassData, 
-    saveStaffGatePass,
-    deactivateStaffGatePass
-} from '@/server/visitors-management/transactions/staff-gate-pass';
 
 export const STAFF_GATE_PASS_KEY = ['staff-gate-pass'] as const;
 
@@ -19,7 +19,7 @@ export function useStaffGatePass() {
                 throw new Error(response.message || 'Failed to fetch staff gate pass data');
             }
             return response.data;
-        },
+        }
     });
 
     const mutation = useMutation({
@@ -36,7 +36,7 @@ export function useStaffGatePass() {
         },
         onError: (error: Error) => {
             toast.error(error.message || 'Failed to save record');
-        },
+        }
     });
 
     const statusMutation = useMutation({
@@ -53,7 +53,7 @@ export function useStaffGatePass() {
         },
         onError: (error: Error) => {
             toast.error(error.message || 'Failed to change status');
-        },
+        }
     });
 
     return {
@@ -61,6 +61,6 @@ export function useStaffGatePass() {
         saveStaffGatePass: mutation.mutateAsync,
         isSaving: mutation.isPending,
         changeStatus: statusMutation.mutateAsync,
-        isChangingStatus: statusMutation.isPending,
+        isChangingStatus: statusMutation.isPending
     };
 }

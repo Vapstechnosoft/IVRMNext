@@ -10,8 +10,8 @@ import { masterLibrarySchema } from '@/schemas/library/masters';
 import { addOrUpdateMasterLibrary } from '@/server/library/masters/master_library';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { type SubmitHandler, useForm } from 'react-hook-form';
 import { useState } from 'react';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -51,7 +51,7 @@ export default function AddMasterLibraryForm({ onSuccess, onSaveAndNext, classNa
                 toast.success(response.message || 'Master Library saved successfully');
                 reset();
                 refetchAll();
-                
+
                 const newId = response.lmaL_Id || response.data?.lmaL_Id;
                 if (shouldNext && onSaveAndNext) {
                     onSaveAndNext(lmaL_LibraryName, newId);
@@ -116,7 +116,7 @@ export default function AddMasterLibraryForm({ onSuccess, onSaveAndNext, classNa
                         type='submit'
                         onClick={() => setShouldNext(true)}
                         disabled={isSubmitting}
-                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-3 bg-[#4251b1] hover:bg-[#35418e]'
+                        className='order-1 w-fit bg-[#4251b1] transition-all duration-200 hover:scale-105 hover:bg-[#35418e] sm:order-3'
                         isLoading={isSubmitting && shouldNext}
                         loadingText='Saving...'>
                         <div className='flex items-center'>

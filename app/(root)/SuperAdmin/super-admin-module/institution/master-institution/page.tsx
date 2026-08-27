@@ -20,12 +20,7 @@ export default function MasterInstitutionPage(props: { searchParams: SearchParam
 
     return (
         <FormProvider<IMasterInstitution>>
-            <MasterInstitutionPageContent
-                response={response}
-                isLoading={isLoading}
-                error={error}
-                refetchAll={refetchAll}
-            />
+            <MasterInstitutionPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
         </FormProvider>
     );
 }
@@ -59,7 +54,7 @@ function MasterInstitutionPageContent({
                         type='button'
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='h-4 w-4 mr-2' />
+                        <Plus className='mr-2 h-4 w-4' />
                         Add Master Institution
                     </Button>
                 </div>
@@ -70,8 +65,7 @@ function MasterInstitutionPageContent({
                     defaultOpen={true}
                     variant='default'
                     size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
-                >
+                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<IMasterInstitution>
                         {...tableProps}
                         total={tableProps.totalItems} // Explicitly pass total for page indexing logic if needed
@@ -95,11 +89,7 @@ function MasterInstitutionPageContent({
 }
 
 function FormSections({ refetchAll }: { refetchAll: any }) {
-    const {
-        isAddFormOpen,
-        closeAddForm,
-        addFormRef
-    } = useFormContext<IMasterInstitution>();
+    const { isAddFormOpen, closeAddForm, addFormRef } = useFormContext<IMasterInstitution>();
 
     return (
         <>

@@ -120,7 +120,7 @@ export interface EmployeeOnloadResponse {
     religiondropdownlist?: any[];
     AllState?: any[];
     bankdropdownlist?: any[];
-    
+
     // Earnings/Deductions
     earningList?: any[];
     detectionList?: any[];
@@ -130,14 +130,14 @@ export interface EmployeeOnloadResponse {
     arrearList?: any[];
     grossList?: any[];
     employeeEarningsDeductionsDetails?: any[];
-    
+
     // Increment Details
     IncrementDetailsDTO?: any;
     incrementDetails?: any[];
-    
+
     // Configuration
     configurationDetails?: any;
-    
+
     // Employee Dropdowns
     employeedropdown?: any[];
     employeedropdowndetails?: any[];
@@ -148,12 +148,12 @@ export interface EmployeeOnloadResponse {
     employeeempgrouptype?: any[];
     departmentdropdown?: any[];
     designationdropdown?: any[];
-    
+
     // DTOs
     EmployeeExperienceDTO?: any[];
     EmployeeQulaificationDTO?: any[];
     EmployeeDocumentDTO?: any[];
-    
+
     // Mobile and Email
     mobile_list_dto?: any[];
     email_list_dto?: any[];
@@ -163,11 +163,11 @@ export interface EmployeeOnloadResponse {
     HRMEM_EmailId?: string;
     HRMEMNO_Id?: number;
     HRMEEM_Id?: number;
-    
+
     // Bank Details
     employeebankDetails?: any[];
     employeebankDTO?: any[];
-    
+
     // Other fields
     retrunMsg?: string;
     roleId?: number;

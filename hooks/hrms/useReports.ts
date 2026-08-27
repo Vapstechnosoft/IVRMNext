@@ -11,7 +11,12 @@ import { getEmployeeStrengthReportOnload, searchEmployeeStrengthReport } from '@
 import { getESIReportOnload } from '@/server/hrms/hrmsConfig/reports/esi-report';
 import { getPFChallanReportOnload } from '@/server/hrms/hrmsConfig/reports/pf-challan-report';
 import { getPFForm3ABasicData, searchPFForm3AReport } from '@/server/hrms/hrmsConfig/reports/pf-form-3a-report';
-import { filterEmployeesByYearMonth, generateSalarySlip, getSalarySlipOnload } from '@/server/hrms/hrmsConfig/reports/salary-slip-report';
+import {
+    filterEmployeesByYearMonth,
+    generateSalarySlip,
+    getSalarySlipOnload,
+    sendSalarySlipEmailSMSWhatsApp
+} from '@/server/hrms/hrmsConfig/reports/salary-slip-report';
 import {
     getMasterDepartments,
     getMasterDesignations,
@@ -434,6 +439,18 @@ export function useGenerateSalarySlip() {
         mutationFn: (data: SalarySlipGenerateRequest) => generateSalarySlip(data),
         onError: (error: Error) => {
             toast.error(error.message || 'Failed to generate salary slip');
+        }
+    });
+}
+
+/**
+ * Hook for Sending Salary Slip via Email/SMS/WhatsApp
+ */
+export function useSendSalarySlipEmailSMS() {
+    return useMutation({
+        mutationFn: (data: any) => sendSalarySlipEmailSMSWhatsApp(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to send salary slip');
         }
     });
 }

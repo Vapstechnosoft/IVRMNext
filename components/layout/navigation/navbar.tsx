@@ -1,7 +1,6 @@
 import { ROUTES } from '@/constants/routes';
 import { auth } from '@/lib/auth';
 import { UserNav } from '../user-nav';
-import UserNotificationPage from '../user-notification';
 import { AIAgentHeader } from './ai-agent-header';
 import { HeaderSearch } from './header-search';
 import { IntelligentAppsMenu } from './intelligent-apps-menu';
@@ -31,7 +30,7 @@ export default async function Navbar() {
                         <IntelligentAppsMenu />
                         <AIAgentHeader />
 
-                        <UserNotificationPage />
+                        {/* <UserNotificationPage /> */}
                         <UserNav session={session} />
                     </div>
                 </div>

@@ -1,7 +1,7 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { performAlumniSearch, getAlumniSearchDropdownData } from '@/server/alumni/alumni-search';
-import type { IAlumniSearchDetailsResponse, IAlumniSearchResponse } from '@/types/alumni/alumni-search';
 import type { ApiResponse } from '@/lib/apiService';
+import { getAlumniSearchDropdownData, performAlumniSearch } from '@/server/alumni/alumni-search';
+import type { IAlumniSearchDetailsResponse, IAlumniSearchResponse } from '@/types/alumni/alumni-search';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const useAlumniSearchDropdownData = () => {
     return useQuery<ApiResponse<IAlumniSearchDetailsResponse>>({
@@ -15,5 +15,3 @@ export const usePerformAlumniSearch = () => {
         mutationFn: (data: any) => performAlumniSearch(data)
     });
 };
-
-

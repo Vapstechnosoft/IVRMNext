@@ -5,40 +5,45 @@ import { format } from 'date-fns';
 import { CalendarIcon, FileSpreadsheet, Printer, Search } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
-import { toast } from 'sonner';
-import { z } from 'zod';
-import * as XLSX from 'xlsx';
 import { useReactToPrint } from 'react-to-print';
+import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
+import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { FormError, Label } from '@/components/ui/extension/field';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 
 import { useStudentBirthdayReportDetails } from '@/hooks/admission/preadmission/useReports';
 import { getStudentBirthdayReportDetails } from '@/server/admission/preadmission/reports/student_birthday_report';
 import { birthdayColumns } from './_components/columns';
 import { StudentBirthdayPrint } from './_components/student-birthday-print';
 
-const schema = z.object({
-    selectionType: z.string().default('1'), // 1: Between Days, 0: Month Wise
-    studentStatus: z.string().default('S'), // S: Studying, L: Left
-    month: z.string().optional(),
-    fromDate: z.date().nullable().optional(),
-    toDate: z.date().nullable().optional()
-}).refine((data) => {
-    if (data.selectionType === '0' && !data.month) return false;
-    if (data.selectionType === '1' && (!data.fromDate || !data.toDate)) return false;
-    return true;
-}, {
-    message: "Required fields are missing",
-    path: ["month"] // Placeholder path
-});
+const schema = z
+    .object({
+        selectionType: z.string().default('1'), // 1: Between Days, 0: Month Wise
+        studentStatus: z.string().default('S'), // S: Studying, L: Left
+        month: z.string().optional(),
+        fromDate: z.date().nullable().optional(),
+        toDate: z.date().nullable().optional()
+    })
+    .refine(
+        (data) => {
+            if (data.selectionType === '0' && !data.month) return false;
+            if (data.selectionType === '1' && (!data.fromDate || !data.toDate)) return false;
+            return true;
+        },
+        {
+            message: 'Required fields are missing',
+            path: ['month'] // Placeholder path
+        }
+    );
 
 type FormFields = z.infer<typeof schema>;
 
@@ -58,7 +63,12 @@ const monthList = [
 ];
 
 export default function StudentBirthdayReportPage() {
-    const { control, handleSubmit, reset, formState: { errors } } = useForm<FormFields>({
+    const {
+        control,
+        handleSubmit,
+        reset,
+        formState: { errors }
+    } = useForm<FormFields>({
         resolver: zodResolver(schema),
         defaultValues: {
             selectionType: '1',
@@ -87,7 +97,7 @@ export default function StudentBirthdayReportPage() {
 
     const onSubmit = (data: FormFields) => {
         const payload = {
-            months: data.selectionType === '0' ? parseInt(data.month || '0') : '',
+            months: data.selectionType === '0' ? Number.parseInt(data.month || '0') : '',
             flag: data.studentStatus,
             all1: data.selectionType,
             Fromdate: data.selectionType === '1' ? format(data.fromDate!, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
@@ -121,15 +131,17 @@ export default function StudentBirthdayReportPage() {
             return;
         }
 
-        const ws = XLSX.utils.json_to_sheet(dataToExport.map((row: any, index: number) => ({
-            'SL.No': index + 1,
-            'Student Name': row.studentname,
-            'Adm. No.': row.admno,
-            'Class': row.classname,
-            'Section': row.sectionname,
-            'Date of Birth': row.amst_dob ? format(new Date(row.amst_dob), 'dd-MM-yyyy') : '',
-            'Address': row.stdaddress
-        })));
+        const ws = XLSX.utils.json_to_sheet(
+            dataToExport.map((row: any, index: number) => ({
+                'SL.No': index + 1,
+                'Student Name': row.studentname,
+                'Adm. No.': row.admno,
+                Class: row.classname,
+                Section: row.sectionname,
+                'Date of Birth': row.amst_dob ? format(new Date(row.amst_dob), 'dd-MM-yyyy') : '',
+                Address: row.stdaddress
+            }))
+        );
 
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'BirthdayReport');
@@ -174,23 +186,23 @@ export default function StudentBirthdayReportPage() {
                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                             {/* Selection Type */}
                             <div className='space-y-3 rounded-lg border p-4'>
-                                <Label className='text-sm font-medium'>Report Type</Label>
+                                <Label className='font-medium text-sm'>Report Type</Label>
                                 <Controller
                                     name='selectionType'
                                     control={control}
                                     render={({ field }) => (
-                                        <RadioGroup
-                                            onValueChange={field.onChange}
-                                            value={field.value}
-                                            className='flex flex-wrap gap-4'
-                                        >
+                                        <RadioGroup onValueChange={field.onChange} value={field.value} className='flex flex-wrap gap-4'>
                                             <div className='flex items-center space-x-2'>
                                                 <RadioGroupItem value='1' id='r1' />
-                                                <Label htmlFor='r1' className='font-normal cursor-pointer'>Between Days</Label>
+                                                <Label htmlFor='r1' className='cursor-pointer font-normal'>
+                                                    Between Days
+                                                </Label>
                                             </div>
                                             <div className='flex items-center space-x-2'>
                                                 <RadioGroupItem value='0' id='r0' />
-                                                <Label htmlFor='r0' className='font-normal cursor-pointer'>Month Wise</Label>
+                                                <Label htmlFor='r0' className='cursor-pointer font-normal'>
+                                                    Month Wise
+                                                </Label>
                                             </div>
                                         </RadioGroup>
                                     )}
@@ -199,23 +211,23 @@ export default function StudentBirthdayReportPage() {
 
                             {/* Student Status */}
                             <div className='space-y-3 rounded-lg border p-4'>
-                                <Label className='text-sm font-medium'>Student Status</Label>
+                                <Label className='font-medium text-sm'>Student Status</Label>
                                 <Controller
                                     name='studentStatus'
                                     control={control}
                                     render={({ field }) => (
-                                        <RadioGroup
-                                            onValueChange={field.onChange}
-                                            value={field.value}
-                                            className='flex gap-4'
-                                        >
+                                        <RadioGroup onValueChange={field.onChange} value={field.value} className='flex gap-4'>
                                             <div className='flex items-center space-x-2'>
                                                 <RadioGroupItem value='S' id='sS' />
-                                                <Label htmlFor='sS' className='font-normal cursor-pointer'>Studying</Label>
+                                                <Label htmlFor='sS' className='cursor-pointer font-normal'>
+                                                    Studying
+                                                </Label>
                                             </div>
                                             <div className='flex items-center space-x-2'>
                                                 <RadioGroupItem value='L' id='sL' />
-                                                <Label htmlFor='sL' className='font-normal cursor-pointer'>Left</Label>
+                                                <Label htmlFor='sL' className='cursor-pointer font-normal'>
+                                                    Left
+                                                </Label>
                                             </div>
                                         </RadioGroup>
                                     )}
@@ -226,18 +238,22 @@ export default function StudentBirthdayReportPage() {
                         <div className='grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3'>
                             {selectionType === '0' && (
                                 <div className='space-y-2'>
-                                    <Label>Month <span className='text-destructive'>*</span></Label>
+                                    <Label>
+                                        Month <span className='text-destructive'>*</span>
+                                    </Label>
                                     <Controller
                                         name='month'
                                         control={control}
                                         render={({ field }) => (
                                             <Select onValueChange={field.onChange} value={field.value}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="--Select--" />
+                                                    <SelectValue placeholder='--Select--' />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {monthList.map((m) => (
-                                                        <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                                                        <SelectItem key={m.value} value={m.value}>
+                                                            {m.label}
+                                                        </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
@@ -250,7 +266,9 @@ export default function StudentBirthdayReportPage() {
                             {selectionType === '1' && (
                                 <>
                                     <div className='space-y-2'>
-                                        <Label>From Date <span className='text-destructive'>*</span></Label>
+                                        <Label>
+                                            From Date <span className='text-destructive'>*</span>
+                                        </Label>
                                         <Controller
                                             name='fromDate'
                                             control={control}
@@ -274,7 +292,9 @@ export default function StudentBirthdayReportPage() {
                                         />
                                     </div>
                                     <div className='space-y-2'>
-                                        <Label>To Date <span className='text-destructive'>*</span></Label>
+                                        <Label>
+                                            To Date <span className='text-destructive'>*</span>
+                                        </Label>
                                         <Controller
                                             name='toDate'
                                             control={control}
@@ -291,7 +311,7 @@ export default function StudentBirthdayReportPage() {
                                                             mode='single'
                                                             selected={field.value ?? undefined}
                                                             onSelect={field.onChange}
-                                                            disabled={(date) => fromDate ? date < fromDate : false}
+                                                            disabled={(date) => (fromDate ? date < fromDate : false)}
                                                         />
                                                     </PopoverContent>
                                                 </Popover>
@@ -307,7 +327,14 @@ export default function StudentBirthdayReportPage() {
                                 <Search className='mr-2 h-4 w-4' />
                                 Submit
                             </Button>
-                            <Button type='button' variant='outline' onClick={() => { reset(); setShowGrid(false); setAllReportData([]); }}>
+                            <Button
+                                type='button'
+                                variant='outline'
+                                onClick={() => {
+                                    reset();
+                                    setShowGrid(false);
+                                    setAllReportData([]);
+                                }}>
                                 Cancel
                             </Button>
                             {(reportData as any)?.data?.length > 0 && (
@@ -355,10 +382,15 @@ export default function StudentBirthdayReportPage() {
                 <StudentBirthdayPrint
                     ref={printRef}
                     data={{
-                        ...reportData as any,
-                        data: selectedRows.length > 0 ? selectedRows : allReportData.length > 0 ? allReportData : (reportData as any)?.data || []
+                        ...(reportData as any),
+                        data:
+                            selectedRows.length > 0
+                                ? selectedRows
+                                : allReportData.length > 0
+                                  ? allReportData
+                                  : (reportData as any)?.data || []
                     }}
-                    monthName={monthList.find(m => m.value === month)?.label}
+                    monthName={monthList.find((m) => m.value === month)?.label}
                     fromDate={fromDate}
                     toDate={toDate}
                 />

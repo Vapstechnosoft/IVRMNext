@@ -248,9 +248,13 @@ export default function BrsPreBoardReportCardForm({
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {academicYearLoading ? (
-                                                            <SelectItem value='0' disabled>Academic Year is loading...</SelectItem>
+                                                            <SelectItem value='0' disabled>
+                                                                Academic Year is loading...
+                                                            </SelectItem>
                                                         ) : academicYears.length === 0 ? (
-                                                            <SelectItem value='0' disabled>No Academic Year found</SelectItem>
+                                                            <SelectItem value='0' disabled>
+                                                                No Academic Year found
+                                                            </SelectItem>
                                                         ) : (
                                                             academicYears.map((y) => (
                                                                 <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
@@ -285,9 +289,13 @@ export default function BrsPreBoardReportCardForm({
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {loadingClasses ? (
-                                                            <SelectItem value='0' disabled>Classes are loading...</SelectItem>
+                                                            <SelectItem value='0' disabled>
+                                                                Classes are loading...
+                                                            </SelectItem>
                                                         ) : classes.length === 0 ? (
-                                                            <SelectItem value='0' disabled>No Classes found</SelectItem>
+                                                            <SelectItem value='0' disabled>
+                                                                No Classes found
+                                                            </SelectItem>
                                                         ) : (
                                                             classes.map((c) => (
                                                                 <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
@@ -322,9 +330,13 @@ export default function BrsPreBoardReportCardForm({
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {loadingSections ? (
-                                                            <SelectItem value='0' disabled>Sections are loading...</SelectItem>
+                                                            <SelectItem value='0' disabled>
+                                                                Sections are loading...
+                                                            </SelectItem>
                                                         ) : sections.length === 0 ? (
-                                                            <SelectItem value='0' disabled>No Sections found</SelectItem>
+                                                            <SelectItem value='0' disabled>
+                                                                No Sections found
+                                                            </SelectItem>
                                                         ) : (
                                                             sections.map((s) => (
                                                                 <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
@@ -359,9 +371,13 @@ export default function BrsPreBoardReportCardForm({
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {loadingExams ? (
-                                                            <SelectItem value='0' disabled>Exams are loading...</SelectItem>
+                                                            <SelectItem value='0' disabled>
+                                                                Exams are loading...
+                                                            </SelectItem>
                                                         ) : exams.length === 0 ? (
-                                                            <SelectItem value='0' disabled>No Exams found</SelectItem>
+                                                            <SelectItem value='0' disabled>
+                                                                No Exams found
+                                                            </SelectItem>
                                                         ) : (
                                                             exams.map((e) => (
                                                                 <SelectItem key={e.emE_Id} value={String(e.emE_Id)}>

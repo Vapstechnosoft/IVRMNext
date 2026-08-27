@@ -48,4 +48,3 @@ export interface EmployeeLogReportGetDataResponse {
     page: number;
     page_size: number;
 }
-

@@ -78,12 +78,12 @@ function InvMasterStorePageContent({
                     />
                 </CollapsibleSection>
 
-                <FormSections 
+                <FormSections
                     empname_list={
-                        Array.isArray(response?.data?.empname_list) 
-                            ? response?.data?.empname_list 
+                        Array.isArray(response?.data?.empname_list)
+                            ? response?.data?.empname_list
                             : response?.data?.empname_list?.$values || []
-                    } 
+                    }
                 />
             </div>
         </div>

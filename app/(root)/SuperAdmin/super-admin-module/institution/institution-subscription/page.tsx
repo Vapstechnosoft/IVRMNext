@@ -20,12 +20,7 @@ export default function InstitutionSubscriptionPage(props: { searchParams: Searc
 
     return (
         <FormProvider<IInstitutionSubscription>>
-            <InstitutionSubscriptionPageContent
-                response={response}
-                isLoading={isLoading}
-                error={error}
-                refetchAll={refetchAll}
-            />
+            <InstitutionSubscriptionPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
         </FormProvider>
     );
 }
@@ -59,7 +54,7 @@ function InstitutionSubscriptionPageContent({
                         type='button'
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='h-4 w-4 mr-2' />
+                        <Plus className='mr-2 h-4 w-4' />
                         Add Subscription
                     </Button>
                 </div>
@@ -70,8 +65,7 @@ function InstitutionSubscriptionPageContent({
                     defaultOpen={true}
                     variant='default'
                     size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
-                >
+                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<IInstitutionSubscription>
                         {...tableProps}
                         columns={InstitutionSubscriptionColumns}
@@ -95,11 +89,7 @@ function InstitutionSubscriptionPageContent({
 }
 
 function FormSections({ refetchAll }: { refetchAll: () => void }) {
-    const {
-        isAddFormOpen,
-        closeAddForm,
-        addFormRef
-    } = useFormContext<IInstitutionSubscription>();
+    const { isAddFormOpen, closeAddForm, addFormRef } = useFormContext<IInstitutionSubscription>();
 
     const handleSuccess = () => {
         closeAddForm();

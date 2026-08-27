@@ -4,8 +4,8 @@ import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { usePFForm3ABasicData, useSearchPFForm3AReport } from '@/hooks/hrms/useReports';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { usePFForm3ABasicData, useSearchPFForm3AReport } from '@/hooks/hrms/useReports';
 import { type PFForm3aFields, PFForm3aSchema } from '@/schemas/hrms/employee-category-schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Search, X } from 'lucide-react';
@@ -35,11 +35,7 @@ export default function DepartmentSalaryReportPage() {
 
     const EmployeeOptions =
         basicData?.data?.employee?.map((emp: any) => {
-            const fullName = [
-                emp.hrmE_EmployeeFirstName,
-                emp.hrmE_EmployeeMiddleName,
-                emp.hrmE_EmployeeLastName
-            ]
+            const fullName = [emp.hrmE_EmployeeFirstName, emp.hrmE_EmployeeMiddleName, emp.hrmE_EmployeeLastName]
                 .filter((name) => name && name.trim() !== '')
                 .join(' ');
             return {
@@ -64,86 +60,114 @@ export default function DepartmentSalaryReportPage() {
 
     const onSearch = async (data: PFForm3aFields) => {
         try {
-            searchMutation.mutate({
-                MI_Id: HRMS_MI_ID,
-                HRME_Id: Number(data.employee),
-                HRES_Year: data.year
-            }, {
-                onSuccess: (res) => {
-                    if (res.success && res.data) {
-                        const employeeInfo = res.data.employeeDetails?.[0] || res.data.currentemployeeDetails?.[0] || {};
-                        const accountNo = employeeInfo.hrmE_PFAccNo || employeeInfo.HRME_PFAccNo || '-';
-                        const fatherName = employeeInfo.hrmE_FatherName || employeeInfo.HRME_FatherName || employeeInfo.fatherHusbandName || employeeInfo.FatherHusbandName || res.data.fatherHusbandName || '-';
-
-                        const inst = res.data.institutionDetails?.[0] || {};
-                        const establishmentName = inst.mI_Name || inst.MI_Name || res.data.mI_Name || res.data.MI_Name || '-';
-                        const establishmentAddress = [
-                            inst.mI_Address1 || inst.MI_Address1 || '',
-                            inst.mI_Address2 || inst.MI_Address2 || '',
-                            inst.mI_Address3 || inst.MI_Address3 || ''
-                        ]
-                            .map(s => s ? s.trim() : '')
-                            .filter(Boolean)
-                            .join(', ') || '-';
-
-                        const finFrom = res.data.finYearFromDate || '';
-                        const yearMatch = finFrom.match(/\d{4}/);
-                        const startYear = yearMatch ? Number(yearMatch[0]) : (Number(data.year) || new Date().getFullYear());
-
-                        const MONTH_NAMES = [
-                            'April', 'May', 'June', 'July', 'August', 'September',
-                            'October', 'November', 'December', 'January', 'February', 'March'
-                        ];
-
-                        const rawGridData = res.data.getpfgriddata || res.data.pfreport || [];
-                        const contributions = Array.isArray(rawGridData) ? rawGridData.map((item: any, index: number) => {
-                            const monthName = item.hreS_Month || item.HRES_Month || item.ivrM_Month_Name || item.IVRM_Month_Name || MONTH_NAMES[index] || '';
-                            const yearVal = item.hreS_Year || item.HRES_Year || (index < 9 ? startYear : startYear + 1);
-                            const monthYear = monthName && yearVal ? `${monthName.trim()} - ${yearVal}` : monthName;
-
-                            const amount = Number(item.amountofWages || item.AmountofWages || 0);
-                            const epf = Number(item.pfAmount || item.PFAmount || 0);
-                            const epfDifference = Number(item.hreS_EPF || item.HRES_EPF || 0);
-                            const pensionContribution = Number(item.hreS_FPF || item.HRES_FPF || 0);
-                            const total = epfDifference + pensionContribution;
-
-                            return {
-                                month: monthYear || 'N/A',
-                                amount,
-                                epf,
-                                epfDifference,
-                                pensionContribution,
-                                total,
-                                refund: Number(item.refund || item.vpfAmount || item.VPFAmount || 0),
-                                periodFrom: item.periodFrom || item.FromDate || '',
-                                periodTo: item.periodTo || item.ToDate || '',
-                                remarks: item.remark || item.Remark || ''
-                            };
-                        }) : [];
-
-                        const yearLabel = YearsOptions.find((opt: any) => opt.value === data.year)?.label || data.year;
-                        const employeeLabel = EmployeeOptions.find((opt: any) => opt.value === data.employee)?.label || data.employee;
-
-                        setSelectedEmployee(employeeLabel);
-                        setSelectedYear(yearLabel);
-
-                        setReportData({
-                            contributions,
-                            accountNo,
-                            fatherName,
-                            establishmentName,
-                            establishmentAddress
-                        });
-
-                        toast.success('Report generated successfully!');
-                    } else {
-                        toast.warning(res.message || 'No data found for selected criteria');
-                    }
+            searchMutation.mutate(
+                {
+                    MI_Id: HRMS_MI_ID,
+                    HRME_Id: Number(data.employee),
+                    HRES_Year: data.year
                 },
-                onError: (error: any) => {
-                    toast.error(error.message || 'Failed to search PF Form 3A report');
+                {
+                    onSuccess: (res) => {
+                        if (res.success && res.data) {
+                            const employeeInfo = res.data.employeeDetails?.[0] || res.data.currentemployeeDetails?.[0] || {};
+                            const accountNo = employeeInfo.hrmE_PFAccNo || employeeInfo.HRME_PFAccNo || '-';
+                            const fatherName =
+                                employeeInfo.hrmE_FatherName ||
+                                employeeInfo.HRME_FatherName ||
+                                employeeInfo.fatherHusbandName ||
+                                employeeInfo.FatherHusbandName ||
+                                res.data.fatherHusbandName ||
+                                '-';
+
+                            const inst = res.data.institutionDetails?.[0] || {};
+                            const establishmentName = inst.mI_Name || inst.MI_Name || res.data.mI_Name || res.data.MI_Name || '-';
+                            const establishmentAddress =
+                                [
+                                    inst.mI_Address1 || inst.MI_Address1 || '',
+                                    inst.mI_Address2 || inst.MI_Address2 || '',
+                                    inst.mI_Address3 || inst.MI_Address3 || ''
+                                ]
+                                    .map((s) => (s ? s.trim() : ''))
+                                    .filter(Boolean)
+                                    .join(', ') || '-';
+
+                            const finFrom = res.data.finYearFromDate || '';
+                            const yearMatch = finFrom.match(/\d{4}/);
+                            const startYear = yearMatch ? Number(yearMatch[0]) : Number(data.year) || new Date().getFullYear();
+
+                            const MONTH_NAMES = [
+                                'April',
+                                'May',
+                                'June',
+                                'July',
+                                'August',
+                                'September',
+                                'October',
+                                'November',
+                                'December',
+                                'January',
+                                'February',
+                                'March'
+                            ];
+
+                            const rawGridData = res.data.getpfgriddata || res.data.pfreport || [];
+                            const contributions = Array.isArray(rawGridData)
+                                ? rawGridData.map((item: any, index: number) => {
+                                      const monthName =
+                                          item.hreS_Month ||
+                                          item.HRES_Month ||
+                                          item.ivrM_Month_Name ||
+                                          item.IVRM_Month_Name ||
+                                          MONTH_NAMES[index] ||
+                                          '';
+                                      const yearVal = item.hreS_Year || item.HRES_Year || (index < 9 ? startYear : startYear + 1);
+                                      const monthYear = monthName && yearVal ? `${monthName.trim()} - ${yearVal}` : monthName;
+
+                                      const amount = Number(item.amountofWages || item.AmountofWages || 0);
+                                      const epf = Number(item.pfAmount || item.PFAmount || 0);
+                                      const epfDifference = Number(item.hreS_EPF || item.HRES_EPF || 0);
+                                      const pensionContribution = Number(item.hreS_FPF || item.HRES_FPF || 0);
+                                      const total = epfDifference + pensionContribution;
+
+                                      return {
+                                          month: monthYear || 'N/A',
+                                          amount,
+                                          epf,
+                                          epfDifference,
+                                          pensionContribution,
+                                          total,
+                                          refund: Number(item.refund || item.vpfAmount || item.VPFAmount || 0),
+                                          periodFrom: item.periodFrom || item.FromDate || '',
+                                          periodTo: item.periodTo || item.ToDate || '',
+                                          remarks: item.remark || item.Remark || ''
+                                      };
+                                  })
+                                : [];
+
+                            const yearLabel = YearsOptions.find((opt: any) => opt.value === data.year)?.label || data.year;
+                            const employeeLabel = EmployeeOptions.find((opt: any) => opt.value === data.employee)?.label || data.employee;
+
+                            setSelectedEmployee(employeeLabel);
+                            setSelectedYear(yearLabel);
+
+                            setReportData({
+                                contributions,
+                                accountNo,
+                                fatherName,
+                                establishmentName,
+                                establishmentAddress
+                            });
+
+                            toast.success('Report generated successfully!');
+                        } else {
+                            toast.warning(res.message || 'No data found for selected criteria');
+                        }
+                    },
+                    onError: (error: any) => {
+                        toast.error(error.message || 'Failed to search PF Form 3A report');
+                    }
                 }
-            });
+            );
         } catch (error: any) {
             toast.error(error.message || 'Failed to generate report');
         }
@@ -157,8 +181,7 @@ export default function DepartmentSalaryReportPage() {
         setReportData(null);
         setSelectedEmployee('');
         setSelectedYear('');
-        setResetKey(prev => prev + 1);
-
+        setResetKey((prev) => prev + 1);
     };
     const handleCancel = () => {
         setReportData(null);
@@ -308,4 +331,3 @@ export default function DepartmentSalaryReportPage() {
         </div>
     );
 }
-

@@ -1,35 +1,29 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
-import { useForm, Controller, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { format } from 'date-fns';
-import { Save, X, Loader2 } from 'lucide-react';
+import { Loader2, Save, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { FormError, Label } from '@/components/ui/extension/field';
-import { Textarea } from '@/components/ui/textarea';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { DatePicker } from '@/components/ui/date-picker';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { candidateInterviewListColumns } from './_components/columns';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import {
-    useGetCandidateInterviewListVMS,
     useGetCandidateInterviewByIdVMS,
-    useToggleCandidateInterviewStatusVMS,
-    useSaveOrUpdateCandidateInterviewVMS
+    useGetCandidateInterviewListVMS,
+    useSaveOrUpdateCandidateInterviewVMS,
+    useToggleCandidateInterviewStatusVMS
 } from '@/hooks/hrms/recruitment/transactions/useTransactions';
+import { candidateInterviewListColumns } from './_components/columns';
 
 // Define the static options from previous code
 const ROUNDS_OPTIONS = [
@@ -55,24 +49,19 @@ const candidateInterviewSchema = z.object({
     interviewVenue: z.string().min(1, 'Interview venue is required'),
     status: z.string().min(1, 'Status is required'),
     notifyByEmail: z.boolean().optional().default(false),
-    notifyBySMS: z.boolean().optional().default(false),
+    notifyBySMS: z.boolean().optional().default(false)
 });
 
 type FormFields = z.infer<typeof candidateInterviewSchema>;
 
 export default function CandidateInterviewListPage() {
     const { data: response, isLoading, error, refetchAll } = useGetCandidateInterviewListVMS();
-    console.log("reponse grd", response);
+    console.log('reponse grd', response);
     return (
         <FormProvider<any>>
             <div className='min-h-screen'>
                 <div className='container mx-auto space-y-6 px-4 py-6 md:px-6 lg:px-8'>
-                    <CandidateInterviewListPageContent
-                        response={response}
-                        isLoading={isLoading}
-                        error={error}
-                        refetchAll={refetchAll}
-                    />
+                    <CandidateInterviewListPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
                 </div>
             </div>
         </FormProvider>
@@ -100,11 +89,7 @@ function CandidateInterviewListPageContent({
     return (
         <>
             {/* Form Section */}
-            <FormSections
-                candidateList={candidateList}
-                interviewerList={interviewerList}
-                refetchList={refetchAll}
-            />
+            <FormSections candidateList={candidateList} interviewerList={interviewerList} refetchList={refetchAll} />
 
             {/* Data Table Section */}
             <CollapsibleSection
@@ -112,8 +97,7 @@ function CandidateInterviewListPageContent({
                 title='Candidate Interview List'
                 variant='default'
                 size='lg'
-                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
-            >
+                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                 <GenericDataTable<any>
                     {...tableProps}
                     columns={candidateInterviewListColumns}
@@ -140,14 +124,7 @@ function FormSections({
     interviewerList: any[];
     refetchList: () => void;
 }) {
-    const {
-        isEditFormOpen,
-        isToggleFormOpen,
-        selectedRow,
-        closeEditForm,
-        closeToggleForm,
-        editFormRef
-    } = useFormContext<any>();
+    const { isEditFormOpen, isToggleFormOpen, selectedRow, closeEditForm, closeToggleForm, editFormRef } = useFormContext<any>();
 
     const getRecordMutation = useGetCandidateInterviewByIdVMS();
     const saveOrUpdateMutation = useSaveOrUpdateCandidateInterviewVMS();
@@ -170,18 +147,14 @@ function FormSections({
             interviewVenue: '',
             status: '',
             notifyByEmail: false,
-            notifyBySMS: false,
+            notifyBySMS: false
         }
     });
 
     // Helper to get interviewer display name
     const getInterviewerFullName = (item: any) => {
         if (!item) return '';
-        const parts = [
-            item.hrmE_EmployeeFirstName,
-            item.hrmE_EmployeeMiddleName,
-            item.hrmE_EmployeeLastName
-        ].filter(Boolean);
+        const parts = [item.hrmE_EmployeeFirstName, item.hrmE_EmployeeMiddleName, item.hrmE_EmployeeLastName].filter(Boolean);
         if (parts.length > 0) return parts.join(' ');
         return item.employee_fullName || item.name || `Employee #${item.hrmE_Id || item.id}`;
     };
@@ -205,7 +178,7 @@ function FormSections({
             if (!isNaN(parsedDate.getTime())) {
                 return format(parsedDate, 'yyyy-MM-dd');
             }
-        } catch (_) { }
+        } catch (_) {}
 
         return dateStr;
     };
@@ -250,12 +223,31 @@ function FormSections({
                         const targetHrcisCId = record.hrcisC_Id ?? record.HRCISC_Id ?? id;
                         const targetCandidateId = record.hrcD_Id ?? record.HRCD_Id ?? '';
                         const targetInterviewRound = record.hrcisC_InterviewRounds ?? record.HRCISC_InterviewRounds ?? '';
-                        const targetStatus = record.hrcisC_Status ?? record.HRCISC_Status ?? record.hrciS_Status ?? record.HRCIS_Status ?? completedStatus ?? selectedRow.hrcisC_Status ?? '';
-                        const targetInterviewDate = record.hrcisC_InterviewDateTime ?? record.hrcisC_InterviewDate ?? record.HRCISC_InterviewDate ?? '';
+                        const targetStatus =
+                            record.hrcisC_Status ??
+                            record.HRCISC_Status ??
+                            record.hrciS_Status ??
+                            record.HRCIS_Status ??
+                            completedStatus ??
+                            selectedRow.hrcisC_Status ??
+                            '';
+                        const targetInterviewDate =
+                            record.hrcisC_InterviewDateTime ?? record.hrcisC_InterviewDate ?? record.HRCISC_InterviewDate ?? '';
                         const targetInterviewerId = record.hrcisC_Interviewer ?? record.hrmE_Id ?? record.HRME_Id ?? record.id ?? '';
-                        const targetInterviewVenue = record.hrcisC_InterviewVenue ?? record.HRCISC_InterviewVenue ?? record.hrcisC_Venue ?? '';
-                        const targetNotifyByEmail = record.hrcisC_NotifyEmail ?? record.hrcisC_NotificationEmail ?? record.HRCISC_NotificationEmail ?? record.notifyByEmail ?? false;
-                        const targetNotifyBySMS = record.hrcisC_NotifySMS ?? record.hrcisC_NotificationSMS ?? record.HRCISC_NotificationSMS ?? record.notifyBySMS ?? false;
+                        const targetInterviewVenue =
+                            record.hrcisC_InterviewVenue ?? record.HRCISC_InterviewVenue ?? record.hrcisC_Venue ?? '';
+                        const targetNotifyByEmail =
+                            record.hrcisC_NotifyEmail ??
+                            record.hrcisC_NotificationEmail ??
+                            record.HRCISC_NotificationEmail ??
+                            record.notifyByEmail ??
+                            false;
+                        const targetNotifyBySMS =
+                            record.hrcisC_NotifySMS ??
+                            record.hrcisC_NotificationSMS ??
+                            record.HRCISC_NotificationSMS ??
+                            record.notifyBySMS ??
+                            false;
 
                         setValue('hrcisC_Id', Number(targetHrcisCId));
                         setValue('candidateId', targetCandidateId.toString());
@@ -287,14 +279,14 @@ function FormSections({
                 interviewVenue: '',
                 status: '',
                 notifyByEmail: false,
-                notifyBySMS: false,
+                notifyBySMS: false
             });
         }
     }, [isEditFormOpen, selectedRow, setValue, reset]);
 
     const onSubmit: SubmitHandler<FormFields> = (data) => {
-        const candidate = candidateList.find(cand => (cand.hrcD_Id || cand.HRCD_Id).toString() === data.candidateId);
-        const hrcD_FullName = candidate ? candidate.hrcD_FullName : (selectedRow?.hrcD_FullName || '');
+        const candidate = candidateList.find((cand) => (cand.hrcD_Id || cand.HRCD_Id).toString() === data.candidateId);
+        const hrcD_FullName = candidate ? candidate.hrcD_FullName : selectedRow?.hrcD_FullName || '';
 
         const payload = {
             hrcisC_Id: data.hrcisC_Id || 0,
@@ -331,16 +323,14 @@ function FormSections({
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'
-                    >
+                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
                         <div className='relative'>
                             <Button
                                 type='button'
                                 onClick={closeEditForm}
                                 variant='ghost'
                                 size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'
-                            >
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='mr-1 h-4 w-4 text-destructive' /> Close
                             </Button>
 
@@ -477,7 +467,9 @@ function FormSections({
                                                             </SelectTrigger>
                                                             <SelectContent>
                                                                 {interviewerList.map((inter) => (
-                                                                    <SelectItem key={inter.id || inter.hrmE_Id} value={(inter.id || inter.hrmE_Id).toString()}>
+                                                                    <SelectItem
+                                                                        key={inter.id || inter.hrmE_Id}
+                                                                        value={(inter.id || inter.hrmE_Id).toString()}>
                                                                         {getInterviewerFullName(inter)}
                                                                     </SelectItem>
                                                                 ))}
@@ -489,8 +481,8 @@ function FormSections({
                                             </div>
 
                                             {/* Notify Candidate By */}
-                                            <div className='rounded-lg border border-border p-4 space-y-4 bg-muted/20'>
-                                                <Label className='text-sm font-semibold'>Notify Candidate By</Label>
+                                            <div className='space-y-4 rounded-lg border border-border bg-muted/20 p-4'>
+                                                <Label className='font-semibold text-sm'>Notify Candidate By</Label>
                                                 <div className='flex flex-col gap-3 pt-1'>
                                                     <div className='flex items-center space-x-2'>
                                                         <Controller
@@ -504,7 +496,7 @@ function FormSections({
                                                                 />
                                                             )}
                                                         />
-                                                        <Label htmlFor='notifyByEmail' className='font-normal cursor-pointer select-none'>
+                                                        <Label htmlFor='notifyByEmail' className='cursor-pointer select-none font-normal'>
                                                             E-Mail
                                                         </Label>
                                                     </div>
@@ -520,7 +512,7 @@ function FormSections({
                                                                 />
                                                             )}
                                                         />
-                                                        <Label htmlFor='notifyBySMS' className='font-normal cursor-pointer select-none'>
+                                                        <Label htmlFor='notifyBySMS' className='cursor-pointer select-none font-normal'>
                                                             SMS
                                                         </Label>
                                                     </div>
@@ -530,20 +522,18 @@ function FormSections({
                                     </div>
 
                                     {/* Buttons */}
-                                    <div className='flex justify-end gap-3 pt-4 border-t border-border'>
+                                    <div className='flex justify-end gap-3 border-border border-t pt-4'>
                                         <Button
                                             type='button'
                                             variant='outline'
                                             onClick={closeEditForm}
-                                            className='bg-amber-500 text-white hover:bg-amber-600 hover:text-white border-none'
-                                        >
+                                            className='border-none bg-amber-500 text-white hover:bg-amber-600 hover:text-white'>
                                             <X className='mr-2 h-4 w-4' /> Cancel
                                         </Button>
                                         <Button
                                             type='submit'
                                             disabled={saveOrUpdateMutation.isPending}
-                                            className='bg-blue-600 hover:bg-blue-700 text-white border-none'
-                                        >
+                                            className='border-none bg-blue-600 text-white hover:bg-blue-700'>
                                             {saveOrUpdateMutation.isPending ? (
                                                 <>
                                                     <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Saving...
@@ -563,11 +553,7 @@ function FormSections({
             )}
 
             {isToggleFormOpen && selectedRow && (
-                <ToggleCandidateInterviewForm
-                    rowData={selectedRow}
-                    onClose={closeToggleForm}
-                    onSuccess={refetchList}
-                />
+                <ToggleCandidateInterviewForm rowData={selectedRow} onClose={closeToggleForm} onSuccess={refetchList} />
             )}
         </>
     );
@@ -602,7 +588,8 @@ function ToggleCandidateInterviewForm({
             <div className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} the interview for <strong>{rowData.hrcD_FullName}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} the interview for{' '}
+                        <strong>{rowData.hrcD_FullName}</strong>?
                     </p>
                 </AdaptiveBody>
                 <AdaptiveFooter>
@@ -613,8 +600,7 @@ function ToggleCandidateInterviewForm({
                         type='button'
                         onClick={handleConfirm}
                         isLoading={toggleStatusMutation.isPending}
-                        variant={isActive ? 'destructive' : 'default'}
-                    >
+                        variant={isActive ? 'destructive' : 'default'}>
                         {isActive ? 'Deactivate' : 'Activate'}
                     </Button>
                 </AdaptiveFooter>

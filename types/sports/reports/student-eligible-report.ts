@@ -51,11 +51,15 @@ export const studentEligibleReportSchema = z.object({
     asmaY_Id: z.coerce.number().min(1, 'Academic Year is required'),
     asmcL_Id: z.coerce.number().min(1, 'Class is required'),
     asmS_Id: z.coerce.number().min(1, 'Section is required'),
-    studentList: z.array(z.object({
-        amsT_Id: z.number(),
-        studentname: z.string(),
-        Selected: z.boolean().optional()
-    })).optional()
+    studentList: z
+        .array(
+            z.object({
+                amsT_Id: z.number(),
+                studentname: z.string(),
+                Selected: z.boolean().optional()
+            })
+        )
+        .optional()
 });
 
 export type IStudentEligibleReport = z.infer<typeof studentEligibleReportSchema>;

@@ -1,4 +1,4 @@
-import { type IStudentYearlyAttendenceReportList } from '@/types/admission/preadmission/reports';
+import type { IStudentYearlyAttendenceReportList } from '@/types/admission/preadmission/reports';
 import { format } from 'date-fns';
 import React from 'react';
 
@@ -14,14 +14,14 @@ export const StudentYearlyReportPrint = React.forwardRef<HTMLDivElement, Student
 
         if (!data || data.length === 0) {
             return (
-                <div ref={ref} className='p-5 text-center bg-white text-black'>
+                <div ref={ref} className='bg-white p-5 text-center text-black'>
                     No data selected for printing.
                 </div>
             );
         }
 
         return (
-            <div ref={ref} className='print-preview-container bg-white text-black min-h-full w-full'>
+            <div ref={ref} className='print-preview-container min-h-full w-full bg-white text-black'>
                 <style>
                     {`
                         @media print {
@@ -95,8 +95,8 @@ export const StudentYearlyReportPrint = React.forwardRef<HTMLDivElement, Student
                             <td className='no-border'>
                                 {/* Header */}
                                 <div className='header-section text-center'>
-                                    <h2 className='text-lg font-bold uppercase'>Student Yearly Attendance Report</h2>
-                                    <p className='text-sm text-gray-600'>Date: {currentDate}</p>
+                                    <h2 className='font-bold text-lg uppercase'>Student Yearly Attendance Report</h2>
+                                    <p className='text-gray-600 text-sm'>Date: {currentDate}</p>
                                 </div>
                             </td>
                         </tr>
@@ -114,7 +114,9 @@ export const StudentYearlyReportPrint = React.forwardRef<HTMLDivElement, Student
                                             <th className='text-left'>Student Name</th>
                                             <th>Roll No.</th>
                                             {monthList.map((month: any, index: number) => (
-                                                <th key={index}>{month.monthnamee.trim()} {month.yearidname}({month.total})</th>
+                                                <th key={index}>
+                                                    {month.monthnamee.trim()} {month.yearidname}({month.total})
+                                                </th>
                                             ))}
                                             <th>Total ({monthList.reduce((sum: any, month: any) => sum + month.total, 0)})</th>
                                             <th>Percentage</th>
@@ -132,11 +134,7 @@ export const StudentYearlyReportPrint = React.forwardRef<HTMLDivElement, Student
                                                     {monthList.map((month: any, idx: number) => {
                                                         const monthKey = `${month.yearidname}-${month.monthidname}`;
                                                         const attendance = student.monthlyAttendance[monthKey];
-                                                        return (
-                                                            <td key={idx}>
-                                                                {attendance ?? 0}
-                                                            </td>
-                                                        );
+                                                        return <td key={idx}>{attendance ?? 0}</td>;
                                                     })}
                                                     <td className='font-semibold'>{Number(student.totalPresent).toFixed(2)}</td>
                                                     <td className='font-semibold'>{student.percentage}</td>
@@ -149,7 +147,7 @@ export const StudentYearlyReportPrint = React.forwardRef<HTMLDivElement, Student
                                 {absentData && absentData.length > 0 && (
                                     <>
                                         <div className='header-section mt-8 mb-4 text-center'>
-                                            <h3 className='text-md font-bold uppercase'>Shortage of Attendance List ({'<'} 75%)</h3>
+                                            <h3 className='font-bold text-md uppercase'>Shortage of Attendance List ({'<'} 75%)</h3>
                                         </div>
                                         <table className='data-table w-full'>
                                             <thead>

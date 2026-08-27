@@ -1,18 +1,11 @@
-
 'use client';
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { FileText, X } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { ISalarySlipInitialData } from '@/types/staff-portal/salary-slip';
+import { FileText, X } from 'lucide-react';
+import React from 'react';
 
 interface SalarySlipFilterProps {
     initialData?: ISalarySlipInitialData | null;
@@ -20,11 +13,7 @@ interface SalarySlipFilterProps {
     isLoading: boolean;
 }
 
-const SalarySlipFilter: React.FC<SalarySlipFilterProps> = ({
-    initialData,
-    onGenerate,
-    isLoading
-}) => {
+const SalarySlipFilter: React.FC<SalarySlipFilterProps> = ({ initialData, onGenerate, isLoading }) => {
     const [month, setMonth] = React.useState<string>('');
     const [year, setYear] = React.useState<string>('');
 
@@ -42,15 +31,17 @@ const SalarySlipFilter: React.FC<SalarySlipFilterProps> = ({
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="text-lg">Generate Employee Salary Slip</CardTitle>
+                <CardTitle className='text-lg'>Generate Employee Salary Slip</CardTitle>
             </CardHeader>
             <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Month <span className="text-destructive">*</span></label>
+                <div className='mb-6 grid grid-cols-1 gap-6 md:grid-cols-2'>
+                    <div className='space-y-2'>
+                        <label className='font-medium text-sm'>
+                            Month <span className='text-destructive'>*</span>
+                        </label>
                         <Select onValueChange={setMonth} value={month}>
                             <SelectTrigger>
-                                <SelectValue placeholder="Select Month" />
+                                <SelectValue placeholder='Select Month' />
                             </SelectTrigger>
                             <SelectContent>
                                 {initialData?.monthdropdown.map((m) => (
@@ -62,11 +53,13 @@ const SalarySlipFilter: React.FC<SalarySlipFilterProps> = ({
                         </Select>
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Year <span className="text-destructive">*</span></label>
+                    <div className='space-y-2'>
+                        <label className='font-medium text-sm'>
+                            Year <span className='text-destructive'>*</span>
+                        </label>
                         <Select onValueChange={setYear} value={year}>
                             <SelectTrigger>
-                                <SelectValue placeholder="Select Year" />
+                                <SelectValue placeholder='Select Year' />
                             </SelectTrigger>
                             <SelectContent>
                                 {initialData?.leaveyeardropdown.map((y) => (
@@ -79,17 +72,13 @@ const SalarySlipFilter: React.FC<SalarySlipFilterProps> = ({
                     </div>
                 </div>
 
-                <div className="flex justify-center gap-4">
-                    <Button
-                        onClick={handleGenerate}
-                        className="bg-primary hover:bg-primary/90"
-                        disabled={!month || !year || isLoading}
-                    >
-                        <FileText className="h-4 w-4 mr-2" />
+                <div className='flex justify-center gap-4'>
+                    <Button onClick={handleGenerate} className='bg-primary hover:bg-primary/90' disabled={!month || !year || isLoading}>
+                        <FileText className='mr-2 h-4 w-4' />
                         Generate Slip
                     </Button>
-                    <Button variant="outline" onClick={handleCancel}>
-                        <X className="h-4 w-4 mr-2" />
+                    <Button variant='outline' onClick={handleCancel}>
+                        <X className='mr-2 h-4 w-4' />
                         Cancel
                     </Button>
                 </div>

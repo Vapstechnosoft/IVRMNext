@@ -1,10 +1,10 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type {
-    PFChallanReportOnloadRequest,
-    PFChallanReportOnloadResponse,
     PFChallanReportFilterRequest,
     PFChallanReportFilterResponse,
+    PFChallanReportOnloadRequest,
+    PFChallanReportOnloadResponse,
     PFChallanReportSearchRequest,
     PFChallanReportSearchResponse
 } from '@/types/hrms/reports/pf-challan-report';
@@ -206,9 +206,7 @@ export async function filterPFChallanEmployeeData(
  * Request: { MI_Id, HRES_Month, HRES_Year }
  * Response: Returns PF challan data for selected month and year
  */
-export async function searchPFChallanReport(
-    request: PFChallanReportSearchRequest
-): Promise<ApiResponse<PFChallanReportSearchResponse>> {
+export async function searchPFChallanReport(request: PFChallanReportSearchRequest): Promise<ApiResponse<PFChallanReportSearchResponse>> {
     const url = '/api/PFChallenFacade/getEmployeedetailsBySelection';
     const requestBody: PFChallanReportSearchRequest = {
         MI_Id: request.MI_Id || 30,

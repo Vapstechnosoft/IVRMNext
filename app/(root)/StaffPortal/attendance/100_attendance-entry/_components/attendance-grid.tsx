@@ -1,19 +1,10 @@
 'use client';
-
-import React from 'react';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileSpreadsheet, Printer } from 'lucide-react';
-import type { IAttendanceReportResponse } from '@/types/staff-portal/attendance-report';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { exportToExcel } from '@/lib/export-to-file';
+import type { IAttendanceReportResponse } from '@/types/staff-portal/attendance-report';
+import { FileSpreadsheet, Printer } from 'lucide-react';
 
 interface AttendanceGridProps {
     data: IAttendanceReportResponse;
@@ -62,52 +53,55 @@ export default function AttendanceGrid({ data, yearName }: AttendanceGridProps) 
     }
 
     return (
-        <Card className="mt-6 border-none shadow-none print:shadow-none">
-            <CardHeader className="flex flex-row items-center justify-between print:hidden">
+        <Card className='mt-6 border-none shadow-none print:shadow-none'>
+            <CardHeader className='flex flex-row items-center justify-between print:hidden'>
                 <CardTitle>Report View</CardTitle>
-                <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={handleExportExcel}>
-                        <FileSpreadsheet className="mr-2 h-4 w-4" />
+                <div className='flex gap-2'>
+                    <Button variant='outline' size='sm' onClick={handleExportExcel}>
+                        <FileSpreadsheet className='mr-2 h-4 w-4' />
                         Excel
                     </Button>
-                    <Button variant="outline" size="sm" onClick={handlePrint}>
-                        <Printer className="mr-2 h-4 w-4" />
+                    <Button variant='outline' size='sm' onClick={handlePrint}>
+                        <Printer className='mr-2 h-4 w-4' />
                         Print
                     </Button>
                 </div>
             </CardHeader>
             <CardContent>
-                <div className="print:block hidden text-center mb-4">
-                    <h2 className="text-xl font-bold">100% Attendance Report For Year {yearName}</h2>
+                <div className='mb-4 hidden text-center print:block'>
+                    <h2 className='font-bold text-xl'>100% Attendance Report For Year {yearName}</h2>
                 </div>
-                <div className="overflow-auto border rounded-lg">
+                <div className='overflow-auto rounded-lg border'>
                     <Table>
                         <TableHeader>
-                            <TableRow className="bg-muted/50">
-                                <TableHead className="w-[50px] text-center font-bold">Sl.No.</TableHead>
-                                <TableHead className="font-bold">Student Name</TableHead>
-                                <TableHead className="font-bold">Adm.No.</TableHead>
-                                <TableHead className="font-bold">Reg.No.</TableHead>
-                                <TableHead className="font-bold">Class</TableHead>
-                                <TableHead className="font-bold">Section</TableHead>
-                                <TableHead className="text-center font-bold">Working Days</TableHead>
-                                <TableHead className="text-center font-bold">Present Days</TableHead>
-                                <TableHead className="text-center font-bold">Percentage</TableHead>
-                                <TableHead className="font-bold">Fee Concession</TableHead>
+                            <TableRow className='bg-muted/50'>
+                                <TableHead className='w-[50px] text-center font-bold'>Sl.No.</TableHead>
+                                <TableHead className='font-bold'>Student Name</TableHead>
+                                <TableHead className='font-bold'>Adm.No.</TableHead>
+                                <TableHead className='font-bold'>Reg.No.</TableHead>
+                                <TableHead className='font-bold'>Class</TableHead>
+                                <TableHead className='font-bold'>Section</TableHead>
+                                <TableHead className='text-center font-bold'>Working Days</TableHead>
+                                <TableHead className='text-center font-bold'>Present Days</TableHead>
+                                <TableHead className='text-center font-bold'>Percentage</TableHead>
+                                <TableHead className='font-bold'>Fee Concession</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {students.map((student, index) => (
                                 <TableRow key={index}>
-                                    <TableCell className="text-center">{index + 1}</TableCell>
-                                    <TableCell>{student.namme || `${student.AMST_FirstName} ${student.AMST_MiddleName || ''} ${student.Amst_LastName || ''}`}</TableCell>
+                                    <TableCell className='text-center'>{index + 1}</TableCell>
+                                    <TableCell>
+                                        {student.namme ||
+                                            `${student.AMST_FirstName} ${student.AMST_MiddleName || ''} ${student.Amst_LastName || ''}`}
+                                    </TableCell>
                                     <TableCell>{student.AMST_AdmNo}</TableCell>
                                     <TableCell>{student.AMST_RegistrationNo}</TableCell>
                                     <TableCell>{student.ASMCL_ClassName}</TableCell>
                                     <TableCell>{student.ASMC_SectionName}</TableCell>
-                                    <TableCell className="text-center">{student.classes}</TableCell>
-                                    <TableCell className="text-center">{student.attendance}</TableCell>
-                                    <TableCell className="text-center font-bold">{student.per}%</TableCell>
+                                    <TableCell className='text-center'>{student.classes}</TableCell>
+                                    <TableCell className='text-center'>{student.attendance}</TableCell>
+                                    <TableCell className='text-center font-bold'>{student.per}%</TableCell>
                                     <TableCell>{student.FMCC_ConcessionName || '-'}</TableCell>
                                 </TableRow>
                             ))}

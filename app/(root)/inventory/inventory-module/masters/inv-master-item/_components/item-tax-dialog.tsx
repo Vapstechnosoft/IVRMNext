@@ -1,17 +1,11 @@
 'use client';
 
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { useEffect, useState } from 'react';
-import { getItemTax, deactivateItemTax } from '@/server/inventory/masters/inv-master-item';
-import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { deactivateItemTax, getItemTax } from '@/server/inventory/masters/inv-master-item';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 interface ItemTaxDialogProps {
     item: any;
@@ -58,13 +52,13 @@ export default function ItemTaxDialog({ item, onClose }: ItemTaxDialogProps) {
 
     return (
         <Dialog open={!!item} onOpenChange={onClose}>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className='max-w-2xl'>
                 <DialogHeader>
                     <DialogTitle>Tax Details - {item?.invmI_ItemName}</DialogTitle>
                 </DialogHeader>
-                <div className="py-4">
+                <div className='py-4'>
                     {loading ? (
-                        <p className="text-center text-muted-foreground">Loading tax details...</p>
+                        <p className='text-center text-muted-foreground'>Loading tax details...</p>
                     ) : taxData.length > 0 ? (
                         <Table>
                             <TableHeader>
@@ -73,7 +67,7 @@ export default function ItemTaxDialog({ item, onClose }: ItemTaxDialogProps) {
                                     <TableHead>Tax Name</TableHead>
                                     <TableHead>Tax Alias</TableHead>
                                     <TableHead>Percentage</TableHead>
-                                    <TableHead className="text-center">Action</TableHead>
+                                    <TableHead className='text-center'>Action</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -83,12 +77,11 @@ export default function ItemTaxDialog({ item, onClose }: ItemTaxDialogProps) {
                                         <TableCell>{tax.invmT_TaxName}</TableCell>
                                         <TableCell>{tax.invmT_TaxAliasName}</TableCell>
                                         <TableCell>{tax.invmiT_TaxValue}%</TableCell>
-                                        <TableCell className="text-center">
+                                        <TableCell className='text-center'>
                                             <Button
-                                                variant={tax.invmiT_ActiveFlg ? "destructive" : "default"}
-                                                size="sm"
-                                                onClick={() => handleToggleTax(tax)}
-                                            >
+                                                variant={tax.invmiT_ActiveFlg ? 'destructive' : 'default'}
+                                                size='sm'
+                                                onClick={() => handleToggleTax(tax)}>
                                                 {tax.invmiT_ActiveFlg ? 'Deactivate' : 'Activate'}
                                             </Button>
                                         </TableCell>
@@ -97,7 +90,7 @@ export default function ItemTaxDialog({ item, onClose }: ItemTaxDialogProps) {
                             </TableBody>
                         </Table>
                     ) : (
-                        <p className="text-center text-muted-foreground">No tax details found for this item.</p>
+                        <p className='text-center text-muted-foreground'>No tax details found for this item.</p>
                     )}
                 </div>
             </DialogContent>

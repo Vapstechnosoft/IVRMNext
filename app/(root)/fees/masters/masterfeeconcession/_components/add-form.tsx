@@ -74,7 +74,7 @@ export default function AddMasterConcessionForm({ onSuccess, concession = '' }: 
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
                         <InputText
                             label='Concession Name'
-                            placeholder="Enter Concession Name"
+                            placeholder='Enter Concession Name'
                             required
                             id='fmcC_ConcessionName'
                             {...register('fmcC_ConcessionName')}

@@ -2,25 +2,18 @@
 
 import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/extension/field';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import {
-    usePDAAcademicYear,
-    usePDAClass,
-} from '@/hooks/pda/usePDACommon';
-import {
-    usePDASectionsSRS,
-    usePDAStudentsSRS,
-    useGeneratePDAReportSRS
-} from '@/hooks/pda/report/useDebitCreditReport';
-import { pdaDebitCreditReportSchema, type PDADebitCreditReportFormValues } from '@/schemas/pda/report/debit-credit-report';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useGeneratePDAReportSRS, usePDASectionsSRS, usePDAStudentsSRS } from '@/hooks/pda/report/useDebitCreditReport';
+import { usePDAAcademicYear, usePDAClass } from '@/hooks/pda/usePDACommon';
+import { type PDADebitCreditReportFormValues, pdaDebitCreditReportSchema } from '@/schemas/pda/report/debit-credit-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { FileDown, Printer, RotateCcw, Search } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -91,7 +84,7 @@ export default function PDADebitCreditReportForm({
             ASMAY_Id: values.asmaY_Id,
             classlsttwo: values.classIds.map((id) => ({ ASMCL_Id: id })),
             sectionlistarray: values.sectionIds.map((id) => ({ AMSC_Id: id })),
-            Amst_Id: values.reportCategory === 'Individual' ? (values.amst_Id || 0) : 0,
+            Amst_Id: values.reportCategory === 'Individual' ? values.amst_Id || 0 : 0,
             From_Date: format(values.fromDate, 'yyyy-MM-dd'),
             To_Date: format(values.toDate, 'yyyy-MM-dd'),
             type: values.type
@@ -148,7 +141,7 @@ export default function PDADebitCreditReportForm({
 
     const sections = getArray((sectionsRes?.data as any)?.data || (sectionsRes?.data as any)?.fillsection || []).map((s: any) => ({
         value: (s.AMSC_Id || s.asmS_Id).toString(),
-        label: (s.asmc_sectionname || s.asmC_SectionName)
+        label: s.asmc_sectionname || s.asmC_SectionName
     }));
 
     const students = getArray((studentsRes?.data as any)?.data || (studentsRes?.data as any)?.fillstudent || []).map((s: any) => ({
@@ -167,14 +160,18 @@ export default function PDADebitCreditReportForm({
                             <RadioGroup
                                 onValueChange={field.onChange}
                                 value={field.value}
-                                className='flex items-center gap-8 bg-purple-50 p-4 rounded-full px-8 border border-purple-100'>
+                                className='flex items-center gap-8 rounded-full border border-purple-100 bg-purple-50 p-4 px-8'>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='All' id='cat-all' />
-                                    <Label htmlFor='cat-all' className='cursor-pointer font-bold text-purple-900'>All</Label>
+                                    <Label htmlFor='cat-all' className='cursor-pointer font-bold text-purple-900'>
+                                        All
+                                    </Label>
                                 </div>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='Individual' id='cat-indi' />
-                                    <Label htmlFor='cat-indi' className='cursor-pointer font-bold text-purple-900'>Individual (ClassSectionStudent)</Label>
+                                    <Label htmlFor='cat-indi' className='cursor-pointer font-bold text-purple-900'>
+                                        Individual (ClassSectionStudent)
+                                    </Label>
                                 </div>
                             </RadioGroup>
                         )}
@@ -187,33 +184,43 @@ export default function PDADebitCreditReportForm({
                             <RadioGroup
                                 onValueChange={field.onChange}
                                 value={field.value}
-                                className='flex items-center gap-8 bg-muted/50 p-4 rounded-full px-8'>
+                                className='flex items-center gap-8 rounded-full bg-muted/50 p-4 px-8'>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='All' id='type-all' />
-                                    <Label htmlFor='type-all' className='cursor-pointer'>All</Label>
+                                    <Label htmlFor='type-all' className='cursor-pointer'>
+                                        All
+                                    </Label>
                                 </div>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='CR' id='type-cr' />
-                                    <Label htmlFor='type-cr' className='cursor-pointer'>Credit</Label>
+                                    <Label htmlFor='type-cr' className='cursor-pointer'>
+                                        Credit
+                                    </Label>
                                 </div>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='DR' id='type-dr' />
-                                    <Label htmlFor='type-dr' className='cursor-pointer'>Debit</Label>
+                                    <Label htmlFor='type-dr' className='cursor-pointer'>
+                                        Debit
+                                    </Label>
                                 </div>
                             </RadioGroup>
                         )}
                     />
                 </div>
 
-                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+                <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                     {/* Academic Year */}
                     <div className='space-y-2'>
-                        <Label>Academic Year <span className='text-red-500'>*</span></Label>
+                        <Label>
+                            Academic Year <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             name='asmaY_Id'
                             control={control}
                             render={({ field }) => (
-                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value ? field.value.toString() : ''}>
+                                <Select
+                                    onValueChange={(val) => field.onChange(Number(val))}
+                                    value={field.value ? field.value.toString() : ''}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='Select Year' />
                                     </SelectTrigger>
@@ -227,12 +234,14 @@ export default function PDADebitCreditReportForm({
                                 </Select>
                             )}
                         />
-                        {errors.asmaY_Id && <p className='text-xs text-red-500'>{errors.asmaY_Id.message}</p>}
+                        {errors.asmaY_Id && <p className='text-red-500 text-xs'>{errors.asmaY_Id.message}</p>}
                     </div>
 
                     {/* Classes (MultiSelect) */}
                     <div className='space-y-2'>
-                        <Label>Class Name <span className='text-red-500'>*</span></Label>
+                        <Label>
+                            Class Name <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             name='classIds'
                             control={control}
@@ -246,12 +255,14 @@ export default function PDADebitCreditReportForm({
                                 />
                             )}
                         />
-                        {errors.classIds && <p className='text-xs text-red-500'>{errors.classIds.message}</p>}
+                        {errors.classIds && <p className='text-red-500 text-xs'>{errors.classIds.message}</p>}
                     </div>
 
                     {/* Sections (MultiSelect) */}
                     <div className='space-y-2'>
-                        <Label>Section Name <span className='text-red-500'>*</span></Label>
+                        <Label>
+                            Section Name <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             name='sectionIds'
                             control={control}
@@ -266,12 +277,14 @@ export default function PDADebitCreditReportForm({
                                 />
                             )}
                         />
-                        {errors.sectionIds && <p className='text-xs text-red-500'>{errors.sectionIds.message}</p>}
+                        {errors.sectionIds && <p className='text-red-500 text-xs'>{errors.sectionIds.message}</p>}
                     </div>
 
                     {/* Student Select */}
                     <div className='space-y-2'>
-                        <Label>Student Name <span className='text-red-500'>*</span></Label>
+                        <Label>
+                            Student Name <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             name='amst_Id'
                             control={control}
@@ -279,8 +292,7 @@ export default function PDADebitCreditReportForm({
                                 <Select
                                     onValueChange={(val) => field.onChange(Number(val))}
                                     value={field.value ? field.value.toString() : ''}
-                                    disabled={students.length === 0 && !studentsRes.isPending}
-                                >
+                                    disabled={students.length === 0 && !studentsRes.isPending}>
                                     <SelectTrigger>
                                         <SelectValue placeholder={studentsRes.isPending ? 'Loading Students...' : 'Select Student'} />
                                     </SelectTrigger>
@@ -294,12 +306,14 @@ export default function PDADebitCreditReportForm({
                                 </Select>
                             )}
                         />
-                        {errors.amst_Id && <p className='text-xs text-red-500'>{errors.amst_Id.message}</p>}
+                        {errors.amst_Id && <p className='text-red-500 text-xs'>{errors.amst_Id.message}</p>}
                     </div>
 
                     {/* From Date */}
                     <div className='space-y-2'>
-                        <Label>From Date <span className='text-red-500'>*</span></Label>
+                        <Label>
+                            From Date <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             name='fromDate'
                             control={control}
@@ -307,28 +321,28 @@ export default function PDADebitCreditReportForm({
                                 <DatePicker date={field.value} setDate={field.onChange} placeholder='Select From Date' />
                             )}
                         />
-                        {errors.fromDate && <p className='text-xs text-red-500'>{errors.fromDate.message}</p>}
+                        {errors.fromDate && <p className='text-red-500 text-xs'>{errors.fromDate.message}</p>}
                     </div>
 
                     {/* To Date */}
                     <div className='space-y-2'>
-                        <Label>To Date <span className='text-red-500'>*</span></Label>
+                        <Label>
+                            To Date <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             name='toDate'
                             control={control}
-                            render={({ field }) => (
-                                <DatePicker date={field.value} setDate={field.onChange} placeholder='Select To Date' />
-                            )}
+                            render={({ field }) => <DatePicker date={field.value} setDate={field.onChange} placeholder='Select To Date' />}
                         />
-                        {errors.toDate && <p className='text-xs text-red-500'>{errors.toDate.message}</p>}
+                        {errors.toDate && <p className='text-red-500 text-xs'>{errors.toDate.message}</p>}
                     </div>
                 </div>
 
-                <div >
+                <div>
                     <Button
                         type='submit'
                         disabled={reportMutation.isPending}
-                        className='bg-orange-600 hover:bg-orange-700 text-white w-32 shadow-md'>
+                        className='w-32 bg-orange-600 text-white shadow-md hover:bg-orange-700'>
                         <Search className='mr-2 h-4 w-4' />
                         {reportMutation.isPending ? 'Generating...' : 'Report'}
                     </Button>
@@ -346,7 +360,7 @@ export default function PDADebitCreditReportForm({
                                 type='button'
                                 variant='outline'
                                 onClick={onPrint}
-                                className='px-8 border-blue-200 text-blue-700 hover:bg-blue-50'>
+                                className='border-blue-200 px-8 text-blue-700 hover:bg-blue-50'>
                                 <Printer className='mr-2 h-4 w-4' />
                                 Print
                             </Button>
@@ -354,7 +368,7 @@ export default function PDADebitCreditReportForm({
                                 type='button'
                                 variant='outline'
                                 onClick={onExport}
-                                className='px-8 border-green-200 text-green-700 hover:bg-green-50'>
+                                className='border-green-200 px-8 text-green-700 hover:bg-green-50'>
                                 <FileDown className='mr-2 h-4 w-4' />
                                 Export Excel
                             </Button>

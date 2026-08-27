@@ -6,7 +6,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useInvMasterUserGroup } from '@/hooks/inventory/masters/use-inv-master-user-group';
 import type { IInvMasterUserGroup } from '@/types/inventory/masters/inv-master-group';
-import { Plus, X, UserCog, PlusCircle, Pencil } from 'lucide-react';
+import { Pencil, Plus, PlusCircle, UserCog, X } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { InvMasterUserGroupColumns } from './_components/user-group-columns';
 import { AddUserGroupForm, ToggleUserGroupForm, UpdateUserGroupForm } from './_components/user-group-form';
@@ -95,7 +95,6 @@ function FormSections({ response }: FormSectionsProps) {
         editFormRef
     } = useFormContext<IInvMasterUserGroup>();
 
-
     return (
         <>
             {/* Add Form */}
@@ -150,9 +149,7 @@ function FormSections({ response }: FormSectionsProps) {
             )}
 
             {/* Toggle Form */}
-            {isToggleFormOpen && selectedRow && (
-                <ToggleUserGroupForm rowData={selectedRow} onClose={closeToggleForm} />
-            )}
+            {isToggleFormOpen && selectedRow && <ToggleUserGroupForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

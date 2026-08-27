@@ -1,10 +1,25 @@
 'use client';
 
 import { RECRUITMENT_QUERY_KEYS } from '@/constants/query-keys';
-import { getCadidateGridData, getCandidateDetails, saveOrUpdateCandidate, toggleCandidateStatus } from '@/server/hrms/recruitment/transactions/addCadidate';
+import {
+    getCadidateGridData,
+    getCandidateDetails,
+    saveOrUpdateCandidate,
+    toggleCandidateStatus
+} from '@/server/hrms/recruitment/transactions/addCadidate';
 import { getCandidatesAndInterviewers } from '@/server/hrms/recruitment/transactions/addCandidateInterview';
-import { getCandidateInterviewList, getInterviewFeedbackGridData, InterviewSchedule, saveInterviewerFeedback } from '@/server/hrms/recruitment/transactions/interviewFeedback';
-import { getCandidateInterviewListVMS, getCandidateInterviewByIdVMS, toggleCandidateInterviewStatusVMS, saveOrUpdateCandidateInterviewVMS } from '@/server/hrms/recruitment/transactions/candidateInterviewList';
+import {
+    getCandidateInterviewByIdVMS,
+    getCandidateInterviewListVMS,
+    saveOrUpdateCandidateInterviewVMS,
+    toggleCandidateInterviewStatusVMS
+} from '@/server/hrms/recruitment/transactions/candidateInterviewList';
+import {
+    type InterviewSchedule,
+    getCandidateInterviewList,
+    getInterviewFeedbackGridData,
+    saveInterviewerFeedback
+} from '@/server/hrms/recruitment/transactions/interviewFeedback';
 import { getBasicDataJobListVMS, saveOrUpdateJobListVMS } from '@/server/hrms/recruitment/transactions/jobListVMS';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -101,7 +116,6 @@ export function useGetCandidateAndInterviewers() {
         }
     };
 }
-
 
 // ---------------- Add Candidate Interview Feedback Hooks ----------------
 

@@ -3,7 +3,11 @@ import { z } from 'zod';
 export const genConfigSchema = z.object({
     IVRMGC_MobileValOTPFlag: z.boolean().default(false),
     IVRMGC_emailValOTPFlag: z.boolean().default(false),
-    IVRMGC_OTPMobileNo: z.string().regex(/^[6-9]{1}[0-9]{9}$/, 'Invalid Mobile Number').optional().or(z.literal('')),
+    IVRMGC_OTPMobileNo: z
+        .string()
+        .regex(/^[6-9]{1}[0-9]{9}$/, 'Invalid Mobile Number')
+        .optional()
+        .or(z.literal('')),
     IVRMGC_OTPMailId: z.string().email('Invalid Email').optional().or(z.literal('')),
 
     IVRMGC_EnableQRCodeFlg: z.boolean().default(false),
@@ -36,7 +40,7 @@ export const genConfigSchema = z.object({
     IVRMGC_BCCMail: z.string().optional(),
     IVRMGC_SendGrid_Key: z.string().min(1, 'Send Grid Id is required'),
     IVRMGC_EmailActiveFlag: z.boolean().default(false),
-    
+
     IVRMGC_Pagination: z.string().min(1, 'Pagination is required'),
     IVRMGC_PagePagination: z.string().min(1, 'Page Pagination is required'),
     IVRMGC_ReportPagination: z.string().min(1, 'Report Pagination is required'),
@@ -93,18 +97,26 @@ export const genConfigSchema = z.object({
     IVRMGC_AutoCreateStudentCredFlg: z.boolean().default(false),
     IVRMGC_UserNameOptionsFlg: z.string().optional(),
 
-    pagecontentlist: z.array(z.object({
-        IVRMP_Id: z.number(),
-        IVRMIMP_DisplayContent: z.string(),
-        IVRMMP_PageName: z.string()
-    })).default([]),
+    pagecontentlist: z
+        .array(
+            z.object({
+                IVRMP_Id: z.number(),
+                IVRMIMP_DisplayContent: z.string(),
+                IVRMMP_PageName: z.string()
+            })
+        )
+        .default([]),
 
-    usernamearray: z.array(z.object({
-        IVRMCUNP_Field: z.string(),
-        IVRMCUNP_Length: z.string(),
-        IVRMCUNP_FromOrderFlg: z.string(),
-        IVRMCUNP_Order: z.string()
-    })).default([])
+    usernamearray: z
+        .array(
+            z.object({
+                IVRMCUNP_Field: z.string(),
+                IVRMCUNP_Length: z.string(),
+                IVRMCUNP_FromOrderFlg: z.string(),
+                IVRMCUNP_Order: z.string()
+            })
+        )
+        .default([])
 });
 
 export type GenConfigFormValues = z.infer<typeof genConfigSchema>;

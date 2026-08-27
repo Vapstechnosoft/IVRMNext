@@ -1,13 +1,6 @@
 'use client';
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useExamTTSession } from '@/hooks/exam/exammodule/exam-mapping';
 import { toggleExamTTSession } from '@/server/exam/exam-module/exam-mapping/exam-tt-session';
 import type { IExamTTSession } from '@/types/exam/exam-module/exam-mapping';
@@ -31,9 +24,7 @@ export default function ToggleExamTTSessionForm({
                 const response = await toggleExamTTSession(rowData.ettS_Id);
 
                 if (response) {
-                    toast.success(
-                        `Session ${rowData.ettS_Activeflag ? 'deactivated' : 'activated'} successfully`
-                    );
+                    toast.success(`Session ${rowData.ettS_Activeflag ? 'deactivated' : 'activated'} successfully`);
                     refetchAll();
                     onClose();
                 } else {
@@ -60,10 +51,7 @@ export default function ToggleExamTTSessionForm({
                     <Button variant='outline' onClick={onClose} disabled={isPending}>
                         Cancel
                     </Button>
-                    <Button
-                        variant={rowData.ettS_Activeflag ? 'destructive' : 'default'}
-                        onClick={handleConfirm}
-                        disabled={isPending}>
+                    <Button variant={rowData.ettS_Activeflag ? 'destructive' : 'default'} onClick={handleConfirm} disabled={isPending}>
                         {isPending && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
                         {rowData.ettS_Activeflag ? 'Deactivate' : 'Activate'}
                     </Button>

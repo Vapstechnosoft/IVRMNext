@@ -1,13 +1,13 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
 import {
+    deleteGeneralUsernameConfig,
     getGeneralConfigurationData,
-    getGeneralConfigurationPageContent,
     getGeneralConfigurationEditData,
-    saveGeneralConfiguration,
-    deleteGeneralUsernameConfig
+    getGeneralConfigurationPageContent,
+    saveGeneralConfiguration
 } from '@/server/preconfiguration/general-config';
 import type { IGeneralConfigurationResponse } from '@/types/preconfiguration/general-config';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 export function useGetGeneralConfiguration() {
     return useQuery<IGeneralConfigurationResponse>({

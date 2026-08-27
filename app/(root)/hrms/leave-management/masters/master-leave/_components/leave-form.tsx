@@ -70,9 +70,7 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
                         placeholder='Enter leave name'
                         className={errors.hrmL_LeaveName ? 'border-red-500' : ''}
                     />
-                    {errors.hrmL_LeaveName && (
-                        <p className='mt-1 text-red-500 text-xs'>{errors.hrmL_LeaveName.message}</p>
-                    )}
+                    {errors.hrmL_LeaveName && <p className='mt-1 text-red-500 text-xs'>{errors.hrmL_LeaveName.message}</p>}
                 </div>
                 <div>
                     <label htmlFor='leave-code-input' className='font-medium text-sm'>
@@ -84,9 +82,7 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
                         placeholder='Enter leave code'
                         className={errors.hrmL_LeaveCode ? 'border-red-500' : ''}
                     />
-                    {errors.hrmL_LeaveCode && (
-                        <p className='mt-1 text-red-500 text-xs'>{errors.hrmL_LeaveCode.message}</p>
-                    )}
+                    {errors.hrmL_LeaveCode && <p className='mt-1 text-red-500 text-xs'>{errors.hrmL_LeaveCode.message}</p>}
                 </div>
                 <div>
                     <label htmlFor='leave-type-select' className='font-medium text-sm'>
@@ -96,9 +92,7 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
                         value={watch('hrmL_LeaveType')}
                         onValueChange={(value) => setValue('hrmL_LeaveType', value, { shouldValidate: true })}
                         disabled={isLoadingDropdowns}>
-                        <SelectTrigger
-                            id='leave-type-select'
-                            className={errors.hrmL_LeaveType ? 'border-red-500' : ''}>
+                        <SelectTrigger id='leave-type-select' className={errors.hrmL_LeaveType ? 'border-red-500' : ''}>
                             <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : 'Select Leave Type'} />
                         </SelectTrigger>
                         <SelectContent>
@@ -115,9 +109,7 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
                             )}
                         </SelectContent>
                     </Select>
-                    {errors.hrmL_LeaveType && (
-                        <p className='mt-1 text-red-500 text-xs'>{errors.hrmL_LeaveType.message}</p>
-                    )}
+                    {errors.hrmL_LeaveType && <p className='mt-1 text-red-500 text-xs'>{errors.hrmL_LeaveType.message}</p>}
                 </div>
                 <div className='md:col-span-3'>
                     <label htmlFor='leave-details-textarea' className='font-medium text-sm'>
@@ -170,9 +162,7 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
                     <label htmlFor='leave-apply-criteria-select' className='font-medium text-sm'>
                         Apply Criteria
                     </label>
-                    <Select
-                        value={watch('hrmL_LeaveApplyCriteria')}
-                        onValueChange={(value) => setValue('hrmL_LeaveApplyCriteria', value)}>
+                    <Select value={watch('hrmL_LeaveApplyCriteria')} onValueChange={(value) => setValue('hrmL_LeaveApplyCriteria', value)}>
                         <SelectTrigger id='leave-apply-criteria-select'>
                             <SelectValue placeholder='Select Criteria' />
                         </SelectTrigger>
@@ -200,12 +190,7 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
                     <label htmlFor='max-days-input' className='font-medium text-sm'>
                         Max Days for Apply
                     </label>
-                    <InputText
-                        id='max-days-input'
-                        {...register('hrmL_MaxDaysForApply')}
-                        placeholder='Enter max days'
-                        type='number'
-                    />
+                    <InputText id='max-days-input' {...register('hrmL_MaxDaysForApply')} placeholder='Enter max days' type='number' />
                 </div>
             </div>
             <div className='flex gap-2'>

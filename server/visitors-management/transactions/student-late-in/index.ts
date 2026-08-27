@@ -1,8 +1,6 @@
 'use server';
-
-import { api } from '@/lib/apiService';
 import type { ApiResponse } from '@/lib/apiService';
-import type { StudentLateInInitialData, StudentLateInData } from '@/types/visitors-management/transactions';
+import type { StudentLateInInitialData } from '@/types/visitors-management/transactions';
 
 export async function getStudentLateInData(): Promise<ApiResponse<StudentLateInInitialData>> {
     const mockData: StudentLateInInitialData = {
@@ -29,10 +27,10 @@ export async function getStudentLateInData(): Promise<ApiResponse<StudentLateInI
             }
         ]
     };
-     return {
+    return {
         success: true,
         message: 'Data fetched successfully',
-        data: mockData,
+        data: mockData
     };
 }
 
@@ -81,7 +79,7 @@ export async function getStudents(asmaY_Id: number, asmcL_Id: number, asmS_Id: n
 
 export async function saveStudentLateIn(data: any): Promise<ApiResponse<any>> {
     console.log('Saving Student Late In:', data);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     return {
         success: true,
         message: 'Record Saved Successfully!!!',
@@ -91,7 +89,7 @@ export async function saveStudentLateIn(data: any): Promise<ApiResponse<any>> {
 
 export async function deactivateStudentLateIn(alieoS_Id: number): Promise<ApiResponse<any>> {
     console.log('Deactivating Student Late In ID:', alieoS_Id);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     return {
         success: true,
         message: 'Status Changed Successfully!!!',

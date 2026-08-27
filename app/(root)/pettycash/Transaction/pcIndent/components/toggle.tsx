@@ -52,25 +52,21 @@ export default function TogglePcIndentForm({ rowData, onClose, onSuccess }: Togg
     const isActive = rowData.pcindT_ActiveFlg;
 
     return (
-        <AdaptiveDialog 
-            title={isActive ? 'Deactivate Indent' : 'Activate Indent'} 
-            isOpen={true} 
-            onClose={onClose}
-        >
+        <AdaptiveDialog title={isActive ? 'Deactivate Indent' : 'Activate Indent'} isOpen={true} onClose={onClose}>
             <form onSubmit={handleSubmit} className='space-y-6'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <Label className="text-base">
+                    <Label className='text-base'>
                         Are you sure you want to {isActive ? 'deactivate' : 'activate'}{' '}
-                        <strong className="text-primary">{rowData.pcindT_IndentNo}</strong>?
+                        <strong className='text-primary'>{rowData.pcindT_IndentNo}</strong>?
                     </Label>
-                    <div className='rounded-lg bg-muted/30 p-4 text-sm space-y-2'>
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">Department:</span>
-                            <span className="font-medium">{rowData.departmentname}</span>
+                    <div className='space-y-2 rounded-lg bg-muted/30 p-4 text-sm'>
+                        <div className='flex justify-between'>
+                            <span className='text-muted-foreground'>Department:</span>
+                            <span className='font-medium'>{rowData.departmentname}</span>
                         </div>
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">Date:</span>
-                            <span className="font-medium">
+                        <div className='flex justify-between'>
+                            <span className='text-muted-foreground'>Date:</span>
+                            <span className='font-medium'>
                                 {rowData.pcindT_Date ? new Date(rowData.pcindT_Date).toLocaleDateString() : '-'}
                             </span>
                         </div>

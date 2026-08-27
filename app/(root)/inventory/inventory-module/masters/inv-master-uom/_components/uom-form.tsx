@@ -5,7 +5,7 @@ import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/ex
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { useInvMasterUom } from '@/hooks/inventory/masters/use-inv-master-uom';
-import { invMasterUOMSchema, type InvMasterUOMType } from '@/schemas/inventory/masters/inv-master-uom';
+import { type InvMasterUOMType, invMasterUOMSchema } from '@/schemas/inventory/masters/inv-master-uom';
 import { deactivateInvMasterUOM, saveInvMasterUOM } from '@/server/inventory/masters/inv-master-uom';
 import type { IInvMasterUOM } from '@/types/inventory/masters/inv-master-uom';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -205,7 +205,7 @@ export function ToggleUOMForm({ rowData, onClose }: ToggleUOMFormProps) {
                         type='submit'
                         isLoading={isSubmitting}
                         variant={isActive ? 'destructive' : 'default'}
-                        className={isActive ? 'bg-orange-500 hover:bg-orange-600 text-white' : ''}
+                        className={isActive ? 'bg-orange-500 text-white hover:bg-orange-600' : ''}
                         loadingText={isActive ? 'Deactivating...' : 'Activating...'}>
                         {isActive ? 'Deactivate' : 'Activate'}
                     </Button>

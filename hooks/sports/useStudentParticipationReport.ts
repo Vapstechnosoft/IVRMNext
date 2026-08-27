@@ -1,11 +1,11 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
 import { getInitialData, getStudentParticipationReportData } from '@/server/sports/reports/student-participation-report';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 export const useStudentParticipationReport = () => {
     const initialData = useQuery({
         queryKey: ['studentParticipationReportInitial'],
-        queryFn: () => getInitialData(),
+        queryFn: () => getInitialData()
     });
 
     const reportData = useMutation({
@@ -19,11 +19,11 @@ export const useStudentParticipationReport = () => {
         },
         onError: (error) => {
             toast.error(error.message);
-        },
+        }
     });
 
     return {
         initialData,
-        reportData,
+        reportData
     };
 };

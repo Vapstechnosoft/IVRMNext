@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import Groq from 'groq-sdk';
 import { Readable } from 'node:stream';
+import Groq from 'groq-sdk';
+import { type NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
@@ -226,7 +226,7 @@ export async function POST(req: NextRequest) {
         // Construct Prompt
         const totalMarks = markConfigArray.reduce((acc, curr) => acc + Number(curr.markValue) * Number(curr.count), 0);
         const totalQuestionsCount = markConfigArray.reduce((acc, curr) => acc + Number(curr.count), 0);
-        
+
         // Calculate exact counts for each difficulty
         const easyCount = Math.round(((difficultyConfig.easy || 30) / 100) * totalQuestionsCount);
         const mediumCount = Math.round(((difficultyConfig.medium || 40) / 100) * totalQuestionsCount);
@@ -316,7 +316,7 @@ export async function POST(req: NextRequest) {
         log('Calling Groq API...');
         const chatCompletion = await groq.chat.completions.create({
             messages: [{ role: 'user', content: prompt }],
-            model: 'llama-3.3-70b-versatile',
+            model: 'openai/gpt-oss-120b',
             temperature: 0.7,
             max_tokens: 4000,
             response_format: { type: 'json_object' }

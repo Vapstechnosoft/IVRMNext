@@ -30,11 +30,7 @@ export default function AddMasterTimeSettingForm({ onSuccess, className = '' }: 
 
     return (
         <div className={className}>
-            <MasterTimeSettingForm 
-                editingData={null} 
-                onSubmit={onSubmit} 
-                onCancel={() => onSuccess?.()} 
-            />
+            <MasterTimeSettingForm editingData={null} onSubmit={onSubmit} onCancel={() => onSuccess?.()} />
         </div>
     );
 }

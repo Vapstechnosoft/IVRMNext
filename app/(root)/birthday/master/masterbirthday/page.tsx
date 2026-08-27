@@ -1,6 +1,6 @@
 'use client';
-
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
     getBirthdayInitialData,
     getFeedbackQuestions,
@@ -8,18 +8,14 @@ import {
     sendBirthdayMessages
 } from '@/server/alumni/alumni-student-birthday';
 import html2canvas from 'html2canvas';
-import { Loader2, Cake, Search, Download, Printer, PartyPopper } from 'lucide-react';
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { Cake, Loader2, PartyPopper, Printer, Search } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 import BirthdayForm from './_components/birthday-form';
-import BirthdayTemplate from './_components/birthday-template';
 import FeedbackDialog from './_components/feedback-dialog';
 import ParticipantTable from './_components/participant-table';
 import type { IBirthdayFormValues } from './_components/schema';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function AlumniStudentBirthdayPage() {
     const [initialData, setInitialData] = useState<any>(null);
@@ -45,10 +41,7 @@ export default function AlumniStudentBirthdayPage() {
 
     const fetchData = async () => {
         try {
-            const [initRes, feedbackRes] = await Promise.all([
-                getBirthdayInitialData(),
-                getFeedbackQuestions({ Flag: 'BirthDay' })
-            ]);
+            const [initRes, feedbackRes] = await Promise.all([getBirthdayInitialData(), getFeedbackQuestions({ Flag: 'BirthDay' })]);
 
             const data = (initRes as any)?.data || initRes;
             setInitialData(data);
@@ -92,9 +85,9 @@ export default function AlumniStudentBirthdayPage() {
             });
             const result = (res as any)?.data || res;
             if (type === 'Staff') {
-                setParticipants(result.staffList?.length > 0 ? result.staffList : (result.staffData || []));
+                setParticipants(result.staffList?.length > 0 ? result.staffList : result.staffData || []);
             } else {
-                setParticipants(result.studentlist?.length > 0 ? result.studentlist : (result.studentData || []));
+                setParticipants(result.studentlist?.length > 0 ? result.studentlist : result.studentData || []);
             }
         } catch (error) {
             toast.error('Failed to fetch participants');
@@ -130,8 +123,7 @@ export default function AlumniStudentBirthdayPage() {
 
                 // Try to find any available template for this person
                 const element =
-                    document.getElementById(`birthday-card-premium-${id}`) ||
-                    document.getElementById(`birthday-card-classic-${id}`);
+                    document.getElementById(`birthday-card-premium-${id}`) || document.getElementById(`birthday-card-classic-${id}`);
 
                 let imageBase64 = null;
                 if (element && (values.Whatsapp || values.email)) {
@@ -142,7 +134,7 @@ export default function AlumniStudentBirthdayPage() {
                         backgroundColor: '#ffffff',
                         logging: false
                     });
-                    imageBase64 = canvas.toDataURL('image/jpeg', 0.9).replace(/^data:image\/jpeg;base64,/, "");
+                    imageBase64 = canvas.toDataURL('image/jpeg', 0.9).replace(/^data:image\/jpeg;base64,/, '');
                 }
 
                 wishesPayload.push({
@@ -185,35 +177,36 @@ export default function AlumniStudentBirthdayPage() {
     if (loading) {
         return (
             <div className='flex h-screen flex-col items-center justify-center gap-4 bg-slate-50'>
-                <div className="relative">
+                <div className='relative'>
                     <Loader2 className='h-16 w-16 animate-spin text-primary opacity-20' />
-                    <Cake className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-8 w-8 text-primary animate-pulse" />
+                    <Cake className='-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-8 w-8 animate-pulse text-primary' />
                 </div>
-                <p className="text-slate-500 font-bold tracking-widest text-xs uppercase animate-pulse">Initializing Birthday Portal...</p>
+                <p className='animate-pulse font-bold text-slate-500 text-xs uppercase tracking-widest'>Initializing Birthday Portal...</p>
             </div>
         );
     }
 
     return (
-        <div className='p-8 space-y-8 min-h-screen bg-[#f8fafc] print:bg-white print:p-0'>
-            <div className='flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 bg-white border border-b-0 rounded-t-3xl shadow-sm print:hidden'>
+        <div className='min-h-screen space-y-8 bg-[#f8fafc] p-8 print:bg-white print:p-0'>
+            <div className='flex flex-col justify-between gap-4 rounded-t-3xl border border-b-0 bg-white p-6 shadow-sm md:flex-row md:items-center print:hidden'>
                 <div className='flex items-center gap-3'>
-                    <div className='p-2 bg-orange-100 rounded-xl'>
-                        <Cake className="h-5 w-5 text-orange-600" />
+                    <div className='rounded-xl bg-orange-100 p-2'>
+                        <Cake className='h-5 w-5 text-orange-600' />
                     </div>
-                    <span className='text-sm font-black uppercase tracking-[2px] text-slate-400'>Birthday Module Management</span>
+                    <span className='font-black text-slate-400 text-sm uppercase tracking-[2px]'>Birthday Module Management</span>
                 </div>
                 <div className='flex items-center gap-4'>
-                    <Badge variant="outline" className="h-11 px-6 rounded-2xl border-slate-200 text-slate-400 bg-slate-50/50 text-[10px] font-black tracking-widest border-none">
+                    <Badge
+                        variant='outline'
+                        className='h-11 rounded-2xl border-slate-200 border-none bg-slate-50/50 px-6 font-black text-[10px] text-slate-400 tracking-widest'>
                         {participants.length} TOTAL RECORDS
                     </Badge>
                     <Button
-                        variant="outline"
-                        size="icon"
+                        variant='outline'
+                        size='icon'
                         onClick={handlePrint}
-                        className="h-11 w-11 rounded-2xl shadow-sm bg-white hover:bg-slate-50 border-slate-200"
-                    >
-                        <Printer className="h-4 w-4 text-slate-400" />
+                        className='h-11 w-11 rounded-2xl border-slate-200 bg-white shadow-sm hover:bg-slate-50'>
+                        <Printer className='h-4 w-4 text-slate-400' />
                     </Button>
                 </div>
             </div>
@@ -233,21 +226,20 @@ export default function AlumniStudentBirthdayPage() {
             />
 
             <div className='grid grid-cols-1 gap-12 lg:grid-cols-12 print:block'>
-                <div className='lg:col-span-12 space-y-12'>
-
+                <div className='space-y-12 lg:col-span-12'>
                     {/* List Section */}
                     {participants.length > 0 && (
-                        <div className="print:hidden space-y-4 animate-in fade-in slide-in-from-top-4 duration-700">
-                            <div className='flex items-center justify-between p-6 bg-gradient-to-r from-[#1e40af] to-[#3b82f6] border rounded-t-3xl shadow-lg'>
+                        <div className='fade-in slide-in-from-top-4 animate-in space-y-4 duration-700 print:hidden'>
+                            <div className='flex items-center justify-between rounded-t-3xl border bg-gradient-to-r from-[#1e40af] to-[#3b82f6] p-6 shadow-lg'>
                                 <div className='flex items-center gap-4'>
-                                    <div className='p-2 bg-white/20 rounded-xl backdrop-blur-sm'>
-                                        <Search className="h-5 w-5 text-white" />
+                                    <div className='rounded-xl bg-white/20 p-2 backdrop-blur-sm'>
+                                        <Search className='h-5 w-5 text-white' />
                                     </div>
-                                    <span className='text-sm font-black uppercase tracking-[3px] text-white'>Birthday List Management</span>
+                                    <span className='font-black text-sm text-white uppercase tracking-[3px]'>Birthday List Management</span>
                                 </div>
                             </div>
 
-                            <div className='relative group'>
+                            <div className='group relative'>
                                 <ParticipantTable
                                     data={participants}
                                     type={category}
@@ -357,14 +349,14 @@ export default function AlumniStudentBirthdayPage() {
 
             {/* Loading Overlay for Sending */}
             {sending && (
-                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex flex-col items-center justify-center gap-6 animate-in fade-in duration-300">
-                    <div className="relative">
-                        <div className="h-24 w-24 border-8 border-primary/20 border-t-primary rounded-full animate-spin" />
-                        <PartyPopper className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-10 w-10 text-primary animate-bounce" />
+                <div className='fade-in fixed inset-0 z-[100] flex animate-in flex-col items-center justify-center gap-6 bg-slate-900/60 backdrop-blur-md duration-300'>
+                    <div className='relative'>
+                        <div className='h-24 w-24 animate-spin rounded-full border-8 border-primary/20 border-t-primary' />
+                        <PartyPopper className='-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-10 w-10 animate-bounce text-primary' />
                     </div>
-                    <div className="text-center space-y-2">
-                        <h2 className="text-2xl font-black text-white tracking-[2px] uppercase">Spreading the Joy...</h2>
-                        <p className="text-primary-foreground/60 font-medium tracking-wide">Capturing and sending birthday cards</p>
+                    <div className='space-y-2 text-center'>
+                        <h2 className='font-black text-2xl text-white uppercase tracking-[2px]'>Spreading the Joy...</h2>
+                        <p className='font-medium text-primary-foreground/60 tracking-wide'>Capturing and sending birthday cards</p>
                     </div>
                 </div>
             )}

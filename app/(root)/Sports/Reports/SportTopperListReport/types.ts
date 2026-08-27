@@ -1,4 +1,3 @@
-
 export interface IYear {
     asmaY_Id: number;
     asmaY_Year: string;

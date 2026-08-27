@@ -1,12 +1,11 @@
 'use server';
 
-import { auth } from '@/lib/auth';
 import { api } from '@/lib/apiService';
-import type { ExamReportLoadPayload } from '@/types/exam/reports';
+import { auth } from '@/lib/auth';
 
 const CONTROLLER = 'ExamReport';
 
-export async function getExamReportLoadData(Type: string, AMST_Id: number, EME_Id: number,ismS_Id: number) {
+export async function getExamReportLoadData(Type: string, AMST_Id: number, EME_Id: number, ismS_Id: number) {
     try {
         const session = await auth();
         const mi_id = session?.user?.mi_id || 15536;
@@ -21,7 +20,7 @@ export async function getExamReportLoadData(Type: string, AMST_Id: number, EME_I
         const response = await api.get<any>('portal', url);
 
         if (response.data) {
-            console.log("DEBUG: Exam Load Data (Server):", JSON.stringify(response.data).substring(0, 500));
+            console.log('DEBUG: Exam Load Data (Server):', JSON.stringify(response.data).substring(0, 500));
         }
 
         const data = response.data?.data || response.data; // Handle wrapped data if applicable
@@ -42,8 +41,8 @@ export async function getExamReportLoadData(Type: string, AMST_Id: number, EME_I
                     yearName = item;
                     // Try to generate a unique ID from the year string
                     const yearParts = item.split('-');
-                    if (yearParts.length > 0 && !isNaN(parseInt(yearParts[0]))) {
-                        uniqueId = parseInt(yearParts[0]);
+                    if (yearParts.length > 0 && !isNaN(Number.parseInt(yearParts[0]))) {
+                        uniqueId = Number.parseInt(yearParts[0]);
                     } else {
                         uniqueId = -(index + 1);
                     }
@@ -78,8 +77,8 @@ export async function getExamReportLoadData(Type: string, AMST_Id: number, EME_I
                     // If 0, try to parse year again or fallback
                     if (id === 0) {
                         const yearParts = item.asmaY_Year.split('-');
-                        if (yearParts.length > 0 && !isNaN(parseInt(yearParts[0]))) {
-                            id = parseInt(yearParts[0]);
+                        if (yearParts.length > 0 && !isNaN(Number.parseInt(yearParts[0]))) {
+                            id = Number.parseInt(yearParts[0]);
                         } else {
                             id = -(index + 1);
                         }
@@ -99,8 +98,10 @@ export async function getExamReportLoadData(Type: string, AMST_Id: number, EME_I
                 };
             });
 
-            console.log("DEBUG: Final Unique Year List IDs:", yearList.map((y: any) => y.asmaY_Id));
-
+            console.log(
+                'DEBUG: Final Unique Year List IDs:',
+                yearList.map((y: any) => y.asmaY_Id)
+            );
         } else {
             yearList = [];
         }
@@ -114,7 +115,7 @@ export async function getExamReportLoadData(Type: string, AMST_Id: number, EME_I
             rcode: data?.rcode || ''
         };
     } catch (error) {
-        console.error("API Call Failed:", error);
+        console.error('API Call Failed:', error);
         return { studetiallist: [], examlist: [], rcode: '' };
     }
 }
@@ -128,7 +129,7 @@ export async function getExamData(payload: { Type: string; ASMAY_Id: number; AMS
                 payload.AMST_Id = session.user.amst_id;
             }
         }
-        console.log("DEBUG: Exam Data Payload (getExamData):", payload);
+        console.log('DEBUG: Exam Data Payload (getExamData):', payload);
 
         const response = await api.get<any>('portal', `/${CONTROLLER}/get-exam-data`, {
             params: payload
@@ -140,11 +141,7 @@ export async function getExamData(payload: { Type: string; ASMAY_Id: number; AMS
 
         // Try to find examData or examlist in various locations
         // It could be response.data.examData directly or response.data.data.examData
-        let examList = resData?.examData ||
-            resData?.data?.examData ||
-            resData?.examlist ||
-            resData?.data?.examlist ||
-            [];
+        let examList = resData?.examData || resData?.data?.examData || resData?.examlist || resData?.data?.examlist || [];
 
         // Force check if it's wrapped in another 'data' key due to Axios + API wrapper
         if (!examList.length && resData?.data?.data?.examData) {
@@ -167,15 +164,15 @@ export async function getExamData(payload: { Type: string; ASMAY_Id: number; AMS
                 }
             });
             examList = Array.from(uniqueExams.values());
-            console.log("DEBUG: Processed Exam List:", JSON.stringify(examList));
+            console.log('DEBUG: Processed Exam List:', JSON.stringify(examList));
         } else {
-            console.warn("DEBUG: Exam List is empty or not an array. Found:", typeof examList);
+            console.warn('DEBUG: Exam List is empty or not an array. Found:', typeof examList);
         }
 
         // Return a clean object with just the list we found
         return { examlist: examList };
     } catch (error) {
-        console.error("API Call Failed:", error);
+        console.error('API Call Failed:', error);
         return { examlist: [], subjectlist: [] };
     }
 }
@@ -191,11 +188,7 @@ export async function getSubjects(payload: { Type: string; ASMAY_Id: number; EME
         // console.log(`DEBUG: Subject Data Response (getSubjects):`, JSON.stringify(resData).substring(0, 500));
 
         // Try to find subjectData or subjectlist in various locations
-        let subjectList = resData?.data?.subjectData ||
-            resData?.subjectData ||
-            resData?.data?.subjectlist ||
-            resData?.subjectlist ||
-            [];
+        let subjectList = resData?.data?.subjectData || resData?.subjectData || resData?.data?.subjectlist || resData?.subjectlist || [];
 
         // If 'data' itself is the array (based on user JSON: "data": [ ... ])
         if (!subjectList.length && Array.isArray(resData?.data)) {
@@ -218,15 +211,15 @@ export async function getSubjects(payload: { Type: string; ASMAY_Id: number; EME
                 }
             });
             subjectList = Array.from(uniqueSubjects.values());
-            console.log("DEBUG: Processed Subject List:", JSON.stringify(subjectList));
+            console.log('DEBUG: Processed Subject List:', JSON.stringify(subjectList));
         } else {
-            console.warn("DEBUG: Subject List is empty or not an array. Found:", typeof subjectList);
+            console.warn('DEBUG: Subject List is empty or not an array. Found:', typeof subjectList);
         }
 
         // Return a clean object with just the list we found
         return { subjectlist: subjectList };
     } catch (error) {
-        console.error("API Call Failed:", error);
+        console.error('API Call Failed:', error);
         return { subjectlist: [] };
     }
 }
@@ -238,7 +231,7 @@ export async function getStudentExamDetails(payload: any) {
         });
         return response.data;
     } catch (error) {
-        console.error("API Call Failed:", error);
+        console.error('API Call Failed:', error);
         return {
             examReportList: [],
             getexamconfig: [],

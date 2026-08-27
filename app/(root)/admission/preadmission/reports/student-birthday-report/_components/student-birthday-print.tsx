@@ -97,11 +97,9 @@ export const StudentBirthdayPrint = forwardRef<HTMLDivElement, StudentBirthdayPr
                         {/* Header */}
                         {(institution.mI_Logo || institution.mI_Name) && (
                             <div className='header-section pt-8'>
-                                {institution.mI_Logo && (
-                                    <img src={institution.mI_Logo} alt='Logo' className='mx-auto mb-4 h-16 w-auto' />
-                                )}
-                                <h1 className='text-lg font-bold uppercase'>{institution.mI_Name}</h1>
-                                <p className='text-xs text-gray-600 mb-4'>
+                                {institution.mI_Logo && <img src={institution.mI_Logo} alt='Logo' className='mx-auto mb-4 h-16 w-auto' />}
+                                <h1 className='font-bold text-lg uppercase'>{institution.mI_Name}</h1>
+                                <p className='mb-4 text-gray-600 text-xs'>
                                     {institution.mI_Address1}
                                     {institution.mI_Address2 && `, ${institution.mI_Address2}`}
                                     {institution.mI_Address3 && `, ${institution.mI_Address3}`}
@@ -110,8 +108,8 @@ export const StudentBirthdayPrint = forwardRef<HTMLDivElement, StudentBirthdayPr
                         )}
 
                         <div className='mb-6 text-center'>
-                            <h2 className='text-md font-bold underline uppercase'>Student Birthday Report</h2>
-                            <div className='mt-2 flex justify-center gap-4 text-[10px] font-semibold pb-4'>
+                            <h2 className='font-bold text-md uppercase underline'>Student Birthday Report</h2>
+                            <div className='mt-2 flex justify-center gap-4 pb-4 font-semibold text-[10px]'>
                                 {academicYear && <span>Academic Year: {academicYear}</span>}
                                 {monthName && <span>Month: {monthName}</span>}
                                 {fromDate && toDate && (
@@ -123,7 +121,7 @@ export const StudentBirthdayPrint = forwardRef<HTMLDivElement, StudentBirthdayPr
                         </div>
 
                         {/* Data Table */}
-                        <table className='data-table w-full mt-4'>
+                        <table className='data-table mt-4 w-full'>
                             <thead>
                                 <tr className='bg-gray-100'>
                                     <th className='w-12'>SL.No</th>
@@ -144,12 +142,14 @@ export const StudentBirthdayPrint = forwardRef<HTMLDivElement, StudentBirthdayPr
                                         <td>{row.admno}</td>
                                         <td>{row.classname}</td>
                                         <td>{row.sectionname}</td>
-                                        <td>
-                                            {row.amst_dob ? format(new Date(row.amst_dob), 'dd-MM-yyyy') : ''}
-                                        </td>
+                                        <td>{row.amst_dob ? format(new Date(row.amst_dob), 'dd-MM-yyyy') : ''}</td>
                                         <td>
                                             {row.amst_photo && (
-                                                <img src={row.amst_photo} alt='Photo' className='mx-auto h-12 w-12 object-cover border border-gray-300' />
+                                                <img
+                                                    src={row.amst_photo}
+                                                    alt='Photo'
+                                                    className='mx-auto h-12 w-12 border border-gray-300 object-cover'
+                                                />
                                             )}
                                         </td>
                                         <td className='text-left'>{row.stdaddress}</td>

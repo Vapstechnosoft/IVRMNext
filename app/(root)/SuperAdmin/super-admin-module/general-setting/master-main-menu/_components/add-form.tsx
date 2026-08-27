@@ -3,16 +3,20 @@
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
-import { Spinner as LoadingSpinner } from '@/components/ui/spinner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { masterMainMenuSchema, type MasterMainMenuSchema } from '@/schemas/super-admin/super-admin-module/general-setting/master-main-menu';
-import { saveMasterMainMenu, getModuleDropdown, getMasterMainMenuDetails } from '@/server/super-admin/super-admin-module/general-setting/master-main-menu';
+import { Spinner as LoadingSpinner } from '@/components/ui/spinner';
+import { type MasterMainMenuSchema, masterMainMenuSchema } from '@/schemas/super-admin/super-admin-module/general-setting/master-main-menu';
+import {
+    getMasterMainMenuDetails,
+    getModuleDropdown,
+    saveMasterMainMenu
+} from '@/server/super-admin/super-admin-module/general-setting/master-main-menu';
+import type { IMasterMainMenu, IModuleDropdownItem } from '@/types/super-admin/super-admin-module/general-setting/master-main-menu';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { IMasterMainMenu, IModuleDropdownItem } from '@/types/super-admin/super-admin-module/general-setting/master-main-menu';
 
 interface AddMasterMainMenuFormProps {
     onSuccess?: () => void;
@@ -25,50 +29,56 @@ export default function AddMasterMainMenuForm({ onSuccess, initialData }: AddMas
 
     useEffect(() => {
         // Fetch modules for dropdown
-        getModuleDropdown().then(res => {
+        getModuleDropdown().then((res) => {
             if (res.success && res.data) {
                 setModules(res.data);
             }
         });
     }, []);
 
-    const { control, handleSubmit, reset, formState: { errors } } = useForm<MasterMainMenuSchema>({
+    const {
+        control,
+        handleSubmit,
+        reset,
+        formState: { errors }
+    } = useForm<MasterMainMenuSchema>({
         resolver: zodResolver(masterMainMenuSchema),
         defaultValues: {
             ivrmmM_Id: initialData?.ivrmmM_Id,
             ivrmmM_MenuName: initialData?.ivrmmM_MenuName || '',
-            ivrmM_Id: initialData?.ivrmM_Id || 0,
-        },
+            ivrmM_Id: initialData?.ivrmM_Id || 0
+        }
     });
 
     // Fetch details on edit
     useEffect(() => {
         if (initialData && initialData.ivrmmM_Id) {
             setIsLoading(true);
-            getMasterMainMenuDetails(initialData.ivrmmM_Id).then(res => {
-                setIsLoading(false);
-                if (res.success) {
-                    // Cast to any to handle flexible response structure (root level vs data level)
-                    const response = res as any;
-                    const data = response.edit_m_menu?.[0] || response.data?.[0] || response.data || response;
+            getMasterMainMenuDetails(initialData.ivrmmM_Id)
+                .then((res) => {
+                    setIsLoading(false);
+                    if (res.success) {
+                        // Cast to any to handle flexible response structure (root level vs data level)
+                        const response = res as any;
+                        const data = response.edit_m_menu?.[0] || response.data?.[0] || response.data || response;
 
-                    if (data) {
-                        reset({
-                            ivrmmM_Id: data.ivrmmM_Id,
-                            ivrmmM_MenuName: data.ivrmmM_MenuName,
-                            ivrmM_Id: data.ivrmM_Id,
-                        });
+                        if (data) {
+                            reset({
+                                ivrmmM_Id: data.ivrmmM_Id,
+                                ivrmmM_MenuName: data.ivrmmM_MenuName,
+                                ivrmM_Id: data.ivrmM_Id
+                            });
+                        }
+                    } else {
+                        toast.error('Failed to fetch details');
                     }
-                } else {
-                    toast.error('Failed to fetch details');
-                }
-            }).catch(() => {
-                setIsLoading(false);
-                toast.error('Error fetching details');
-            });
+                })
+                .catch(() => {
+                    setIsLoading(false);
+                    toast.error('Error fetching details');
+                });
         }
     }, [initialData, reset]);
-
 
     const onSubmit = async (data: MasterMainMenuSchema) => {
         setIsLoading(true);
@@ -82,7 +92,7 @@ export default function AddMasterMainMenuForm({ onSuccess, initialData }: AddMas
                 toast.error(result.message || 'Failed to save data');
             }
         } catch (error: any) {
-            console.error("Client Error:", error);
+            console.error('Client Error:', error);
             toast.error(error?.message || 'An unexpected error occurred');
         } finally {
             setIsLoading(false);
@@ -94,7 +104,7 @@ export default function AddMasterMainMenuForm({ onSuccess, initialData }: AddMas
             <div className='p-4'>
                 <div className='mx-auto max-w-2xl space-y-4'>
                     <div className='grid grid-cols-12 items-center gap-4'>
-                        <Label className='col-span-12 md:col-span-4 text-left md:text-right'>
+                        <Label className='col-span-12 text-left md:col-span-4 md:text-right'>
                             Module Name: <span className='text-red-500'>*</span>
                         </Label>
                         <div className='col-span-12 md:col-span-8'>
@@ -104,10 +114,9 @@ export default function AddMasterMainMenuForm({ onSuccess, initialData }: AddMas
                                 render={({ field }) => (
                                     <Select
                                         value={field.value ? field.value.toString() : ''}
-                                        onValueChange={(value) => field.onChange(Number(value))}
-                                    >
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Select Module" />
+                                        onValueChange={(value) => field.onChange(Number(value))}>
+                                        <SelectTrigger className='w-full'>
+                                            <SelectValue placeholder='Select Module' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {modules.map((module) => (
@@ -124,7 +133,7 @@ export default function AddMasterMainMenuForm({ onSuccess, initialData }: AddMas
                     </div>
 
                     <div className='grid grid-cols-12 items-center gap-4'>
-                        <Label className='col-span-12 md:col-span-4 text-left md:text-right'>
+                        <Label className='col-span-12 text-left md:col-span-4 md:text-right'>
                             Main Menu Name: <span className='text-red-500'>*</span>
                         </Label>
                         <div className='col-span-12 md:col-span-8'>
@@ -149,18 +158,16 @@ export default function AddMasterMainMenuForm({ onSuccess, initialData }: AddMas
                     <Button
                         type='button'
                         variant='destructive'
-                        onClick={() => { reset(); onSuccess?.(); }}
-                        className='bg-red-500 hover:bg-red-600 w-32'
-                    >
+                        onClick={() => {
+                            reset();
+                            onSuccess?.();
+                        }}
+                        className='w-32 bg-red-500 hover:bg-red-600'>
                         <X className='mr-2 h-4 w-4' />
                         Cancel
                     </Button>
 
-                    <Button
-                        type='submit'
-                        disabled={isLoading}
-                        className='bg-blue-600 hover:bg-blue-700 w-32'
-                    >
+                    <Button type='submit' disabled={isLoading} className='w-32 bg-blue-600 hover:bg-blue-700'>
                         {isLoading ? <LoadingSpinner /> : <Save className='mr-2 h-4 w-4' />}
                         {initialData ? 'Update' : 'Save'}
                     </Button>

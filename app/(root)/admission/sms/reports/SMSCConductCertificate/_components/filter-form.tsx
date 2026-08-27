@@ -1,22 +1,32 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { smscConductCertificateSchema, type SMSCConductCertificateFormData } from '@/schemas/admission/sms/reports/smsc-conduct-certificate.schema';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import { DatePicker } from '@/components/ui/date-picker';
-import { Input } from '@/components/ui/input';
-import { useSMSCConductCertLoadData, useSMSCConductCertYearChange, useSMSCConductCertCourseChange, useSMSCConductCertBranchChange, useSMSCConductCertSemesterChange, useSMSCConductCertSearchFilter } from '@/hooks/admission/sms/reports/useSMSCConductCertificate';
-import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import { Search, X, FileText, RotateCcw, Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { DatePicker } from '@/components/ui/date-picker';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    useSMSCConductCertBranchChange,
+    useSMSCConductCertCourseChange,
+    useSMSCConductCertLoadData,
+    useSMSCConductCertSearchFilter,
+    useSMSCConductCertSemesterChange,
+    useSMSCConductCertYearChange
+} from '@/hooks/admission/sms/reports/useSMSCConductCertificate';
+import { cn } from '@/lib/utils';
+import {
+    type SMSCConductCertificateFormData,
+    smscConductCertificateSchema
+} from '@/schemas/admission/sms/reports/smsc-conduct-certificate.schema';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { FileText, Loader2, RotateCcw, Search, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 interface FilterFormProps {
     onSubmit: (data: any) => void;
@@ -55,8 +65,8 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
             date: new Date(),
             exmname: '',
             exmmonth: '',
-            stdreg: '',
-        },
+            stdreg: ''
+        }
     });
 
     const {
@@ -93,11 +103,14 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
         if (watchAsmayId > 0) {
             setCourseList([]);
             setValue('amcO_Id', null);
-            yearChange.mutate({ ASMAY_Id: watchAsmayId }, {
-                onSuccess: (res: any) => {
-                    setCourseList(res.data?.data?.getcourse || []);
+            yearChange.mutate(
+                { ASMAY_Id: watchAsmayId },
+                {
+                    onSuccess: (res: any) => {
+                        setCourseList(res.data?.data?.getcourse || []);
+                    }
                 }
-            });
+            );
         }
     }, [watchAsmayId]);
 
@@ -106,11 +119,14 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
         if (watchAsmayId > 0 && watchCourseId && watchCourseId > 0) {
             setBranchList([]);
             setValue('amB_Id', null);
-            courseChange.mutate({ ASMAY_Id: watchAsmayId, AMCO_Id: watchCourseId }, {
-                onSuccess: (res: any) => {
-                    setBranchList(res.data?.data?.getbranch || []);
+            courseChange.mutate(
+                { ASMAY_Id: watchAsmayId, AMCO_Id: watchCourseId },
+                {
+                    onSuccess: (res: any) => {
+                        setBranchList(res.data?.data?.getbranch || []);
+                    }
                 }
-            });
+            );
         }
     }, [watchCourseId]);
 
@@ -119,11 +135,14 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
         if (watchAsmayId > 0 && watchCourseId && watchBranchId && watchBranchId > 0) {
             setSemesterList([]);
             setValue('amsE_Id', null);
-            branchChange.mutate({ ASMAY_Id: watchAsmayId, AMCO_Id: watchCourseId, AMB_Id: watchBranchId }, {
-                onSuccess: (res: any) => {
-                    setSemesterList(res.data?.data?.getsemester || []);
+            branchChange.mutate(
+                { ASMAY_Id: watchAsmayId, AMCO_Id: watchCourseId, AMB_Id: watchBranchId },
+                {
+                    onSuccess: (res: any) => {
+                        setSemesterList(res.data?.data?.getsemester || []);
+                    }
                 }
-            });
+            );
         }
     }, [watchBranchId]);
 
@@ -132,11 +151,14 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
         if (watchAsmayId > 0 && watchCourseId && watchBranchId && watchSemId && watchSemId > 0) {
             setSectionList([]);
             setValue('acmS_Id', null);
-            semesterChange.mutate({ ASMAY_Id: watchAsmayId, AMCO_Id: watchCourseId, AMB_Id: watchBranchId, AMSE_Id: watchSemId }, {
-                onSuccess: (res: any) => {
-                    setSectionList(res.data?.data?.getsection || []);
+            semesterChange.mutate(
+                { ASMAY_Id: watchAsmayId, AMCO_Id: watchCourseId, AMB_Id: watchBranchId, AMSE_Id: watchSemId },
+                {
+                    onSuccess: (res: any) => {
+                        setSectionList(res.data?.data?.getsection || []);
+                    }
                 }
-            });
+            );
         }
     }, [watchSemId]);
 
@@ -147,25 +169,28 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
     }, [watchStatus, watchAllOrIndi]);
 
     const handleStudentSearch = (value: string) => {
-        searchFilterMutation.mutate({
-            filterinitialdata: watchCertType,
-            searchfilter: value,
-            ASMAY_Id: watchAsmayId,
-            AMCST_SOL: watchStatus,
-            AMCO_Id: watchAllOrIndi === 'A' ? 0 : (watchCourseId || 0),
-            AMB_Id: watchAllOrIndi === 'A' ? 0 : (watchBranchId || 0),
-            AMSE_Id: watchAllOrIndi === 'A' ? 0 : (watchSemId || 0),
-            ACMS_Id: watchAllOrIndi === 'A' ? 0 : (form.getValues('acmS_Id') || 0),
-            allorindid: watchAllOrIndi,
-        }, {
-            onSuccess: (res: any) => {
-                const list = res.data?.data?.getstudentlist || [];
-                setStudentList(list);
-                if (list.length === 0) {
-                    toast.info('No students found for your search');
+        searchFilterMutation.mutate(
+            {
+                filterinitialdata: watchCertType,
+                searchfilter: value,
+                ASMAY_Id: watchAsmayId,
+                AMCST_SOL: watchStatus,
+                AMCO_Id: watchAllOrIndi === 'A' ? 0 : watchCourseId || 0,
+                AMB_Id: watchAllOrIndi === 'A' ? 0 : watchBranchId || 0,
+                AMSE_Id: watchAllOrIndi === 'A' ? 0 : watchSemId || 0,
+                ACMS_Id: watchAllOrIndi === 'A' ? 0 : form.getValues('acmS_Id') || 0,
+                allorindid: watchAllOrIndi
+            },
+            {
+                onSuccess: (res: any) => {
+                    const list = res.data?.data?.getstudentlist || [];
+                    setStudentList(list);
+                    if (list.length === 0) {
+                        toast.info('No students found for your search');
+                    }
                 }
             }
-        });
+        );
     };
 
     useEffect(() => {
@@ -191,32 +216,38 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
         onReset();
     };
 
-    const selectedStudent = studentList.find(s => s.amcsT_Id === watchAmstId);
+    const selectedStudent = studentList.find((s) => s.amcsT_Id === watchAmstId);
 
     return (
         <Form {...form}>
-            <form onSubmit={handleSubmit(onSubmit, handleFormError)} className="space-y-8 animate-in fade-in duration-500">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <form onSubmit={handleSubmit(onSubmit, handleFormError)} className='fade-in animate-in space-y-8 duration-500'>
+                <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
                     {/* All / Individual */}
                     <FormField
                         control={form.control}
-                        name="allorindi"
+                        name='allorindi'
                         render={({ field }) => (
-                            <FormItem className="space-y-4 p-5 rounded-2xl border bg-white/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300">
-                                <FormLabel className="text-sm font-semibold uppercase tracking-wider text-muted-foreground italic">Selection Mode</FormLabel>
+                            <FormItem className='space-y-4 rounded-2xl border bg-white/50 p-5 shadow-sm backdrop-blur-sm transition-all duration-300 hover:shadow-md'>
+                                <FormLabel className='font-semibold text-muted-foreground text-sm uppercase italic tracking-wider'>
+                                    Selection Mode
+                                </FormLabel>
                                 <FormControl>
-                                    <RadioGroup
-                                        onValueChange={field.onChange}
-                                        defaultValue={field.value}
-                                        className="flex gap-6"
-                                    >
-                                        <div className="flex items-center space-x-2 group">
-                                            <RadioGroupItem value="A" id="all" className="w-5 h-5 border-2" />
-                                            <Label htmlFor="all" className="text-base font-medium cursor-pointer group-hover:text-primary transition-colors">All</Label>
+                                    <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className='flex gap-6'>
+                                        <div className='group flex items-center space-x-2'>
+                                            <RadioGroupItem value='A' id='all' className='h-5 w-5 border-2' />
+                                            <Label
+                                                htmlFor='all'
+                                                className='cursor-pointer font-medium text-base transition-colors group-hover:text-primary'>
+                                                All
+                                            </Label>
                                         </div>
-                                        <div className="flex items-center space-x-2 group">
-                                            <RadioGroupItem value="I" id="individual" className="w-5 h-5 border-2" />
-                                            <Label htmlFor="individual" className="text-base font-medium cursor-pointer group-hover:text-primary transition-colors">Individual</Label>
+                                        <div className='group flex items-center space-x-2'>
+                                            <RadioGroupItem value='I' id='individual' className='h-5 w-5 border-2' />
+                                            <Label
+                                                htmlFor='individual'
+                                                className='cursor-pointer font-medium text-base transition-colors group-hover:text-primary'>
+                                                Individual
+                                            </Label>
                                         </div>
                                     </RadioGroup>
                                 </FormControl>
@@ -227,23 +258,37 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                     {/* Status */}
                     <FormField
                         control={form.control}
-                        name="optradio"
+                        name='optradio'
                         render={({ field }) => (
-                            <FormItem className="space-y-4 p-5 rounded-2xl border bg-white/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300">
-                                <FormLabel className="text-sm font-semibold uppercase tracking-wider text-muted-foreground italic">Student Status</FormLabel>
+                            <FormItem className='space-y-4 rounded-2xl border bg-white/50 p-5 shadow-sm backdrop-blur-sm transition-all duration-300 hover:shadow-md'>
+                                <FormLabel className='font-semibold text-muted-foreground text-sm uppercase italic tracking-wider'>
+                                    Student Status
+                                </FormLabel>
                                 <FormControl>
-                                    <RadioGroup
-                                        onValueChange={field.onChange}
-                                        defaultValue={field.value}
-                                        className="flex gap-6"
-                                    >
-                                        <div className="flex items-center space-x-2 group">
-                                            <RadioGroupItem value="S" id="studying" className="w-5 h-5 border-2 border-green-400 text-green-600" />
-                                            <Label htmlFor="studying" className="text-base font-medium cursor-pointer group-hover:text-green-600 transition-colors">Studying</Label>
+                                    <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className='flex gap-6'>
+                                        <div className='group flex items-center space-x-2'>
+                                            <RadioGroupItem
+                                                value='S'
+                                                id='studying'
+                                                className='h-5 w-5 border-2 border-green-400 text-green-600'
+                                            />
+                                            <Label
+                                                htmlFor='studying'
+                                                className='cursor-pointer font-medium text-base transition-colors group-hover:text-green-600'>
+                                                Studying
+                                            </Label>
                                         </div>
-                                        <div className="flex items-center space-x-2 group">
-                                            <RadioGroupItem value="D" id="deactive" className="w-5 h-5 border-2 border-red-400 text-red-600" />
-                                            <Label htmlFor="deactive" className="text-base font-medium cursor-pointer group-hover:text-red-600 transition-colors">Deactive</Label>
+                                        <div className='group flex items-center space-x-2'>
+                                            <RadioGroupItem
+                                                value='D'
+                                                id='deactive'
+                                                className='h-5 w-5 border-2 border-red-400 text-red-600'
+                                            />
+                                            <Label
+                                                htmlFor='deactive'
+                                                className='cursor-pointer font-medium text-base transition-colors group-hover:text-red-600'>
+                                                Deactive
+                                            </Label>
                                         </div>
                                     </RadioGroup>
                                 </FormControl>
@@ -254,23 +299,37 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                     {/* Certificate Type */}
                     <FormField
                         control={form.control}
-                        name="Character"
+                        name='Character'
                         render={({ field }) => (
-                            <FormItem className="space-y-4 p-5 rounded-2xl border bg-white/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300">
-                                <FormLabel className="text-sm font-semibold uppercase tracking-wider text-muted-foreground italic">Certificate Type</FormLabel>
+                            <FormItem className='space-y-4 rounded-2xl border bg-white/50 p-5 shadow-sm backdrop-blur-sm transition-all duration-300 hover:shadow-md'>
+                                <FormLabel className='font-semibold text-muted-foreground text-sm uppercase italic tracking-wider'>
+                                    Certificate Type
+                                </FormLabel>
                                 <FormControl>
-                                    <RadioGroup
-                                        onValueChange={field.onChange}
-                                        defaultValue={field.value}
-                                        className="flex gap-6"
-                                    >
-                                        <div className="flex items-center space-x-2 group">
-                                            <RadioGroupItem value="1" id="study" className="w-5 h-5 border-2 border-blue-400 text-blue-600" />
-                                            <Label htmlFor="study" className="text-base font-medium cursor-pointer group-hover:text-blue-600 transition-colors">STUDY</Label>
+                                    <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className='flex gap-6'>
+                                        <div className='group flex items-center space-x-2'>
+                                            <RadioGroupItem
+                                                value='1'
+                                                id='study'
+                                                className='h-5 w-5 border-2 border-blue-400 text-blue-600'
+                                            />
+                                            <Label
+                                                htmlFor='study'
+                                                className='cursor-pointer font-medium text-base transition-colors group-hover:text-blue-600'>
+                                                STUDY
+                                            </Label>
                                         </div>
-                                        <div className="flex items-center space-x-2 group">
-                                            <RadioGroupItem value="0" id="conduct" className="w-5 h-5 border-2 border-amber-400 text-amber-600" />
-                                            <Label htmlFor="conduct" className="text-base font-medium cursor-pointer group-hover:text-amber-600 transition-colors">CONDUCT</Label>
+                                        <div className='group flex items-center space-x-2'>
+                                            <RadioGroupItem
+                                                value='0'
+                                                id='conduct'
+                                                className='h-5 w-5 border-2 border-amber-400 text-amber-600'
+                                            />
+                                            <Label
+                                                htmlFor='conduct'
+                                                className='cursor-pointer font-medium text-base transition-colors group-hover:text-amber-600'>
+                                                CONDUCT
+                                            </Label>
                                         </div>
                                     </RadioGroup>
                                 </FormControl>
@@ -279,26 +338,23 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                     />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 p-8 border rounded-[2rem] bg-gradient-to-br from-slate-50 to-white shadow-xl shadow-slate-200/50">
+                <div className='grid grid-cols-1 gap-8 rounded-[2rem] border bg-gradient-to-br from-slate-50 to-white p-8 shadow-slate-200/50 shadow-xl md:grid-cols-2 lg:grid-cols-3'>
                     {/* Academic Year */}
                     <FormField
                         control={form.control}
-                        name="asmaY_Id"
+                        name='asmaY_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="flex items-center gap-2 text-sm font-bold text-slate-700">
-                                    Academic Year <span className="text-red-500 text-lg">*</span>
+                                <FormLabel className='flex items-center gap-2 font-bold text-slate-700 text-sm'>
+                                    Academic Year <span className='text-lg text-red-500'>*</span>
                                 </FormLabel>
-                                <Select
-                                    onValueChange={(v) => field.onChange(Number(v))}
-                                    value={field.value?.toString() || ""}
-                                >
+                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString() || ''}>
                                     <FormControl>
-                                        <SelectTrigger className="h-12 rounded-xl border-slate-200 focus:ring-primary/20 transition-all">
-                                            <SelectValue placeholder="--Select--" />
+                                        <SelectTrigger className='h-12 rounded-xl border-slate-200 transition-all focus:ring-primary/20'>
+                                            <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                     </FormControl>
-                                    <SelectContent className="rounded-xl">
+                                    <SelectContent className='rounded-xl'>
                                         {yearList.map((y: any) => (
                                             <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>
                                                 {y.asmaY_Year}
@@ -306,7 +362,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage className="text-[10px] font-medium" />
+                                <FormMessage className='font-medium text-[10px]' />
                             </FormItem>
                         )}
                     />
@@ -314,23 +370,30 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                     {/* Course */}
                     <FormField
                         control={form.control}
-                        name="amcO_Id"
+                        name='amcO_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className={cn("flex items-center gap-2 text-sm font-bold text-slate-700", watchAllOrIndi === 'I' && "after:content-['*'] after:text-red-500 after:text-lg")}>
+                                <FormLabel
+                                    className={cn(
+                                        'flex items-center gap-2 font-bold text-slate-700 text-sm',
+                                        watchAllOrIndi === 'I' && 'after:text-lg after:text-red-500 after:content-[' * ']'
+                                    )}>
                                     Course
                                 </FormLabel>
                                 <Select
                                     disabled={watchAllOrIndi === 'A' || yearChange.isPending}
                                     onValueChange={(v) => field.onChange(Number(v))}
-                                    value={field.value?.toString() || ""}
-                                >
+                                    value={field.value?.toString() || ''}>
                                     <FormControl>
-                                        <SelectTrigger className="h-12 rounded-xl border-slate-200 transition-all">
-                                            {yearChange.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <SelectValue placeholder="--Select--" />}
+                                        <SelectTrigger className='h-12 rounded-xl border-slate-200 transition-all'>
+                                            {yearChange.isPending ? (
+                                                <Loader2 className='h-4 w-4 animate-spin' />
+                                            ) : (
+                                                <SelectValue placeholder='--Select--' />
+                                            )}
                                         </SelectTrigger>
                                     </FormControl>
-                                    <SelectContent className="rounded-xl">
+                                    <SelectContent className='rounded-xl'>
                                         {courseList.map((c: any) => (
                                             <SelectItem key={c.amcO_Id} value={c.amcO_Id.toString()}>
                                                 {c.amcO_CourseName}
@@ -338,7 +401,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage className="text-[10px] font-medium" />
+                                <FormMessage className='font-medium text-[10px]' />
                             </FormItem>
                         )}
                     />
@@ -346,23 +409,30 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                     {/* Branch */}
                     <FormField
                         control={form.control}
-                        name="amB_Id"
+                        name='amB_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className={cn("flex items-center gap-2 text-sm font-bold text-slate-700", watchAllOrIndi === 'I' && "after:content-['*'] after:text-red-500 after:text-lg")}>
+                                <FormLabel
+                                    className={cn(
+                                        'flex items-center gap-2 font-bold text-slate-700 text-sm',
+                                        watchAllOrIndi === 'I' && 'after:text-lg after:text-red-500 after:content-[' * ']'
+                                    )}>
                                     Branch
                                 </FormLabel>
                                 <Select
                                     disabled={watchAllOrIndi === 'A' || courseChange.isPending}
                                     onValueChange={(v) => field.onChange(Number(v))}
-                                    value={field.value?.toString() || ""}
-                                >
+                                    value={field.value?.toString() || ''}>
                                     <FormControl>
-                                        <SelectTrigger className="h-12 rounded-xl border-slate-200 transition-all">
-                                            {courseChange.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <SelectValue placeholder="--Select--" />}
+                                        <SelectTrigger className='h-12 rounded-xl border-slate-200 transition-all'>
+                                            {courseChange.isPending ? (
+                                                <Loader2 className='h-4 w-4 animate-spin' />
+                                            ) : (
+                                                <SelectValue placeholder='--Select--' />
+                                            )}
                                         </SelectTrigger>
                                     </FormControl>
-                                    <SelectContent className="rounded-xl">
+                                    <SelectContent className='rounded-xl'>
                                         {branchList.map((b: any) => (
                                             <SelectItem key={b.amB_Id} value={b.amB_Id.toString()}>
                                                 {b.amB_BranchName}
@@ -370,7 +440,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage className="text-[10px] font-medium" />
+                                <FormMessage className='font-medium text-[10px]' />
                             </FormItem>
                         )}
                     />
@@ -378,23 +448,30 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                     {/* Semester */}
                     <FormField
                         control={form.control}
-                        name="amsE_Id"
+                        name='amsE_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className={cn("flex items-center gap-2 text-sm font-bold text-slate-700", watchAllOrIndi === 'I' && "after:content-['*'] after:text-red-500 after:text-lg")}>
+                                <FormLabel
+                                    className={cn(
+                                        'flex items-center gap-2 font-bold text-slate-700 text-sm',
+                                        watchAllOrIndi === 'I' && 'after:text-lg after:text-red-500 after:content-[' * ']'
+                                    )}>
                                     Semester
                                 </FormLabel>
                                 <Select
                                     disabled={watchAllOrIndi === 'A' || branchChange.isPending}
                                     onValueChange={(v) => field.onChange(Number(v))}
-                                    value={field.value?.toString() || ""}
-                                >
+                                    value={field.value?.toString() || ''}>
                                     <FormControl>
-                                        <SelectTrigger className="h-12 rounded-xl border-slate-200 transition-all">
-                                            {branchChange.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <SelectValue placeholder="--Select--" />}
+                                        <SelectTrigger className='h-12 rounded-xl border-slate-200 transition-all'>
+                                            {branchChange.isPending ? (
+                                                <Loader2 className='h-4 w-4 animate-spin' />
+                                            ) : (
+                                                <SelectValue placeholder='--Select--' />
+                                            )}
                                         </SelectTrigger>
                                     </FormControl>
-                                    <SelectContent className="rounded-xl">
+                                    <SelectContent className='rounded-xl'>
                                         {semesterList.map((s: any) => (
                                             <SelectItem key={s.amsE_Id} value={s.amsE_Id.toString()}>
                                                 {s.amsE_SEMName}
@@ -402,7 +479,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage className="text-[10px] font-medium" />
+                                <FormMessage className='font-medium text-[10px]' />
                             </FormItem>
                         )}
                     />
@@ -410,23 +487,30 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                     {/* Section */}
                     <FormField
                         control={form.control}
-                        name="acmS_Id"
+                        name='acmS_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className={cn("flex items-center gap-2 text-sm font-bold text-slate-700", watchAllOrIndi === 'I' && "after:content-['*'] after:text-red-500 after:text-lg")}>
+                                <FormLabel
+                                    className={cn(
+                                        'flex items-center gap-2 font-bold text-slate-700 text-sm',
+                                        watchAllOrIndi === 'I' && 'after:text-lg after:text-red-500 after:content-[' * ']'
+                                    )}>
                                     Section
                                 </FormLabel>
                                 <Select
                                     disabled={watchAllOrIndi === 'A' || semesterChange.isPending}
                                     onValueChange={(v) => field.onChange(Number(v))}
-                                    value={field.value?.toString() || ""}
-                                >
+                                    value={field.value?.toString() || ''}>
                                     <FormControl>
-                                        <SelectTrigger className="h-12 rounded-xl border-slate-200 transition-all">
-                                            {semesterChange.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <SelectValue placeholder="--Select--" />}
+                                        <SelectTrigger className='h-12 rounded-xl border-slate-200 transition-all'>
+                                            {semesterChange.isPending ? (
+                                                <Loader2 className='h-4 w-4 animate-spin' />
+                                            ) : (
+                                                <SelectValue placeholder='--Select--' />
+                                            )}
                                         </SelectTrigger>
                                     </FormControl>
-                                    <SelectContent className="rounded-xl">
+                                    <SelectContent className='rounded-xl'>
                                         {sectionList.map((s: any) => (
                                             <SelectItem key={s.acmS_Id} value={s.acmS_Id.toString()}>
                                                 {s.acmS_SectionName}
@@ -434,7 +518,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage className="text-[10px] font-medium" />
+                                <FormMessage className='font-medium text-[10px]' />
                             </FormItem>
                         )}
                     />
@@ -442,20 +526,20 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                     {/* Date */}
                     <FormField
                         control={form.control}
-                        name="date"
+                        name='date'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="flex items-center gap-2 text-sm font-bold text-slate-700">
-                                    Date <span className="text-red-500 text-lg">*</span>
+                                <FormLabel className='flex items-center gap-2 font-bold text-slate-700 text-sm'>
+                                    Date <span className='text-lg text-red-500'>*</span>
                                 </FormLabel>
                                 <FormControl>
                                     <DatePicker
                                         date={field.value}
                                         setDate={(date) => field.onChange(date)}
-                                        className="h-12 rounded-xl border-slate-200 hover:bg-slate-50 transition-all"
+                                        className='h-12 rounded-xl border-slate-200 transition-all hover:bg-slate-50'
                                     />
                                 </FormControl>
-                                <FormMessage className="text-[10px] font-medium" />
+                                <FormMessage className='font-medium text-[10px]' />
                             </FormItem>
                         )}
                     />
@@ -463,59 +547,58 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                     {/* Student Select */}
                     <FormField
                         control={form.control}
-                        name="amcsT_Id"
+                        name='amcsT_Id'
                         render={({ field }) => (
-                            <FormItem className="lg:col-span-2">
-                                <FormLabel className="flex items-center gap-2 text-sm font-bold text-slate-700">
-                                    Student <span className="text-red-500 text-lg">*</span>
+                            <FormItem className='lg:col-span-2'>
+                                <FormLabel className='flex items-center gap-2 font-bold text-slate-700 text-sm'>
+                                    Student <span className='text-lg text-red-500'>*</span>
                                 </FormLabel>
                                 <Popover open={studentOpen} onOpenChange={setStudentOpen}>
                                     <PopoverTrigger asChild>
                                         <FormControl>
                                             <Button
-                                                variant="outline"
-                                                role="combobox"
+                                                variant='outline'
+                                                role='combobox'
                                                 className={cn(
-                                                    "w-full h-12 rounded-xl border-slate-200 justify-between font-medium transition-all hover:bg-slate-50",
-                                                    !field.value && "text-muted-foreground"
-                                                )}
-                                            >
+                                                    'h-12 w-full justify-between rounded-xl border-slate-200 font-medium transition-all hover:bg-slate-50',
+                                                    !field.value && 'text-muted-foreground'
+                                                )}>
                                                 {field.value && selectedStudent
                                                     ? selectedStudent.studentname
-                                                    : "Search by name (min 3 characters)..."}
-                                                <div className="flex items-center gap-2">
+                                                    : 'Search by name (min 3 characters)...'}
+                                                <div className='flex items-center gap-2'>
                                                     {field.value ? (
                                                         <X
-                                                            className="h-4 w-4 opacity-40 hover:opacity-100 transition-opacity"
+                                                            className='h-4 w-4 opacity-40 transition-opacity hover:opacity-100'
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 field.onChange(0);
                                                             }}
                                                         />
                                                     ) : null}
-                                                    <Search className="h-4 w-4 shrink-0 opacity-40" />
+                                                    <Search className='h-4 w-4 shrink-0 opacity-40' />
                                                 </div>
                                             </Button>
                                         </FormControl>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-[450px] p-0 rounded-2xl shadow-2xl border-slate-100" align="start">
+                                    <PopoverContent className='w-[450px] rounded-2xl border-slate-100 p-0 shadow-2xl' align='start'>
                                         <Command shouldFilter={false}>
                                             <CommandInput
-                                                placeholder="Type student name..."
-                                                className="h-12 border-none focus:ring-0"
+                                                placeholder='Type student name...'
+                                                className='h-12 border-none focus:ring-0'
                                                 onValueChange={(v) => setSearchQuery(v)}
                                             />
-                                            <CommandList className="max-h-[300px] overflow-y-auto">
-                                                <CommandEmpty className="p-4 text-center text-slate-500">
+                                            <CommandList className='max-h-[300px] overflow-y-auto'>
+                                                <CommandEmpty className='p-4 text-center text-slate-500'>
                                                     {searchFilterMutation.isPending ? (
-                                                        <div className="flex flex-col items-center gap-2 py-4">
-                                                            <Loader2 className="h-6 w-6 animate-spin text-primary/50" />
-                                                            <span className="text-sm font-medium">Searching students...</span>
+                                                        <div className='flex flex-col items-center gap-2 py-4'>
+                                                            <Loader2 className='h-6 w-6 animate-spin text-primary/50' />
+                                                            <span className='font-medium text-sm'>Searching students...</span>
                                                         </div>
                                                     ) : searchQuery.length < 3 ? (
-                                                        "Type at least 3 characters to search"
+                                                        'Type at least 3 characters to search'
                                                     ) : (
-                                                        "No results found"
+                                                        'No results found'
                                                     )}
                                                 </CommandEmpty>
                                                 <CommandGroup>
@@ -527,11 +610,12 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                                                 field.onChange(s.amcsT_Id);
                                                                 setStudentOpen(false);
                                                             }}
-                                                            className="p-3 cursor-pointer hover:bg-slate-50 transition-colors"
-                                                        >
-                                                            <div className="flex flex-col">
-                                                                <span className="font-bold text-slate-800">{s.studentname}</span>
-                                                                <span className="text-xs text-slate-500 uppercase tracking-tight">{s.admno} | {s.coursename}</span>
+                                                            className='cursor-pointer p-3 transition-colors hover:bg-slate-50'>
+                                                            <div className='flex flex-col'>
+                                                                <span className='font-bold text-slate-800'>{s.studentname}</span>
+                                                                <span className='text-slate-500 text-xs uppercase tracking-tight'>
+                                                                    {s.admno} | {s.coursename}
+                                                                </span>
                                                             </div>
                                                         </CommandItem>
                                                     ))}
@@ -540,52 +624,67 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         </Command>
                                     </PopoverContent>
                                 </Popover>
-                                <FormMessage className="text-[10px] font-medium" />
+                                <FormMessage className='font-medium text-[10px]' />
                             </FormItem>
                         )}
                     />
 
                     {/* Conditional Fields for Conduct Certificate */}
                     {watchCertType === '0' && (
-                        <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 animate-in slide-in-from-top-4 duration-300">
+                        <div className='slide-in-from-top-4 grid animate-in grid-cols-1 gap-6 pt-4 duration-300 md:grid-cols-3 lg:col-span-3'>
                             <FormField
                                 control={form.control}
-                                name="exmname"
+                                name='exmname'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                                            Exam Name <span className="text-red-500 text-lg">*</span>
+                                        <FormLabel className='flex items-center gap-2 font-bold text-slate-700 text-sm'>
+                                            Exam Name <span className='text-lg text-red-500'>*</span>
                                         </FormLabel>
                                         <FormControl>
-                                            <Input {...field} value={field.value || ''} placeholder="Enter exam name" className="h-12 rounded-xl border-slate-200" />
+                                            <Input
+                                                {...field}
+                                                value={field.value || ''}
+                                                placeholder='Enter exam name'
+                                                className='h-12 rounded-xl border-slate-200'
+                                            />
                                         </FormControl>
-                                        <FormMessage className="text-[10px] font-medium" />
+                                        <FormMessage className='font-medium text-[10px]' />
                                     </FormItem>
                                 )}
                             />
                             <FormField
                                 control={form.control}
-                                name="exmmonth"
+                                name='exmmonth'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-sm font-bold text-slate-700">Exam Month/Year</FormLabel>
+                                        <FormLabel className='font-bold text-slate-700 text-sm'>Exam Month/Year</FormLabel>
                                         <FormControl>
-                                            <Input {...field} value={field.value || ''} placeholder="MAY 2026" className="h-12 rounded-xl border-slate-200" />
+                                            <Input
+                                                {...field}
+                                                value={field.value || ''}
+                                                placeholder='MAY 2026'
+                                                className='h-12 rounded-xl border-slate-200'
+                                            />
                                         </FormControl>
-                                        <FormMessage className="text-[10px] font-medium" />
+                                        <FormMessage className='font-medium text-[10px]' />
                                     </FormItem>
                                 )}
                             />
                             <FormField
                                 control={form.control}
-                                name="stdreg"
+                                name='stdreg'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-sm font-bold text-slate-700">Reg. No.</FormLabel>
+                                        <FormLabel className='font-bold text-slate-700 text-sm'>Reg. No.</FormLabel>
                                         <FormControl>
-                                            <Input {...field} value={field.value || ''} placeholder="Enter registration no" className="h-12 rounded-xl border-slate-200" />
+                                            <Input
+                                                {...field}
+                                                value={field.value || ''}
+                                                placeholder='Enter registration no'
+                                                className='h-12 rounded-xl border-slate-200'
+                                            />
                                         </FormControl>
-                                        <FormMessage className="text-[10px] font-medium" />
+                                        <FormMessage className='font-medium text-[10px]' />
                                     </FormItem>
                                 )}
                             />
@@ -593,31 +692,28 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                     )}
                 </div>
 
-                <div className="flex flex-col gap-4 sm:flex-row sm:justify-center pt-8 border-t border-slate-100">
+                <div className='flex flex-col gap-4 border-slate-100 border-t pt-8 sm:flex-row sm:justify-center'>
                     <Button
-                        type="submit"
+                        type='submit'
                         disabled={isSubmitting}
-                        className="w-full sm:w-[180px] h-14 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-lg shadow-blue-200 flex items-center justify-center gap-2 transition-all transform hover:scale-105 active:scale-95"
-                    >
-                        {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <FileText className="h-5 w-5" />}
+                        className='flex h-14 w-full transform items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 font-bold text-white shadow-blue-200 shadow-lg transition-all hover:scale-105 hover:from-blue-700 hover:to-indigo-700 active:scale-95 sm:w-[180px]'>
+                        {isSubmitting ? <Loader2 className='h-5 w-5 animate-spin' /> : <FileText className='h-5 w-5' />}
                         Generate Report
                     </Button>
                     <Button
-                        type="button"
-                        variant="outline"
+                        type='button'
+                        variant='outline'
                         onClick={handleReset}
-                        className="w-full sm:w-[150px] h-14 rounded-2xl border-2 border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
-                    >
-                        <RotateCcw className="h-5 w-5" />
+                        className='flex h-14 w-full items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 font-bold text-slate-600 transition-all hover:bg-slate-50 sm:w-[150px]'>
+                        <RotateCcw className='h-5 w-5' />
                         Reset
                     </Button>
                     <Button
-                        type="button"
-                        variant="ghost"
+                        type='button'
+                        variant='ghost'
                         onClick={handleReset}
-                        className="w-full sm:w-[150px] h-14 rounded-2xl text-slate-400 font-bold hover:text-red-500 hover:bg-red-50 transition-all flex items-center justify-center gap-2"
-                    >
-                        <X className="h-5 w-5" />
+                        className='flex h-14 w-full items-center justify-center gap-2 rounded-2xl font-bold text-slate-400 transition-all hover:bg-red-50 hover:text-red-500 sm:w-[150px]'>
+                        <X className='h-5 w-5' />
                         Cancel
                     </Button>
                 </div>

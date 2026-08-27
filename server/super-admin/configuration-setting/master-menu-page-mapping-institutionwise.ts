@@ -128,7 +128,7 @@ export async function getOnloadGrid(searchParams?: any) {
 
 export async function getMasterPageGrid(mi_id: number, ivrmm_id: number, ivrmmmi_id: number) {
     try {
-        const url = `${FACADE}/get_onchnage_of_submenu_master_page_grid/${mi_id}/${ivrmm_id}/${ivrmmmi_id}`;
+        const url = `${FACADE}/get_onchnage_of_submenu_master_page_grid/${mi_id}/${ivrmm_id}/${ivrmmmi_id}?page=1&page_size=100`;
         const response = await api.get<any>(API_KEY, url);
 
         if (response.success) {
@@ -176,7 +176,7 @@ export async function saveMasterMenuPageMapping(payload: any) {
 
 export async function getSavedMappingGrid(mi_id: number, ivrmm_id: number, ivrmmmi_id: number) {
     try {
-        const url = `${FACADE}/get_onchnage_of_submenu_saved_page_grid/${mi_id}/${ivrmm_id}/${ivrmmmi_id}`;
+        const url = `${FACADE}/get_onchnage_of_submenu_saved_page_grid/${mi_id}/${ivrmm_id}/${ivrmmmi_id}?page=1&page_size=100`;
         const response = await api.get<any>(API_KEY, url);
 
         if (response.success) {
@@ -206,7 +206,7 @@ export async function getSavedMappingGrid(mi_id: number, ivrmm_id: number, ivrmm
 
 export async function getSetOrderList(mi_id: number, ivrmm_id: number, ivrmmmi_id: number) {
     try {
-        const url = `${FACADE}/get_onchnage_of_submenu_set_order_list/${mi_id}/${ivrmm_id}/${ivrmmmi_id}`;
+        const url = `${FACADE}/get_onchnage_of_submenu_set_order_list/${mi_id}/${ivrmm_id}/${ivrmmmi_id}?page=1&page_size=100`;
         const response = await api.get<any>(API_KEY, url);
 
         if (response.success) {

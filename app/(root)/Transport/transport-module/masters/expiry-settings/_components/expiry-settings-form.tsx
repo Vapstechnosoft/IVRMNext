@@ -20,7 +20,7 @@ const formSchema = z.object({
     TRC_SpeedControlDays: z.coerce.number().min(0, 'Must be a positive number'),
     TRC_CeaseFireDays: z.coerce.number().min(0, 'Must be a positive number'),
     TRC_GreenTaxDays: z.coerce.number().min(0, 'Must be a positive number'),
-    TRC_DLExpReminderDays: z.coerce.number().min(0, 'Must be a positive number'),
+    TRC_DLExpReminderDays: z.coerce.number().min(0, 'Must be a positive number')
 });
 
 type FormFields = z.infer<typeof formSchema>;
@@ -46,7 +46,7 @@ export default function ExpirySettingsForm() {
             TRC_SpeedControlDays: 0,
             TRC_CeaseFireDays: 0,
             TRC_GreenTaxDays: 0,
-            TRC_DLExpReminderDays: 0,
+            TRC_DLExpReminderDays: 0
         }
     });
 
@@ -61,7 +61,7 @@ export default function ExpirySettingsForm() {
                 TRC_SpeedControlDays: settings.trC_SpeedControlDays,
                 TRC_CeaseFireDays: settings.trC_CeaseFireDays,
                 TRC_GreenTaxDays: settings.trC_GreenTaxDays,
-                TRC_DLExpReminderDays: settings.trC_DLExpReminderDays,
+                TRC_DLExpReminderDays: settings.trC_DLExpReminderDays
             });
         }
     }, [settings, reset]);
@@ -78,7 +78,7 @@ export default function ExpirySettingsForm() {
                 trC_SpeedControlDays: values.TRC_SpeedControlDays,
                 trC_CeaseFireDays: values.TRC_CeaseFireDays,
                 trC_GreenTaxDays: values.TRC_GreenTaxDays,
-                trC_DLExpReminderDays: values.TRC_DLExpReminderDays,
+                trC_DLExpReminderDays: values.TRC_DLExpReminderDays
             };
 
             const response = await saveExpirySettings(payload);

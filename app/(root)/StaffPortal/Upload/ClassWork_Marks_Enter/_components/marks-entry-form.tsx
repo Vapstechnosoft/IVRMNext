@@ -1,27 +1,18 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { FormError } from '@/components/ui/extension/field';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
 import { DataTable } from '@/components/ui/data-table';
-import { IClassWorkMarksList, classWorkMarksListSchema } from '@/schemas/upload/transactions/ivrm-classwork.schema';
-import { fetchClassWorkStudents, saveClassWorkMarks } from '@/server/upload/transactions/ivrm-classwork/server-action';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { ColumnDef } from '@tanstack/react-table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { cn } from '@/lib/utils';
+import { type IClassWorkMarksList, classWorkMarksListSchema } from '@/schemas/upload/transactions/ivrm-classwork.schema';
+import { fetchClassWorkStudents, saveClassWorkMarks } from '@/server/upload/transactions/ivrm-classwork/server-action';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, RefreshCw, Save, X, Database } from 'lucide-react';
+import { Database, Eye, RefreshCw, Save, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { verifyGridColumns } from './columns';
-import { cn } from '@/lib/utils';
 
 interface MarksEntryFormProps {
     initialResults: any[];
@@ -72,7 +63,7 @@ export default function MarksEntryForm({ initialResults, topics }: MarksEntryFor
                     checked: false,
                     studentUploads: s.studentUploads || []
                 }));
-                
+
                 reset({
                     icW_Id: id,
                     students: students
@@ -97,7 +88,7 @@ export default function MarksEntryForm({ initialResults, topics }: MarksEntryFor
     const onSubmit: SubmitHandler<IClassWorkMarksList> = async (data) => {
         try {
             setIsSubmitting(true);
-            const checkedStudents = data.students.filter(s => s.checked);
+            const checkedStudents = data.students.filter((s) => s.checked);
 
             if (checkedStudents.length === 0) {
                 toast.warning('Please select at least one student to save.');
@@ -106,7 +97,7 @@ export default function MarksEntryForm({ initialResults, topics }: MarksEntryFor
 
             const payload = {
                 ICW_Id: data.icW_Id,
-                classwork_marks_list: checkedStudents.map(s => ({
+                classwork_marks_list: checkedStudents.map((s) => ({
                     AMST_Id: s.amst_Id,
                     ICWUPL_Marks: s.icwupl_Marks,
                     ICWUPL_StaffRemarks: s.icwupl_StaffRemarks,
@@ -149,35 +140,36 @@ export default function MarksEntryForm({ initialResults, topics }: MarksEntryFor
     if (!selectedRow) {
         return (
             <div className='space-y-4'>
-                <div className='flex items-center justify-between bg-slate-100 p-2 rounded-t-md border-x border-t'>
-                    <h3 className='text-xs font-black uppercase text-slate-600 px-2'>Search Results</h3>
-                    <span className='text-[10px] font-bold text-slate-400 bg-white px-2 py-0.5 rounded shadow-sm border uppercase'>
+                <div className='flex items-center justify-between rounded-t-md border-x border-t bg-slate-100 p-2'>
+                    <h3 className='px-2 font-black text-slate-600 text-xs uppercase'>Search Results</h3>
+                    <span className='rounded border bg-white px-2 py-0.5 font-bold text-[10px] text-slate-400 uppercase shadow-sm'>
                         Matches: {initialResults.length}
                     </span>
                 </div>
                 <DataTable<any, any>
-                    columns={verifyGridColumns.map((col: any) => {
-                        if (col.id === 'actions') {
-                            return {
-                                ...col,
-                                cell: ({ row }: any) => (
-                                    <div className='flex justify-center'>
-                                        <Button
-                                            variant='ghost'
-                                            size='icon'
-                                            onClick={() => handleSelectRecord(row.original)}
-                                            className='text-blue-600 hover:bg-blue-50'
-                                            title='Enter Marks'
-                                        >
-                                            <Database className='h-4 w-4' />
-                                        </Button>
-                                    </div>
-                                )
-                            };
-                        }
-                        return col;
-                    }) as any} 
-                    data={initialResults} 
+                    columns={
+                        verifyGridColumns.map((col: any) => {
+                            if (col.id === 'actions') {
+                                return {
+                                    ...col,
+                                    cell: ({ row }: any) => (
+                                        <div className='flex justify-center'>
+                                            <Button
+                                                variant='ghost'
+                                                size='icon'
+                                                onClick={() => handleSelectRecord(row.original)}
+                                                className='text-blue-600 hover:bg-blue-50'
+                                                title='Enter Marks'>
+                                                <Database className='h-4 w-4' />
+                                            </Button>
+                                        </div>
+                                    )
+                                };
+                            }
+                            return col;
+                        }) as any
+                    }
+                    data={initialResults}
                     totalItems={initialResults.length}
                 />
             </div>
@@ -185,49 +177,57 @@ export default function MarksEntryForm({ initialResults, topics }: MarksEntryFor
     }
 
     return (
-        <div className='flex w-full flex-col gap-4 rounded-md border bg-white p-4 shadow-sm animate-in fade-in duration-500'>
-            <div className='flex items-center justify-between border-b pb-4 bg-slate-50/50 p-2 rounded-t-md'>
+        <div className='fade-in flex w-full animate-in flex-col gap-4 rounded-md border bg-white p-4 shadow-sm duration-500'>
+            <div className='flex items-center justify-between rounded-t-md border-b bg-slate-50/50 p-2 pb-4'>
                 <div>
-                    <h2 className='text-lg font-black uppercase text-blue-800'>Student Mark Verification</h2>
-                    <div className='flex gap-4 mt-1'>
-                        <p className='text-[10px] font-bold text-slate-500 uppercase'>
+                    <h2 className='font-black text-blue-800 text-lg uppercase'>Student Mark Verification</h2>
+                    <div className='mt-1 flex gap-4'>
+                        <p className='font-bold text-[10px] text-slate-500 uppercase'>
                             Topic: <span className='text-slate-700'>{selectedRow.icW_Topic || selectedRow.ICW_Topic}</span>
                         </p>
-                        <p className='text-[10px] font-bold text-slate-500 uppercase'>
+                        <p className='font-bold text-[10px] text-slate-500 uppercase'>
                             Subject: <span className='text-slate-700'>{selectedRow.ismS_SubjectName || selectedRow.ISMS_SubjectName}</span>
                         </p>
                     </div>
                 </div>
-                <Button variant='ghost' size='icon' onClick={handleClose} className='hover:bg-red-50 text-red-500'>
+                <Button variant='ghost' size='icon' onClick={handleClose} className='text-red-500 hover:bg-red-50'>
                     <X className='h-5 w-5' />
                 </Button>
             </div>
 
             {isLoading ? (
-                <div className='flex h-40 flex-col items-center justify-center text-muted-foreground gap-2 font-bold uppercase text-xs text-center'>
+                <div className='flex h-40 flex-col items-center justify-center gap-2 text-center font-bold text-muted-foreground text-xs uppercase'>
                     <RefreshCw className='h-6 w-6 animate-spin text-blue-600' />
-                    LOADING STUDENT DETAILS<br/>PLEASE WAIT...
+                    LOADING STUDENT DETAILS
+                    <br />
+                    PLEASE WAIT...
                 </div>
             ) : (
                 <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
-                    <div className='rounded-md border overflow-hidden shadow-sm'>
+                    <div className='overflow-hidden rounded-md border shadow-sm'>
                         <Table>
                             <TableHeader className='bg-slate-800'>
                                 <TableRow>
-                                    <TableHead className='w-[60px] text-white font-black text-[10px] text-center uppercase tracking-tighter'>SELECT</TableHead>
-                                    <TableHead className='text-white font-black text-[10px] uppercase'>STUDENT NAME</TableHead>
-                                    <TableHead className='text-white font-black text-[10px] uppercase'>ADM NO</TableHead>
-                                    <TableHead className='text-white font-black text-[10px] uppercase'>ROLL NO</TableHead>
-                                    <TableHead className='text-white font-black text-[10px] text-center uppercase'>STUDENT UPLOAD</TableHead>
-                                    <TableHead className='text-white font-black text-[10px] w-[120px] uppercase'>ENTER MARKS</TableHead>
-                                    <TableHead className='text-white font-black text-[10px] uppercase'>STAFF REMARKS</TableHead>
-                                    <TableHead className='text-white font-black text-[10px] uppercase'>STAFF UPLOAD</TableHead>
+                                    <TableHead className='w-[60px] text-center font-black text-[10px] text-white uppercase tracking-tighter'>
+                                        SELECT
+                                    </TableHead>
+                                    <TableHead className='font-black text-[10px] text-white uppercase'>STUDENT NAME</TableHead>
+                                    <TableHead className='font-black text-[10px] text-white uppercase'>ADM NO</TableHead>
+                                    <TableHead className='font-black text-[10px] text-white uppercase'>ROLL NO</TableHead>
+                                    <TableHead className='text-center font-black text-[10px] text-white uppercase'>
+                                        STUDENT UPLOAD
+                                    </TableHead>
+                                    <TableHead className='w-[120px] font-black text-[10px] text-white uppercase'>ENTER MARKS</TableHead>
+                                    <TableHead className='font-black text-[10px] text-white uppercase'>STAFF REMARKS</TableHead>
+                                    <TableHead className='font-black text-[10px] text-white uppercase'>STAFF UPLOAD</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {fields.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={8} className='text-center py-10 text-slate-400 font-bold'>NO STUDENTS FOUND</TableCell>
+                                        <TableCell colSpan={8} className='py-10 text-center font-bold text-slate-400'>
+                                            NO STUDENTS FOUND
+                                        </TableCell>
                                     </TableRow>
                                 ) : (
                                     fields.map((field, index) => {
@@ -243,47 +243,53 @@ export default function MarksEntryForm({ initialResults, topics }: MarksEntryFor
                                                                 type='checkbox'
                                                                 checked={field.value}
                                                                 onChange={(e) => field.onChange(e.target.checked)}
-                                                                className='h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer shadow-sm'
+                                                                className='h-4 w-4 cursor-pointer rounded border-slate-300 text-blue-600 shadow-sm focus:ring-blue-500'
                                                             />
                                                         )}
                                                     />
                                                 </TableCell>
-                                                <TableCell className='text-[11px] font-bold text-slate-700 uppercase'>{watch(`students.${index}.studentName`)}</TableCell>
-                                                <TableCell className='text-[11px] font-medium text-slate-500'>{watch(`students.${index}.admNo`)}</TableCell>
-                                                <TableCell className='text-[11px] font-medium text-slate-500 text-center'>{watch(`students.${index}.rollNo`)}</TableCell>
+                                                <TableCell className='font-bold text-[11px] text-slate-700 uppercase'>
+                                                    {watch(`students.${index}.studentName`)}
+                                                </TableCell>
+                                                <TableCell className='font-medium text-[11px] text-slate-500'>
+                                                    {watch(`students.${index}.admNo`)}
+                                                </TableCell>
+                                                <TableCell className='text-center font-medium text-[11px] text-slate-500'>
+                                                    {watch(`students.${index}.rollNo`)}
+                                                </TableCell>
                                                 <TableCell>
-                                                    <div className='flex flex-wrap gap-1 justify-center'>
+                                                    <div className='flex flex-wrap justify-center gap-1'>
                                                         {watch(`students.${index}.studentUploads`)?.map((upload: any, uIdx: number) => (
                                                             <Button
                                                                 key={upload.icwupl_Id || uIdx}
-                                                                type="button"
-                                                                variant="outline"
-                                                                size="sm"
-                                                                className="h-7 px-2 text-[10px] font-black border-blue-100 text-blue-600 hover:bg-blue-50 hover:border-blue-300 shadow-sm transition-all"
+                                                                type='button'
+                                                                variant='outline'
+                                                                size='sm'
+                                                                className='h-7 border-blue-100 px-2 font-black text-[10px] text-blue-600 shadow-sm transition-all hover:border-blue-300 hover:bg-blue-50'
                                                                 onClick={() => {
                                                                     if (upload.icwupl_Attachment) {
                                                                         window.open(upload.icwupl_Attachment, '_blank');
                                                                     } else {
                                                                         toast.error('No attachment link available.');
                                                                     }
-                                                                }}
-                                                            >
-                                                                <Eye className="mr-1 h-3 w-3" />
+                                                                }}>
+                                                                <Eye className='mr-1 h-3 w-3' />
                                                                 FILE {uIdx + 1}
                                                             </Button>
                                                         ))}
-                                                        {(!watch(`students.${index}.studentUploads`) || watch(`students.${index}.studentUploads`)?.length === 0) && (
-                                                            <span className="text-[10px] text-slate-300 italic font-medium">None</span>
+                                                        {(!watch(`students.${index}.studentUploads`) ||
+                                                            watch(`students.${index}.studentUploads`)?.length === 0) && (
+                                                            <span className='font-medium text-[10px] text-slate-300 italic'>None</span>
                                                         )}
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
                                                     <div className='group flex flex-col gap-1'>
                                                         <input
-                                                            type="text"
+                                                            type='text'
                                                             {...register(`students.${index}.icwupl_Marks`)}
-                                                            placeholder="0.00"
-                                                            className='h-8 w-full rounded border-slate-200 bg-white px-2 py-1 text-[11px] font-black text-center text-blue-800 shadow-sm focus:border-blue-500 focus:outline-none transition-all disabled:bg-slate-50 disabled:text-slate-300'
+                                                            placeholder='0.00'
+                                                            className='h-8 w-full rounded border-slate-200 bg-white px-2 py-1 text-center font-black text-[11px] text-blue-800 shadow-sm transition-all focus:border-blue-500 focus:outline-none disabled:bg-slate-50 disabled:text-slate-300'
                                                             disabled={!isChecked}
                                                         />
                                                     </div>
@@ -292,34 +298,33 @@ export default function MarksEntryForm({ initialResults, topics }: MarksEntryFor
                                                     <div className='group flex flex-col gap-1'>
                                                         <textarea
                                                             {...register(`students.${index}.icwupl_StaffRemarks`)}
-                                                            placeholder="Enter remarks..."
+                                                            placeholder='Enter remarks...'
                                                             rows={1}
-                                                            className='min-h-[32px] w-full rounded border-slate-200 bg-white px-2 py-1 text-[11px] shadow-sm focus:border-blue-500 focus:outline-none transition-all disabled:bg-slate-50 disabled:text-slate-300 font-medium'
+                                                            className='min-h-[32px] w-full rounded border-slate-200 bg-white px-2 py-1 font-medium text-[11px] shadow-sm transition-all focus:border-blue-500 focus:outline-none disabled:bg-slate-50 disabled:text-slate-300'
                                                             disabled={!isChecked}
                                                         />
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <div className="flex items-center gap-1">
+                                                    <div className='flex items-center gap-1'>
                                                         <input
-                                                            type="text"
+                                                            type='text'
                                                             {...register(`students.${index}.icwupl_StaffUpload`)}
-                                                            placeholder="External Link / URL"
-                                                            className='h-8 flex-1 rounded border-slate-200 bg-white px-2 py-1 text-[10px] shadow-sm focus:border-blue-500 focus:outline-none transition-all disabled:bg-slate-50 font-medium'
+                                                            placeholder='External Link / URL'
+                                                            className='h-8 flex-1 rounded border-slate-200 bg-white px-2 py-1 font-medium text-[10px] shadow-sm transition-all focus:border-blue-500 focus:outline-none disabled:bg-slate-50'
                                                             disabled={!isChecked}
                                                         />
                                                         <Button
-                                                            type="button"
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-8 w-8 text-blue-600 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-20"
+                                                            type='button'
+                                                            variant='ghost'
+                                                            size='icon'
+                                                            className='h-8 w-8 text-blue-600 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-20'
                                                             disabled={!isChecked || !watch(`students.${index}.icwupl_StaffUpload`)}
                                                             onClick={() => {
                                                                 const url = watch(`students.${index}.icwupl_StaffUpload`);
                                                                 if (url) window.open(url, '_blank');
-                                                            }}
-                                                        >
-                                                            <Eye className="h-4 w-4" />
+                                                            }}>
+                                                            <Eye className='h-4 w-4' />
                                                         </Button>
                                                     </div>
                                                 </TableCell>
@@ -331,11 +336,11 @@ export default function MarksEntryForm({ initialResults, topics }: MarksEntryFor
                         </Table>
                     </div>
 
-                    <div className='flex items-center gap-4 border-t pt-4 bg-slate-50/70 p-4 rounded-b-md border-x border-b'>
+                    <div className='flex items-center gap-4 rounded-b-md border-x border-t border-b bg-slate-50/70 p-4 pt-4'>
                         <Button
                             type='submit'
                             disabled={isSubmitting}
-                            className='bg-emerald-600 text-white hover:bg-emerald-700 min-w-[150px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all'
+                            className='min-w-[150px] bg-emerald-600 font-black text-white uppercase tracking-widest shadow-lg transition-all hover:bg-emerald-700 active:scale-95'
                             isLoading={isSubmitting}
                             loadingText='SAVING...'>
                             <Save className='mr-2 h-4 w-4' />
@@ -347,19 +352,19 @@ export default function MarksEntryForm({ initialResults, topics }: MarksEntryFor
                             variant='outline'
                             onClick={handleReset}
                             disabled={isSubmitting}
-                            className='border-blue-200 text-blue-600 hover:bg-blue-100 min-w-[130px] font-black uppercase tracking-widest active:scale-95 transition-all bg-white font-bold'>
+                            className='min-w-[130px] border-blue-200 bg-white font-black font-bold text-blue-600 uppercase tracking-widest transition-all hover:bg-blue-100 active:scale-95'>
                             <RefreshCw className='mr-2 h-4 w-4' />
                             RESET FORM
                         </Button>
-                        
+
                         <div className='ml-auto'>
-                             <span className='text-[10px] font-black text-slate-400 bg-slate-100 px-3 py-1 rounded-full uppercase'>
+                            <span className='rounded-full bg-slate-100 px-3 py-1 font-black text-[10px] text-slate-400 uppercase'>
                                 Total Students: {fields.length}
-                             </span>
+                            </span>
                         </div>
                     </div>
                 </form>
             )}
         </div>
     );
-}
+}

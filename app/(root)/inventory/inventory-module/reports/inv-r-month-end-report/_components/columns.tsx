@@ -1,27 +1,27 @@
-"use client";
+'use client';
 
-import { ColumnDef } from "@tanstack/react-table";
-import { IInvRMonthEndReportTableRow } from "@/types/inventory/reports/inv-r-month-end-report";
+import type { IInvRMonthEndReportTableRow } from '@/types/inventory/reports/inv-r-month-end-report';
+import type { ColumnDef } from '@tanstack/react-table';
 
 export const columns: ColumnDef<IInvRMonthEndReportTableRow>[] = [
     {
-        accessorKey: "id",
-        header: "SL.NO",
+        accessorKey: 'id',
+        header: 'SL.NO'
     },
     {
-        accessorKey: "inventory",
-        header: "INVENTORY",
+        accessorKey: 'inventory',
+        header: 'INVENTORY'
     },
     {
-        accessorKey: "count",
-        header: "COUNT",
+        accessorKey: 'count',
+        header: 'COUNT'
     },
     {
-        accessorKey: "sms",
-        header: "SMS",
+        accessorKey: 'sms',
+        header: 'SMS'
     },
     {
-        accessorKey: "email",
-        header: "EMAIL",
-    },
+        accessorKey: 'email',
+        header: 'EMAIL'
+    }
 ];
