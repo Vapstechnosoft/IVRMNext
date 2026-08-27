@@ -181,7 +181,7 @@ export function ParentsSection({
                             </div>
                             <div className="flex flex-col gap-1.5">
                                 <Label>Aadhar No.</Label>
-                                <InputText {...register('fatherAadharNo')} placeholder="12 digit Aadhar" maxLength={12} />
+                                <InputText {...register('fatherAadharNo')} placeholder="12 digit Aadhar" maxLength={12} onInput={(e) => { e.currentTarget.value = e.currentTarget.value.replace(/\D/g, ''); }} />
                                 {errors.fatherAadharNo && <FormError>{errors.fatherAadharNo.message as string}</FormError>}
                             </div>
                             <div className="flex flex-col gap-1.5">
@@ -197,6 +197,7 @@ export function ParentsSection({
                                                 onChange={(phone, data) => handlePhoneChange(phone, data, 'pasR_FatherMobleNo')}
                                                 containerClass="w-full"
                                                 inputClass="w-full h-10 px-12 py-2 rounded-md border border-input bg-background"
+                                                enableLongNumbers={false}
                                             />
                                             {phoneExpectedInfo.pasR_FatherMobleNo?.expected && (
                                                 <span className="text-[10px] text-muted-foreground mt-1 absolute -bottom-4 right-0">
@@ -415,7 +416,7 @@ export function ParentsSection({
                             </div>
                             <div className="flex flex-col gap-1.5">
                                 <Label>Aadhar No.</Label>
-                                <InputText {...register('motherAadharNo')} placeholder="12 digit Aadhar" maxLength={12} />
+                                <InputText {...register('motherAadharNo')} placeholder="12 digit Aadhar" maxLength={12} onInput={(e) => { e.currentTarget.value = e.currentTarget.value.replace(/\D/g, ''); }} />
                                 {errors.motherAadharNo && <FormError>{errors.motherAadharNo.message as string}</FormError>}
                             </div>
                             <div className="flex flex-col gap-1.5">
@@ -431,6 +432,7 @@ export function ParentsSection({
                                                 onChange={(phone, data) => handlePhoneChange(phone, data, 'pasR_MotherMobleNo')}
                                                 containerClass="w-full"
                                                 inputClass="w-full h-10 px-12 py-2 rounded-md border border-input bg-background"
+                                                enableLongNumbers={false}
                                             />
                                             {phoneExpectedInfo.pasR_MotherMobleNo?.expected && (
                                                 <span className="text-[10px] text-muted-foreground mt-1 absolute -bottom-4 right-0">

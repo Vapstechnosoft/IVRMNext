@@ -82,8 +82,9 @@ import {
     getThirdPartyTrasaction_GM,
     geteditThirdpartytrasaction_GM
 } from '@/server/fees/trasactions/thirdpartyTransaction_GM';
-import { feeTransactionWaivedOff, getClassdetails, getsectiondetails } from '@/server/fees/trasactions/waived_off';
+import { getStudentFeeEnablePartialPaymentDetails } from '@/server/fees/trasactions/student_fee_enable_partial_payment';
 import type { ApiSearchparams } from '@/types';
+import { feeTransactionWaivedOff, getClassdetails, getsectiondetails } from '@/server/fees/trasactions/waived_off';
 
 export const useFeeAmountEntry = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
@@ -1422,6 +1423,24 @@ export const useeditThirdpartytrasaction_GM = (mi_id: number, asmaY_Id: number, 
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_EDITDATA]
+            });
+        }
+    };
+};
+
+export const useStudentFeeEnablePartialPayment = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.STUDENT_FEE_ENABLE_PARTIAL_PAYMENT, searchParams ?? {}],
+            queryFn: async () => getStudentFeeEnablePartialPaymentDetails(searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.STUDENT_FEE_ENABLE_PARTIAL_PAYMENT]
             });
         }
     };

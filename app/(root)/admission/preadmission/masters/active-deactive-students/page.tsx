@@ -19,11 +19,11 @@ import { ActiveDeactive } from '@/server/admission/preadmission/masters/active_d
 import type { ApiSearchparams } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save, X } from 'lucide-react';
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useMemo, useCallback } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-import { activedeactiveColumns } from './_components/columns';
+import { getActiveDeactiveColumns } from './_components/columns';
 
 type FormFields = z.infer<typeof masterActiveDeactiveStudentSchema>;
 
@@ -60,6 +60,7 @@ export default function MasterActiveDeactiveStudentPage(props: {
     const [sectionId, setSectionId] = useState<number>(0);
     const [selectedStudents, setSelectedStudents] = useState<Set<number>>(new Set());
     const [studentData, setStudentData] = useState<Map<number, StudentData>>(new Map());
+    const studentDataRef = useRef<Map<number, StudentData>>(new Map());
 
     const { data: academicYear, isLoading: ayLoading } = useAcademicYearDropdown();
     const { data: masterClass, isLoading: preadmissionClassLoading, isError: preadmissionClassError } = useMasterClassDropdown();
@@ -83,22 +84,41 @@ export default function MasterActiveDeactiveStudentPage(props: {
 
     const apiSearchParams: ApiSearchparams | undefined = searchParams
         ? {
-              page: Number(searchParams.page) || 1,
-              page_size: Number(searchParams.page_size) || 10,
-              sort_column: String(searchParams.sort_column || ''),
-              sort_direction: String(searchParams.sort_direction || 'asc'),
-              search_query: String(searchParams.search_query || ''),
-              search_columns: String(searchParams.search_columns || '')
-          }
+            page: Number(searchParams.page) || 1,
+            page_size: Number(searchParams.page_size) || 10,
+            sort_column: String(searchParams.sort_column || ''),
+            sort_direction: String(searchParams.sort_direction || 'asc'),
+            search_query: String(searchParams.search_query || ''),
+            search_columns: String(searchParams.search_columns || '')
+        }
         : undefined;
 
     const {
         data: StudentListData,
         isLoading: StudentListLoading,
         isError: StudentListError
-    } = useMasterStudentList(amst_sol, academicYearId, classId, sectionId, apiSearchParams);
+    } = useMasterStudentList(amst_sol, academicYearId, classId, sectionId, undefined);
 
-    const students = StudentListData?.data;
+    const students = StudentListData?.data || [];
+
+    const searchQuery = apiSearchParams?.search_query?.toLowerCase() || '';
+    const filteredStudents = useMemo(() => {
+        if (!searchQuery) return students;
+        return students.filter((student: Student) => {
+            return (
+                student.student_name?.toLowerCase().includes(searchQuery) ||
+                student.registration_no?.toLowerCase().includes(searchQuery) ||
+                student.admission_no?.toLowerCase().includes(searchQuery) ||
+                student.student_id?.toString().includes(searchQuery)
+            );
+        });
+    }, [students, searchQuery]);
+
+    const page = apiSearchParams?.page || 1;
+    const pageSize = apiSearchParams?.page_size || 10;
+    const paginatedStudents = useMemo(() => {
+        return filteredStudents.slice((page - 1) * pageSize, page * pageSize);
+    }, [filteredStudents, page, pageSize]);
 
     const handleAcademicYearChange = (value: string) => {
         const numValue = Number(value);
@@ -110,6 +130,7 @@ export default function MasterActiveDeactiveStudentPage(props: {
         setValue('asmS_Id', 0);
         setSelectedStudents(new Set());
         setStudentData(new Map());
+        studentDataRef.current = new Map();
     };
 
     const handleClassChange = (value: string) => {
@@ -120,6 +141,7 @@ export default function MasterActiveDeactiveStudentPage(props: {
         setValue('asmS_Id', 0);
         setSelectedStudents(new Set());
         setStudentData(new Map());
+        studentDataRef.current = new Map();
     };
 
     const handleSectionChange = (value: string) => {
@@ -128,6 +150,7 @@ export default function MasterActiveDeactiveStudentPage(props: {
         setValue('asmS_Id', numValue);
         setSelectedStudents(new Set());
         setStudentData(new Map());
+        studentDataRef.current = new Map();
     };
 
     const handleStatus = (value: string) => {
@@ -135,37 +158,25 @@ export default function MasterActiveDeactiveStudentPage(props: {
         setValue('amsT_SOL', value as any);
         setSelectedStudents(new Set());
         setStudentData(new Map());
+        studentDataRef.current = new Map();
     };
 
     const handleSelectStudent = (selectedRows: Student[]) => {
-        const selectedIds = new Set(selectedRows.map((student) => student.student_id));
+        const selectedIds = new Set(selectedRows.map((student) => Number(student.student_id)));
         setSelectedStudents(selectedIds);
     };
 
-    const updateStudentData = (studentId: number, field: 'reason' | 'remark', value: string) => {
-        setStudentData((prev) => {
-            const newMap = new Map(prev);
-            const current = newMap.get(studentId) || { student_id: studentId, reason: '', remark: '' };
-            newMap.set(studentId, { ...current, [field]: value });
-            return newMap;
+    const updateStudentData = useCallback((studentId: number | string, field: 'reason' | 'remark', value: string) => {
+        const numId = Number(studentId);
+        studentDataRef.current.set(numId, {
+            ...(studentDataRef.current.get(numId) || { student_id: numId, reason: '', remark: '' }),
+            [field]: value
         });
-    };
+        setStudentData(new Map(studentDataRef.current));
+    }, []);
 
     const handleClear = () => {
-        setAcademicYearId(0);
-        setClassId(0);
-        setSectionId(0);
-        setAmst_sol('S');
-        setValue('asmaY_Id', 0);
-        setValue('asmcL_Id', 0);
-        setValue('asmS_Id', 0);
-        setValue('amsT_SOL', 'S' as any);
-        setSelectedStudents(new Set());
-        setStudentData(new Map());
-        
-        if (tableRef.current) {
-            tableRef.current.resetRowSelection();
-        }
+        window.location.reload();
     };
 
     const handleSave = async () => {
@@ -182,16 +193,19 @@ export default function MasterActiveDeactiveStudentPage(props: {
         let hasError = false;
 
         const studentsArray = Array.from(selectedStudents).map((id) => {
-            const sd = studentData.get(id);
+            const numId = Number(id);
+            const sd = studentDataRef.current.get(numId);
             if (!sd?.reason || !sd?.remark) {
                 hasError = true;
             }
             return {
-                amsT_Id: id,
+                amsT_Id: numId,
                 reason: sd?.reason || '',
                 remarks: sd?.remark || ''
             };
         });
+        console.log('studentsArray', studentsArray);
+
 
         if (hasError) {
             toast.error('Please fill Reason and Remarks for all selected students');
@@ -205,9 +219,7 @@ export default function MasterActiveDeactiveStudentPage(props: {
             asmcL_Id: classId,
             asmS_Id: sectionId,
             amsT_SOL: amst_sol as any,
-            amsT_SOL_activate: amsT_SOL_activate,
-            students: studentsArray,
-            remarks: ''
+            students: studentsArray
         };
 
         try {
@@ -224,14 +236,18 @@ export default function MasterActiveDeactiveStudentPage(props: {
     };
 
     const tableProps = {
-        ...useDataTableProps(StudentListData),
+        data: paginatedStudents,
+        totalItems: filteredStudents.length,
+        success: StudentListData?.success ?? true,
+        errorMessage: StudentListData?.message,
         enableRowSelection: true,
         getRowId: (row: Student) => row.student_id.toString(),
-        meta: {
-            studentData,
-            updateStudentData
-        }
     };
+
+    const columns = useMemo(
+        () => getActiveDeactiveColumns(studentDataRef, updateStudentData),
+        [updateStudentData]
+    );
 
     return (
         <div className='min-h-screen bg-gray-50'>
@@ -307,6 +323,7 @@ export default function MasterActiveDeactiveStudentPage(props: {
                                         control={control}
                                         render={({ field }) => (
                                             <UISelect
+                                                key={`class-${academicYearId}`}
                                                 onValueChange={handleClassChange}
                                                 value={field.value > 0 ? field.value.toString() : ''}
                                                 disabled={academicYearId === 0}>
@@ -345,6 +362,7 @@ export default function MasterActiveDeactiveStudentPage(props: {
                                         control={control}
                                         render={({ field }) => (
                                             <UISelect
+                                                key={`section-${classId}`}
                                                 onValueChange={handleSectionChange}
                                                 value={field.value > 0 ? field.value.toString() : ''}
                                                 disabled={classId === 0}>
@@ -389,7 +407,7 @@ export default function MasterActiveDeactiveStudentPage(props: {
                                 <GenericDataTable<Student>
                                     {...tableProps}
                                     ref={tableRef}
-                                    columns={activedeactiveColumns}
+                                    columns={columns}
                                     isLoading={StudentListLoading}
                                     error={StudentListError ? new Error('Failed to load students') : null}
                                     showViewOptions={false}

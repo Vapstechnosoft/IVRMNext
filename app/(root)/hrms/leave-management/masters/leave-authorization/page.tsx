@@ -30,6 +30,7 @@ export default function LeaveAuthorizationPage(_props: { searchParams: SearchPar
     }), [params]);
 
     const { data: response, isLoading, error } = useLeaveAuthorization(normalizedParams);
+    console.log("Leave Auth Response", response);
     return (
         <FormProvider<LeaveAuthorization>>
             <LeaveAuthorizationPageContent response={response} isLoading={isLoading} error={error} />

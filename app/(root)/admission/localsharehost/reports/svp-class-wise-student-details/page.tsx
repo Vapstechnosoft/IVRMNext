@@ -1,727 +1,671 @@
 'use client';
 
-import { Printer, FileSpreadsheet, RotateCcw, Search, Loader2 } from 'lucide-react';
-import React, { useState, useEffect, useMemo } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { CheckSquare, FileText, Printer, RotateCcw, Search, Square, X } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useReactToPrint } from 'react-to-print';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import * as XLSX from 'xlsx';
+import type { z } from 'zod';
 
+/* ---------------- UI Components ---------------- */
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/extension/field';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Input } from '@/components/ui/input';
+import type { DataTableRef } from '@/components/ui/data-table/data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Label } from '@/components/ui/label';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+/* ---------------- Hooks ---------------- */
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
-import { Badge } from '@/components/ui/badge';
+    useAcademicYearDropdown,
+    useConcessionDropdown,
+    useMasterClassDropdown,
+    useMasterSectionDropdown
+} from '@/hooks/admission/preadmission/useMasters';
+import { ClasswiseStudentDetails } from '@/hooks/admission/preadmission/useReports';
 
-import {
-    useSVPClassWiseInitialData,
-    useSVPClassByYear,
-    useSVPSectionByClass,
-    useSVPClassWiseReportDetails
-} from '@/hooks/admission/preadmission/useSVPClassWiseStudentDetails';
+/* ---------------- Schema ---------------- */
+import { classwiseStudentDetailsSchema } from '@/schemas/admission/preadmission/reports';
 
-const HEADER_FIELDS = [
-    { id: 'AMST_FirstName', value: 'Student Name' },
-    { id: 'AMST_AdmNo', value: 'Adm. No.' },
-    { id: 'AMAY_RollNo', value: 'Roll No.' },
-    { id: 'AMST_RegistrationNo', value: 'Reg. No.' },
-    { id: 'ASMCL_ClassName', value: 'Current Trade' },
-    { id: 'ASMC_SectionName', value: 'Current Unit' },
-    { id: 'JoinedYear', value: 'JoinedYear' },
-    { id: 'JoinedClass', value: 'JoinedClass' },
-    { id: 'AMST_Sex', value: 'Gender' },
-    { id: 'AMST_BloodGroup', value: 'Blood Group' },
-    { id: 'AMST_MotherTongue', value: 'Mother Tongue' },
-    { id: 'AMST_MobileNo', value: 'Phone No.' },
-    { id: 'AMST_emailId', value: 'Email ID' },
-    { id: 'AMST_PerAdd3', value: 'Permanent Address' },
-    { id: 'AMST_ConCity', value: 'Present Address' },
-    { id: 'IVRMMC_Nationality', value: 'Nationality' },
-    { id: 'AMST_BiometricId', value: 'Biometric Code' },
-    { id: 'AMST_Date', value: 'DOA' },
-    { id: 'AMST_DOB', value: 'DOB' },
-    { id: 'AMST_DOB_Words', value: "DOB(Words)" },
-    { id: 'PASR_Age', value: 'Age' },
-    { id: 'AMST_Photoname', value: 'Student Photo' },
-    { id: 'IMC_CasteName', value: 'Caste' },
-    { id: 'IMCC_CategoryName', value: 'Caste Category' },
-    { id: 'AMC_Name', value: 'Category' },
-    { id: 'IVRMMR_Name', value: 'Religion' },
-    { id: 'AMST_PerStreet', value: 'Street' },
-    { id: 'AMST_PerCity', value: 'Town' },
-    { id: 'IVRMMS_Name', value: 'State' },
-    { id: 'AMST_FatherName', value: 'Father Name' },
-    { id: 'AMST_FatherMobleNo', value: 'Father Mobile Number' },
-    { id: 'AMST_FatheremailId', value: 'Father Email Id' },
-    { id: 'AMST_FatherOccupation', value: 'Father Occupation' },
-    { id: 'AMST_FatherMonIncome', value: 'Father Income' },
-    { id: 'AMST_FatherEducation', value: 'Father Qualification' },
-    { id: 'AMST_MotherName', value: 'Mother Name' },
-    { id: 'AMST_MotherMobileNo', value: 'Mother Mobile Number' },
-    { id: 'AMST_MotherEmailId', value: 'Mother Email Id' },
-    { id: 'AMST_MotherOccupation', value: 'Mother Occupation' },
-    { id: 'AMST_MotherMonIncome', value: 'Mother’s Income' },
-    { id: 'AMST_MotherEducation', value: 'Mother Qualification' },
-    { id: 'AMST_AadharNo', value: 'Aadhar Card Number' },
-    { id: 'AMST_Tpin', value: 'Tpin' },
-    { id: 'AMST_GovtAdmno', value: 'GovtAdmno' },
-    { id: 'AMST_BPLCardNo', value: 'GovtNo' },
-    { id: 'AMST_BirthPlace', value: 'Place Of Birth' },
-    { id: 'AMSTPS_PrvSchoolName', value: 'Previous School Name' },
-    { id: 'AMSTPS_PreviousClass', value: 'Previous Class' },
-    { id: 'AMSTPS_PrvTCDate', value: 'Previous TC Date' },
-    { id: 'AMSTPS_PrvTCNO', value: 'Previous TCNo' },
-    { id: 'AMST_Village', value: 'Village' },
-    { id: 'AMST_Town', value: 'Town' },
-    { id: 'AMST_Taluk', value: 'Taluk' },
-    { id: 'IVRMMD_Name', value: 'District' },
-    { id: 'AMST_PlaceOfBirthState', value: 'State' },
-    { id: 'AMST_PlaceOfBirthCountry', value: 'Country' },
-    { id: 'SPCCMH_HouseName', value: 'House' },
-    { id: 'Electives', value: 'Electives' },
-    { id: 'AMST_PENNo', value: 'Pen No' },
-    { id: 'Integrated', value: 'Integrated' },
-    { id: 'PrevSchool', value: 'PrevSchool' },
-    { id: 'Board', value: 'Board' },
-    { id: 'Remarks', value: 'Remarks' },
-    { id: 'ApaarNo', value: 'ApaarNo' },
-];
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { cn } from '@/lib/utils';
+import * as XLSX from 'xlsx';
+import { getclasswiseStudentDetails } from '@/server/admission/preadmission/reports/report';
+/* ---------------- Columns ---------------- */
+import { getMasterAdmissionReportColumns } from './_components/columns';
+import { ColumnValue } from './_components/columnvalue';
+import { KendoFormat } from './_components/kendo-format';
+import { exportToPdf } from '@/lib/export-to-file';
+import { ClasswisePrint } from './_components/classwise-print';
 
-export default function SVPClassWiseStudentDetailsPage() {
-    // Hooks
-    const { data: initialData, isLoading: isInitialLoading } = useSVPClassWiseInitialData();
-    const classByYearMutation = useSVPClassByYear();
-    const sectionByClassMutation = useSVPSectionByClass();
-    const reportDetailsMutation = useSVPClassWiseReportDetails();
-    
-    // Initial Data Effect
-    useEffect(() => {
-        if (initialData?.success && initialData?.data) {
-            const data = initialData.data;
-            if (data.academicListdefault?.length > 0) {
-                setAcademicYearId(data.academicListdefault[0].asmaY_Id);
-            }
-            if (data.studentList) {
-                setClassList(data.studentList);
-            }
-            if (data.fillsection) {
-                setSectionList(data.fillsection.map((s: any) => ({
-                    ...s,
-                    ASMS_Id: s.ASMS_Id ?? s.asmS_Id,
-                    ASMC_SectionName: s.ASMC_SectionName ?? s.asmC_SectionName
-                })));
-            }
+/* -------------------------------------------------------------------------- */
+/* Types */
+/* -------------------------------------------------------------------------- */
+
+type FormFields = z.infer<typeof classwiseStudentDetailsSchema>;
+
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+/* -------------------------------------------------------------------------- */
+/* Component */
+/* -------------------------------------------------------------------------- */
+
+export default function AdmissionReportPage(props: {
+    searchParams: SearchParams;
+}) {
+    const router = useRouter();
+    const currentSearchParams = useSearchParams();
+    const tableRef = useRef<DataTableRef>(null);
+    const printRef = useRef<HTMLDivElement>(null);
+
+    /* ---------------- Form ---------------- */
+
+    const {
+        control,
+        watch,
+        reset,
+        setValue,
+        formState: { errors }
+    } = useForm<FormFields>({
+        resolver: zodResolver(classwiseStudentDetailsSchema),
+        defaultValues: {
+            asmaY_Id: 0,
+            fmcC_Id: 0,
+            classes: [],
+            class_section: [],
+            selectedFields: []
         }
-    }, [initialData]);
-
-    // Filter State
-    const [academicYearId, setAcademicYearId] = useState<number | null>(null);
-    const [selectedClasses, setSelectedClasses] = useState<number[]>([]);
-    const [selectedSections, setSelectedSections] = useState<number[]>([]);
-    const [shiftId, setShiftId] = useState('0');
-    const [admissionType, setAdmissionType] = useState('newad');
-    const [reportFormat, setReportFormat] = useState('0'); // 0: Table, 1: Kendo
-    const [selectedColumns, setSelectedColumns] = useState<string[]>(HEADER_FIELDS.map(f => f.id));
-
-    // Search States for Multiselects
-    const [classSearch, setClassSearch] = useState('');
-    const [sectionSearch, setSectionSearch] = useState('');
-    const [columnSearch, setColumnSearch] = useState('');
-
-    // Data States
-    const [classList, setClassList] = useState<any[]>([]);
-    const [sectionList, setSectionList] = useState<any[]>([]);
-    const [students, setStudents] = useState<any[]>([]);
-    const [reportColumns, setReportColumns] = useState<any[]>([]);
-    const [showGrid, setShowGrid] = useState(false);
-    const [isGenerating, setIsGenerating] = useState(false);
-    const [studentSearch, setStudentSearch] = useState('');
-
-    // Row Selection for Print/Export
-    const [selectedRows, setSelectedRows] = useState<number[]>([]);
-
-    // Filtered Lists
-    const filteredClassList = useMemo(() => 
-        classList.filter(c => c.asmcL_ClassName.toLowerCase().includes(classSearch.toLowerCase())),
-    [classList, classSearch]);
-
-    const filteredSectionList = useMemo(() => 
-        sectionList.filter(s => (s.ASMC_SectionName || s.asmC_SectionName || '').toLowerCase().includes(sectionSearch.toLowerCase())),
-    [sectionList, sectionSearch]);
-
-    const filteredHeaderFields = useMemo(() => 
-        HEADER_FIELDS.filter(f => f.value.toLowerCase().includes(columnSearch.toLowerCase())),
-    [columnSearch]);
-
-    const filteredStudents = useMemo(() => {
-        if (!studentSearch) return students;
-        return students.filter(s => 
-            Object.values(s).some(val => 
-                String(val).toLowerCase().includes(studentSearch.toLowerCase())
-            )
-        );
-    }, [students, studentSearch]);
-
-    // Reusable Section Fetcher
-    const fetchSections = async (yearId: number, classIds: number[]) => {
-        if (yearId && classIds.length > 0) {
-            try {
-                const res = await sectionByClassMutation.mutateAsync({
-                    asmaY_Id: yearId,
-                    classlsttwo: classIds.map(id => ({ asmcL_Id: id, asmS_Id: 0 }))
-                });
-                if (res?.data?.studentList) {
-                    setSectionList(res.data.studentList.map((s: any) => ({
-                        ...s,
-                        ASMS_Id: s.ASMS_Id ?? s.asmS_Id,
-                        ASMC_SectionName: s.ASMC_SectionName ?? s.asmC_SectionName
-                    })));
-                }
-            } catch (error) {
-                toast.error('Failed to load sections');
-            }
-        } else {
-            setSectionList([]);
-            setSelectedSections([]);
-        }
+    });
+    const handleFieldToggle = (fieldId: string) => {
+        const current = selectedFields || [];
+        const updated = current.includes(fieldId) ? current.filter((f) => f !== fieldId) : [...current, fieldId];
+        setValue('selectedFields', updated, { shouldValidate: true });
+    };
+    const watchedAsmaY_Id = watch('asmaY_Id');
+    const [selectedClassItems, setSelectedClassItems] = useState<{ asmcL_Id: string; asmcL_ClassName: string }[]>([]);
+    const [selectedSectionItems, setSelectedSectionItems] = useState<{ asmS_Id: string; asmcL_SectionName: string }[]>([]);
+    const scopeMap: Record<'newad' | 'totstd' | 'prom' | 'yrloss' | 'deact', number> = {
+        newad: 1,
+        totstd: 2,
+        prom: 3,
+        yrloss: 4,
+        deact: 5
     };
 
-    // Handlers
-    const handleYearChange = async (yearId: number) => {
-        setAcademicYearId(yearId);
-        try {
-            const res = await classByYearMutation.mutateAsync(yearId);
-            if (res?.data?.studentList) {
-                setClassList(res.data.studentList);
-            }
-            // Refetch sections for currently selected classes with new year
-            if (selectedClasses.length > 0) {
-                await fetchSections(yearId, selectedClasses);
-            }
-        } catch (error) {
-            toast.error('Failed to load classes');
-        }
-    };
+    const [studentScope, setStudentScope] = useState<'newad' | 'totstd' | 'prom' | 'yrloss' | 'deact'>('newad');
 
-    const handleClassToggle = async (classId: number) => {
-        let newSelected;
-        if (selectedClasses.includes(classId)) {
-            newSelected = selectedClasses.filter(id => id !== classId);
-        } else {
-            newSelected = [...selectedClasses, classId];
-        }
-        setSelectedClasses(newSelected);
+    const [studentStatus, setStudentStatus] = useState<'Tformate' | 'Kformate'>('Tformate');
 
-        if (newSelected.length > 0 && academicYearId) {
-            await fetchSections(academicYearId, newSelected);
-        } else {
-            setSectionList([]);
-            setSelectedSections([]);
-        }
-    };
+    const watchedYear = watch('asmaY_Id');
+    const watchedStudentCategory = watch('fmcC_Id');
+    const selectedFields = watch('selectedFields');
 
-    const handleAllClassesToggle = async (checked: boolean) => {
-        const newSelected = checked ? classList.map(c => c.asmcL_Id) : [];
-        setSelectedClasses(newSelected);
-        
-        if (newSelected.length > 0 && academicYearId) {
-            await fetchSections(academicYearId, newSelected);
-        } else {
-            setSectionList([]);
-            setSelectedSections([]);
-        }
-    };
+    /* ---------------- Local State ---------------- */
 
-    const handleSectionToggle = (sectionId: number) => {
-        if (selectedSections.includes(sectionId)) {
-            setSelectedSections(selectedSections.filter(id => id !== sectionId));
-        } else {
-            setSelectedSections([...selectedSections, sectionId]);
-        }
-    };
+    const [showReport, setShowReport] = useState(false);
+    const [requestPayload, setRequestPayload] = useState<any>(null);
+    const [resolvedSearchParams, setResolvedSearchParams] = useState<Record<string, string | string[] | undefined>>({});
+    const [fieldSearch, setFieldSearch] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [printTimestamp, setPrintTimestamp] = useState('');
+    const [printData, setPrintData] = useState<any[]>([]);
 
-    const handleAllSectionsToggle = (checked: boolean) => {
-        setSelectedSections(checked ? sectionList.map(s => s.ASMS_Id) : []);
-    };
+    /* ---------------- Masters ---------------- */
 
-    const handleColumnToggle = (columnId: string) => {
-        if (selectedColumns.includes(columnId)) {
-            setSelectedColumns(selectedColumns.filter(id => id !== columnId));
-        } else {
-            setSelectedColumns([...selectedColumns, columnId]);
-        }
-    };
+    const { data: academicYear } = useAcademicYearDropdown();
+    const { data: masterSection, isLoading: masterSectionLoading } = useMasterSectionDropdown();
+    const { data: masterClass, isLoading: masterClassLoading } = useMasterClassDropdown();
+    const { data: concession } = useConcessionDropdown();
+    const filteredFields = useMemo(() => {
+        return ColumnValue.filter((field) => field.columnName.toLowerCase().includes(fieldSearch.toLowerCase()));
+    }, [fieldSearch]);
 
-    const handleAllColumnsToggle = (checked: boolean) => {
-        setSelectedColumns(checked ? HEADER_FIELDS.map(f => f.id) : []);
-    };
-
-    const handleGenerateReport = async () => {
-        if (!academicYearId || selectedClasses.length === 0 || selectedSections.length === 0) {
-            toast.error('Please select Year, Class and Section');
-            return;
-        }
-
-        try {
-            setIsGenerating(true);
-            setShowGrid(false);
-
-            const payload = {
-                ASMAY_Id: academicYearId!,
-                classlsttwo: selectedClasses.map(id => ({ ASMCL_Id: id, ASMS_Id: 0 })),
-                sectionlistarray: selectedSections.map(id => {
-                    const sec = sectionList.find(s => s.ASMS_Id === id);
-                    return { ASMS_Id: id, ASMCL_Id: sec?.asmcL_Id || 0 };
-                }),
-                TempararyArrayheadList: selectedColumns.map(id => ({
-                    columnID: id,
-                    columnName: HEADER_FIELDS.find(f => f.id === id)?.value || id
-                })),
-                flag: admissionType,
-                AMC_Id: 0,
-                Concession_Id: shiftId.toString()
+    /* ---------------- Build Payload ---------------- */
+    const handleClassSelection = (selectedValues: string[]) => {
+        const selectedClasses = selectedValues.map((value) => {
+            const cls = (masterClass?.data as any)?.find((c: any) => String(c.asmcL_Id) === String(value));
+            return {
+                asmcL_Id: value.toString(),
+                asmcL_ClassName: cls?.asmcL_ClassName ?? ''
             };
-
-            const res = await reportDetailsMutation.mutateAsync(payload);
-
-            if (res?.data?.alldatagridreport && res.data.alldatagridreport.length > 0) {
-                // Formatting data as per legacy logic
-                const formattedStudents = res.data.alldatagridreport.map((s: any) => {
-                    const formatted = { ...s };
-                    if (formatted.AMST_FirstName) {
-                        formatted.AMST_FirstName = formatted.AMST_FirstName.replace(/  +/g, ' ');
-                    }
-                    // Handle 'Not Available' fields
-                    ['AMST_FatherOccupation', 'AMST_MotherOccupation', 'AMST_FatherEducation', 'AMST_MotherEducation', 'AMST_BirthPlace', 'ApaarNo'].forEach(key => {
-                        if (formatted[key] === '0' || formatted[key] === undefined) {
-                            formatted[key] = 'Not Available';
-                        }
-                    });
-                    return formatted;
-                });
-
-                setStudents(formattedStudents);
-                setReportColumns(res.data.tempararyArrayheadList || []);
-                setShowGrid(true);
-                setSelectedRows([]);
-            } else {
-                toast.error('No records found');
-            }
-        } catch (error) {
-            toast.error('Failed to generate report');
-        } finally {
-            setIsGenerating(false);
-        }
-    };
-
-    const handleExportExcel = () => {
-        if (selectedRows.length === 0) {
-            toast.error('Please select records to export');
-            return;
-        }
-
-        const exportData = filteredStudents.filter((_, idx) => selectedRows.includes(idx)).map((s, idx) => {
-            const row: any = { 'SL No': idx + 1 };
-            reportColumns.forEach(col => {
-                row[col.columnName] = s[col.columnID];
-            });
-            return row;
         });
 
-        const ws = XLSX.utils.json_to_sheet(exportData);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Students");
-        XLSX.writeFile(wb, "Classwise_Student_Details.xlsx");
+        setSelectedClassItems(selectedClasses);
+    };
+    const handleSectionSelection = (selectedValues: string[]) => {
+        const selectedSections = selectedValues.map((value) => {
+            const section = (masterSection?.data as any)?.find((s: any) => String(s.asmS_Id) === String(value));
+            return {
+                asmS_Id: value.toString(),
+                asmcL_SectionName: section?.asmC_SectionName ?? ''
+            };
+        });
+
+        setSelectedSectionItems(selectedSections);
     };
 
-    const handlePrint = () => {
-        if (selectedRows.length === 0) {
-            toast.error('Please select records to print');
+    /* ---------------- Resolve Search Params ---------------- */
+
+    useEffect(() => {
+        const resolveParams = async () => {
+            const resolved = await props.searchParams;
+            setResolvedSearchParams(resolved);
+        };
+        resolveParams();
+    }, [props.searchParams]);
+
+    /* ---------------- API ---------------- */
+
+    const {
+        data: response,
+        isFetching,
+        error,
+        refetch
+    } = ClasswiseStudentDetails(watchedYear, scopeMap[studentScope], watchedStudentCategory ?? 0, requestPayload, resolvedSearchParams);
+
+    /* ---------------- Table ---------------- */
+
+    const columns = useMemo(() => getMasterAdmissionReportColumns(selectedFields), [selectedFields]);
+
+    const transformedResponse = useMemo(() => {
+        if (!response) return response;
+        return {
+            ...response,
+            data: (response.data as any)?.printdatatable ?? []
+        };
+    }, [response]);
+
+    const tableProps = useDataTableProps(transformedResponse);
+    const handleSelectAllFields = () => {
+        if (selectedFields.length === filteredFields.length) {
+            setValue('selectedFields', [], { shouldValidate: true });
+        } else {
+            setValue(
+                'selectedFields',
+                filteredFields.map((f) => f.columnID),
+                { shouldValidate: true }
+            );
+        }
+    };
+
+    /* ---------------- Handlers ---------------- */
+
+    const getValidatedPayload = () => {
+        const fromData = watch();
+
+        if (!fromData.asmaY_Id) {
+            toast.error('Please Select Academic Year');
+            return null;
+        }
+
+        if (!fromData.classes || fromData.classes.length === 0) {
+            toast.error('Please Select Class');
+            return null;
+        }
+
+        if (!fromData.class_section || fromData.class_section.length === 0) {
+            toast.error('Please Select Section');
+            return null;
+        }
+
+        if (!fromData.selectedFields || fromData.selectedFields.length === 0) {
+            toast.error('Please Select Search Fields');
+            return null;
+        }
+
+        return {
+            classdetailsdata: fromData.classes.map((id: any) => {
+                const cls = (masterClass?.data as any)?.find((c: any) => String(c.asmcL_Id) === String(id));
+                return {
+                    asmcL_Id: id.toString(),
+                    asmcL_ClassName: cls?.asmcL_ClassName ?? ''
+                };
+            }),
+            sectionsdetailsdata: fromData.class_section.map((id: any) => {
+                const section = (masterSection?.data as any)?.find((s: any) => String(s.asmS_Id) === String(id));
+                return {
+                    asmS_Id: id.toString(),
+                    asmcL_SectionName: section?.asmC_SectionName ?? ''
+                };
+            }),
+            tempararyArrayheadList: fromData.selectedFields.map((id: string) => {
+                const field = ColumnValue.find((f) => f.columnID === id);
+                return {
+                    columnID: id,
+                    columnName: field?.columnName || ''
+                };
+            })
+        };
+    };
+
+    const handleReport = async () => {
+        setIsLoading(true);
+        try {
+            const payload = getValidatedPayload();
+            if (!payload) {
+                setIsLoading(false);
+                return;
+            }
+
+            console.log(' Report Button Parameters Debug:', {
+                watchedYear,
+                studentScope,
+                scopeMapValue: scopeMap[studentScope],
+                watchedStudentCategory,
+                'Concession_Id should be': scopeMap[studentScope],
+                'flag should be': watchedStudentCategory
+            });
+
+            setRequestPayload(payload);
+            setShowReport(true);
+
+            const params = new URLSearchParams(currentSearchParams.toString());
+            params.set('page', '1');
+            router.push(`?${params.toString()}`, { scroll: false });
+
+            toast.success('Generating report...');
+        } catch (err) {
+            console.error(err);
+            toast.error('Failed to generate report');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleReset = () => {
+        window.location.reload();
+    };
+
+    const handleCancel = () => {
+        window.location.reload();
+    };
+
+    const downloadExcel = async () => {
+        try {
+            const payload = getValidatedPayload();
+            if (!payload) return;
+
+            toast.loading('Preparing Excel export...', { id: 'excel-download' });
+
+            // Fetch all data for export
+            const allDataResponse: any = await getclasswiseStudentDetails(
+                watchedYear,
+                watchedStudentCategory ?? 0,
+                scopeMap[studentScope],
+                payload,
+                { page_size: 100000, page: 1 }
+            );
+
+            const allData = allDataResponse?.data?.printdatatable || [];
+
+            if (!allData || allData.length === 0) {
+                toast.dismiss('excel-download');
+                toast.error('No data available to export');
+                return;
+            }
+
+            const activeFields = ColumnValue.filter((f) => selectedFields.includes(f.columnID));
+            const yearObj = academicYear?.data?.find((y) => y.asmaY_Id === watchedYear);
+
+            // Prepare report headers
+            const reportHeaders = [
+                ['CLASS WISE STUDENT DETAILS'],
+                [`Academic Year: ${yearObj?.asmaY_Year || 'N/A'}`],
+                [`Classes: ${selectedClassItems.map(c => c.asmcL_ClassName).join(', ')}`],
+                [`Sections: ${selectedSectionItems.map(s => s.asmcL_SectionName).join(', ')}`],
+                [] // Empty row
+            ];
+
+            // Prepare table data
+            const tableHeaders = ['Sl.No', ...activeFields.map(f => f.columnName)];
+            const tableData = allData.map((row: any, index: number) => {
+                const rowData = [index + 1];
+                activeFields.forEach(field => {
+                    rowData.push(row[field.columnID] || '-');
+                });
+                return rowData;
+            });
+
+            // Create worksheet
+            const ws = XLSX.utils.aoa_to_sheet([...reportHeaders, tableHeaders, ...tableData]);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'ClassWiseStudentReport');
+
+            // Download file
+            XLSX.writeFile(wb, `ClassWiseStudentReport_${yearObj?.asmaY_Year || 'Report'}.xlsx`);
+
+            toast.dismiss('excel-download');
+            toast.success('Excel downloaded successfully');
+        } catch (error) {
+            console.error('Download error:', error);
+            toast.dismiss('excel-download');
+            toast.error('Failed to prepare Excel export');
+        }
+    };
+
+    const downloadPdf = async () => {
+        try {
+            const payload = getValidatedPayload();
+            if (!payload || !transformedResponse?.data) {
+                toast.error('No data available to export');
+                return;
+            }
+
+            toast.loading('Preparing PDF...', { id: 'pdf-download' });
+
+            const activeFields = ColumnValue.filter((f) => selectedFields.includes(f.columnID));
+            const pdfColumns = activeFields.map((f) => f.columnName);
+            const pdfData = (transformedResponse.data as any[]).map((row) =>
+                activeFields.map((f) => String(row[f.columnID] || ''))
+            );
+
+            exportToPdf('Class Wise Student Report', pdfColumns, pdfData);
+
+            toast.dismiss('pdf-download');
+            toast.success('PDF downloaded successfully');
+        } catch (error) {
+            console.error('PDF error:', error);
+            toast.dismiss('pdf-download');
+            toast.error('Failed to download PDF');
+        }
+    };
+
+    /* ---------------- Print ---------------- */
+
+    const triggerPrint = useReactToPrint({
+        contentRef: printRef,
+        documentTitle: 'ClassWiseStudentReport'
+    });
+
+    const handlePrint = async () => {
+        if (!showReport) {
+            toast.error('No report data to print');
             return;
         }
-        window.print();
-    };
+        const payload = getValidatedPayload();
+        if (!payload) return;
 
-    const handleClear = () => {
-        setAcademicYearId(null);
-        setSelectedClasses([]);
-        setSelectedSections([]);
-        setShiftId('0');
-        setAdmissionType('newad');
-        setShowGrid(false);
-        setStudents([]);
-        setClassList([]);
-        setSectionList([]);
-    };
-
-    const toggleRowSelection = (index: number) => {
-        if (selectedRows.includes(index)) {
-            setSelectedRows(selectedRows.filter(i => i !== index));
-        } else {
-            setSelectedRows([...selectedRows, index]);
+        try {
+            toast.loading('Preparing print...', { id: 'print-load' });
+            const allDataResponse: any = await getclasswiseStudentDetails(
+                watchedYear,
+                watchedStudentCategory ?? 0,
+                scopeMap[studentScope],
+                payload,
+                { page_size: 100000, page: 1 }
+            );
+            const allData = allDataResponse?.data?.printdatatable || [];
+            if (!allData.length) {
+                toast.dismiss('print-load');
+                toast.error('No data available to print');
+                return;
+            }
+            setPrintData(allData);
+            setPrintTimestamp(new Date().toLocaleString());
+            toast.dismiss('print-load');
+            // Small delay to let React re-render printData into the hidden component
+            setTimeout(() => triggerPrint(), 300);
+        } catch (err) {
+            toast.dismiss('print-load');
+            toast.error('Failed to prepare print');
         }
     };
 
-    const toggleAllRows = (checked: boolean) => {
-        setSelectedRows(checked ? filteredStudents.map((_, i) => i) : []);
-    };
+    /* -------------------------------------------------------------------------- */
+    /* Render */
+    /* -------------------------------------------------------------------------- */
 
     return (
-        <div className="min-h-screen p-4 space-y-6 bg-gray-50 print:p-0 print:bg-white">
-            <CollapsibleSection
-                title="CLASSWISE STUDENT DETAILS"
-                description="View and export class-wise student reports with custom fields"
-                defaultOpen={true}
-                variant="outline"
-                className="shadow-md print:hidden"
-            >
-                <div className="space-y-8 bg-white p-6 rounded-lg">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        {/* Left Side Filters */}
-                        <div className="space-y-6">
-                            <div className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                <Label className="text-sm font-bold">Academic Year:<span className="text-red-500">*</span></Label>
-                                <Select
-                                    value={academicYearId?.toString()}
-                                    onValueChange={(v) => handleYearChange(Number(v))}
-                                >
+        <div className='container min-h-screen space-y-4 p-2'>
+            <CollapsibleSection title='Class Wise Student Details' defaultOpen>
+                <div className='grid grid-cols-1 gap-4 p-4 md:grid-cols-2'>
+                    {/* Academic Year */}
+                    <div>
+                        <Label>Academic Year <span className='text-red-600'>*</span></Label>
+                        <Controller
+                            name='asmaY_Id'
+                            control={control}
+                            render={({ field }) => (
+                                <Select value={field.value ? String(field.value) : ''} onValueChange={(v) => field.onChange(Number(v))}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select Year" />
+                                        <SelectValue placeholder='Select Academic Year' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {initialData?.data?.fillyear?.map((item: any) => (
-                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                {item.asmaY_Year}
+                                        {academicYear?.data?.map((yr) => (
+                                            <SelectItem key={yr.asmaY_Id} value={String(yr.asmaY_Id)}>
+                                                {yr.asmaY_Year}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
-                            </div>
-
-                            <div className="grid grid-cols-[140px_1fr] items-start gap-4">
-                                <Label className="text-sm font-bold mt-2">Trade Name (Class):<span className="text-red-500">*</span></Label>
-                                <div className="border rounded-md p-2 space-y-2">
-                                    <Input 
-                                        placeholder="Search here..." 
-                                        value={classSearch} 
-                                        onChange={(e) => setClassSearch(e.target.value)}
-                                        className="h-8 text-xs"
-                                    />
-                                    <ScrollArea className="h-40">
-                                        <div className="space-y-2 p-1">
-                                            <div className="flex items-center space-x-2 border-b pb-2 mb-2">
-                                                <Checkbox 
-                                                    id="cls-all" 
-                                                    checked={selectedClasses.length === classList.length && classList.length > 0}
-                                                    onCheckedChange={handleAllClassesToggle}
-                                                />
-                                                <Label htmlFor="cls-all" className="text-xs font-bold cursor-pointer">All</Label>
-                                            </div>
-                                            {filteredClassList.map((item) => (
-                                                <div key={item.asmcL_Id} className="flex items-center space-x-2">
-                                                    <Checkbox 
-                                                        id={`cls-${item.asmcL_Id}`} 
-                                                        checked={selectedClasses.includes(item.asmcL_Id)}
-                                                        onCheckedChange={() => handleClassToggle(item.asmcL_Id)}
-                                                    />
-                                                    <Label htmlFor={`cls-${item.asmcL_Id}`} className="text-xs cursor-pointer">{item.asmcL_ClassName}</Label>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </ScrollArea>
-                                </div>
-                            </div>
-
-                            {selectedClasses.length > 0 && (
-                                <div className="grid grid-cols-[140px_1fr] items-start gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                                    <Label className="text-sm font-bold mt-2">Unit (Section):<span className="text-red-500">*</span></Label>
-                                    <div className="border rounded-md p-2 space-y-2 bg-white/50">
-                                        <Input 
-                                            placeholder="Search here..." 
-                                            value={sectionSearch} 
-                                            onChange={(e) => setSectionSearch(e.target.value)}
-                                            className="h-8 text-xs"
-                                        />
-                                        <ScrollArea className="h-40">
-                                            <div className="space-y-2 p-1">
-                                                <div className="flex items-center space-x-2 border-b pb-2 mb-2">
-                                                    <Checkbox 
-                                                        id="sec-all" 
-                                                        checked={selectedSections.length === sectionList.length && sectionList.length > 0}
-                                                        onCheckedChange={handleAllSectionsToggle}
-                                                    />
-                                                    <Label htmlFor="sec-all" className="text-xs font-bold cursor-pointer">All</Label>
-                                                </div>
-                                                {filteredSectionList.map((item) => (
-                                                    <div key={item.ASMS_Id} className="flex items-center space-x-2">
-                                                        <Checkbox 
-                                                            id={`sec-${item.ASMS_Id}`} 
-                                                            checked={selectedSections.includes(item.ASMS_Id)}
-                                                            onCheckedChange={() => handleSectionToggle(item.ASMS_Id)}
-                                                        />
-                                                        <Label htmlFor={`sec-${item.ASMS_Id}`} className="text-xs cursor-pointer">{item.ASMC_SectionName}</Label>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </ScrollArea>
-                                    </div>
-                                </div>
                             )}
+                        />
+                        {errors.asmaY_Id && <FormError>{errors.asmaY_Id.message}</FormError>}
+                    </div>
 
-                            <div className="grid grid-cols-[140px_1fr] items-center gap-4">
-                                <Label className="text-sm font-bold">Shift Name:</Label>
-                                <Select value={shiftId} onValueChange={setShiftId}>
+                    {/* Class */}
+                    <div>
+                        <Label>Trade Name <span className='text-red-600'>*</span></Label>
+                        <Controller
+                            name='classes'
+                            control={control}
+                            render={({ field }) => (
+                                <MultiSelect
+                                    options={
+                                        masterClass?.data?.map((c) => ({
+                                            label: c.asmcL_ClassName,
+                                            value: String(c.asmcL_Id)
+                                        })) ?? []
+                                    }
+                                    onValueChange={(selectedValues) => {
+                                        field.onChange(selectedValues);
+                                        handleClassSelection(selectedValues);
+                                    }}
+                                    defaultValue={selectedClassItems.map((data) => data.asmcL_Id)}
+                                    value={selectedClassItems.map((data) => data.asmcL_Id)}
+                                    placeholder='Trade Name'
+                                    variant='inverted'
+                                    disabled={!watchedAsmaY_Id || masterClassLoading}
+                                />
+                            )}
+                        />
+                        {errors.classes && <FormError>{errors.classes.message}</FormError>}
+                    </div>
+
+                    {/* Section */}
+                    <div>
+                        <Label>Unit <span className='text-red-600'>*</span></Label>
+                        <Controller
+                            name='class_section'
+                            control={control}
+                            render={({ field }) => (
+                                <MultiSelect
+                                    options={
+                                        masterSection?.data?.map((s) => ({
+                                            label: s.asmC_SectionName,
+                                            value: String(s.asmS_Id)
+                                        })) ?? []
+                                    }
+                                    onValueChange={(selectedValues) => {
+                                        field.onChange(selectedValues);
+                                        handleSectionSelection(selectedValues);
+                                    }}
+                                    defaultValue={selectedSectionItems.map((data) => data.asmS_Id)}
+                                    value={selectedSectionItems.map((data) => data.asmS_Id)}
+                                    placeholder='Select Unit'
+                                    variant='inverted'
+                                    disabled={masterSectionLoading}
+                                />
+                            )}
+                        />
+                        {errors.class_section && <FormError>{errors.class_section.message}</FormError>}
+                    </div>
+
+                    {/* Fields */}
+                    <div className='space-y-3'>
+                        <div className='relative'>
+                            <Search className='absolute top-2.5 left-3 h-4 w-4 text-gray-400' />
+                            <input
+                                type='text'
+                                placeholder='Search fields...'
+                                value={fieldSearch}
+                                onChange={(e) => setFieldSearch(e.target.value)}
+                                className='w-full rounded-md border border-gray-300 py-2 pr-3 pl-10 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary'
+                            />
+                        </div>
+
+                        <div
+                            onClick={handleSelectAllFields}
+                            className={cn(
+                                'flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 font-medium text-sm transition-all',
+                                selectedFields.length === filteredFields.length && filteredFields.length > 0
+                                    ? 'border-primary bg-primary/5 text-primary'
+                                    : 'border-gray-300 hover:border-primary/40'
+                            )}>
+                            {selectedFields.length === filteredFields.length && filteredFields.length > 0 ? (
+                                <CheckSquare className='h-4 w-4 text-primary' />
+                            ) : (
+                                <Square className='h-4 w-4 text-gray-400' />
+                            )}
+                            <span>Select All</span>
+                        </div>
+
+                        <div className='max-h-60 space-y-1 overflow-y-auto rounded-md border border-gray-300 p-2'>
+                            {filteredFields.map((field) => {
+                                const selected = selectedFields.includes(field.columnID);
+                                return (
+                                    <div
+                                        key={field.columnID}
+                                        onClick={() => handleFieldToggle(field.columnID)}
+                                        className={cn(
+                                            'flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm transition-all',
+                                            selected
+                                                ? 'border-primary bg-primary/5 text-primary'
+                                                : 'border-gray-200 hover:border-primary/40 hover:bg-gray-50'
+                                        )}>
+                                        {selected ? (
+                                            <CheckSquare className='h-4 w-4 text-primary' />
+                                        ) : (
+                                            <Square className='h-4 w-4 text-gray-400' />
+                                        )}
+                                        <span>{field.columnName}</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        {errors.selectedFields && <FormError>{errors.selectedFields.message}</FormError>}
+                    </div>
+                    <div>
+                        <Label>Shift</Label>
+                        <Controller
+                            name='fmcC_Id'
+                            control={control}
+                            render={({ field }) => (
+                                <Select value={field.value ? String(field.value) : ''} onValueChange={(v) => field.onChange(Number(v))}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select Shift" />
+                                        <SelectValue placeholder='Select Shift' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="0">--Select--</SelectItem>
-                                        {initialData?.data?.concession?.map((item: any) => (
-                                            <SelectItem key={item.fmcC_Id} value={item.fmcC_Id.toString()}>
-                                                {item.fmcC_ConcessionName}
+                                        {concession?.data?.map((yr: any) => (
+                                            <SelectItem key={yr.fmcC_Id} value={String(yr.fmcC_Id)}>
+                                                {yr.fmcC_ConcessionName}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
-                            </div>
-                        </div>
-
-                        {/* Right Side Filters */}
-                        <div className="space-y-6">
-                            <div className="grid grid-cols-[140px_1fr] items-start gap-4">
-                                <Label className="text-sm font-bold mt-2">Select Columns:<span className="text-red-500">*</span></Label>
-                                <div className="border rounded-md p-2 space-y-2">
-                                    <Input 
-                                        placeholder="Search columns..." 
-                                        value={columnSearch} 
-                                        onChange={(e) => setColumnSearch(e.target.value)}
-                                        className="h-8 text-xs"
-                                    />
-                                    <ScrollArea className="h-[400px]">
-                                        <div className="space-y-2 p-1">
-                                            <div className="flex items-center space-x-2 border-b pb-2 mb-2">
-                                                <Checkbox 
-                                                    id="col-all" 
-                                                    checked={selectedColumns.length === HEADER_FIELDS.length}
-                                                    onCheckedChange={handleAllColumnsToggle}
-                                                />
-                                                <Label htmlFor="col-all" className="text-xs font-bold cursor-pointer">Select All</Label>
-                                            </div>
-                                            {filteredHeaderFields.map((item) => (
-                                                <div key={item.id} className="flex items-center space-x-2">
-                                                    <Checkbox 
-                                                        id={`col-${item.id}`} 
-                                                        checked={selectedColumns.includes(item.id)}
-                                                        onCheckedChange={() => handleColumnToggle(item.id)}
-                                                    />
-                                                    <Label htmlFor={`col-${item.id}`} className="text-xs cursor-pointer">{item.value}</Label>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </ScrollArea>
-                                </div>
-                            </div>
-
-                            <div className="space-y-4 pt-4">
-                                <div className="p-3 bg-blue-50/50 rounded-lg border border-blue-100">
-                                    <RadioGroup value={admissionType} onValueChange={setAdmissionType} className="flex flex-wrap gap-4 justify-center">
-                                        {['newad', 'totstd', 'prom', 'yrloss', 'deact'].map((type) => (
-                                            <div key={type} className="flex items-center space-x-1">
-                                                <RadioGroupItem value={type} id={`type-${type}`} />
-                                                <Label htmlFor={`type-${type}`} className="text-[10px] font-bold capitalize">
-                                                    {type === 'newad' ? 'New Admission' : 
-                                                     type === 'totstd' ? 'Total Students' :
-                                                     type === 'prom' ? 'Promoted' :
-                                                     type === 'yrloss' ? 'Year Loss' : 'Deactivated'}
-                                                </Label>
-                                            </div>
-                                        ))}
-                                    </RadioGroup>
-                                </div>
-                                <div className="p-3 bg-green-50/50 rounded-lg border border-green-100">
-                                    <RadioGroup value={reportFormat} onValueChange={setReportFormat} className="flex gap-8 justify-center">
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="0" id="fmt-table" />
-                                            <Label htmlFor="fmt-table" className="text-xs font-bold">Table Format</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2 opacity-50 cursor-not-allowed">
-                                            <RadioGroupItem value="1" id="fmt-kendo" disabled />
-                                            <Label htmlFor="fmt-kendo" className="text-xs font-bold">Kendo Format (Coming Soon)</Label>
-                                        </div>
-                                    </RadioGroup>
-                                </div>
-                            </div>
-                        </div>
+                            )}
+                        />
+                        {errors.fmcC_Id && <FormError>{errors.fmcC_Id.message}</FormError>}
                     </div>
+                </div>
+                {/* Radios */}
+                <div className='space-y-4 border-t pt-6'>
+                    <RadioGroup
+                        value={studentScope}
+                        onValueChange={(v) => setStudentScope(v as 'newad' | 'totstd' | 'prom' | 'yrloss' | 'deact')}
+                        className='flex flex-wrap justify-center gap-6'>
+                        <RadioGroupItem value='newad' /> <Label>New Admission</Label>
+                        <RadioGroupItem value='totstd' /> <Label>Total Students</Label>
+                        <RadioGroupItem value='prom' /> <Label>Promoted</Label>
+                        <RadioGroupItem value='yrloss' /> <Label>Year Loss</Label>
+                        <RadioGroupItem value='deact' /> <Label>Deactivated</Label>
+                    </RadioGroup>
 
-                    {/* Action Buttons */}
-                    <div className="flex flex-wrap justify-center gap-4 pt-6 border-t font-sans">
-                        <Button
-                            onClick={handleGenerateReport}
-                            disabled={isGenerating || !academicYearId}
-                            className="min-w-[140px] bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all shadow-lg hover:shadow-indigo-200"
-                        >
-                            {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-                            REPORT
-                        </Button>
-                        <Button
-                            onClick={handleClear}
-                            variant="destructive"
-                            className="min-w-[140px] font-bold uppercase tracking-wider"
-                        >
-                            <RotateCcw className="mr-2 h-4 w-4" />
-                            Cancel
-                        </Button>
-                        <Button
-                            onClick={handlePrint}
-                            disabled={!showGrid || selectedRows.length === 0}
-                            variant="outline"
-                            className="min-w-[140px] font-bold uppercase tracking-wider border-2 border-primary text-primary hover:bg-primary/5"
-                        >
-                            <Printer className="mr-2 h-4 w-4" />
-                            Print
-                        </Button>
-                        <Button
-                            onClick={handleExportExcel}
-                            disabled={!showGrid || selectedRows.length === 0}
-                            className="min-w-[140px] bg-green-600 hover:bg-green-700 text-white font-bold"
-                        >
-                            <FileSpreadsheet className="mr-2 h-4 w-4" />
-                            Excel
-                        </Button>
-                    </div>
+                    <RadioGroup
+                        value={studentStatus}
+                        onValueChange={(v) => setStudentStatus(v as any)}
+                        className='flex justify-center gap-6'>
+                        <RadioGroupItem value='Tformate' /> <Label>Table Format</Label>
+                        <RadioGroupItem value='Kformate' /> <Label>Kendo Format</Label>
+                    </RadioGroup>
+                </div>
+
+                {/* Buttons */}
+                <div className='flex gap-3 p-4'>
+                    <Button onClick={handleReport} isLoading={isLoading} loadingText='Generating...'>
+                        <FileText className='mr-2 h-4 w-4' />
+                        Report
+                    </Button>
+                    <Button variant='outline' onClick={handleReset}>
+                        <RotateCcw className='mr-2 h-4 w-4' />
+                        Reset
+                    </Button>
+                    <Button onClick={downloadExcel} className='w-fit'>
+                        Export to Excel
+                    </Button>
+                    <Button variant='outline' onClick={handlePrint} disabled={!showReport}>
+                        <Printer className='mr-2 h-4 w-4' />
+                        Print
+                    </Button>
+                    <Button variant='outline' onClick={handleCancel}>
+                        <X className='mr-2 h-4 w-4' />
+                        Cancel
+                    </Button>
                 </div>
             </CollapsibleSection>
 
-            {/* Grid Section */}
-            {showGrid && (
-                <div className="bg-white p-6 rounded-lg shadow-md space-y-4">
-                    <div className="flex flex-wrap items-center justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                            <h3 className="text-lg font-bold uppercase text-indigo-700">Classwise Student Details</h3>
-                            <Badge variant="secondary" className="text-sm">
-                                Total: {students.length}
-                            </Badge>
-                            <Badge variant="outline" className="text-sm bg-indigo-50">
-                                Selected: {selectedRows.length}
-                            </Badge>
-                        </div>
-                        <div className="flex items-center gap-2 max-w-sm w-full print:hidden">
-                            <Search className="h-4 w-4 text-gray-400" />
-                            <Input 
-                                placeholder="Search in results..." 
-                                value={studentSearch}
-                                onChange={(e) => setStudentSearch(e.target.value)}
-                                className="h-9"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="border rounded-md overflow-x-auto print:overflow-visible">
-                        <Table className="min-w-max border-collapse">
-                            <TableHeader className="bg-gray-50/80 sticky top-0 z-10 print:static">
-                                <TableRow>
-                                    <TableHead className="w-12 text-center border print:hidden">
-                                        <Checkbox 
-                                            checked={selectedRows.length === filteredStudents.length && filteredStudents.length > 0}
-                                            onCheckedChange={toggleAllRows}
-                                        />
-                                    </TableHead>
-                                    <TableHead className="w-16 text-center border font-bold">SL.No</TableHead>
-                                    {reportColumns.map((col) => (
-                                        <TableHead key={col.columnID} className="border font-bold text-center px-4">
-                                            {col.columnName}
-                                        </TableHead>
-                                    ))}
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {filteredStudents.map((row, idx) => (
-                                    <TableRow key={idx} className={selectedRows.includes(idx) ? "bg-indigo-50/30" : ""}>
-                                        <TableCell className="text-center border print:hidden">
-                                            <Checkbox 
-                                                checked={selectedRows.includes(idx)}
-                                                onCheckedChange={() => toggleRowSelection(idx)}
-                                            />
-                                        </TableCell>
-                                        <TableCell className="text-center border font-medium">{idx + 1}</TableCell>
-                                        {reportColumns.map((col) => (
-                                            <TableCell key={col.columnID} className="border text-center text-xs max-w-[200px] break-words">
-                                                {col.columnID === 'AMST_Photoname' ? (
-                                                    <div className="flex justify-center p-1">
-                                                        <img 
-                                                            src={row[col.columnID]} 
-                                                            alt="Photo" 
-                                                            className="h-16 w-16 object-cover rounded shadow-sm border bg-gray-50"
-                                                            onError={(e) => {
-                                                                (e.target as any).src = 'https://via.placeholder.com/100?text=No+Photo';
-                                                            }}
-                                                        />
-                                                    </div>
-                                                ) : (
-                                                    row[col.columnID] || '-'
-                                                )}
-                                            </TableCell>
-                                        ))}
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </div>
-                </div>
+            {/* Report */}
+            {showReport && (
+                <CollapsibleSection title='Class Wise Student Report' defaultOpen>
+                    {studentStatus === 'Kformate' ? (
+                        <KendoFormat
+                            data={transformedResponse?.data || []}
+                            selectedFields={selectedFields}
+                            onExportExcel={downloadExcel}
+                            onExportPdf={downloadPdf}
+                            isLoading={isFetching}
+                        />
+                    ) : (
+                        <GenericDataTable
+                            {...tableProps}
+                            ref={tableRef}
+                            columns={columns}
+                            isLoading={isFetching}
+                            error={error}
+                            showViewOptions={false}
+                            isPaginationRequired
+                            loadingMessage='Loading Admission Report...'
+                            noDataTitle='No Records Found'
+                        />
+                    )}
+                </CollapsibleSection>
             )}
 
-            {/* Print Layout (Hidden in UI) */}
-            <div className="hidden print:block font-serif text-[10px]">
-                <div className="text-center mb-4">
-                    <h2 className="text-xl font-bold uppercase underline">Classwise Student Details</h2>
-                    <p className="mt-1">
-                        Year: {initialData?.data?.fillyear?.find((y: any) => y.asmaY_Id === academicYearId)?.asmaY_Year}
-                    </p>
-                </div>
-                <Table className="w-full border-collapse border border-black">
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className="border border-black font-bold p-1 text-center w-8">SL.No</TableHead>
-                            {reportColumns.map((col) => (
-                                <TableHead key={col.columnID} className="border border-black font-bold p-1 text-center">
-                                    {col.columnName}
-                                </TableHead>
-                            ))}
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {filteredStudents.filter((_, idx) => selectedRows.includes(idx)).map((row, idx) => (
-                            <TableRow key={idx}>
-                                <TableCell className="border border-black p-1 text-center">{idx + 1}</TableCell>
-                                {reportColumns.map((col) => (
-                                    <TableCell key={col.columnID} className="border border-black p-1 text-center">
-                                        {col.columnID === 'AMST_Photoname' ? (
-                                            <img src={row[col.columnID]} alt="Photo" className="h-10 w-10 mx-auto" />
-                                        ) : (
-                                            row[col.columnID] || '-'
-                                        )}
-                                    </TableCell>
-                                ))}
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-                <div className="mt-4 flex justify-between text-[8px]">
-                    <div>Date: {new Date().toLocaleDateString('en-GB')}</div>
-                    <div>User: System Generated</div>
-                    <div>© All Rights Reserved</div>
-                </div>
+            {/* Hidden Print Layout */}
+            <div style={{ display: 'none' }}>
+                <ClasswisePrint
+                    ref={printRef}
+                    data={printData}
+                    selectedFields={selectedFields}
+                    academicYear={academicYear?.data?.find((y) => y.asmaY_Id === watchedYear)?.asmaY_Year || ''}
+                    classes={selectedClassItems.map((c) => c.asmcL_ClassName).join(', ')}
+                    sections={selectedSectionItems.map((s) => s.asmcL_SectionName).join(', ')}
+                    printTimestamp={printTimestamp}
+                />
             </div>
         </div>
     );

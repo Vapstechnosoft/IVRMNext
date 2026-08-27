@@ -136,7 +136,7 @@ function InvTItemConsumptionPageContent({
                         data={response?.data || []}
                         columns={invTItemConsumptionColumns}
                         isLoading={isLoading}
-                        error={error}
+                        success={true}
                         isSearchRequired={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading Consumption records...'

@@ -45,7 +45,13 @@ export function DataTableToolbar<TData, TValue>({
 
     // Sync URL → local input on initial load
     useEffect(() => {
+
         if (!isUserInputRef.current) {
+            // if (searchQuery == "Percentage")
+            //     setSearchQuery("P");
+            // else if (searchQuery == "Marks")
+            //     setSearchQuery("M");
+
             setLocalSearchQuery(searchQuery || '');
         }
         isUserInputRef.current = false;

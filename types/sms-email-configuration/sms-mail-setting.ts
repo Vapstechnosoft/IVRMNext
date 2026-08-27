@@ -70,6 +70,9 @@ export interface SmsEmailSettingList {
   iseS_EnableSMSCCFlg: boolean;
   iseS_EnableMailCCFlg: boolean;
   iseS_EnableMailBCCFlg: boolean;
+  iseS_SMSCCMobileNo?: string;
+  iseS_MailCCId?: string;
+  iseS_MailBCCId?: string;
   iseS_AlertBeforeDays?: string;
   iseS_IVRSTextMsg?: string;
   iseS_PNMessage?: string;

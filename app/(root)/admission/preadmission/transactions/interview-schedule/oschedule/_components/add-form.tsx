@@ -391,7 +391,7 @@ export default function OralTestScheduleForm({ onSuccess, initialData }: OralTes
                                         <SelectContent>
                                             <SelectItem value="0">All</SelectItem>
                                             {details?.classlist
-                                                ?.filter((cls: any) => cls.asmcL_PreadmFlag === 1)
+                                                ?.filter((cls: any) => cls.asmcL_ActiveFlag === true)
                                                 ?.map((cls: any) => (
                                                     <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>
                                                         {cls.asmcL_ClassName}
@@ -862,9 +862,19 @@ function TimeSpinnerField({
                     <button type='button' onClick={() => emit((h % 12) + 1 || 12, m, ampm)} className='rounded p-0.5 hover:bg-muted'>
                         <ChevronUp className='h-4 w-4' />
                     </button>
-                    <div className='flex h-9 w-12 items-center justify-center rounded-md border border-input bg-transparent text-sm font-medium'>
-                        {String(h).padStart(2, '0')}
-                    </div>
+                    <input
+                        className='flex h-9 w-12 text-center rounded-md border border-input bg-transparent text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+                        value={String(h).padStart(2, '0')}
+                        onChange={(e) => {
+                            let val = e.target.value.replace(/\D/g, '');
+                            if (val.length > 2) val = val.slice(-2);
+                            let num = parseInt(val, 10);
+                            if (isNaN(num)) num = 12;
+                            if (num > 12) num = 12;
+                            if (num < 0) num = 12;
+                            emit(num, m, ampm);
+                        }}
+                    />
                     <button type='button' onClick={() => emit(((h - 2 + 12) % 12) + 1, m, ampm)} className='rounded p-0.5 hover:bg-muted'>
                         <ChevronDown className='h-4 w-4' />
                     </button>
@@ -877,9 +887,19 @@ function TimeSpinnerField({
                     <button type='button' onClick={() => emit(h, (m + 1) % 60, ampm)} className='rounded p-0.5 hover:bg-muted'>
                         <ChevronUp className='h-4 w-4' />
                     </button>
-                    <div className='flex h-9 w-12 items-center justify-center rounded-md border border-input bg-transparent text-sm font-medium'>
-                        {String(m).padStart(2, '0')}
-                    </div>
+                    <input
+                        className='flex h-9 w-12 text-center rounded-md border border-input bg-transparent text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+                        value={String(m).padStart(2, '0')}
+                        onChange={(e) => {
+                            let val = e.target.value.replace(/\D/g, '');
+                            if (val.length > 2) val = val.slice(-2);
+                            let num = parseInt(val, 10);
+                            if (isNaN(num)) num = 0;
+                            if (num > 59) num = 59;
+                            if (num < 0) num = 0;
+                            emit(h, num, ampm);
+                        }}
+                    />
                     <button type='button' onClick={() => emit(h, (m - 1 + 60) % 60, ampm)} className='rounded p-0.5 hover:bg-muted'>
                         <ChevronDown className='h-4 w-4' />
                     </button>
@@ -890,7 +910,10 @@ function TimeSpinnerField({
                     <button type='button' onClick={() => emit(h, m, ampm === 'AM' ? 'PM' : 'AM')} className='rounded p-0.5 hover:bg-muted'>
                         <ChevronUp className='h-4 w-4' />
                     </button>
-                    <div className='flex h-9 w-12 items-center justify-center rounded-md border border-input bg-transparent text-sm font-medium'>
+                    <div 
+                        className='flex h-9 w-12 items-center justify-center rounded-md border border-input bg-transparent text-sm font-medium cursor-pointer select-none'
+                        onClick={() => emit(h, m, ampm === 'AM' ? 'PM' : 'AM')}
+                    >
                         {ampm}
                     </div>
                     <button type='button' onClick={() => emit(h, m, ampm === 'AM' ? 'PM' : 'AM')} className='rounded p-0.5 hover:bg-muted'>

@@ -28,9 +28,10 @@ interface ReportFormProps {
         generatedDate?: Date
     ) => void;
     onReset: () => void;
+    onLoading?: (isLoading: boolean) => void;
 }
 
-export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
+export const ReportForm = ({ onReportGenerated, onReset, onLoading }: ReportFormProps) => {
     const [years, setYears] = useState<any[]>([]);
     const [classes, setClasses] = useState<any[]>([]);
     const [sections, setSections] = useState<any[]>([]);
@@ -58,6 +59,17 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     const watchClass = useWatch({ control, name: 'ASMCL_Id' });
     const watchSection = useWatch({ control, name: 'ASMS_Id' });
     const watchSelectedStudents = useWatch({ control, name: 'selectedStudents' }) || [];
+
+    useEffect(() => {
+        if (onLoading) {
+            onLoading(isSubmitting || loading);
+        }
+    }, [isSubmitting, loading, onLoading]);
+
+    useEffect(() => {
+        // Clear the generated report if any selection changes
+        onReset();
+    }, [watchYear, watchClass, watchSection, watchSelectedStudents, onReset]);
 
     // Load Initial Data
     useEffect(() => {
@@ -169,7 +181,8 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
             };
 
             const response = await getGmvpsPromotionReportCard(payload);
-            console.log("report data", response?.data);
+
+            console.log("report data", response);
             const academicYear = years.find((y: any) => String(y.asmaY_Id) === data.ASMAY_Id)?.asmaY_Year || '';
 
             if (response?.success && response.data) {

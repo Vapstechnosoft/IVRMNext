@@ -170,6 +170,11 @@ export default function AddInvMasterStoreForm({ onSuccess, onCancel, empname_lis
                                 id='invmS_ContactNo'
                                 placeholder='Enter Contact Number'
                                 className={errors.invmS_ContactNo ? 'border-red-500' : ''}
+                                maxLength={10}
+                                onChange={(e) => {
+                                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                    field.onChange(val);
+                                }}
                             />
                         )}
                     />

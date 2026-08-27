@@ -15,7 +15,10 @@ import { z } from 'zod';
 
 const reportFormSchema = z
     .object({
-        p_lmal_id: z.coerce.number().min(1, 'Library is required'),
+        p_lmal_id: z.preprocess(
+            (val) => (val === undefined || val === '' ? undefined : Number(val)),
+            z.number({ required_error: 'Select Library', invalid_type_error: 'Select Library' }).min(1, 'Select Library')
+        ),
         p_type: z.string().min(1, 'Book Type is required'),
         p_type2: z.string().min(1, 'Source Type is required'),
         p_lmd_id: z.coerce.string().default('0'), // 0 = ALL

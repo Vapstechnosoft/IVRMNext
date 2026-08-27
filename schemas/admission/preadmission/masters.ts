@@ -6,7 +6,8 @@ import {
     createStringOnlySchema,
     createStringSchema,
     createStringSchemaNotAllowNumbersOnly,
-    deleteIdSchema
+    deleteIdSchema,
+    createCustomStringSchema
 } from '@/schemas/validationSchemas';
 import { z } from 'zod';
 
@@ -34,7 +35,7 @@ export const masterClassSchema = {
         .object({
             asmcl_id: z.number().int({ message: 'ASMCL_Id is required' }).optional(),
             asmcl_classcode: createAlphanumericSchema('Code', 1, 10),
-            asmcl_classname: createStringOnlySchema('Name', 1, 50),
+            asmcl_classname: createStringSchema('Name', 1, 50),
             asmcl_maxcapacity: z
                 .number()
                 .int({ message: 'Max Capacity is required' })
@@ -47,7 +48,7 @@ export const masterClassSchema = {
             asmcl_maxageyear: z.number().int().min(0, 'Max Age Year must be at least 0').max(100, 'Max Age Year must not exceed 100'),
             asmcl_maxagemonth: z.number().int().min(0, 'Max Age Month must be at least 0').max(11, 'Max Age Month must be between 0-11'),
             asmcl_maxagedays: z.number().int().min(0, 'Max Age Days must be at least 0').max(31, 'Max Age Days must be between 0-31'),
-            asmcl_preadmflag: z.number().int().min(1, { message: 'Preadmission Class is mandatory' })
+            asmcl_preadmflag: z.number().int().optional()
         })
         .refine(
             (data) => {
@@ -106,7 +107,7 @@ export const masterSectionSchema = {
 export const masterReligionSchema = {
     addOrUpdate: z.object({
         ivrmmR_Id: z.number().int({ message: 'IVRMMR_ID is required' }).optional(),
-        ivrmmR_Name: createOptionalAlphaNumericSchemaNotOptional('Religion Name', 1, 50)
+        ivrmmR_Name: createStringSchema('Religion Name', 1, 50)
     }),
     delete: z.object({
         ivrmmR_Id: deleteIdSchema('ivrmmR_Id')

@@ -307,6 +307,7 @@ export const CirculationParameterForm = ({
                                     type='number'
                                     placeholder='Enter max items'
                                     {...field}
+                                    value={field.value ?? ''}
                                     onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                                 />
                             </FormControl>
@@ -326,6 +327,7 @@ export const CirculationParameterForm = ({
                                     type='number'
                                     placeholder='Enter max issue days'
                                     {...field}
+                                    value={field.value ?? ''}
                                     onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                                 />
                             </FormControl>
@@ -345,6 +347,7 @@ export const CirculationParameterForm = ({
                                     type='number'
                                     placeholder='Enter max renewals'
                                     {...field}
+                                    value={field.value ?? ''}
                                     onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                                 />
                             </FormControl>

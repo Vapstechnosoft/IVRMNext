@@ -13,7 +13,10 @@ import * as z from 'zod';
 
 const formSchema = z.object({
     Type: z.enum(['all', 'Issue', 'Reference']),
-    LMD_Id: z.preprocess((val) => Number(val), z.number().min(0, 'Department is required'))
+    LMD_Id: z.preprocess(
+        (val) => (val === undefined || val === '' ? undefined : Number(val)),
+        z.number({ required_error: 'Select Department', invalid_type_error: 'Select Department' }).min(0, 'Select Department')
+    )
 });
 
 interface ReportFormProps {

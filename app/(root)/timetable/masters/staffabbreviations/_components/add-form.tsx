@@ -135,6 +135,7 @@ export default function AddStaffAbbreviationForm({ onSuccess, buildingname = '' 
                                     label='Staff Abbreviation'
                                     required
                                     id='TTMSAB_Abbreviation'
+                                    placeholder='Enter Staff Abbreviation'
                                     {...register('TTMSAB_Abbreviation')}
                                     error={errors.TTMSAB_Abbreviation?.message}
                                     className='w-full transition-colors focus:ring-2 focus:ring-primary/20'
@@ -148,6 +149,7 @@ export default function AddStaffAbbreviationForm({ onSuccess, buildingname = '' 
                                 <InputText
                                     label='Max. Day Deputation'
                                     id='TTMSAB_PerDayMaxDeputation'
+                                    placeholder='Enter Max. Day Deputation'
                                     {...register('TTMSAB_PerDayMaxDeputation')}
                                     error={errors.TTMSAB_PerDayMaxDeputation?.message}
                                     className='w-full transition-colors focus:ring-2 focus:ring-primary/20'
@@ -157,6 +159,7 @@ export default function AddStaffAbbreviationForm({ onSuccess, buildingname = '' 
                                 <InputText
                                     label='Max. Weekly Deputation'
                                     id='TTMSAB_PerWeekMaxDeputation'
+                                    placeholder='Enter Max. Weekly Deputation'
                                     {...register('TTMSAB_PerWeekMaxDeputation')}
                                     error={errors.TTMSAB_PerWeekMaxDeputation?.message}
                                     className='w-full transition-colors focus:ring-2 focus:ring-primary/20'
@@ -170,6 +173,7 @@ export default function AddStaffAbbreviationForm({ onSuccess, buildingname = '' 
                                 <InputText
                                     label='Max. Monthly Deputation'
                                     id='TTMSAB_PerMonthMaxDeputation'
+                                    placeholder='Enter Max. Monthly Deputation'
                                     {...register('TTMSAB_PerMonthMaxDeputation')}
                                     error={errors.TTMSAB_PerMonthMaxDeputation?.message}
                                     className='w-full transition-colors focus:ring-2 focus:ring-primary/20'
@@ -179,6 +183,7 @@ export default function AddStaffAbbreviationForm({ onSuccess, buildingname = '' 
                                 <InputText
                                     label='Max. Yearly Deputation'
                                     id='TTMSAB_PerYearMaxDeputation'
+                                    placeholder='Enter Max. Yearly Deputation'
                                     {...register('TTMSAB_PerYearMaxDeputation')}
                                     error={errors.TTMSAB_PerYearMaxDeputation?.message}
                                     className='w-full transition-colors focus:ring-2 focus:ring-primary/20'

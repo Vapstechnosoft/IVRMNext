@@ -16,8 +16,8 @@ export async function addOrUpdateMasterPublisher(data: any) {
 }
 
 export async function toggleMasterPublisher(id: number) {
-    const url = `/MasterPublisher/deactiveY/${id}`;
-    return await api.post('library', url);
+    const url = `/MasterPublisher/toggle/${id}`;
+    return await api.post('library', url, {});
 }
 
 export async function deleteMasterPublisher(id: number) {

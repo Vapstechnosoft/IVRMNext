@@ -17,13 +17,15 @@ export default function TabPurchaseDetails({
     onNext,
     onPrevious,
     onCancel,
-    onClear
+    onClear,
+    isSaving
 }: {
     dropdownData: any;
     onNext: () => void;
     onPrevious: () => void;
     onCancel: () => void;
     onClear: () => void;
+    isSaving?: boolean;
 }) {
     const {
         control,
@@ -168,7 +170,7 @@ export default function TabPurchaseDetails({
 
             {/* PUBLISHER DETAILS Section */}
             <div className='mt-4'>
-                <h3 className='mb-4 font-bold text-blue-800 border-b pb-2 uppercase tracking-wide'>Publisher Details</h3>
+                <h3 className='mb-4 border-b pb-2 font-bold text-blue-800 uppercase tracking-wide'>Publisher Details</h3>
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                     <div className='flex flex-col gap-1.5'>
                         <Label>Publisher</Label>
@@ -185,7 +187,8 @@ export default function TabPurchaseDetails({
                                     <SelectContent>
                                         {publisherList?.map((item: any) => {
                                             const publisherId = item.lmP_Id || item.lmp_Id || item.id || item.value;
-                                            const publisherName = item.lmP_PublisherName || item.lmp_PublisherName || item.publisherName || item.name || '';
+                                            const publisherName =
+                                                item.lmP_PublisherName || item.lmp_PublisherName || item.publisherName || item.name || '';
                                             return (
                                                 <SelectItem key={publisherId} value={publisherId.toString()}>
                                                     {publisherName}
@@ -213,17 +216,35 @@ export default function TabPurchaseDetails({
             </div>
 
             {/* Action Buttons */}
-            <div className='flex justify-center gap-2 pt-4 border-t'>
-                <Button type='button' variant='default' onClick={onPrevious} className='bg-blue-600 hover:bg-blue-700 uppercase text-xs font-bold px-6'>
+            <div className='flex justify-center gap-2 border-t pt-4'>
+                <Button
+                    type='button'
+                    variant='default'
+                    onClick={onPrevious}
+                    className='bg-blue-600 px-6 font-bold text-xs uppercase hover:bg-blue-700'>
                     Previous
                 </Button>
-                <Button type='button' variant='destructive' onClick={onClear} className='bg-red-500 hover:bg-red-600 uppercase text-xs font-bold px-6'>
+                <Button
+                    type='button'
+                    variant='destructive'
+                    onClick={onClear}
+                    className='bg-red-500 px-6 font-bold text-xs uppercase hover:bg-red-600'>
                     Clear
                 </Button>
-                <Button type='button' variant='warning' onClick={onCancel} className='bg-orange-500 hover:bg-orange-600 uppercase text-xs font-bold px-6'>
+                <Button
+                    type='button'
+                    variant='warning'
+                    onClick={onCancel}
+                    className='bg-orange-500 px-6 font-bold text-xs uppercase hover:bg-orange-600'>
                     Cancel
                 </Button>
-                <Button type='button' variant='default' onClick={onNext} className='bg-blue-600 hover:bg-blue-700 uppercase text-xs font-bold px-6'>
+                <Button
+                    type='button'
+                    variant='default'
+                    onClick={onNext}
+                    isLoading={isSaving}
+                    disabled={isSaving}
+                    className='bg-blue-600 px-6 font-bold text-xs uppercase hover:bg-blue-700'>
                     Save & Next
                 </Button>
             </div>

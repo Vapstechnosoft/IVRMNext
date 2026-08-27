@@ -24,11 +24,9 @@ export const circulationParameterSchema = z.object({
     bookParameterFlag: z.string().default('BP'), // LMB_BookTypeflag
     issuerType: z.string().default('STUDENT'), // schclgflag
 
-    // Book vs Non-Book generic selection
     categoryId: z.number().optional(), // maps to LMC_Id dropdown
     bookType: z.string().optional(), // LMB_BookType
 
-    // Issuer specific IDs
     classId: z.number().optional(), // asmcl_id
     employeeGroupId: z.number().optional(), // HRMGT_Id
     departmentId: z.number().optional(), // HRMD_Id
@@ -44,6 +42,50 @@ export const circulationParameterSchema = z.object({
 
     categoryName: z.string().optional(), // LMC_CategoryName
     status: z.boolean().default(true)
+}).superRefine((data, ctx) => {
+    if (data.bookParameterFlag === 'BP' && !data.bookType) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Select Book Type',
+            path: ['bookType']
+        });
+    }
+    if (data.bookParameterFlag === 'NBP' && !data.categoryId) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Select Category Name',
+            path: ['categoryId']
+        });
+    }
+
+    if (data.issuerType === 'STUDENT' && !data.classId) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Select Class',
+            path: ['classId']
+        });
+    }
+    if (data.issuerType === 'STAFF' && !data.employeeGroupId) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Select Employee Group',
+            path: ['employeeGroupId']
+        });
+    }
+    if (data.issuerType === 'DEPARTMENT' && !data.departmentId) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Select Department',
+            path: ['departmentId']
+        });
+    }
+    if (data.issuerType === 'GUEST' && !data.guestId) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Select Guest Name',
+            path: ['guestId']
+        });
+    }
 });
 
 export type CirculationParameterFormValues = z.infer<typeof circulationParameterSchema>;

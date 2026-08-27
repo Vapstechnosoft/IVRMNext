@@ -32,8 +32,8 @@ export function useSaveOralReSchedule() {
     return useMutation({
         mutationFn: (data: any) => saveOralReSchedule(data),
         onSuccess: (res: any) => {
-            if (res.returnval === false) {
-                toast.error(res.message || 'Record Already Exist With Same Schedule Name/Date');
+            if (res?.returnval === false) {
+                toast.error(res?.message || 'Record Already Exist With Same Schedule Name/Date');
             } else {
                 toast.success('Interview Re-Scheduled Successfully');
                 queryClient.invalidateQueries({ queryKey: [PREADMISSION_QUERY_KEYS.ORAL_TEST_RESCHEDULE_DETAILS] });

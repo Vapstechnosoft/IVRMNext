@@ -114,6 +114,10 @@ import {
     getMonthEndReport,
     type MonthEndReportRequest
 } from '@/server/hrms/reports/month-end-report';
+import {
+    getLeaveReport,
+    type LeaveReportRequest
+} from '@/server/hrms/reports/leave-report';
 
 export type { EmployeeDetailsReportRequest };
 
@@ -845,3 +849,15 @@ export function useEmployeeOfferAndExperienceReport() {
         }
     });
 }
+
+/**
+ * Hook for Leave Report
+ */
+export function useLeaveReport() {
+    return useMutation({
+        mutationFn: (data: LeaveReportRequest) => getLeaveReport(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch Leave Report');
+        }
+    });
+}

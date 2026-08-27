@@ -129,8 +129,8 @@ function InvOpeningBalancePageContent({
                         {...tableProps}
                         data={response?.data || []}
                         columns={invOpeningBalanceColumns}
+                        success={true}
                         isLoading={isLoading}
-                        error={error}
                         isSearchRequired={true}
                         showSearchColumns={true}
                         columnPinning={{ right: ['actions'] }}

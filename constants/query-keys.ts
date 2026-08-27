@@ -248,6 +248,7 @@ export const FEES_QUERY_KEYS = {
     FEE_TERM_DROPDOWNDATA_REPORTS: 'fee_term_dropdowndata_reports',
     FEE_DEFAULTER_REPORT: 'fee_defaulter_report',
     FEE_GROUP_DEFAULTER: 'fee_group_defaulter_report',
+    STUDENT_FEE_ENABLE_PARTIAL_PAYMENT: 'student_fee_enable_partial_payment',
     FEE_TERM_DEFAULTER: 'fee_term_defaulter_report',
     FEE_BUS_ROUTES_DEFAULTER: 'fee_bus_routes_defaulter_report',
     FEE_CUSTOM_GROUP_DEFAULTER: 'fee_custom_group_defaulter_report',
@@ -496,7 +497,8 @@ export const HRMS_QUERY_KEYS = {
     EMPLOYEE_MONTH_REPORT: 'attendance_employee_month_report',
     // Leave Management Masters
     MASTER_LEAVE: 'leave_master_leave',
-    LEAVE_AUTHORIZATION: 'leave_leave_authorization',
+    LEAVE_AUTHORIZATIONS: 'leave_leave_authorization',
+    LEAVE_GETAUTHERIZATION: 'leave_get_authorization',
     // Leave Management Reports
     LEAVE_REPORT: 'leave_leave_report',
     OVERALL_REPORT: 'leave_overall_report',
@@ -604,7 +606,8 @@ export const PORTAL_QUERY_KEYS = {
     GET_GROUPS_FOR_NOTICE_BOARD: 'get_groups_for_notice_board',
     GET_TERMS_FOR_NOTICE_BOARD: 'get_terms_for_notice_board',
     EXAM_STUDENT_REPORT_YEAR_DROP_DOWN: 'exam_student_report_year_drop_down',
-    EXAM_STUDENT_COMPLIANTS_YEAR_DROP_DOWN: 'exam_student_compliants_year_drop_down'
+    EXAM_STUDENT_COMPLIANTS_YEAR_DROP_DOWN: 'exam_student_compliants_year_drop_down',
+    ONLINE_PAYMENT_DETAILS:"online_payment_details"
 };
 
 export const STAFF_PORTAL_QUERY_KEYS = {
@@ -673,3 +676,4 @@ export const RECRUITMENT_QUERY_KEYS = {
     CANDIDATE_DROPDOWN: 'candidate_dropdown',
     TRANSACTION_JOB_LIST_VMS: 'transaction_job_list_vms'
 };
+export const PRE_LIVE_MEETING_SCHEDULE = { DETAILS: () => ['PRE_LIVE_MEETING_SCHEDULE_DETAILS'] };

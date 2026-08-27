@@ -94,7 +94,7 @@ function InvTGRNActionButtons({ rowData }: { rowData: IInvTGRN }) {
                 buttons={{ edit: true, delete: false, toggle: true, view: true }}
                 onEdit={handleEdit}
                 onToggle={handleToggle}
-                // onView={handleView}
+                onView={handleView}
                 toggleConditionKey='invmgrN_ActiveFlg'
             />
         </div>

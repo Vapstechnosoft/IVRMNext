@@ -12,15 +12,24 @@ import React, { useEffect, useState } from 'react';
 import AddStudentAdmissionForm from './_components/add-form';
 import { studentApplicationColumns } from './_components/columns';
 import ApplicationFormSuccessDialog from './_components/success-dialog';
-
+import { useQueryState } from 'nuqs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function StudentApplicationPage(props: {
     searchParams: SearchParams;
 }) {
     const searchParams = (React as any).use(props.searchParams);
+    
+    // Only pass asmay_id to the API so client-side changes don't trigger refetches or backend errors
+    const apiSearchParams = React.useMemo(() => {
+        return {
+            asmay_id: searchParams?.asmay_id
+        };
+    }, [searchParams?.asmay_id]);
+
     const { data: activePreadmission } = useGetAllAdmissionLists();
-    const { data: response, isLoading, error, refetch } = useGetAllAdmissionLists(searchParams);
+    const { data: response, isLoading, error, refetch } = useGetAllAdmissionLists(apiSearchParams);
     const { data: masterConfig } = useAcademicYearMasterConfiguration(0);
 
     return (
@@ -31,6 +40,7 @@ export default function StudentApplicationPage(props: {
                 error={error}
                 refetch={refetch}
                 masterConfig={masterConfig}
+                searchParams={searchParams}
             />
         </FormProvider>
     );
@@ -40,16 +50,50 @@ function StudentApplicationPageContent({
     response,
     isLoading,
     error,
-    refetch
+    refetch,
+    masterConfig,
+    searchParams
 }: {
     response: any;
     isLoading: boolean;
     error: any;
     refetch: () => void;
     masterConfig: any;
+    searchParams: any;
 }) {
     const { openAddForm } = useFormContext();
-    const tableProps = useDataTableProps(response);
+    
+    const searchQuery = (searchParams?.search_query as string) || '';
+    const page = parseInt(searchParams?.page as string) || 1;
+    const pageSize = parseInt(searchParams?.page_size as string) || 10;
+
+    const filteredData = React.useMemo(() => {
+        let result = response?.data?.studentList || [];
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            result = result.filter((row: any) => 
+                String(row.studentName || '').toLowerCase().includes(query) ||
+                String(row.className || '').toLowerCase().includes(query) ||
+                String(row.sectionName || '').toLowerCase().includes(query) ||
+                String(row.admissionNo || '').toLowerCase().includes(query) ||
+                String(row.emailId || '').toLowerCase().includes(query) ||
+                String(row.mobileNo || '').toLowerCase().includes(query)
+            );
+        }
+        return result;
+    }, [response, searchQuery]);
+
+    const paginatedData = React.useMemo(() => {
+        const start = (page - 1) * pageSize;
+        const end = start + pageSize;
+        return filteredData.slice(start, end);
+    }, [filteredData, page, pageSize]);
+
+    const tableProps = useDataTableProps(
+        response?.data && response.data.studentList 
+            ? { ...response, data: paginatedData, total: filteredData.length } 
+            : response
+    );
     const [isSuccessOpen, setSuccessOpen] = useState(false);
     const [successType, setSuccessType] = useState<'create' | 'update'>('create');
     const session = useSession();
@@ -74,11 +118,27 @@ function StudentApplicationPageContent({
         refetch();
     };
 
+    const [selectedYear, setSelectedYear] = useQueryState('asmay_id', { defaultValue: '' });
+
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Header */}
-                <div className='flex justify-end'>
+                <div className='flex justify-between items-center'>
+                    <div className='w-64'>
+                        <Select value={selectedYear} onValueChange={setSelectedYear}>
+                            <SelectTrigger className="w-full bg-background">
+                                <SelectValue placeholder='Select Academic Year' />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {response?.data?.academicyear?.map((year: any) => (
+                                    <SelectItem key={year.yearid} value={year.yearid.toString()}>
+                                        {year.year}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
                     <Button
                         type='button'
                         onClick={openAddForm}

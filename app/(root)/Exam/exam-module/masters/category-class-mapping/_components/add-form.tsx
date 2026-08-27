@@ -9,6 +9,7 @@ import { categoryClassMappingSchema } from '@/schemas/exam/exam-module/masters';
 import {
     addOrUpdateCategoryClassMapping,
     getCategories,
+    getUnmappedClasses,
     getUnMappedSections
 } from '@/server/exam/exam-module/masters/category-class-mapping';
 import { getOpeningClassDropdownData } from '@/server/fees/trasactions/fee_opening_balance';
@@ -88,12 +89,9 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
         const fetchInitialDropdowns = async () => {
             try {
                 setLoadingCategories(true);
-                setLoadingClasses(true);
-
                 const [catsRes, clsRes] = await Promise.all([getCategories(), getOpeningClassDropdownData()]);
 
                 setCategories(Array.isArray(catsRes?.data) ? catsRes.data : Array.isArray(catsRes) ? catsRes : []);
-                setClasses(Array.isArray(clsRes?.data) ? clsRes.data : Array.isArray(clsRes) ? clsRes : []);
             } catch (err: any) {
                 toast.error(err.message || 'Failed to load initial dropdowns');
             } finally {
@@ -104,7 +102,35 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
 
         fetchInitialDropdowns();
     }, []);
+    // ---------- Load classes (Dependent on Year & Class) ----------
+    useEffect(() => {
+        const fetchClasses = async () => {
+            if (!watchedYear || Number(watchedYear) === 0) {
+                setClasses([]);
+                return;
+            }
 
+            try {
+                setLoadingClasses(true);
+                const res = await getUnmappedClasses(Number(watchedYear));
+                const classData = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+                console.log('classes data', classData);
+                setClasses(classData);
+                setLoadingClasses(false);
+                // We typically don't show toast for "no sections" automatically as it might just be empty for valid reasons
+                if (classData.length === 0) {
+                    toast.info(res?.message);
+                }
+            } catch (err: any) {
+                toast.error(err.message || 'Failed to load sections');
+                setClasses([]);
+            } finally {
+                setLoadingSections(false);
+            }
+        };
+
+        fetchClasses();
+    }, [watchedYear]);
     // ---------- Load Sections (Dependent on Year & Class) ----------
     useEffect(() => {
         const fetchSections = async () => {
@@ -334,8 +360,8 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                         render={({ field }) => (
                             <>
                                 <Select
-                                    key={`year-${resetKey}`}
-                                    value={field.value ? String(field.value) : ''}
+                                    key={`year-${resetKey}-${field.value}`}
+                                    value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                     onValueChange={(val) => {
                                         field.onChange(Number(val));
                                         // Reset dependent fields
@@ -387,8 +413,8 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                         render={({ field }) => (
                             <>
                                 <Select
-                                    key={`category-${resetKey}`}
-                                    value={field.value && field.value !== 0 ? String(field.value) : ''}
+                                    key={`category-${resetKey}-${field.value}`}
+                                    value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                     onValueChange={(val) => {
                                         field.onChange(Number(val));
                                         // Category change might not strictly require clearing others, but typically
@@ -433,8 +459,8 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                         render={({ field }) => (
                             <>
                                 <Select
-                                    key={`class-${resetKey}`}
-                                    value={field.value && field.value !== 0 ? String(field.value) : ''}
+                                    key={`class-${resetKey}-${field.value}`}
+                                    value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                     onValueChange={(val) => {
                                         field.onChange(Number(val));
                                         // Class Changed -> Reset Sections

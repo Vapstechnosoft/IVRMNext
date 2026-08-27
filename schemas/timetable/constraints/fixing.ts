@@ -4,10 +4,10 @@ import { z } from 'zod';
 
 // 2. Day Staff Sub-list: Class, Section, Subject, NOP
 const fixingDayStaffListSchema = z.object({
-    asmcL_Id: z.number().min(1, 'Class is required'),
-    asmS_Id: z.number().min(1, 'Section is required'),
-    ismS_Id: z.number().min(1, 'Subject is required'),
-    nop: z.number().min(1, 'No of Periods is required'),
+    asmcL_Id: z.coerce.number().min(1, 'Class is required'),
+    asmS_Id: z.coerce.number().min(1, 'Section is required'),
+    ismS_Id: z.coerce.number().min(1, 'Subject is required'),
+    nop: z.coerce.number().min(1, 'No of Periods is required'),
     // UI Display
     clsDisplay: z.string().optional(),
     sectDisplay: z.string().optional(),
@@ -16,10 +16,10 @@ const fixingDayStaffListSchema = z.object({
 
 // 3. Day Subject Sub-list: Class, Section, Staff, NOP
 const fixingDaySubjectListSchema = z.object({
-    asmcL_Id: z.number().min(1, 'Class is required'),
-    asmS_Id: z.number().min(1, 'Section is required'),
-    hrmE_Id: z.number().min(1, 'Staff is required'),
-    nop: z.number().min(1, 'No of Periods is required'),
+    asmcL_Id: z.coerce.number().min(1, 'Class is required'),
+    asmS_Id: z.coerce.number().min(1, 'Section is required'),
+    hrmE_Id: z.coerce.number().min(1, 'Staff is required'),
+    nop: z.coerce.number().min(1, 'No of Periods is required'),
     // UI Display
     clsDisplay: z.string().optional(),
     sectDisplay: z.string().optional(),
@@ -28,10 +28,10 @@ const fixingDaySubjectListSchema = z.object({
 
 // 4. Period Staff Sub-list: Class, Section, Subject, NOD
 const fixingPeriodStaffListSchema = z.object({
-    asmcL_Id: z.number().min(1, 'Class is required'),
-    asmS_Id: z.number().min(1, 'Section is required'),
-    ismS_Id: z.number().min(1, 'Subject is required'),
-    nop: z.number().min(1, 'No of Days is required'),
+    asmcL_Id: z.coerce.number().min(1, 'Class is required'),
+    asmS_Id: z.coerce.number().min(1, 'Section is required'),
+    ismS_Id: z.coerce.number().min(1, 'Subject is required'),
+    nop: z.coerce.number().min(1, 'No of Days is required'),
     // UI Display
     clsDisplay: z.string().optional(),
     sectDisplay: z.string().optional(),
@@ -40,10 +40,10 @@ const fixingPeriodStaffListSchema = z.object({
 
 // 5. Period Subject Sub-list: Class, Section, Staff, NOD
 const fixingPeriodSubjectListSchema = z.object({
-    asmcL_Id: z.number().min(1, 'Class is required'),
-    asmS_Id: z.number().min(1, 'Section is required'),
-    hrmE_Id: z.number().min(1, 'Staff is required'),
-    nop: z.number().min(1, 'No of Days is required'),
+    asmcL_Id: z.coerce.number().min(1, 'Class is required'),
+    asmS_Id: z.coerce.number().min(1, 'Section is required'),
+    hrmE_Id: z.coerce.number().min(1, 'Staff is required'),
+    nop: z.coerce.number().min(1, 'No of Days is required'),
     // UI Display
     clsDisplay: z.string().optional(),
     sectDisplay: z.string().optional(),
@@ -53,23 +53,23 @@ const fixingPeriodSubjectListSchema = z.object({
 // 1. Day Period Schema
 export const fixingDayPeriodSchema = z.object({
     ttfdP_Id: z.number().optional(),
-    asmaY_Id: z.number().min(1, 'Academic Year is required'),
-    ttmC_Id: z.number().min(1, 'Category is required'),
-    asmcL_Id: z.number().min(1, 'Class is required'),
-    asmS_Id: z.number().min(1, 'Section is required'),
-    hrmE_Id: z.number().min(1, 'Staff is required'),
-    ismS_Id: z.number().min(1, 'Subject is required'),
-    ttmD_Id: z.number().min(1, 'Day is required'),
-    ttmP_Id: z.number().min(1, 'Period is required')
+    asmaY_Id: z.coerce.number().min(1, 'Academic Year is required'),
+    ttmC_Id: z.coerce.number().min(1, 'Category is required'),
+    asmcL_Id: z.coerce.number().min(1, 'Class is required'),
+    asmS_Id: z.coerce.number().min(1, 'Section is required'),
+    hrmE_Id: z.coerce.number().min(1, 'Staff is required'),
+    ismS_Id: z.coerce.number().min(1, 'Subject is required'),
+    ttmD_Id: z.coerce.number().min(1, 'Day is required'),
+    ttmP_Id: z.coerce.number().min(1, 'Period is required')
 });
 export type FixingDayPeriodSchema = z.infer<typeof fixingDayPeriodSchema>;
 
 // 2. Day Staff Schema
 export const fixingDayStaffSchema = z.object({
     ttfdS_Id: z.number().optional(),
-    asmaY_Id: z.number().min(1, 'Academic Year is required'),
-    ttmD_Id: z.number().min(1, 'Day is required'),
-    hrmE_Id: z.number().min(1, 'Staff is required'),
+    asmaY_Id: z.coerce.number().min(1, 'Academic Year is required'),
+    ttmD_Id: z.coerce.number().min(1, 'Day is required'),
+    hrmE_Id: z.coerce.number().min(1, 'Staff is required'),
     ttfdS_SUbSelcFlag: z.boolean().default(false), // true if Class-Section Wise
     ttfdscC_Id: z.number().optional(),
     tempararyArrayList: z.array(fixingDayStaffListSchema).optional()
@@ -79,9 +79,9 @@ export type FixingDayStaffSchema = z.infer<typeof fixingDayStaffSchema>;
 // 3. Day Subject Schema
 export const fixingDaySubjectSchema = z.object({
     ttfdsU_Id: z.number().optional(),
-    asmaY_Id: z.number().min(1, 'Academic Year is required'),
-    ttmD_Id: z.number().min(1, 'Day is required'),
-    ismS_Id: z.number().min(1, 'Subject is required'),
+    asmaY_Id: z.coerce.number().min(1, 'Academic Year is required'),
+    ttmD_Id: z.coerce.number().min(1, 'Day is required'),
+    ismS_Id: z.coerce.number().min(1, 'Subject is required'),
     ttfdsU_SUbSelcFlag: z.boolean().default(false),
     tempararyArrayList: z.array(fixingDaySubjectListSchema).optional()
 });
@@ -91,9 +91,9 @@ export type FixingDaySubjectSchema = z.infer<typeof fixingDaySubjectSchema>;
 export type FixingPeriodStaffSchema = z.infer<typeof fixingPeriodStaffSchema>;
 export const fixingPeriodStaffSchema = z.object({
     ttfpS_Id: z.number().optional(),
-    asmaY_Id: z.number().min(1, 'Academic Year is required'),
-    ttmP_Id: z.number().min(1, 'Period is required'),
-    hrmE_Id: z.number().min(1, 'Staff is required'),
+    asmaY_Id: z.coerce.number().min(1, 'Academic Year is required'),
+    ttmP_Id: z.coerce.number().min(1, 'Period is required'),
+    hrmE_Id: z.coerce.number().min(1, 'Staff is required'),
     ttfpS_SUbSelcFlag: z.boolean().default(false),
     ttfpscC_Id: z.number().optional(),
     tempararyArrayList: z.array(fixingPeriodStaffListSchema).optional()
@@ -103,11 +103,12 @@ export const fixingPeriodStaffSchema = z.object({
 export const fixingPeriodSubjectSchema = z.object({
     ttrpsU_Id: z.number().optional(),
     ttfpsU_Id: z.number().optional(),
-    asmaY_Id: z.number().min(1, 'Academic Year is required'),
-    ttmP_Id: z.number().min(1, 'Period is required'),
-    ismS_Id: z.number().min(1, 'Subject is required'),
+    asmaY_Id: z.coerce.number().min(1, 'Academic Year is required'),
+    ttmP_Id: z.coerce.number().min(1, 'Period is required'),
+    ismS_Id: z.coerce.number().min(1, 'Subject is required'),
     ttrpsU_SUbSelcFlag: z.boolean().default(false),
     ttfpsU_SUbSelcFlag: z.boolean().default(false),
     tempararyArrayList: z.array(fixingPeriodSubjectListSchema).optional()
 });
 export type FixingPeriodSubjectSchema = z.infer<typeof fixingPeriodSubjectSchema>;
+

@@ -283,7 +283,7 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
                         name='asmaY_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Academic Year</FormLabel>
+                                <FormLabel>Academic Year <span className='text-red-500'>*</span></FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => {
@@ -310,7 +310,7 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
                         name='ttmD_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Day</FormLabel>
+                                <FormLabel>Day <span className='text-red-500'>*</span></FormLabel>
                                 <Select key={field.value?.toString()} onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
                                     <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
                                     <SelectContent>
@@ -334,7 +334,7 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
                         name='ismS_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Subject</FormLabel>
+                                <FormLabel>Subject <span className='text-red-500'>*</span></FormLabel>
                                 <Select
                                     key={field.value?.toString()}
                                     onValueChange={(v) => {
@@ -384,7 +384,7 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
                         <h4 className='font-semibold'>Add Class Details</h4>
                         <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-5'>
                             <div className='space-y-2'>
-                                <FormLabel>Class</FormLabel>
+                                <FormLabel>Class <span className='text-red-500'>*</span></FormLabel>
                                 <Select
                                     key={selectedClass?.toString()}
                                     onValueChange={(v) => handleClassChange(Number(v))}
@@ -407,7 +407,7 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
                                 </Select>
                             </div>
                             <div className='space-y-2'>
-                                <FormLabel>Section</FormLabel>
+                                <FormLabel>Section <span className='text-red-500'>*</span></FormLabel>
                                 <Select
                                     key={selectedSection?.toString()}
                                     onValueChange={(v) => handleSectionChange(Number(v))}
@@ -426,7 +426,7 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
                                 </Select>
                             </div>
                             <div className='space-y-2'>
-                                <FormLabel>Staff</FormLabel>
+                                <FormLabel>Staff <span className='text-red-500'>*</span></FormLabel>
                                 <Select
                                     key={selectedStaff?.toString()}
                                     onValueChange={(v) => setSelectedStaff(Number(v))}
@@ -445,7 +445,7 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
                                 </Select>
                             </div>
                             <div className='space-y-2'>
-                                <FormLabel>Periods</FormLabel>
+                                <FormLabel>Periods <span className='text-red-500'>*</span></FormLabel>
                                 <Input
                                     type='number'
                                     value={nop}
@@ -475,3 +475,4 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
         </Form>
     );
 }
+

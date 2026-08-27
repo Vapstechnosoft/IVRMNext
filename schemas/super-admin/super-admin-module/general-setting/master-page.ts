@@ -5,13 +5,11 @@ export const masterPageSchema = z.object({
     ivrmmP_PageName: z
         .string()
         .min(1, 'Page Name is required')
-        .max(100, 'Page Name matches limit')
-        .regex(/^[a-zA-Z\s]+$/, 'Only alphabets and spaces allowed'),
+        .max(100, 'Page Name matches limit'),
     ivrmP_PageDisplayName: z
         .string()
         .min(1, 'Display Name is required')
-        .max(100, 'Display Name matches limit')
-        .regex(/^[a-zA-Z\s]+$/, 'Only alphabets and spaces allowed'),
+        .max(100, 'Display Name matches limit'),
     ivrmP_PageDesc: z.string().min(1, 'Page Description is required').max(100, 'Page Description matches limit'),
     ivrmP_MandatoryFlag: z
         .union([z.boolean(), z.number(), z.null()])
