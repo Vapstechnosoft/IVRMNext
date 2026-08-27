@@ -183,8 +183,6 @@ export default function AddStudentFeeEnablePartialPaymentForm({
 
                 if (!isMounted) return;
 
-                const studentlist = (res?.data as any) ?? (res as any)?.studentlist ?? (Array.isArray(res) ? res : []);
-
                 if (Array.isArray(studentlist) && studentlist.length > 0) {
                     setStudents(studentlist);
                 } else {
