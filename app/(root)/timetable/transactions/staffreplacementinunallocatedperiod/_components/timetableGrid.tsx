@@ -3,17 +3,11 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-<<<<<<< HEAD
 import {
     useSaveStaffReplacementInUnallocatedPeriod,
     useTTStaffReplacementInUnallocatedPeriodReport
 } from '@/hooks/timetable/useTransactions';
 import { cn } from '@/lib/utils';
-=======
-import { useTTStaffReplacementInUnallocatedPeriodReport } from '@/hooks/timetable/useTransactions';
-import { cn } from '@/lib/utils';
-import { saveStaffReplacementInUnallocatedPeriod } from '@/server/timetable/transactions/staffreplacementinunallocatedperiod';
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
 import { ArrowRightLeft, CheckCircle2, Loader2, RefreshCw, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -44,7 +38,7 @@ export default function TimeTableGrid({ params }: TimeTableGridProps) {
         refetch
     } = useTTStaffReplacementInUnallocatedPeriodReport(hrmE_Id);
 
-    const [isReplacing, setIsReplacing] = useState(false);
+    const { mutate: doReplace, isPending: isReplacing } = useSaveStaffReplacementInUnallocatedPeriod();
 
     // Reset selections when hrmE_Id changes
     useEffect(() => {
@@ -140,10 +134,9 @@ export default function TimeTableGrid({ params }: TimeTableGridProps) {
         setSelection2(null);
     };
 
-    const handleReplace = async () => {
+    const handleReplace = () => {
         if (!selection1 || !selection2) return;
 
-<<<<<<< HEAD
         const payload = {
             hrmE_Id: Number(hrmE_Id),
             ttmD_ID_from: selection1.dayid,
@@ -174,41 +167,8 @@ export default function TimeTableGrid({ params }: TimeTableGridProps) {
             onError: (error: any) => {
                 toast.error('An error occurred while saving the replacement.');
                 console.error('Replacement error', error);
-=======
-        try {
-            setIsReplacing(true);
-            const payload = {
-                HRME_Id: String(hrmE_Id),
-                TTMD_ID_from: selection1.dayid,
-                TTMP_ID_from: selection1.pedid,
-                TTMD_ID_to: selection2.dayid,
-                TTMP_ID_to: selection2.pedid,
-                staffSDK: staffSDK ? '1' : '0',
-                subSDK: subSDK ? '1' : '0',
-                conSDK: conSDK ? '1' : '0'
-            };
-            console.log('payload', JSON.stringify(payload));
-            const response = await saveStaffReplacementInUnallocatedPeriod(payload);
-            console.log('response', response);
-
-            const resData = response?.data || response;
-            if (resData?.returnval_cls_notfree) {
-                toast.error('Replacement Failed: Class is not free.');
-                console.log('Class not free response', resData);
-            } else if (resData?.returnval === true || resData?.success === true || response?.success === true) {
-                toast.success(response?.message || 'Staff replacement saved successfully!');
-                handleClear();
-                refetch();
-            } else {
-                toast.error(response?.message || 'Failed to save staff replacement.');
-                console.log('Replacement error response', resData);
->>>>>>> 169c9268696c79cf4a7f2f9b39f095ba2da9169e
             }
-        } catch (error: any) {
-            toast.error(error.message || 'An error occurred while saving the replacement.');
-        } finally {
-            setIsReplacing(false);
-        }
+        });
     };
 
     if (isReportLoading) {
