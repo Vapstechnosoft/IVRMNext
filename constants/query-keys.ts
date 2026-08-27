@@ -261,6 +261,7 @@ export const FEES_QUERY_KEYS = {
     FEE_REFUNDABLE_LIST: 'fee_refundable_list',
     FEE_CONCESSION_ON_LOAD: 'fee_concession_on_load',
     FEE_STUDENT_TRANSACTIONSTTHOMAS: 'fee_student_transactionstthomas',
+    STUDENT_PORTAL_ACADEMIC: 'student_portal_academic',
 
     FEE_CONCESSION_CLASS_DROPDOWN: 'fee_concession_class_dropdown',
     FEE_CONCESSION_HEAD_LIST: 'fee_concession_head_list',
