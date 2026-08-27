@@ -53,8 +53,6 @@ export async function getExamReportCard(data: any) {
     return await api.post<any>('exam', url, data);
 }
 
-
-
 export async function getExamsStjames(data: any) {
     const url = `/JSHSExamReportsFacade/get_exam_groups`;
     return await api.post<any>('exam', url, data);
@@ -78,7 +76,4 @@ export async function getStJamesTransitionReport(data: any) {
 export async function getStJamesConsolidatedPointsReport(data: any) {
     const url = `/JSHSExamReportsFacade/stjames_exam_consolidated_report`;
     return await api.post<any>('exam', url, data);
-
-
-
 }

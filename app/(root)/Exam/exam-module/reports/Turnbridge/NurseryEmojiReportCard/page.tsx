@@ -26,10 +26,8 @@ export default function NurseryEmojiReportCardPage() {
     return (
         <div className='flex flex-col gap-8 p-4 md:p-8'>
             <AddForm onReportGenerated={handleReportGenerated} onReset={handleReset} />
-            
-            {reportParams && (
-                <ReportList data={reportData} params={reportParams} />
-            )}
+
+            {reportParams && <ReportList data={reportData} params={reportParams} />}
         </div>
     );
 }

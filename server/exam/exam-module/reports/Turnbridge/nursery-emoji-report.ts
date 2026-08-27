@@ -69,7 +69,7 @@ export async function getNurseryClasses(asmaY_Id: number) {
 
     try {
         const payload = { ASMAY_Id: Number(asmaY_Id), asmaY_Id: Number(asmaY_Id) };
-        let res = await postDualRoute('exam', '/JSHSExamReports/get_classes', payload);
+        const res = await postDualRoute('exam', '/JSHSExamReports/get_classes', payload);
 
         let classList = extractArray(res, ['getclasslist', 'classlist', 'data']);
 
@@ -81,8 +81,10 @@ export async function getNurseryClasses(asmaY_Id: number) {
 
         const NURSERY_KEYWORDS = ['nursery', 'nur', 'pre', 'lkg', 'ukg', 'kg', 'playgroup'];
         const filtered = (classList || []).filter((c: any) => {
-            const name = String(c.asmcL_ClassName ?? c.ASMCL_ClassName ?? c.className ?? c.asmC_ClassName ?? '').toLowerCase().trim();
-            return NURSERY_KEYWORDS.some(k => name.includes(k));
+            const name = String(c.asmcL_ClassName ?? c.ASMCL_ClassName ?? c.className ?? c.asmC_ClassName ?? '')
+                .toLowerCase()
+                .trim();
+            return NURSERY_KEYWORDS.some((k) => name.includes(k));
         });
 
         const finalClasses = (filtered.length > 0 ? filtered : classList) || [];
@@ -106,11 +108,11 @@ export async function getNurseryClasses(asmaY_Id: number) {
  */
 export async function getNurserySections(asmaY_Id: number, asmcL_Id: number) {
     try {
-        const payload = { 
-            ASMAY_Id: Number(asmaY_Id), 
-            ASMCL_Id: Number(asmcL_Id), 
-            asmaY_Id: Number(asmaY_Id), 
-            asmcL_Id: Number(asmcL_Id) 
+        const payload = {
+            ASMAY_Id: Number(asmaY_Id),
+            ASMCL_Id: Number(asmcL_Id),
+            asmaY_Id: Number(asmaY_Id),
+            asmcL_Id: Number(asmcL_Id)
         };
         const res = await postDualRoute('exam', '/JSHSExamReports/get_sections', payload);
         let sectionList = extractArray(res, ['getsectionlist', 'sectionlist', 'data']);
@@ -121,7 +123,7 @@ export async function getNurserySections(asmaY_Id: number, asmcL_Id: number) {
             sectionList = extractArray(resFallback, ['data', 'getsectionlist', 'sectionlist']);
         }
 
-        const resultList = (sectionList && sectionList.length > 0) ? sectionList : DEFAULT_SECTIONS;
+        const resultList = sectionList && sectionList.length > 0 ? sectionList : DEFAULT_SECTIONS;
 
         return {
             success: true,
@@ -145,7 +147,7 @@ export async function getNurseryStudentDetails(asmaY_Id: number, asmcL_Id: numbe
             asmaY_Id: Number(asmaY_Id),
             asmcL_Id: Number(asmcL_Id),
             asmS_Id: Number(asmS_Id),
-            flagtype: "Exam"
+            flagtype: 'Exam'
         };
 
         const res = await postDualRoute('exam', '/JSHSExamReports/GetStudentDetails', payload);
@@ -167,7 +169,7 @@ export async function getNurseryStudentDetails(asmaY_Id: number, asmcL_Id: numbe
             studentList = extractArray(resStu, ['getstudentlist', 'studentlist', 'getstudentdetails', 'studentdetails']);
         }
 
-        if ((!studentList || studentList.length === 0) || (!examList || examList.length === 0)) {
+        if (!studentList || studentList.length === 0 || !examList || examList.length === 0) {
             const urlStu = `/exam_master_category/students_drop_down_by_year_class_section_list?ASMAY_Id=${asmaY_Id}&ASMCL_Id=${asmcL_Id}&ASMS_Id=${asmS_Id}`;
             const resGetStu = await api.get<any>('exam', urlStu).catch(() => null);
             if (!studentList || studentList.length === 0) {
@@ -181,8 +183,8 @@ export async function getNurseryStudentDetails(asmaY_Id: number, asmcL_Id: numbe
             }
         }
 
-        const finalStudents = (studentList && studentList.length > 0) ? studentList : DEFAULT_STUDENTS;
-        const finalExams = (examList && examList.length > 0) ? examList : DEFAULT_EXAMS;
+        const finalStudents = studentList && studentList.length > 0 ? studentList : DEFAULT_STUDENTS;
+        const finalExams = examList && examList.length > 0 ? examList : DEFAULT_EXAMS;
 
         return {
             success: true,
@@ -226,7 +228,7 @@ export async function getNurseryEmojiReport(data: any) {
             reporttype: 'REPORT'
         };
 
-        let response = await postDualRoute('exam', '/JSHSExamReports/TBSPrimarySchool', payload);
+        const response = await postDualRoute('exam', '/JSHSExamReports/TBSPrimarySchool', payload);
 
         let resData = response?.data || response;
         let studentDetails = extractArray(resData, ['getstudentdetails', 'studentdetails', 'getstudentlist', 'studentlist']);
@@ -272,13 +274,9 @@ export async function getNurseryEmojiReport(data: any) {
 }
 
 function buildMockNurseryReport(selectedStudentsDetails?: any[], selectedExamsDetails?: any[]) {
-    const studentsToUse = (selectedStudentsDetails && selectedStudentsDetails.length > 0)
-        ? selectedStudentsDetails
-        : DEFAULT_STUDENTS;
+    const studentsToUse = selectedStudentsDetails && selectedStudentsDetails.length > 0 ? selectedStudentsDetails : DEFAULT_STUDENTS;
 
-    const examsToUse = (selectedExamsDetails && selectedExamsDetails.length > 0)
-        ? selectedExamsDetails
-        : DEFAULT_EXAMS;
+    const examsToUse = selectedExamsDetails && selectedExamsDetails.length > 0 ? selectedExamsDetails : DEFAULT_EXAMS;
 
     const mockStudents = studentsToUse.map((s: any) => ({
         AMST_Id: Number(s.amsT_Id || s.AMST_Id || 6890),
@@ -299,8 +297,8 @@ function buildMockNurseryReport(selectedStudentsDetails?: any[], selectedExamsDe
     const mockAttendance: any[] = [];
     const mockSubjectList: any[] = [];
 
-    mockStudents.forEach(stu => {
-        examsToUse.forEach(ex => {
+    mockStudents.forEach((stu) => {
+        examsToUse.forEach((ex) => {
             mockAttendance.push({
                 AMST_Id: stu.AMST_Id,
                 EME_Id: Number(ex.emE_Id || ex.EME_Id || 1),
@@ -309,7 +307,7 @@ function buildMockNurseryReport(selectedStudentsDetails?: any[], selectedExamsDe
             });
         });
 
-        mockFocusAreas.forEach(area => {
+        mockFocusAreas.forEach((area) => {
             let outcomesList: string[] = [];
             if (area.ISMS_Id === 1) outcomesList = ['Interacts well with peers', 'Follows classroom routines', 'Shows empathy & sharing'];
             if (area.ISMS_Id === 2) outcomesList = ['Phonics & Letter recognition', 'Vocabulary & Expression', 'Listening comprehension'];
@@ -346,20 +344,23 @@ function transformNurseryReportData(data: any, selectedStudentsDetails?: any[]) 
     const getstudentwisesubjectlist = extractArray(data, ['getstudentwisesubjectlist', 'studentwisesubjectlist']);
     const getstudentwiseattendancedetails = extractArray(data, ['getstudentwiseattendancedetails', 'studentwiseattendancedetails']);
     const clstchnameRaw = data.clstchname;
-    const clstchname = Array.isArray(clstchnameRaw) && clstchnameRaw.length > 0 
-        ? (clstchnameRaw[0].hrmE_EmployeeFirstName || clstchnameRaw[0].clastechname) 
-        : (typeof clstchnameRaw === 'string' ? clstchnameRaw : '');
+    const clstchname =
+        Array.isArray(clstchnameRaw) && clstchnameRaw.length > 0
+            ? clstchnameRaw[0].hrmE_EmployeeFirstName || clstchnameRaw[0].clastechname
+            : typeof clstchnameRaw === 'string'
+              ? clstchnameRaw
+              : '';
 
     if (getstudentdetails.length === 0 && selectedStudentsDetails && selectedStudentsDetails.length > 0) {
-        getstudentdetails = selectedStudentsDetails.map(s => ({
+        getstudentdetails = selectedStudentsDetails.map((s) => ({
             AMST_Id: s.amsT_Id || s.AMST_Id,
             studentname: s.studentName || s.studentname,
             amsT_AdmNo: s.admno || s.amsT_AdmNo || ''
         }));
     } else if (getstudentdetails.length === 0 && getstudentwisesubjectlist.length > 0) {
-        const uniqueIds = Array.from(new Set(getstudentwisesubjectlist.map(s => s.AMST_Id)));
-        getstudentdetails = uniqueIds.map(id => {
-            const match = getstudentwisesubjectlist.find(s => s.AMST_Id === id);
+        const uniqueIds = Array.from(new Set(getstudentwisesubjectlist.map((s) => s.AMST_Id)));
+        getstudentdetails = uniqueIds.map((id) => {
+            const match = getstudentwisesubjectlist.find((s) => s.AMST_Id === id);
             return {
                 AMST_Id: id,
                 studentname: match?.studentname || `Student ${id}`
@@ -370,7 +371,7 @@ function transformNurseryReportData(data: any, selectedStudentsDetails?: any[]) 
     const uniqueSubjects: any[] = [];
     if (getstudentwisesubjectlist && getstudentwisesubjectlist.length > 0) {
         getstudentwisesubjectlist.forEach((dev: any) => {
-            const exists = uniqueSubjects.find(s => s.ISMS_Id === dev.ISMS_Id && s.AMST_Id === dev.AMST_Id);
+            const exists = uniqueSubjects.find((s) => s.ISMS_Id === dev.ISMS_Id && s.AMST_Id === dev.AMST_Id);
             if (!exists) {
                 uniqueSubjects.push(dev);
             }
@@ -378,7 +379,9 @@ function transformNurseryReportData(data: any, selectedStudentsDetails?: any[]) 
     }
 
     const transformedStudents = getstudentdetails.map((stu: any) => {
-        const studentAttendance = getstudentwiseattendancedetails.filter((att: any) => att.AMST_Id === stu.AMST_Id || att.amsT_Id === stu.AMST_Id);
+        const studentAttendance = getstudentwiseattendancedetails.filter(
+            (att: any) => att.AMST_Id === stu.AMST_Id || att.amsT_Id === stu.AMST_Id
+        );
         const studentSubjects = getstudentwisesubjectlist.filter((sub: any) => sub.AMST_Id === stu.AMST_Id || sub.amsT_Id === stu.AMST_Id);
 
         return {

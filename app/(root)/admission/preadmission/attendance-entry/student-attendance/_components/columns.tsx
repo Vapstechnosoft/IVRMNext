@@ -12,7 +12,9 @@ export const getStudentAttendanceColumns = (
     const baseColumns: ColumnDef<StudentAttendanceStudent>[] = [
         {
             accessorKey: 'slNo',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='SL. NO.' className='w-[80px] text-center font-bold text-black' />,
+            header: ({ column }) => (
+                <DataTableColumnHeader column={column} title='SL. NO.' className='w-[80px] text-center font-bold text-black' />
+            ),
             cell: ({ row, table }) => {
                 const pageIndex = table.getState().pagination.pageIndex;
                 const pageSize = table.getState().pagination.pageSize;
@@ -50,10 +52,10 @@ export const getStudentAttendanceColumns = (
                     <div className='flex justify-center'>
                         <Input
                             type='number'
-                            step="0.5"
+                            step='0.5'
                             className='w-20 text-center'
                             value={row.original.pdays || ''}
-                            onChange={(e) => updateStudent(row.original.amsT_Id, 'pdays', parseFloat(e.target.value) || 0)}
+                            onChange={(e) => updateStudent(row.original.amsT_Id, 'pdays', Number.parseFloat(e.target.value) || 0)}
                         />
                     </div>
                 );
@@ -66,7 +68,9 @@ export const getStudentAttendanceColumns = (
             {
                 id: 'firstHalf',
                 accessorKey: 'firstHalfflag',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='I Half' className='text-center font-bold text-black' />,
+                header: ({ column }) => (
+                    <DataTableColumnHeader column={column} title='I Half' className='text-center font-bold text-black' />
+                ),
                 cell: ({ row }) => {
                     return (
                         <div className='flex justify-center'>
@@ -83,7 +87,9 @@ export const getStudentAttendanceColumns = (
             {
                 id: 'secondHalf',
                 accessorKey: 'secondHalfflag',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='II Half' className='text-center font-bold text-black' />,
+                header: ({ column }) => (
+                    <DataTableColumnHeader column={column} title='II Half' className='text-center font-bold text-black' />
+                ),
                 cell: ({ row }) => {
                     return (
                         <div className='flex justify-center'>
@@ -104,13 +110,13 @@ export const getStudentAttendanceColumns = (
             id: 'attendance',
             accessorKey: 'selected',
             header: ({ column, table }) => (
-                <div className="flex flex-col items-center justify-center gap-1">
-                    <span className="font-bold text-black text-center">Attendance</span>
+                <div className='flex flex-col items-center justify-center gap-1'>
+                    <span className='text-center font-bold text-black'>Attendance</span>
                     <Checkbox
-                        checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
+                        checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
                         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                        aria-label="Select all"
-                        className="translate-y-[2px]"
+                        aria-label='Select all'
+                        className='translate-y-[2px]'
                     />
                 </div>
             ),

@@ -42,11 +42,7 @@ export const studentFeeEnablePartialPaymentColumns: ColumnDef<IStudentFeeEnableP
             const middleName = row.original.amsT_MiddleName ?? (row.original as any).AMST_MiddleName ?? '';
             const lastName = row.original.amsT_LastName ?? (row.original as any).AMST_LastName ?? '';
             const constructedName = [firstName, middleName, lastName].filter(Boolean).join(' ');
-            const fullName =
-                row.original.studentName ||
-                (row.original as any).StudentName ||
-                constructedName ||
-                '-';
+            const fullName = row.original.studentName || (row.original as any).StudentName || constructedName || '-';
             const admNo = row.original.amsT_AdmNo ?? (row.original as any).AMST_AdmNo;
             return <div className='font-medium text-foreground'>{admNo ? `${admNo} : ${fullName}` : fullName}</div>;
         },
@@ -92,7 +88,7 @@ export const studentFeeEnablePartialPaymentColumns: ColumnDef<IStudentFeeEnableP
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='font-bold text-black text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center font-bold text-black' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
@@ -110,10 +106,7 @@ function ActionButtonsCell({ rowData }: { rowData: IStudentFeeEnablePartialPayme
     );
 
     const activeFlag =
-        rowData.fsepP_ActiveFlag ??
-        (rowData as any).FSEPP_ActiveFlag ??
-        (rowData as any).is_Active ??
-        (rowData as any).isActive;
+        rowData.fsepP_ActiveFlag ?? (rowData as any).FSEPP_ActiveFlag ?? (rowData as any).is_Active ?? (rowData as any).isActive;
 
     return (
         <div className='flex justify-center'>

@@ -745,8 +745,7 @@ export async function getUserAccessibleModules() {
                     description: page.ivrmmP_PageName
                 });
             }
-        }
-        );
+        });
 
         // Sort helper
         const sortByOrder = (a: any, b: any) => (a.order || 0) - (b.order || 0);

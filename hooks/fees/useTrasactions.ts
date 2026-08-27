@@ -64,6 +64,7 @@ import {
     getFeeProspectusTransactionList,
     getPreadmissionStudentDropdownData
 } from '@/server/fees/trasactions/feepreadmissiontrasaction';
+import { getStudentFeeEnablePartialPaymentDetails } from '@/server/fees/trasactions/student_fee_enable_partial_payment';
 import {
     getThirdPartyTrasaction,
     getThirdPartyTrasactionBankDropDown,
@@ -82,9 +83,8 @@ import {
     getThirdPartyTrasaction_GM,
     geteditThirdpartytrasaction_GM
 } from '@/server/fees/trasactions/thirdpartyTransaction_GM';
-import { getStudentFeeEnablePartialPaymentDetails } from '@/server/fees/trasactions/student_fee_enable_partial_payment';
-import type { ApiSearchparams } from '@/types';
 import { feeTransactionWaivedOff, getClassdetails, getsectiondetails } from '@/server/fees/trasactions/waived_off';
+import type { ApiSearchparams } from '@/types';
 
 export const useFeeAmountEntry = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
@@ -1223,7 +1223,7 @@ export const useFeeChequeBounceInitialData = () => {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.FEE_CHEQUE_BOUNCE_DROPDOWNS],
             queryFn: async () => getFeeChequeBounceInitialData(),
-            staleTime: 0,
+            staleTime: 0
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -1232,7 +1232,6 @@ export const useFeeChequeBounceInitialData = () => {
         }
     };
 };
-
 
 export const useFeeChequeBounceClasses = (asmaY_Id: number) => {
     const queryClient = useQueryClient();

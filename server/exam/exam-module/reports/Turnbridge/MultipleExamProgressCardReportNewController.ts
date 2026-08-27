@@ -27,11 +27,7 @@ function hasDataItems(res: any): boolean {
         if (arr.$values && Array.isArray(arr.$values) && arr.$values.length > 0) return true;
         return false;
     };
-    return Boolean(
-        checkArray(dataObj.getstudentdetails) || 
-        checkArray(dataObj.studentdetails) || 
-        checkArray(dataObj.studentlist)
-    );
+    return Boolean(checkArray(dataObj.getstudentdetails) || checkArray(dataObj.studentdetails) || checkArray(dataObj.studentlist));
 }
 
 export async function getMultipleExamProgressCardReportNew(data: any) {
@@ -55,17 +51,19 @@ export async function getMultipleExamProgressCardReportNew(data: any) {
                 const rawStus = resStu?.data || resStu || [];
                 const studentArr = ensureArray(rawStus);
                 if (studentArr.length > 0) {
-                    rawStudentIds = studentArr.map((s: any) => Number(s.amsT_Id ?? s.AMST_Id ?? s.id ?? s)).filter(id => id > 0);
+                    rawStudentIds = studentArr.map((s: any) => Number(s.amsT_Id ?? s.AMST_Id ?? s.id ?? s)).filter((id) => id > 0);
                 }
             } catch (err) {
                 console.error('[MultipleExamProgressCardReportNewController] Error auto-fetching students:', err);
             }
         }
 
-        const temp_Amstids = rawStudentIds.filter(id => id > 0).map((id) => ({
-            AMST_Id: id,
-            amsT_Id: id
-        }));
+        const temp_Amstids = rawStudentIds
+            .filter((id) => id > 0)
+            .map((id) => ({
+                AMST_Id: id,
+                amsT_Id: id
+            }));
 
         // 2. Format exam list
         let rawExamIds: number[] = [];
@@ -81,10 +79,10 @@ export async function getMultipleExamProgressCardReportNew(data: any) {
             EME_Id: Number(e.EME_Id ?? e.emE_Id ?? e.eme_id ?? e),
             emE_Id: Number(e.EME_Id ?? e.emE_Id ?? e.eme_id ?? e),
             EME_ExamName: String(e.EME_ExamName ?? e.emE_ExamName ?? ''),
-            emE_ExamName: String(e.EME_ExamName ?? e.emE_ExamName ?? ''),
+            emE_ExamName: String(e.EME_ExamName ?? e.emE_ExamName ?? '')
         }));
 
-        const examlist = rawExamIds.map(id => ({ EME_Id: id, emE_Id: id }));
+        const examlist = rawExamIds.map((id) => ({ EME_Id: id, emE_Id: id }));
 
         // 3. Auto-fetch Grade ID if 0
         let emgR_Id = Number(data.emgR_Id ?? data.EMGR_Id ?? 0);
@@ -136,7 +134,7 @@ export async function getMultipleExamProgressCardReportNew(data: any) {
         for (const ep of endpoints) {
             console.log(`[MultipleExamProgressCardReportNewController] Posting to endpoint: ${ep}`);
             const res = await api.post<any>('exam', ep, payload).catch(() => null);
-            
+
             if (res) {
                 console.log(`=== RESPONSE FROM ${ep} ===`);
                 console.log(JSON.stringify(res, null, 2)?.substring(0, 1500));
@@ -195,7 +193,13 @@ function transformReportData(data: any) {
 
     const processedExamDetails = [...getexamdetails];
     if (getexamdetails.length > 0 && !processedExamDetails.some((e: any) => (e.emE_ExamName || e.EME_ExamName) === 'Total')) {
-        processedExamDetails.push({ emE_Id: 150001, EME_Id: 150001, emE_ExamName: 'Total', EME_ExamName: 'Total', eyceS_MaxMarks: totalMaxMarks });
+        processedExamDetails.push({
+            emE_Id: 150001,
+            EME_Id: 150001,
+            emE_ExamName: 'Total',
+            EME_ExamName: 'Total',
+            eyceS_MaxMarks: totalMaxMarks
+        });
         processedExamDetails.push({ emE_Id: 150002, EME_Id: 150002, emE_ExamName: 'Grade', EME_ExamName: 'Grade', eyceS_MaxMarks: '' });
     }
 
@@ -244,7 +248,7 @@ function transformReportData(data: any) {
             dob: stu.dob || stu.AMST_DOB || stu.amsT_DOB || '',
             clastechname: stu.clastechname || stu.classTeacherName || stu.HRME_EmployeeFirstName || '',
             subjects: studentSubjects.length > 0 ? studentSubjects : finalSubjects,
-            marks: studentMarks,
+            marks: studentMarks
         };
     });
 
@@ -255,6 +259,6 @@ function transformReportData(data: any) {
         getstudentwisesubjectlist: finalSubjects,
         getstudentmarksdetails,
         work_attendence: ensureArray(data.work_attendence || data.work_attendance),
-        present_attendence: ensureArray(data.present_attendence || data.present_attendance),
+        present_attendence: ensureArray(data.present_attendence || data.present_attendance)
     };
 }

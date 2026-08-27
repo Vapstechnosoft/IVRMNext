@@ -2,7 +2,6 @@
 
 import { api } from '@/lib/apiService';
 
-
 export async function onlinepaymentdetails(data?: any) {
     const url = '/FeeOnlinePaymentFacade/getdetails';
     return await api.post<any>('fees', url, data);

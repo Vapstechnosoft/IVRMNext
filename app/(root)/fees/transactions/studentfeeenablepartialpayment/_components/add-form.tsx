@@ -5,13 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { DateField } from '@/components/ui/dateField';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useStudentFeeEnablePartialPayment } from '@/hooks/fees/useTrasactions';
 import { studentFeeEnablePartialPaymentSchema } from '@/schemas/fees/trasactions';
 import { studentNameDropdown } from '@/server/fees/trasactions/fee_opening_balance';
@@ -82,16 +76,10 @@ export default function AddStudentFeeEnablePartialPaymentForm({
     const selectedSection = watch('amsC_Id');
 
     const yearlist: IStudentFeeEnablePartialPaymentYear[] =
-        initialData?.yearlist ??
-        (serverResponse?.data as any)?.yearlist ??
-        (serverResponse as any)?.yearlist ??
-        [];
+        initialData?.yearlist ?? (serverResponse?.data as any)?.yearlist ?? (serverResponse as any)?.yearlist ?? [];
 
     const classlist: IStudentFeeEnablePartialPaymentClass[] =
-        initialData?.fillclass ??
-        (serverResponse?.data as any)?.fillclass ??
-        (serverResponse as any)?.fillclass ??
-        [];
+        initialData?.fillclass ?? (serverResponse?.data as any)?.fillclass ?? (serverResponse as any)?.fillclass ?? [];
 
     // Load Sections when Academic Year and Class are selected
     useEffect(() => {
@@ -185,9 +173,7 @@ export default function AddStudentFeeEnablePartialPaymentForm({
                     };
                     const resFallback = await studentNameDropdown(fallbackPayload);
                     studentlist =
-                        (resFallback?.data as any) ??
-                        (resFallback as any)?.studentlist ??
-                        (Array.isArray(resFallback) ? resFallback : []);
+                        (resFallback?.data as any) ?? (resFallback as any)?.studentlist ?? (Array.isArray(resFallback) ? resFallback : []);
                 }
 
                 if (!isMounted) return;
@@ -456,12 +442,8 @@ export default function AddStudentFeeEnablePartialPaymentForm({
                                                         const middleName = std.amsT_MiddleName ?? std.middleName ?? '';
                                                         const lastName = std.amsT_LastName ?? std.lastName ?? '';
                                                         const admNo = std.amsT_AdmNo ?? std.admNo ?? '';
-                                                        const fullName = [firstName, middleName, lastName]
-                                                            .filter(Boolean)
-                                                            .join(' ');
-                                                        const displayText = admNo
-                                                            ? `${admNo} : ${fullName}`
-                                                            : fullName;
+                                                        const fullName = [firstName, middleName, lastName].filter(Boolean).join(' ');
+                                                        const displayText = admNo ? `${admNo} : ${fullName}` : fullName;
                                                         if (studentId === undefined || studentId === null) return null;
 
                                                         return (

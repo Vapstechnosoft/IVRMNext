@@ -272,7 +272,9 @@ export const masterSubjectSchema = {
         lmS_SubjectName: z.string().optional(),
         lmS_ParentId: z.preprocess(
             (val) => (val === undefined || val === '' ? undefined : Number(val)),
-            z.number({ required_error: 'Please Select Parent Subject', invalid_type_error: 'Please Select Parent Subject' }).min(1, 'Please Select Parent Subject')
+            z
+                .number({ required_error: 'Please Select Parent Subject', invalid_type_error: 'Please Select Parent Subject' })
+                .min(1, 'Please Select Parent Subject')
         ),
         lmS_Level: z
             .string()

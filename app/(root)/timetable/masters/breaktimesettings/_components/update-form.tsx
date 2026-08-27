@@ -17,7 +17,7 @@ import {
 import { breakTimeSettingsSchema } from '@/schemas/timetable/masters';
 import { getBreakTimeSettingsEdit, getMaximumPeriodsCount, saveBreakTimeSettings } from '@/server/timetable/masters/breaktimesettings';
 import { ClassDropDownDataOnchnGeYrAndCategory } from '@/server/timetable/masters/masterdayclasswise';
-import type { IBreakTimeSettingsList, IMasterDayList } from '@/types/timetable/masters/masters';
+import type { IBreakTimeSettingsList } from '@/types/timetable/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { Save } from 'lucide-react';
@@ -55,24 +55,15 @@ export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: 
         defaultValues: {}
     });
 
-    const {
-        data: academicListRes,
-        isLoading: academicLoading
-    } = useAcademicYearDropDownMasterDayClasswise();
-    const {
-        data: Masterdaydata,
-        isLoading: masterdaydataloading
-    } = useDayDropDownMasterDayClasswise();
+    const { data: academicListRes, isLoading: academicLoading } = useAcademicYearDropDownMasterDayClasswise();
+    const { data: Masterdaydata, isLoading: masterdaydataloading } = useDayDropDownMasterDayClasswise();
 
     const academicList = (academicListRes as any)?.data || [];
     const categoryList = (response as any)?.catelist || []; // Try from response first
     const dayList: any[] = (Masterdaydata as any)?.data || [];
 
     const academicyear = watch('asmay_id');
-    const {
-        data: categoryListRes,
-        isLoading: categoryLoading
-    } = useCategtoryDropDownMasterDayClasswise({ enabled: !!academicyear });
+    const { data: categoryListRes, isLoading: categoryLoading } = useCategtoryDropDownMasterDayClasswise({ enabled: !!academicyear });
 
     const finalCategoryList = (categoryListRes as any)?.data || categoryList;
 
@@ -315,7 +306,9 @@ export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: 
                                         </SelectTrigger>
                                         <SelectContent>
                                             {academicLoading ? (
-                                                <SelectItem value='loading' disabled>Loading...</SelectItem>
+                                                <SelectItem value='loading' disabled>
+                                                    Loading...
+                                                </SelectItem>
                                             ) : (
                                                 academicList.map((item: any) => (
                                                     <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
@@ -358,7 +351,13 @@ export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: 
                         </div>
 
                         <div className='space-y-2'>
-                            <InputText label='Break Name' placeholder='Enter Break Name' required {...register('ttmB_BreakName')} error={errors.ttmB_BreakName?.message} />
+                            <InputText
+                                label='Break Name'
+                                placeholder='Enter Break Name'
+                                required
+                                {...register('ttmB_BreakName')}
+                                error={errors.ttmB_BreakName?.message}
+                            />
                         </div>
 
                         <div className='space-y-2'>
@@ -402,7 +401,9 @@ export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: 
                                         </SelectTrigger>
                                         <SelectContent>
                                             {categoryLoading ? (
-                                                <SelectItem value='loading' disabled>Loading...</SelectItem>
+                                                <SelectItem value='loading' disabled>
+                                                    Loading...
+                                                </SelectItem>
                                             ) : (
                                                 finalCategoryList.map((item: any) => (
                                                     <SelectItem key={item.ttmC_Id} value={item.ttmC_Id.toString()}>
@@ -433,11 +434,15 @@ export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: 
                                         onValueChange={(vals) => {
                                             const selectedObjs = vals
                                                 .map((id) => {
-                                                    const found = dayList.find((d: any) => (d.ttmD_Id || (d as any).TTMD_Id).toString() === id);
-                                                    return found ? {
-                                                        ttmD_Id: found.ttmD_Id || (found as any).TTMD_Id,
-                                                        ttmD_DayName: found.ttmD_DayName || (found as any).TTMD_DayName
-                                                    } : null;
+                                                    const found = dayList.find(
+                                                        (d: any) => (d.ttmD_Id || (d as any).TTMD_Id).toString() === id
+                                                    );
+                                                    return found
+                                                        ? {
+                                                              ttmD_Id: found.ttmD_Id || (found as any).TTMD_Id,
+                                                              ttmD_DayName: found.ttmD_DayName || (found as any).TTMD_DayName
+                                                          }
+                                                        : null;
                                                 })
                                                 .filter((x) => x);
                                             field.onChange(selectedObjs as [any, ...any[]]);

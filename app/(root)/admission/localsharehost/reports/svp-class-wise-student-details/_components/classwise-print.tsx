@@ -18,8 +18,9 @@ export const ClasswisePrint = forwardRef<HTMLDivElement, ClasswisePrintProps>(
 
         return (
             <div ref={ref} className='print-container bg-white text-black'>
-                <style dangerouslySetInnerHTML={{
-                    __html: `
+                <style
+                    dangerouslySetInnerHTML={{
+                        __html: `
                     @media print {
                         @page {
                             size: A4 landscape;
@@ -63,11 +64,19 @@ export const ClasswisePrint = forwardRef<HTMLDivElement, ClasswisePrintProps>(
                         .print-footer { margin-top: 12px; font-size: 9px; opacity: 0.6; }
                     }
                     `
-                }} />
+                    }}
+                />
 
                 <div style={{ padding: '16px', fontFamily: 'Arial, sans-serif' }}>
                     {/* Report Header */}
-                    <h2 style={{ textAlign: 'center', fontSize: '15px', fontWeight: 'bold', marginBottom: '4px', textTransform: 'uppercase' }}>
+                    <h2
+                        style={{
+                            textAlign: 'center',
+                            fontSize: '15px',
+                            fontWeight: 'bold',
+                            marginBottom: '4px',
+                            textTransform: 'uppercase'
+                        }}>
                         Class Wise Student Details
                     </h2>
                     <p style={{ textAlign: 'center', fontSize: '11px', marginBottom: '2px' }}>
@@ -93,7 +102,9 @@ export const ClasswisePrint = forwardRef<HTMLDivElement, ClasswisePrintProps>(
                         <tbody>
                             {data.map((row: any, idx: number) => (
                                 <tr key={idx}>
-                                    <td className='center' style={{ textAlign: 'center' }}>{idx + 1}</td>
+                                    <td className='center' style={{ textAlign: 'center' }}>
+                                        {idx + 1}
+                                    </td>
                                     {activeFields.map((f) => (
                                         <td key={f.columnID}>{row[f.columnID] ?? '-'}</td>
                                     ))}
@@ -103,9 +114,10 @@ export const ClasswisePrint = forwardRef<HTMLDivElement, ClasswisePrintProps>(
                     </table>
 
                     {/* Footer */}
-                    <div className='print-footer' style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', fontSize: '9px', opacity: 0.6 }}>
+                    <div
+                        className='print-footer'
+                        style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', fontSize: '9px', opacity: 0.6 }}>
                         <span>Printed on: {printTimestamp}</span>
-
                     </div>
                 </div>
             </div>

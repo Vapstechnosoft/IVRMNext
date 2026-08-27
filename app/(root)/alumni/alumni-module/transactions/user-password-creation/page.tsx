@@ -3,15 +3,15 @@
 import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { tableSearchVariables } from '@/lib/data-table.config';
 import { createUsername, getInitialData } from '@/server/alumni/user-password-creation';
 import type { IClass, ISection, IStudent, IYear } from '@/types/alumni/user-password-creation';
 import { KeyRound, Loader2 } from 'lucide-react';
+import { parseAsInteger, useQueryState } from 'nuqs';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { userPasswordCreationColumns } from './_components/columns';
 import FilterForm from './_components/filter-form';
-import { parseAsInteger, useQueryState } from 'nuqs';
-import { tableSearchVariables } from '@/lib/data-table.config';
 
 export default function UserPasswordCreationPage() {
     const [years, setYears] = useState<IYear[]>([]);
@@ -25,17 +25,10 @@ export default function UserPasswordCreationPage() {
     const [filterData, setFilterData] = useState<string>('');
     const [totalItems, setTotalItems] = useState<number>(0);
 
-    const [currentPage] = useQueryState(
-        tableSearchVariables.page,
-        parseAsInteger.withOptions({ shallow: false }).withDefault(1)
-    );
-    const [pageSize] = useQueryState(
-        tableSearchVariables.page_size,
-        parseAsInteger.withOptions({ shallow: false }).withDefault(10)
-    );
+    const [currentPage] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
+    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
 
     const paginatedStudents = students.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-
 
     const fetchInitialData = useCallback(async () => {
         setIsLoading(true);

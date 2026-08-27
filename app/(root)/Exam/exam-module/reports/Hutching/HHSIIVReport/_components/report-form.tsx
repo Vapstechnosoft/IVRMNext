@@ -14,9 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useMasterGradeDropdownList } from '@/hooks/exam/exammodule/usemasters';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { type HHSIIVReportSchema, hhsIIVReportSchema } from '@/schemas/exam/exam-module/reports';
-import {
-    getHHSIIVSaveDetails
-} from '@/server/exam/exam-module/reports/Hutching/hhs-all-report';
+import { getHHSIIVSaveDetails } from '@/server/exam/exam-module/reports/Hutching/hhs-all-report';
 import {
     getClassDropDownByAcademicYearlist,
     getSectionsDropDownByAcademicYearandClasslist,
@@ -63,8 +61,6 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
     const watchClass = useWatch({ control, name: 'ASMCL_Id' });
     const watchSection = useWatch({ control, name: 'ASMS_Id' });
 
-
-
     // Load Classes on Year Change
     useEffect(() => {
         if (!watchYear) {
@@ -101,10 +97,7 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
         (async () => {
             try {
                 setLoadingSections(true);
-                const response = await getSectionsDropDownByAcademicYearandClasslist(
-                    Number(watchYear),
-                    Number(watchClass)
-                );
+                const response = await getSectionsDropDownByAcademicYearandClasslist(Number(watchYear), Number(watchClass));
                 setSections(Array.isArray(response?.data) ? response.data : []);
                 setValue('ASMS_Id', '');
                 setValue('AMST_Id', '');
@@ -186,7 +179,13 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
 
             if (response && (response.success || (response as any).data)) {
                 const reportData = (response as any).data || response;
-                const marksList = reportData.subjectMarks || reportData.eam_sub_mrks_list || reportData.exm_sub_mrks_list || reportData.savelist || reportData.savelisttot || [];
+                const marksList =
+                    reportData.subjectMarks ||
+                    reportData.eam_sub_mrks_list ||
+                    reportData.exm_sub_mrks_list ||
+                    reportData.savelist ||
+                    reportData.savelisttot ||
+                    [];
                 const studentList = reportData.studentDetails || reportData.stu_details || [];
 
                 if ((marksList && marksList.length > 0) || (studentList && studentList.length > 0)) {
@@ -212,26 +211,24 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
         onReset();
     };
 
-
-
     return (
         <FormProvider {...methods}>
             <form onSubmit={handleSubmit(onSubmit)}>
-                <Card className="mb-6">
-                    <CardHeader className="flex flex-row items-center justify-between">
+                <Card className='mb-6'>
+                    <CardHeader className='flex flex-row items-center justify-between'>
                         <CardTitle>HHS Progress Card 1st to 4th</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                             <Controller
                                 control={control}
-                                name="ASMAY_Id"
+                                name='ASMAY_Id'
                                 render={({ field, fieldState }) => (
-                                    <div className="flex flex-col gap-2">
+                                    <div className='flex flex-col gap-2'>
                                         <Label isRequired>Academic Year</Label>
-                                        <Select value={field.value || ""} onValueChange={field.onChange} disabled={academicYearLoading}>
-                                            <SelectTrigger className="w-full">
-                                                <SelectValue placeholder={academicYearLoading ? "Loading..." : "Select Academic Year"} />
+                                        <Select value={field.value || ''} onValueChange={field.onChange} disabled={academicYearLoading}>
+                                            <SelectTrigger className='w-full'>
+                                                <SelectValue placeholder={academicYearLoading ? 'Loading...' : 'Select Academic Year'} />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {academicYears.map((year: any) => (
@@ -248,13 +245,16 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
 
                             <Controller
                                 control={control}
-                                name="ASMCL_Id"
+                                name='ASMCL_Id'
                                 render={({ field, fieldState }) => (
-                                    <div className="flex flex-col gap-2">
+                                    <div className='flex flex-col gap-2'>
                                         <Label isRequired>Class</Label>
-                                        <Select value={field.value || ""} onValueChange={field.onChange} disabled={!watchYear || loadingClasses}>
-                                            <SelectTrigger className="w-full">
-                                                <SelectValue placeholder={loadingClasses ? "Loading..." : "Select Class"} />
+                                        <Select
+                                            value={field.value || ''}
+                                            onValueChange={field.onChange}
+                                            disabled={!watchYear || loadingClasses}>
+                                            <SelectTrigger className='w-full'>
+                                                <SelectValue placeholder={loadingClasses ? 'Loading...' : 'Select Class'} />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {classes.map((cls) => (
@@ -271,13 +271,16 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
 
                             <Controller
                                 control={control}
-                                name="ASMS_Id"
+                                name='ASMS_Id'
                                 render={({ field, fieldState }) => (
-                                    <div className="flex flex-col gap-2">
+                                    <div className='flex flex-col gap-2'>
                                         <Label isRequired>Section</Label>
-                                        <Select value={field.value || ""} onValueChange={field.onChange} disabled={!watchClass || loadingSections}>
-                                            <SelectTrigger className="w-full">
-                                                <SelectValue placeholder={loadingSections ? "Loading..." : "Select Section"} />
+                                        <Select
+                                            value={field.value || ''}
+                                            onValueChange={field.onChange}
+                                            disabled={!watchClass || loadingSections}>
+                                            <SelectTrigger className='w-full'>
+                                                <SelectValue placeholder={loadingSections ? 'Loading...' : 'Select Section'} />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {sections.map((sec) => (
@@ -294,13 +297,16 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
 
                             <Controller
                                 control={control}
-                                name="AMST_Id"
+                                name='AMST_Id'
                                 render={({ field, fieldState }) => (
-                                    <div className="flex flex-col gap-2">
+                                    <div className='flex flex-col gap-2'>
                                         <Label isRequired>Student Name</Label>
-                                        <Select value={field.value || ""} onValueChange={field.onChange} disabled={!watchSection || loadingStudents}>
-                                            <SelectTrigger className="w-full">
-                                                <SelectValue placeholder={loadingStudents ? "Loading..." : "Select Student Name"} />
+                                        <Select
+                                            value={field.value || ''}
+                                            onValueChange={field.onChange}
+                                            disabled={!watchSection || loadingStudents}>
+                                            <SelectTrigger className='w-full'>
+                                                <SelectValue placeholder={loadingStudents ? 'Loading...' : 'Select Student Name'} />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {students.map((student) => (
@@ -317,26 +323,26 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
 
                             <Controller
                                 control={control}
-                                name="re_opendate"
+                                name='re_opendate'
                                 render={({ field, fieldState }) => (
                                     <DateField
                                         field={field}
                                         fieldState={fieldState}
-                                        label="School Re-open Date"
-                                        placeholder="Select Date"
+                                        label='School Re-open Date'
+                                        placeholder='Select Date'
                                     />
                                 )}
                             />
 
                             <Controller
                                 control={control}
-                                name="EMGR_Id"
+                                name='EMGR_Id'
                                 render={({ field, fieldState }) => (
-                                    <div className="flex flex-col gap-2">
+                                    <div className='flex flex-col gap-2'>
                                         <Label isRequired>Grade Group</Label>
-                                        <Select value={field.value || ""} onValueChange={field.onChange}>
-                                            <SelectTrigger className="w-full">
-                                                <SelectValue placeholder="Select Grade" />
+                                        <Select value={field.value || ''} onValueChange={field.onChange}>
+                                            <SelectTrigger className='w-full'>
+                                                <SelectValue placeholder='Select Grade' />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {grades.map((grade: any) => {
@@ -356,17 +362,13 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
                             />
                         </div>
 
-                        <div className="mt-8 flex items-center justify-center gap-4 border-t pt-6">
-                            <Button type="submit" disabled={isSubmitting}>
-                                {isSubmitting ? (
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                ) : (
-                                    <FileText className="mr-2 h-4 w-4" />
-                                )}
+                        <div className='mt-8 flex items-center justify-center gap-4 border-t pt-6'>
+                            <Button type='submit' disabled={isSubmitting}>
+                                {isSubmitting ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <FileText className='mr-2 h-4 w-4' />}
                                 Report
                             </Button>
-                            <Button type="button" variant="destructive" onClick={handleReset} disabled={isSubmitting}>
-                                <RefreshCcw className="mr-2 h-4 w-4" />
+                            <Button type='button' variant='destructive' onClick={handleReset} disabled={isSubmitting}>
+                                <RefreshCcw className='mr-2 h-4 w-4' />
                                 Cancel
                             </Button>
                         </div>

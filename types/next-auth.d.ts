@@ -31,5 +31,5 @@ declare module 'next-auth' {
         mi_name?: string;
     }
 
-    interface JWT extends User { }
+    interface JWT extends User {}
 }

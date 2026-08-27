@@ -66,11 +66,11 @@ export const getMockNurseryData = (classname?: string) => {
     ];
 
     const getstudentwisesubjectlist: any[] = [];
-    students.forEach(stu => {
+    students.forEach((stu) => {
         subjects.forEach((sub) => {
-            [1, 2].forEach(emeId => {
-                const subOutcomes = allOutcomes.filter(o => o.ISMS_Id === sub.ISMS_Id);
-                subOutcomes.forEach(out => {
+            [1, 2].forEach((emeId) => {
+                const subOutcomes = allOutcomes.filter((o) => o.ISMS_Id === sub.ISMS_Id);
+                subOutcomes.forEach((out) => {
                     // Slight variation for second student
                     const finalScore = stu.AMST_Id === 102 && out.score === 2 ? 1 : out.score;
                     getstudentwisesubjectlist.push({
@@ -87,8 +87,8 @@ export const getMockNurseryData = (classname?: string) => {
     });
 
     const uniqueSubjects: any[] = [];
-    getstudentwisesubjectlist.forEach(item => {
-        if (!uniqueSubjects.find(s => s.ISMS_Id === item.ISMS_Id && s.AMST_Id === item.AMST_Id)) {
+    getstudentwisesubjectlist.forEach((item) => {
+        if (!uniqueSubjects.find((s) => s.ISMS_Id === item.ISMS_Id && s.AMST_Id === item.AMST_Id)) {
             uniqueSubjects.push({
                 AMST_Id: item.AMST_Id,
                 ISMS_Id: item.ISMS_Id,
@@ -97,7 +97,7 @@ export const getMockNurseryData = (classname?: string) => {
         }
     });
 
-    const getstudentwiseattendancedetails = students.flatMap(stu => [
+    const getstudentwiseattendancedetails = students.flatMap((stu) => [
         { AMST_Id: stu.AMST_Id, EME_Id: 1, PRESENTDAYS: 48, TOTALWORKINGDAYS: 50, ATTENDANCEPERCENTAGE: 96 },
         { AMST_Id: stu.AMST_Id, EME_Id: 2, PRESENTDAYS: 49, TOTALWORKINGDAYS: 50, ATTENDANCEPERCENTAGE: 98 }
     ]);

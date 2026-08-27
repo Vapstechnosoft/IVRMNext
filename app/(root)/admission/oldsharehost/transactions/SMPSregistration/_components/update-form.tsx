@@ -838,8 +838,10 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 })),
                 PASR_FatherAliveFlag: data.PASR_FatherAliveFlag !== undefined ? Number(data.PASR_FatherAliveFlag) : 1,
                 PASR_MotherAliveFlag: data.PASR_MotherAliveFlag !== undefined ? Number(data.PASR_MotherAliveFlag) : 1,
-                PASR_FatherSelfEmployedFlg: String(data.PASR_FatherSelfEmployedFlg) === 'true' || String(data.PASR_FatherSelfEmployedFlg) === '1',
-                PASR_MotherSelfEmployedFlg: String(data.PASR_MotherSelfEmployedFlg) === 'true' || String(data.PASR_MotherSelfEmployedFlg) === '1',
+                PASR_FatherSelfEmployedFlg:
+                    String(data.PASR_FatherSelfEmployedFlg) === 'true' || String(data.PASR_FatherSelfEmployedFlg) === '1',
+                PASR_MotherSelfEmployedFlg:
+                    String(data.PASR_MotherSelfEmployedFlg) === 'true' || String(data.PASR_MotherSelfEmployedFlg) === '1',
                 examSubjectDTO: [],
                 elesubsubject: [],
                 selectedDocuments: uploadedDocuments.map((doc) => ({

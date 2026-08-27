@@ -15,15 +15,15 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import {
-    useMasterSectionHeld,
-    useStudentCategoryByClass,
     useConcessionDropdown,
-    useMasterDocument
+    useMasterDocument,
+    useMasterSectionHeld,
+    useStudentCategoryByClass
 } from '@/hooks/admission/preadmission/useMasters';
 
-import { useAdmissionFormDetails, useOnChangeClass, useOnChangeStream, useGetCasteByCasteCategory } from '@/hooks/admission/admissionForm';
-import { useDistrictDropdown, useCountryDropdown, useStateDropdown } from '@/hooks/admission/preadmission/useTransactions';
-import { calculateAge, dateToWords, cn } from '@/lib/utils';
+import { useAdmissionFormDetails, useGetCasteByCasteCategory, useOnChangeStream } from '@/hooks/admission/admissionForm';
+import { useDistrictDropdown } from '@/hooks/admission/preadmission/useTransactions';
+import { calculateAge, cn, dateToWords } from '@/lib/utils';
 import { studentAdmissionFormSchema } from '@/schemas/admission/admission-form';
 import {
     getAllAdmissionLists,
@@ -41,25 +41,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Camera, Check, ChevronLeft, ChevronRight, Eye, Save, Trash } from 'lucide-react';
 
+import { getIconByName } from '@/lib/lucide-icon-registry';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-
-import { WebcamCapture } from './webcam-capture';
-import { StreamExamSelection } from './stream-exam-selection';
-import { SubjectGroupTable } from './subject-group-table';
-import type { IadmissionFormDetails } from '@/types/admission/admission';
-import { getIconByName } from '@/lib/lucide-icon-registry';
-
-// Form Section Imports
-import { StudentInfoSection } from './form-sections/student-info-section';
-import { AddressSection } from './form-sections/address-section';
-import { ParentsSection } from './form-sections/parents-section';
-import { OtherInfoSection } from './form-sections/other-info-section';
-import { HealthSection } from './form-sections/health-section';
-import { DocumentsSection } from './form-sections/documents-section';
-import { FormProvider } from 'react-hook-form';
 
 type FormFields = z.infer<typeof studentAdmissionFormSchema.add>;
 
@@ -283,47 +269,75 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     useEffect(() => {
         if (streamChangeData?.data) {
             // These would normally be updated in the state if we were using local state
-            // But since we use admissionDetails from useAdmissionFormDetails, we might need to 
+            // But since we use admissionDetails from useAdmissionFormDetails, we might need to
             // handle the merging or just use the local streamChangeData if available.
         }
     }, [streamChangeData]);
 
     // Ensure the academic year from Getdetails is present in react-hook-form state
-    const { data: admissionDetails, refetch: refetchAdmissionDetails, isLoading: detailsLoading, error: detailsError } = useAdmissionFormDetails();
+    const {
+        data: admissionDetails,
+        refetch: refetchAdmissionDetails,
+        isLoading: detailsLoading,
+        error: detailsError
+    } = useAdmissionFormDetails();
 
     // Watch class and academic year for the class-based student category API
     const classIdForCategory = watch('asmcL_Id');
     const asmaYId = watch('asmaY_Id' as any);
-    const { data: categoryByClass } = useStudentCategoryByClass(
-        Number(classIdForCategory) || 0,
-        Number(asmaYId) || 0,
-        'adm'
-    );
+    const { data: categoryByClass } = useStudentCategoryByClass(Number(classIdForCategory) || 0, Number(asmaYId) || 0, 'adm');
 
     useEffect(() => {
-        const activeYear = (admissionDetails as any)?.allAcademicYear?.[0] || (admissionDetails as any)?.academicYearOnLoad?.find((y: any) => y.asmaY_ActiveFlag === 1);
+        const activeYear =
+            (admissionDetails as any)?.allAcademicYear?.[0] ||
+            (admissionDetails as any)?.academicYearOnLoad?.find((y: any) => y.asmaY_ActiveFlag === 1);
         if (activeYear) {
             setValue('asmaY_Year' as any, activeYear.asmaY_Year);
             setValue('asmaY_Id' as any, activeYear.asmaY_Id);
         }
     }, [admissionDetails, setValue]);
 
-    const religion = useMemo(() => ({
-        data: (admissionDetails as any)?.religions ||
-            (admissionDetails as any)?.allReligion ||
-            (admissionDetails as any)?.allReligionList ||
-            (admissionDetails as any)?.AllReligion || []
-    }), [admissionDetails]);
-    const country = useMemo(() => ({ data: (admissionDetails as any)?.allCountry || (admissionDetails as any)?.allCountryList || (admissionDetails as any)?.AllCountry || [] }), [admissionDetails]);
-    const casteCategoryData = useMemo(() => ({
-        data: (categoryByClass as any)?.data?.casteCategoryes ||
-            (admissionDetails as any)?.casteCategoryes ||
-            (admissionDetails as any)?.allCasteCategory ||
-            (admissionDetails as any)?.vpre_allCasteCategory ||
-            (admissionDetails as any)?.allCasteCategoryList ||
-            (admissionDetails as any)?.AllCasteCategory || []
-    }), [admissionDetails, (categoryByClass as any)?.data?.casteCategoryes]);
-    const admissionClass = useMemo(() => ({ data: (admissionDetails as any)?.allClass || (admissionDetails as any)?.allClassList || (admissionDetails as any)?.AllClass || [] }), [admissionDetails]);
+    const religion = useMemo(
+        () => ({
+            data:
+                (admissionDetails as any)?.religions ||
+                (admissionDetails as any)?.allReligion ||
+                (admissionDetails as any)?.allReligionList ||
+                (admissionDetails as any)?.AllReligion ||
+                []
+        }),
+        [admissionDetails]
+    );
+    const country = useMemo(
+        () => ({
+            data:
+                (admissionDetails as any)?.allCountry ||
+                (admissionDetails as any)?.allCountryList ||
+                (admissionDetails as any)?.AllCountry ||
+                []
+        }),
+        [admissionDetails]
+    );
+    const casteCategoryData = useMemo(
+        () => ({
+            data:
+                (categoryByClass as any)?.data?.casteCategoryes ||
+                (admissionDetails as any)?.casteCategoryes ||
+                (admissionDetails as any)?.allCasteCategory ||
+                (admissionDetails as any)?.vpre_allCasteCategory ||
+                (admissionDetails as any)?.allCasteCategoryList ||
+                (admissionDetails as any)?.AllCasteCategory ||
+                []
+        }),
+        [admissionDetails, (categoryByClass as any)?.data?.casteCategoryes]
+    );
+    const admissionClass = useMemo(
+        () => ({
+            data:
+                (admissionDetails as any)?.allClass || (admissionDetails as any)?.allClassList || (admissionDetails as any)?.AllClass || []
+        }),
+        [admissionDetails]
+    );
     const source = useMemo(() => ({ data: (admissionDetails as any)?.allSources || [] }), [admissionDetails]);
     const reference = useMemo(() => ({ data: (admissionDetails as any)?.allReference || [] }), [admissionDetails]);
     const academicYears = useMemo(() => ({ data: (admissionDetails as any)?.allAcademicYear || [] }), [admissionDetails]);
@@ -332,15 +346,28 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         id: g.ivrmmG_GenderName,
         name: g.ivrmmG_GenderName
     })) || [
-            { id: 'Male', name: 'Male' },
-            { id: 'Female', name: 'Female' },
-            { id: 'Other', name: 'Other' }
-        ];
+        { id: 'Male', name: 'Male' },
+        { id: 'Female', name: 'Female' },
+        { id: 'Other', name: 'Other' }
+    ];
 
-    const allCaste = (admissionDetails as any)?.castes || (admissionDetails as any)?.allCaste || (admissionDetails as any)?.allCasteList || (admissionDetails as any)?.AllCaste || [];
-    const allState = (admissionDetails as any)?.allState || (admissionDetails as any)?.allStateList || (admissionDetails as any)?.AllState || (admissionDetails as any)?.states || [];
+    const allCaste =
+        (admissionDetails as any)?.castes ||
+        (admissionDetails as any)?.allCaste ||
+        (admissionDetails as any)?.allCasteList ||
+        (admissionDetails as any)?.AllCaste ||
+        [];
+    const allState =
+        (admissionDetails as any)?.allState ||
+        (admissionDetails as any)?.allStateList ||
+        (admissionDetails as any)?.AllState ||
+        (admissionDetails as any)?.states ||
+        [];
     const { data: concessionDropdown } = useConcessionDropdown();
-    const concession = useMemo(() => ({ data: concessionDropdown?.data || (admissionDetails as any)?.admissionConfiguration?.allConcession || [] }), [concessionDropdown, admissionDetails]);
+    const concession = useMemo(
+        () => ({ data: concessionDropdown?.data || (admissionDetails as any)?.admissionConfiguration?.allConcession || [] }),
+        [concessionDropdown, admissionDetails]
+    );
 
     const { data: masterDocsData } = useMasterDocument();
     const masterDocuments = (masterDocsData?.data || []).filter((doc: any) => doc.amsmD_ActiveFlag);
@@ -469,9 +496,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         refetchAdmissionDetails();
     };
 
-
-
-
     // Auto-set student category when class changes (picks first item from array)
     useEffect(() => {
         const items: any[] = (categoryByClass as any)?.data?.studentCategory;
@@ -586,7 +610,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     // Dynamic lists based on stream/class changes
     const examList = useMemo(() => {
         const dynamic = (streamChangeData as any)?.data?.exam_list;
-        return (dynamic && dynamic.length > 0) ? dynamic : ((admissionDetails as any)?.allExam || []);
+        return dynamic && dynamic.length > 0 ? dynamic : (admissionDetails as any)?.allExam || [];
     }, [streamChangeData, admissionDetails]);
 
     const electiveList = useMemo(() => {
@@ -649,15 +673,19 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             ].every(checkFilled);
 
             // Check mobile and email - allowing either root field or first array item
-            const mobile = v.amsT_MobileNo || (v.mobileNos?.[0]?.amsT_MobileNo);
-            const email = v.amsT_emailId || (v.adm_M_Student_EmailIdDTO?.[0]?.amsT_emailId);
+            const mobile = v.amsT_MobileNo || v.mobileNos?.[0]?.amsT_MobileNo;
+            const email = v.amsT_emailId || v.adm_M_Student_EmailIdDTO?.[0]?.amsT_emailId;
             const contactValid = checkFilled(mobile) && checkFilled(email);
 
             const photoValid = !!studentPhoto?.amsT_Photoname;
 
             let conditionalValid = true;
             if (Number(v.isEmisBpl || 0) === 1 && !checkFilled(v.amsT_BPLCardNo)) conditionalValid = false;
-            if (Number(v.amsT_ECSFlag || 0) === 1 && (!checkFilled(v.asecS_AccountNo) || !checkFilled(v.asecS_AccountHolderName) || !checkFilled(v.asecS_BankName))) conditionalValid = false;
+            if (
+                Number(v.amsT_ECSFlag || 0) === 1 &&
+                (!checkFilled(v.asecS_AccountNo) || !checkFilled(v.asecS_AccountHolderName) || !checkFilled(v.asecS_BankName))
+            )
+                conditionalValid = false;
 
             return basicValid && photoValid && conditionalValid && contactValid;
         }
@@ -844,10 +872,14 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 asmaY_Id: Number(formData.asmaY_Id ?? formData.asmaY_Year ?? 0),
                 asmcL_Id: Number(formData.asmcL_Id ?? 0),
                 asmS_Id: Number(formData.asmS_Id ?? 0),
-                amsT_Date: formData.amsT_Date ? format(new Date(formData.amsT_Date), "yyyy-MM-dd'T'00:00:00.000'Z'") : new Date().toISOString(),
+                amsT_Date: formData.amsT_Date
+                    ? format(new Date(formData.amsT_Date), "yyyy-MM-dd'T'00:00:00.000'Z'")
+                    : new Date().toISOString(),
                 amsT_RegistrationNo: String(formData.amsT_RegistrationNo ?? ''),
                 amsT_AdmissionNo: String(formData.amsT_AdmissionNo ?? ''),
-                amsT_DateOfAdmission: formData.amsT_Date ? format(new Date(formData.amsT_Date), "yyyy-MM-dd'T'00:00:00.000'Z'") : new Date().toISOString(),
+                amsT_DateOfAdmission: formData.amsT_Date
+                    ? format(new Date(formData.amsT_Date), "yyyy-MM-dd'T'00:00:00.000'Z'")
+                    : new Date().toISOString(),
                 amsT_FirstName: formData.amsT_FirstName ?? '',
                 amsT_MiddleName: formData.amsT_MiddleName ?? '',
                 amsT_LastName: formData.amsT_LastName ?? '',
@@ -1005,18 +1037,18 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 fatherMonthlyIncome: 0,
                 fatherMobileNumbers: Array.isArray(formData.fatherMobileNumbers as unknown as any[])
                     ? (formData.fatherMobileNumbers as unknown as any[]).map((m: any) => ({
-                        mobileNo: String(m.mobileNo ?? m.amsT_MobileNo ?? m)
-                    }))
+                          mobileNo: String(m.mobileNo ?? m.amsT_MobileNo ?? m)
+                      }))
                     : formData.fatherMobileNumbers
-                        ? [{ mobileNo: String(formData.fatherMobileNumbers) }]
-                        : [],
+                      ? [{ mobileNo: String(formData.fatherMobileNumbers) }]
+                      : [],
                 fatherEmailIds: Array.isArray(formData.fatherEmailIds as unknown as any[])
                     ? (formData.fatherEmailIds as unknown as any[]).map((e: any) => ({
-                        emailId: String(e.emailId ?? e.amsT_emailId ?? e)
-                    }))
+                          emailId: String(e.emailId ?? e.amsT_emailId ?? e)
+                      }))
                     : formData.fatherEmailIds
-                        ? [{ emailId: String(formData.fatherEmailIds) }]
-                        : [],
+                      ? [{ emailId: String(formData.fatherEmailIds) }]
+                      : [],
                 fatherHomePhone: formData.fatherHomePhone || formData.fatherHomePhone || '',
                 fatherNationality: Number(formData.fatherNationality ?? 0) || 0,
                 fatherEducation: formData.FatherEducation || '',
@@ -1065,18 +1097,18 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 motherMaritalStatus: formData.motherMaritalStatus ?? '',
                 motherMobileNumbers: Array.isArray(formData.motherMobileNumbers as unknown as any[])
                     ? (formData.motherMobileNumbers as unknown as any[]).map((m: any) => ({
-                        mobileNo: String(m.mobileNo ?? m.amsT_MobileNo ?? m)
-                    }))
+                          mobileNo: String(m.mobileNo ?? m.amsT_MobileNo ?? m)
+                      }))
                     : formData.motherMobileNumbers
-                        ? [{ mobileNo: String(formData.motherMobileNumbers) }]
-                        : [],
+                      ? [{ mobileNo: String(formData.motherMobileNumbers) }]
+                      : [],
                 motherEmailIds: Array.isArray(formData.motherEmailIds as unknown as any[])
                     ? (formData.motherEmailIds as unknown as any[]).map((e: any) => ({
-                        emailId: String(e.emailId ?? e.amsT_emailId ?? e)
-                    }))
+                          emailId: String(e.emailId ?? e.amsT_emailId ?? e)
+                      }))
                     : formData.motherEmailIds
-                        ? [{ emailId: String(formData.motherEmailIds) }]
-                        : [],
+                      ? [{ emailId: String(formData.motherEmailIds) }]
+                      : [],
                 motherHomePhone: formData.motherHomePhone || '',
                 motherNationality: Number(formData.motherNationality ?? 0) || 0,
                 motherQualification: formData.motherQualification || '',
@@ -1142,9 +1174,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     const g = currentGuardians[i] || {};
                     const hasContent = Boolean(
                         String(g.guardianName || '').trim() ||
-                        String(g.guardianPhone || '').trim() ||
-                        String(g.guardianEmail || '').trim() ||
-                        String(g.guardianAddress || '').trim()
+                            String(g.guardianPhone || '').trim() ||
+                            String(g.guardianEmail || '').trim() ||
+                            String(g.guardianAddress || '').trim()
                     );
                     if (hasContent && !savedGuardianSaved[i]) {
                         toast.error('Please save guardian details before proceeding.');
@@ -1420,21 +1452,21 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                         selectedActivityItems && selectedActivityItems.length > 0
                             ? selectedActivityItems.map((id) => ({ activityId: Number(id) || 0, isSelected: true }))
                             : Array.isArray(formData.activities)
-                                ? formData.activities.map((a: any) => ({ activityId: Number(a) || 0, isSelected: true }))
-                                : [];
+                              ? formData.activities.map((a: any) => ({ activityId: Number(a) || 0, isSelected: true }))
+                              : [];
 
                     const sourceDetails =
                         selectedSourceItems && selectedSourceItems.length > 0
                             ? selectedSourceItems.map((s) => ({
-                                sourceId: Number(s.pamS_Id) || 0,
-                                isSelected: true
-                            }))
+                                  sourceId: Number(s.pamS_Id) || 0,
+                                  isSelected: true
+                              }))
                             : Array.isArray(formData.sourceDetails)
-                                ? formData.sourceDetails.map((s: any) => ({
+                              ? formData.sourceDetails.map((s: any) => ({
                                     sourceId: Number(s) || 0,
                                     isSelected: true
                                 }))
-                                : [];
+                              : [];
 
                     const guardiansSource = formData.guardian || [];
                     const _guardians = (Array.isArray(guardiansSource) ? guardiansSource : []).map((g: any) => ({
@@ -1462,10 +1494,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                 ? school.schoolTypeId === 1
                                     ? 'Pre-Primary School'
                                     : school.schoolTypeId === 2
-                                        ? 'Primary School'
-                                        : school.schoolTypeId === 3
-                                            ? 'High School'
-                                            : String(school.schoolTypeId)
+                                      ? 'Primary School'
+                                      : school.schoolTypeId === 3
+                                        ? 'High School'
+                                        : String(school.schoolTypeId)
                                 : ''),
                         class: String(school.pasrpS_PreviousClass || school.classId || ''),
                         percentage: school.pasrpS_PreviousPer || school.percentage || '',
@@ -1475,7 +1507,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                             school.country ||
                             (school.countryId
                                 ? country?.data?.find((c: any) => Number(c.ivrmmC_Id) === Number(school.countryId))?.ivrmmC_CountryName ||
-                                ''
+                                  ''
                                 : ''),
                         state: school.state || '',
                         address: school.pasrpS_Address || school.address || '',
@@ -1597,11 +1629,11 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     const returnedId =
                         Number(
                             res?.data?.amsT_Id ??
-                            res?.data?.AMST_Id ??
-                            res?.data?.amst_Id ??
-                            res?.data?.amstId ??
-                            getValues('amsT_Id' as any) ??
-                            0
+                                res?.data?.AMST_Id ??
+                                res?.data?.amst_Id ??
+                                res?.data?.amstId ??
+                                getValues('amsT_Id' as any) ??
+                                0
                         ) || 0;
                     if (returnedId > 0) {
                         setValue('amsT_Id' as any, returnedId);
@@ -1796,10 +1828,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                     const returnedId =
                                         Number(
                                             saveRes?.data?.amsT_Id ??
-                                            saveRes?.data?.AMST_Id ??
-                                            saveRes?.data?.amst_Id ??
-                                            saveRes?.data?.amstId ??
-                                            0
+                                                saveRes?.data?.AMST_Id ??
+                                                saveRes?.data?.amst_Id ??
+                                                saveRes?.data?.amstId ??
+                                                0
                                         ) || 0;
                                     if (returnedId > 0) {
                                         setValue('amsT_Id' as any, returnedId);
@@ -1937,21 +1969,21 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                             selectedActivityItems && selectedActivityItems.length > 0
                                 ? selectedActivityItems.map((id) => ({ activityId: Number(id) || 0, isSelected: true }))
                                 : Array.isArray(formData.activities)
-                                    ? formData.activities.map((a: any) => ({ activityId: Number(a) || 0, isSelected: true }))
-                                    : [];
+                                  ? formData.activities.map((a: any) => ({ activityId: Number(a) || 0, isSelected: true }))
+                                  : [];
 
                         const sourceDetails =
                             selectedSourceItems && selectedSourceItems.length > 0
                                 ? selectedSourceItems.map((s) => ({
-                                    sourceId: Number(s.pamS_Id) || 0,
-                                    isSelected: true
-                                }))
+                                      sourceId: Number(s.pamS_Id) || 0,
+                                      isSelected: true
+                                  }))
                                 : Array.isArray(formData.sourceDetails)
-                                    ? formData.sourceDetails.map((s: any) => ({
+                                  ? formData.sourceDetails.map((s: any) => ({
                                         sourceId: Number(s) || 0,
                                         isSelected: true
                                     }))
-                                    : [];
+                                  : [];
 
                         const guardiansSource = formData.guardian || [];
                         const guardians = (Array.isArray(guardiansSource) ? guardiansSource : []).map((g: any) => ({
@@ -2300,9 +2332,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                         )}
                     />
 
-                    {errors.previousSchools?.[idx]?.countryId && (
-                        <FormError>{errors.previousSchools[idx].countryId.message}</FormError>
-                    )}
+                    {errors.previousSchools?.[idx]?.countryId && <FormError>{errors.previousSchools[idx].countryId.message}</FormError>}
                 </div>
 
                 <div className='flex flex-col gap-1.5'>
@@ -2333,9 +2363,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                         )}
                     />
 
-                    {errors.previousSchools?.[idx]?.stateId && (
-                        <FormError>{errors.previousSchools[idx].stateId.message}</FormError>
-                    )}
+                    {errors.previousSchools?.[idx]?.stateId && <FormError>{errors.previousSchools[idx].stateId.message}</FormError>}
                 </div>
             </>
         );
@@ -3082,8 +3110,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         currentStep === step.id
                                                             ? 'border-blue-600 bg-blue-600 text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                                ? 'border-green-500 bg-green-500 text-white'
-                                                                : 'border-gray-300 bg-white text-gray-400'
+                                                              ? 'border-green-500 bg-green-500 text-white'
+                                                              : 'border-gray-300 bg-white text-gray-400'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-5 w-5' />
@@ -3132,8 +3160,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         currentStep === step.id
                                                             ? 'border-secondary bg-secondary text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                                ? 'border-green-500 bg-green-500 text-white'
-                                                                : 'border-gray-300 bg-white text-gray-500'
+                                                              ? 'border-green-500 bg-green-500 text-white'
+                                                              : 'border-gray-300 bg-white text-gray-500'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-6 w-6' />
@@ -3225,7 +3253,11 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         required
                                                         id='academic_year'
                                                         placeholder='Academic Year'
-                                                        value={(admissionDetails as any)?.allAcademicYear?.[0]?.asmaY_Year || (admissionDetails as any)?.academicYearOnLoad?.[0]?.asmaY_Year || ''}
+                                                        value={
+                                                            (admissionDetails as any)?.allAcademicYear?.[0]?.asmaY_Year ||
+                                                            (admissionDetails as any)?.academicYearOnLoad?.[0]?.asmaY_Year ||
+                                                            ''
+                                                        }
                                                         className='font-semibold'
                                                         disabled
                                                     />
@@ -3419,7 +3451,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     </SelectTrigger>
                                                                     <SelectContent>
                                                                         {(casteCategoryData as any)?.data?.map((item: any) => (
-                                                                            <SelectItem key={item.imcC_Id || item.imCC_Id} value={(item.imcC_Id || item.imCC_Id).toString()}>
+                                                                            <SelectItem
+                                                                                key={item.imcC_Id || item.imCC_Id}
+                                                                                value={(item.imcC_Id || item.imCC_Id).toString()}>
                                                                                 {item.imcC_CategoryName || item.imCC_CategoryName}
                                                                             </SelectItem>
                                                                         ))}
@@ -3445,17 +3479,20 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     </SelectTrigger>
                                                                     <SelectContent>
                                                                         {casteLoading ? (
-                                                                            <SelectItem value='loading' disabled>Loading...</SelectItem>
+                                                                            <SelectItem value='loading' disabled>
+                                                                                Loading...
+                                                                            </SelectItem>
                                                                         ) : (
                                                                             (caste as any)?.data?.map((item: any) => (
-                                                                                <SelectItem key={item.imC_Id} value={item.imC_Id.toString()}>
+                                                                                <SelectItem
+                                                                                    key={item.imC_Id}
+                                                                                    value={item.imC_Id.toString()}>
                                                                                     {item.imC_CasteName}
                                                                                 </SelectItem>
                                                                             ))
                                                                         )}
                                                                     </SelectContent>
                                                                 </Select>
-
                                                             )}
                                                         />
                                                         {errors.imC_Id && <FormError>{errors.imC_Id.message}</FormError>}
@@ -3600,11 +3637,15 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     onValueChange={(value: any) => field.onChange(Number(value))}
                                                                     disabled={sectionLoading}>
                                                                     <SelectTrigger>
-                                                                        <SelectValue placeholder={sectionLoading ? 'Loading...' : 'Select section'} />
+                                                                        <SelectValue
+                                                                            placeholder={sectionLoading ? 'Loading...' : 'Select section'}
+                                                                        />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
                                                                         {sectionData?.data?.map((section: any) => (
-                                                                            <SelectItem key={section.asmS_Id} value={section.asmS_Id.toString()}>
+                                                                            <SelectItem
+                                                                                key={section.asmS_Id}
+                                                                                value={section.asmS_Id.toString()}>
                                                                                 {section.asmC_SectionName}
                                                                             </SelectItem>
                                                                         ))}
@@ -3633,18 +3674,24 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 htmlFor='student_photo'
                                                                 className={cn(
                                                                     'flex h-48 w-40 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed transition-all hover:border-primary hover:bg-white',
-                                                                    studentPhoto?.isUploading ? 'border-blue-400 bg-blue-100' : 'border-gray-300 bg-white'
+                                                                    studentPhoto?.isUploading
+                                                                        ? 'border-blue-400 bg-blue-100'
+                                                                        : 'border-gray-300 bg-white'
                                                                 )}>
                                                                 {studentPhoto?.isUploading ? (
-                                                                    <div className='flex flex-col items-center animate-pulse'>
-                                                                        <div className='h-10 w-10 rounded-full border-4 border-primary border-t-transparent animate-spin' />
-                                                                        <span className='mt-2 text-xs font-medium text-primary'>UPLOADING...</span>
+                                                                    <div className='flex animate-pulse flex-col items-center'>
+                                                                        <div className='h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent' />
+                                                                        <span className='mt-2 font-medium text-primary text-xs'>
+                                                                            UPLOADING...
+                                                                        </span>
                                                                     </div>
                                                                 ) : (
                                                                     <>
                                                                         <div className='flex flex-col items-center text-gray-400'>
-                                                                            <Camera className='h-12 w-12 mb-2' />
-                                                                            <span className='text-xs font-bold uppercase'>Click to Upload</span>
+                                                                            <Camera className='mb-2 h-12 w-12' />
+                                                                            <span className='font-bold text-xs uppercase'>
+                                                                                Click to Upload
+                                                                            </span>
                                                                         </div>
                                                                     </>
                                                                 )}
@@ -3660,13 +3707,13 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 />
                                                             </label>
                                                         ) : (
-                                                            <div className='relative group'>
+                                                            <div className='group relative'>
                                                                 <img
                                                                     src={studentPhoto.amsT_Photoname}
                                                                     alt='Student'
                                                                     className='h-48 w-40 rounded-lg border-2 border-blue-200 object-cover shadow-md'
                                                                 />
-                                                                <div className='absolute inset-0 flex items-center justify-center gap-2 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100 rounded-lg'>
+                                                                <div className='absolute inset-0 flex items-center justify-center gap-2 rounded-lg bg-black/40 opacity-0 transition-opacity group-hover:opacity-100'>
                                                                     <Button
                                                                         type='button'
                                                                         size='icon'
@@ -3696,8 +3743,13 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                             }}
                                                         /> */}
                                                     </div>
-                                                    {studentPhotoError && <p className='mt-2 text-center text-xs font-medium text-red-500'>{studentPhotoError}</p>}
-                                                </div>                                                {/* Right Column Fields */}
+                                                    {studentPhotoError && (
+                                                        <p className='mt-2 text-center font-medium text-red-500 text-xs'>
+                                                            {studentPhotoError}
+                                                        </p>
+                                                    )}
+                                                </div>{' '}
+                                                {/* Right Column Fields */}
                                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                                     {/* Row 1: Age & Gender */}
                                                     <InputText
@@ -3769,7 +3821,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     </SelectTrigger>
                                                                     <SelectContent>
                                                                         {religion?.data?.map((item: any) => (
-                                                                            <SelectItem key={item.ivrmmR_Id} value={item.ivrmmR_Id.toString()}>
+                                                                            <SelectItem
+                                                                                key={item.ivrmmR_Id}
+                                                                                value={item.ivrmmR_Id.toString()}>
                                                                                 {item.ivrmmR_ReligionName || item.ivrmmR_Name}
                                                                             </SelectItem>
                                                                         ))}
@@ -3795,7 +3849,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     </SelectTrigger>
                                                                     <SelectContent>
                                                                         {country?.data?.map((item: any) => (
-                                                                            <SelectItem key={item.ivrmmC_Id} value={item.ivrmmC_Id.toString()}>
+                                                                            <SelectItem
+                                                                                key={item.ivrmmC_Id}
+                                                                                value={item.ivrmmC_Id.toString()}>
                                                                                 {item.ivrmmC_CountryName}
                                                                             </SelectItem>
                                                                         ))}
@@ -3803,10 +3859,11 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 </Select>
                                                             )}
                                                         />
-                                                        {errors.amsT_Nationality && <FormError>{errors.amsT_Nationality.message}</FormError>}
+                                                        {errors.amsT_Nationality && (
+                                                            <FormError>{errors.amsT_Nationality.message}</FormError>
+                                                        )}
                                                     </div>
                                                 </div>
-
                                                 {/* Row 4: Student State */}
                                                 <div className='flex flex-col gap-1.5'>
                                                     <Label htmlFor='amsT_State'>State</Label>
@@ -3831,7 +3888,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         )}
                                                     />
                                                 </div>
-
                                                 {/* Row 5: Aadhaar, APAAR ID & Blood Group */}
                                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                                                     <InputText
@@ -3857,7 +3913,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 />
                                                             )}
                                                         />
-                                                        {errors.amsT_ApparNo && <FormError>{errors.amsT_ApparNo.message as string}</FormError>}
+                                                        {errors.amsT_ApparNo && (
+                                                            <FormError>{errors.amsT_ApparNo.message as string}</FormError>
+                                                        )}
                                                     </div>
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Label htmlFor='amsT_BloodGroup'>Blood Group</Label>
@@ -3873,7 +3931,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     </SelectTrigger>
                                                                     <SelectContent>
                                                                         {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((bg) => (
-                                                                            <SelectItem key={bg} value={bg}>{bg}</SelectItem>
+                                                                            <SelectItem key={bg} value={bg}>
+                                                                                {bg}
+                                                                            </SelectItem>
                                                                         ))}
                                                                         <SelectItem value='Not Available'>Not Available</SelectItem>
                                                                     </SelectContent>
@@ -3882,7 +3942,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         />
                                                     </div>
                                                 </div>
-
                                                 {/* Row 6: Student Category */}
                                                 <div className='flex flex-col gap-1.5'>
                                                     <Label htmlFor='asmcC_Id'>Student Category</Label>
@@ -3898,20 +3957,29 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     <SelectValue placeholder='Select category' />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
-                                                                    {((admissionDetails as any)?.adm_m_stud_cat || (categoryByClass as any)?.data?.studentCategory || [])?.map((item: any) => (
+                                                                    {(
+                                                                        (admissionDetails as any)?.adm_m_stud_cat ||
+                                                                        (categoryByClass as any)?.data?.studentCategory ||
+                                                                        []
+                                                                    )?.map((item: any) => (
                                                                         <SelectItem key={item.asmcC_Id} value={item.asmcC_Id.toString()}>
                                                                             {item.className || item.amC_Name || item.asmcC_CategoryName}
                                                                         </SelectItem>
                                                                     ))}
-                                                                    {((admissionDetails as any)?.adm_m_stud_cat || (categoryByClass as any)?.data?.studentCategory || []).length === 0 && (
-                                                                        <SelectItem value='none' disabled>No categories available</SelectItem>
+                                                                    {(
+                                                                        (admissionDetails as any)?.adm_m_stud_cat ||
+                                                                        (categoryByClass as any)?.data?.studentCategory ||
+                                                                        []
+                                                                    ).length === 0 && (
+                                                                        <SelectItem value='none' disabled>
+                                                                            No categories available
+                                                                        </SelectItem>
                                                                     )}
                                                                 </SelectContent>
                                                             </Select>
                                                         )}
                                                     />
                                                 </div>
-
                                                 {/* Row 7: Mobile & Email */}
                                                 {/* <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                                                     <div className='flex flex-col gap-1.5'>
@@ -3942,7 +4010,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         />
                                                     </div>
                                                 </div> */}
-
                                                 <div className='flex flex-col gap-1.5 '>
                                                     <Controller
                                                         name='amsT_MobileNo'
@@ -3987,8 +4054,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 />
                                                                 {phoneExpectedInfo.amsT_MobileNo?.expected && (
                                                                     <span className='mt-1 text-muted-foreground text-xs'>
-                                                                        {`Mobile number must be exactly ${phoneExpectedInfo.amsT_MobileNo.expected} digits for ${phoneExpectedInfo.amsT_MobileNo.name ?? 'selected country'
-                                                                            }`}
+                                                                        {`Mobile number must be exactly ${phoneExpectedInfo.amsT_MobileNo.expected} digits for ${
+                                                                            phoneExpectedInfo.amsT_MobileNo.name ?? 'selected country'
+                                                                        }`}
                                                                     </span>
                                                                 )}
                                                             </div>
@@ -3996,10 +4064,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     />
                                                     {errors.amsT_MobileNo && <FormError>{errors.amsT_MobileNo.message}</FormError>}
                                                 </div>
-
                                                 {/* Hidden legacy primary email (kept in sync with first email field) */}
                                                 <input type='hidden' {...register('amsT_emailId')} />
-
                                                 <div className='flex flex-col gap-1.5'>
                                                     {emailFields.map((field, idx) => {
                                                         const itemError = (errors as any)?.adm_M_Student_EmailIdDTO?.[idx]?.amsT_emailId
@@ -4009,12 +4075,21 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                             <div key={field.id} className='flex w-full flex-col gap-1'>
                                                                 <div className='flex items-center gap-2'>
                                                                     <div className='flex-1'>
-                                                                        {idx === 0 && <Label htmlFor={String(field.id)}>Email <span className='text-red-500'>*</span></Label>}
+                                                                        {idx === 0 && (
+                                                                            <Label htmlFor={String(field.id)}>
+                                                                                Email <span className='text-red-500'>*</span>
+                                                                            </Label>
+                                                                        )}
                                                                         <InputText
                                                                             {...register(fieldName)}
                                                                             id={String(field.id)}
                                                                             placeholder='Enter email'
-                                                                            error={itemError || (idx === 0 ? errors.amsT_emailId?.message as string : undefined)}
+                                                                            error={
+                                                                                itemError ||
+                                                                                (idx === 0
+                                                                                    ? (errors.amsT_emailId?.message as string)
+                                                                                    : undefined)
+                                                                            }
                                                                             required
                                                                         />
                                                                     </div>
@@ -4056,9 +4131,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     })}
 
                                                     {/* show legacy primary email error only when no email array items are present */}
-                                                    {(!Array.isArray(watchedEmails) || watchedEmails.length === 0) && errors.amsT_emailId && (
-                                                        <FormError>{errors.amsT_emailId.message}</FormError>
-                                                    )}
+                                                    {(!Array.isArray(watchedEmails) || watchedEmails.length === 0) &&
+                                                        errors.amsT_emailId && <FormError>{errors.amsT_emailId.message}</FormError>}
                                                 </div>
                                                 {/* Row 8: ECS & EMIS Checkboxes */}
                                                 <div className='flex items-center gap-6 py-2'>
@@ -4068,7 +4142,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                             checked={Number(watch('amsT_ECSFlag')) === 1}
                                                             onCheckedChange={(checked) => setValue('amsT_ECSFlag', checked ? 1 : 0)}
                                                         />
-                                                        <Label htmlFor='amsT_ECSFlag' className='cursor-pointer text-sm font-medium'>ECS</Label>
+                                                        <Label htmlFor='amsT_ECSFlag' className='cursor-pointer font-medium text-sm'>
+                                                            ECS
+                                                        </Label>
                                                     </div>
                                                     <div className='flex items-center space-x-2'>
                                                         <Checkbox
@@ -4076,10 +4152,11 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                             checked={Number(watch('isEmisBpl')) === 1}
                                                             onCheckedChange={(checked) => setValue('isEmisBpl', checked ? 1 : 0)}
                                                         />
-                                                        <Label htmlFor='isEmisBpl' className='cursor-pointer text-sm font-medium'>EMIS/BPL Card/STS No.</Label>
+                                                        <Label htmlFor='isEmisBpl' className='cursor-pointer font-medium text-sm'>
+                                                            EMIS/BPL Card/STS No.
+                                                        </Label>
                                                     </div>
                                                 </div>
-
                                                 {/* Row 9: EMIS No (Conditional) */}
                                                 {Number(watch('isEmisBpl')) === 1 && (
                                                     <div className='rounded-md border border-amber-200 bg-amber-50 p-3'>
@@ -4092,7 +4169,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         />
                                                     </div>
                                                 )}
-
                                                 {/* Row 10: Bank Name & Branch Name */}
                                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                                     <InputText
@@ -4110,7 +4186,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         error={errors.amsT_BankBranch?.message}
                                                     />
                                                 </div>
-
                                                 {/* Row 11: Bank Account No & IFSC Code */}
                                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                                     <InputText
@@ -4128,10 +4203,11 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         error={errors.amsT_BankIFSCCode?.message}
                                                     />
                                                 </div>
-
                                                 {/* Row 12: Fee Concession Type */}
                                                 <div className='flex flex-col gap-1.5'>
-                                                    <Label htmlFor='feeConcessionType'>Fee Concession Type <span className='text-red-500'>*</span></Label>
+                                                    <Label htmlFor='feeConcessionType'>
+                                                        Fee Concession Type <span className='text-red-500'>*</span>
+                                                    </Label>
                                                     <Controller
                                                         name='feeConcessionType'
                                                         control={control}
@@ -4147,14 +4223,17 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         <SelectItem key={item.fmcC_Id} value={item.fmcC_Id.toString()}>
                                                                             {item.fmcC_ConcessionName}
                                                                         </SelectItem>
-                                                                    )) || <SelectItem value='none' disabled>No items available</SelectItem>}
+                                                                    )) || (
+                                                                        <SelectItem value='none' disabled>
+                                                                            No items available
+                                                                        </SelectItem>
+                                                                    )}
                                                                 </SelectContent>
                                                             </Select>
                                                         )}
                                                     />
                                                     {errors.feeConcessionType && <FormError>{errors.feeConcessionType.message}</FormError>}
                                                 </div>
-
                                                 {/* Row 13: TPIN & GPS */}
                                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                                     <InputText
@@ -4172,7 +4251,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         error={errors.amsT_GPSTrackingId?.message}
                                                     />
                                                 </div>
-
                                                 {/* Row 14: Medium of Instruction */}
                                                 <InputText
                                                     label='Medium Of Instruction'
@@ -4181,7 +4259,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     {...register('amsT_MediumOfInstruction')}
                                                     error={errors.amsT_MediumOfInstruction?.message}
                                                 />
-
                                                 {/* Row 15: Remarks */}
                                                 <div className='flex flex-col gap-1.5'>
                                                     <Label htmlFor='amsT_Remarks'>Remarks</Label>
@@ -4202,8 +4279,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                 {currentStep === 2 && (
                                     <div className='space-y-6'>
                                         <div className='mb-6 border-b pb-4'>
-                                            <h2 className='text-2xl font-bold text-gray-900'>Address Information</h2>
-                                            <p className='mt-1 text-sm text-gray-500'>
+                                            <h2 className='font-bold text-2xl text-gray-900'>Address Information</h2>
+                                            <p className='mt-1 text-gray-500 text-sm'>
                                                 Please provide residential and permanent address details
                                             </p>
                                         </div>
@@ -4211,7 +4288,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                         <div className='space-y-8'>
                                             {/* Residential Address Section */}
                                             <div className='card-box'>
-                                                <h3 className='mb-4 text-lg font-semibold text-gray-800 border-b pb-2'>Residential Address</h3>
+                                                <h3 className='mb-4 border-b pb-2 font-semibold text-gray-800 text-lg'>
+                                                    Residential Address
+                                                </h3>
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                                                     <InputText
                                                         label='Street'
@@ -4244,7 +4323,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     </SelectTrigger>
                                                                     <SelectContent>
                                                                         {country?.data?.map((item: any) => (
-                                                                            <SelectItem key={item.ivrmmC_Id} value={item.ivrmmC_Id.toString()}>
+                                                                            <SelectItem
+                                                                                key={item.ivrmmC_Id}
+                                                                                value={item.ivrmmC_Id.toString()}>
                                                                                 {item.ivrmmC_CountryName}
                                                                             </SelectItem>
                                                                         ))}
@@ -4255,9 +4336,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     </div>
 
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='amsT_ConState'>
-                                                            State
-                                                        </Label>
+                                                        <Label htmlFor='amsT_ConState'>State</Label>
                                                         <Controller
                                                             name='amsT_ConState'
                                                             control={control}
@@ -4270,7 +4349,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     </SelectTrigger>
                                                                     <SelectContent>
                                                                         {conState?.data?.map((item: any) => (
-                                                                            <SelectItem key={item.ivrmmS_Id} value={item.ivrmmS_Id.toString()}>
+                                                                            <SelectItem
+                                                                                key={item.ivrmmS_Id}
+                                                                                value={item.ivrmmS_Id.toString()}>
                                                                                 {item.ivrmmS_Name}
                                                                             </SelectItem>
                                                                         ))}
@@ -4320,14 +4401,16 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                 />
                                                 <Label
                                                     htmlFor='sameAsResidential'
-                                                    className='cursor-pointer text-base font-semibold text-blue-900'>
+                                                    className='cursor-pointer font-semibold text-base text-blue-900'>
                                                     Permanent Address is same as Residential Address
                                                 </Label>
                                             </div>
 
                                             {/* Permanent Address Section */}
                                             <div className='card-box'>
-                                                <h3 className='mb-4 text-lg font-semibold text-gray-800 border-b pb-2'>Permanent Address</h3>
+                                                <h3 className='mb-4 border-b pb-2 font-semibold text-gray-800 text-lg'>
+                                                    Permanent Address
+                                                </h3>
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                                                     <InputText
                                                         label='Street'
@@ -4363,7 +4446,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     </SelectTrigger>
                                                                     <SelectContent>
                                                                         {country?.data?.map((item: any) => (
-                                                                            <SelectItem key={item.ivrmmC_Id} value={item.ivrmmC_Id.toString()}>
+                                                                            <SelectItem
+                                                                                key={item.ivrmmC_Id}
+                                                                                value={item.ivrmmC_Id.toString()}>
                                                                                 {item.ivrmmC_CountryName}
                                                                             </SelectItem>
                                                                         ))}
@@ -4374,9 +4459,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     </div>
 
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='amsT_PerState'>
-                                                            State
-                                                        </Label>
+                                                        <Label htmlFor='amsT_PerState'>State</Label>
                                                         <Controller
                                                             name='amsT_PerState'
                                                             control={control}
@@ -4390,7 +4473,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     </SelectTrigger>
                                                                     <SelectContent>
                                                                         {perState?.data?.map((item: any) => (
-                                                                            <SelectItem key={item.ivrmmS_Id} value={item.ivrmmS_Id.toString()}>
+                                                                            <SelectItem
+                                                                                key={item.ivrmmS_Id}
+                                                                                value={item.ivrmmS_Id.toString()}>
                                                                                 {item.ivrmmS_Name}
                                                                             </SelectItem>
                                                                         ))}
@@ -4515,7 +4600,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         placeholder='Enter Aadhaar No.'
                                                         {...register('fatherAadharNo')}
                                                         maxLength={12}
-                                                        onInput={(e) => { e.currentTarget.value = e.currentTarget.value.replace(/\D/g, ''); }}
+                                                        onInput={(e) => {
+                                                            e.currentTarget.value = e.currentTarget.value.replace(/\D/g, '');
+                                                        }}
                                                         error={errors.fatherAadharNo?.message}
                                                     />
                                                     <div className='flex flex-col gap-1.5'>
@@ -4594,9 +4681,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     />
                                                                     {phoneExpectedInfo.fatherMobileNumbers?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.fatherMobileNumbers.expected} digits for ${phoneExpectedInfo.fatherMobileNumbers.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.fatherMobileNumbers.expected} digits for ${
+                                                                                phoneExpectedInfo.fatherMobileNumbers.name ??
                                                                                 'selected country'
-                                                                                }`}
+                                                                            }`}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -4673,10 +4761,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         />
                                                         {(errors.fatherNationality ||
                                                             (fatherAlive && showStep3Errors && !watch('fatherNationality'))) && (
-                                                                <FormError>
-                                                                    {errors.fatherNationality?.message ?? 'Country is required'}
-                                                                </FormError>
-                                                            )}
+                                                            <FormError>
+                                                                {errors.fatherNationality?.message ?? 'Country is required'}
+                                                            </FormError>
+                                                        )}
                                                     </div>
                                                     <div className='col-span-full space-y-4 md:col-span-2 lg:col-span-3'>
                                                         <h3 className='font-semibold text-gray-800 text-lg'>Education Details</h3>
@@ -4809,15 +4897,15 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     rules={
                                                                         fatherZipLength
                                                                             ? {
-                                                                                minLength: {
-                                                                                    value: fatherZipLength,
-                                                                                    message: `Pin code must be ${fatherZipLength} digits`
-                                                                                },
-                                                                                maxLength: {
-                                                                                    value: fatherZipLength,
-                                                                                    message: `Pin code must be ${fatherZipLength} digits`
-                                                                                }
-                                                                            }
+                                                                                  minLength: {
+                                                                                      value: fatherZipLength,
+                                                                                      message: `Pin code must be ${fatherZipLength} digits`
+                                                                                  },
+                                                                                  maxLength: {
+                                                                                      value: fatherZipLength,
+                                                                                      message: `Pin code must be ${fatherZipLength} digits`
+                                                                                  }
+                                                                              }
                                                                             : undefined
                                                                     }
                                                                     render={({ field }) => (
@@ -5000,15 +5088,15 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     rules={
                                                                         fatherZipLength
                                                                             ? {
-                                                                                minLength: {
-                                                                                    value: fatherZipLength,
-                                                                                    message: `Pin code must be ${fatherZipLength} digits`
-                                                                                },
-                                                                                maxLength: {
-                                                                                    value: fatherZipLength,
-                                                                                    message: `Pin code must be ${fatherZipLength} digits`
-                                                                                }
-                                                                            }
+                                                                                  minLength: {
+                                                                                      value: fatherZipLength,
+                                                                                      message: `Pin code must be ${fatherZipLength} digits`
+                                                                                  },
+                                                                                  maxLength: {
+                                                                                      value: fatherZipLength,
+                                                                                      message: `Pin code must be ${fatherZipLength} digits`
+                                                                                  }
+                                                                              }
                                                                             : undefined
                                                                     }
                                                                     render={({ field }) => (
@@ -5142,9 +5230,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                             />
                                                                             {phoneExpectedInfo.fatherOfficePhone?.expected && (
                                                                                 <span className='mt-1 text-muted-foreground text-xs'>
-                                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.fatherOfficePhone.expected} digits for ${phoneExpectedInfo.fatherOfficePhone.name ??
+                                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.fatherOfficePhone.expected} digits for ${
+                                                                                        phoneExpectedInfo.fatherOfficePhone.name ??
                                                                                         'selected country'
-                                                                                        }`}
+                                                                                    }`}
                                                                                 </span>
                                                                             )}
                                                                         </div>
@@ -5423,7 +5512,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         placeholder='Enter Aadhaar No'
                                                         {...register('motherAadharNo')}
                                                         maxLength={12}
-                                                        onInput={(e) => { e.currentTarget.value = e.currentTarget.value.replace(/\D/g, ''); }}
+                                                        onInput={(e) => {
+                                                            e.currentTarget.value = e.currentTarget.value.replace(/\D/g, '');
+                                                        }}
                                                         error={errors.motherAadharNo?.message}
                                                     />
 
@@ -5502,9 +5593,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     />
                                                                     {phoneExpectedInfo.motherMobileNumbers?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.motherMobileNumbers.expected} digits for ${phoneExpectedInfo.motherMobileNumbers.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.motherMobileNumbers.expected} digits for ${
+                                                                                phoneExpectedInfo.motherMobileNumbers.name ??
                                                                                 'selected country'
-                                                                                }`}
+                                                                            }`}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -5573,10 +5665,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         />
                                                         {(errors.motherNationality ||
                                                             (motherAlive && showStep3Errors && !watch('motherNationality'))) && (
-                                                                <FormError>
-                                                                    {errors.motherNationality?.message ?? 'Country is required'}
-                                                                </FormError>
-                                                            )}
+                                                            <FormError>
+                                                                {errors.motherNationality?.message ?? 'Country is required'}
+                                                            </FormError>
+                                                        )}
                                                     </div>
 
                                                     {/* Education Details */}
@@ -5717,15 +5809,15 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     rules={
                                                                         motherZipLength
                                                                             ? {
-                                                                                minLength: {
-                                                                                    value: motherZipLength,
-                                                                                    message: `Pin code must be ${motherZipLength} digits`
-                                                                                },
-                                                                                maxLength: {
-                                                                                    value: motherZipLength,
-                                                                                    message: `Pin code must be ${motherZipLength} digits`
-                                                                                }
-                                                                            }
+                                                                                  minLength: {
+                                                                                      value: motherZipLength,
+                                                                                      message: `Pin code must be ${motherZipLength} digits`
+                                                                                  },
+                                                                                  maxLength: {
+                                                                                      value: motherZipLength,
+                                                                                      message: `Pin code must be ${motherZipLength} digits`
+                                                                                  }
+                                                                              }
                                                                             : undefined
                                                                     }
                                                                     render={({ field }) => (
@@ -5918,15 +6010,15 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     rules={
                                                                         motherZipLength
                                                                             ? {
-                                                                                minLength: {
-                                                                                    value: motherZipLength,
-                                                                                    message: `Pin code must be ${motherZipLength} digits`
-                                                                                },
-                                                                                maxLength: {
-                                                                                    value: motherZipLength,
-                                                                                    message: `Pin code must be ${motherZipLength} digits`
-                                                                                }
-                                                                            }
+                                                                                  minLength: {
+                                                                                      value: motherZipLength,
+                                                                                      message: `Pin code must be ${motherZipLength} digits`
+                                                                                  },
+                                                                                  maxLength: {
+                                                                                      value: motherZipLength,
+                                                                                      message: `Pin code must be ${motherZipLength} digits`
+                                                                                  }
+                                                                              }
                                                                             : undefined
                                                                     }
                                                                     render={({ field }) => (
@@ -6059,9 +6151,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                             />
                                                                             {phoneExpectedInfo.motherOfficePhone?.expected && (
                                                                                 <span className='mt-1 text-muted-foreground text-xs'>
-                                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.motherOfficePhone.expected} digits for ${phoneExpectedInfo.motherOfficePhone.name ??
+                                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.motherOfficePhone.expected} digits for ${
+                                                                                        phoneExpectedInfo.motherOfficePhone.name ??
                                                                                         'selected country'
-                                                                                        }`}
+                                                                                    }`}
                                                                                 </span>
                                                                             )}
                                                                         </div>
@@ -6462,7 +6555,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                             Loading...
                                                                                         </SelectItem>
                                                                                     ) : academicYears?.data &&
-                                                                                        academicYears.data.length > 0 ? (
+                                                                                      academicYears.data.length > 0 ? (
                                                                                         academicYears.data.map((y: any) => (
                                                                                             <SelectItem
                                                                                                 key={String(y.asmaY_Id)}
@@ -6534,9 +6627,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                         )}>
                                                                                         <CalendarIcon className='mr-2 h-4 w-4' />
                                                                                         {field.value &&
-                                                                                            Object.prototype.toString.call(field.value) ===
+                                                                                        Object.prototype.toString.call(field.value) ===
                                                                                             '[object Date]' &&
-                                                                                            field.value.getTime()
+                                                                                        field.value.getTime()
                                                                                             ? format(field.value, 'dd/MM/yyyy')
                                                                                             : 'Select TC date'}
                                                                                     </Button>
@@ -6681,11 +6774,13 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
                                                                                 {phoneExpectedInfo?.[`guardian_${idx}_phone`]?.expected && (
                                                                                     <span className='mt-1 text-muted-foreground text-xs'>
-                                                                                        {`Mobile number must be exactly ${phoneExpectedInfo[`guardian_${idx}_phone`]
-                                                                                            .expected
-                                                                                            } digits for ${phoneExpectedInfo[`guardian_${idx}_phone`]
+                                                                                        {`Mobile number must be exactly ${
+                                                                                            phoneExpectedInfo[`guardian_${idx}_phone`]
+                                                                                                .expected
+                                                                                        } digits for ${
+                                                                                            phoneExpectedInfo[`guardian_${idx}_phone`]
                                                                                                 .name ?? 'selected country'
-                                                                                            }`}
+                                                                                        }`}
                                                                                     </span>
                                                                                 )}
                                                                             </div>
@@ -7095,7 +7190,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                             Error loading classes
                                                                                         </SelectItem>
                                                                                     ) : Array.isArray(admissionClass?.data) &&
-                                                                                        admissionClass.data.length > 0 ? (
+                                                                                      admissionClass.data.length > 0 ? (
                                                                                         admissionClass.data.map((classItem: any) => (
                                                                                             <SelectItem
                                                                                                 key={classItem.asmcL_Id}
@@ -7556,10 +7651,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             <table className='w-full table-fixed'>
                                                 <thead>
                                                     <tr className='bg-gray-50'>
-                                                        <th className='px-4 py-3 text-left text-gray-600 text-sm w-1/3'>Document Name</th>
-                                                        <th className='px-4 py-3 text-left text-gray-600 text-sm w-1/4'>Status</th>
-                                                        <th className='px-4 py-3 text-left text-gray-600 text-sm w-1/4'>Upload</th>
-                                                        <th className='px-4 py-3 text-left text-gray-600 text-sm w-auto'>Actions</th>
+                                                        <th className='w-1/3 px-4 py-3 text-left text-gray-600 text-sm'>Document Name</th>
+                                                        <th className='w-1/4 px-4 py-3 text-left text-gray-600 text-sm'>Status</th>
+                                                        <th className='w-1/4 px-4 py-3 text-left text-gray-600 text-sm'>Upload</th>
+                                                        <th className='w-auto px-4 py-3 text-left text-gray-600 text-sm'>Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -7567,15 +7662,19 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         const doc = uploadedDocuments.find((d) => d.amsmD_Id === masterDoc.amsmD_Id);
                                                         const isMandatory = masterDoc.amsmD_FLAG;
                                                         return (
-                                                            <tr key={masterDoc.amsmD_Id} className={`border-t ${doc?.document_Path ? 'bg-green-50' : 'bg-amber-50'}`}>
+                                                            <tr
+                                                                key={masterDoc.amsmD_Id}
+                                                                className={`border-t ${doc?.document_Path ? 'bg-green-50' : 'bg-amber-50'}`}>
                                                                 <td className='px-4 py-4'>
                                                                     <div className='flex flex-col'>
                                                                         <span className='font-medium'>
                                                                             {masterDoc.amsmD_DocumentName}
-                                                                            {isMandatory && <span className='text-red-500 ml-1'>*</span>}
+                                                                            {isMandatory && <span className='ml-1 text-red-500'>*</span>}
                                                                         </span>
                                                                         {masterDoc.amsmD_Description && (
-                                                                            <span className='text-xs text-gray-500'>{masterDoc.amsmD_Description}</span>
+                                                                            <span className='text-gray-500 text-xs'>
+                                                                                {masterDoc.amsmD_Description}
+                                                                            </span>
                                                                         )}
                                                                     </div>
                                                                 </td>
@@ -7587,8 +7686,17 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         </span>
                                                                     ) : doc?.document_Path ? (
                                                                         <span className='inline-flex items-center gap-2 text-green-700 text-sm'>
-                                                                            <svg className='h-4 w-4 text-green-700' viewBox='0 0 24 24' fill='none' stroke='currentColor'>
-                                                                                <path d='M20 6L9 17l-5-5' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' />
+                                                                            <svg
+                                                                                className='h-4 w-4 text-green-700'
+                                                                                viewBox='0 0 24 24'
+                                                                                fill='none'
+                                                                                stroke='currentColor'>
+                                                                                <path
+                                                                                    d='M20 6L9 17l-5-5'
+                                                                                    strokeWidth='2'
+                                                                                    strokeLinecap='round'
+                                                                                    strokeLinejoin='round'
+                                                                                />
                                                                             </svg>
                                                                             Uploaded
                                                                         </span>
@@ -7600,7 +7708,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     {!doc || doc.isUploading ? (
                                                                         <label className='flex h-12 w-32 cursor-pointer flex-col items-center justify-center rounded-md border-2 border-gray-300 border-dashed bg-white hover:border-primary'>
                                                                             <div className='flex flex-col items-center justify-center'>
-                                                                                <span className='text-gray-600 text-xs'>Click to upload</span>
+                                                                                <span className='text-gray-600 text-xs'>
+                                                                                    Click to upload
+                                                                                </span>
                                                                             </div>
                                                                             <input
                                                                                 id={`doc_${masterDoc.amsmD_Id}`}
@@ -7615,15 +7725,19 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                             toast.error('File size must be less than 5MB');
                                                                                             e.target.value = '';
                                                                                             return;
-                                                                                            }
-                                                                                            _handleDocumentUpload(masterDoc.amsmD_Id, file, masterDoc.amsmD_DocumentName);
-                                                                                            e.target.value = '';
+                                                                                        }
+                                                                                        _handleDocumentUpload(
+                                                                                            masterDoc.amsmD_Id,
+                                                                                            file,
+                                                                                            masterDoc.amsmD_DocumentName
+                                                                                        );
+                                                                                        e.target.value = '';
                                                                                     }
                                                                                 }}
                                                                             />
                                                                         </label>
                                                                     ) : (
-                                                                        <span className='text-sm text-gray-500'>File selected</span>
+                                                                        <span className='text-gray-500 text-sm'>File selected</span>
                                                                     )}
                                                                 </td>
                                                                 <td className='px-4 py-4'>
@@ -7643,7 +7757,13 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                 type='button'
                                                                                 size='sm'
                                                                                 variant='destructive'
-                                                                                onClick={() => handleDocumentDelete(masterDoc.amsmD_Id, doc.document_Path, masterDoc.amsmD_DocumentName)}
+                                                                                onClick={() =>
+                                                                                    handleDocumentDelete(
+                                                                                        masterDoc.amsmD_Id,
+                                                                                        doc.document_Path,
+                                                                                        masterDoc.amsmD_DocumentName
+                                                                                    )
+                                                                                }
                                                                                 aria-label={`Delete ${masterDoc.amsmD_DocumentName}`}>
                                                                                 <Trash className='h-4 w-4' />
                                                                             </Button>
@@ -7655,7 +7775,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     })}
                                                     {masterDocuments.length === 0 && (
                                                         <tr>
-                                                            <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
+                                                            <td colSpan={4} className='px-4 py-8 text-center text-gray-500'>
                                                                 No documents required.
                                                             </td>
                                                         </tr>
@@ -8255,7 +8375,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             disabled={!isCurrentStepValid || isSavingStep || isSubmitting}
                                             className={cn(
                                                 'min-w-[120px] transition-all duration-200',
-                                                !isCurrentStepValid ? 'opacity-50 grayscale cursor-not-allowed' : 'hover:scale-105 shadow-md hover:shadow-lg',
+                                                !isCurrentStepValid
+                                                    ? 'cursor-not-allowed opacity-50 grayscale'
+                                                    : 'shadow-md hover:scale-105 hover:shadow-lg',
                                                 hasUnsavedGuardian ? 'opacity-60' : ''
                                             )}>
                                             {isSavingStep ? (
@@ -8351,7 +8473,7 @@ const styles = `
 `;
 
 if (typeof document !== 'undefined') {
-    const styleSheet = document.createElement("style");
+    const styleSheet = document.createElement('style');
     styleSheet.innerText = styles;
     document.head.appendChild(styleSheet);
 }

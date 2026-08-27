@@ -10,17 +10,13 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-import {
-    StaffRepacementExistingToNewSchema,
-    type StaffReplacementExistingToNewValues
-} from '@/schemas/timetable/transactions';
+import { StaffRepacementExistingToNewSchema, type StaffReplacementExistingToNewValues } from '@/schemas/timetable/transactions';
 
 import {
     useSaveStaffReplacementExistingToNew,
     useSectionDropdown,
     useStaffReplacementExistingToNewMasters
 } from '@/hooks/timetable/useTransactions';
-
 
 const extractList = (data: any, preferredKey?: string) => {
     if (!data) return [];
@@ -153,7 +149,6 @@ export default function StaffReplacementExistingToNewForm({ onFetch }: StaffRepl
             <div className='rounded-lg border bg-white p-6 shadow-sm'>
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-8'>
                     <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-
                         <FormSelect
                             label='Category Name *'
                             name='ttmC_Id'
@@ -238,5 +233,3 @@ export default function StaffReplacementExistingToNewForm({ onFetch }: StaffRepl
         </CollapsibleSection>
     );
 }
-
-

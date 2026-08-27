@@ -187,33 +187,33 @@ export default function AddPromotionalSettingForm({
 
             const subjectsData = Array.isArray(payload.subjectlist)
                 ? payload.subjectlist.map(
-                    (subject: any): SubjectRow => ({
-                        ismS_Id: subject.ismS_Id,
-                        ismS_SubjectName: subject.ismS_SubjectName,
-                        ismS_SubjectCode: subject.ismS_SubjectCode || null,
-                        EMPS_MaxMarks: subject.empS_MaxMarks || subject.ismS_Max_Marks || null,
-                        EMPS_MinMarks: subject.empS_MinMarks || subject.ismS_Min_Marks || null,
-                        EMPS_ConvertForMarks: subject.empS_ConvertForMarks || null,
-                        EMPS_AppToResultFlg: subject.empS_AppToResultFlg ?? true,
-                        EMGR_Id: subject.emgR_Id || null,
-                        EMPS_Id: subject.empS_Id,
-                        checkedvalue: false
-                    })
-                )
+                      (subject: any): SubjectRow => ({
+                          ismS_Id: subject.ismS_Id,
+                          ismS_SubjectName: subject.ismS_SubjectName,
+                          ismS_SubjectCode: subject.ismS_SubjectCode || null,
+                          EMPS_MaxMarks: subject.empS_MaxMarks || subject.ismS_Max_Marks || null,
+                          EMPS_MinMarks: subject.empS_MinMarks || subject.ismS_Min_Marks || null,
+                          EMPS_ConvertForMarks: subject.empS_ConvertForMarks || null,
+                          EMPS_AppToResultFlg: subject.empS_AppToResultFlg ?? true,
+                          EMGR_Id: subject.emgR_Id || null,
+                          EMPS_Id: subject.empS_Id,
+                          checkedvalue: false
+                      })
+                  )
                 : [];
 
             const examsData = Array.isArray(payload.examlist)
                 ? payload.examlist.map(
-                    (exam: any): ExamItem => ({
-                        emE_Id: exam.emE_Id,
-                        emE_ExamName: exam.emE_ExamName,
-                        emE_ExamCode: exam.emE_ExamCode,
-                        checked: false,
-                        ForMaxMarkrs: 0,
-                        ForMaxMarkrs_Temp: 0,
-                        ConvertionReqOrNot: false
-                    })
-                )
+                      (exam: any): ExamItem => ({
+                          emE_Id: exam.emE_Id,
+                          emE_ExamName: exam.emE_ExamName,
+                          emE_ExamCode: exam.emE_ExamCode,
+                          checked: false,
+                          ForMaxMarkrs: 0,
+                          ForMaxMarkrs_Temp: 0,
+                          ConvertionReqOrNot: false
+                      })
+                  )
                 : [];
 
             setSubjects(subjectsData);
@@ -426,9 +426,7 @@ export default function AddPromotionalSettingForm({
 
         const currentGroups = activeSubject.pro_exams_group_list || [];
         const exists = currentGroups.some((g) => g.id === group.id);
-        const updatedGroups = exists
-            ? currentGroups.map((g) => (g.id === group.id ? group : g))
-            : [...currentGroups, group];
+        const updatedGroups = exists ? currentGroups.map((g) => (g.id === group.id ? group : g)) : [...currentGroups, group];
 
         console.info('Adding/Updating group in subject:', activeSubject.ismS_SubjectName, group);
 
@@ -1000,7 +998,9 @@ export default function AddPromotionalSettingForm({
                                             const hasGroups = subject.pro_exams_group_list && subject.pro_exams_group_list.length > 0;
 
                                             return (
-                                                <tr key={subject.ismS_Id} className={`border-t hover:bg-gray-50 ${hasGroups ? 'bg-green-50' : ''}`}>
+                                                <tr
+                                                    key={subject.ismS_Id}
+                                                    className={`border-t hover:bg-gray-50 ${hasGroups ? 'bg-green-50' : ''}`}>
                                                     <td className='p-3 text-center'>{index + 1}</td>
                                                     <td className='p-3 text-center'>
                                                         <Checkbox
@@ -1040,7 +1040,9 @@ export default function AddPromotionalSettingForm({
                                                                     toast.error('Max Marks cannot exceed 1000');
                                                                     setSubjects((prev) =>
                                                                         prev.map((s) =>
-                                                                            s.ismS_Id === subject.ismS_Id ? { ...s, EMPS_MaxMarks: null } : s
+                                                                            s.ismS_Id === subject.ismS_Id
+                                                                                ? { ...s, EMPS_MaxMarks: null }
+                                                                                : s
                                                                         )
                                                                     );
                                                                 }
@@ -1066,7 +1068,9 @@ export default function AddPromotionalSettingForm({
                                                                     toast.error('Min Marks cannot exceed Max Marks');
                                                                     setSubjects((prev) =>
                                                                         prev.map((s) =>
-                                                                            s.ismS_Id === subject.ismS_Id ? { ...s, EMPS_MinMarks: null } : s
+                                                                            s.ismS_Id === subject.ismS_Id
+                                                                                ? { ...s, EMPS_MinMarks: null }
+                                                                                : s
                                                                         )
                                                                     );
                                                                 }
@@ -1083,7 +1087,9 @@ export default function AddPromotionalSettingForm({
                                                                 const value = e.target.value ? Number.parseFloat(e.target.value) : null;
                                                                 setSubjects((prev) =>
                                                                     prev.map((s) =>
-                                                                        s.ismS_Id === subject.ismS_Id ? { ...s, EMPS_ConvertForMarks: value } : s
+                                                                        s.ismS_Id === subject.ismS_Id
+                                                                            ? { ...s, EMPS_ConvertForMarks: value }
+                                                                            : s
                                                                     )
                                                                 );
                                                             }}
@@ -1093,7 +1099,11 @@ export default function AddPromotionalSettingForm({
                                                                 if (value && value > 1000) {
                                                                     toast.error('Converted Marks cannot exceed 1000');
                                                                     hasError = true;
-                                                                } else if (value && subject.EMPS_MinMarks && value < subject.EMPS_MinMarks) {
+                                                                } else if (
+                                                                    value &&
+                                                                    subject.EMPS_MinMarks &&
+                                                                    value < subject.EMPS_MinMarks
+                                                                ) {
                                                                     toast.error('Converted Marks cannot be less than Min Marks');
                                                                     hasError = true;
                                                                 }
@@ -1101,7 +1111,9 @@ export default function AddPromotionalSettingForm({
                                                                 if (hasError) {
                                                                     setSubjects((prev) =>
                                                                         prev.map((s) =>
-                                                                            s.ismS_Id === subject.ismS_Id ? { ...s, EMPS_ConvertForMarks: null } : s
+                                                                            s.ismS_Id === subject.ismS_Id
+                                                                                ? { ...s, EMPS_ConvertForMarks: null }
+                                                                                : s
                                                                         )
                                                                     );
                                                                 }

@@ -3,7 +3,6 @@ import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Check, X } from 'lucide-react';
 export interface MasterLeave extends BaseEntity {
     hrmL_LeaveName: string;
     hrmL_LeaveCode: string;
@@ -45,7 +44,7 @@ export const getMasterLeaveColumns = ({ onEdit, onDelete, onToggleStatus }: Mast
     {
         accessorKey: 'hrmL_LeaveCode',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Leave Code' />,
-        cell: ({ row }) => <div className="font-mono text-xs">{row.getValue('hrmL_LeaveCode')}</div>
+        cell: ({ row }) => <div className='font-mono text-xs'>{row.getValue('hrmL_LeaveCode')}</div>
     },
     // {
     //     accessorKey: 'hrmL_LeaveType',
@@ -105,7 +104,7 @@ export const getMasterLeaveColumns = ({ onEdit, onDelete, onToggleStatus }: Mast
                     onEdit={onEdit}
                     onDelete={() => onDelete(entity.id)}
                     // onToggle={() => onToggleStatus(entity)}
-                    toggleConditionKey="isActive"
+                    toggleConditionKey='isActive'
                 />
             );
         }

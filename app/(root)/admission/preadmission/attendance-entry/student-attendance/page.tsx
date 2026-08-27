@@ -8,15 +8,15 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
-    useStudentAttendanceInitialData,
-    useGetStudentData,
-    useGetMonthClassHeld,
-    useGetDateWiseAttendance,
+    useDeleteAttendanceRecordWise,
     useGetBatchList,
+    useGetDateWiseAttendance,
+    useGetMonthClassHeld,
     useGetStdListPeriod,
+    useGetStudentData,
     useSaveAttendance,
-    useViewAttendance,
-    useDeleteAttendanceRecordWise
+    useStudentAttendanceInitialData,
+    useViewAttendance
 } from '@/hooks/admission/preadmission/transactions/useStudentAttendanceEntry';
 import { useMasterMonthDropDownList } from '@/hooks/admission/preadmission/useMasters';
 import type {
@@ -191,7 +191,8 @@ export default function StudentAttendancePage() {
             const type = attendanceType?.toLowerCase() || '';
             if (type === 'dailytwice') {
                 processedStudents = processedStudents.map((s: any) => {
-                    let first = false, second = false;
+                    let first = false,
+                        second = false;
                     if (s.pdays === 0.5) {
                         first = s.asA_Dailytwice_Flag === 'firsthalf';
                         second = s.asA_Dailytwice_Flag === 'Secondhalf';
@@ -199,12 +200,23 @@ export default function StudentAttendancePage() {
                         first = true;
                         second = true;
                     }
-                    if (res.data.attendanceentryflag === 'A') { // Absent mapping
-                        if (s.pdays === 0) { first = true; second = true; }
-                        else if (s.pdays === 0.5) {
-                            if (s.asA_Dailytwice_Flag === 'firsthalf') { first = false; second = true; }
-                            else { first = true; second = false; }
-                        } else { first = false; second = false; }
+                    if (res.data.attendanceentryflag === 'A') {
+                        // Absent mapping
+                        if (s.pdays === 0) {
+                            first = true;
+                            second = true;
+                        } else if (s.pdays === 0.5) {
+                            if (s.asA_Dailytwice_Flag === 'firsthalf') {
+                                first = false;
+                                second = true;
+                            } else {
+                                first = true;
+                                second = false;
+                            }
+                        } else {
+                            first = false;
+                            second = false;
+                        }
                     }
                     return { ...s, firstHalfflag: first, secondHalfflag: second };
                 });
@@ -399,7 +411,6 @@ export default function StudentAttendancePage() {
             asasB_Id = Number(selectedBatch) || 0;
         }
 
-
         const payload = {
             username: '',
             ASMAY_Id: Number(selectedYear),
@@ -481,7 +492,10 @@ export default function StudentAttendancePage() {
                                 <div className='rounded-md border border-gray-200 bg-white p-4 shadow-sm'>
                                     <div className='mb-4 flex items-center justify-between border-b pb-2'>
                                         <h3 className='font-bold text-blue-900 text-lg uppercase'>
-                                            {attendanceType.replace('once', ' Once').replace('twice', ' Twice').replace('period', 'Period Wise')}
+                                            {attendanceType
+                                                .replace('once', ' Once')
+                                                .replace('twice', ' Twice')
+                                                .replace('period', 'Period Wise')}
                                         </h3>
                                         <Button size='sm' onClick={handleViewPeriodWise}>
                                             <Eye className='mr-2 h-4 w-4' /> View Attendance Details
@@ -490,7 +504,14 @@ export default function StudentAttendancePage() {
 
                                     {/* Attendance Type Radios (Disabled, controlled by API) */}
                                     <div className='flex justify-center pb-6'>
-                                        <RadioGroup value={attendanceType} onValueChange={(value) => { setAttendanceType(value); setSearched(false); }} className='flex gap-6' disabled>
+                                        <RadioGroup
+                                            value={attendanceType}
+                                            onValueChange={(value) => {
+                                                setAttendanceType(value);
+                                                setSearched(false);
+                                            }}
+                                            className='flex gap-6'
+                                            disabled>
                                             <div className='flex items-center space-x-2'>
                                                 <RadioGroupItem value='Dailyonce' id='r1' />
                                                 <Label htmlFor='r1'>Daily Once</Label>
@@ -516,7 +537,12 @@ export default function StudentAttendancePage() {
                                             <Label className='text-left font-medium text-sm md:text-right'>
                                                 Section: <span className='text-red-500'>*</span>
                                             </Label>
-                                            <Select value={selectedSection} onValueChange={(v) => { setSelectedSection(v); setSearched(false); }}>
+                                            <Select
+                                                value={selectedSection}
+                                                onValueChange={(v) => {
+                                                    setSelectedSection(v);
+                                                    setSearched(false);
+                                                }}>
                                                 <SelectTrigger className='border-blue-400'>
                                                     <SelectValue placeholder='Select Section' />
                                                 </SelectTrigger>
@@ -551,21 +577,15 @@ export default function StudentAttendancePage() {
                                                     </Select>
                                                 </div>
                                                 <div className='grid grid-cols-1 items-center gap-2 md:grid-cols-[150px_1fr] md:gap-4'>
-                                                    <Label className='text-left font-medium text-sm md:text-right'>
-                                                        Attendance Date:
-                                                    </Label>
+                                                    <Label className='text-left font-medium text-sm md:text-right'>Attendance Date:</Label>
                                                     <Input type='date' value={fromDate} disabled />
                                                 </div>
                                                 <div className='grid grid-cols-1 items-center gap-2 md:grid-cols-[150px_1fr] md:gap-4'>
-                                                    <Label className='text-left font-medium text-sm md:text-right'>
-                                                        Total Class Held:
-                                                    </Label>
-                                                    <div className="font-bold">{totalClassHeld}</div>
+                                                    <Label className='text-left font-medium text-sm md:text-right'>Total Class Held:</Label>
+                                                    <div className='font-bold'>{totalClassHeld}</div>
                                                 </div>
                                                 <div className='grid grid-cols-1 items-center gap-2 md:grid-cols-[150px_1fr] md:gap-4'>
-                                                    <Label className='text-left font-medium text-sm md:text-right'>
-                                                        To Date:
-                                                    </Label>
+                                                    <Label className='text-left font-medium text-sm md:text-right'>To Date:</Label>
                                                     <Input type='date' value={toDate} disabled />
                                                 </div>
                                             </>
@@ -577,11 +597,7 @@ export default function StudentAttendancePage() {
                                                     <Label className='text-left font-medium text-sm md:text-right'>
                                                         DOE: <span className='text-red-500'>*</span>
                                                     </Label>
-                                                    <Input
-                                                        type='date'
-                                                        value={doe}
-                                                        onChange={(e) => setDoe(e.target.value)}
-                                                    />
+                                                    <Input type='date' value={doe} onChange={(e) => setDoe(e.target.value)} />
                                                 </div>
                                                 <div className='grid grid-cols-1 items-center gap-2 md:grid-cols-[150px_1fr] md:gap-4'>
                                                     <Label className='text-left font-medium text-sm md:text-right'>
@@ -601,10 +617,11 @@ export default function StudentAttendancePage() {
                                                     </Select>
                                                 </div>
                                                 <div className='grid grid-cols-1 items-center gap-2 md:grid-cols-[150px_1fr] md:gap-4'>
-                                                    <Label className='text-left font-medium text-sm md:text-right'>
-                                                        Batch:
-                                                    </Label>
-                                                    <Select value={selectedBatch} onValueChange={setSelectedBatch} disabled={batchList.length === 0}>
+                                                    <Label className='text-left font-medium text-sm md:text-right'>Batch:</Label>
+                                                    <Select
+                                                        value={selectedBatch}
+                                                        onValueChange={setSelectedBatch}
+                                                        disabled={batchList.length === 0}>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder='Select Batch' />
                                                         </SelectTrigger>
@@ -626,7 +643,13 @@ export default function StudentAttendancePage() {
                                                             <SelectValue placeholder='Select Period' />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            {(periodList.length > 0 ? periodList : Array.from({ length: 8 }, (_, i) => ({ ttmP_Id: i + 1, ttmP_PeriodName: (i + 1).toString() }))).map((p: any) => (
+                                                            {(periodList.length > 0
+                                                                ? periodList
+                                                                : Array.from({ length: 8 }, (_, i) => ({
+                                                                      ttmP_Id: i + 1,
+                                                                      ttmP_PeriodName: (i + 1).toString()
+                                                                  }))
+                                                            ).map((p: any) => (
                                                                 <SelectItem key={p.ttmP_Id} value={p.ttmP_Id.toString()}>
                                                                     {p.ttmP_PeriodName}
                                                                 </SelectItem>
@@ -681,9 +704,7 @@ export default function StudentAttendancePage() {
                 {searched && (
                     <CollapsibleSection title='STUDENT DETAILS' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                         <div className='mb-4 flex flex-col gap-4 p-4 md:flex-row md:justify-between'>
-                            <h3 className='font-bold text-blue-600 text-lg'>
-                                {attendanceEntryMsg || 'Attendance Entry'}
-                            </h3>
+                            <h3 className='font-bold text-blue-600 text-lg'>{attendanceEntryMsg || 'Attendance Entry'}</h3>
                             {students.length > 0 && (
                                 <div className='w-full md:w-1/3'>
                                     <div className='relative'>
@@ -709,11 +730,13 @@ export default function StudentAttendancePage() {
                                     onRowSelectionChange={(rows) => {
                                         if (attendanceType === 'Dailyonce' || attendanceType === 'period') {
                                             // Handle GenericDataTable selection
-                                            const selectedIds = new Set(rows.map(r => r.amsT_Id));
-                                            setStudents(prev => prev.map(s => ({
-                                                ...s,
-                                                selected: selectedIds.has(s.amsT_Id)
-                                            })));
+                                            const selectedIds = new Set(rows.map((r) => r.amsT_Id));
+                                            setStudents((prev) =>
+                                                prev.map((s) => ({
+                                                    ...s,
+                                                    selected: selectedIds.has(s.amsT_Id)
+                                                }))
+                                            );
                                         }
                                     }}
                                 />
@@ -730,9 +753,7 @@ export default function StudentAttendancePage() {
                                 </div>
                             </>
                         ) : (
-                            <div className='p-8 text-center text-muted-foreground'>
-                                {noDataMessage || 'No Data Available'}
-                            </div>
+                            <div className='p-8 text-center text-muted-foreground'>{noDataMessage || 'No Data Available'}</div>
                         )}
                     </CollapsibleSection>
                 )}

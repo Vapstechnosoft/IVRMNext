@@ -13,7 +13,7 @@ export async function saveMasterPage(data: any) {
             return {
                 success: false,
                 message: 'Validation failed',
-                errors: validation.error.flatten().fieldErrors,
+                errors: validation.error.flatten().fieldErrors
             };
         }
 
@@ -27,9 +27,9 @@ export async function saveMasterPage(data: any) {
             ivrmP_TemplateFlag: data.ivrmP_TemplateFlag ?? true,
             ivrM_Module_Category_Id: data.ivrM_Module_Category_Id ?? 0,
             ivrmP_MandatoryFlag: !!data.ivrmP_MandatoryFlag,
-            ivrmP_PageDisplayName: data.ivrmP_PageDisplayName || data.ivrmmP_PageName || "string",
+            ivrmP_PageDisplayName: data.ivrmP_PageDisplayName || data.ivrmmP_PageName || 'string',
             userid: data.userid ?? 0,
-            ivrmP_BrowerUrl: data.ivrmP_BrowerUrl || "string"
+            ivrmP_BrowerUrl: data.ivrmP_BrowerUrl || 'string'
         };
 
         const response = await api.post<any>('sadmin', 'MasterPageFacade/master_map_save/1209', payload);
@@ -39,19 +39,19 @@ export async function saveMasterPage(data: any) {
             return {
                 success: true,
                 message: response.message || 'Master Page saved successfully!',
-                data: response.data,
+                data: response.data
             };
         }
 
         return {
             success: false,
-            message: response.message || 'Failed to save master page',
+            message: response.message || 'Failed to save master page'
         };
     } catch (error: any) {
-        console.error("Save Error:", error);
+        console.error('Save Error:', error);
         return {
             success: false,
-            message: error?.message || 'An unexpected error occurred while saving',
+            message: error?.message || 'An unexpected error occurred while saving'
         };
     }
 }
@@ -96,19 +96,19 @@ export async function deleteMasterPage(id: number) {
             revalidatePath('/SuperAdmin/super-admin-module/general-setting/master-page');
             return {
                 success: true,
-                message: response.message || 'Record deleted successfully',
+                message: response.message || 'Record deleted successfully'
             };
         }
 
         return {
             success: false,
-            message: response.message || 'Failed to delete record',
+            message: response.message || 'Failed to delete record'
         };
     } catch (error: any) {
-        console.error("Delete Error:", error);
+        console.error('Delete Error:', error);
         return {
             success: false,
-            message: error?.message || 'Failed to delete record',
+            message: error?.message || 'Failed to delete record'
         };
     }
 }
@@ -151,11 +151,11 @@ export async function activateDeactivateMasterPage(id: number) {
         revalidatePath('/SuperAdmin/super-admin-module/general-setting/master-page');
         return {
             success: true,
-            message: res.message || 'Master Page status updated successfully',
+            message: res.message || 'Master Page status updated successfully'
         };
     }
     return {
         success: false,
-        message: res.message || 'Failed to update status',
+        message: res.message || 'Failed to update status'
     };
 }

@@ -1,25 +1,25 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
 import {
+    getDocumentViewReportData,
     getDocumentViewReportDetails,
-    getDocumentViewReportStudent,
-    getDocumentViewReportData
+    getDocumentViewReportStudent
 } from '@/server/admission/oldsharehost/reports/document_view_adm';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const useDocumentViewReportInitialDetails = () => {
     return useQuery({
         queryKey: ['documentViewReportInitialDetails'],
-        queryFn: () => getDocumentViewReportDetails(),
+        queryFn: () => getDocumentViewReportDetails()
     });
 };
 
 export const useDocumentViewReportStudent = () => {
     return useMutation({
-        mutationFn: getDocumentViewReportStudent,
+        mutationFn: getDocumentViewReportStudent
     });
 };
 
 export const useDocumentViewReportData = () => {
     return useMutation({
-        mutationFn: getDocumentViewReportData,
+        mutationFn: getDocumentViewReportData
     });
 };

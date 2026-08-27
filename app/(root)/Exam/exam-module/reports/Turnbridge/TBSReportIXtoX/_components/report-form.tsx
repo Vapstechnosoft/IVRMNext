@@ -5,8 +5,12 @@ import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import { getClassDropDownByAcademicYearlist, getSectionsDropDownByAcademicYearandClasslist, getStudentsDropDownByAcademicYearandClassandSectionlist } from '@/server/exam/exam-module/reports/cumulative-report';
 import { getTBSReportIXtoX } from '@/server/exam/exam-module/reports/Turnbridge/TBSReportIXtoX';
+import {
+    getClassDropDownByAcademicYearlist,
+    getSectionsDropDownByAcademicYearandClasslist,
+    getStudentsDropDownByAcademicYearandClassandSectionlist
+} from '@/server/exam/exam-module/reports/cumulative-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -18,7 +22,7 @@ const tbsReportIXtoXSchema = z.object({
     ASMAY_Id: z.string().min(1, 'Select Academic Year'),
     ASMCL_Id: z.string().min(1, 'Select Class'),
     ASMS_Id: z.string().min(1, 'Select Section'),
-    selectedStudents: z.array(z.string()).min(1, 'Select at least one student'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
 });
 
 type TBSReportIXtoXSchema = z.infer<typeof tbsReportIXtoXSchema>;
@@ -43,7 +47,7 @@ export const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
     const methods = useForm<TBSReportIXtoXSchema>({
         resolver: zodResolver(tbsReportIXtoXSchema),
         defaultValues: {
-            selectedStudents: [],
+            selectedStudents: []
         }
     });
 
@@ -101,11 +105,18 @@ export const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
         (async () => {
             try {
                 setLoadingStudents(true);
-                const response = await getStudentsDropDownByAcademicYearandClassandSectionlist(Number(watchYear), Number(watchClass), Number(watchSection));
+                const response = await getStudentsDropDownByAcademicYearandClassandSectionlist(
+                    Number(watchYear),
+                    Number(watchClass),
+                    Number(watchSection)
+                );
                 if (response?.success && response.data) {
                     const mapped = response.data.map((s: any) => ({
                         amsT_Id: s.amsT_Id,
-                        studentname: s.studentname || s.studentName || `${s.amsT_FirstName ?? ''} ${s.amsT_MiddleName ?? ''} ${s.amsT_LastName ?? ''}`.trim()
+                        studentname:
+                            s.studentname ||
+                            s.studentName ||
+                            `${s.amsT_FirstName ?? ''} ${s.amsT_MiddleName ?? ''} ${s.amsT_LastName ?? ''}`.trim()
                     }));
                     setStudents(mapped);
                 }
@@ -129,7 +140,7 @@ export const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
                 ASMS_Id: Number(data.ASMS_Id),
                 Temp_AmstIds: data.selectedStudents.map((id) => ({ amsT_Id: Number(id) })),
                 EMPG_GroupName: '',
-                EMGR_Id: 0,
+                EMGR_Id: 0
             };
 
             const response = await getTBSReportIXtoX(payload);
@@ -183,14 +194,18 @@ export const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
                                 name='ASMAY_Id'
                                 render={({ field, fieldState }) => (
                                     <div className='space-y-2'>
-                                        <Label>Academic Year <span className='text-red-500'>*</span></Label>
+                                        <Label>
+                                            Academic Year <span className='text-red-500'>*</span>
+                                        </Label>
                                         <Select onValueChange={field.onChange} value={field.value}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Academic Year' />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {academicYearLoading ? (
-                                                    <SelectItem value='0' disabled>Loading...</SelectItem>
+                                                    <SelectItem value='0' disabled>
+                                                        Loading...
+                                                    </SelectItem>
                                                 ) : (
                                                     academicYears.map((y: any) => (
                                                         <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
@@ -211,14 +226,18 @@ export const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
                                 name='ASMCL_Id'
                                 render={({ field, fieldState }) => (
                                     <div className='space-y-2'>
-                                        <Label>Class <span className='text-red-500'>*</span></Label>
+                                        <Label>
+                                            Class <span className='text-red-500'>*</span>
+                                        </Label>
                                         <Select onValueChange={field.onChange} value={field.value}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Class' />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {loadingClasses ? (
-                                                    <SelectItem value='0' disabled>Loading...</SelectItem>
+                                                    <SelectItem value='0' disabled>
+                                                        Loading...
+                                                    </SelectItem>
                                                 ) : (
                                                     classes.map((cls) => (
                                                         <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>
@@ -239,14 +258,18 @@ export const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
                                 name='ASMS_Id'
                                 render={({ field, fieldState }) => (
                                     <div className='space-y-2'>
-                                        <Label>Section <span className='text-red-500'>*</span></Label>
+                                        <Label>
+                                            Section <span className='text-red-500'>*</span>
+                                        </Label>
                                         <Select onValueChange={field.onChange} value={field.value}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Section' />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {loadingSections ? (
-                                                    <SelectItem value='0' disabled>Loading...</SelectItem>
+                                                    <SelectItem value='0' disabled>
+                                                        Loading...
+                                                    </SelectItem>
                                                 ) : (
                                                     sections.map((sec) => (
                                                         <SelectItem key={sec.asmS_Id} value={String(sec.asmS_Id)}>

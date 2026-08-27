@@ -135,13 +135,12 @@ export const useOnlineRazorpayPayment = () => {
     };
 };
 
-
 export const useOnliePaymentDetails = (data?: any) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [PORTAL_QUERY_KEYS.ONLINE_PAYMENT_DETAILS,],
+            queryKey: [PORTAL_QUERY_KEYS.ONLINE_PAYMENT_DETAILS],
             queryFn: async () => onlinepaymentdetails(data),
             staleTime: 0
         }),

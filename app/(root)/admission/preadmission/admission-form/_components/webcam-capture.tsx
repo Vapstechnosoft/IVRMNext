@@ -1,13 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Camera, Check, RefreshCw, X } from 'lucide-react';
 import { useCallback, useRef, useState } from 'react';
 import Webcam from 'react-webcam';
@@ -51,58 +45,57 @@ export function WebcamCapture({ onCapture, trigger }: WebcamCaptureProps) {
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
                 {trigger || (
-                    <Button variant="outline" className="flex items-center gap-2">
-                        <Camera className="h-4 w-4" />
+                    <Button variant='outline' className='flex items-center gap-2'>
+                        <Camera className='h-4 w-4' />
                         Take Photo
                     </Button>
                 )}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className='sm:max-w-[500px]'>
                 <DialogHeader>
                     <DialogTitle>Capture Student Photo</DialogTitle>
                 </DialogHeader>
-                <div className="mt-4 flex flex-col items-center gap-4">
-                    <div className="relative aspect-video w-full overflow-hidden rounded-lg border-2 border-primary/20 bg-muted">
+                <div className='mt-4 flex flex-col items-center gap-4'>
+                    <div className='relative aspect-video w-full overflow-hidden rounded-lg border-2 border-primary/20 bg-muted'>
                         {!imgSrc ? (
                             <Webcam
                                 audio={false}
                                 ref={webcamRef}
-                                screenshotFormat="image/jpeg"
+                                screenshotFormat='image/jpeg'
                                 videoConstraints={videoConstraints}
-                                className="h-full w-full object-cover"
+                                className='h-full w-full object-cover'
                             />
                         ) : (
-                            <img src={imgSrc} alt="captured" className="h-full w-full object-cover" />
+                            <img src={imgSrc} alt='captured' className='h-full w-full object-cover' />
                         )}
                     </div>
 
-                    <div className="flex w-full justify-center gap-4">
+                    <div className='flex w-full justify-center gap-4'>
                         {!imgSrc ? (
-                            <Button onClick={capture} className="w-32 gap-2">
-                                <Camera className="h-4 w-4" />
+                            <Button onClick={capture} className='w-32 gap-2'>
+                                <Camera className='h-4 w-4' />
                                 Capture
                             </Button>
                         ) : (
                             <>
-                                <Button variant="outline" onClick={retake} className="w-32 gap-2">
-                                    <RefreshCw className="h-4 w-4" />
+                                <Button variant='outline' onClick={retake} className='w-32 gap-2'>
+                                    <RefreshCw className='h-4 w-4' />
                                     Retake
                                 </Button>
-                                <Button onClick={handleSave} className="w-32 gap-2">
-                                    <Check className="h-4 w-4" />
+                                <Button onClick={handleSave} className='w-32 gap-2'>
+                                    <Check className='h-4 w-4' />
                                     Use Photo
                                 </Button>
                             </>
                         )}
                         <Button
-                            variant="ghost"
+                            variant='ghost'
                             onClick={() => {
                                 setIsOpen(false);
                                 setImgSrc(null);
                             }}
-                            className="w-32 gap-2"
-                        >
-                            <X className="h-4 w-4" />
+                            className='w-32 gap-2'>
+                            <X className='h-4 w-4' />
                             Cancel
                         </Button>
                     </div>
@@ -111,5 +104,3 @@ export function WebcamCapture({ onCapture, trigger }: WebcamCaptureProps) {
         </Dialog>
     );
 }
-
-

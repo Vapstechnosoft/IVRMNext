@@ -44,7 +44,7 @@ export async function saveStudentFeeEnablePartialPayment(data: IStudentFeeEnable
     return await api.post<{ retrunMsg: string }>('fees', url, data);
 }
 
-export async function toggleStudentFeeEnablePartialPayment(data: { FSEPP_Id: number;[key: string]: any }) {
+export async function toggleStudentFeeEnablePartialPayment(data: { FSEPP_Id: number; [key: string]: any }) {
     const url = '/StudentFeeEnablePartialPaymentFacade/deactivate';
     return await api.post<{ retrunMsg: string }>('fees', url, data);
 }

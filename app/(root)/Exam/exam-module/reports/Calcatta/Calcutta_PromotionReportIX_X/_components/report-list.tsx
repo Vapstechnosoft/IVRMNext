@@ -1,12 +1,12 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { getCalcuttaPromotionReportI_IX } from '@/server/exam/exam-module/reports/Calcatta/calcutta-promotion-report-ix';
 import { Download, Loader2, Printer } from 'lucide-react';
 import { useState } from 'react';
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis, LabelList } from 'recharts';
-import CalcuttaPromotionReportForm from './report-form';
+import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import * as XLSX from 'xlsx';
-import { Button } from '@/components/ui/button';
+import CalcuttaPromotionReportForm from './report-form';
 
 export default function CalcuttaPromotionReportIX_XList() {
     const [reportData, setReportData] = useState<any>(null);
@@ -44,7 +44,17 @@ export default function CalcuttaPromotionReportIX_XList() {
         const rec = student.studentmarks?.find((m: any) => {
             const mSubjId = m.ISMS_Id ?? m.ismS_Id ?? m.isms_Id ?? m.isms_id;
             const mEmeId = m.EME_Id ?? m.emE_Id ?? m.eme_Id;
-            const mGrp = (m.EMPSG_DisplayName ?? m.empsG_DisplayName ?? m.EMPSG_GroupName ?? m.empG_GroupName ?? m.empsg_DisplayName ?? m.empsg_GroupName ?? '')?.trim().toUpperCase();
+            const mGrp = (
+                m.EMPSG_DisplayName ??
+                m.empsG_DisplayName ??
+                m.EMPSG_GroupName ??
+                m.empG_GroupName ??
+                m.empsg_DisplayName ??
+                m.empsg_GroupName ??
+                ''
+            )
+                ?.trim()
+                .toUpperCase();
             return Number(mSubjId) === Number(subjId) && Number(mEmeId) === Number(targetEmeId) && mGrp === grpName.trim().toUpperCase();
         });
 
@@ -62,8 +72,15 @@ export default function CalcuttaPromotionReportIX_XList() {
 
     // Helper to get semester total for a group (Average of subjects in group)
     const getSemesterGroupTotal = (student: any, groupMap: any, subj: any, grpName: string, emeId?: number) => {
-        const isSubjGrouped = subj.GropuFlag === 1 || subj.GropuFlag === '1' || subj.GropuFlag === true || subj.GropuFlag === 'true' ||
-            subj.gropuFlag === 1 || subj.gropuFlag === '1' || subj.gropuFlag === true || subj.gropuFlag === 'true';
+        const isSubjGrouped =
+            subj.GropuFlag === 1 ||
+            subj.GropuFlag === '1' ||
+            subj.GropuFlag === true ||
+            subj.GropuFlag === 'true' ||
+            subj.gropuFlag === 1 ||
+            subj.gropuFlag === '1' ||
+            subj.gropuFlag === true ||
+            subj.gropuFlag === 'true';
         const groupName = subj.esG_SubjectGroupName ?? subj.ESG_SubjectGroupName;
 
         if (isSubjGrouped && groupName) {
@@ -128,26 +145,34 @@ export default function CalcuttaPromotionReportIX_XList() {
             const remarks = remarksObj?.eprD_Remarks ?? student.remarks ?? '';
             const conduct = remarksObj?.eprD_PromotionName ?? '';
 
-            const sem1Exams = reportData.groupwiseexamlist?.filter((e: any) =>
-                (e.EMPG_DistplayName ?? e.empg_DistplayName ?? '').trim().toUpperCase() === sem1Name.trim().toUpperCase() &&
-                Number(e.EME_Id ?? e.eme_Id) !== 9800000 && Number(e.EME_Id ?? e.eme_Id) !== 98000012
-            ) || [];
+            const sem1Exams =
+                reportData.groupwiseexamlist?.filter(
+                    (e: any) =>
+                        (e.EMPG_DistplayName ?? e.empg_DistplayName ?? '').trim().toUpperCase() === sem1Name.trim().toUpperCase() &&
+                        Number(e.EME_Id ?? e.eme_Id) !== 9800000 &&
+                        Number(e.EME_Id ?? e.eme_Id) !== 98000012
+                ) || [];
             const sem1RealExamId = sem1Exams[0]?.EME_Id ?? sem1Exams[0]?.eme_Id;
 
-            const sem2Exams = reportData.groupwiseexamlist?.filter((e: any) =>
-                (e.EMPG_DistplayName ?? e.empg_DistplayName ?? '').trim().toUpperCase() === sem2Name.trim().toUpperCase() &&
-                Number(e.EME_Id ?? e.eme_Id) !== 9800000 && Number(e.EME_Id ?? e.eme_Id) !== 98000012
-            ) || [];
+            const sem2Exams =
+                reportData.groupwiseexamlist?.filter(
+                    (e: any) =>
+                        (e.EMPG_DistplayName ?? e.empg_DistplayName ?? '').trim().toUpperCase() === sem2Name.trim().toUpperCase() &&
+                        Number(e.EME_Id ?? e.eme_Id) !== 9800000 &&
+                        Number(e.EME_Id ?? e.eme_Id) !== 98000012
+                ) || [];
             const sem2RealExamId = sem2Exams[0]?.EME_Id ?? sem2Exams[0]?.eme_Id;
 
             // Add Student Info Header
             rows.push({
-                'Student Name': (student.studentname || `${student.amsT_FirstName || ''} ${student.amsT_MiddleName || ''} ${student.amsT_LastName || ''}`).toUpperCase(),
-                'Class': (student.classname || student.asmcL_ClassName || '').toUpperCase(),
-                'Section': (student.sectionname || student.asmC_SectionName || '').toUpperCase(),
+                'Student Name': (
+                    student.studentname || `${student.amsT_FirstName || ''} ${student.amsT_MiddleName || ''} ${student.amsT_LastName || ''}`
+                ).toUpperCase(),
+                Class: (student.classname || student.asmcL_ClassName || '').toUpperCase(),
+                Section: (student.sectionname || student.asmC_SectionName || '').toUpperCase(),
                 'Roll No': student.rollno || student.amaY_RollNo || '',
                 'Scholar No': student.admno || student.amsT_AdmNo || '',
-                'Subject': '',
+                Subject: '',
                 [sem1Name.toUpperCase()]: '',
                 [`Total [100] (${sem1Name})`]: '',
                 [sem2Name.toUpperCase()]: '',
@@ -165,8 +190,15 @@ export default function CalcuttaPromotionReportIX_XList() {
             const groupMap: { [key: string]: any[] } = {};
             applicableSubjects.forEach((subj: any) => {
                 const groupName = subj.esG_SubjectGroupName ?? subj.ESG_SubjectGroupName;
-                const isGrouped = subj.GropuFlag === 1 || subj.GropuFlag === '1' || subj.GropuFlag === true || subj.GropuFlag === 'true' ||
-                    subj.gropuFlag === 1 || subj.gropuFlag === '1' || subj.gropuFlag === true || subj.gropuFlag === 'true';
+                const isGrouped =
+                    subj.GropuFlag === 1 ||
+                    subj.GropuFlag === '1' ||
+                    subj.GropuFlag === true ||
+                    subj.GropuFlag === 'true' ||
+                    subj.gropuFlag === 1 ||
+                    subj.gropuFlag === '1' ||
+                    subj.gropuFlag === true ||
+                    subj.gropuFlag === 'true';
                 if (isGrouped && groupName) {
                     const trimmed = groupName.trim();
                     if (!groupMap[trimmed]) {
@@ -179,8 +211,15 @@ export default function CalcuttaPromotionReportIX_XList() {
             const subjRowSpanMap = new Map<number, number>();
             applicableSubjects.forEach((subj: any) => {
                 const groupName = subj.esG_SubjectGroupName ?? subj.ESG_SubjectGroupName;
-                const isGrouped = subj.GropuFlag === 1 || subj.GropuFlag === '1' || subj.GropuFlag === true || subj.GropuFlag === 'true' ||
-                    subj.gropuFlag === 1 || subj.gropuFlag === '1' || subj.gropuFlag === true || subj.gropuFlag === 'true';
+                const isGrouped =
+                    subj.GropuFlag === 1 ||
+                    subj.GropuFlag === '1' ||
+                    subj.GropuFlag === true ||
+                    subj.GropuFlag === 'true' ||
+                    subj.gropuFlag === 1 ||
+                    subj.gropuFlag === '1' ||
+                    subj.gropuFlag === true ||
+                    subj.gropuFlag === 'true';
                 const currentSubjId = subj.ISMS_Id ?? subj.ismS_Id;
 
                 if (isGrouped && groupName) {
@@ -202,8 +241,17 @@ export default function CalcuttaPromotionReportIX_XList() {
 
             applicableSubjects.forEach((subj: any) => {
                 const subjId = subj.ISMS_Id ?? subj.ismS_Id;
-                const isGradeOnly = (subj.eyceS_GradeDisplayFlg === 'true' || subj.eyceS_GradeDisplayFlg === true || subj.EYCES_GradeDisplayFlg === 'true' || subj.EYCES_GradeDisplayFlg === true) &&
-                    !(subj.eyceS_MarksDisplayFlg === 'true' || subj.eyceS_MarksDisplayFlg === true || subj.EYCES_MarksDisplayFlg === 'true' || subj.EYCES_MarksDisplayFlg === true);
+                const isGradeOnly =
+                    (subj.eyceS_GradeDisplayFlg === 'true' ||
+                        subj.eyceS_GradeDisplayFlg === true ||
+                        subj.EYCES_GradeDisplayFlg === 'true' ||
+                        subj.EYCES_GradeDisplayFlg === true) &&
+                    !(
+                        subj.eyceS_MarksDisplayFlg === 'true' ||
+                        subj.eyceS_MarksDisplayFlg === true ||
+                        subj.EYCES_MarksDisplayFlg === 'true' ||
+                        subj.EYCES_MarksDisplayFlg === true
+                    );
 
                 const sem1MarksObj = getSubjectSemesterMarks(student, subjId, sem1Name, sem1RealExamId);
                 const sem1GroupObj = getSemesterGroupTotal(student, groupMap, subj, sem1Name, sem1RealExamId);
@@ -233,15 +281,19 @@ export default function CalcuttaPromotionReportIX_XList() {
 
                 rows.push({
                     'Student Name': '',
-                    'Class': '',
-                    'Section': '',
+                    Class: '',
+                    Section: '',
                     'Roll No': '',
                     'Scholar No': '',
-                    'Subject': subj.ISMS_SubjectName || subj.ismS_SubjectName,
+                    Subject: subj.ISMS_SubjectName || subj.ismS_SubjectName,
                     [sem1Name.toUpperCase()]: isGradeOnly ? '-' : (sem1MarksObj?.obtained ?? '-'),
-                    [`Total [100] (${sem1Name})`]: isGradeOnly ? getSubjectSemesterGrade(student, subjId, sem1Name) : (sem1GroupObj.obtained ?? '-'),
+                    [`Total [100] (${sem1Name})`]: isGradeOnly
+                        ? getSubjectSemesterGrade(student, subjId, sem1Name)
+                        : (sem1GroupObj.obtained ?? '-'),
                     [sem2Name.toUpperCase()]: isGradeOnly ? '-' : (sem2MarksObj?.obtained ?? '-'),
-                    [`Total [100] (${sem2Name})`]: isGradeOnly ? getSubjectSemesterGrade(student, subjId, sem2Name) : (sem2GroupObj.obtained ?? '-'),
+                    [`Total [100] (${sem2Name})`]: isGradeOnly
+                        ? getSubjectSemesterGrade(student, subjId, sem2Name)
+                        : (sem2GroupObj.obtained ?? '-'),
                     'Grand Total [200]': isGradeOnly ? '-' : (grandObt ?? '-'),
                     'Yearly Avg': isGradeOnly ? '-' : (yearlyAvgObt ?? '-')
                 });
@@ -249,8 +301,17 @@ export default function CalcuttaPromotionReportIX_XList() {
 
             // Scholastic calculations for Excel TOTAL & PERCENTAGE rows
             const scholasticSubjects = applicableSubjects.filter((subj: any) => {
-                const isGradeOnly = (subj.eyceS_GradeDisplayFlg === 'true' || subj.eyceS_GradeDisplayFlg === true || subj.EYCES_GradeDisplayFlg === 'true' || subj.EYCES_GradeDisplayFlg === true) &&
-                    !(subj.eyceS_MarksDisplayFlg === 'true' || subj.eyceS_MarksDisplayFlg === true || subj.EYCES_MarksDisplayFlg === 'true' || subj.EYCES_MarksDisplayFlg === true);
+                const isGradeOnly =
+                    (subj.eyceS_GradeDisplayFlg === 'true' ||
+                        subj.eyceS_GradeDisplayFlg === true ||
+                        subj.EYCES_GradeDisplayFlg === 'true' ||
+                        subj.EYCES_GradeDisplayFlg === true) &&
+                    !(
+                        subj.eyceS_MarksDisplayFlg === 'true' ||
+                        subj.eyceS_MarksDisplayFlg === true ||
+                        subj.EYCES_MarksDisplayFlg === 'true' ||
+                        subj.EYCES_MarksDisplayFlg === true
+                    );
                 return !isGradeOnly;
             });
 
@@ -290,11 +351,11 @@ export default function CalcuttaPromotionReportIX_XList() {
             // Total row
             rows.push({
                 'Student Name': '',
-                'Class': '',
-                'Section': '',
+                Class: '',
+                Section: '',
                 'Roll No': '',
                 'Scholar No': '',
-                'Subject': 'TOTAL',
+                Subject: 'TOTAL',
                 [sem1Name.toUpperCase()]: '',
                 [`Total [100] (${sem1Name})`]: sem1TotalMax > 0 ? `${sem1TotalObt}/${sem1TotalMax}` : '-',
                 [sem2Name.toUpperCase()]: '',
@@ -306,11 +367,11 @@ export default function CalcuttaPromotionReportIX_XList() {
             // Percentage row
             rows.push({
                 'Student Name': '',
-                'Class': '',
-                'Section': '',
+                Class: '',
+                Section: '',
                 'Roll No': '',
                 'Scholar No': '',
-                'Subject': 'PERCENTAGE',
+                Subject: 'PERCENTAGE',
                 [sem1Name.toUpperCase()]: '',
                 [`Total [100] (${sem1Name})`]: sem1TotalMax > 0 ? `${sem1Percentage}%` : '-',
                 [sem2Name.toUpperCase()]: '',
@@ -326,27 +387,35 @@ export default function CalcuttaPromotionReportIX_XList() {
 
             rows.push({
                 'Student Name': '',
-                'Class': '',
-                'Section': '',
+                Class: '',
+                Section: '',
                 'Roll No': '',
                 'Scholar No': '',
-                'Subject': 'ATTENDANCE',
+                Subject: 'ATTENDANCE',
                 [sem1Name.toUpperCase()]: '',
-                [`Total [100] (${sem1Name})`]: (att1?.percentage !== undefined && att1?.percentage !== null && att1?.percentage !== '') ? `${att1.percentage}%` : '-',
+                [`Total [100] (${sem1Name})`]:
+                    att1?.percentage !== undefined && att1?.percentage !== null && att1?.percentage !== '' ? `${att1.percentage}%` : '-',
                 [sem2Name.toUpperCase()]: '',
-                [`Total [100] (${sem2Name})`]: (att2?.percentage !== undefined && att2?.percentage !== null && att2?.percentage !== '') ? `${att2.percentage}%` : '-',
-                'Grand Total [200]': (attAvg?.percentage !== undefined && attAvg?.percentage !== null && attAvg?.percentage !== '') ? `${attAvg.percentage}%` : '-',
-                'Yearly Avg': (attAvg?.percentage !== undefined && attAvg?.percentage !== null && attAvg?.percentage !== '') ? `${attAvg.percentage}%` : '-'
+                [`Total [100] (${sem2Name})`]:
+                    att2?.percentage !== undefined && att2?.percentage !== null && att2?.percentage !== '' ? `${att2.percentage}%` : '-',
+                'Grand Total [200]':
+                    attAvg?.percentage !== undefined && attAvg?.percentage !== null && attAvg?.percentage !== ''
+                        ? `${attAvg.percentage}%`
+                        : '-',
+                'Yearly Avg':
+                    attAvg?.percentage !== undefined && attAvg?.percentage !== null && attAvg?.percentage !== ''
+                        ? `${attAvg.percentage}%`
+                        : '-'
             });
 
             // Remarks row
             rows.push({
                 'Student Name': `Remarks: ${remarks}`,
-                'Class': `Conduct: ${conduct}`,
-                'Section': '',
+                Class: `Conduct: ${conduct}`,
+                Section: '',
                 'Roll No': '',
                 'Scholar No': '',
-                'Subject': '',
+                Subject: '',
                 [sem1Name.toUpperCase()]: '',
                 [`Total [100] (${sem1Name})`]: '',
                 [sem2Name.toUpperCase()]: '',
@@ -366,40 +435,34 @@ export default function CalcuttaPromotionReportIX_XList() {
     };
 
     return (
-        <div className="flex flex-col gap-4">
-            <div className="print:hidden">
+        <div className='flex flex-col gap-4'>
+            <div className='print:hidden'>
                 <CalcuttaPromotionReportForm onSuccess={handleGenerate} />
             </div>
 
             {loading && (
-                <div className="flex h-64 items-center justify-center rounded-md border bg-card print:hidden">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <div className='flex h-64 items-center justify-center rounded-md border bg-card print:hidden'>
+                    <Loader2 className='h-8 w-8 animate-spin text-primary' />
                 </div>
             )}
 
             {!loading && reportData && reportData.studentdetails?.length > 0 && (
-                <div className="rounded-md border bg-card p-4 print:border-none print:bg-transparent print:p-0">
-                    <div className="mb-4 flex items-center justify-end gap-2 print:hidden">
-                        <Button
-                            onClick={handleExport}
-                            variant="outline"
-                            className="inline-flex items-center gap-2"
-                        >
-                            <Download className="h-4 w-4" />
+                <div className='rounded-md border bg-card p-4 print:border-none print:bg-transparent print:p-0'>
+                    <div className='mb-4 flex items-center justify-end gap-2 print:hidden'>
+                        <Button onClick={handleExport} variant='outline' className='inline-flex items-center gap-2'>
+                            <Download className='h-4 w-4' />
                             Export Excel
                         </Button>
-                        <Button
-                            onClick={handlePrint}
-                            className="inline-flex items-center gap-2 bg-primary text-white hover:bg-primary/90"
-                        >
-                            <Printer className="h-4 w-4" />
+                        <Button onClick={handlePrint} className='inline-flex items-center gap-2 bg-primary text-white hover:bg-primary/90'>
+                            <Printer className='h-4 w-4' />
                             Print
                         </Button>
                     </div>
 
-                    <div className="printable-content text-black">
-                        <style dangerouslySetInnerHTML={{
-                            __html: `
+                    <div className='printable-content text-black'>
+                        <style
+                            dangerouslySetInnerHTML={{
+                                __html: `
                             .printable-content {
                                 color: black !important;
                                 background-color: white !important;
@@ -484,13 +547,20 @@ export default function CalcuttaPromotionReportIX_XList() {
                                     color-adjust: exact;
                                 }
                             }
-                        `}} />
+                        `
+                            }}
+                        />
 
                         {reportData.studentdetails.map((student: any, index: number) => {
-                            const studentName = student.studentname ?? student.studentName ?? `${student.amsT_FirstName ?? student.AMST_FirstName ?? ''} ${student.amsT_MiddleName ?? student.AMST_MiddleName ?? ''} ${student.amsT_LastName ?? student.AMST_LastName ?? ''}`.trim();
+                            const studentName =
+                                student.studentname ??
+                                student.studentName ??
+                                `${student.amsT_FirstName ?? student.AMST_FirstName ?? ''} ${student.amsT_MiddleName ?? student.AMST_MiddleName ?? ''} ${student.amsT_LastName ?? student.AMST_LastName ?? ''}`.trim();
                             const admNo = student.admno ?? student.admNo ?? student.amsT_AdmNo ?? student.AMST_AdmNo ?? '';
-                            const className = student.classname ?? student.className ?? student.asmcL_ClassName ?? student.ASMCL_ClassName ?? '';
-                            const sectionName = student.sectionname ?? student.sectionName ?? student.asmC_SectionName ?? student.ASMC_SectionName ?? '';
+                            const className =
+                                student.classname ?? student.className ?? student.asmcL_ClassName ?? student.ASMCL_ClassName ?? '';
+                            const sectionName =
+                                student.sectionname ?? student.sectionName ?? student.asmC_SectionName ?? student.ASMC_SectionName ?? '';
                             const rollNo = student.rollno ?? student.rollNo ?? student.amaY_RollNo ?? student.AMAY_RollNo ?? '';
                             const photoName = student.AMST_Photoname ?? student.amsT_Photoname ?? student.AMST_Photoname ?? '';
 
@@ -499,23 +569,40 @@ export default function CalcuttaPromotionReportIX_XList() {
                             const remarksObj = reportData.getpromotionremarksdetails?.find(
                                 (d: any) => Number(d.AMST_Id || d.amsT_Id) === Number(studentId)
                             );
-                            const remarks = remarksObj?.eprD_Remarks ?? remarksObj?.eprd_Remarks ?? remarksObj?.eprd_remarks ?? remarksObj?.EPRD_Remarks ?? remarksObj?.remarks ?? remarksObj?.Remarks ?? student.remarks ?? '-';
-                            const conduct = remarksObj?.eprD_PromotionName ?? remarksObj?.eprd_PromotionName ?? remarksObj?.eprd_promotionname ?? '';
+                            const remarks =
+                                remarksObj?.eprD_Remarks ??
+                                remarksObj?.eprd_Remarks ??
+                                remarksObj?.eprd_remarks ??
+                                remarksObj?.EPRD_Remarks ??
+                                remarksObj?.remarks ??
+                                remarksObj?.Remarks ??
+                                student.remarks ??
+                                '-';
+                            const conduct =
+                                remarksObj?.eprD_PromotionName ?? remarksObj?.eprd_PromotionName ?? remarksObj?.eprd_promotionname ?? '';
 
                             const groups = reportData?.getgroupdetails || [];
                             const sem1Name = groups[0]?.empG_DistplayName || 'SEMESTER 1';
                             const sem2Name = groups[1]?.empG_DistplayName || 'SEMESTER 2';
 
-                            const sem1Exams = reportData.groupwiseexamlist?.filter((e: any) =>
-                                (e.EMPG_DistplayName ?? e.empg_DistplayName ?? '').trim().toUpperCase() === sem1Name.trim().toUpperCase() &&
-                                Number(e.EME_Id ?? e.eme_Id) !== 9800000 && Number(e.EME_Id ?? e.eme_Id) !== 98000012
-                            ) || [];
+                            const sem1Exams =
+                                reportData.groupwiseexamlist?.filter(
+                                    (e: any) =>
+                                        (e.EMPG_DistplayName ?? e.empg_DistplayName ?? '').trim().toUpperCase() ===
+                                            sem1Name.trim().toUpperCase() &&
+                                        Number(e.EME_Id ?? e.eme_Id) !== 9800000 &&
+                                        Number(e.EME_Id ?? e.eme_Id) !== 98000012
+                                ) || [];
                             const sem1RealExamId = sem1Exams[0]?.EME_Id ?? sem1Exams[0]?.eme_Id;
 
-                            const sem2Exams = reportData.groupwiseexamlist?.filter((e: any) =>
-                                (e.EMPG_DistplayName ?? e.empg_DistplayName ?? '').trim().toUpperCase() === sem2Name.trim().toUpperCase() &&
-                                Number(e.EME_Id ?? e.eme_Id) !== 9800000 && Number(e.EME_Id ?? e.eme_Id) !== 98000012
-                            ) || [];
+                            const sem2Exams =
+                                reportData.groupwiseexamlist?.filter(
+                                    (e: any) =>
+                                        (e.EMPG_DistplayName ?? e.empg_DistplayName ?? '').trim().toUpperCase() ===
+                                            sem2Name.trim().toUpperCase() &&
+                                        Number(e.EME_Id ?? e.eme_Id) !== 9800000 &&
+                                        Number(e.EME_Id ?? e.eme_Id) !== 98000012
+                                ) || [];
                             const sem2RealExamId = sem2Exams[0]?.EME_Id ?? sem2Exams[0]?.eme_Id;
 
                             const applicableSubjects = (student.studentsubjects || []).filter((subj: any) => {
@@ -531,16 +618,28 @@ export default function CalcuttaPromotionReportIX_XList() {
                                 const totalRec = stu.studentmarks?.find((m: any) => {
                                     const mSubjId = m.ISMS_Id ?? m.ismS_Id ?? m.isms_Id ?? m.isms_id;
                                     const mEmeId = m.EME_Id ?? m.emE_Id ?? m.eme_Id;
-                                    const mGrp = (m.EMPSG_DisplayName ?? m.empsG_DisplayName ?? m.EMPSG_GroupName ?? m.empG_GroupName ?? '')?.trim().toUpperCase();
-                                    return Number(mSubjId) === Number(subjId) && Number(mEmeId) === 9800000 && mGrp === semName.trim().toUpperCase();
+                                    const mGrp = (m.EMPSG_DisplayName ?? m.empsG_DisplayName ?? m.EMPSG_GroupName ?? m.empG_GroupName ?? '')
+                                        ?.trim()
+                                        .toUpperCase();
+                                    return (
+                                        Number(mSubjId) === Number(subjId) &&
+                                        Number(mEmeId) === 9800000 &&
+                                        mGrp === semName.trim().toUpperCase()
+                                    );
                                 });
 
                                 // 2. Find the class highest record (EME_Id = 98000012)
                                 const highestRec = stu.studentmarks?.find((m: any) => {
                                     const mSubjId = m.ISMS_Id ?? m.ismS_Id ?? m.isms_Id ?? m.isms_id;
                                     const mEmeId = m.EME_Id ?? m.emE_Id ?? m.eme_Id;
-                                    const mGrp = (m.EMPSG_DisplayName ?? m.empsG_DisplayName ?? m.EMPSG_GroupName ?? m.empG_GroupName ?? '')?.trim().toUpperCase();
-                                    return Number(mSubjId) === Number(subjId) && Number(mEmeId) === 98000012 && mGrp === semName.trim().toUpperCase();
+                                    const mGrp = (m.EMPSG_DisplayName ?? m.empsG_DisplayName ?? m.EMPSG_GroupName ?? m.empG_GroupName ?? '')
+                                        ?.trim()
+                                        .toUpperCase();
+                                    return (
+                                        Number(mSubjId) === Number(subjId) &&
+                                        Number(mEmeId) === 98000012 &&
+                                        mGrp === semName.trim().toUpperCase()
+                                    );
                                 });
 
                                 // Extract Obtained Marks
@@ -549,8 +648,16 @@ export default function CalcuttaPromotionReportIX_XList() {
 
                                 // Extract Class Highest (NEVER read ObtainedMarks from highestRec/totalRec as that contains student's own marks!)
                                 let highest = 0;
-                                const highestVal = highestRec?.ESTMPPS_ClassHighest ?? highestRec?.ESTMPS_ClassHighest ?? highestRec?.estmppS_ClassHighest ?? highestRec?.estmpS_ClassHighest ??
-                                    totalRec?.ESTMPPS_ClassHighest ?? totalRec?.ESTMPS_ClassHighest ?? totalRec?.estmppS_ClassHighest ?? totalRec?.estmpS_ClassHighest ?? null;
+                                const highestVal =
+                                    highestRec?.ESTMPPS_ClassHighest ??
+                                    highestRec?.ESTMPS_ClassHighest ??
+                                    highestRec?.estmppS_ClassHighest ??
+                                    highestRec?.estmpS_ClassHighest ??
+                                    totalRec?.ESTMPPS_ClassHighest ??
+                                    totalRec?.ESTMPS_ClassHighest ??
+                                    totalRec?.estmppS_ClassHighest ??
+                                    totalRec?.estmpS_ClassHighest ??
+                                    null;
 
                                 if (highestVal !== null && !isNaN(Number(highestVal)) && Number(highestVal) > 0) {
                                     highest = Number(highestVal);
@@ -559,17 +666,42 @@ export default function CalcuttaPromotionReportIX_XList() {
                                     let totalsRec = reportData.getexamwisetotaldetails?.find((t: any) => {
                                         const tStuId = t.AMST_Id ?? t.amsT_Id;
                                         const tSubjId = t.ISMS_Id ?? t.ismS_Id;
-                                        const tGrp = (t.EMPSG_DisplayName ?? t.empsG_DisplayName ?? t.EMPSG_GroupName ?? t.empG_GroupName ?? '')?.trim().toUpperCase();
-                                        return Number(tStuId) === Number(currentStudentId) && Number(tSubjId) === Number(subjId) && tGrp === semName.trim().toUpperCase();
+                                        const tGrp = (
+                                            t.EMPSG_DisplayName ??
+                                            t.empsG_DisplayName ??
+                                            t.EMPSG_GroupName ??
+                                            t.empG_GroupName ??
+                                            ''
+                                        )
+                                            ?.trim()
+                                            .toUpperCase();
+                                        return (
+                                            Number(tStuId) === Number(currentStudentId) &&
+                                            Number(tSubjId) === Number(subjId) &&
+                                            tGrp === semName.trim().toUpperCase()
+                                        );
                                     });
                                     if (!totalsRec) {
                                         totalsRec = reportData.getexamwisetotaldetails?.find((t: any) => {
                                             const tSubjId = t.ISMS_Id ?? t.ismS_Id;
-                                            const tGrp = (t.EMPSG_DisplayName ?? t.empsG_DisplayName ?? t.EMPSG_GroupName ?? t.empG_GroupName ?? '')?.trim().toUpperCase();
+                                            const tGrp = (
+                                                t.EMPSG_DisplayName ??
+                                                t.empsG_DisplayName ??
+                                                t.EMPSG_GroupName ??
+                                                t.empG_GroupName ??
+                                                ''
+                                            )
+                                                ?.trim()
+                                                .toUpperCase();
                                             return Number(tSubjId) === Number(subjId) && tGrp === semName.trim().toUpperCase();
                                         });
                                     }
-                                    const totalsHighest = totalsRec?.ESTMPPS_ClassHighest ?? totalsRec?.estmppS_ClassHighest ?? totalsRec?.ESTMPS_ClassHighest ?? totalsRec?.estmpS_ClassHighest ?? null;
+                                    const totalsHighest =
+                                        totalsRec?.ESTMPPS_ClassHighest ??
+                                        totalsRec?.estmppS_ClassHighest ??
+                                        totalsRec?.ESTMPS_ClassHighest ??
+                                        totalsRec?.estmpS_ClassHighest ??
+                                        null;
                                     if (totalsHighest !== null && !isNaN(Number(totalsHighest)) && Number(totalsHighest) > 0) {
                                         highest = Number(totalsHighest);
                                     } else {
@@ -580,9 +712,16 @@ export default function CalcuttaPromotionReportIX_XList() {
                                                 const mSubjId = m.ISMS_Id ?? m.ismS_Id;
                                                 const mEmeId = m.EME_Id ?? m.emE_Id;
                                                 const mGrp = (m.EMPSG_DisplayName ?? m.empsG_DisplayName ?? '')?.trim().toUpperCase();
-                                                return Number(mSubjId) === Number(subjId) && Number(mEmeId) === 9800000 && mGrp === semName.trim().toUpperCase();
+                                                return (
+                                                    Number(mSubjId) === Number(subjId) &&
+                                                    Number(mEmeId) === 9800000 &&
+                                                    mGrp === semName.trim().toUpperCase()
+                                                );
                                             });
-                                            const otherObtained = otherTotalRec?.ObtainedMarks ?? otherTotalRec?.obtainedMarks ?? otherTotalRec?.obtainedmarks;
+                                            const otherObtained =
+                                                otherTotalRec?.ObtainedMarks ??
+                                                otherTotalRec?.obtainedMarks ??
+                                                otherTotalRec?.obtainedmarks;
                                             if (otherObtained !== null && otherObtained !== undefined && !isNaN(Number(otherObtained))) {
                                                 allStudentObtained.push(Number(otherObtained));
                                             }
@@ -598,9 +737,20 @@ export default function CalcuttaPromotionReportIX_XList() {
 
                                 // Extract Section Average
                                 let average = 0;
-                                const averageVal = totalRec?.ESTMPPS_SectionAverage ?? totalRec?.ESTMPS_SectionAverage ?? totalRec?.estmppS_SectionAverage ?? totalRec?.estmpS_SectionAverage ??
-                                    totalRec?.ESTMPPS_ClassAverage ?? totalRec?.ESTMPS_ClassAverage ?? totalRec?.estmppS_ClassAverage ?? totalRec?.estmpS_ClassAverage ??
-                                    highestRec?.ESTMPPS_SectionAverage ?? highestRec?.ESTMPS_SectionAverage ?? highestRec?.estmppS_SectionAverage ?? highestRec?.estmpS_SectionAverage ?? null;
+                                const averageVal =
+                                    totalRec?.ESTMPPS_SectionAverage ??
+                                    totalRec?.ESTMPS_SectionAverage ??
+                                    totalRec?.estmppS_SectionAverage ??
+                                    totalRec?.estmpS_SectionAverage ??
+                                    totalRec?.ESTMPPS_ClassAverage ??
+                                    totalRec?.ESTMPS_ClassAverage ??
+                                    totalRec?.estmppS_ClassAverage ??
+                                    totalRec?.estmpS_ClassAverage ??
+                                    highestRec?.ESTMPPS_SectionAverage ??
+                                    highestRec?.ESTMPS_SectionAverage ??
+                                    highestRec?.estmppS_SectionAverage ??
+                                    highestRec?.estmpS_SectionAverage ??
+                                    null;
 
                                 if (averageVal !== null && !isNaN(Number(averageVal)) && Number(averageVal) > 0) {
                                     average = Number(averageVal);
@@ -609,17 +759,42 @@ export default function CalcuttaPromotionReportIX_XList() {
                                     let totalsRec = reportData.getexamwisetotaldetails?.find((t: any) => {
                                         const tStuId = t.AMST_Id ?? t.amsT_Id;
                                         const tSubjId = t.ISMS_Id ?? t.ismS_Id;
-                                        const tGrp = (t.EMPSG_DisplayName ?? t.empsG_DisplayName ?? t.EMPSG_GroupName ?? t.empG_GroupName ?? '')?.trim().toUpperCase();
-                                        return Number(tStuId) === Number(currentStudentId) && Number(tSubjId) === Number(subjId) && tGrp === semName.trim().toUpperCase();
+                                        const tGrp = (
+                                            t.EMPSG_DisplayName ??
+                                            t.empsG_DisplayName ??
+                                            t.EMPSG_GroupName ??
+                                            t.empG_GroupName ??
+                                            ''
+                                        )
+                                            ?.trim()
+                                            .toUpperCase();
+                                        return (
+                                            Number(tStuId) === Number(currentStudentId) &&
+                                            Number(tSubjId) === Number(subjId) &&
+                                            tGrp === semName.trim().toUpperCase()
+                                        );
                                     });
                                     if (!totalsRec) {
                                         totalsRec = reportData.getexamwisetotaldetails?.find((t: any) => {
                                             const tSubjId = t.ISMS_Id ?? t.ismS_Id;
-                                            const tGrp = (t.EMPSG_DisplayName ?? t.empsG_DisplayName ?? t.EMPSG_GroupName ?? t.empG_GroupName ?? '')?.trim().toUpperCase();
+                                            const tGrp = (
+                                                t.EMPSG_DisplayName ??
+                                                t.empsG_DisplayName ??
+                                                t.EMPSG_GroupName ??
+                                                t.empG_GroupName ??
+                                                ''
+                                            )
+                                                ?.trim()
+                                                .toUpperCase();
                                             return Number(tSubjId) === Number(subjId) && tGrp === semName.trim().toUpperCase();
                                         });
                                     }
-                                    const totalsAverage = totalsRec?.ESTMPPS_SectionAverage ?? totalsRec?.estmppS_SectionAverage ?? totalsRec?.ESTMPS_SectionAverage ?? totalsRec?.estmpS_SectionAverage ?? null;
+                                    const totalsAverage =
+                                        totalsRec?.ESTMPPS_SectionAverage ??
+                                        totalsRec?.estmppS_SectionAverage ??
+                                        totalsRec?.ESTMPS_SectionAverage ??
+                                        totalsRec?.estmpS_SectionAverage ??
+                                        null;
                                     if (totalsAverage !== null && !isNaN(Number(totalsAverage)) && Number(totalsAverage) > 0) {
                                         average = Number(totalsAverage);
                                     } else {
@@ -630,15 +805,24 @@ export default function CalcuttaPromotionReportIX_XList() {
                                                 const mSubjId = m.ISMS_Id ?? m.ismS_Id;
                                                 const mEmeId = m.EME_Id ?? m.emE_Id;
                                                 const mGrp = (m.EMPSG_DisplayName ?? m.empsG_DisplayName ?? '')?.trim().toUpperCase();
-                                                return Number(mSubjId) === Number(subjId) && Number(mEmeId) === 9800000 && mGrp === semName.trim().toUpperCase();
+                                                return (
+                                                    Number(mSubjId) === Number(subjId) &&
+                                                    Number(mEmeId) === 9800000 &&
+                                                    mGrp === semName.trim().toUpperCase()
+                                                );
                                             });
-                                            const otherObtained = otherTotalRec?.ObtainedMarks ?? otherTotalRec?.obtainedMarks ?? otherTotalRec?.obtainedmarks;
+                                            const otherObtained =
+                                                otherTotalRec?.ObtainedMarks ??
+                                                otherTotalRec?.obtainedMarks ??
+                                                otherTotalRec?.obtainedmarks;
                                             if (otherObtained !== null && otherObtained !== undefined && !isNaN(Number(otherObtained))) {
                                                 allStudentObtained.push(Number(otherObtained));
                                             }
                                         });
                                         if (allStudentObtained.length > 0) {
-                                            average = Math.round(allStudentObtained.reduce((sum, val) => sum + val, 0) / allStudentObtained.length);
+                                            average = Math.round(
+                                                allStudentObtained.reduce((sum, val) => sum + val, 0) / allStudentObtained.length
+                                            );
                                         } else {
                                             // Last resort: fallback to a percentage of highest or obtained
                                             average = Math.round(highest * 0.82) || obtained;
@@ -650,62 +834,79 @@ export default function CalcuttaPromotionReportIX_XList() {
                             };
 
                             const scholasticSubjects = applicableSubjects.filter((subj: any) => {
-                                const marksDisplay = subj.eyceS_MarksDisplayFlg === true || subj.eyceS_MarksDisplayFlg === 'true' || subj.EYCES_MarksDisplayFlg === true || subj.EYCES_MarksDisplayFlg === 'true';
-                                const gradeEntry = (subj.eyceS_MarksEntryDesc ?? subj.EYCES_MarksEntryDesc ?? '')?.trim().toUpperCase() === 'GRADE';
+                                const marksDisplay =
+                                    subj.eyceS_MarksDisplayFlg === true ||
+                                    subj.eyceS_MarksDisplayFlg === 'true' ||
+                                    subj.EYCES_MarksDisplayFlg === true ||
+                                    subj.EYCES_MarksDisplayFlg === 'true';
+                                const gradeEntry =
+                                    (subj.eyceS_MarksEntryDesc ?? subj.EYCES_MarksEntryDesc ?? '')?.trim().toUpperCase() === 'GRADE';
                                 return marksDisplay && !gradeEntry;
                             });
 
-                            const localChartData = (student.chartData && student.chartData.length > 0) ? student.chartData : scholasticSubjects.map((subj: any) => {
-                                const subjId = subj.ISMS_Id ?? subj.ismS_Id;
-                                const subjectName = subj.ISMS_SubjectName ?? subj.ismS_SubjectName;
+                            const localChartData =
+                                student.chartData && student.chartData.length > 0
+                                    ? student.chartData
+                                    : scholasticSubjects
+                                          .map((subj: any) => {
+                                              const subjId = subj.ISMS_Id ?? subj.ismS_Id;
+                                              const subjectName = subj.ISMS_SubjectName ?? subj.ismS_SubjectName;
 
-                                const sem1Stats = getSubjectSemesterStats(student, subjId, sem1Name);
-                                const sem2Stats = getSubjectSemesterStats(student, subjId, sem2Name);
+                                              const sem1Stats = getSubjectSemesterStats(student, subjId, sem1Name);
+                                              const sem2Stats = getSubjectSemesterStats(student, subjId, sem2Name);
 
-                                // Check which semesters actually have marks to avoid false averaging
-                                const hasSem1 = student.studentmarks?.some((m: any) => {
-                                    const mSubjId = m.ISMS_Id ?? m.ismS_Id;
-                                    const mGrp = (m.EMPSG_DisplayName ?? m.empsG_DisplayName ?? '')?.trim().toUpperCase();
-                                    return Number(mSubjId) === Number(subjId) && mGrp === sem1Name.trim().toUpperCase();
-                                });
-                                const hasSem2 = student.studentmarks?.some((m: any) => {
-                                    const mSubjId = m.ISMS_Id ?? m.ismS_Id;
-                                    const mGrp = (m.EMPSG_DisplayName ?? m.empsG_DisplayName ?? '')?.trim().toUpperCase();
-                                    return Number(mSubjId) === Number(subjId) && mGrp === sem2Name.trim().toUpperCase();
-                                });
+                                              // Check which semesters actually have marks to avoid false averaging
+                                              const hasSem1 = student.studentmarks?.some((m: any) => {
+                                                  const mSubjId = m.ISMS_Id ?? m.ismS_Id;
+                                                  const mGrp = (m.EMPSG_DisplayName ?? m.empsG_DisplayName ?? '')?.trim().toUpperCase();
+                                                  return Number(mSubjId) === Number(subjId) && mGrp === sem1Name.trim().toUpperCase();
+                                              });
+                                              const hasSem2 = student.studentmarks?.some((m: any) => {
+                                                  const mSubjId = m.ISMS_Id ?? m.ismS_Id;
+                                                  const mGrp = (m.EMPSG_DisplayName ?? m.empsG_DisplayName ?? '')?.trim().toUpperCase();
+                                                  return Number(mSubjId) === Number(subjId) && mGrp === sem2Name.trim().toUpperCase();
+                                              });
 
-                                let obtained = 0;
-                                let highest = 0;
-                                let average = 0;
+                                              let obtained = 0;
+                                              let highest = 0;
+                                              let average = 0;
 
-                                if (hasSem1 && hasSem2) {
-                                    obtained = Math.round((sem1Stats.obtained + sem2Stats.obtained) / 2);
-                                    highest = Math.round((sem1Stats.highest + sem2Stats.highest) / 2);
-                                    average = Math.round((sem1Stats.average + sem2Stats.average) / 2);
-                                } else if (hasSem1) {
-                                    obtained = sem1Stats.obtained;
-                                    highest = sem1Stats.highest;
-                                    average = sem1Stats.average;
-                                } else if (hasSem2) {
-                                    obtained = sem2Stats.obtained;
-                                    highest = sem2Stats.highest;
-                                    average = sem2Stats.average;
-                                }
+                                              if (hasSem1 && hasSem2) {
+                                                  obtained = Math.round((sem1Stats.obtained + sem2Stats.obtained) / 2);
+                                                  highest = Math.round((sem1Stats.highest + sem2Stats.highest) / 2);
+                                                  average = Math.round((sem1Stats.average + sem2Stats.average) / 2);
+                                              } else if (hasSem1) {
+                                                  obtained = sem1Stats.obtained;
+                                                  highest = sem1Stats.highest;
+                                                  average = sem1Stats.average;
+                                              } else if (hasSem2) {
+                                                  obtained = sem2Stats.obtained;
+                                                  highest = sem2Stats.highest;
+                                                  average = sem2Stats.average;
+                                              }
 
-                                return {
-                                    subject: subjectName,
-                                    highest,
-                                    average,
-                                    obtained
-                                };
-                            }).filter((item: any) => item.highest > 0 || item.obtained > 0);
+                                              return {
+                                                  subject: subjectName,
+                                                  highest,
+                                                  average,
+                                                  obtained
+                                              };
+                                          })
+                                          .filter((item: any) => item.highest > 0 || item.obtained > 0);
 
                             // Group subjects by esG_SubjectGroupName
                             const groupMap: { [key: string]: any[] } = {};
                             applicableSubjects.forEach((subj: any) => {
                                 const groupName = subj.esG_SubjectGroupName ?? subj.ESG_SubjectGroupName;
-                                const isGrouped = subj.GropuFlag === 1 || subj.GropuFlag === '1' || subj.GropuFlag === true || subj.GropuFlag === 'true' ||
-                                    subj.gropuFlag === 1 || subj.gropuFlag === '1' || subj.gropuFlag === true || subj.gropuFlag === 'true';
+                                const isGrouped =
+                                    subj.GropuFlag === 1 ||
+                                    subj.GropuFlag === '1' ||
+                                    subj.GropuFlag === true ||
+                                    subj.GropuFlag === 'true' ||
+                                    subj.gropuFlag === 1 ||
+                                    subj.gropuFlag === '1' ||
+                                    subj.gropuFlag === true ||
+                                    subj.gropuFlag === 'true';
                                 if (isGrouped && groupName) {
                                     const trimmed = groupName.trim();
                                     if (!groupMap[trimmed]) {
@@ -719,8 +920,15 @@ export default function CalcuttaPromotionReportIX_XList() {
                             const subjRowSpanMap = new Map<number, number>();
                             applicableSubjects.forEach((subj: any) => {
                                 const groupName = subj.esG_SubjectGroupName ?? subj.ESG_SubjectGroupName;
-                                const isGrouped = subj.GropuFlag === 1 || subj.GropuFlag === '1' || subj.GropuFlag === true || subj.GropuFlag === 'true' ||
-                                    subj.gropuFlag === 1 || subj.gropuFlag === '1' || subj.gropuFlag === true || subj.gropuFlag === 'true';
+                                const isGrouped =
+                                    subj.GropuFlag === 1 ||
+                                    subj.GropuFlag === '1' ||
+                                    subj.GropuFlag === true ||
+                                    subj.GropuFlag === 'true' ||
+                                    subj.gropuFlag === 1 ||
+                                    subj.gropuFlag === '1' ||
+                                    subj.gropuFlag === true ||
+                                    subj.gropuFlag === 'true';
                                 const currentSubjId = subj.ISMS_Id ?? subj.ismS_Id;
 
                                 if (isGrouped && groupName) {
@@ -781,7 +989,9 @@ export default function CalcuttaPromotionReportIX_XList() {
                             const getSemesterTotalFromExamWise = (semName: string) => {
                                 const rec = student.student_marks?.find((m: any) => {
                                     const mEmeId = m.EME_Id ?? m.emE_Id;
-                                    const mGrp = (m.EMPSG_DisplayName ?? m.empsG_DisplayName ?? m.EMPSG_GroupName ?? m.empG_GroupName ?? '')?.trim().toUpperCase();
+                                    const mGrp = (m.EMPSG_DisplayName ?? m.empsG_DisplayName ?? m.EMPSG_GroupName ?? m.empG_GroupName ?? '')
+                                        ?.trim()
+                                        .toUpperCase();
                                     return Number(mEmeId) === 9800000 && matchTermName(mGrp, semName);
                                 });
                                 if (rec) {
@@ -815,44 +1025,84 @@ export default function CalcuttaPromotionReportIX_XList() {
                             const yearlyPercentageVal = yearlyAvgMaxVal > 0 ? Math.round((yearlyAvgObtVal / yearlyAvgMaxVal) * 100) : 0;
 
                             return (
-                                <div key={index} className={`page-break mx-auto w-[98%] max-w-[98%] bg-white p-4 font-sans ${index < reportData.studentdetails.length - 1 ? 'mb-8' : ''}`}>
-
+                                <div
+                                    key={index}
+                                    className={`page-break mx-auto w-[98%] max-w-[98%] bg-white p-4 font-sans ${index < reportData.studentdetails.length - 1 ? 'mb-8' : ''}`}>
                                     {/* Student Header Table */}
-                                    <table className="table table-bordered" style={{ width: '100%', fontFamily: 'system-ui' }}>
-                                        <caption style={{ position: 'relative', top: '17px', captionSide: 'top' }} className="text-center">
-                                            <label style={{ fontFamily: 'system-ui', border: '0.5px solid black', backgroundColor: 'white', fontSize: '23px', display: 'inline-block' }}>
-                                                {"\u2003\u2003\u2003\u2003ACADEMIC SESSION " + (payload?.academicYearStr || payload?.ASMAY_Year || '') + "\u2003\u2003\u2003\u2003"}
+                                    <table className='table-bordered table' style={{ width: '100%', fontFamily: 'system-ui' }}>
+                                        <caption style={{ position: 'relative', top: '17px', captionSide: 'top' }} className='text-center'>
+                                            <label
+                                                style={{
+                                                    fontFamily: 'system-ui',
+                                                    border: '0.5px solid black',
+                                                    backgroundColor: 'white',
+                                                    fontSize: '23px',
+                                                    display: 'inline-block'
+                                                }}>
+                                                {'\u2003\u2003\u2003\u2003ACADEMIC SESSION ' +
+                                                    (payload?.academicYearStr || payload?.ASMAY_Year || '') +
+                                                    '\u2003\u2003\u2003\u2003'}
                                             </label>
                                         </caption>
                                         <tbody>
                                             <tr>
                                                 <td style={{ border: '0.5px solid black', width: '100%' }}>
-                                                    <div className="row">
-                                                        <div className="col-sm-6 text-left">
-                                                            <div className="row">
-                                                                <div className="col-sm-4 padding-top-10"><b>Student's Name </b></div>
-                                                                <div className="col-sm-7 padding-top-10">: {studentName}</div>
-                                                                <div className="col-sm-4 padding-top-10"> <b>Scholar No.</b></div>
-                                                                <div className="col-sm-7 padding-top-10">: {admNo}</div>
-                                                                <div className="col-sm-4 padding-top-10"><b>Total Students</b> </div>
-                                                                <div className="col-sm-7 padding-top-10">: {reportData.studentdetails.length}</div>
+                                                    <div className='row'>
+                                                        <div className='col-sm-6 text-left'>
+                                                            <div className='row'>
+                                                                <div className='padding-top-10 col-sm-4'>
+                                                                    <b>Student's Name </b>
+                                                                </div>
+                                                                <div className='padding-top-10 col-sm-7'>: {studentName}</div>
+                                                                <div className='padding-top-10 col-sm-4'>
+                                                                    {' '}
+                                                                    <b>Scholar No.</b>
+                                                                </div>
+                                                                <div className='padding-top-10 col-sm-7'>: {admNo}</div>
+                                                                <div className='padding-top-10 col-sm-4'>
+                                                                    <b>Total Students</b>{' '}
+                                                                </div>
+                                                                <div className='padding-top-10 col-sm-7'>
+                                                                    : {reportData.studentdetails.length}
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                        <div className="col-sm-6 text-left">
-                                                            <div className="row">
-                                                                <div className="col-sm-8">
-                                                                    <div className="row">
-                                                                        <div className="col-sm-6 padding-top-10"><b>Class & sec</b></div>
-                                                                        <div className="col-sm-6 padding-top-10">: {className}-{sectionName}</div>
-                                                                        <div className="col-sm-6 padding-top-10"><b>Roll No</b></div>
-                                                                        <div className="col-sm-6 padding-top-10">: {rollNo}</div>
+                                                        <div className='col-sm-6 text-left'>
+                                                            <div className='row'>
+                                                                <div className='col-sm-8'>
+                                                                    <div className='row'>
+                                                                        <div className='padding-top-10 col-sm-6'>
+                                                                            <b>Class & sec</b>
+                                                                        </div>
+                                                                        <div className='padding-top-10 col-sm-6'>
+                                                                            : {className}-{sectionName}
+                                                                        </div>
+                                                                        <div className='padding-top-10 col-sm-6'>
+                                                                            <b>Roll No</b>
+                                                                        </div>
+                                                                        <div className='padding-top-10 col-sm-6'>: {rollNo}</div>
                                                                     </div>
                                                                 </div>
-                                                                <div className="col-sm-4 text-right" style={{ height: '100px' }}>
+                                                                <div className='col-sm-4 text-right' style={{ height: '100px' }}>
                                                                     {photoName ? (
-                                                                        <img src={photoName} alt="Student Img" style={{ width: '100px', height: '100px', objectFit: 'contain', display: 'inline-block' }} />
+                                                                        <img
+                                                                            src={photoName}
+                                                                            alt='Student Img'
+                                                                            style={{
+                                                                                width: '100px',
+                                                                                height: '100px',
+                                                                                objectFit: 'contain',
+                                                                                display: 'inline-block'
+                                                                            }}
+                                                                        />
                                                                     ) : (
-                                                                        <div style={{ width: '100px', height: '100px', border: '1px solid #ccc', display: 'inline-block' }}></div>
+                                                                        <div
+                                                                            style={{
+                                                                                width: '100px',
+                                                                                height: '100px',
+                                                                                border: '1px solid #ccc',
+                                                                                display: 'inline-block'
+                                                                            }}></div>
                                                                     )}
                                                                 </div>
                                                             </div>
@@ -864,33 +1114,51 @@ export default function CalcuttaPromotionReportIX_XList() {
                                     </table>
 
                                     {/* Scholastic Table */}
-                                    <div className="padding-top-5">
-                                        <table className="table table-bordered w-full border-collapse border border-black text-sm" style={{ fontFamily: 'system-ui' }}>
+                                    <div className='padding-top-5'>
+                                        <table
+                                            className='table-bordered table w-full border-collapse border border-black text-sm'
+                                            style={{ fontFamily: 'system-ui' }}>
                                             <thead>
                                                 <tr>
-                                                    <td rowSpan={2} className="w-[300px] border border-black p-1 text-center font-bold break-words bg-[#d1d5db] print:bg-[#d1d5db]">
+                                                    <td
+                                                        rowSpan={2}
+                                                        className='w-[300px] break-words border border-black bg-[#d1d5db] p-1 text-center font-bold print:bg-[#d1d5db]'>
                                                         SUBJECTS
                                                     </td>
-                                                    <td colSpan={2} className="border border-black bg-[#d1d5db] p-1 text-center font-bold print:bg-[#d1d5db] uppercase">
+                                                    <td
+                                                        colSpan={2}
+                                                        className='border border-black bg-[#d1d5db] p-1 text-center font-bold uppercase print:bg-[#d1d5db]'>
                                                         {sem1Name}
                                                     </td>
-                                                    <td colSpan={2} className="border border-black bg-[#d1d5db] p-1 text-center font-bold print:bg-[#d1d5db] uppercase">
+                                                    <td
+                                                        colSpan={2}
+                                                        className='border border-black bg-[#d1d5db] p-1 text-center font-bold uppercase print:bg-[#d1d5db]'>
                                                         {sem2Name}
                                                     </td>
-                                                    <td rowSpan={2} className="border border-black bg-[#d1d5db] p-1 print:bg-[#d1d5db] text-center font-bold w-[100px]">Grand Total<br />[200]</td>
-                                                    <td rowSpan={2} className="border border-black bg-[#d1d5db] p-1 print:bg-[#d1d5db] text-center font-bold w-[150px]">Yearly Avg</td>
+                                                    <td
+                                                        rowSpan={2}
+                                                        className='w-[100px] border border-black bg-[#d1d5db] p-1 text-center font-bold print:bg-[#d1d5db]'>
+                                                        Grand Total
+                                                        <br />
+                                                        [200]
+                                                    </td>
+                                                    <td
+                                                        rowSpan={2}
+                                                        className='w-[150px] border border-black bg-[#d1d5db] p-1 text-center font-bold print:bg-[#d1d5db]'>
+                                                        Yearly Avg
+                                                    </td>
                                                 </tr>
                                                 <tr>
-                                                    <th className="w-[150px] border border-black p-1 text-center break-words font-bold bg-[#d1d5db] print:bg-[#d1d5db]">
+                                                    <th className='w-[150px] break-words border border-black bg-[#d1d5db] p-1 text-center font-bold print:bg-[#d1d5db]'>
                                                         {sem1Name} <br /> [100]
                                                     </th>
-                                                    <th className="w-[150px] border border-black p-1 text-center break-words font-bold bg-[#d1d5db] print:bg-[#d1d5db]">
+                                                    <th className='w-[150px] break-words border border-black bg-[#d1d5db] p-1 text-center font-bold print:bg-[#d1d5db]'>
                                                         Total <br /> [100]
                                                     </th>
-                                                    <th className="w-[150px] border border-black p-1 text-center break-words font-bold bg-[#d1d5db] print:bg-[#d1d5db]">
+                                                    <th className='w-[150px] break-words border border-black bg-[#d1d5db] p-1 text-center font-bold print:bg-[#d1d5db]'>
                                                         {sem2Name} <br /> [100]
                                                     </th>
-                                                    <th className="w-[150px] border border-black p-1 text-center break-words font-bold bg-[#d1d5db] print:bg-[#d1d5db]">
+                                                    <th className='w-[150px] break-words border border-black bg-[#d1d5db] p-1 text-center font-bold print:bg-[#d1d5db]'>
                                                         Total <br /> [100]
                                                     </th>
                                                 </tr>
@@ -899,23 +1167,55 @@ export default function CalcuttaPromotionReportIX_XList() {
                                                 {/* Applicable Subjects */}
                                                 {applicableSubjects.map((subj: any, sIdx: number) => {
                                                     const subjId = subj.ISMS_Id ?? subj.ismS_Id;
-                                                    const isSubjGrouped = subj.GropuFlag === 1 || subj.GropuFlag === '1' || subj.GropuFlag === true || subj.GropuFlag === 'true' ||
-                                                        subj.gropuFlag === 1 || subj.gropuFlag === '1' || subj.gropuFlag === true || subj.gropuFlag === 'true';
+                                                    const isSubjGrouped =
+                                                        subj.GropuFlag === 1 ||
+                                                        subj.GropuFlag === '1' ||
+                                                        subj.GropuFlag === true ||
+                                                        subj.GropuFlag === 'true' ||
+                                                        subj.gropuFlag === 1 ||
+                                                        subj.gropuFlag === '1' ||
+                                                        subj.gropuFlag === true ||
+                                                        subj.gropuFlag === 'true';
 
                                                     const rowSpanVal = subjRowSpanMap.get(subjId) ?? 1;
-                                                    const isGradeOnly = (subj.eyceS_GradeDisplayFlg === 'true' || subj.eyceS_GradeDisplayFlg === true || subj.EYCES_GradeDisplayFlg === 'true' || subj.EYCES_GradeDisplayFlg === true) &&
-                                                        !(subj.eyceS_MarksDisplayFlg === 'true' || subj.eyceS_MarksDisplayFlg === true || subj.EYCES_MarksDisplayFlg === 'true' || subj.EYCES_MarksDisplayFlg === true);
+                                                    const isGradeOnly =
+                                                        (subj.eyceS_GradeDisplayFlg === 'true' ||
+                                                            subj.eyceS_GradeDisplayFlg === true ||
+                                                            subj.EYCES_GradeDisplayFlg === 'true' ||
+                                                            subj.EYCES_GradeDisplayFlg === true) &&
+                                                        !(
+                                                            subj.eyceS_MarksDisplayFlg === 'true' ||
+                                                            subj.eyceS_MarksDisplayFlg === true ||
+                                                            subj.EYCES_MarksDisplayFlg === 'true' ||
+                                                            subj.EYCES_MarksDisplayFlg === true
+                                                        );
 
                                                     const sem1MarksObj = getSubjectSemesterMarks(student, subjId, sem1Name, sem1RealExamId);
-                                                    const sem1GroupObj = getSemesterGroupTotal(student, groupMap, subj, sem1Name, sem1RealExamId);
+                                                    const sem1GroupObj = getSemesterGroupTotal(
+                                                        student,
+                                                        groupMap,
+                                                        subj,
+                                                        sem1Name,
+                                                        sem1RealExamId
+                                                    );
                                                     const sem2MarksObj = getSubjectSemesterMarks(student, subjId, sem2Name, sem2RealExamId);
-                                                    const sem2GroupObj = getSemesterGroupTotal(student, groupMap, subj, sem2Name, sem2RealExamId);
+                                                    const sem2GroupObj = getSemesterGroupTotal(
+                                                        student,
+                                                        groupMap,
+                                                        subj,
+                                                        sem2Name,
+                                                        sem2RealExamId
+                                                    );
 
                                                     let grandObt: number | string | null = null;
                                                     let grandMax = 0;
                                                     if (sem1GroupObj.obtained !== null || sem2GroupObj.obtained !== null) {
-                                                        if (typeof sem1GroupObj.obtained === 'number' || typeof sem2GroupObj.obtained === 'number') {
-                                                            grandObt = (Number(sem1GroupObj.obtained) || 0) + (Number(sem2GroupObj.obtained) || 0);
+                                                        if (
+                                                            typeof sem1GroupObj.obtained === 'number' ||
+                                                            typeof sem2GroupObj.obtained === 'number'
+                                                        ) {
+                                                            grandObt =
+                                                                (Number(sem1GroupObj.obtained) || 0) + (Number(sem2GroupObj.obtained) || 0);
                                                         } else if (sem1GroupObj.obtained === 'AB' && sem2GroupObj.obtained === 'AB') {
                                                             grandObt = 'AB';
                                                         }
@@ -935,42 +1235,56 @@ export default function CalcuttaPromotionReportIX_XList() {
                                                     return (
                                                         <tr key={sIdx}>
                                                             {/* Column 1: Subject Name */}
-                                                            <td className="border border-black p-1 text-left font-bold break-words">{subj.ISMS_SubjectName || subj.ismS_SubjectName}</td>
+                                                            <td className='break-words border border-black p-1 text-left font-bold'>
+                                                                {subj.ISMS_SubjectName || subj.ismS_SubjectName}
+                                                            </td>
 
                                                             {/* Column 2: SEMESTER I Subject Total */}
-                                                            <td className="border border-black p-1 text-center">
+                                                            <td className='border border-black p-1 text-center'>
                                                                 {isGradeOnly ? '-' : (sem1MarksObj?.obtained ?? '-')}
                                                             </td>
 
                                                             {/* Column 3: SEMESTER I Group Total */}
                                                             {(!isSubjGrouped || rowSpanVal > 0) && (
-                                                                <td rowSpan={rowSpanVal > 0 ? rowSpanVal : 1} className="border border-black p-1 text-center font-bold">
-                                                                    {isGradeOnly ? getSubjectSemesterGrade(student, subjId, sem1Name) : (sem1GroupObj.obtained ?? '-')}
+                                                                <td
+                                                                    rowSpan={rowSpanVal > 0 ? rowSpanVal : 1}
+                                                                    className='border border-black p-1 text-center font-bold'>
+                                                                    {isGradeOnly
+                                                                        ? getSubjectSemesterGrade(student, subjId, sem1Name)
+                                                                        : (sem1GroupObj.obtained ?? '-')}
                                                                 </td>
                                                             )}
 
                                                             {/* Column 4: SEMESTER II Subject Total */}
-                                                            <td className="border border-black p-1 text-center">
+                                                            <td className='border border-black p-1 text-center'>
                                                                 {isGradeOnly ? '-' : (sem2MarksObj?.obtained ?? '-')}
                                                             </td>
 
                                                             {/* Column 5: SEMESTER II Group Total */}
                                                             {(!isSubjGrouped || rowSpanVal > 0) && (
-                                                                <td rowSpan={rowSpanVal > 0 ? rowSpanVal : 1} className="border border-black p-1 text-center font-bold">
-                                                                    {isGradeOnly ? getSubjectSemesterGrade(student, subjId, sem2Name) : (sem2GroupObj.obtained ?? '-')}
+                                                                <td
+                                                                    rowSpan={rowSpanVal > 0 ? rowSpanVal : 1}
+                                                                    className='border border-black p-1 text-center font-bold'>
+                                                                    {isGradeOnly
+                                                                        ? getSubjectSemesterGrade(student, subjId, sem2Name)
+                                                                        : (sem2GroupObj.obtained ?? '-')}
                                                                 </td>
                                                             )}
 
                                                             {/* Column 6: Grand Total */}
                                                             {(!isSubjGrouped || rowSpanVal > 0) && (
-                                                                <td rowSpan={rowSpanVal > 0 ? rowSpanVal : 1} className="border border-black p-1 text-center font-bold">
+                                                                <td
+                                                                    rowSpan={rowSpanVal > 0 ? rowSpanVal : 1}
+                                                                    className='border border-black p-1 text-center font-bold'>
                                                                     {isGradeOnly ? '-' : (grandObt ?? '-')}
                                                                 </td>
                                                             )}
 
                                                             {/* Column 7: Yearly Avg */}
                                                             {(!isSubjGrouped || rowSpanVal > 0) && (
-                                                                <td rowSpan={rowSpanVal > 0 ? rowSpanVal : 1} className="border border-black p-1 text-center font-bold">
+                                                                <td
+                                                                    rowSpan={rowSpanVal > 0 ? rowSpanVal : 1}
+                                                                    className='border border-black p-1 text-center font-bold'>
                                                                     {isGradeOnly ? '-' : (yearlyAvgObt ?? '-')}
                                                                 </td>
                                                             )}
@@ -981,7 +1295,8 @@ export default function CalcuttaPromotionReportIX_XList() {
                                                 {/* Non-Applicable Subjects */}
                                                 {student.studentsubjects.map((subj: any, sIdx: number) => {
                                                     const appToResult = subj.EMPS_AppToResultFlg ?? subj.empS_AppToResultFlg;
-                                                    if (appToResult === true || appToResult === 'true' || Number(appToResult) === 1) return null;
+                                                    if (appToResult === true || appToResult === 'true' || Number(appToResult) === 1)
+                                                        return null;
 
                                                     const subjId = subj.ISMS_Id ?? subj.ismS_Id;
                                                     const sem1Marks = getSubjectSemesterMarks(student, subjId, sem1Name, sem1RealExamId);
@@ -989,74 +1304,102 @@ export default function CalcuttaPromotionReportIX_XList() {
 
                                                     return (
                                                         <tr key={`non-app-${sIdx}`}>
-                                                            <td className="border border-black p-1 text-left font-bold break-words">{subj.ISMS_SubjectName || subj.ismS_SubjectName}</td>
-                                                            <td className="border border-black p-1 text-center">{sem1Marks?.obtained ?? '-'}</td>
-                                                            <td className="border border-black p-1 text-center">-</td>
-                                                            <td className="border border-black p-1 text-center">{sem2Marks?.obtained ?? '-'}</td>
-                                                            <td className="border border-black p-1 text-center">-</td>
-                                                            <td className="border border-black p-1 text-center">-</td>
-                                                            <td className="border border-black p-1 text-center">-</td>
+                                                            <td className='break-words border border-black p-1 text-left font-bold'>
+                                                                {subj.ISMS_SubjectName || subj.ismS_SubjectName}
+                                                            </td>
+                                                            <td className='border border-black p-1 text-center'>
+                                                                {sem1Marks?.obtained ?? '-'}
+                                                            </td>
+                                                            <td className='border border-black p-1 text-center'>-</td>
+                                                            <td className='border border-black p-1 text-center'>
+                                                                {sem2Marks?.obtained ?? '-'}
+                                                            </td>
+                                                            <td className='border border-black p-1 text-center'>-</td>
+                                                            <td className='border border-black p-1 text-center'>-</td>
+                                                            <td className='border border-black p-1 text-center'>-</td>
                                                         </tr>
                                                     );
                                                 })}
 
                                                 {/* TOTAL Row */}
                                                 <tr>
-                                                    <td className="border border-black p-1 text-left font-bold uppercase">TOTAL</td>
-                                                    <td className="border border-black p-1 text-center font-bold bg-gray-50"></td>
-                                                    <td className="border border-black p-1 text-center font-bold">
+                                                    <td className='border border-black p-1 text-left font-bold uppercase'>TOTAL</td>
+                                                    <td className='border border-black bg-gray-50 p-1 text-center font-bold'></td>
+                                                    <td className='border border-black p-1 text-center font-bold'>
                                                         {sem1TotalMaxVal > 0 ? `${Math.round(sem1TotalObtVal)}/${sem1TotalMaxVal}` : '-'}
                                                     </td>
-                                                    <td className="border border-black p-1 text-center font-bold bg-gray-50"></td>
-                                                    <td className="border border-black p-1 text-center font-bold">
+                                                    <td className='border border-black bg-gray-50 p-1 text-center font-bold'></td>
+                                                    <td className='border border-black p-1 text-center font-bold'>
                                                         {sem2TotalMaxVal > 0 ? `${Math.round(sem2TotalObtVal)}/${sem2TotalMaxVal}` : '-'}
                                                     </td>
-                                                    <td className="border border-black p-1 text-center font-bold">
-                                                        {grandTotalMaxVal > 0 ? `${Math.round(grandTotalObtVal).toLocaleString('en-US')}/${grandTotalMaxVal}` : '-'}
+                                                    <td className='border border-black p-1 text-center font-bold'>
+                                                        {grandTotalMaxVal > 0
+                                                            ? `${Math.round(grandTotalObtVal).toLocaleString('en-US')}/${grandTotalMaxVal}`
+                                                            : '-'}
                                                     </td>
-                                                    <td className="border border-black p-1 text-center font-bold">
-                                                        {yearlyAvgMaxVal > 0 ? `${Math.round(yearlyAvgObtVal)}/ ${Math.round(yearlyAvgMaxVal)}` : '-'}
+                                                    <td className='border border-black p-1 text-center font-bold'>
+                                                        {yearlyAvgMaxVal > 0
+                                                            ? `${Math.round(yearlyAvgObtVal)}/ ${Math.round(yearlyAvgMaxVal)}`
+                                                            : '-'}
                                                     </td>
                                                 </tr>
 
                                                 {/* PERCENTAGE Row */}
                                                 <tr>
-                                                    <td className="border border-black p-1 text-left font-bold uppercase">PERCENTAGE</td>
-                                                    <td className="border border-black p-1 text-center font-bold bg-gray-50"></td>
-                                                    <td className="border border-black p-1 text-center font-bold">
+                                                    <td className='border border-black p-1 text-left font-bold uppercase'>PERCENTAGE</td>
+                                                    <td className='border border-black bg-gray-50 p-1 text-center font-bold'></td>
+                                                    <td className='border border-black p-1 text-center font-bold'>
                                                         {sem1TotalMaxVal > 0 ? `${Math.round(sem1PercentageVal)} %` : '-'}
                                                     </td>
-                                                    <td className="border border-black p-1 text-center font-bold bg-gray-50"></td>
-                                                    <td className="border border-black p-1 text-center font-bold">
+                                                    <td className='border border-black bg-gray-50 p-1 text-center font-bold'></td>
+                                                    <td className='border border-black p-1 text-center font-bold'>
                                                         {sem2TotalMaxVal > 0 ? `${Math.round(sem2PercentageVal)} %` : '-'}
                                                     </td>
-                                                    <td className="border border-black p-1 text-center font-bold">
+                                                    <td className='border border-black p-1 text-center font-bold'>
                                                         {grandTotalMaxVal > 0 ? `${Math.round(grandPercentageVal)}%` : '-'}
                                                     </td>
-                                                    <td className="border border-black p-1 text-center font-bold">
+                                                    <td className='border border-black p-1 text-center font-bold'>
                                                         {yearlyAvgMaxVal > 0 ? `${Math.round(yearlyPercentageVal)}%` : '-'}
                                                     </td>
                                                 </tr>
 
                                                 {/* Attendance Row */}
                                                 <tr>
-                                                    <td className="border border-black p-1 text-left font-bold">Attendance</td>
-                                                    <td colSpan={2} className="border border-black p-1 text-center font-bold">
+                                                    <td className='border border-black p-1 text-left font-bold'>Attendance</td>
+                                                    <td colSpan={2} className='border border-black p-1 text-center font-bold'>
                                                         {(() => {
-                                                            const att = student.attendance?.find((a: any) => a.term?.trim().toUpperCase() === sem1Name.trim().toUpperCase());
-                                                            return (att?.percentage !== undefined && att?.percentage !== null && att?.percentage !== '') ? `${att.percentage}%` : '-';
+                                                            const att = student.attendance?.find(
+                                                                (a: any) => a.term?.trim().toUpperCase() === sem1Name.trim().toUpperCase()
+                                                            );
+                                                            return att?.percentage !== undefined &&
+                                                                att?.percentage !== null &&
+                                                                att?.percentage !== ''
+                                                                ? `${att.percentage}%`
+                                                                : '-';
                                                         })()}
                                                     </td>
-                                                    <td colSpan={2} className="border border-black p-1 text-center font-bold">
+                                                    <td colSpan={2} className='border border-black p-1 text-center font-bold'>
                                                         {(() => {
-                                                            const att = student.attendance?.find((a: any) => a.term?.trim().toUpperCase() === sem2Name.trim().toUpperCase());
-                                                            return (att?.percentage !== undefined && att?.percentage !== null && att?.percentage !== '') ? `${att.percentage}%` : '-';
+                                                            const att = student.attendance?.find(
+                                                                (a: any) => a.term?.trim().toUpperCase() === sem2Name.trim().toUpperCase()
+                                                            );
+                                                            return att?.percentage !== undefined &&
+                                                                att?.percentage !== null &&
+                                                                att?.percentage !== ''
+                                                                ? `${att.percentage}%`
+                                                                : '-';
                                                         })()}
                                                     </td>
-                                                    <td colSpan={2} className="border border-black p-1 text-center font-bold">
+                                                    <td colSpan={2} className='border border-black p-1 text-center font-bold'>
                                                         {(() => {
-                                                            const att = student.attendance?.find((a: any) => a.term?.trim().toUpperCase() === 'ATT_AVERAGE');
-                                                            return (att?.percentage !== undefined && att?.percentage !== null && att?.percentage !== '') ? `${att.percentage}%` : '-';
+                                                            const att = student.attendance?.find(
+                                                                (a: any) => a.term?.trim().toUpperCase() === 'ATT_AVERAGE'
+                                                            );
+                                                            return att?.percentage !== undefined &&
+                                                                att?.percentage !== null &&
+                                                                att?.percentage !== ''
+                                                                ? `${att.percentage}%`
+                                                                : '-';
                                                         })()}
                                                     </td>
                                                 </tr>
@@ -1065,16 +1408,20 @@ export default function CalcuttaPromotionReportIX_XList() {
                                     </div>
 
                                     {/* Suggestion Box */}
-                                    <div className="padding-top-5">
-                                        <table className="table table-bordered w-full border-collapse border-[1.5px] border-black text-[12px] font-bold" style={{ fontFamily: 'system-ui' }}>
+                                    <div className='padding-top-5'>
+                                        <table
+                                            className='table-bordered table w-full border-collapse border-[1.5px] border-black font-bold text-[12px]'
+                                            style={{ fontFamily: 'system-ui' }}>
                                             <tbody>
                                                 <tr style={{ border: '0.5px solid black' }}>
-                                                    <td className="border-black border-b p-1 text-center uppercase text-white font-bold" style={{ backgroundColor: 'gray' }}>
+                                                    <td
+                                                        className='border-black border-b p-1 text-center font-bold text-white uppercase'
+                                                        style={{ backgroundColor: 'gray' }}>
                                                         PROMOTION STATUS
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <td className="p-2 uppercase text-left font-bold border border-black">
+                                                    <td className='border border-black p-2 text-left font-bold uppercase'>
                                                         Suggestion : {student.suggestions?.[0] || ''}
                                                     </td>
                                                 </tr>
@@ -1082,43 +1429,74 @@ export default function CalcuttaPromotionReportIX_XList() {
                                         </table>
                                     </div>
 
-
-
                                     {conduct && (
-                                        <div className="flex w-full pt-2 print:my-0">
-                                            <div className="w-full font-bold text-sm text-left">
-                                                Conduct : <span className="font-normal">{conduct}</span>
+                                        <div className='flex w-full pt-2 print:my-0'>
+                                            <div className='w-full text-left font-bold text-sm'>
+                                                Conduct : <span className='font-normal'>{conduct}</span>
                                             </div>
                                         </div>
                                     )}
 
                                     {/* Graph Analysis Box */}
                                     {localChartData && localChartData.length > 0 && (
-                                        <div className="padding-top-5">
-                                            <table className="table table-bordered" style={{ fontFamily: 'system-ui', width: '100%' }}>
+                                        <div className='padding-top-5'>
+                                            <table className='table-bordered table' style={{ fontFamily: 'system-ui', width: '100%' }}>
                                                 <tbody>
                                                     <tr style={{ border: '0.5px solid black' }}>
-                                                        <td colSpan={3} className="p-2 text-center uppercase font-bold text-white" style={{ backgroundColor: 'gray' }}>
+                                                        <td
+                                                            colSpan={3}
+                                                            className='p-2 text-center font-bold text-white uppercase'
+                                                            style={{ backgroundColor: 'gray' }}>
                                                             GRAPHICAL ANALYSIS
                                                         </td>
                                                     </tr>
                                                     <tr>
                                                         <td colSpan={3} style={{ border: '0.5px solid black', padding: '8px' }}>
-                                                            <div className="mx-auto h-[320px] w-[98%]">
-                                                                <ResponsiveContainer width="100%" height="100%">
-                                                                    <BarChart data={localChartData} barGap={0} margin={{ top: 30, right: 10, left: -20, bottom: 10 }}>
-                                                                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                                                        <XAxis dataKey="subject" tick={{ fontSize: 14, fontWeight: 'bold', fill: '#000' }} tickLine={false} axisLine={true} interval={0} angle={-25} textAnchor="end" height={85} />
-                                                                        <YAxis domain={[0, 100]} ticks={[0, 50, 100]} tick={{ fontSize: 14, fontWeight: 'bold', fill: '#000' }} tickLine={false} axisLine={true} />
+                                                            <div className='mx-auto h-[320px] w-[98%]'>
+                                                                <ResponsiveContainer width='100%' height='100%'>
+                                                                    <BarChart
+                                                                        data={localChartData}
+                                                                        barGap={0}
+                                                                        margin={{ top: 30, right: 10, left: -20, bottom: 10 }}>
+                                                                        <CartesianGrid strokeDasharray='3 3' vertical={false} />
+                                                                        <XAxis
+                                                                            dataKey='subject'
+                                                                            tick={{ fontSize: 14, fontWeight: 'bold', fill: '#000' }}
+                                                                            tickLine={false}
+                                                                            axisLine={true}
+                                                                            interval={0}
+                                                                            angle={-25}
+                                                                            textAnchor='end'
+                                                                            height={85}
+                                                                        />
+                                                                        <YAxis
+                                                                            domain={[0, 100]}
+                                                                            ticks={[0, 50, 100]}
+                                                                            tick={{ fontSize: 14, fontWeight: 'bold', fill: '#000' }}
+                                                                            tickLine={false}
+                                                                            axisLine={true}
+                                                                        />
 
-                                                                        <Bar dataKey="highest" fill="#3f51b5" barSize={20}>
-                                                                            <LabelList dataKey="highest" position="top" style={{ fontSize: 13, fill: '#000', fontWeight: 'bold' }} />
+                                                                        <Bar dataKey='highest' fill='#3f51b5' barSize={20}>
+                                                                            <LabelList
+                                                                                dataKey='highest'
+                                                                                position='top'
+                                                                                style={{ fontSize: 13, fill: '#000', fontWeight: 'bold' }}
+                                                                            />
                                                                         </Bar>
-                                                                        <Bar dataKey="average" fill="#ff5722" barSize={20}>
-                                                                            <LabelList dataKey="average" position="top" style={{ fontSize: 13, fill: '#000', fontWeight: 'bold' }} />
+                                                                        <Bar dataKey='average' fill='#ff5722' barSize={20}>
+                                                                            <LabelList
+                                                                                dataKey='average'
+                                                                                position='top'
+                                                                                style={{ fontSize: 13, fill: '#000', fontWeight: 'bold' }}
+                                                                            />
                                                                         </Bar>
-                                                                        <Bar dataKey="obtained" fill="#00ff00" barSize={20}>
-                                                                            <LabelList dataKey="obtained" position="top" style={{ fontSize: 13, fill: '#000', fontWeight: 'bold' }} />
+                                                                        <Bar dataKey='obtained' fill='#00ff00' barSize={20}>
+                                                                            <LabelList
+                                                                                dataKey='obtained'
+                                                                                position='top'
+                                                                                style={{ fontSize: 13, fill: '#000', fontWeight: 'bold' }}
+                                                                            />
                                                                         </Bar>
                                                                     </BarChart>
                                                                 </ResponsiveContainer>
@@ -1126,18 +1504,24 @@ export default function CalcuttaPromotionReportIX_XList() {
                                                         </td>
                                                     </tr>
                                                     <tr style={{ border: '0.5px solid black' }}>
-                                                        <td colSpan={3} className="p-2 text-center font-bold">
-                                                            <div className="flex items-center justify-center gap-12 text-sm text-black">
-                                                                <span className="flex items-center gap-2">
-                                                                    <span className="inline-block h-3.5 w-3.5 bg-[#3f51b5]" style={{ border: '0.5px solid black' }}></span>
+                                                        <td colSpan={3} className='p-2 text-center font-bold'>
+                                                            <div className='flex items-center justify-center gap-12 text-black text-sm'>
+                                                                <span className='flex items-center gap-2'>
+                                                                    <span
+                                                                        className='inline-block h-3.5 w-3.5 bg-[#3f51b5]'
+                                                                        style={{ border: '0.5px solid black' }}></span>
                                                                     Highest Marks
                                                                 </span>
-                                                                <span className="flex items-center gap-2">
-                                                                    <span className="inline-block h-3.5 w-3.5 bg-[#ff5722]" style={{ border: '0.5px solid black' }}></span>
+                                                                <span className='flex items-center gap-2'>
+                                                                    <span
+                                                                        className='inline-block h-3.5 w-3.5 bg-[#ff5722]'
+                                                                        style={{ border: '0.5px solid black' }}></span>
                                                                     Average Marks
                                                                 </span>
-                                                                <span className="flex items-center gap-2">
-                                                                    <span className="inline-block h-3.5 w-3.5 bg-[#00ff00]" style={{ border: '0.5px solid black' }}></span>
+                                                                <span className='flex items-center gap-2'>
+                                                                    <span
+                                                                        className='inline-block h-3.5 w-3.5 bg-[#00ff00]'
+                                                                        style={{ border: '0.5px solid black' }}></span>
                                                                     Obtained Marks
                                                                 </span>
                                                             </div>
@@ -1149,28 +1533,29 @@ export default function CalcuttaPromotionReportIX_XList() {
                                     )}
 
                                     {/* Signatures Section */}
-                                    <div className="margin-top-100 print:margin-top-100">
-                                        <table className="table" style={{ width: '100%', fontFamily: 'system-ui' }}>
+                                    <div className='margin-top-100 print:margin-top-100'>
+                                        <table className='table' style={{ width: '100%', fontFamily: 'system-ui' }}>
                                             <tbody>
                                                 <tr style={{ border: '0.5px solid' }}>
-                                                    <th className="text-center font-bold">Principal's Signature</th>
-                                                    <th className="text-center font-bold">Class Teacher's Signature</th>
-                                                    <th className="text-center font-bold">Parent's Signature</th>
+                                                    <th className='text-center font-bold'>Principal's Signature</th>
+                                                    <th className='text-center font-bold'>Class Teacher's Signature</th>
+                                                    <th className='text-center font-bold'>Parent's Signature</th>
                                                 </tr>
                                             </tbody>
                                         </table>
                                     </div>
 
                                     {/* Dates Section */}
-                                    <div className="padding-top-5">
-                                        <table className="table table-bordered" style={{ fontFamily: 'system-ui', width: '100%' }}>
+                                    <div className='padding-top-5'>
+                                        <table className='table-bordered table' style={{ fontFamily: 'system-ui', width: '100%' }}>
                                             <tbody>
                                                 <tr>
-                                                    <td className="text-left">
-                                                        <b>Date of Issue: </b> &nbsp;{formatDate(payload?.issueDate) || '26/03/2024'}<br />
+                                                    <td className='text-left'>
+                                                        <b>Date of Issue: </b> &nbsp;{formatDate(payload?.issueDate) || '26/03/2024'}
+                                                        <br />
                                                         <b>New Academic Session Commences on: </b> &nbsp;{formatDate(payload?.academicDate)}
                                                     </td>
-                                                    <td className="text-right">
+                                                    <td className='text-right'>
                                                         <b>Report Card Printed On :{formatDate(payload?.reportPrintedDate)}</b> <br />
                                                     </td>
                                                 </tr>
@@ -1188,4 +1573,3 @@ export default function CalcuttaPromotionReportIX_XList() {
         </div>
     );
 }
-

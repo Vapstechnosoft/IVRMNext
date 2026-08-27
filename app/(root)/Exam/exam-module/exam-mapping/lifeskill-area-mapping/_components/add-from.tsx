@@ -98,11 +98,12 @@ export default function AddLifeSkillAreaMapping({ onSuccess }: { onSuccess?: () 
                 mI_Id: orgId,
                 ecS_SkillName: data.ecS_SkillName ?? 'Default Skill',
                 ecS_SkillCode: data.ecS_SkillCode ?? 'CODE',
-                subexamDTO: data.subexamDTO?.map((s) => ({
-                    ecsA_Id: s.ecsA_Id ?? 0,
-                    ecsA_SkillOrder: s.ecsA_SkillOrder ?? 1,
-                    ecsA_SkillArea: s.ecsA_SkillArea ?? ''
-                })) ?? [],
+                subexamDTO:
+                    data.subexamDTO?.map((s) => ({
+                        ecsA_Id: s.ecsA_Id ?? 0,
+                        ecsA_SkillOrder: s.ecsA_SkillOrder ?? 1,
+                        ecsA_SkillArea: s.ecsA_SkillArea ?? ''
+                    })) ?? [],
                 mappingDTO: data.mappingDTO.map((m) => ({
                     ecsaM_Id: m.ecsaM_Id ?? 0,
                     asmaY_Id: m.asmaY_Id,
@@ -141,7 +142,10 @@ export default function AddLifeSkillAreaMapping({ onSuccess }: { onSuccess?: () 
     return (
         <div className='flex w-full flex-col gap-6'>
             <FormProvider {...methods}>
-                <form onSubmit={handleSubmit(onSubmit, onInvalid)} className={'flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md'} noValidate>
+                <form
+                    onSubmit={handleSubmit(onSubmit, onInvalid)}
+                    className={'flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md'}
+                    noValidate>
                     {/* ---------------------- Mapping Section Only ---------------------- */}
                     <div>
                         {mappingArray.fields.map((item, index) => (
@@ -158,8 +162,7 @@ export default function AddLifeSkillAreaMapping({ onSuccess }: { onSuccess?: () 
                                             <Select
                                                 key={field.value}
                                                 value={field.value ? String(field.value) : undefined}
-                                                onValueChange={(val) => field.onChange(Number(val))}
-                                            >
+                                                onValueChange={(val) => field.onChange(Number(val))}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Year' />
                                                 </SelectTrigger>
@@ -198,8 +201,7 @@ export default function AddLifeSkillAreaMapping({ onSuccess }: { onSuccess?: () 
                                             <Select
                                                 key={field.value}
                                                 value={field.value ? String(field.value) : undefined}
-                                                onValueChange={(val) => field.onChange(Number(val))}
-                                            >
+                                                onValueChange={(val) => field.onChange(Number(val))}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Life Skill' />
                                                 </SelectTrigger>
@@ -228,8 +230,7 @@ export default function AddLifeSkillAreaMapping({ onSuccess }: { onSuccess?: () 
                                             <Select
                                                 key={field.value}
                                                 value={field.value ? String(field.value) : undefined}
-                                                onValueChange={(val) => field.onChange(Number(val))}
-                                            >
+                                                onValueChange={(val) => field.onChange(Number(val))}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Skill Area' />
                                                 </SelectTrigger>
@@ -258,8 +259,7 @@ export default function AddLifeSkillAreaMapping({ onSuccess }: { onSuccess?: () 
                                             <Select
                                                 key={field.value}
                                                 value={field.value ? String(field.value) : undefined}
-                                                onValueChange={(val) => field.onChange(Number(val))}
-                                            >
+                                                onValueChange={(val) => field.onChange(Number(val))}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Grade' />
                                                 </SelectTrigger>

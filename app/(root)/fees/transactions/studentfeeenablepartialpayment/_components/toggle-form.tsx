@@ -19,17 +19,11 @@ interface ToggleStudentFeeEnablePartialPaymentFormProps {
     onClose: () => void;
 }
 
-export default function ToggleStudentFeeEnablePartialPaymentForm({
-    rowData,
-    onClose
-}: ToggleStudentFeeEnablePartialPaymentFormProps) {
+export default function ToggleStudentFeeEnablePartialPaymentForm({ rowData, onClose }: ToggleStudentFeeEnablePartialPaymentFormProps) {
     const { refetchAll } = useStudentFeeEnablePartialPayment();
     const id = rowData.fsepP_Id ?? (rowData as any).FSEPP_Id ?? 0;
     const isActive = Boolean(
-        rowData.fsepP_ActiveFlag ??
-        (rowData as any).FSEPP_ActiveFlag ??
-        (rowData as any).is_Active ??
-        (rowData as any).isActive
+        rowData.fsepP_ActiveFlag ?? (rowData as any).FSEPP_ActiveFlag ?? (rowData as any).is_Active ?? (rowData as any).isActive
     );
 
     const {
@@ -86,17 +80,13 @@ export default function ToggleStudentFeeEnablePartialPaymentForm({
     };
 
     return (
-        <AdaptiveDialog
-            title={`${isActive ? 'Deactivate' : 'Activate'} Record`}
-            isOpen={true}
-            onClose={closeDialog}>
+        <AdaptiveDialog title={`${isActive ? 'Deactivate' : 'Activate'} Record`} isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <input type='hidden' {...register('fsepP_Id')} />
                     <p className='text-muted-foreground text-sm leading-relaxed'>
                         Are you sure you want to {isActive ? 'deactivate' : 'activate'} partial payment for{' '}
-                        <strong className='text-foreground'>{rowData.amsT_FirstName || 'this student'}</strong> (
-                        {rowData.asmaY_Year})?
+                        <strong className='text-foreground'>{rowData.amsT_FirstName || 'this student'}</strong> ({rowData.asmaY_Year})?
                     </p>
                     {errors.fsepP_Id && <FormError>{errors.fsepP_Id.message}</FormError>}
                     {errors.root && <FormError>{errors.root.message}</FormError>}

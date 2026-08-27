@@ -48,17 +48,19 @@ export async function getTBSReportSchool(data: any): Promise<ApiResponse<any>> {
                 const resStu = await api.get<any>('exam', studentUrl).catch(() => null);
                 const rawStus = resStu?.data || resStu || [];
                 if (Array.isArray(rawStus) && rawStus.length > 0) {
-                    rawStudentIds = rawStus.map((s: any) => Number(s.amsT_Id ?? s.AMST_Id ?? s.id ?? s)).filter(id => id > 0);
+                    rawStudentIds = rawStus.map((s: any) => Number(s.amsT_Id ?? s.AMST_Id ?? s.id ?? s)).filter((id) => id > 0);
                 }
             } catch (err) {
                 console.error('[getTBSReportSchool] Error auto-fetching students:', err);
             }
         }
 
-        const temp_Amstids = rawStudentIds.filter(id => id > 0).map((id) => ({
-            AMST_Id: id,
-            amsT_Id: id
-        }));
+        const temp_Amstids = rawStudentIds
+            .filter((id) => id > 0)
+            .map((id) => ({
+                AMST_Id: id,
+                amsT_Id: id
+            }));
 
         // Formatting exam list
         let rawExamIds: number[] = [];
@@ -77,17 +79,19 @@ export async function getTBSReportSchool(data: any): Promise<ApiResponse<any>> {
                 const res2 = await api.get<any>('exam', url).catch(() => null);
                 const rawExams = res2?.data || res2 || [];
                 if (Array.isArray(rawExams) && rawExams.length > 0) {
-                    rawExamIds = rawExams.map((e: any) => Number(e.emE_Id ?? e.EME_Id ?? e.id ?? e)).filter(id => id > 0);
+                    rawExamIds = rawExams.map((e: any) => Number(e.emE_Id ?? e.EME_Id ?? e.id ?? e)).filter((id) => id > 0);
                 }
             } catch (err) {
                 console.error('[getTBSReportSchool] Error auto-fetching exams:', err);
             }
         }
 
-        const examlist = rawExamIds.filter(id => id > 0).map((id) => ({
-            EME_Id: id,
-            emE_Id: id
-        }));
+        const examlist = rawExamIds
+            .filter((id) => id > 0)
+            .map((id) => ({
+                EME_Id: id,
+                emE_Id: id
+            }));
 
         // Auto-fetch grade ID if 0
         let emgR_Id = Number(data.emgR_Id ?? data.EMGR_Id ?? 0);
@@ -107,14 +111,16 @@ export async function getTBSReportSchool(data: any): Promise<ApiResponse<any>> {
         let empG_GroupName = String(data.empG_GroupName ?? data.EMPG_GroupName ?? '');
         if (!empG_GroupName && asmaY_Id > 0 && asmcL_Id > 0 && asmS_Id > 0) {
             try {
-                const groupRes = await api.post<any>('exam', '/JSHSExamReports/get_Exam_grade', {
-                    ASMAY_Id: asmaY_Id,
-                    ASMCL_Id: asmcL_Id,
-                    ASMS_Id: asmS_Id,
-                    asmaY_Id,
-                    asmcL_Id,
-                    asmS_Id
-                }).catch(() => null);
+                const groupRes = await api
+                    .post<any>('exam', '/JSHSExamReports/get_Exam_grade', {
+                        ASMAY_Id: asmaY_Id,
+                        ASMCL_Id: asmcL_Id,
+                        ASMS_Id: asmS_Id,
+                        asmaY_Id,
+                        asmcL_Id,
+                        asmS_Id
+                    })
+                    .catch(() => null);
 
                 const groups = groupRes?.data?.getgroupdetails || groupRes?.getgroupdetails || groupRes?.data?.getgroupexamdetails || [];
                 if (Array.isArray(groups) && groups.length > 0) {
@@ -151,17 +157,17 @@ export async function getTBSReportSchool(data: any): Promise<ApiResponse<any>> {
             ecteX_NotApplToTotalFlg: Boolean(data.ecteX_NotApplToTotalFlg ?? true)
         };
 
-        const endpoints = [
-            '/JSHSExamReports_/promotion_report_TBSchool'
+        const endpoints = ['/JSHSExamReports_/promotion_report_TBSchool'];
+        const minimalPayload = [
+            {
+                ASMAY_Id: asmaY_Id,
+                ASMCL_Id: asmcL_Id,
+                ASMS_Id: asmS_Id,
+                Temp_AmstIds: temp_Amstids.map((t) => ({ amsT_Id: t.amsT_Id })),
+                EMGR_Id: emgR_Id,
+                EMPG_GroupName: empG_GroupName
+            }
         ];
-        const minimalPayload = [{
-            ASMAY_Id: asmaY_Id,
-            ASMCL_Id: asmcL_Id,
-            ASMS_Id: asmS_Id,
-            Temp_AmstIds: temp_Amstids.map((t) => ({ amsT_Id: t.amsT_Id })),
-            EMGR_Id: emgR_Id,
-            EMPG_GroupName: empG_GroupName
-        }];
 
         console.log('=== MINIMAL PAYLOAD (matches beta) ===');
         console.log(JSON.stringify(minimalPayload, null, 2));
@@ -180,25 +186,22 @@ export async function getTBSReportSchool(data: any): Promise<ApiResponse<any>> {
             }
 
             if (hasDataItems(res)) {
-
-                console.log("========== GROUP DETAILS ==========");
+                console.log('========== GROUP DETAILS ==========');
                 console.log(JSON.stringify(res?.data?.getgroupdetails, null, 2));
 
-                console.log("========== GROUP EXAM DETAILS ==========");
+                console.log('========== GROUP EXAM DETAILS ==========');
                 console.log(JSON.stringify(res?.data?.getgroupexamdetails, null, 2));
 
-                console.log("========== STUDENT DETAILS ==========");
+                console.log('========== STUDENT DETAILS ==========');
                 console.log(JSON.stringify(res?.data?.getstudentdetails, null, 2));
 
-                console.log("========== ATTENDANCE ==========");
+                console.log('========== ATTENDANCE ==========');
                 console.log(JSON.stringify(res?.data?.getstudentwiseattendancedetails, null, 2));
 
-                console.log("========== TERM DETAILS ==========");
-                const english = (res?.data?.getstudentmarksdetails || []).filter(
-                    (m: any) => m.ismS_SubjectName === "English Language"
-                );
+                console.log('========== TERM DETAILS ==========');
+                const english = (res?.data?.getstudentmarksdetails || []).filter((m: any) => m.ismS_SubjectName === 'English Language');
 
-                console.log("========== ENGLISH LANGUAGE RECORDS ==========");
+                console.log('========== ENGLISH LANGUAGE RECORDS ==========');
                 console.log(JSON.stringify(english, null, 2));
                 console.log(JSON.stringify(res?.data?.getstudentwisetermwisedetails, null, 2));
                 console.log(`[getTBSReportSchool] Success response with student details from ${ep}:`, res);
@@ -223,7 +226,6 @@ export async function getTBSReportSchool(data: any): Promise<ApiResponse<any>> {
                 return cleanJson(res) as ApiResponse<any>;
             }
         }
-
 
         if (firstValidRes) {
             console.log('[getTBSReportSchool] Returning first valid response:', firstValidRes);

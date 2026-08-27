@@ -1,7 +1,7 @@
 'use client';
 
-import { forwardRef } from 'react';
 import { format } from 'date-fns';
+import { forwardRef } from 'react';
 
 interface ClassWiseDailyAttendancePrintProps {
     data: any[];
@@ -24,7 +24,7 @@ export const ClassWiseDailyAttendancePrint = forwardRef<HTMLDivElement, ClassWis
         const halfDayCount = data.filter((r) => r.asa_class_attended === 0.5 || r.ASA_Class_Attended === 0.5).length;
 
         return (
-            <div ref={ref} className="print-only bg-white text-black w-full">
+            <div ref={ref} className='print-only w-full bg-white text-black'>
                 <style
                     dangerouslySetInnerHTML={{
                         __html: `
@@ -69,39 +69,38 @@ export const ClassWiseDailyAttendancePrint = forwardRef<HTMLDivElement, ClassWis
                             text-transform: uppercase;
                         }
                     }
-                    `,
+                    `
                     }}
                 />
 
-                <div className="flex flex-col items-center w-full p-4">
+                <div className='flex w-full flex-col items-center p-4'>
                     {/* Header Section */}
-                    <div className="w-full flex items-center justify-between border-b border-black pb-2 mb-2">
-                        <div className="flex-shrink-0">
+                    <div className='mb-2 flex w-full items-center justify-between border-black border-b pb-2'>
+                        <div className='flex-shrink-0'>
                             {logoUrl ? (
-                                <img src={logoUrl} alt="Logo" className="h-20 w-100 object-contain" text-align="center" />
+                                <img src={logoUrl} alt='Logo' className='h-20 w-100 object-contain' text-align='center' />
                             ) : (
-                                <div className="h-20 w-20 border border-dashed flex items-center justify-center text-[20px]">Logo</div>
+                                <div className='flex h-20 w-20 items-center justify-center border border-dashed text-[20px]'>Logo</div>
                             )}
                         </div>
-
                     </div>
 
                     {/* Metadata Bars */}
-                    <div className="w-full border border-black mb-1">
-                        <div className="bg-white text-center py-1 font-bold text-[11px] border-b border-black uppercase">
+                    <div className='mb-1 w-full border border-black'>
+                        <div className='border-black border-b bg-white py-1 text-center font-bold text-[11px] uppercase'>
                             ClassWise Daily Attendance Report For Academic Year: {academicYear}
                         </div>
-                        <div className="bg-white text-center py-1 font-bold text-[11px] uppercase">
+                        <div className='bg-white py-1 text-center font-bold text-[11px] uppercase'>
                             Attendance Details For Class: {className} Section : {sectionName} Date : {reportDate}
                         </div>
                     </div>
 
                     {/* Table */}
-                    <table className="w-full border-black">
+                    <table className='w-full border-black'>
                         <thead>
                             <tr>
                                 <th style={{ width: '40px' }}>SL.No.</th>
-                                <th className="text-left font-bold border-black">Student Name</th>
+                                <th className='border-black text-left font-bold'>Student Name</th>
                                 <th style={{ width: '80px' }}>Roll No.</th>
                                 <th style={{ width: '120px' }}>Admission No.</th>
                                 <th style={{ width: '80px' }}>Status</th>
@@ -111,12 +110,15 @@ export const ClassWiseDailyAttendancePrint = forwardRef<HTMLDivElement, ClassWis
                             {data.map((user, index) => (
                                 <tr key={index}>
                                     <td>{index + 1}</td>
-                                    <td className="text-left uppercase font-medium">{user.studentname || user.AMST_FirstName}</td>
+                                    <td className='text-left font-medium uppercase'>{user.studentname || user.AMST_FirstName}</td>
                                     <td>{user.amay_rollno || user.AMAY_RollNo}</td>
                                     <td>{user.amst_admno || user.AMST_AdmNo}</td>
                                     <td>
-                                        {(user.asa_class_attended === 1 || user.ASA_Class_Attended === 1) ? 'Present' :
-                                            (user.asa_class_attended === 0.5 || user.ASA_Class_Attended === 0.5) ? 'Half Day' : 'Absent'}
+                                        {user.asa_class_attended === 1 || user.ASA_Class_Attended === 1
+                                            ? 'Present'
+                                            : user.asa_class_attended === 0.5 || user.ASA_Class_Attended === 0.5
+                                              ? 'Half Day'
+                                              : 'Absent'}
                                     </td>
                                 </tr>
                             ))}
@@ -124,16 +126,16 @@ export const ClassWiseDailyAttendancePrint = forwardRef<HTMLDivElement, ClassWis
                     </table>
 
                     {/* Footer Counts Box */}
-                    <div className="w-full border-x border-b border-black mt-0">
-                        <div className="grid grid-cols-1 border-t border-black text-center text-[10px] font-bold uppercase">
-                            <div className="py-0.5 border-b border-black">Number of Present Students: {presentCount}</div>
-                            <div className="py-0.5 border-b border-black">Number of Absent Students: {absentCount}</div>
-                            <div className="py-0.5">Number of Half Day Present Students(Half Day): {halfDayCount}</div>
+                    <div className='mt-0 w-full border-black border-x border-b'>
+                        <div className='grid grid-cols-1 border-black border-t text-center font-bold text-[10px] uppercase'>
+                            <div className='border-black border-b py-0.5'>Number of Present Students: {presentCount}</div>
+                            <div className='border-black border-b py-0.5'>Number of Absent Students: {absentCount}</div>
+                            <div className='py-0.5'>Number of Half Day Present Students(Half Day): {halfDayCount}</div>
                         </div>
                     </div>
 
                     {/* Footer Info */}
-                    <div className="w-full text-center mt-4 text-[9px] italic opacity-60">
+                    <div className='mt-4 w-full text-center text-[9px] italic opacity-60'>
                         Date: {currentDate} | Generated by: {username || 'System Administrator'} | {disclaimer}
                     </div>
                 </div>

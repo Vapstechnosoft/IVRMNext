@@ -3,18 +3,12 @@ import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import type { IStudent } from '@/types/alumni/user-password-creation';
 import type { ColumnDef } from '@tanstack/react-table';
 
-import { useQueryState, parseAsInteger } from 'nuqs';
 import { tableSearchVariables } from '@/lib/data-table.config';
+import { parseAsInteger, useQueryState } from 'nuqs';
 
 const SnoCell = ({ index }: { index: number }) => {
-    const [currentPage] = useQueryState(
-        tableSearchVariables.page,
-        parseAsInteger.withOptions({ shallow: false }).withDefault(1)
-    );
-    const [pageSize] = useQueryState(
-        tableSearchVariables.page_size,
-        parseAsInteger.withOptions({ shallow: false }).withDefault(10)
-    );
+    const [currentPage] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
+    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
     return <div className='text-center'>{(currentPage - 1) * pageSize + index + 1}</div>;
 };
 

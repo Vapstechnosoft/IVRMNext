@@ -9,8 +9,8 @@ import { categoryClassMappingSchema } from '@/schemas/exam/exam-module/masters';
 import {
     addOrUpdateCategoryClassMapping,
     getCategories,
-    getUnmappedClasses,
-    getUnMappedSections
+    getUnMappedSections,
+    getUnmappedClasses
 } from '@/server/exam/exam-module/masters/category-class-mapping';
 import { getOpeningClassDropdownData } from '@/server/fees/trasactions/fee_opening_balance';
 import type { ICategory, IClass } from '@/types/exam/exam-module/masters';
