@@ -9,7 +9,7 @@ import { useCallback } from 'react';
 export const collegeCasteCategoryColumns: ColumnDef<ICollegeCasteCategory>[] = [
     {
         id: 'slNo',
-        header: () => <div className='text-center font-bold text-black'>Sl.No</div>,
+        header: () => <div className='text-center font-bold text-black'>SL.No</div>,
         cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
         enableSorting: false,
         size: 80
@@ -28,8 +28,8 @@ export const collegeCasteCategoryColumns: ColumnDef<ICollegeCasteCategory>[] = [
     },
     {
         id: 'actions',
-        header: () => <div className='font-bold text-black'>Actions</div>,
-        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
+        header: () => <div className='text-center font-bold text-black'>Action</div>,
+        cell: ({ row }) => <div className='flex justify-center'><ActionButtonsCell rowData={row.original} /></div>,
         size: 100
     }
 ];

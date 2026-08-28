@@ -33,7 +33,8 @@ export default function OralReSchedulePage() {
     const [searchQuery] = useQueryState('search_query', parseAsString.withOptions({ shallow: false }).withDefault(''));
 
     const filteredAndSortedData = useMemo(() => {
-        let list = [...(details?.oralTestSchedule || [])];
+        const scheduleData = details?.oralTestSchedule || details?.data?.oralTestSchedule || [];
+        let list = [...scheduleData];
 
         // Client-side search filtering
         if (searchQuery) {
@@ -73,7 +74,7 @@ export default function OralReSchedulePage() {
             if (aStr > bStr) return order === 'asc' ? 1 : -1;
             return 0;
         });
-    }, [details?.oralTestSchedule, searchQuery, sortBy, order]);
+    }, [details?.oralTestSchedule, details?.data?.oralTestSchedule, searchQuery, sortBy, order]);
 
     const methods = useForm();
 

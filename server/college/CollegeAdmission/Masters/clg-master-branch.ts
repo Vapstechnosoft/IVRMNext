@@ -18,7 +18,7 @@ export async function saveClgMasterBranch(data: any) {
 }
 
 export async function editClgMasterBranch(ambId: number) {
-    return await api.get<any>('college', `${BASE_URL}/editbranch?AMB_Id=${ambId}`);
+    return await api.post<any>('college', `${BASE_URL}/editbranch?AMB_Id=${ambId}`);
 }
 
 export async function deactivateClgMasterBranch(data: any) {

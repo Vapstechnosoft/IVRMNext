@@ -15,15 +15,15 @@ export const collegeCasteCategorySchema = {
 
 export const clgMasterCourseCategoryMapSchema = {
     addOrUpdate: z.object({
-        amcO_Id: z.string().min(1, 'Course Name is required'),
-        amcoC_Id: z.string().min(1, 'Category Name is required')
+        amcO_Id: z.string({ required_error: 'Course Name is required' }).min(1, 'Course Name is required'),
+        amcoC_Id: z.string({ required_error: 'Category Name is required' }).min(1, 'Category Name is required')
     })
 };
 
 export const clgMasterCourseBranchMapSchema = {
     addOrUpdate: z.object({
-        amcO_Id: z.string().min(1, 'Course Name is required'),
-        amB_Id: z.string().min(1, 'Branch Name is required'),
+        amcO_Id: z.string({ required_error: 'Course Name is required' }).min(1, 'Course Name is required'),
+        amB_Id: z.string({ required_error: 'Branch Name is required' }).min(1, 'Branch Name is required'),
         amcobM_Code: z.string().max(20, 'Code cannot exceed 20 characters').optional(),
         amcobM_CBCSFlg: z.boolean().default(false),
         amcobM_CBCSIntroYear: z.string().optional(),

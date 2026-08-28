@@ -15,7 +15,7 @@ export async function getInitialData() {
 
 export async function getCollegeCasteCategoryById(id: number) {
     try {
-        return await api.get<any>('college', `${BASE_URL}/GetSelectedRowDetails?IMCC_Id=${id}`);
+        return await api.post<any>('college', `${BASE_URL}/GetSelectedRowDetails?IMCC_Id=${id}`);
     } catch (error) {
         console.error('[Server] getCollegeCasteCategoryById error:', error);
         return { success: false, message: 'Failed to fetch row details' } as any;

@@ -121,7 +121,7 @@ export default function OrderMasterSectionForm({ data, onClose }: OrderMasterSec
                             <div className="space-y-2">
                                 {items.map((item) => (
                                     <SortableItem key={item.acmS_Id} id={item.acmS_Id}>
-                                        <div className="bg-primary/10 border border-primary/20 p-3 rounded-md text-sm font-medium cursor-grab active:cursor-grabbing text-primary-foreground bg-primary">
+                                        <div className="bg-primary/10 border border-primary/20 text-primary p-3 rounded-md text-sm font-medium cursor-grab active:cursor-grabbing">
                                             {item.acmS_SectionName}
                                         </div>
                                     </SortableItem>

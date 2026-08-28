@@ -18,11 +18,11 @@ export async function saveSemester(data: any) {
 }
 
 export async function editSemester(id: number) {
-    return await api.get<any>('college', `${BASE_URL}/editsem?AMSE_Id=${id}`);
+    return await api.post<any>('college', `${BASE_URL}/editsem?AMSE_Id=${id}`);
 }
 
 export async function toggleSemester(id: number) {
-    return await api.get<any>('college', `${BASE_URL}/activedeactivesem?AMSE_Id=${id}`);
+    return await api.post<any>('college', `${BASE_URL}/activedeactivesem?AMSE_Id=${id}`);
 }
 
 export async function saveSemesterOrder(data: any) {

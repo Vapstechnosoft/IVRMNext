@@ -107,15 +107,6 @@ export default function OrderMasterSemesterForm({ data, onClose }: OrderMasterSe
                     <AlertDialogTitle>MASTER SEMESTER</AlertDialogTitle>
                 </AlertDialogHeader>
                 <div className="max-h-[60vh] overflow-y-auto p-2">
-                    <table className="w-full table-auto border-collapse border border-border">
-                        <thead>
-                            <tr className="bg-muted">
-                                <th className="border border-border px-4 py-2 text-center text-sm font-semibold">SLNO</th>
-                                <th className="border border-border px-4 py-2 text-left text-sm font-semibold">Semester Name</th>
-                                <th className="border border-border px-4 py-2 text-left text-sm font-semibold">Semester Code</th>
-                                <th className="border border-border px-4 py-2 text-center text-sm font-semibold">Semester Order</th>
-                            </tr>
-                        </thead>
                         <DndContext
                             sensors={sensors}
                             collisionDetection={closestCenter}
@@ -126,19 +117,28 @@ export default function OrderMasterSemesterForm({ data, onClose }: OrderMasterSe
                                 items={items.map((item) => item.amsE_Id)}
                                 strategy={verticalListSortingStrategy}
                             >
-                                <tbody>
-                                    {items.map((item, index) => (
-                                        <SortableItem key={item.amsE_Id} id={item.amsE_Id}>
-                                            <td className="border border-border px-4 py-2 text-center">{index + 1}</td>
-                                            <td className="border border-border px-4 py-2 text-left">{item.amsE_SEMName}</td>
-                                            <td className="border border-border px-4 py-2 text-left">{item.amsE_SEMCode}</td>
-                                            <td className="border border-border px-4 py-2 text-center">{item.amsE_SEMOrder}</td>
-                                        </SortableItem>
-                                    ))}
-                                </tbody>
+                                <table className="w-full table-auto border-collapse border border-border">
+                                    <thead>
+                                        <tr className="bg-muted">
+                                            <th className="border border-border px-4 py-2 text-center text-sm font-semibold">SLNO</th>
+                                            <th className="border border-border px-4 py-2 text-left text-sm font-semibold">Semester Name</th>
+                                            <th className="border border-border px-4 py-2 text-left text-sm font-semibold">Semester Code</th>
+                                            <th className="border border-border px-4 py-2 text-center text-sm font-semibold">Semester Order</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {items.map((item, index) => (
+                                            <SortableItem key={item.amsE_Id} id={item.amsE_Id}>
+                                                <td className="border border-border px-4 py-2 text-center">{index + 1}</td>
+                                                <td className="border border-border px-4 py-2 text-left">{item.amsE_SEMName}</td>
+                                                <td className="border border-border px-4 py-2 text-left">{item.amsE_SEMCode}</td>
+                                                <td className="border border-border px-4 py-2 text-center">{item.amsE_SEMOrder}</td>
+                                            </SortableItem>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </SortableContext>
                         </DndContext>
-                    </table>
                 </div>
                 <div className="flex justify-center gap-4 mt-4">
                     <Button onClick={handleSaveOrder} disabled={saveOrderMutation.isPending}>
