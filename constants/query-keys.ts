@@ -37,6 +37,7 @@ export const ADMISSION_QUERY_KEYS = {
     MASTER_CASTE: 'master_caste',
     MASTER_CASTE_CATEGORY_DROPDOWN: 'master_caste_category_dropdown',
     MASTER_DOCUMENT: 'master_document',
+    MASTER_INST_DOCUMENT: 'master_inst_document',
     MASTER_REFERENCE: 'master_reference',
     MASTER_SOURCE: 'master_source',
     MASTER_ACTIVITY: 'master_activity',
