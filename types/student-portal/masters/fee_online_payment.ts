@@ -39,3 +39,23 @@ export interface GroupTermMapping {
         fmT_Id: string;
     }[];
 }
+
+export interface OnlineGroupTermMapping {
+    grp: {
+        checkedgrplst: boolean;
+        grpdisable: boolean;
+        fmgG_GroupName: string;
+        fmgG_Id: string;
+    };
+    trm_list: {
+        checkedheadlst: boolean;
+        termdisablechk: boolean;
+        fmgG_GroupName: string;
+        fmgG_Id: number;
+        fmT_Name: string;
+        fmT_Id: string;
+        fmT_Order: number;
+        preAdmFlag: boolean;
+        fmT_Amount: number;
+    }[];
+}

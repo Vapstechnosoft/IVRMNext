@@ -144,7 +144,11 @@ export default function ProgressCardReportForm({
                 const mappedStudents = valid.map((s) => ({
                     amsT_Id: s.amsT_Id,
                     amsT_AdmNo: s.amsT_AdmNo,
-                    studentName: s.studentName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
+                    studentName: s.studentName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim(),
+                    amsT_FirstName: s.amsT_FirstName || s.studentName || '',
+                    amsT_FatherName: s.amsT_FatherName || s.fatherName || '',
+                    amsT_DOB: s.amsT_DOB || s.dob || null,
+                    amaY_RollNo: s.amaY_RollNo || s.rollNo || null
                 }));
 
                 setStudents(mappedStudents);
@@ -188,9 +192,13 @@ export default function ProgressCardReportForm({
         const selectedExamObj = exams.find((e) => e.emE_Id === data.emE_Id);
         const selectedYearObj = academicYears.find((y) => y.asmaY_Id === data.asmaY_Id);
 
+        const selectedStudentObjects = (data.studentList || []).map((item: any) => {
+            const found = students.find((s: any) => String(s.amsT_Id) === String(item.amsT_Id));
+            return found || item;
+        });
+
         const currentDateTime = new Date().toISOString();
         const payload: any = {
-            // mI_Id: 30,
             asmaY_Id: data.asmaY_Id,
             asmcL_Id: data.asmcL_Id,
             asmS_Id: data.asmS_Id,
@@ -199,6 +207,8 @@ export default function ProgressCardReportForm({
             selectedSectionName: selectedSectionObj?.asmC_SectionName,
             selectedExamName: selectedExamObj?.emE_ExamName,
             selectedYearName: selectedYearObj?.asmaY_Year,
+            selectedStudents: selectedStudentObjects,
+            studentList: selectedStudentObjects,
             amsT_Ids: data.studentList.map((s) => s.amsT_Id).join(','),
             fromDate: currentDateTime,
             toDate: currentDateTime

@@ -100,14 +100,18 @@ export default function ProgressCardReportPage() {
                 });
             });
 
-            const filteredSubjects = Array.from(subjectMap.values()).sort((a, b) => a.eyceS_SubjectOrder - b.eyceS_SubjectOrder);
+            const filteredSubjects = Array.from(subjectMap.values()).sort(
+                (a, b) => a.eyceS_SubjectOrder - b.eyceS_SubjectOrder
+            );
 
             const selectedStudentIds: number[] = (payload?.selectedStudents || payload?.studentList || [])
                 .map((s: any) => Number(s.amsT_Id ?? s.AMST_Id))
                 .filter(Boolean);
 
             const sortedReportData = selectedStudentIds.length
-                ? selectedStudentIds.map((id) => studentMap.get(id)).filter((s): s is IExamReportCard => s !== undefined)
+                ? selectedStudentIds
+                    .map((id) => studentMap.get(id))
+                    .filter((s): s is IExamReportCard => s !== undefined)
                 : Array.from(studentMap.values());
 
             const firstRow = flatRows[0];
@@ -145,9 +149,12 @@ export default function ProgressCardReportPage() {
 
         for (let i = 1; i <= studentCount; i++) {
             const studentItem = rawSelected[i - 1];
-            const stId = studentItem?.amsT_Id || 15000 + i;
-            const stName = studentItem?.studentName || `Student ${i}`;
-            const admNo = studentItem?.amsT_AdmNo || `ADM${i}`;
+            const stId = studentItem?.amsT_Id || (15000 + i);
+            const stName = studentItem?.studentName || studentItem?.studentname || studentItem?.amsT_FirstName || `Student ${i}`;
+            const fatherName = studentItem?.amsT_FatherName || studentItem?.fatherName || studentItem?.fathername || `Parent of ${stName}`;
+            const admNo = studentItem?.amsT_AdmNo || studentItem?.admNo || `ADM${i}`;
+            const dob = studentItem?.amsT_DOB || studentItem?.dob || '2016-01-01T00:00:00';
+            const rollNo = studentItem?.amaY_RollNo || studentItem?.rollNo || i;
 
             const totalMax = subjects.length * 100;
             let totalObt = 0;
@@ -159,9 +166,9 @@ export default function ProgressCardReportPage() {
                 rows.push({
                     amsT_Id: stId,
                     amsT_FirstName: stName,
-                    amsT_FatherName: `Parent of ${stName}`,
-                    amsT_DOB: '2016-01-01T00:00:00',
-                    amaY_RollNo: i,
+                    amsT_FatherName: fatherName,
+                    amsT_DOB: dob,
+                    amaY_RollNo: rollNo,
                     amsT_AdmNo: admNo,
                     amsT_RegistrationNo: `REG${i}`,
                     asmcL_ClassName: payload?.selectedClassName || 'Class',

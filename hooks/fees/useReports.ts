@@ -1,3 +1,4 @@
+import { studentPortalAcademci } from '@/app/(root)/StudentPortal/masters/feeonlinpayment/actions';
 import { FEES_QUERY_KEYS } from '@/constants/query-keys';
 import {
     getAcademicDropDownDetails,
@@ -612,4 +613,21 @@ export const useUserWiseDailyCollectionReport = () => {
     return useMutation({
         mutationFn: (data: any) => getUserWiseDailyCollectionReport(data) // Using any or specific interface as needed
     });
+};
+
+export const useStudentPortalAcademic = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.STUDENT_PORTAL_ACADEMIC],
+            queryFn: async () => studentPortalAcademci(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.STUDENT_PORTAL_ACADEMIC]
+            });
+        }
+    };
 };

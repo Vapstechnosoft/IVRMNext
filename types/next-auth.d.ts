@@ -39,13 +39,11 @@ declare module 'next-auth' {
         mi_name?: string;
         username?: string;
         mi_logo?: string;
-        expires_in?: number | string;
-        expires_at?: number;
     }
 
-    interface JWT extends User {}
+    interface JWT extends User { }
 }
 
 declare module 'next-auth/jwt' {
-    interface JWT extends User {}
+    interface JWT extends User { }
 }

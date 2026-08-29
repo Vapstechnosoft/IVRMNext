@@ -6,19 +6,17 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useMasterGrade } from '@/hooks/exam/exammodule/usemasters';
 import type { IMasterGrade } from '@/types/exam/exam-module/masters';
 import { Plus, X } from 'lucide-react';
-import { use } from 'react';
+import { useSearchParams } from 'next/navigation';
 import AddMasterGradeForm from './_components/add-form';
 import { MasterGradeColumns } from './_components/grade-columns';
 import MasterGradeDetailsPage from './_components/grade-details-view';
 import ToggleMasterGradeForm from './_components/toggle-form';
 import UpdateMasterGradeForm from './_components/update-form';
 
-type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
-export default function MasterGradePage(props: { searchParams: SearchParams }) {
-    const searchParams = use(props.searchParams);
-
-    const { data: response, isLoading, error, refetchAll: refetchGrid } = useMasterGrade(searchParams);
+export default function MasterGradePage() {
+    const searchParams = useSearchParams();
+    const params = Object.fromEntries(searchParams.entries());
+    const { data: response, isLoading, error, refetchAll: refetchGrid } = useMasterGrade(params);
 
     return (
         <FormProvider<IMasterGrade>>

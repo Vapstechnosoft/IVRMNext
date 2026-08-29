@@ -10,6 +10,7 @@ export async function getNDS9ProgressCardReport(data: {
 }) {
     try {
         const response = await api.post<any>('exam', '/JSHSExamReports_/nds_6_8_report', data);
+        console.log('API RESPONSE [nds_6_8_report]:', JSON.stringify(response).substring(0, 1000));
         return response;
     } catch (error) {
         console.error('getNDS9ProgressCardReport error:', error);

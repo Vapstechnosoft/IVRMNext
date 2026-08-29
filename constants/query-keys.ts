@@ -262,6 +262,7 @@ export const FEES_QUERY_KEYS = {
     FEE_REFUNDABLE_LIST: 'fee_refundable_list',
     FEE_CONCESSION_ON_LOAD: 'fee_concession_on_load',
     FEE_STUDENT_TRANSACTIONSTTHOMAS: 'fee_student_transactionstthomas',
+    STUDENT_PORTAL_ACADEMIC: 'student_portal_academic',
 
     FEE_CONCESSION_CLASS_DROPDOWN: 'fee_concession_class_dropdown',
     FEE_CONCESSION_HEAD_LIST: 'fee_concession_head_list',
@@ -376,7 +377,8 @@ export const EXAM_QUERY_KEYS = {
     PROMOTIONAL_GROUP_DETAILS: 'promotional-group-details',
     PROMOTIONAL_GROUP_MAPPED_EXAMS_DETAILS: 'promotional-group-mapped-exams-details',
     EXAM_TT_SESSION_MASTER: 'exam_tt_session_master',
-    EXAM_TT_TRANS_SETTINGS: 'exam_tt_trans_settings'
+    EXAM_TT_TRANS_SETTINGS: 'exam_tt_trans_settings',
+    COUNT_STATUS_REPORT: 'exam_count_status_report'
 };
 
 export const HRMS_QUERY_KEYS = {
@@ -605,7 +607,8 @@ export const PORTAL_QUERY_KEYS = {
     GET_GROUPS_FOR_NOTICE_BOARD: 'get_groups_for_notice_board',
     GET_TERMS_FOR_NOTICE_BOARD: 'get_terms_for_notice_board',
     EXAM_STUDENT_REPORT_YEAR_DROP_DOWN: 'exam_student_report_year_drop_down',
-    EXAM_STUDENT_COMPLIANTS_YEAR_DROP_DOWN: 'exam_student_compliants_year_drop_down'
+    EXAM_STUDENT_COMPLIANTS_YEAR_DROP_DOWN: 'exam_student_compliants_year_drop_down',
+    ONLINE_PAYMENT_DETAILS: 'online_payment_details'
 };
 
 export const STAFF_PORTAL_QUERY_KEYS = {
