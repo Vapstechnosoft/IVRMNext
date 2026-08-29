@@ -34,6 +34,7 @@ export type ApiBaseUrlKey =
     | 'admission'
     | 'fees'
     | 'exam'
+    | 'naac'
     | 'hrms'
     | 'hrmsfrontoffice'
     | 'hmslms'
@@ -65,6 +66,7 @@ class ApiService {
             admission: process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             fees: process.env.NEXT_PUBLIC_FEES_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             exam: process.env.NEXT_PUBLIC_EXAM_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            naac: process.env.NEXT_PUBLIC_NAAC_API_BASE_URL || 'http://localhost:5000/api',
             hostel: process.env.NEXT_PUBLIC_HOSTEL_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             hrms: process.env.NEXT_PUBLIC_HRMS_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             hrmsfrontoffice: process.env.NEXT_PUBLIC_HRMS_FRONTOFFICE_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
@@ -399,6 +401,10 @@ class ApiService {
 
     public async put<T>(baseUrlKey: ApiBaseUrlKey, url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
         return this.request<T>(baseUrlKey, 'PUT', url, config, data);
+    }
+
+    public async patch<T>(baseUrlKey: ApiBaseUrlKey, url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+        return this.request<T>(baseUrlKey, 'PATCH', url, config, data);
     }
 
     public async delete<T>(baseUrlKey: ApiBaseUrlKey, url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
