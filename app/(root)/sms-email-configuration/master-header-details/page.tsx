@@ -304,15 +304,15 @@ export default function MasterHeaderDetails() {
                                                                                             onCheckedChange={(checked) => {
                                                                                                 return checked
                                                                                                     ? field.onChange([
-                                                                                                          ...field.value,
-                                                                                                          item.ismP_ID
-                                                                                                      ])
+                                                                                                        ...field.value,
+                                                                                                        item.ismP_ID
+                                                                                                    ])
                                                                                                     : field.onChange(
-                                                                                                          field.value?.filter(
-                                                                                                              (value) =>
-                                                                                                                  value !== item.ismP_ID
-                                                                                                          )
-                                                                                                      );
+                                                                                                        field.value?.filter(
+                                                                                                            (value) =>
+                                                                                                                value !== item.ismP_ID
+                                                                                                        )
+                                                                                                    );
                                                                                             }}
                                                                                         />
                                                                                     </FormControl>

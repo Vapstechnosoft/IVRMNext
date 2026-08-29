@@ -447,9 +447,9 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
                                                                 const rowSpan =
                                                                     subj.colspan > 1 &&
-                                                                    subj.GropuFlag === 1 &&
-                                                                    grpexam.EME_Id !== 9800000 &&
-                                                                    grpexam.EME_Id === 9800001
+                                                                        subj.GropuFlag === 1 &&
+                                                                        grpexam.EME_Id !== 9800000 &&
+                                                                        grpexam.EME_Id === 9800001
                                                                         ? subj.colspan
                                                                         : 1;
 
