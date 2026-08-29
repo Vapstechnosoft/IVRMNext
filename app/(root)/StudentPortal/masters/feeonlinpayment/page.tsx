@@ -4,7 +4,7 @@ import { getFeeOnlinePaymentLoadData } from './actions';
 export default async function FeeOnlinePaymentPage() {
     return (
         <div className='container mx-auto max-w-7xl p-4'>
-            <FeeOnlinePaymentClient initialData={response.data} />
+            <FeeOnlinePaymentClient />
         </div>
     );
 }
