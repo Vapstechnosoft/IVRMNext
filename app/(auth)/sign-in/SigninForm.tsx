@@ -62,6 +62,20 @@ export default function SigninForm() {
         // Force light mode for auth page
         document.documentElement.classList.remove('dark');
         document.documentElement.classList.add('light');
+
+        // Check if user was logged in previously (session expired and redirected here)
+        if (typeof window !== 'undefined' && sessionStorage.getItem('isLoggedIn') === 'true') {
+            const checkSessionExpired = async () => {
+                try {
+                    const Swal = (await import('sweetalert2')).default;
+                    await Swal.fire('Your Session has been Expired.....Please Re-login');
+                } catch (err) {
+                    console.error('Failed to load SweetAlert2', err);
+                }
+                sessionStorage.removeItem('isLoggedIn');
+            };
+            checkSessionExpired();
+        }
     }, []);
 
     const {

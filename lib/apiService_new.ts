@@ -1,7 +1,6 @@
 import { auth, signOut } from '@/lib/auth';
 import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios';
 
-// Define available API base URLs
 export type ApiBaseUrlKey =
     | 'default'
     | 'preadmission'
@@ -24,7 +23,6 @@ class ApiServiceNew {
     constructor() {
         this.instances = new Map();
 
-        // Map your environment variables to base URLs
         this.baseUrls = {
             default: process.env.NEXT_PUBLIC_API_BASE_URL || '',
             preadmission: process.env.NEXT_PUBLIC_PREADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
@@ -42,7 +40,6 @@ class ApiServiceNew {
             collegepreadmission: process.env.NEXT_PUBLIC_COLLEGEPREADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
         };
 
-        // Initialize default instance
         this.getOrCreateInstance('default');
     }
 
@@ -67,10 +64,8 @@ class ApiServiceNew {
     }
 
     private setupInterceptors(instance: AxiosInstance, key: string): void {
-        // Request Interceptor
         instance.interceptors.request.use(
             async (config) => {
-                // Skip portal auth for signage as it uses its own X-API-Key system
                 if (key === 'signage') return config;
 
                 try {
@@ -87,16 +82,12 @@ class ApiServiceNew {
             (error) => Promise.reject(this.handleError(error))
         );
 
-        // Response Interceptor
         instance.interceptors.response.use(
             (response) => response,
             async (error) => {
-                // Only trigger global logout for the main application API (default)
-                // and avoid logging out if the signage module has an auth error.
                 if (error.response?.status === 401 && key !== 'signage') {
                     try {
                         await signOut();
-                        // Only redirect in browser environment
                         if (typeof window !== 'undefined') {
                             window.location.href = '/sign-in';
                         }
@@ -145,14 +136,10 @@ class ApiServiceNew {
         instance.defaults.baseURL = baseUrl;
     }
 
-    // Helper method to add custom base URLs at runtime
     public addBaseUrl(key: string, baseUrl: string): void {
         this.baseUrls[key as ApiBaseUrlKey] = baseUrl;
     }
 
-    /**
-     * Get the base URL for a given key (useful for debugging)
-     */
     public getBaseUrl(key: ApiBaseUrlKey): string {
         return this.baseUrls[key] || '';
     }

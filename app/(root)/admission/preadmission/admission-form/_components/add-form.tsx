@@ -1338,12 +1338,14 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 const regNo = getValues('amsT_RegistrationNo');
                 const isRegDuplicate = await handleCheckDuplicateRegNo(String(regNo ?? ''));
                 if (isRegDuplicate) {
+                    setIsSavingStep(false);
                     return;
                 }
 
                 const admissionNo = getValues('amsT_AdmissionNo');
                 const isAdmDuplicate = await handleCheckDuplicateAdmissionNo(String(admissionNo ?? ''));
                 if (isAdmDuplicate) {
+                    setIsSavingStep(false);
                     return;
                 }
             }
