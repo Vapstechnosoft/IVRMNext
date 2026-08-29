@@ -380,7 +380,7 @@ export default function SalaryApprovalPage() {
                     <form onSubmit={handleSubmit(handleSearch)} className='space-y-6'>
                         <div className='grid grid-cols-1 gap-6 lg:grid-cols-5'>
                             <div className='space-y-3'>
-                                <Label className='font-semibold'>Year</Label>
+                                <Label className='font-semibold'>Year<span className='text-destructive'>*</span></Label>
                                 <Controller
                                     name='salaryYear'
                                     control={control}
@@ -406,7 +406,7 @@ export default function SalaryApprovalPage() {
                             </div>
 
                             <div className='space-y-3'>
-                                <Label className='font-semibold'>Month</Label>
+                                <Label className='font-semibold'>Month<span className='text-destructive'>*</span></Label>
                                 <Controller
                                     name='salaryMonth'
                                     control={control}
@@ -430,7 +430,7 @@ export default function SalaryApprovalPage() {
                             </div>
 
                             <div className='space-y-3'>
-                                <Label className='font-semibold'>Group Type</Label>
+                                <Label className='font-semibold'>Group Type<span className='text-destructive'>*</span></Label>
                                 <Controller
                                     name='groupType'
                                     control={control}
@@ -453,7 +453,7 @@ export default function SalaryApprovalPage() {
                             </div>
 
                             <div className='space-y-3'>
-                                <Label className='font-semibold'>Department</Label>
+                                <Label className='font-semibold'>Department<span className='text-destructive'>*</span></Label>
                                 <Controller
                                     name='department'
                                     control={control}
@@ -477,7 +477,7 @@ export default function SalaryApprovalPage() {
                             </div>
 
                             <div className='space-y-3'>
-                                <Label className='font-semibold'>Designation</Label>
+                                <Label className='font-semibold'>Designation<span className='text-destructive'>*</span></Label>
                                 <Controller
                                     name='designation'
                                     control={control}
