@@ -130,7 +130,10 @@ export default function AddMasterMenuPageMappingForm({ onSuccess, modules, allPa
 
     const filteredPages = masterPages.filter((page) => page.pagename.toLowerCase().includes(pageSearch.toLowerCase()));
 
-    const filteredSubMenus = selectedMainMenuId ? subMenus.filter((m) => m.ivrmmM_Id === selectedMainMenuId) : subMenus;
+    const filteredSubMenus = selectedMainMenuId
+        ? subMenus.filter(m => Number(m.ivrmmM_Id) === Number(selectedMainMenuId) || Number((m as any).ivrmmM_ParentId) === Number(selectedMainMenuId))
+        : subMenus;
+    const displaySubMenus = filteredSubMenus.length > 0 ? filteredSubMenus : subMenus;
 
     const onSubmit = async (data: MasterMenuPageMappingSchema) => {
         if (selectedPages.length === 0) {
@@ -248,7 +251,7 @@ export default function AddMasterMenuPageMappingForm({ onSuccess, modules, allPa
                                             <SelectValue placeholder='Select Sub Menu' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {filteredSubMenus.map((menu) => (
+                                            {displaySubMenus.map((menu) => (
                                                 <SelectItem key={menu.ivrmmS_Id} value={menu.ivrmmS_Id.toString()}>
                                                     {menu.ivrmmS_SubMenuName}
                                                 </SelectItem>

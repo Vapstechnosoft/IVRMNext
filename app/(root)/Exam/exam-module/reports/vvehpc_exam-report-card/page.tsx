@@ -8,6 +8,35 @@ import { toast } from 'sonner';
 import ProgressCardReportForm from './_components/add-form';
 import ProgressCardReport from './_components/progress-card-report';
 
+function parseArrayData(raw: any): any[] {
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw;
+    if (Array.isArray(raw.data)) return raw.data;
+    if (raw.data?.$values && Array.isArray(raw.data.$values)) return raw.data.$values;
+    if (raw.$values && Array.isArray(raw.$values)) return raw.$values;
+
+    const source = raw.data && typeof raw.data === 'object' && !Array.isArray(raw.data) ? { ...raw, ...raw.data } : raw;
+    if (typeof source !== 'object') return [];
+
+    const keysToTry = ['savelist', 'studentlist', 'grid_list', 'list', 'grid_List', 'save_list', 'students'];
+    for (const key of Object.keys(source)) {
+        const lower = key.toLowerCase();
+        if (keysToTry.some((k) => lower === k.toLowerCase())) {
+            const val = source[key];
+            if (Array.isArray(val)) return val;
+            if (val?.$values && Array.isArray(val.$values)) return val.$values;
+        }
+    }
+
+    for (const key of Object.keys(source)) {
+        const val = source[key];
+        if (Array.isArray(val) && val.length > 0) return val;
+        if (val?.$values && Array.isArray(val.$values) && val.$values.length > 0) return val.$values;
+    }
+
+    return [];
+}
+
 export default function ProgressCardReportPage() {
     const [reportData, setReportData] = useState<IExamReportCard[]>([]);
     const [subjects, setSubjects] = useState<ISubject[]>([]);
@@ -28,13 +57,7 @@ export default function ProgressCardReportPage() {
     const handleReportSuccess = async (payload: any) => {
         try {
             const res = await getExamReportCard(payload);
-            const apiData = res?.data;
-            const flatRows: any[] =
-                apiData?.list ||
-                apiData?.savelist ||
-                apiData?.studentlist ||
-                apiData?.grid_list ||
-                (Array.isArray(apiData) ? apiData : Array.isArray(res) ? res : []);
+            const flatRows = parseArrayData(res);
 
             if (!flatRows || !Array.isArray(flatRows) || flatRows.length === 0) {
                 toast.error('No records found for the selected criteria');
@@ -212,7 +235,7 @@ export default function ProgressCardReportPage() {
         const fetchInstitution = async () => {
             try {
                 const institution_res = await getMasterInstitution();
-                const { data: institution_data } = institution_res;
+                const institution_data = institution_res?.data;
                 setInstitution(institution_data);
             } catch (error) {
                 console.error('Error fetching institution:', error);

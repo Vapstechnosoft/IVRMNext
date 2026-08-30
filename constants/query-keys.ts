@@ -378,7 +378,8 @@ export const EXAM_QUERY_KEYS = {
     PROMOTIONAL_GROUP_DETAILS: 'promotional-group-details',
     PROMOTIONAL_GROUP_MAPPED_EXAMS_DETAILS: 'promotional-group-mapped-exams-details',
     EXAM_TT_SESSION_MASTER: 'exam_tt_session_master',
-    EXAM_TT_TRANS_SETTINGS: 'exam_tt_trans_settings'
+    EXAM_TT_TRANS_SETTINGS: 'exam_tt_trans_settings',
+    COUNT_STATUS_REPORT: 'exam_count_status_report'
 };
 
 export const HRMS_QUERY_KEYS = {
@@ -698,4 +699,19 @@ export const COLLEGE_QUERY_KEYS = {
     TRANSACTION_ADMISSION_FORM: 'college_transaction_admission_form',
     TRANSACTION_PREADMISSION_STATUS: 'college_transaction_preadmission_status',
     TRANSACTION_TRANSFER_LOAD_DATA: 'college_transaction_transfer_load_data',
+}
+export const ONLINE_EXAM_QUERY_KEYS = {
+    MASTER_QUESTION: 'online_exam_master_question',
+    MASTER_QUESTION_INITIAL_DATA: 'online_exam_master_question_initial_data',
+    MASTER_QUESTION_OPTIONS: 'online_exam_master_question_options',
+    MASTER_QUESTION_COLLEGE: 'online_exam_master_question_college',
+    MASTER_QUESTION_COLLEGE_INITIAL_DATA: 'online_exam_master_question_college_initial_data',
+    ANSWER_PAPER_CORRECTION: 'online_exam_answer_paper_correction',
+    ANSWER_PAPER_CORRECTION_STUDENTS: 'online_exam_answer_paper_correction_students',
+    ANSWER_PAPER_STUDENT_ANSWERS: 'online_exam_answer_paper_student_answers',
+    PUBLISH_TO_STUDENT: 'online_exam_publish_to_student',
+    PUBLISH_TO_STUDENT_LIST: 'online_exam_publish_to_student_list',
+    ONLINE_EXAM_REPORT: 'online_exam_report',
+    STAFF_WISE_REPORT: 'online_exam_staff_wise_report',
+    NOT_SUBMITTED_REPORT: 'online_exam_not_submitted_report'
 };

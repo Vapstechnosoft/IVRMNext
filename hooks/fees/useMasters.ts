@@ -156,7 +156,10 @@ export const useAcademicYearDropdown = () => {
     return {
         ...useQuery({
             queryKey: [ADMISSION_QUERY_KEYS.ACADEMIC_DROPDOWN],
-            queryFn: async () => getAcademicYearDropdown(),
+            queryFn: async () => {
+                const res = await getAcademicYearDropdown();
+                return res ?? null;
+            },
             staleTime: 0
         }),
         refetchAll: () => {
@@ -1429,7 +1432,10 @@ export const useFeeStudentAcademicYearDropdown = () => {
     return {
         ...useQuery({
             queryKey: [ADMISSION_QUERY_KEYS.ACADEMIC_DROPDOWN],
-            queryFn: async () => getFeeStudentAcademicYearDropdown(),
+            queryFn: async () => {
+                const res = await getFeeStudentAcademicYearDropdown();
+                return res ?? null;
+            },
             staleTime: 0
         }),
         refetchAll: () => {

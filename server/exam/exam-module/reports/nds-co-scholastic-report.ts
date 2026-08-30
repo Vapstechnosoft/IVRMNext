@@ -9,8 +9,7 @@ import type { IAcademicYearandClassandsection } from '@/types/exam/exam-module/r
  */
 export async function getExamAcademicYearDropdown() {
     const url = '/exam_master/get_academic_year_list';
-    console.info('getAcademicYearDropdown', url);
-    return await api.get<IMasterClassYearlyList[]>('exam', url);
+    return await api.get<IMasterClassYearlyList[]>('exam', url).catch(() => null);
 }
 
 function extractDataList(res: any): any[] {
@@ -121,5 +120,25 @@ export async function getStudentsDropDownByAcademicYearandClassandSectionlist(as
  * Get GMVPS Progress Card IX Report Data
  */
 export async function getGmvpsProgressCardIXReport(payload: any) {
-    return await api.post<any>('exam', '/JSHSExamReports_/nds_6_8_report', payload);
+    const endpoints = [
+        '/JSHSExamReports_/nds_1_5_report',
+        '/JSHSExamReports_/nds_6_8_report',
+        '/JSHSExamReports_/nds_9_report',
+        '/JSHSExamReports/nds_1_5_report',
+        '/JSHSExamReports/nds_6_8_report',
+        '/JSHSExamReports/nds_9_report'
+    ];
+
+    for (const ep of endpoints) {
+        try {
+            const res = await api.post<any>('exam', ep, payload);
+            const raw = res?.data || res;
+            if (raw && (raw.studentlist || raw.griddata || raw.datareport || raw.reportdata)) {
+                return res;
+            }
+        } catch (e) {
+            console.warn(`[getGmvpsProgressCardIXReport] ${ep} failed:`, e);
+        }
+    }
+    return await api.post<any>('exam', '/JSHSExamReports_/nds_1_5_report', payload);
 }

@@ -317,12 +317,19 @@ export default function ProgressCardReportForm({
             const selectedExamObj = exams.find((e) => String(e.emE_Id) === String(data.emE_Id));
             const selectedYearObj = academicYears.find((y) => String(y.asmaY_Id) === String(data.asmaY_Id));
 
+            const selectedStudentObjects = (data.studentList || []).map((item: any) => {
+                const found = students.find((s: any) => String(s.amsT_Id) === String(item.amsT_Id));
+                return found || item;
+            });
+
             const payload = {
                 ...data,
                 selectedClassName: selectedClassObj?.asmcL_ClassName || '',
                 selectedSectionName: selectedSectionObj?.asmC_SectionName || '',
                 selectedExamName: selectedExamObj?.emE_ExamName || '',
-                selectedYearName: selectedYearObj?.asmaY_Year || ''
+                selectedYearName: selectedYearObj?.asmaY_Year || '',
+                selectedStudents: selectedStudentObjects,
+                studentList: selectedStudentObjects
             };
 
             if (onSuccess) {

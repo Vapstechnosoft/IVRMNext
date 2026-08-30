@@ -22,9 +22,9 @@ import { Save, X } from 'lucide-react';
 import React, { useRef, useState, useMemo, useCallback } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import Swal from 'sweetalert2';
 import type { z } from 'zod';
 import { getActiveDeactiveColumns } from './_components/columns';
-import Swal from 'sweetalert2';
 
 type FormFields = z.infer<typeof masterActiveDeactiveStudentSchema>;
 
