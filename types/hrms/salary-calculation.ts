@@ -258,6 +258,8 @@ export interface NewSalaryCalculationSearchRequest {
     hrmdeS_IdList: number[];
     hrmD_IdList: number[];
     groupTypeIdList: number[];
+    sort_column?: string;
+    sort_direction?: string;
 }
 
 // New Selection Employee interface

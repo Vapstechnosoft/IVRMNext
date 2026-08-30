@@ -1487,11 +1487,34 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     const contactCountryId = contactCountry ? Number(contactCountry) : null;
     const permanentCountryId = permanentCountry ? Number(permanentCountry) : null;
 
+    // Reset state fields when country changes manually (not during initial load)
+    const prevContactCountryRef = useRef<string | null>(contactCountry);
+    useEffect(() => {
+        if (!setValue || !isFormInitialized) return;
+        if (prevContactCountryRef.current !== contactCountry) {
+            prevContactCountryRef.current = contactCountry;
+            setValue('contactState', '', { shouldValidate: true, shouldDirty: true });
+        }
+    }, [contactCountry, setValue, isFormInitialized]);
+
+    const prevPermanentCountryRef = useRef<string | null>(permanentCountry);
+    useEffect(() => {
+        if (!setValue || !isFormInitialized || sameAsCommunicationAddress) return;
+        if (prevPermanentCountryRef.current !== permanentCountry) {
+            prevPermanentCountryRef.current = permanentCountry;
+            setValue('permanentState', '', { shouldValidate: true, shouldDirty: true });
+        }
+    }, [permanentCountry, setValue, isFormInitialized, sameAsCommunicationAddress]);
+
+
     // Fetch states for contact country
     const { data: contactStates = [], isLoading: isLoadingContactStates } = useStateDropdown(contactCountryId);
+
+    console.log("contactStates", contactStates);
     // Fetch states for permanent country
     const { data: permanentStates = [], isLoading: isLoadingPermanentStates } = useStateDropdown(permanentCountryId);
 
+    console.log("permanentStates", permanentStates);
     // Use fetched states if country is selected, otherwise fall back to empty array
     const availableContactStates: IStateDropdown[] = contactCountryId ? (Array.isArray(contactStates) ? contactStates : []) : [];
 
@@ -4066,7 +4089,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                 <Label>
                                                                                     State <span className='text-red-500'>*</span>
                                                                                 </Label>
-                                                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                                                <Select key={isLoadingContactStates ? 'loading' : 'loaded'} onValueChange={field.onChange} value={field.value || ''}>
                                                                                     <SelectTrigger>
                                                                                         <SelectValue placeholder='Select State' />
                                                                                     </SelectTrigger>
@@ -4251,8 +4274,9 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                 State <span className='text-red-500'>*</span>
                                                                             </Label>
                                                                             <Select
+                                                                                key={isLoadingPermanentStates ? 'loading' : 'loaded'}
                                                                                 onValueChange={field.onChange}
-                                                                                value={field.value}
+                                                                                value={field.value || ''}
                                                                                 disabled={sameAsCommunicationAddress}>
                                                                                 <SelectTrigger>
                                                                                     <SelectValue placeholder='Select State' />

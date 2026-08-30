@@ -110,6 +110,7 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
 
     // Rounding Type dropdown
     const { data: roundingTypeDropdownResponse, isLoading: isLoadingRoundingTypes } = useRoundingTypeDropdown();
+    console.log("rounding types",roundingTypeDropdownResponse)
     const roundingTypeDropdown: IRoundingTypeDropdown[] = useMemo(() => {
         return mapToDropdownItems(roundingTypeDropdownResponse);
     }, [roundingTypeDropdownResponse]);
