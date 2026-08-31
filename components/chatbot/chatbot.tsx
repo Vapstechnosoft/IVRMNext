@@ -7,6 +7,7 @@ import { useUserAccessibleModules } from '@/hooks/common';
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Bot, Maximize2, MessageSquare, Minimize2, Minus, Send, Sparkles, X } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
@@ -29,6 +30,7 @@ export const Chatbot = () => {
     const [isChatEnabled, setIsChatEnabled] = useState(false);
     const [mounted, setMounted] = useState(false);
     const { data: accessibleModule } = useUserAccessibleModules();
+    const { data: session } = useSession();
 
     // Context and Messages State
     const context = () => {
@@ -61,7 +63,8 @@ export const Chatbot = () => {
         | 'EXAMS'
         | 'UPLOAD'
         | 'LEAVE'
-        | 'INTERACTION';
+        | 'INTERACTION'
+        | 'ADMISSION_QUERIES';
     const [menuState, setMenuState] = useState<MenuState>('ROOT');
     const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -100,6 +103,12 @@ export const Chatbot = () => {
         setIsChatEnabled(false);
     }, [pathname, isOpen]);
 
+    useEffect(() => {
+        if (menuState !== 'ENABLE_CHAT' && menuState !== 'ADMISSION_QUERIES') {
+            setIsChatEnabled(false);
+        }
+    }, [menuState]);
+
     // Early guard AFTER all hooks are declared
     const params = useParams();
     const sub_domain = params?.sub_domain;
@@ -133,7 +142,30 @@ export const Chatbot = () => {
             { label: 'Fees & Payments', id: 'FEES' },
             { label: 'Student Records', id: 'STUDENT' },
             { label: 'Staff ESS (Self Service)', id: 'OFFICE' },
+            { label: 'Admission queries', id: 'ADMISSION_QUERIES' },
             { label: 'Detailed Query', id: 'ENABLE_CHAT' }
+        ],
+        ADMISSION_QUERIES: [
+            {
+                label: 'when is the last date to apply',
+                query: 'when is the last date to apply',
+                isAdmissionQuery: true
+            },
+            {
+                label: 'I want to know institution facilitites',
+                query: 'I want to know institution facilitites',
+                isAdmissionQuery: true
+            },
+            {
+                label: 'admission fees',
+                query: 'admission fees',
+                isAdmissionQuery: true
+            },
+            {
+                label: 'when i ll get to know my aplication status',
+                query: 'when i ll get to know my aplication status',
+                isAdmissionQuery: true
+            }
         ],
         ACADEMIC: [
             {
@@ -280,7 +312,30 @@ export const Chatbot = () => {
             { label: 'Upload & Notice Board', id: 'UPLOAD' },
             { label: 'Leave & Biometrics ESS', id: 'LEAVE' },
             { label: 'Interactions', id: 'INTERACTION' },
+            { label: 'Admission queries', id: 'ADMISSION_QUERIES' },
             { label: 'Detailed Query', id: 'ENABLE_CHAT' }
+        ],
+        ADMISSION_QUERIES: [
+            {
+                label: 'when is the last date to apply',
+                query: 'when is the last date to apply',
+                isAdmissionQuery: true
+            },
+            {
+                label: 'I want to know institution facilitites',
+                query: 'I want to know institution facilitites',
+                isAdmissionQuery: true
+            },
+            {
+                label: 'admission fees',
+                query: 'admission fees',
+                isAdmissionQuery: true
+            },
+            {
+                label: 'when i ll get to know my aplication status',
+                query: 'when i ll get to know my aplication status',
+                isAdmissionQuery: true
+            }
         ],
         ATTENDANCE: [
             {
@@ -405,13 +460,38 @@ export const Chatbot = () => {
             return;
         }
 
+        if (option.isAdmissionQuery) {
+            const userMsg: Message = {
+                id: `${Date.now()}-user`,
+                text: option.label,
+                role: 'user',
+                timestamp: new Date()
+            };
+            setMessages((prev) => [...prev, userMsg]);
+            handleAdmissionQuery(option.query);
+            return;
+        }
+
         // Category transition
         if (
-            ['ACADEMIC', 'ANALYSIS', 'STUDENT', 'FEES', 'OFFICE', 'ATTENDANCE', 'EXAMS', 'UPLOAD', 'LEAVE', 'INTERACTION'].includes(
-                option.id
-            )
+            [
+                'ACADEMIC',
+                'ANALYSIS',
+                'STUDENT',
+                'FEES',
+                'OFFICE',
+                'ATTENDANCE',
+                'EXAMS',
+                'UPLOAD',
+                'LEAVE',
+                'INTERACTION',
+                'ADMISSION_QUERIES'
+            ].includes(option.id)
         ) {
             setMenuState(option.id as MenuState);
+            if (option.id === 'ADMISSION_QUERIES') {
+                setIsChatEnabled(true);
+            }
             const userMsg: Message = {
                 id: `${Date.now()}-user`,
                 text: option.label,
@@ -448,6 +528,47 @@ export const Chatbot = () => {
         }
     };
 
+    const handleAdmissionQuery = async (queryText: string) => {
+        setIsLoading(true);
+        try {
+            const mi_id_str = session?.mi_id?.toString() || '';
+            const response = await fetch('/api/chatbot/admission', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    question: queryText,
+                    mi_id: mi_id_str
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch from admission API: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            const replyText = data.answer || "I couldn't retrieve an answer for that query.";
+
+            const botMsg: Message = {
+                id: `${Date.now()}-bot-${Math.random().toString(36).substr(2, 9)}`,
+                text: replyText,
+                role: 'assistant',
+                timestamp: new Date()
+            };
+            setMessages((prev) => [...prev, botMsg]);
+        } catch (error) {
+            console.error('Admission Query Error:', error);
+            const errorMessage: Message = {
+                id: `${Date.now()}-error-${Math.random().toString(36).substr(2, 9)}`,
+                text: "I'm having trouble connecting to the admission service right now. Please try again later.",
+                role: 'assistant',
+                timestamp: new Date()
+            };
+            setMessages((prev) => [...prev, errorMessage]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const handleSend = async (text?: string, link?: string) => {
         const messageText = text || input;
         if (!messageText.trim() || isLoading) return;
@@ -464,33 +585,60 @@ export const Chatbot = () => {
         setIsLoading(true);
 
         try {
-            const response = await fetch('/api/chatbot', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    messages: messages.map((m) => ({ role: m.role, content: m.text })).concat({ role: 'user', content: messageText }),
-                    context: currentContext.name // Pass context to API
-                })
-            });
+            if (menuState === 'ADMISSION_QUERIES') {
+                const mi_id_str = session?.mi_id?.toString() || '';
+                const response = await fetch('/api/chatbot/admission', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        question: messageText,
+                        mi_id: mi_id_str
+                    })
+                });
 
-            const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch from admission API: ${response.statusText}`);
+                }
 
-            if (data.text) {
-                // If we have a link (from menu click), we pass it to the message object
+                const data = await response.json();
+                const replyText = data.answer || "I couldn't retrieve an answer for that query.";
 
                 const botMessage: Message = {
                     id: `${Date.now()}-bot-${Math.random().toString(36).substr(2, 9)}`,
-                    text: data.text,
+                    text: replyText,
                     role: 'assistant',
-                    timestamp: new Date(),
-                    link: link // Attach link if present
+                    timestamp: new Date()
                 };
                 setMessages((prev) => [...prev, botMessage]);
+            } else {
+                const response = await fetch('/api/chatbot', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        messages: messages.map((m) => ({ role: m.role, content: m.text })).concat({ role: 'user', content: messageText }),
+                        context: currentContext.name // Pass context to API
+                    })
+                });
 
-                // Reset to root after meaningful interaction? Or stay? Let's stay in context for now.
-                // setMenuState('ROOT');
-            } else if (data.error) {
-                throw new Error(data.error);
+                const data = await response.json();
+
+                if (data.text) {
+                    // If we have a link (from menu click), we pass it to the message object
+
+                    const botMessage: Message = {
+                        id: `${Date.now()}-bot-${Math.random().toString(36).substr(2, 9)}`,
+                        text: data.text,
+                        role: 'assistant',
+                        timestamp: new Date(),
+                        link: link // Attach link if present
+                    };
+                    setMessages((prev) => [...prev, botMessage]);
+
+                    // Reset to root after meaningful interaction? Or stay? Let's stay in context for now.
+                    // setMenuState('ROOT');
+                } else if (data.error) {
+                    throw new Error(data.error);
+                }
             }
         } catch (error) {
             console.error('Chat Error:', error);
