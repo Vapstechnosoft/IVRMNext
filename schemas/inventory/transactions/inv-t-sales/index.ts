@@ -5,6 +5,7 @@ export const invTSalesItemSchema = z.object({
     invmsL_Id: z.number().optional(),
     invmI_Id: z.number().min(1, 'Item is required'),
     invmuoM_Id: z.number().optional(),
+    INVMUOM_Id: z.number().optional(),
     invtsL_BatchNo: z.string().optional(),
     invtsL_SalesQty: z.number().min(0.01, 'Quantity must be greater than 0'),
     invtsL_SalesPrice: z.number().min(0, 'Price must be non-negative'),

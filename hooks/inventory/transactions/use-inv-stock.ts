@@ -1,4 +1,5 @@
 import {
+    getInvMasterItemList,
     getInvStockEditData,
     getInvStockItems,
     getInvStockLoadData,
@@ -42,6 +43,12 @@ export const useInvStock = (searchParams?: any) => {
         staleTime: Number.POSITIVE_INFINITY
     });
 
+    const getItemsQuery = useQuery({
+        queryKey: ['inv-stock-items'],
+        queryFn: () => getInvMasterItemList(),
+        staleTime: Number.POSITIVE_INFINITY
+    });
+
     const getItemsMutation = useMutation({
         mutationFn: (storeId: number) => getInvStockItems(storeId)
     });
@@ -54,6 +61,7 @@ export const useInvStock = (searchParams?: any) => {
         saveMutation,
         editMutation,
         getStoresQuery,
+        getItemsQuery,
         getItemsMutation
     };
 };

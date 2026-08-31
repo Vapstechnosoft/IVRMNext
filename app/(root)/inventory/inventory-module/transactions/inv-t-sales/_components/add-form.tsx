@@ -18,6 +18,8 @@ import { useEffect, useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 // import { MultiSelect } from '@/components/ui/extension/multi-select';
 
+import { getInvMasterItemList } from '@/server/inventory/transactions/inv-stock';
+
 interface AddSalesFormProps {
     onSuccess: () => void;
 }
@@ -64,6 +66,8 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
             SaleItem: [
                 {
                     invmI_Id: 0,
+                    invmuoM_Id: 0,
+                    INVMUOM_Id: 0,
                     invtsL_SalesQty: 0,
                     invtsL_SalesPrice: 0,
                     invtsL_DiscountAmt: 0,
@@ -95,6 +99,43 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
     const watchedSectionId = watch('asmS_Id');
     const watchedStoreId = watch('invmsT_Id');
 
+    // Fetch Master Items on Mount using getInvMasterItemList
+    useEffect(() => {
+        const fetchItems = async () => {
+            try {
+                const res = await getInvMasterItemList();
+                const rawItems =
+                    (Array.isArray(res?.data) ? res.data : null) ||
+                    res?.data?.get_item ||
+                    res?.get_item ||
+                    res?.data?.get_Item ||
+                    res?.get_Item ||
+                    (Array.isArray(res) ? res : []);
+
+                if (Array.isArray(rawItems) && rawItems.length > 0) {
+                    const normalizedItems = rawItems
+                        .map((item: any) => ({
+                            invmI_Id: item.invmi_Id ?? item.invmI_Id ?? item.INVMI_Id,
+                            invmI_ItemName: item.invmi_ItemName ?? item.invmI_ItemName ?? item.INVMI_ItemName,
+                            invstO_SalesRate: item.invsto_SalesRate ?? item.invstO_SalesRate ?? item.INVSTO_SalesRate ?? 0,
+                            invstO_BatchNo: item.invsto_BatchNo ?? item.invstO_BatchNo ?? item.INVSTO_BatchNo ?? '',
+                            invstO_AvaiableStock: item.invsto_AvaiableStock ?? item.invstO_AvaiableStock ?? item.INVSTO_AvaiableStock ?? 0,
+                            INVMUOM_Id: item.INVMUOM_Id ?? item.invmuoM_Id ?? item.invmuom_Id ?? item.invmuO_Id ?? item.INVMUO_Id ?? item.invmU_Id ?? item.INVMU_Id ?? 0,
+                            invmuoM_Id: item.INVMUOM_Id ?? item.invmuoM_Id ?? item.invmuom_Id ?? item.invmuO_Id ?? item.INVMUO_Id ?? item.invmU_Id ?? item.INVMU_Id ?? 0
+                        }))
+                        .filter((i: any) => i.invmI_Id && i.invmI_ItemName);
+
+                    const uniqueItems = Array.from(new Map(normalizedItems.map((item: any) => [item.invmI_Id, item])).values());
+                    setItemsList(uniqueItems);
+                }
+            } catch (error) {
+                console.error('Failed to load items using getInvMasterItemList:', error);
+            }
+        };
+
+        fetchItems();
+    }, []);
+
     // Fetch Stores on Mount
     useEffect(() => {
         getStoresMutation.mutate(undefined, {
@@ -122,11 +163,13 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                     const rawItems = Array.isArray(res.data) ? res.data : res?.data?.get_item || [];
                     // Normalize keys
                     const normalizedItems = rawItems.map((item: any) => ({
-                        invmI_Id: item.invmi_Id ?? item.invmI_Id,
-                        invmI_ItemName: item.invmi_ItemName ?? item.invmI_ItemName,
-                        invstO_SalesRate: item.invsto_SalesRate ?? item.invstO_SalesRate,
-                        invstO_BatchNo: item.invsto_BatchNo ?? item.invstO_BatchNo,
-                        invstO_AvaiableStock: item.invsto_AvaiableStock ?? item.invstO_AvaiableStock ?? 0
+                        invmI_Id: item.invmi_Id ?? item.invmI_Id ?? item.INVMI_Id,
+                        invmI_ItemName: item.invmi_ItemName ?? item.invmI_ItemName ?? item.INVMI_ItemName,
+                        invstO_SalesRate: item.invsto_SalesRate ?? item.invstO_SalesRate ?? item.INVSTO_SalesRate ?? 0,
+                        invstO_BatchNo: item.invsto_BatchNo ?? item.invstO_BatchNo ?? item.INVSTO_BatchNo ?? '',
+                        invstO_AvaiableStock: item.invsto_AvaiableStock ?? item.invstO_AvaiableStock ?? item.INVSTO_AvaiableStock ?? 0,
+                        INVMUOM_Id: item.INVMUOM_Id ?? item.invmuoM_Id ?? item.invmuom_Id ?? item.invmuO_Id ?? item.INVMUO_Id ?? item.invmU_Id ?? item.INVMU_Id ?? 0,
+                        invmuoM_Id: item.INVMUOM_Id ?? item.invmuoM_Id ?? item.invmuom_Id ?? item.invmuO_Id ?? item.INVMUO_Id ?? item.invmU_Id ?? item.INVMU_Id ?? 0
                     }));
 
                     // Deduplicate items to prevent duplicate Select values
@@ -266,6 +309,12 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
     const handleItemChange = async (index: number, itemId: number) => {
         const item = itemsList.find((i: any) => i.invmI_Id === itemId);
         if (item) {
+            const initialUomId = item.INVMUOM_Id || item.invmuoM_Id || 0;
+            if (initialUomId) {
+                setValue(`SaleItem.${index}.invmuoM_Id`, initialUomId);
+                setValue(`SaleItem.${index}.INVMUOM_Id`, initialUomId);
+            }
+
             const storeId = watch('invmsT_Id');
             const payload = {
                 INVMI_Id: item.invmI_Id,
@@ -293,25 +342,37 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                             stockObj?.invsto_AvaiableStock ??
                             0;
 
+                        const fetchedUomId =
+                            detail?.INVMUOM_Id ??
+                            detail?.invmuoM_Id ??
+                            detail?.invmuom_Id ??
+                            item.INVMUOM_Id ??
+                            item.invmuoM_Id ??
+                            0;
+
                         if (detail) {
                             // Bind Item Details
-                            setValue(`SaleItem.${index}.invmuoM_Id`, detail.INVMUOM_Id ?? detail.invmuoM_Id ?? detail.invmuom_Id);
+                            setValue(`SaleItem.${index}.invmuoM_Id`, fetchedUomId);
+                            setValue(`SaleItem.${index}.INVMUOM_Id`, fetchedUomId);
                             setValue(
                                 `SaleItem.${index}.invtsL_BatchNo`,
-                                detail.INVSTO_BatchNo ?? detail.invstO_BatchNo ?? detail.invsto_BatchNo
+                                detail.INVSTO_BatchNo ?? detail.invstO_BatchNo ?? detail.invsto_BatchNo ?? item.invstO_BatchNo ?? ''
                             );
                             setValue(
                                 `SaleItem.${index}.invtsL_SalesPrice`,
-                                detail.INVSTO_SalesRate ?? detail.invstO_SalesRate ?? detail.invsto_SalesRate ?? 0
+                                detail.INVSTO_SalesRate ?? detail.invstO_SalesRate ?? detail.invsto_SalesRate ?? item.invstO_SalesRate ?? 0
                             );
+                        } else if (fetchedUomId) {
+                            setValue(`SaleItem.${index}.invmuoM_Id`, fetchedUomId);
+                            setValue(`SaleItem.${index}.INVMUOM_Id`, fetchedUomId);
                         }
 
                         // Bind Taxes
                         if (taxList.length > 0) {
-                            const mappedTaxes = taxList.map((t: any) => ({
-                                invmT_Id: t.INVMT_Id ?? t.invmT_Id ?? t.invmt_Id,
-                                invmT_TaxName: t.INVMT_TaxName ?? t.invmT_TaxName ?? t.invmt_TaxName ?? '',
-                                invtslT_TaxPer: t.INVMIT_TaxValue ?? t.invmiT_TaxValue ?? t.invmit_TaxValue ?? 0,
+                            const mappedTaxes = taxList.map((tax: any) => ({
+                                invmT_Id: tax.INVMT_Id ?? tax.invmT_Id ?? tax.invmt_Id,
+                                invmT_TaxName: tax.INVMT_TaxName ?? tax.invmT_TaxName ?? tax.invmt_TaxName ?? '',
+                                invtslT_TaxPer: tax.INVMIT_TaxValue ?? tax.invmiT_TaxValue ?? tax.invmit_TaxValue ?? 0,
                                 invtslT_TaxAmt: 0 // Will be calculated
                             }));
                             setValue(`SaleItem.${index}.SalesItemTax`, mappedTaxes);
@@ -403,12 +464,13 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
             student_flag: data.stu_Flag,
             saleItem: data.SaleItem.map((item: any) => ({
                 invmI_Id: item.invmI_Id,
-                invmuoM_Id: item.invmuoM_Id,
-                invtsL_BatchNo: item.invtsL_BatchNo,
+                invtsL_BatchNo: item.invtsL_BatchNo || '',
+                INVMUOM_Id: Number(item.INVMUOM_Id || item.invmuoM_Id || 0),
+                invmuoM_Id: Number(item.invmuoM_Id || item.INVMUOM_Id || 0),
                 invtsL_SalesQty: item.invtsL_SalesQty,
                 invtsL_SalesPrice: item.invtsL_SalesPrice,
-                invtsL_DiscountAmt: item.invtsL_DiscountAmt,
-                invtsL_TaxAmt: item.invtsL_TaxAmt,
+                invtsL_DiscountAmt: item.invtsL_DiscountAmt || 0,
+                invtsL_TaxAmt: item.invtsL_TaxAmt || 0,
                 invtsL_Amount: item.invtsL_Amount,
                 saleItemTax: item.SalesItemTax || []
             })),
@@ -933,6 +995,8 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                             onClick={() =>
                                 append({
                                     invmI_Id: 0,
+                                    invmuoM_Id: 0,
+                                    INVMUOM_Id: 0,
                                     invtsL_SalesQty: 0,
                                     invtsL_SalesPrice: 0,
                                     invtsL_DiscountAmt: 0,
