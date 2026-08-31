@@ -13,6 +13,14 @@ export default function ApplicationPrintView({ data, printRef }: ApplicationPrin
 
     const rawDetails = data.studentReg_DTObj?.[0] || data.result?.student_details || data.details?.[0] || data.details || {};
 
+    if (Object.keys(rawDetails).length === 0) {
+        return (
+            <div className="flex h-full items-center justify-center p-10 text-muted-foreground">
+                <p>No application details found for this student.</p>
+            </div>
+        );
+    }
+
     // Create a case-insensitive proxy for details to handle API response variations
     const details = new Proxy(rawDetails, {
         get(target, prop) {
@@ -45,10 +53,11 @@ export default function ApplicationPrintView({ data, printRef }: ApplicationPrin
     const dobYear = dob ? format(dob, 'yyyy') : '';
 
     return (
-        <div ref={printRef} className='max-h-[80vh] overflow-auto bg-white p-4 text-black'>
-            <style
-                dangerouslySetInnerHTML={{
-                    __html: `
+        <div className='max-h-[80vh] overflow-auto'>
+            <div ref={printRef} className='printable-content bg-white p-4 text-black'>
+                <style
+                    dangerouslySetInnerHTML={{
+                        __html: `
                 .img-style {
                     width: 110px;
                     height: 100px;
@@ -94,9 +103,36 @@ export default function ApplicationPrintView({ data, printRef }: ApplicationPrin
                 .text-right { text-align: right; }
                 .font-bold { font-weight: bold; }
                 .uppercase { text-transform: uppercase; }
+                
+                @media print {
+                    #printSectionId td {
+                        padding: 3px 6px !important;
+                        font-size: 13px !important;
+                    }
+                    #printSectionId h3 {
+                        font-size: 16px !important;
+                        margin-top: 0 !important;
+                    }
+                    #printSectionId p, #printSectionId span, #printSectionId div {
+                        font-size: 13px !important;
+                    }
+                    #printSectionId .img-style {
+                        width: 90px !important;
+                        height: 90px !important;
+                    }
+                    #printSectionId .mt-16 {
+                        margin-top: 25px !important;
+                    }
+                    .office-use-box {
+                        margin-top: 15px !important;
+                        padding: 5px !important;
+                    }
+                    .mb-6 { margin-bottom: 12px !important; }
+                    .mt-4 { margin-top: 8px !important; }
+                }
             `
-                }}
-            />
+                    }}
+                />
 
             <div id='printSectionId'>
                 {/* Header Section */}
@@ -246,6 +282,7 @@ export default function ApplicationPrintView({ data, printRef }: ApplicationPrin
                     </div>
                 </div>
             </div>
+        </div>
         </div>
     );
 }

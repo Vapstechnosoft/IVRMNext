@@ -255,8 +255,8 @@ export default function StudentPasswordCreationPage() {
                             </>
                         ) : (
                             <div className='flex h-32 flex-col items-center justify-center space-y-2 rounded-md border border-dashed text-center'>
-                                <p className='text-lg font-medium text-muted-foreground'>No records found</p>
-                                <p className='text-sm text-muted-foreground'>Try adjusting your search filters.</p>
+                                <p className='font-medium text-lg text-muted-foreground'>No records found</p>
+                                <p className='text-muted-foreground text-sm'>Try adjusting your search filters.</p>
                             </div>
                         )}
                     </div>

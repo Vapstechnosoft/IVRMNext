@@ -1608,8 +1608,10 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     const permanentCountryId = permanentCountry ? (Number.isNaN(Number(permanentCountry)) ? null : Number(permanentCountry)) : null;
 
     // Fetch states for contact country
+    console.log('contactCountryId', contactCountryId);
     const { data: contactStates = [], isLoading: isLoadingContactStates } = useStateDropdown(contactCountryId);
     // Fetch states for permanent country
+    console.log('permanentCountryId', permanentCountryId);
     const { data: permanentStates = [], isLoading: isLoadingPermanentStates } = useStateDropdown(permanentCountryId);
 
     // Clear state when country changes
@@ -3918,7 +3920,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                             <Label>
                                                                                 State <span className='text-red-500'>*</span>
                                                                             </Label>
-                                                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                                            <Select key={isLoadingContactStates ? 'loading' : 'loaded'} onValueChange={field.onChange} value={field.value || ''}>
                                                                                 <SelectTrigger
                                                                                     className={cn(
                                                                                         fieldState.error
@@ -4128,8 +4130,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                 )}
                                                                             </Label>
                                                                             <Select
+                                                                                key={isLoadingPermanentStates ? 'loading' : 'loaded'}
                                                                                 onValueChange={field.onChange}
-                                                                                value={field.value}
+                                                                                value={field.value || ''}
                                                                                 disabled={sameAsCommunicationAddress}>
                                                                                 <SelectTrigger
                                                                                     className={cn(

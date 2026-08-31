@@ -29,7 +29,17 @@ export default function EmployeeIncrementSalaryPage(props: { searchParams: Searc
     const [heads, setHeads] = useState<any[]>([]);
     const [isHeadsLoading, setIsHeadsLoading] = useState(false);
     const [isFormOpen, setIsFormOpen] = useState(false);
-
+    const [searchParams, setSearchParams] = useState<any>({});
+    // const searchParams = use(props.searchParams);
+    
+        useEffect(() => {
+            const fetchParams = async () => {
+                const params = await props.searchParams;
+                setSearchParams(params);
+            };
+            fetchParams();
+        }, [props.searchParams]);
+    
     // Fetch Employees using existing hook
     const { data: employeesData, isLoading: isEmployeesLoading } = useGetEmployees();
 
@@ -54,7 +64,7 @@ export default function EmployeeIncrementSalaryPage(props: { searchParams: Searc
     const { mutate: saveIncrement, isPending: isSaving } = useAddOrUpdateEmployeeSalaryIncrement();
 
     // Grid Data
-    const searchParams = use(props.searchParams);
+    
     const { data: gridData, isLoading: isGridLoading } = useEmployeeIncrementGrid(searchParams);
     const { mutate: deleteIncrement, isPending: isDeleting } = useDeleteEmployeeIncrementMaster();
 
@@ -136,6 +146,7 @@ export default function EmployeeIncrementSalaryPage(props: { searchParams: Searc
                             isLoading={isGridLoading || isDeleting}
                             showViewOptions={false}
                             isPaginationRequired={true}
+                            isSearchRequired={true}
                         />
                     </div>
                 </CollapsibleSection>

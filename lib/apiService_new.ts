@@ -6,6 +6,7 @@ export type ApiBaseUrlKey =
     | 'default'
     | 'preadmission'
     | 'admission'
+    | 'college'
     | 'fees'
     | 'exam'
     | 'hrms'
@@ -13,7 +14,8 @@ export type ApiBaseUrlKey =
     | 'hmslms'
     | 'timetable'
     | 'hrmsrecruitment'
-    | 'signage';
+    | 'signage'
+    | 'collegepreadmission';
 
 class ApiServiceNew {
     private instances: Map<string, AxiosInstance>;
@@ -27,6 +29,7 @@ class ApiServiceNew {
             default: process.env.NEXT_PUBLIC_API_BASE_URL || '',
             preadmission: process.env.NEXT_PUBLIC_PREADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             admission: process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+
             fees: process.env.NEXT_PUBLIC_FEES_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             exam: process.env.NEXT_PUBLIC_EXAM_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             hrms: process.env.NEXT_PUBLIC_HRMS_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
@@ -34,7 +37,9 @@ class ApiServiceNew {
             hmslms: process.env.NEXT_PUBLIC_HRMS_LMS_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             timetable: process.env.NEXT_PUBLIC_TIMETABLE_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             hrmsrecruitment: process.env.NEXT_PUBLIC_HRMS_RECRUITMENT_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
-            signage: process.env.NEXT_PUBLIC_SIGNAGE_API_BASE_URL || process.env.SIGNAGE_API_BASE_URL || 'http://172.16.10.77:65501'
+            signage: process.env.NEXT_PUBLIC_SIGNAGE_API_BASE_URL || process.env.SIGNAGE_API_BASE_URL || 'http://172.16.10.77:65501',
+            college: process.env.NEXT_PUBLIC_COLLEGE_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            collegepreadmission: process.env.NEXT_PUBLIC_COLLEGEPREADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
         };
 
         // Initialize default instance

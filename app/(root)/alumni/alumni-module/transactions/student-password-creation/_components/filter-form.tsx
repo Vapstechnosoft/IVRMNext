@@ -169,16 +169,20 @@ export default function FilterForm({ years, classes, sections, onSubmit, onCance
                     <Button type='submit' className='w-32 bg-primary'>
                         <Eye className='mr-2 h-4 w-4' /> SHOW
                     </Button>
-                    <Button type='button' variant='destructive' onClick={() => { 
-                        form.reset({
-                            filterdata: 'stureg',
-                            asmaY_Id: '',
-                            asmcL_Id: '',
-                            asmS_Id: ''
-                        });
-                        setResetKey(prev => prev + 1);
-                        onCancel(); 
-                    }} className='w-32'>
+                    <Button
+                        type='button'
+                        variant='destructive'
+                        onClick={() => {
+                            form.reset({
+                                filterdata: 'stureg',
+                                asmaY_Id: '',
+                                asmcL_Id: '',
+                                asmS_Id: ''
+                            });
+                            setResetKey((prev) => prev + 1);
+                            onCancel();
+                        }}
+                        className='w-32'>
                         <X className='mr-2 h-4 w-4' /> CANCEL
                     </Button>
                 </div>

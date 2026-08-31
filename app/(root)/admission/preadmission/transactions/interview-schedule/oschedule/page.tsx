@@ -15,6 +15,9 @@ import OralTestScheduleForm from './_components/add-form';
 import { oralTestScheduleColumns } from './_components/columns';
 import ParticipantsModal from './_components/participants-modal';
 import StudentListModal from './_components/student-list-modal';
+import { parseAsString, useQueryState } from 'nuqs';
+import { tableSearchVariables } from '@/lib/data-table.config';
+import React from 'react';
 
 export default function OralTestSchedulePage() {
     return (
@@ -43,7 +46,34 @@ function OralTestScheduleContent() {
         closeToggleForm
     } = useFormContext<IOralTestSchedule>();
 
-    const tableProps = useDataTableProps(response, { dataKey: 'oralTestSchedule' });
+    const [searchQuery, setSearchQuery] = useQueryState(
+        tableSearchVariables.search,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+    const [localSearch, setLocalSearch] = React.useState(searchQuery || '');
+
+    React.useEffect(() => {
+        const timer = setTimeout(() => setSearchQuery(localSearch || null), 300);
+        return () => clearTimeout(timer);
+    }, [localSearch, setSearchQuery]);
+
+    const filteredData = React.useMemo(() => {
+        if (!response?.oralTestSchedule) return [];
+        if (!searchQuery) return response.oralTestSchedule;
+        
+        const lowerQuery = searchQuery.toLowerCase();
+        return response.oralTestSchedule.filter((item: any) => {
+            // Filter by the visible columns in the grid
+            return (
+                (item.paotS_ScheduleName && String(item.paotS_ScheduleName).toLowerCase().includes(lowerQuery)) ||
+                (item.paotS_ScheduleDate && String(item.paotS_ScheduleDate).toLowerCase().includes(lowerQuery)) ||
+                (item.paotS_ScheduleTime && String(item.paotS_ScheduleTime).toLowerCase().includes(lowerQuery)) ||
+                (item.paotS_ScheduleTimeTo && String(item.paotS_ScheduleTimeTo).toLowerCase().includes(lowerQuery))
+            );
+        });
+    }, [response?.oralTestSchedule, searchQuery]);
+
+    const tableProps = useDataTableProps({ oralTestSchedule: filteredData }, { dataKey: 'oralTestSchedule' });
 
     return (
         <div className='container space-y-4 py-6'>
@@ -142,13 +172,13 @@ function OralTestScheduleContent() {
                             <div className='flex items-center gap-2 font-bold text-[10px] uppercase'>
                                 Grid Records :{' '}
                                 <span className='flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-slate-500 px-1 text-white'>
-                                    {response?.oralTestSchedule?.length || 0}
+                                    {filteredData?.length || 0}
                                 </span>
                             </div>
                             <div className='flex items-center gap-2 font-bold text-[10px] uppercase'>
                                 Scheduled Students:{' '}
                                 <span className='flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-slate-500 px-1 text-white'>
-                                    {response?.oralTestSchedule?.reduce((acc: number, curr: any) => acc + (curr.ocount || 0), 0) || 0}
+                                    {filteredData?.reduce((acc: number, curr: any) => acc + (curr.ocount || 0), 0) || 0}
                                 </span>
                             </div>
                         </div>
@@ -171,7 +201,12 @@ function OralTestScheduleContent() {
 
                             <div className='relative'>
                                 <Search className='-translate-y-1/2 absolute top-1/2 left-2.5 h-3 w-3 text-slate-400' />
-                                <Input placeholder='search here...' className='h-7 w-48 border-slate-300 bg-slate-50 pl-8 text-[10px]' />
+                                <Input 
+                                    placeholder='search here...' 
+                                    className='h-7 w-48 border-slate-300 bg-slate-50 pl-8 text-[10px]' 
+                                    value={localSearch}
+                                    onChange={(e) => setLocalSearch(e.target.value)}
+                                />
                             </div>
                         </div>
                     </div>

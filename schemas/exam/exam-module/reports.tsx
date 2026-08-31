@@ -733,6 +733,15 @@ export const finalNdasReportCardSchema = z.object({
 
 export type FinalNdasReportCardSchema = z.infer<typeof finalNdasReportCardSchema>;
 
+export const ndasReportCardTermSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export type NdasReportCardTermSchema = z.infer<typeof ndasReportCardTermSchema>;
+
 export const promotionReportCardSophiaSchema = z.object({
     mI_Id: z.number().optional(),
     asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
