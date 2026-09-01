@@ -4677,8 +4677,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                     />
                                                 </div>
 
-                                                {/* Row 3: Admission No & Class & Section */}
-                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+                                                {/* Row 3: Admission No & Class */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                                     <InputText
                                                         label='Admission No'
                                                         required
@@ -4741,54 +4741,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                             )}
                                                         />
                                                         {errors.asmcL_Id && <FormError>{errors.asmcL_Id.message}</FormError>}
-                                                    </div>
-                                                    <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='asmS_Id'>
-                                                            Section <span className='ml-1 text-red-500'>*</span>
-                                                        </Label>
-                                                        <Controller
-                                                            name='asmS_Id'
-                                                            control={control}
-                                                            render={({ field }) => (
-                                                                <Select
-                                                                    key={`sec_${field.value || 'empty'}_${sectionData?.data?.length || 0}`}
-                                                                    value={field.value?.toString() || ''}
-                                                                    onValueChange={(value) => field.onChange(Number(value))}
-                                                                    disabled={!classId || classId === 0 || sectionLoading}>
-                                                                    <SelectTrigger
-                                                                        disabled
-                                                                        className={cn(errors.asmS_Id && 'border-red-500')}>
-                                                                        <SelectValue
-                                                                            placeholder={sectionLoading ? 'Loading...' : 'Select section'}
-                                                                        />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {sectionLoading ? (
-                                                                            <SelectItem value='0' disabled>
-                                                                                Loading sections...
-                                                                            </SelectItem>
-                                                                        ) : sectionError ? (
-                                                                            <SelectItem value='error' disabled>
-                                                                                Error loading sections
-                                                                            </SelectItem>
-                                                                        ) : sectionData?.data && sectionData.data.length > 0 ? (
-                                                                            sectionData.data.map((section: any) => (
-                                                                                <SelectItem
-                                                                                    key={section.asmS_Id}
-                                                                                    value={section.asmS_Id.toString()}>
-                                                                                    {section.asmC_SectionName}
-                                                                                </SelectItem>
-                                                                            ))
-                                                                        ) : (
-                                                                            <SelectItem value='0' disabled>
-                                                                                No sections available
-                                                                            </SelectItem>
-                                                                        )}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                            )}
-                                                        />
-                                                        {errors.asmS_Id && <FormError>{errors.asmS_Id.message}</FormError>}
                                                     </div>
                                                 </div>
 
@@ -5192,15 +5144,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                     />
                                                 </div>
 
-                                                {/* Row 11: Biometric Id & RF Card No */}
+                                                {/* Row 11: RF Card No & Section */}
                                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                                    <InputText
-                                                        label='Biometric Id'
-                                                        id='amsT_BiometricId'
-                                                        placeholder='Enter biometric ID'
-                                                        {...register('amsT_BiometricId')}
-                                                        error={errors.amsT_BiometricId?.message}
-                                                    />
                                                     <InputText
                                                         label='RF Card No'
                                                         id='amsT_RFCardNo'
@@ -5208,6 +5153,54 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                         {...register('amsT_RFCardNo')}
                                                         error={errors.amsT_RFCardNo?.message}
                                                     />
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='asmS_Id'>
+                                                            Section <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
+                                                        <Controller
+                                                            name='asmS_Id'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select
+                                                                    key={`sec_${field.value || 'empty'}_${sectionData?.data?.length || 0}`}
+                                                                    value={field.value?.toString() || ''}
+                                                                    onValueChange={(value) => field.onChange(Number(value))}
+                                                                    disabled={!classId || classId === 0 || sectionLoading}>
+                                                                    <SelectTrigger
+                                                                        disabled
+                                                                        className={cn(errors.asmS_Id && 'border-red-500')}>
+                                                                        <SelectValue
+                                                                            placeholder={sectionLoading ? 'Loading...' : 'Select section'}
+                                                                        />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {sectionLoading ? (
+                                                                            <SelectItem value='0' disabled>
+                                                                                Loading sections...
+                                                                            </SelectItem>
+                                                                        ) : sectionError ? (
+                                                                            <SelectItem value='error' disabled>
+                                                                                Error loading sections
+                                                                            </SelectItem>
+                                                                        ) : sectionData?.data && sectionData.data.length > 0 ? (
+                                                                            sectionData.data.map((section: any) => (
+                                                                                <SelectItem
+                                                                                    key={section.asmS_Id}
+                                                                                    value={section.asmS_Id.toString()}>
+                                                                                    {section.asmC_SectionName}
+                                                                                </SelectItem>
+                                                                            ))
+                                                                        ) : (
+                                                                            <SelectItem value='0' disabled>
+                                                                                No sections available
+                                                                            </SelectItem>
+                                                                        )}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                        />
+                                                        {errors.asmS_Id && <FormError>{errors.asmS_Id.message}</FormError>}
+                                                    </div>
                                                 </div>
                                             </div>
 

@@ -14,6 +14,7 @@ import {
     EyeOff,
     KeyRound,
     Lock,
+    Loader2,
     Mail,
     Newspaper,
     Send,
@@ -332,11 +333,10 @@ export default function SigninForm() {
                                     className={`btn-premium-primary ${isPending ? 'is-authenticating' : ''}`}
                                     disabled={isPending}>
                                     {isPending ? (
-                                        <div className='loading-spinner'>
-                                            <div className='dot' />
-                                            <div className='dot' />
-                                            <div className='dot' />
-                                        </div>
+                                        <>
+                                            <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                                            <span>Signing In...</span>
+                                        </>
                                     ) : (
                                         <>
                                             <span>Sign In</span>
