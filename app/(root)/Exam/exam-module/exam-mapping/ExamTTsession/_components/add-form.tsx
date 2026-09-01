@@ -12,11 +12,43 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-const formSchema = z.object({
-    ettS_SessionName: z.string().min(1, { message: 'Session Name is required' }),
-    ettS_StartTime: z.string().min(1, { message: 'Start Time is required' }),
-    ettS_EndTime: z.string().min(1, { message: 'End Time is required' })
-});
+const parseTimeToMinutes = (timeStr: string): number | null => {
+    if (!timeStr) return null;
+    try {
+        const match = timeStr.match(/(\d+):(\d+)(?::(\d+))?\s*(AM|PM|am|pm)?/i);
+        if (!match) return null;
+        let hours = Number.parseInt(match[1], 10);
+        const minutes = Number.parseInt(match[2], 10);
+        const ampm = match[4]?.toUpperCase();
+
+        if (ampm === 'PM' && hours < 12) hours += 12;
+        if (ampm === 'AM' && hours === 12) hours = 0;
+
+        return hours * 60 + minutes;
+    } catch {
+        return null;
+    }
+};
+
+const formSchema = z
+    .object({
+        ettS_SessionName: z.string().min(1, { message: 'Session Name is required' }),
+        ettS_StartTime: z.string().min(1, { message: 'Start Time is required' }),
+        ettS_EndTime: z.string().min(1, { message: 'End Time is required' })
+    })
+    .refine(
+        (data) => {
+            if (!data.ettS_StartTime || !data.ettS_EndTime) return true;
+            const startMinutes = parseTimeToMinutes(data.ettS_StartTime);
+            const endMinutes = parseTimeToMinutes(data.ettS_EndTime);
+            if (startMinutes === null || endMinutes === null) return true;
+            return endMinutes > startMinutes;
+        },
+        {
+            message: 'End Time must be after Start Time',
+            path: ['ettS_EndTime']
+        }
+    );
 
 export default function AddExamTTSessionForm({
     onSuccess,
@@ -30,6 +62,7 @@ export default function AddExamTTSessionForm({
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
+        mode: 'all',
         defaultValues: {
             ettS_SessionName: '',
             ettS_StartTime: '',
@@ -98,18 +131,33 @@ export default function AddExamTTSessionForm({
                     ettS_Activeflag: rowData ? rowData.ettS_Activeflag : true
                 };
 
-                const response = await addOrUpdateExamTTSession(dataToSave);
+                const response: any = await addOrUpdateExamTTSession(dataToSave);
+                const isSuccess =
+                    response?.success === true ||
+                    response?.returnval === true ||
+                    response?.returnval === 'true' ||
+                    response?.returnVal === true ||
+                    response?.returnVal === 'true' ||
+                    (response &&
+                        typeof response === 'object' &&
+                        response?.success !== false &&
+                        response?.returnval !== false &&
+                        response?.returnVal !== false &&
+                        !response?.error);
 
-                if (response?.success) {
-                    toast.success(rowData ? 'Session Updated Successfully' : 'Session Added Successfully');
+                if (isSuccess) {
+                    toast.success(
+                        response?.message ||
+                            (rowData ? 'Session Updated Successfully' : 'Session Added Successfully')
+                    );
                     form.reset();
                     refetchAll();
                     if (onSuccess) onSuccess();
                 } else {
-                    toast.error(response.message || 'Failed to save session');
+                    toast.error(response?.message || 'Failed to save session');
                 }
-            } catch (error) {
-                toast.error('An error occurred while saving the session');
+            } catch (error: any) {
+                toast.error(error?.message || 'An error occurred while saving the session');
             }
         });
     }
@@ -145,7 +193,16 @@ export default function AddExamTTSessionForm({
                                             Start Time <span className='text-destructive'>*</span>
                                         </FormLabel>
                                         <FormControl>
-                                            <Input type='time' {...field} />
+                                            <Input
+                                                type='time'
+                                                {...field}
+                                                onChange={(e) => {
+                                                    field.onChange(e);
+                                                    if (form.getValues('ettS_EndTime')) {
+                                                        form.trigger('ettS_EndTime');
+                                                    }
+                                                }}
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -161,7 +218,16 @@ export default function AddExamTTSessionForm({
                                             End Time <span className='text-destructive'>*</span>
                                         </FormLabel>
                                         <FormControl>
-                                            <Input type='time' {...field} />
+                                            <Input
+                                                type='time'
+                                                {...field}
+                                                onChange={(e) => {
+                                                    field.onChange(e);
+                                                    if (form.getValues('ettS_StartTime')) {
+                                                        form.trigger('ettS_EndTime');
+                                                    }
+                                                }}
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
