@@ -3,19 +3,11 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DatePicker } from '@/components/ui/date-picker';
-import {
-    Form,
-} from '@/components/ui/form';
+import { Form } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSRKVSSportsReport } from '@/hooks/sports/useSRKVSSportsReport';
 import {
     type ISRKVSCategory,
@@ -27,7 +19,7 @@ import {
     type ISRKVSSubSubEvent,
     type ISRKVSYear,
     type SRKVSSportsReportFormSchema,
-    SRKVSSportsReportSchema,
+    SRKVSSportsReportSchema
 } from '@/types/sports/reports/srkvs-sports-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
@@ -57,7 +49,7 @@ const normalizeItem = (item: any): any => {
         SPCCMUOM_UOMName: item.uomName,
         ASMAY_Year: item.academicYear,
         SPCCESTR_Value: item.points,
-        SPCCESTR_Rank: item.rank,
+        SPCCESTR_Rank: item.rank
     };
 };
 
@@ -73,7 +65,15 @@ const groupData = (flatData: any[], type: string): ISRKVSReportData[] => {
 
     normalized.forEach((item: any) => {
         let key = '';
-        if (type === 'Record' || type === 'Consolidated' || type === 'Indoor' || type === 'Outdoor' || type === 'Team' || type === 'Externals' || type === 'Selection') {
+        if (
+            type === 'Record' ||
+            type === 'Consolidated' ||
+            type === 'Indoor' ||
+            type === 'Outdoor' ||
+            type === 'Team' ||
+            type === 'Externals' ||
+            type === 'Selection'
+        ) {
             key = item.SPCCMCC_CompitionCategory || 'Unknown';
         } else if (type === 'Start' || type === 'Finish') {
             key = (item.SPCCMCC_CompitionCategory || '') + '_' + (item.SPCCMSCCG_SportsCCGroupName || '');
@@ -114,8 +114,8 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
             SPCCME_Id: undefined,
             selectedCompetitionLevels: [],
             selectedCategories: [],
-            selectedSubSubEvents: [],
-        },
+            selectedSubSubEvents: []
+        }
     });
 
     const {
@@ -143,14 +143,17 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
     // Year Change -> Get Class (and other dropdowns)
     useEffect(() => {
         if (watchedYear) {
-            getClass.mutate({ asmaY_Id: watchedYear }, {
-                onSuccess: (data) => {
-                    setCategories(Array.isArray(data?.categoryList) ? data.categoryList : []);
-                    setCompetitionLevels(Array.isArray(data?.competetionLevel) ? data.competetionLevel : []);
-                    setMasterEvents(Array.isArray(data?.masterEvent) ? data.masterEvent : []);
-                    setMainEvents(Array.isArray(data?.getMasterEvent) ? data.getMasterEvent : []);
+            getClass.mutate(
+                { asmaY_Id: watchedYear },
+                {
+                    onSuccess: (data) => {
+                        setCategories(Array.isArray(data?.categoryList) ? data.categoryList : []);
+                        setCompetitionLevels(Array.isArray(data?.competetionLevel) ? data.competetionLevel : []);
+                        setMasterEvents(Array.isArray(data?.masterEvent) ? data.masterEvent : []);
+                        setMainEvents(Array.isArray(data?.getMasterEvent) ? data.getMasterEvent : []);
+                    }
                 }
-            });
+            );
         }
     }, [watchedYear]);
 
@@ -158,11 +161,14 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
     useEffect(() => {
         if (watchedYear && watchedMainEvent) {
             if (['Start', 'Finish', 'Indoor', 'Outdoor', 'Team', 'Externals'].includes(watchedType)) {
-                getSportsName.mutate({ asmaY_Id: watchedYear, spccmsccG_Id: watchedMainEvent }, {
-                    onSuccess: (data) => {
-                        setSubEvents(Array.isArray(data?.sportsCCList) ? data.sportsCCList : []);
+                getSportsName.mutate(
+                    { asmaY_Id: watchedYear, spccmsccG_Id: watchedMainEvent },
+                    {
+                        onSuccess: (data) => {
+                            setSubEvents(Array.isArray(data?.sportsCCList) ? data.sportsCCList : []);
+                        }
                     }
-                });
+                );
             }
         }
     }, [watchedYear, watchedMainEvent, watchedType]);
@@ -171,11 +177,14 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
     useEffect(() => {
         if (watchedYear && watchedSubEvent) {
             if (['Start', 'Finish', 'Indoor', 'Outdoor', 'Team', 'Externals'].includes(watchedType)) {
-                getUomName.mutate({ asmaY_Id: watchedYear, spccmscC_Id: watchedSubEvent }, {
-                    onSuccess: (data) => {
-                        setSubSubEvents(Array.isArray(data?.getsubsubevent) ? data.getsubsubevent : []);
+                getUomName.mutate(
+                    { asmaY_Id: watchedYear, spccmscC_Id: watchedSubEvent },
+                    {
+                        onSuccess: (data) => {
+                            setSubSubEvents(Array.isArray(data?.getsubsubevent) ? data.getsubsubevent : []);
+                        }
                     }
-                });
+                );
             }
         }
     }, [watchedYear, watchedSubEvent, watchedType]);
@@ -185,7 +194,6 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
         onTypeChange(watchedType);
         // Reset dependent fields logic can be added here if reset is needed on type change
     }, [watchedType, onTypeChange]);
-
 
     const onSubmit = (data: SRKVSSportsReportFormSchema) => {
         const payload: any = {
@@ -197,7 +205,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
 
         // Handle Category Lists
         if (isMultiCategory) {
-            payload.Categorylists = data.selectedCategories?.map(c => ({ SPCCMCC_Id: c.spccmcC_Id })) || [];
+            payload.Categorylists = data.selectedCategories?.map((c) => ({ SPCCMCC_Id: c.spccmcC_Id })) || [];
         } else if (data.spccmcC_Id) {
             payload.Categorylists = [{ SPCCMCC_Id: data.spccmcC_Id }];
         } else {
@@ -206,7 +214,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
 
         // Handle Competition Levels
         if (isMultiLevel) {
-            payload.CompetetionLevels = data.selectedCompetitionLevels?.map(l => ({ SPCCMCL_Id: l.spccmcL_Id })) || [];
+            payload.CompetetionLevels = data.selectedCompetitionLevels?.map((l) => ({ SPCCMCL_Id: l.spccmcL_Id })) || [];
         } else if (data.spccmcL_Id) {
             payload.CompetetionLevels = [{ SPCCMCL_Id: data.spccmcL_Id }];
         } else {
@@ -218,7 +226,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
         const isSingleSubSub = ['Start', 'Team', 'Finish'].includes(data.Type);
 
         if (isMultiSubSub) {
-            payload.SubEventLists = data.selectedSubSubEvents?.map(s => ({ SPCCMSCCG_Id: s.spccmsccG_Id })) || [];
+            payload.SubEventLists = data.selectedSubSubEvents?.map((s) => ({ SPCCMSCCG_Id: s.spccmsccG_Id })) || [];
         } else if (isSingleSubSub && data.spccmsccG_Idsub) {
             payload.SubEventLists = [{ SPCCMSCCG_Id: data.spccmsccG_Idsub }];
         }
@@ -242,12 +250,16 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
             onError: (error) => {
                 console.error(error);
                 toast.error('Failed to generate report');
-            },
+            }
         });
     };
 
     if (isInitialLoading) {
-        return <div className="flex justify-center p-4"><Loader2 className="h-6 w-6 animate-spin" /></div>;
+        return (
+            <div className='flex justify-center p-4'>
+                <Loader2 className='h-6 w-6 animate-spin' />
+            </div>
+        );
     }
 
     return (
@@ -255,19 +267,16 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
             <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4 rounded-md border bg-white p-4 shadow-sm'>
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                     {/* Academic Year */}
-                    <div className="flex flex-col gap-2">
+                    <div className='flex flex-col gap-2'>
                         <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Academic Year</Label>
                         <Controller
                             control={control}
-                            name="ASMAY_Id"
+                            name='ASMAY_Id'
                             render={({ field }) => (
-                                <div className="flex flex-col gap-1">
-                                    <Select
-                                        onValueChange={(val) => field.onChange(Number(val))}
-                                        value={field.value?.toString()}
-                                    >
+                                <div className='flex flex-col gap-1'>
+                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                         <SelectTrigger className={errors.ASMAY_Id ? 'border-destructive ring-destructive/20' : ''}>
-                                            <SelectValue placeholder="Select Academic Year" />
+                                            <SelectValue placeholder='Select Academic Year' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {academicYears.map((item) => (
@@ -277,26 +286,25 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    {errors.ASMAY_Id && <span className='font-medium text-destructive text-xs'>{errors.ASMAY_Id.message}</span>}
+                                    {errors.ASMAY_Id && (
+                                        <span className='font-medium text-destructive text-xs'>{errors.ASMAY_Id.message}</span>
+                                    )}
                                 </div>
                             )}
                         />
                     </div>
 
                     {/* Event */}
-                    <div className="flex flex-col gap-2">
+                    <div className='flex flex-col gap-2'>
                         <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Event</Label>
                         <Controller
                             control={control}
-                            name="SPCCME_Id"
+                            name='SPCCME_Id'
                             render={({ field }) => (
-                                <div className="flex flex-col gap-1">
-                                    <Select
-                                        onValueChange={(val) => field.onChange(Number(val))}
-                                        value={field.value?.toString()}
-                                    >
+                                <div className='flex flex-col gap-1'>
+                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                         <SelectTrigger className={errors.SPCCME_Id ? 'border-destructive ring-destructive/20' : ''}>
-                                            <SelectValue placeholder="Select Event" />
+                                            <SelectValue placeholder='Select Event' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {masterEvents.map((item) => (
@@ -306,36 +314,35 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    {errors.SPCCME_Id && <span className='font-medium text-destructive text-xs'>{errors.SPCCME_Id.message}</span>}
+                                    {errors.SPCCME_Id && (
+                                        <span className='font-medium text-destructive text-xs'>{errors.SPCCME_Id.message}</span>
+                                    )}
                                 </div>
                             )}
                         />
                     </div>
 
-                    <div className="flex flex-col gap-2">
+                    <div className='flex flex-col gap-2'>
                         <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Result</Label>
                         <Controller
                             control={control}
-                            name="Type"
+                            name='Type'
                             render={({ field }) => (
-                                <div className="flex flex-col gap-1">
-                                    <Select
-                                        onValueChange={field.onChange}
-                                        value={field.value}
-                                    >
+                                <div className='flex flex-col gap-1'>
+                                    <Select onValueChange={field.onChange} value={field.value}>
                                         <SelectTrigger className={errors.Type ? 'border-destructive ring-destructive/20' : ''}>
-                                            <SelectValue placeholder="Select Result" />
+                                            <SelectValue placeholder='Select Result' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="Record">Records</SelectItem>
-                                            <SelectItem value="Start">Start List</SelectItem>
-                                            <SelectItem value="Finish">Finish List</SelectItem>
-                                            <SelectItem value="Consolidated">Consolidated</SelectItem>
-                                            <SelectItem value="Indoor">Indoor</SelectItem>
-                                            <SelectItem value="Outdoor">Outdoor</SelectItem>
-                                            <SelectItem value="Team">Team</SelectItem>
-                                            <SelectItem value="Externals">Externals</SelectItem>
-                                            <SelectItem value="Selection">Selection</SelectItem>
+                                            <SelectItem value='Record'>Records</SelectItem>
+                                            <SelectItem value='Start'>Start List</SelectItem>
+                                            <SelectItem value='Finish'>Finish List</SelectItem>
+                                            <SelectItem value='Consolidated'>Consolidated</SelectItem>
+                                            <SelectItem value='Indoor'>Indoor</SelectItem>
+                                            <SelectItem value='Outdoor'>Outdoor</SelectItem>
+                                            <SelectItem value='Team'>Team</SelectItem>
+                                            <SelectItem value='Externals'>Externals</SelectItem>
+                                            <SelectItem value='Selection'>Selection</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     {errors.Type && <span className='font-medium text-destructive text-xs'>{errors.Type.message}</span>}
@@ -348,50 +355,61 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                     {watchedType && (
                         <>
                             {isMultiLevel ? (
-                                <div className="flex flex-col gap-2">
-                                    <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Competition Level</Label>
+                                <div className='flex flex-col gap-2'>
+                                    <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">
+                                        Competition Level
+                                    </Label>
                                     <Controller
                                         control={control}
-                                        name="selectedCompetitionLevels"
+                                        name='selectedCompetitionLevels'
                                         render={({ field }) => (
-                                            <div className="flex flex-col gap-1">
-                                                <ScrollArea className={`h-[150px] w-full rounded-md border p-2 ${errors.selectedCompetitionLevels ? 'border-destructive ring-destructive/20' : ''}`}>
+                                            <div className='flex flex-col gap-1'>
+                                                <ScrollArea
+                                                    className={`h-[150px] w-full rounded-md border p-2 ${errors.selectedCompetitionLevels ? 'border-destructive ring-destructive/20' : ''}`}>
                                                     {competitionLevels.map((item) => (
-                                                        <div key={item.spccmcL_Id} className='mb-2 flex flex-row items-start space-x-3 space-y-0'>
+                                                        <div
+                                                            key={item.spccmcL_Id}
+                                                            className='mb-2 flex flex-row items-start space-x-3 space-y-0'>
                                                             <Checkbox
-                                                                checked={field.value?.some(val => val.spccmcL_Id === item.spccmcL_Id)}
+                                                                checked={field.value?.some((val) => val.spccmcL_Id === item.spccmcL_Id)}
                                                                 onCheckedChange={(checked) => {
                                                                     const current = field.value || [];
                                                                     return checked
                                                                         ? field.onChange([...current, { spccmcL_Id: item.spccmcL_Id }])
-                                                                        : field.onChange(current.filter(val => val.spccmcL_Id !== item.spccmcL_Id));
+                                                                        : field.onChange(
+                                                                              current.filter((val) => val.spccmcL_Id !== item.spccmcL_Id)
+                                                                          );
                                                                 }}
                                                             />
-                                                            <label className='font-normal text-sm'>
-                                                                {item.spccmcL_CompitionLevel}
-                                                            </label>
+                                                            <label className='font-normal text-sm'>{item.spccmcL_CompitionLevel}</label>
                                                         </div>
                                                     ))}
                                                 </ScrollArea>
-                                                {errors.selectedCompetitionLevels && <span className='font-medium text-destructive text-xs'>{errors.selectedCompetitionLevels.message}</span>}
+                                                {errors.selectedCompetitionLevels && (
+                                                    <span className='font-medium text-destructive text-xs'>
+                                                        {errors.selectedCompetitionLevels.message}
+                                                    </span>
+                                                )}
                                             </div>
                                         )}
                                     />
                                 </div>
                             ) : (
-                                <div className="flex flex-col gap-2">
-                                    <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Competition Level</Label>
+                                <div className='flex flex-col gap-2'>
+                                    <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">
+                                        Competition Level
+                                    </Label>
                                     <Controller
                                         control={control}
-                                        name="spccmcL_Id"
+                                        name='spccmcL_Id'
                                         render={({ field }) => (
-                                            <div className="flex flex-col gap-1">
+                                            <div className='flex flex-col gap-1'>
                                                 <Select
                                                     onValueChange={(val) => field.onChange(Number(val))}
-                                                    value={field.value?.toString()}
-                                                >
-                                                    <SelectTrigger className={errors.spccmcL_Id ? 'border-destructive ring-destructive/20' : ''}>
-                                                        <SelectValue placeholder="Select Competition Level" />
+                                                    value={field.value?.toString()}>
+                                                    <SelectTrigger
+                                                        className={errors.spccmcL_Id ? 'border-destructive ring-destructive/20' : ''}>
+                                                        <SelectValue placeholder='Select Competition Level' />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {competitionLevels.map((item) => (
@@ -401,7 +419,11 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
-                                                {errors.spccmcL_Id && <span className='font-medium text-destructive text-xs'>{errors.spccmcL_Id.message}</span>}
+                                                {errors.spccmcL_Id && (
+                                                    <span className='font-medium text-destructive text-xs'>
+                                                        {errors.spccmcL_Id.message}
+                                                    </span>
+                                                )}
                                             </div>
                                         )}
                                     />
@@ -411,74 +433,86 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                     )}
 
                     {/* From Date */}
-                    <div className="flex flex-col gap-2">
+                    <div className='flex flex-col gap-2'>
                         <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Date</Label>
                         <Controller
                             control={control}
-                            name="FromDate"
+                            name='FromDate'
                             render={({ field }) => (
-                                <div className="flex flex-col gap-1">
+                                <div className='flex flex-col gap-1'>
                                     <DatePicker
                                         date={field.value}
                                         setDate={field.onChange}
-                                        placeholder="Select Date"
+                                        placeholder='Select Date'
                                         className={errors.FromDate ? 'border-destructive ring-destructive/20' : ''}
                                     />
-                                    {errors.FromDate && <span className='font-medium text-destructive text-xs'>{errors.FromDate.message}</span>}
+                                    {errors.FromDate && (
+                                        <span className='font-medium text-destructive text-xs'>{errors.FromDate.message}</span>
+                                    )}
                                 </div>
                             )}
                         />
                     </div>
 
-
                     {/* Competition Category */}
                     {watchedType && (
                         <>
                             {isMultiCategory ? (
-                                <div className="flex flex-col gap-2">
-                                    <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Competition Category</Label>
+                                <div className='flex flex-col gap-2'>
+                                    <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">
+                                        Competition Category
+                                    </Label>
                                     <Controller
                                         control={control}
-                                        name="selectedCategories"
+                                        name='selectedCategories'
                                         render={({ field }) => (
-                                            <div className="flex flex-col gap-1">
-                                                <ScrollArea className={`h-[150px] w-full rounded-md border p-2 ${errors.selectedCategories ? 'border-destructive ring-destructive/20' : ''}`}>
+                                            <div className='flex flex-col gap-1'>
+                                                <ScrollArea
+                                                    className={`h-[150px] w-full rounded-md border p-2 ${errors.selectedCategories ? 'border-destructive ring-destructive/20' : ''}`}>
                                                     {categories.map((item) => (
-                                                        <div key={item.spccmcC_Id} className='mb-2 flex flex-row items-start space-x-3 space-y-0'>
+                                                        <div
+                                                            key={item.spccmcC_Id}
+                                                            className='mb-2 flex flex-row items-start space-x-3 space-y-0'>
                                                             <Checkbox
-                                                                checked={field.value?.some(val => val.spccmcC_Id === item.spccmcC_Id)}
+                                                                checked={field.value?.some((val) => val.spccmcC_Id === item.spccmcC_Id)}
                                                                 onCheckedChange={(checked) => {
                                                                     const current = field.value || [];
                                                                     return checked
                                                                         ? field.onChange([...current, { spccmcC_Id: item.spccmcC_Id }])
-                                                                        : field.onChange(current.filter(val => val.spccmcC_Id !== item.spccmcC_Id));
+                                                                        : field.onChange(
+                                                                              current.filter((val) => val.spccmcC_Id !== item.spccmcC_Id)
+                                                                          );
                                                                 }}
                                                             />
-                                                            <label className='font-normal text-sm'>
-                                                                {item.spccmcC_CompitionCategory}
-                                                            </label>
+                                                            <label className='font-normal text-sm'>{item.spccmcC_CompitionCategory}</label>
                                                         </div>
                                                     ))}
                                                 </ScrollArea>
-                                                {errors.selectedCategories && <span className='font-medium text-destructive text-xs'>{errors.selectedCategories.message}</span>}
+                                                {errors.selectedCategories && (
+                                                    <span className='font-medium text-destructive text-xs'>
+                                                        {errors.selectedCategories.message}
+                                                    </span>
+                                                )}
                                             </div>
                                         )}
                                     />
                                 </div>
                             ) : (
-                                <div className="flex flex-col gap-2">
-                                    <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Competition Category</Label>
+                                <div className='flex flex-col gap-2'>
+                                    <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">
+                                        Competition Category
+                                    </Label>
                                     <Controller
                                         control={control}
-                                        name="spccmcC_Id"
+                                        name='spccmcC_Id'
                                         render={({ field }) => (
-                                            <div className="flex flex-col gap-1">
+                                            <div className='flex flex-col gap-1'>
                                                 <Select
                                                     onValueChange={(val) => field.onChange(Number(val))}
-                                                    value={field.value?.toString()}
-                                                >
-                                                    <SelectTrigger className={errors.spccmcC_Id ? 'border-destructive ring-destructive/20' : ''}>
-                                                        <SelectValue placeholder="Select Category" />
+                                                    value={field.value?.toString()}>
+                                                    <SelectTrigger
+                                                        className={errors.spccmcC_Id ? 'border-destructive ring-destructive/20' : ''}>
+                                                        <SelectValue placeholder='Select Category' />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {categories.map((item) => (
@@ -488,7 +522,11 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
-                                                {errors.spccmcC_Id && <span className='font-medium text-destructive text-xs'>{errors.spccmcC_Id.message}</span>}
+                                                {errors.spccmcC_Id && (
+                                                    <span className='font-medium text-destructive text-xs'>
+                                                        {errors.spccmcC_Id.message}
+                                                    </span>
+                                                )}
                                             </div>
                                         )}
                                     />
@@ -498,15 +536,21 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                     )}
 
                     {/* Meet Year */}
-                    <div className="flex flex-col gap-2">
+                    <div className='flex flex-col gap-2'>
                         <Label className='font-semibold text-sm'>Meet Year</Label>
                         <Controller
                             control={control}
-                            name="Meet_Year"
+                            name='Meet_Year'
                             render={({ field }) => (
-                                <div className="flex flex-col gap-1">
-                                    <Input placeholder="Enter Meet Year" {...field} className={errors.Meet_Year ? 'border-destructive ring-destructive/20' : ''} />
-                                    {errors.Meet_Year && <span className='font-medium text-destructive text-xs'>{errors.Meet_Year.message}</span>}
+                                <div className='flex flex-col gap-1'>
+                                    <Input
+                                        placeholder='Enter Meet Year'
+                                        {...field}
+                                        className={errors.Meet_Year ? 'border-destructive ring-destructive/20' : ''}
+                                    />
+                                    {errors.Meet_Year && (
+                                        <span className='font-medium text-destructive text-xs'>{errors.Meet_Year.message}</span>
+                                    )}
                                 </div>
                             )}
                         />
@@ -516,19 +560,19 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                     {['Start', 'Finish', 'Indoor', 'Outdoor', 'Team', 'Externals'].includes(watchedType) && (
                         <>
                             {/* Main Event */}
-                            <div className="flex flex-col gap-2">
-                                <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Main Event</Label>
+                            <div className='flex flex-col gap-2'>
+                                <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">
+                                    Main Event
+                                </Label>
                                 <Controller
                                     control={control}
-                                    name="spccmsccG_Id"
+                                    name='spccmsccG_Id'
                                     render={({ field }) => (
-                                        <div className="flex flex-col gap-1">
-                                            <Select
-                                                onValueChange={(val) => field.onChange(Number(val))}
-                                                value={field.value?.toString()}
-                                            >
-                                                <SelectTrigger className={errors.spccmsccG_Id ? 'border-destructive ring-destructive/20' : ''}>
-                                                    <SelectValue placeholder="Select Main Event" />
+                                        <div className='flex flex-col gap-1'>
+                                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                                <SelectTrigger
+                                                    className={errors.spccmsccG_Id ? 'border-destructive ring-destructive/20' : ''}>
+                                                    <SelectValue placeholder='Select Main Event' />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {mainEvents.map((item) => (
@@ -538,26 +582,28 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                                     ))}
                                                 </SelectContent>
                                             </Select>
-                                            {errors.spccmsccG_Id && <span className='font-medium text-destructive text-xs'>{errors.spccmsccG_Id.message}</span>}
+                                            {errors.spccmsccG_Id && (
+                                                <span className='font-medium text-destructive text-xs'>{errors.spccmsccG_Id.message}</span>
+                                            )}
                                         </div>
                                     )}
                                 />
                             </div>
 
                             {/* Sub Event */}
-                            <div className="flex flex-col gap-2">
-                                <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Sub Event</Label>
+                            <div className='flex flex-col gap-2'>
+                                <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">
+                                    Sub Event
+                                </Label>
                                 <Controller
                                     control={control}
-                                    name="spccmscC_Id"
+                                    name='spccmscC_Id'
                                     render={({ field }) => (
-                                        <div className="flex flex-col gap-1">
-                                            <Select
-                                                onValueChange={(val) => field.onChange(Number(val))}
-                                                value={field.value?.toString()}
-                                            >
-                                                <SelectTrigger className={errors.spccmscC_Id ? 'border-destructive ring-destructive/20' : ''}>
-                                                    <SelectValue placeholder="Select Sub Event" />
+                                        <div className='flex flex-col gap-1'>
+                                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                                <SelectTrigger
+                                                    className={errors.spccmscC_Id ? 'border-destructive ring-destructive/20' : ''}>
+                                                    <SelectValue placeholder='Select Sub Event' />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {subEvents.map((item) => (
@@ -567,7 +613,9 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                                     ))}
                                                 </SelectContent>
                                             </Select>
-                                            {errors.spccmscC_Id && <span className='font-medium text-destructive text-xs'>{errors.spccmscC_Id.message}</span>}
+                                            {errors.spccmscC_Id && (
+                                                <span className='font-medium text-destructive text-xs'>{errors.spccmscC_Id.message}</span>
+                                            )}
                                         </div>
                                     )}
                                 />
@@ -576,23 +624,32 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                             {/* Sub Sub Event */}
                             {/* Multi for Indoor, Outdoor, Externals */}
                             {['Indoor', 'Outdoor', 'Externals'].includes(watchedType) && (
-                                <div className="flex flex-col gap-2">
-                                    <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Sub Sub Event</Label>
+                                <div className='flex flex-col gap-2'>
+                                    <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">
+                                        Sub Sub Event
+                                    </Label>
                                     <Controller
                                         control={control}
-                                        name="selectedSubSubEvents"
+                                        name='selectedSubSubEvents'
                                         render={({ field }) => (
-                                            <div className="flex flex-col gap-1">
-                                                <ScrollArea className={`h-[150px] w-full rounded-md border p-2 ${errors.selectedSubSubEvents ? 'border-destructive ring-destructive/20' : ''}`}>
+                                            <div className='flex flex-col gap-1'>
+                                                <ScrollArea
+                                                    className={`h-[150px] w-full rounded-md border p-2 ${errors.selectedSubSubEvents ? 'border-destructive ring-destructive/20' : ''}`}>
                                                     {subSubEvents.map((item) => (
-                                                        <div key={item.spccmsccG_Id} className='mb-2 flex flex-row items-start space-x-3 space-y-0'>
+                                                        <div
+                                                            key={item.spccmsccG_Id}
+                                                            className='mb-2 flex flex-row items-start space-x-3 space-y-0'>
                                                             <Checkbox
-                                                                checked={field.value?.some(val => val.spccmsccG_Id === item.spccmsccG_Id)}
+                                                                checked={field.value?.some((val) => val.spccmsccG_Id === item.spccmsccG_Id)}
                                                                 onCheckedChange={(checked) => {
                                                                     const current = field.value || [];
                                                                     return checked
                                                                         ? field.onChange([...current, { spccmsccG_Id: item.spccmsccG_Id }])
-                                                                        : field.onChange(current.filter(val => val.spccmsccG_Id !== item.spccmsccG_Id));
+                                                                        : field.onChange(
+                                                                              current.filter(
+                                                                                  (val) => val.spccmsccG_Id !== item.spccmsccG_Id
+                                                                              )
+                                                                          );
                                                                 }}
                                                             />
                                                             <label className='font-normal text-sm'>
@@ -601,7 +658,11 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                                         </div>
                                                     ))}
                                                 </ScrollArea>
-                                                {errors.selectedSubSubEvents && <span className='font-medium text-destructive text-xs'>{errors.selectedSubSubEvents.message}</span>}
+                                                {errors.selectedSubSubEvents && (
+                                                    <span className='font-medium text-destructive text-xs'>
+                                                        {errors.selectedSubSubEvents.message}
+                                                    </span>
+                                                )}
                                             </div>
                                         )}
                                     />
@@ -610,19 +671,21 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
 
                             {/* Single for Start, Team, Finish */}
                             {['Start', 'Team', 'Finish'].includes(watchedType) && (
-                                <div className="flex flex-col gap-2">
-                                    <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Sub Sub Event</Label>
+                                <div className='flex flex-col gap-2'>
+                                    <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">
+                                        Sub Sub Event
+                                    </Label>
                                     <Controller
                                         control={control}
-                                        name="spccmsccG_Idsub"
+                                        name='spccmsccG_Idsub'
                                         render={({ field }) => (
-                                            <div className="flex flex-col gap-1">
+                                            <div className='flex flex-col gap-1'>
                                                 <Select
                                                     onValueChange={(val) => field.onChange(Number(val))}
-                                                    value={field.value?.toString()}
-                                                >
-                                                    <SelectTrigger className={errors.spccmsccG_Idsub ? 'border-destructive ring-destructive/20' : ''}>
-                                                        <SelectValue placeholder="Select Sub Sub Event" />
+                                                    value={field.value?.toString()}>
+                                                    <SelectTrigger
+                                                        className={errors.spccmsccG_Idsub ? 'border-destructive ring-destructive/20' : ''}>
+                                                        <SelectValue placeholder='Select Sub Sub Event' />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {subSubEvents.map((item) => (
@@ -632,7 +695,11 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
-                                                {errors.spccmsccG_Idsub && <span className='font-medium text-destructive text-xs'>{errors.spccmsccG_Idsub.message}</span>}
+                                                {errors.spccmsccG_Idsub && (
+                                                    <span className='font-medium text-destructive text-xs'>
+                                                        {errors.spccmsccG_Idsub.message}
+                                                    </span>
+                                                )}
                                             </div>
                                         )}
                                     />
@@ -640,16 +707,19 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                             )}
                         </>
                     )}
-
                 </div>
 
-                <div className="flex justify-center gap-2">
-                    <Button type="submit" disabled={generateReport.isPending}>
-                        {generateReport.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <i className="fa fa-list-alt mr-2" aria-hidden="true"></i>}
+                <div className='flex justify-center gap-2'>
+                    <Button type='submit' disabled={generateReport.isPending}>
+                        {generateReport.isPending ? (
+                            <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                        ) : (
+                            <i className='fa fa-list-alt mr-2' aria-hidden='true'></i>
+                        )}
                         Report
                     </Button>
-                    <Button type="button" variant="destructive" onClick={() => window.location.reload()}>
-                        <i className="fa fa-times mr-2" aria-hidden="true"></i>
+                    <Button type='button' variant='destructive' onClick={() => window.location.reload()}>
+                        <i className='fa fa-times mr-2' aria-hidden='true'></i>
                         Cancel
                     </Button>
                 </div>

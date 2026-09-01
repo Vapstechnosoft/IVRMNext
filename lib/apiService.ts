@@ -21,8 +21,7 @@ export interface ApiArrayResponse<T> extends Partial<PaginationData> {
     } | null;
     [key: string]: unknown;
 }
-// biome-ignore lint/style/useNodejsImportProtocol: <explanation>
-// import https from 'https'; // Removed to avoid client-side bundling errors
+
 import { signOut } from '@/lib/auth';
 import type { ApiSearchparams } from '@/types';
 import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios';
@@ -33,8 +32,10 @@ export type ApiBaseUrlKey =
     | 'default'
     | 'preadmission'
     | 'admission'
+    | 'college'
     | 'fees'
     | 'exam'
+    | 'naac'
     | 'hrms'
     | 'hrmsfrontoffice'
     | 'hmslms'
@@ -50,7 +51,8 @@ export type ApiBaseUrlKey =
     | 'lessonplanner'
     | 'transport'
     | 'pettycashandassettracking'
-    | 'hrmsrecruitment';
+    | 'hrmsrecruitment'
+    | 'collegepreadmission';
 
 class ApiService {
     private instances: Map<string, AxiosInstance>;
@@ -66,6 +68,7 @@ class ApiService {
             admission: process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             fees: process.env.NEXT_PUBLIC_FEES_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             exam: process.env.NEXT_PUBLIC_EXAM_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            naac: process.env.NEXT_PUBLIC_NAAC_API_BASE_URL || 'http://localhost:5000/api',
             hostel: process.env.NEXT_PUBLIC_HOSTEL_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             hrms: process.env.NEXT_PUBLIC_HRMS_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             hrmsfrontoffice: process.env.NEXT_PUBLIC_HRMS_FRONTOFFICE_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
@@ -82,7 +85,10 @@ class ApiService {
             lessonplanner: process.env.NEXT_PUBLIC_LESSONPLANNER_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             transport: process.env.NEXT_PUBLIC_TRANSPORT_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             pettycashandassettracking: process.env.NEXT_PUBLIC_PETTYCASH_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
-            hrmsrecruitment: process.env.NEXT_PUBLIC_HRMS_RECRUITMENT_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || ''
+            hrmsrecruitment: process.env.NEXT_PUBLIC_HRMS_RECRUITMENT_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            college: process.env.NEXT_PUBLIC_COLLEGE_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            collegepreadmission: process.env.NEXT_PUBLIC_COLLEGEPREADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+
         };
 
         // Debug: info base URLs in development
@@ -96,10 +102,21 @@ class ApiService {
         this.getOrCreateInstance('default');
     }
 
-    private getOrCreateInstance(key: ApiBaseUrlKey | string): AxiosInstance {
-        if (!this.instances.has(key)) {
-            const baseURL = typeof key === 'string' && key in this.baseUrls ? this.baseUrls[key as ApiBaseUrlKey] : this.baseUrls.default;
+    public getBaseUrl(key: ApiBaseUrlKey | string): string {
+        if (key === 'exam') {
+            return (
+                process.env.EXAM_API_BASE_URL ||
+                process.env.NEXT_PUBLIC_EXAM_API_BASE_URL ||
+                this.baseUrls.exam ||
+                'http://localhost:50006/api'
+            );
+        }
+        return typeof key === 'string' && key in this.baseUrls ? this.baseUrls[key as ApiBaseUrlKey] : this.baseUrls.default;
+    }
 
+    private getOrCreateInstance(key: ApiBaseUrlKey | string): AxiosInstance {
+        const baseURL = this.getBaseUrl(key);
+        if (!this.instances.has(key)) {
             // Check if this is a localhost URL in development mode
             const isLocalhost =
                 baseURL &&
@@ -131,6 +148,11 @@ class ApiService {
 
             this.setupInterceptors(instance);
             this.instances.set(key, instance);
+        } else {
+            const existing = this.instances.get(key);
+            if (existing && baseURL && existing.defaults.baseURL !== baseURL) {
+                existing.defaults.baseURL = baseURL;
+            }
         }
 
         return this.instances.get(key)!;
@@ -150,7 +172,7 @@ class ApiService {
 
                         // Check if the session is expired pre-emptively
                         // @ts-ignore
-                        if (session && session.expires_at) {
+                        if (session?.expires_at) {
                             const currentTimestamp = Math.round(Date.now() / 1000);
                             // @ts-ignore
                             if (currentTimestamp >= session.expires_at) {
@@ -384,6 +406,10 @@ class ApiService {
         return this.request<T>(baseUrlKey, 'PUT', url, config, data);
     }
 
+    public async patch<T>(baseUrlKey: ApiBaseUrlKey, url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+        return this.request<T>(baseUrlKey, 'PATCH', url, config, data);
+    }
+
     public async delete<T>(baseUrlKey: ApiBaseUrlKey, url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
         return this.request<T>(baseUrlKey, 'DELETE', url, config, undefined);
     }
@@ -396,13 +422,6 @@ class ApiService {
     // Helper method to add custom base URLs at runtime
     public addBaseUrl(key: string, baseUrl: string): void {
         this.baseUrls[key as ApiBaseUrlKey] = baseUrl;
-    }
-
-    /**
-     * Get the base URL for a given key (useful for debugging)
-     */
-    public getBaseUrl(key: ApiBaseUrlKey): string {
-        return this.baseUrls[key] || '';
     }
 
     public async postMultipart<T>(

@@ -140,6 +140,15 @@ export interface ICollegeAdmissionInitialData {
     allRefrence: IReference[];
     allSources: ISource[];
     sectionlist: ISection[];
+    studentList?: any[];
+    boardList?: any[];
+    schooltypelist?: any[];
+    documentList?: any[];
+    combinationlist?: any[];
+    mastersectionlist?: ISection[];
+    compExamarray?: any[];
+    compSubarray?: any[];
+    studentcurrenrtbranch?: any[];
 }
 
 export interface ICollegeAdmissionFormState {

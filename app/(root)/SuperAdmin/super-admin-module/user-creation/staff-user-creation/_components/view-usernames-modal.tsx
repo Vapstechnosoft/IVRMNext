@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { EmployeeListDTO } from '@/types/super-admin/user-creation/staff-user-creation';
-import { Search } from 'lucide-react';
+import { Download, Search } from 'lucide-react';
 import { useState } from 'react';
 
 interface ViewUsernamesModalProps {
@@ -29,9 +29,38 @@ export default function ViewUsernamesModal({ isOpen, onClose, users, roleName }:
             (user.mI_Name || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const handleExportToExcel = () => {
+        let csvContent = 'data:text/csv;charset=utf-8,\uFEFF';
+
+        if (isAdmin) {
+            csvContent += 'SL.NO.,Institute Name,User Name\n';
+            filteredUsers.forEach((user, index) => {
+                const instituteName = (user.intname || user.mI_Name || '------').replace(/"/g, '""');
+                const userName = (user.user_Name || '------').replace(/"/g, '""');
+                csvContent += `${index + 1},"${instituteName}","${userName}"\n`;
+            });
+        } else {
+            csvContent += 'SL.NO.,Employee Name,Employee Code,User Name\n';
+            filteredUsers.forEach((user, index) => {
+                const empName = (user.stafname || '------').replace(/"/g, '""');
+                const empCode = (user.hrmE_EmployeeCode || '------').replace(/"/g, '""');
+                const userName = (user.user_Name || '------').replace(/"/g, '""');
+                csvContent += `${index + 1},"${empName}","${empCode}","${userName}"\n`;
+            });
+        }
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement('a');
+        link.setAttribute('href', encodedUri);
+        link.setAttribute('download', `${isAdmin ? 'Admin_Users' : 'Employee_Users'}_Export.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className='flex max-h-[90vh] max-w-3xl flex-col overflow-hidden p-0'>
+            <DialogContent className='flex max-h-[90vh] max-w-4xl flex-col overflow-hidden p-0'>
                 <DialogHeader className='border-b bg-blue-50 p-6'>
                     <DialogTitle className='font-bold text-blue-900 text-xl'>
                         {isAdmin ? 'Admin List With Usernames' : 'Employee List With Usernames'}
@@ -39,7 +68,17 @@ export default function ViewUsernamesModal({ isOpen, onClose, users, roleName }:
                     <p className='mt-1 text-blue-700 text-sm uppercase'>
                         NOTE: EXISTING USERNAMES FOR <b>{roleName || 'SELECTED ROLE'}</b>
                     </p>
+                    <Button 
+                        onClick={handleExportToExcel} 
+                        variant="outline" 
+                        className="flex items-center gap-2 bg-green-50 text-green-700 border-green-200 hover:bg-green-100 hover:text-green-800 w-fit"
+                    >
+                        <Download className="h-4 w-4" />
+                        Export to Excel
+                    </Button>
                 </DialogHeader>
+
+                
 
                 <div className='flex items-center gap-4 border-b bg-gray-50 p-4'>
                     <div className='relative flex-1'>
@@ -51,56 +90,59 @@ export default function ViewUsernamesModal({ isOpen, onClose, users, roleName }:
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
+                    
                 </div>
 
-                <ScrollArea className='flex-1'>
-                    <Table>
-                        <TableHeader className='sticky top-0 z-10 bg-gray-100'>
-                            <TableRow>
-                                <TableHead className='w-[80px] text-center'>SL.NO.</TableHead>
-                                {isAdmin ? (
-                                    <>
-                                        <TableHead>Institute Name</TableHead>
-                                        <TableHead>User Name</TableHead>
-                                    </>
-                                ) : (
-                                    <>
-                                        <TableHead>Employee Name</TableHead>
-                                        <TableHead className='text-center'>Employee Code</TableHead>
-                                        <TableHead>User Name</TableHead>
-                                    </>
-                                )}
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {filteredUsers.length > 0 ? (
-                                filteredUsers.map((user, index) => (
-                                    <TableRow key={index} className='transition-colors hover:bg-blue-50/30'>
-                                        <TableCell className='text-center font-medium'>{index + 1}</TableCell>
-                                        {isAdmin ? (
-                                            <>
-                                                <TableCell>{user.intname || user.mI_Name || '------'}</TableCell>
-                                                <TableCell className='font-semibold text-blue-700'>{user.user_Name}</TableCell>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <TableCell>{user.stafname || '------'}</TableCell>
-                                                <TableCell className='text-center'>{user.hrmE_EmployeeCode || '------'}</TableCell>
-                                                <TableCell className='font-semibold text-blue-700'>{user.user_Name}</TableCell>
-                                            </>
-                                        )}
-                                    </TableRow>
-                                ))
-                            ) : (
+                <div className='flex-1 overflow-hidden'>
+                    <ScrollArea className='h-[50vh] w-full'>
+                        <Table>
+                            <TableHeader className='sticky top-0 z-10 bg-gray-100 shadow-sm'>
                                 <TableRow>
-                                    <TableCell colSpan={isAdmin ? 3 : 4} className='h-24 text-center text-gray-500 italic'>
-                                        No users found matching your search.
-                                    </TableCell>
+                                    <TableHead className='w-[80px] text-center'>SL.NO.</TableHead>
+                                    {isAdmin ? (
+                                        <>
+                                            <TableHead>Institute Name</TableHead>
+                                            <TableHead>User Name</TableHead>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <TableHead>Employee Name</TableHead>
+                                            <TableHead className='text-center'>Employee Code</TableHead>
+                                            <TableHead>User Name</TableHead>
+                                        </>
+                                    )}
                                 </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </ScrollArea>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredUsers.length > 0 ? (
+                                    filteredUsers.map((user, index) => (
+                                        <TableRow key={index} className='transition-colors hover:bg-blue-50/30'>
+                                            <TableCell className='text-center font-medium'>{index + 1}</TableCell>
+                                            {isAdmin ? (
+                                                <>
+                                                    <TableCell>{user.intname || user.mI_Name || '------'}</TableCell>
+                                                    <TableCell className='font-semibold text-blue-700'>{user.user_Name}</TableCell>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <TableCell>{user.stafname || '------'}</TableCell>
+                                                    <TableCell className='text-center'>{user.hrmE_EmployeeCode || '------'}</TableCell>
+                                                    <TableCell className='font-semibold text-blue-700'>{user.user_Name}</TableCell>
+                                                </>
+                                            )}
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={isAdmin ? 3 : 4} className='h-24 text-center text-gray-500 italic'>
+                                            No users found matching your search.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </ScrollArea>
+                </div>
 
                 <div className='flex justify-end border-t bg-gray-50 p-4'>
                     <Button onClick={onClose} className='px-6'>
