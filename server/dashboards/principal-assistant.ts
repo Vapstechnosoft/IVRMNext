@@ -210,11 +210,18 @@ function findBestMatchLocal(query: string): string {
 export async function getPrincipalAssistantResponse(queryOrId: string): Promise<AssistantResponse> {
     const session = await auth();
     const sessionAsmayId =
-        session?.asmay_id || (session as any)?.ASMAY_Id || (session as any)?.user?.asmay_id || (session as any)?.user?.ASMAY_Id || 0;
+        session?.asmay_id ||
+        (session as any)?.ASMAY_Id ||
+        (session as any)?.asmaY_Id ||
+        (session as any)?.ASMAY_ID ||
+        (session as any)?.user?.asmay_id ||
+        (session as any)?.user?.ASMAY_Id ||
+        (session as any)?.user?.asmaY_Id ||
+        0;
     const sessionMiId = session?.mi_id || (session as any)?.user?.mi_id || 2;
 
-    // Dynamically retrieve active academic year from API if not in session
-    let activeAsmayId = sessionAsmayId;
+    // Use academic year directly from session ID if available, otherwise fetch as fallback
+    let activeAsmayId = typeof sessionAsmayId === 'string' ? Number.parseInt(sessionAsmayId, 10) : Number(sessionAsmayId) || 0;
     if (!activeAsmayId || activeAsmayId === 0) {
         try {
             const yearResponse = await api.get<any>('fees', '/fee_class_category/academicyearlist');
@@ -222,7 +229,7 @@ export async function getPrincipalAssistantResponse(queryOrId: string): Promise<
             if (Array.isArray(years)) {
                 const activeYear = years.find((y: any) => y.selected || y.Selected || y.activeFlag === 1 || y.asmaY_ActiveFlag === 1);
                 if (activeYear) {
-                    activeAsmayId = activeYear.asmaY_Id || activeYear.asmay_id || activeYear.ASMAY_Id || 231;
+                    activeAsmayId = Number(activeYear.asmaY_Id || activeYear.asmay_id || activeYear.ASMAY_Id || 231);
                 }
             }
         } catch (e) {
@@ -587,8 +594,18 @@ export async function getPrincipalAssistantResponse(queryOrId: string): Promise<
                     const overallAvg = Math.round(subjectStats.reduce((sum, s) => sum + s.rate, 0) / (subjectStats.length || 1));
 
                     dynamicNumbers = [
-                        { label: 'Lowest Pass Subject', value: `${lowest.name} (${lowest.rate}%)`, change: 'Needs attention', isPositive: false },
-                        { label: 'Second Lowest', value: `${secondLowest.name} (${secondLowest.rate}%)`, change: 'Monitor closely', isPositive: false },
+                        {
+                            label: 'Lowest Pass Subject',
+                            value: `${lowest.name} (${lowest.rate}%)`,
+                            change: 'Needs attention',
+                            isPositive: false
+                        },
+                        {
+                            label: 'Second Lowest',
+                            value: `${secondLowest.name} (${secondLowest.rate}%)`,
+                            change: 'Monitor closely',
+                            isPositive: false
+                        },
                         { label: 'Target School Avg', value: '85%', change: `Current: ${overallAvg}%`, isPositive: overallAvg >= 85 }
                     ];
 
@@ -600,24 +617,33 @@ export async function getPrincipalAssistantResponse(queryOrId: string): Promise<
                 }
 
                 const defaultResponse = {
-                    numbers: dynamicNumbers.length > 0 ? dynamicNumbers : [
-                        { label: 'Lowest Pass Subject', value: 'Math (68%)', change: '-4% drop', isPositive: false },
-                        { label: 'Second Lowest', value: 'Chemistry (71%)', change: 'Flat', isPositive: false },
-                        { label: 'Target School Avg', value: '85%', change: 'Current: 81%', isPositive: false }
-                    ],
-                    chartData: dynamicChartData.length > 0 ? dynamicChartData : [
-                        { name: 'English', rate: 96 },
-                        { name: 'Math', rate: 68 },
-                        { name: 'Physics', rate: 75 },
-                        { name: 'Chemistry', rate: 71 },
-                        { name: 'Biology', rate: 89 },
-                        { name: 'History', rate: 90 }
-                    ],
-                    recommendations: dynamicRecommendations.length > 0 ? dynamicRecommendations : [
-                        'Math pass rates are significantly low. Break down students into ability groups and assign weekly practice modules.',
-                        'Increase lab practice hours for Physics and Chemistry to aid practical retention.',
-                        'Hold extra doubt-clearing sessions on Saturdays.'
-                    ]
+                    numbers:
+                        dynamicNumbers.length > 0
+                            ? dynamicNumbers
+                            : [
+                                  { label: 'Lowest Pass Subject', value: 'Math (68%)', change: '-4% drop', isPositive: false },
+                                  { label: 'Second Lowest', value: 'Chemistry (71%)', change: 'Flat', isPositive: false },
+                                  { label: 'Target School Avg', value: '85%', change: 'Current: 81%', isPositive: false }
+                              ],
+                    chartData:
+                        dynamicChartData.length > 0
+                            ? dynamicChartData
+                            : [
+                                  { name: 'English', rate: 96 },
+                                  { name: 'Math', rate: 68 },
+                                  { name: 'Physics', rate: 75 },
+                                  { name: 'Chemistry', rate: 71 },
+                                  { name: 'Biology', rate: 89 },
+                                  { name: 'History', rate: 90 }
+                              ],
+                    recommendations:
+                        dynamicRecommendations.length > 0
+                            ? dynamicRecommendations
+                            : [
+                                  'Math pass rates are significantly low. Break down students into ability groups and assign weekly practice modules.',
+                                  'Increase lab practice hours for Physics and Chemistry to aid practical retention.',
+                                  'Hold extra doubt-clearing sessions on Saturdays.'
+                              ]
                 };
 
                 const llmResponse = await queryAssistantLLM(
@@ -641,6 +667,7 @@ export async function getPrincipalAssistantResponse(queryOrId: string): Promise<
                 try {
                     const response = await api.post<any>('exam', '/toppers_list_report/toppers_list_report', {
                         ASMAY_Id: activeAsmayId,
+                        MI_Id: sessionMiId,
                         topper: 5
                     });
                     toppersData = response?.data || response;
@@ -648,29 +675,69 @@ export async function getPrincipalAssistantResponse(queryOrId: string): Promise<
                     console.error('Error fetching toppers data for top_students', e);
                 }
 
+                let toppersList: any[] = [];
+                if (Array.isArray(toppersData)) {
+                    toppersList = toppersData;
+                } else if (Array.isArray(toppersData?.datareport)) {
+                    toppersList = toppersData.datareport;
+                } else if (Array.isArray(toppersData?.data)) {
+                    toppersList = toppersData.data;
+                }
+
+                let dynamicChartData: any[] = [];
+                let dynamicNumbers: any[] = [];
+                let dynamicRecommendations: string[] = [];
+
+                if (toppersList.length > 0) {
+                    dynamicChartData = toppersList.slice(0, 5).map((t: any, idx: number) => {
+                        const name = t.amsT_FirstName || t.AMST_FirstName || t.studentName || t.name || `Student ${idx + 1}`;
+                        const rawScore = t.estmP_Percentage ?? t.percentage ?? t.score ?? t.estmP_TotalObtMarks ?? 99 - idx;
+                        const score =
+                            typeof rawScore === 'number' ? Number(rawScore.toFixed(1)) : Number.parseFloat(rawScore.toString() || '95');
+                        return { name, score };
+                    });
+
+                    const top1 = dynamicChartData[0] || { name: 'Top Performer', score: 99 };
+                    const top2 = dynamicChartData[1] || { name: 'High Scorer', score: 95 };
+
+                    dynamicNumbers = [
+                        { label: 'Overall Topper', value: top1.name, change: `${top1.score}%`, isPositive: true },
+                        { label: 'High Distinction', value: top2.name, change: `${top2.score}%`, isPositive: true },
+                        { label: 'Top Performers Tracked', value: toppersList.length, change: 'Across Classes', isPositive: true }
+                    ];
+
+                    dynamicRecommendations = [
+                        `Nominate ${top1.name} (${top1.score}%) and ${top2.name} (${top2.score}%) for academic merit awards.`,
+                        `Invite top rankers including ${top1.name} to lead peer tutoring circles for upcoming exams.`,
+                        'Award certificates of honor during the next morning assembly to encourage academic excellence.'
+                    ];
+                } else {
+                    dynamicChartData = [
+                        { name: 'Rank 1 Student', score: 96 },
+                        { name: 'Rank 2 Student', score: 94 },
+                        { name: 'Rank 3 Student', score: 92 }
+                    ];
+                    dynamicNumbers = [
+                        { label: 'Overall Topper', value: 'Highest Scorer', change: 'Top Rank', isPositive: true },
+                        { label: 'High Distinction', value: 'Second Rank', change: 'High Score', isPositive: true },
+                        { label: 'Top Performers Tracked', value: 3, change: 'Active', isPositive: true }
+                    ];
+                    dynamicRecommendations = [
+                        'Review exam reports for high-performing students to recognize top achievers.',
+                        'Invite top rankers to lead peer tutoring circles for upcoming term exams.',
+                        'Award certificates of honor during the morning assembly.'
+                    ];
+                }
+
                 const defaultResponse = {
-                    numbers: [
-                        { label: 'Overall Topper', value: 'Aditya Sen', change: '99.2%', isPositive: true },
-                        { label: 'Grade 10 Topper', value: 'Priya Patel', change: '98.8%', isPositive: true },
-                        { label: 'Most Improved', value: 'Samir Roy', change: '+15% GPA', isPositive: true }
-                    ],
-                    chartData: [
-                        { name: 'Aditya Sen', score: 99.2 },
-                        { name: 'Priya Patel', score: 98.8 },
-                        { name: 'Vikram Rao', score: 98.2 },
-                        { name: 'Neha Gupta', score: 97.9 },
-                        { name: 'Ananya Das', score: 97.5 }
-                    ],
-                    recommendations: [
-                        'Nominate Aditya Sen and Priya Patel for the National Merit Scholarship.',
-                        'Invite these toppers to lead the peer tutoring circle to assist Grade 9 and 10 students.',
-                        'Award certificate of honors in the next morning assembly to boost motivation.'
-                    ]
+                    numbers: dynamicNumbers,
+                    chartData: dynamicChartData,
+                    recommendations: dynamicRecommendations
                 };
 
                 const llmResponse = await queryAssistantLLM(
                     'Who are the top students?',
-                    { toppersData, activeAsmayId },
+                    { toppersData, activeAsmayId, sessionMiId },
                     defaultResponse
                 );
 
@@ -723,9 +790,10 @@ export async function getPrincipalAssistantResponse(queryOrId: string): Promise<
                 }
 
                 // Dynamically resolve actual teacher names from the database
-                const realTeachers = employeeList && employeeList.length > 0
-                    ? employeeList.map((emp: any) => emp.value || emp.hrmE_EmployeeFullName || emp.employeename).filter(Boolean)
-                    : [];
+                const realTeachers =
+                    employeeList && employeeList.length > 0
+                        ? employeeList.map((emp: any) => emp.value || emp.hrmE_EmployeeFullName || emp.employeename).filter(Boolean)
+                        : [];
 
                 const teacher1 = realTeachers[0] || 'Dr. Verma';
                 const teacher2 = realTeachers[1] || 'Ms. Gomez';
@@ -848,11 +916,7 @@ export async function getPrincipalAssistantResponse(queryOrId: string): Promise<
                     ]
                 };
 
-                const llmResponse = await queryAssistantLLM(
-                    'Which bus routes are underused?',
-                    { transportRoutes },
-                    defaultResponse
-                );
+                const llmResponse = await queryAssistantLLM('Which bus routes are underused?', { transportRoutes }, defaultResponse);
 
                 return {
                     questionId,
@@ -890,11 +954,7 @@ export async function getPrincipalAssistantResponse(queryOrId: string): Promise<
                     ]
                 };
 
-                const llmResponse = await queryAssistantLLM(
-                    'How full is the hostel?',
-                    { hostelList },
-                    defaultResponse
-                );
+                const llmResponse = await queryAssistantLLM('How full is the hostel?', { hostelList }, defaultResponse);
 
                 return {
                     questionId,
@@ -982,11 +1042,7 @@ export async function getPrincipalAssistantResponse(queryOrId: string): Promise<
                     ]
                 };
 
-                const llmResponse = await queryAssistantLLM(
-                    'What supplies are running low?',
-                    { inventoryStockData },
-                    defaultResponse
-                );
+                const llmResponse = await queryAssistantLLM('What supplies are running low?', { inventoryStockData }, defaultResponse);
 
                 return {
                     questionId,
