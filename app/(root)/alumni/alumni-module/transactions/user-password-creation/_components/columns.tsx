@@ -57,5 +57,4 @@ export const userPasswordCreationColumns: ColumnDef<IStudent>[] = [
         header: ({ column }) => <DataTableColumnHeader column={column} title='SECTION' className='font-bold text-black' />,
         cell: ({ row }) => <span>{row.original.asmc_sectionname || '-'}</span>
     }
-
 ];

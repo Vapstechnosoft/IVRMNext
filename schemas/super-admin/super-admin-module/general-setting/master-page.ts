@@ -12,7 +12,10 @@ export const masterPageSchema = z.object({
             if (typeof val === 'boolean') return val ? 1 : 0;
             return val;
         })
-        .optional()
+        .optional(),
+    ivrmP_BrowerUrl: z.string().optional(),
+    ivrmP_BrowserUrl: z.string().optional(),
+    IVRMP_BrowserUrl: z.string().optional(),
 });
 
 export type MasterPageSchema = z.infer<typeof masterPageSchema>;

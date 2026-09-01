@@ -807,6 +807,7 @@ function EmployeeDetailsReportContent() {
                             showExportOptions={false}
                             maxSelectableRows={0}
                             isPaginationRequired={false}
+                            isSearchRequired={false}
                             scrollable
                         />
                     </div>

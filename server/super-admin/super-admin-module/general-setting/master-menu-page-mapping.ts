@@ -117,13 +117,15 @@ export async function getSubMenuDropdown(moduleId: number) {
         if (response.success && Array.isArray(response.data)) {
             const allMenus = response.data;
             // Filter by Module ID to get all submenus for the module
-            const filteredMenus = allMenus.filter((item: any) => item.ivrmM_Id === moduleId);
+            const filteredMenus = allMenus.filter((item: any) => 
+                Number(item.ivrmM_Id ?? item.IVRMM_Id) === Number(moduleId)
+            );
 
             // Map to ISubMenuDropdownItem format required by frontend
             const mappedMenus = filteredMenus.map((item: any) => ({
-                ivrmmS_Id: item.ivrmmM_Id,
-                ivrmmS_SubMenuName: item.ivrmmM_MenuName,
-                ivrmmM_Id: item.ivrmmM_ParentId
+                ivrmmS_Id: item.ivrmmS_Id ?? item.IVRMMS_Id ?? item.ivrmmM_Id ?? item.IVRMMM_Id ?? 0,
+                ivrmmS_SubMenuName: item.ivrmmS_SubMenuName ?? item.IVRMMS_SubMenuName ?? item.ivrmmM_MenuName ?? item.IVRMMM_MenuName ?? item.submenuname ?? '',
+                ivrmmM_Id: item.ivrmmM_ParentId ?? item.IVRMMM_ParentId ?? item.ivrmmM_Id ?? item.IVRMMM_Id ?? 0
             }));
 
             return {
@@ -171,12 +173,17 @@ export async function getMasterPagesOnChangeSubMenu(subMenuId: number) {
     const url = `${FACADE_URL}/get_masterpage_onchange_submenu/${subMenuId}`;
     try {
         const response = await api.get<any>('sadmin', url);
-        if (response.success && response.data && Array.isArray(response.data.records)) {
+        if (response.success && response.data) {
+            const records = Array.isArray(response.data) ? response.data : (response.data.records || response.data.grid1 || []);
+            const mappedPages = records.map((item: any) => ({
+                ivrmP_Id: item.ivrmP_Id ?? item.IVRMP_Id ?? item.id ?? 0,
+                pagename: item.pagename ?? item.IVRMP_PageName ?? item.ivrmP_PageName ?? item.pageName ?? item.ivrmmP_PageName ?? ''
+            }));
             return {
                 success: true,
                 message: response.message,
-                data: response.data.records,
-                total: response.total
+                data: mappedPages,
+                total: response.total ?? mappedPages.length
             };
         }
         return {

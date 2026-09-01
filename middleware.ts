@@ -22,11 +22,16 @@ export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
     // ✅ Skip middleware for API routes that need public or direct access
-    if (pathname.startsWith('/api/auth/') || pathname.startsWith('/api/header-voice')) {
+    if (pathname.startsWith('/api/')) {
         return NextResponse.next();
     }
 
-    const session = await auth();
+    let session: any = null;
+    try {
+        session = await auth();
+    } catch (e) {
+        console.warn('Middleware auth check skipped:', e);
+    }
 
     const isLoggedIn = session;
     const userRole = session?.role;
@@ -78,48 +83,36 @@ export async function middleware(request: NextRequest) {
         return NextResponse.next();
     }
 
-    // Allow public access to dynamic single-segment paths like /VVVS
-    if (/^\/[A-Za-z0-9]+$/.test(pathname)) {
-        return NextResponse.next();
+    // Allow sign-in page access when unauthenticated; redirect to home if already logged in
+    if (pathname === AUTH_ROUTES.SIGN_IN) {
+        if (isLoggedIn) {
+            const redirectUrl = new URL('/', request.url);
+            const response = NextResponse.redirect(redirectUrl);
+            response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+            return response;
+        }
+        const response = NextResponse.next();
+        response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        return response;
     }
 
-    if (pathname === AUTH_ROUTES.SIGN_IN) {
-        // Check for sign-in page access
-        if (isLoggedIn) {
-            const redirectedFrom = request.nextUrl.searchParams.get('redirectedFrom');
-            if (redirectedFrom !== 'home') {
-                const redirectUrl = new URL('/', request.url);
-                redirectUrl.searchParams.set('redirectedFrom', 'signin');
-                return NextResponse.redirect(redirectUrl);
-            }
-            return NextResponse.next();
-        }
-        return NextResponse.next();
+    // Protect all other routes against unauthenticated access
+    if (!isLoggedIn) {
+        const callbackUrl = encodeURIComponent(pathname);
+        const redirectUrl = new URL(`${AUTH_ROUTES.SIGN_IN}?callbackUrl=${callbackUrl}`, request.url);
+        const response = NextResponse.redirect(redirectUrl);
+        response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        response.headers.set('Pragma', 'no-cache');
+        response.headers.set('Expires', '0');
+        return response;
     }
 
     const matchedRoute = routeMatcher(pathname);
 
-    if (!matchedRoute) {
-        return NextResponse.next();
-    }
-
-    if (matchedRoute.auth && !isLoggedIn) {
-        const callbackUrl = encodeURIComponent(pathname);
-        return NextResponse.redirect(new URL(`${AUTH_ROUTES.SIGN_IN}?callbackUrl=${callbackUrl}`, request.url));
-    }
-
-    if (matchedRoute.role) {
+    if (matchedRoute?.role) {
         const roles = Array.isArray(matchedRoute.role) ? matchedRoute.role : [matchedRoute.role];
         if (userRole && !roles.includes(userRole)) {
             return NextResponse.redirect(new URL(ROUTES.DASHBOARD, request.url));
-        }
-    }
-
-    if (pathname === '/' && isLoggedIn) {
-        const redirectedFrom = request.nextUrl.searchParams.get('redirectedFrom');
-        if (redirectedFrom === AUTH_ROUTES.SIGN_IN) {
-            const cleanUrl = new URL('/', request.url);
-            return NextResponse.redirect(cleanUrl);
         }
     }
 

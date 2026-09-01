@@ -69,8 +69,8 @@ export function getSalaryCalculationColumns({
             accessorKey: 'HRME_EmployeeCode',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
             cell: ({ row }) => <div>{row.getValue('HRME_EmployeeCode')}</div>,
-            enableSorting: true,
-            enableHiding: true
+            enableSorting: false,
+            enableHiding: false
         },
         {
             accessorKey: 'HRME_EmployeeFirstName',
@@ -81,8 +81,8 @@ export function getSalaryCalculationColumns({
                     `${employee.HRME_EmployeeFirstName} ${employee.HRME_EmployeeMiddleName || ''} ${employee.HRME_EmployeeLastName || ''}`.trim();
                 return <div>{fullName}</div>;
             },
-            enableSorting: true,
-            enableHiding: true
+            enableSorting: false,
+            enableHiding: false
         }
     ];
 }

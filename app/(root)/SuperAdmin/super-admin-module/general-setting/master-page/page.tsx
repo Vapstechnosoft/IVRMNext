@@ -83,6 +83,8 @@ function MasterPageContent() {
                     </Button>
                 </PageHeader>
 
+                <FormSections onRefresh={fetchData} />
+
                 <SectionCard>
                     <CollapsibleSection title='Master Pages List' defaultOpen={true} variant='default' size='lg'>
                         <div className='p-4'>
@@ -96,19 +98,18 @@ function MasterPageContent() {
                         </div>
                     </CollapsibleSection>
                 </SectionCard>
-
-                <FormSections onRefresh={fetchData} />
             </div>
         </PageProvider>
     );
 }
 
 function FormSections({ onRefresh }: { onRefresh: () => void }) {
-    const { isAddFormOpen, isEditFormOpen, closeAddForm, closeEditForm } = useFormContext<IMasterPage>();
+    const { isAddFormOpen, isEditFormOpen, closeAddForm, closeEditForm, addFormRef, editFormRef } = useFormContext<IMasterPage>();
 
     const closeForm = isEditFormOpen ? closeEditForm : closeAddForm;
     const title = isEditFormOpen ? 'Edit Master Page' : 'Add Master Page';
     const isOpen = isAddFormOpen || isEditFormOpen;
+    const currentRef = isEditFormOpen ? editFormRef : addFormRef;
 
     const handleSuccess = () => {
         closeForm();
@@ -116,7 +117,7 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
     };
 
     return (
-        <>
+        <div ref={currentRef}>
             {isOpen && (
                 <CollapsibleSection
                     title={title}
@@ -137,6 +138,6 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
                     </div>
                 </CollapsibleSection>
             )}
-        </>
+        </div>
     );
 }

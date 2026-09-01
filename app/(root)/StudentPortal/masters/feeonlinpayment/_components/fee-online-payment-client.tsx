@@ -5,14 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useStudentPortalAcademic } from '@/hooks/fees/useReports';
+import { useStudentInformation } from '@/hooks/staff-portal/useFeeOnlinePayment';
 import type { FeeStructure, GroupTermMapping } from '@/types/student-portal/masters/fee_online_payment';
-import { getSession } from 'next-auth/react'; // Import session if using next-auth
+import Script from 'next/script';
 import { useEffect, useState } from 'react';
 import { getAmountDetails, savePayment } from '../actions';
-
-import Script from 'next/script';
-
-import { useStudentInformation } from '@/hooks/staff-portal/useFeeOnlinePayment';
 
 declare global {
     interface Window {
@@ -20,51 +18,85 @@ declare global {
     }
 }
 
-export default function FeeOnlinePaymentClient({ initialData }: any) {
-    // Using any for initialData to bypass strict type check on mock for now
-    const [academicYear, setAcademicYear] = useState<number | undefined>(initialData?.academicyrlist?.[0]?.asmaY_Id);
+export default function FeeOnlinePaymentClient() {
+    const { data: response, isLoading: isAcademicLoading } = useStudentPortalAcademic();
+    const [academicYear, setAcademicYear] = useState<number | undefined>();
     const [groupTermList, setGroupTermList] = useState<GroupTermMapping[]>([]);
-
     const [feeDetails, setFeeDetails] = useState<FeeStructure[]>([]);
-
     const [totalAmt, setTotalAmt] = useState(0);
     const [showPaymentDetails, setShowPaymentDetails] = useState(false);
     const [gateway, setGateway] = useState<string>('');
 
-    const { data: studentInfoDetails, isLoading } = useStudentInformation(academicYear || null);
+    // Set academic year when response loads
+    useEffect(() => {
+        if (response?.data?.[0]?.asmaY_Id) {
+            setAcademicYear(response.data[0].asmaY_Id);
+        }
+    }, [response]);
 
-    // Example usage of session
+    const { data: studentInfoDetails, isLoading: isStudentLoading } = useStudentInformation(academicYear || null);
+
+    // Fetch session details
     useEffect(() => {
         const fetchSession = async () => {
-            const session = await getSession(); // Fetch session details
-            console.log('Session details:', session);
-            console.log('role testing', session?.role.toUpperCase());
+            //   const session = await getSession();
         };
         fetchSession();
     }, []);
 
-    const groupList = initialData?.customgrplist || []; // Use data from props instead
+    // Build group-term mapping when response loads
+    //   useEffect(() => {
+    //     if (response?.customgrplist && response?.termlst) {
+    //       const mapping: GroupTermMapping[] = response.customgrplist.map(
+    //         (grp: any) => ({
+    //           grp: {
+    //             ...grp,
+    //             checkedgrplst: false,
+    //             grpdisable: false,
+    //           },
+    //           trm_list: response.termlst
+    //             .filter((trm: any) => trm.fmgG_Id === grp.fmgG_Id)
+    //             .map((trm: any) => ({
+    //               ...trm,
+    //               checkedheadlst: false,
+    //               termdisablechk: false,
+    //             })),
+    //         }),
+    //       );
+    //       setGroupTermList(mapping);
+    //     }
+    //   }, [response]);
 
-    console.log('groupList Details latest ', groupList);
+    //   const groupList = response?.customgrplist || [];
+    //   console.log("groupList Details latest ", groupList);
 
-    useEffect(() => {
-        if (initialData?.customgrplist && initialData?.termlst) {
-            const mapping: GroupTermMapping[] = initialData.customgrplist.map((grp: any) => ({
-                grp: { ...grp, checkedgrplst: false, grpdisable: false },
-                trm_list: initialData.termlst
-                    .filter((trm: any) => trm.fmgG_Id === grp.fmgG_Id)
-                    .map((trm: any) => ({ ...trm, checkedheadlst: false, termdisablechk: false }))
-            }));
-            setGroupTermList(mapping);
-            // Apply logic for disabled terms from initialData.disableterms if needed
-        }
-    }, [initialData]);
+    // Show loading state
+    if (isAcademicLoading || isStudentLoading) {
+        return (
+            <div className='flex items-center justify-center p-8'>
+                <div className='text-center'>
+                    <div className='mb-4 text-lg'>Loading...</div>
+                </div>
+            </div>
+        );
+    }
+
+    // Show error/empty state
+    if (!response) {
+        return (
+            <div className='flex items-center justify-center p-8'>
+                <div className='text-center text-red-500'>No data available. Please try again later.</div>
+            </div>
+        );
+    }
 
     const handleGroupCheck = (grpIndex: number, checked: boolean) => {
         const newList = [...groupTermList];
-        newList[grpIndex].grp.checkedgrplst = checked; // This should now work
+        newList[grpIndex].grp.checkedgrplst = checked;
         newList[grpIndex].trm_list.forEach((trm) => {
-            if (typeof trm === 'object' && !trm.termdisablechk) trm.checkedheadlst = checked;
+            if (typeof trm === 'object' && !trm.termdisablechk) {
+                trm.checkedheadlst = checked;
+            }
         });
         setGroupTermList(newList);
     };
@@ -75,13 +107,8 @@ export default function FeeOnlinePaymentClient({ initialData }: any) {
             newList[grpIndex].trm_list[trmIndex].checkedheadlst = checked;
         }
 
-        // Update group check state based on terms
-        const allTermsChecked = newList[grpIndex].trm_list.filter((t) => !t.termdisablechk).every((t) => t.checkedheadlst);
         const someTermsChecked = newList[grpIndex].trm_list.some((t) => t.checkedheadlst);
 
-        // Logic mimics AngularJS: if any term is unchecked, group is unchecked? Or only if all?
-        // AngularJS: if term checked, group checked (sometimes).
-        // Simple logic: if any term checked, check group.
         if (someTermsChecked) {
             newList[grpIndex].grp.checkedgrplst = true;
         } else {
@@ -96,7 +123,7 @@ export default function FeeOnlinePaymentClient({ initialData }: any) {
             .filter((g) => g.grp.checkedgrplst)
             .map((g) => ({
                 grp: g.grp,
-                trm_list: g.trm_list.filter((t: { checkedheadlst: boolean }) => typeof t === 'object' && t.checkedheadlst)
+                trm_list: g.trm_list.filter((t) => t.checkedheadlst)
             }));
 
         if (selectedList.length === 0 || selectedList.some((g) => g.trm_list.length === 0)) {
@@ -108,13 +135,11 @@ export default function FeeOnlinePaymentClient({ initialData }: any) {
         if (result.success && result.data) {
             setFeeDetails(result.data.fillstudentviewdetails || []);
             setShowPaymentDetails(true);
-            // Calculate initial total
-            const total = (result.data.fillstudentviewdetails || []).reduce((acc: number, curr: any) => acc + curr.fsS_ToBePaid, 0);
+            const total = (result.data.fillstudentviewdetails || []).reduce((acc: number, curr: any) => acc + (curr.fsS_ToBePaid || 0), 0);
             setTotalAmt(total);
         }
     };
 
-    // Payment Logic (Razorpay)
     const handlePayment = async () => {
         if (!gateway) {
             alert('Please select a payment gateway');
@@ -125,28 +150,27 @@ export default function FeeOnlinePaymentClient({ initialData }: any) {
             topayamount: totalAmt,
             students: feeDetails,
             onlinepaygteway: gateway
-            // Add other necessary fields
         };
 
-        const response = await savePayment(payload);
-        if (response.success && response.data && gateway === 'RAZORPAY') {
-            const rzpData = response.data;
+        const paymentResponse = await savePayment(payload);
+        if (paymentResponse.success && paymentResponse.data && gateway === 'RAZORPAY') {
+            const rzpData = paymentResponse.data;
             const options = {
-                key: rzpData.merchantkey, // Enter the Key ID generated from the Dashboard
-                amount: rzpData.fmA_Amount * 100, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+                key: rzpData.merchantkey,
+                amount: rzpData.fmA_Amount * 100,
                 currency: 'INR',
                 name: 'Edumeeting School',
                 description: 'Fee Payment',
                 image: '/assets/images/logo.png',
-                order_id: rzpData.trans_id, //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
+                order_id: rzpData.trans_id,
                 handler: (response: any) => {
+                    // biome-ignore lint/style/useTemplate: <explanation>
                     alert('Payment Successful: ' + response.razorpay_payment_id);
-                    // verifyPayment(response);
                 },
                 prefill: {
-                    name: rzpData.fillstudent?.[0]?.amsT_FirstName,
-                    email: rzpData.fillstudent?.[0]?.amst_email_id,
-                    contact: rzpData.fillstudent?.[0]?.amst_mobile
+                    name: rzpData.fillstudent?.[0]?.amsT_FirstName || '',
+                    email: rzpData.fillstudent?.[0]?.amst_email_id || '',
+                    contact: rzpData.fillstudent?.[0]?.amst_mobile || ''
                 },
                 theme: {
                     color: '#3399cc'
@@ -159,7 +183,6 @@ export default function FeeOnlinePaymentClient({ initialData }: any) {
 
     return (
         <div className='space-y-6'>
-            {/* Script for Razorpay */}
             <Script src='https://checkout.razorpay.com/v1/checkout.js' strategy='lazyOnload' />
 
             <Card>
@@ -167,18 +190,19 @@ export default function FeeOnlinePaymentClient({ initialData }: any) {
                     <CardTitle>Fee Online Payment</CardTitle>
                 </CardHeader>
                 <CardContent className='space-y-4'>
-                    {/* Academic Year Selection */}
                     <div className='flex items-center space-x-4'>
-                        <label className='w-1/4 font-semibold'>
+                        <label htmlFor='academic-year' className='w-1/4 font-semibold'>
                             Academic Year: <span className='text-red-500'>*</span>
                         </label>
-                        <Select value={String(academicYear)} onValueChange={(val) => setAcademicYear(Number(val))}>
+                        <Select
+                            value={academicYear ? String(academicYear) : undefined}
+                            onValueChange={(val) => setAcademicYear(Number(val))}>
                             <SelectTrigger className='w-1/3'>
                                 <SelectValue placeholder='Select Academic Year' />
                             </SelectTrigger>
                             <SelectContent>
-                                {initialData.academicyrlist?.map((year: any, index: number) => (
-                                    <SelectItem key={`${year.asmaY_Id}-${index}`} value={String(year.asmaY_Id)}>
+                                {response?.data?.map((year: any) => (
+                                    <SelectItem key={year.asmaY_Id} value={String(year.asmaY_Id)}>
                                         {year.asmaY_Year}
                                     </SelectItem>
                                 ))}
@@ -187,40 +211,43 @@ export default function FeeOnlinePaymentClient({ initialData }: any) {
                     </div>
 
                     <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-                        {/* Student Information */}
                         <div className='rounded-md border p-4'>
                             <h3 className='mb-4 font-bold text-primary'>Student Information</h3>
-                            <div className='space-y-2 text-sm'>
-                                <div className='grid grid-cols-3'>
-                                    <span className='font-semibold'>Name</span>
-                                    <span className='col-span-2'>
-                                        : {studentInfoDetails?.studentInfo?.amsT_FirstName} {studentInfoDetails?.studentInfo?.amsT_LastName}
-                                    </span>
+                            {studentInfoDetails?.studentInfo ? (
+                                <div className='space-y-2 text-sm'>
+                                    <div className='grid grid-cols-3'>
+                                        <span className='font-semibold'>Name</span>
+                                        <span className='col-span-2'>
+                                            : {studentInfoDetails.studentInfo.amsT_FirstName} {studentInfoDetails.studentInfo.amsT_LastName}
+                                        </span>
+                                    </div>
+                                    <div className='grid grid-cols-3'>
+                                        <span className='font-semibold'>Class/Section/Roll No</span>
+                                        <span className='col-span-2'>
+                                            : {studentInfoDetails.studentInfo.classname} {studentInfoDetails.studentInfo.sectionname}{' '}
+                                            {studentInfoDetails.studentInfo.amaY_RollNo}
+                                        </span>
+                                    </div>
+                                    <div className='grid grid-cols-3'>
+                                        <span className='font-semibold'>Adm No</span>
+                                        <span className='col-span-2'>: {studentInfoDetails.studentInfo.amsT_AdmNo}</span>
+                                    </div>
+                                    <div className='grid grid-cols-3'>
+                                        <span className='font-semibold'>Reg No</span>
+                                        <span className='col-span-2'>: {studentInfoDetails.studentInfo.amsT_RegistrationNo}</span>
+                                    </div>
+                                    <div className='grid grid-cols-3'>
+                                        <span className='font-semibold'>Mobile No</span>
+                                        <span className='col-span-2'>: {studentInfoDetails.studentInfo.amst_mobile}</span>
+                                    </div>
+                                    <div className='grid grid-cols-3'>
+                                        <span className='font-semibold'>Email Id</span>
+                                        <span className='col-span-2'>: {studentInfoDetails.studentInfo.amst_email_id}</span>
+                                    </div>
                                 </div>
-                                <div className='grid grid-cols-3'>
-                                    <span className='font-semibold'>Class/Section/Roll No</span>
-                                    <span className='col-span-2'>
-                                        : {studentInfoDetails?.studentInfo?.classname} {studentInfoDetails?.studentInfo?.sectionname}{' '}
-                                        {studentInfoDetails?.studentInfo?.amaY_RollNo}
-                                    </span>
-                                </div>
-                                <div className='grid grid-cols-3'>
-                                    <span className='font-semibold'>Adm No</span>
-                                    <span className='col-span-2'>: {studentInfoDetails?.studentInfo?.amsT_AdmNo}</span>
-                                </div>
-                                <div className='grid grid-cols-3'>
-                                    <span className='font-semibold'>Reg No</span>
-                                    <span className='col-span-2'>: {studentInfoDetails?.studentInfo?.amsT_RegistrationNo}</span>
-                                </div>
-                                <div className='grid grid-cols-3'>
-                                    <span className='font-semibold'>Mobile No</span>
-                                    <span className='col-span-2'>: {studentInfoDetails?.studentInfo?.amst_mobile}</span>
-                                </div>
-                                <div className='grid grid-cols-3'>
-                                    <span className='font-semibold'>Email Id</span>
-                                    <span className='col-span-2'>: {studentInfoDetails?.studentInfo?.amst_email_id}</span>
-                                </div>
-                            </div>
+                            ) : (
+                                <div className='text-center text-gray-500'>No student information available</div>
+                            )}
                         </div>
 
                         {/* Group Selection */}
@@ -228,32 +255,36 @@ export default function FeeOnlinePaymentClient({ initialData }: any) {
                             <h3 className='mb-4 font-bold text-primary'>
                                 Group List <span className='text-red-500'>*</span>
                             </h3>
-                            <div className='space-y-2'>
-                                {groupTermList.map((grpItem, grpIndex) => (
-                                    <div key={`${grpItem.grp.fmgG_Id}-${grpIndex}`} className='space-y-1'>
-                                        <div className='flex items-center space-x-2'>
-                                            <Checkbox
-                                                checked={grpItem.grp.checkedgrplst}
-                                                onCheckedChange={(checked) => handleGroupCheck(grpIndex, !!checked)}
-                                                disabled={grpItem.grp.grpdisable}
-                                            />
-                                            <span className='font-medium'>{grpItem.grp.fmgG_GroupName}</span>
+                            {groupTermList.length > 0 ? (
+                                <div className='space-y-2'>
+                                    {groupTermList.map((grpItem, grpIndex) => (
+                                        <div key={`${grpItem.grp.fmgG_Id}-${grpIndex}`} className='space-y-1'>
+                                            <div className='flex items-center space-x-2'>
+                                                <Checkbox
+                                                    checked={grpItem.grp.checkedgrplst}
+                                                    onCheckedChange={(checked) => handleGroupCheck(grpIndex, !!checked)}
+                                                    disabled={grpItem.grp.grpdisable}
+                                                />
+                                                <span className='font-medium'>{grpItem.grp.fmgG_GroupName}</span>
+                                            </div>
+                                            <div className='ml-6 space-y-1'>
+                                                {grpItem.trm_list.map((trm, trmIndex) => (
+                                                    <div key={`${trm.fmT_Id}-${trmIndex}`} className='flex items-center space-x-2'>
+                                                        <Checkbox
+                                                            checked={trm.checkedheadlst}
+                                                            onCheckedChange={(checked) => handleTermCheck(grpIndex, trmIndex, !!checked)}
+                                                            disabled={trm.termdisablechk}
+                                                        />
+                                                        <span>{trm.fmT_Name}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
-                                        <div className='ml-6 space-y-1'>
-                                            {grpItem.trm_list.map((trm, trmIndex) => (
-                                                <div key={`${trm.fmT_Id}-${trmIndex}`} className='flex items-center space-x-2'>
-                                                    <Checkbox
-                                                        checked={trm.checkedheadlst}
-                                                        onCheckedChange={(checked) => handleTermCheck(grpIndex, trmIndex, !!checked)}
-                                                        disabled={trm.termdisablechk}
-                                                    />
-                                                    <span>{trm.fmT_Name}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className='text-center text-gray-500'>No groups available</div>
+                            )}
                         </div>
                     </div>
 
@@ -272,7 +303,6 @@ export default function FeeOnlinePaymentClient({ initialData }: any) {
                         <CardTitle>Fee Details</CardTitle>
                     </CardHeader>
                     <CardContent className='space-y-4'>
-                        {/* Using a basic table structure for now, can upgrade to DataTable */}
                         <div className='rounded-md border'>
                             <table className='w-full text-sm'>
                                 <thead className='bg-muted'>
@@ -290,43 +320,58 @@ export default function FeeOnlinePaymentClient({ initialData }: any) {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {feeDetails.map((row, index) => (
-                                        <tr key={index} className='border-b'>
-                                            <td className='border p-2 text-center'>
-                                                <Checkbox checked={true} />
+                                    {feeDetails.length > 0 ? (
+                                        feeDetails.map((row, index) => (
+                                            <tr key={index} className='border-b'>
+                                                <td className='border p-2 text-center'>
+                                                    <Checkbox checked={true} />
+                                                </td>
+                                                <td className='border p-2 text-center'>{index + 1}</td>
+                                                <td className='border p-2'>{row.fmH_FeeName}</td>
+                                                <td className='border p-2'>{row.ftI_Name}</td>
+                                                <td className='border p-2 text-right'>{row.fsS_OBArrearAmount || 0}</td>
+                                                <td className='border p-2 text-right'>{row.fsS_NetAmount || 0}</td>
+                                                <td className='border p-2 text-right'>{row.fsS_TotalToBePaid || 0}</td>
+                                                <td className='border p-2 text-right'>{row.fsS_ConcessionAmount || 0}</td>
+                                                <td className='border p-2 text-right'>{row.fsS_FineAmount || 0}</td>
+                                                <td className='border p-2 text-right'>{row.fsS_ToBePaid || 0}</td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan={10} className='p-4 text-center text-gray-500'>
+                                                No fee details available
                                             </td>
-                                            <td className='border p-2 text-center'>{index + 1}</td>
-                                            <td className='border p-2'>{row.fmH_FeeName}</td>
-                                            <td className='border p-2'>{row.ftI_Name}</td>
-                                            <td className='border p-2 text-right'>{row.fsS_OBArrearAmount}</td>
-                                            <td className='border p-2 text-right'>{row.fsS_NetAmount}</td>
-                                            <td className='border p-2 text-right'>{row.fsS_TotalToBePaid}</td>
-                                            <td className='border p-2 text-right'>{row.fsS_ConcessionAmount}</td>
-                                            <td className='border p-2 text-right'>{row.fsS_FineAmount}</td>
-                                            <td className='border p-2 text-right'>{row.fsS_ToBePaid}</td>
                                         </tr>
-                                    ))}
+                                    )}
                                 </tbody>
                             </table>
                         </div>
 
                         <div className='mt-4 flex flex-col items-center justify-center space-y-2'>
                             <div className='flex items-center space-x-4'>
-                                <label className='font-bold'>Total Payable:</label>
+                                <label htmlFor='' className='font-bold'>
+                                    Total Payable:
+                                </label>
                                 <Input value={totalAmt} readOnly className='w-32 font-bold' />
                             </div>
 
                             <div className='mt-4 flex space-x-6'>
                                 <div
-                                    className='flex cursor-pointer items-center space-x-2 rounded border p-4 hover:bg-muted'
+                                    className={`flex cursor-pointer items-center space-x-2 rounded border p-4 hover:bg-muted ${
+                                        gateway === 'RAZORPAY' ? 'border-primary bg-muted' : ''
+                                    }`}
                                     onClick={() => setGateway('RAZORPAY')}>
                                     <input type='radio' checked={gateway === 'RAZORPAY'} readOnly />
-                                    {/* <img src="/assets/images/razorpay.png" alt="Razorpay" className="h-8"/> */}
                                     <span className='font-bold'>Razorpay</span>
                                 </div>
                             </div>
 
-                            <Button size='lg' className='mt-4 bg-green-600 hover:bg-green-700' onClick={handlePayment}>
+                            <Button
+                                size='lg'
+                                className='mt-4 bg-green-600 hover:bg-green-700'
+                                onClick={handlePayment}
+                                disabled={!gateway || totalAmt === 0}>
                                 CLICK HERE TO PAY NOW
                             </Button>
                         </div>

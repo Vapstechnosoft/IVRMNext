@@ -82,4 +82,3 @@ export const useEventsSponsorEdit = (id?: number) => {
         enabled: Boolean(id && id > 0)
     });
 };
-
