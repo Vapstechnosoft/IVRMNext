@@ -848,21 +848,21 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
                                                                         {(fileFields.length > 1 ||
                                                                             (fileFields.length === 1 &&
                                                                                 form.watch(`filelist.0.cfilename`))) && (
-                                                                            <button
-                                                                                type='button'
-                                                                                onClick={() => {
-                                                                                    if (fileFields.length > 1) {
-                                                                                        removeFile(index);
-                                                                                    } else {
-                                                                                        form.setValue('filelist', [
-                                                                                            { cfilepath: '', cfilename: '', filetype: '' }
-                                                                                        ]);
-                                                                                    }
-                                                                                }}
-                                                                                className='text-black hover:text-gray-700'>
-                                                                                <Trash2 className='h-4 w-4 text-black' />
-                                                                            </button>
-                                                                        )}
+                                                                                <button
+                                                                                    type='button'
+                                                                                    onClick={() => {
+                                                                                        if (fileFields.length > 1) {
+                                                                                            removeFile(index);
+                                                                                        } else {
+                                                                                            form.setValue('filelist', [
+                                                                                                { cfilepath: '', cfilename: '', filetype: '' }
+                                                                                            ]);
+                                                                                        }
+                                                                                    }}
+                                                                                    className='text-black hover:text-gray-700'>
+                                                                                    <Trash2 className='h-4 w-4 text-black' />
+                                                                                </button>
+                                                                            )}
                                                                     </div>
                                                                 </td>
                                                             </tr>
@@ -1159,7 +1159,6 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
                                 <i className='fa fa-floppy-o mr-2' aria-hidden='true'></i>
                                 Save
                             </Button>
-
                             <Button
                                 type='button'
                                 variant='outline'

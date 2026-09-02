@@ -174,17 +174,49 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
 
     const onSubmit = async (data: FormFields) => {
         try {
-            const res = await addOrUpdateYearlyCategorySubjectMapping(data);
-            if (res?.success) {
-                toast.success('Mapping saved successfully');
+            const res: any = await addOrUpdateYearlyCategorySubjectMapping(data);
+            const isSuccess =
+                res?.success === true ||
+                res?.returnval === true ||
+                res?.returnval === 'true' ||
+                res?.returnval === 'saved' ||
+                res?.returnVal === true ||
+                res?.returnVal === 'true' ||
+                res?.returnVal === 'saved' ||
+                res?.returnVal === 'updated' ||
+                res?.returnval === 'updated' ||
+                res?.returnval === 'Record Saved Successfully' ||
+                res?.returnVal === 'Record Saved Successfully' ||
+                (res &&
+                    typeof res === 'object' &&
+                    res?.success !== false &&
+                    res?.returnval !== false &&
+                    res?.returnVal !== false &&
+                    res?.returnval !== 'failed' &&
+                    res?.returnVal !== 'failed' &&
+                    res?.returnval !== 'duplicate' &&
+                    res?.returnVal !== 'duplicate' &&
+                    res?.returnval !== 'Duplicate' &&
+                    res?.returnVal !== 'Duplicate' &&
+                    !res?.error);
+
+            if (isSuccess) {
+                toast.success(res?.message || 'Data saved successfully');
                 reset();
                 refetchAll();
                 onSuccess?.();
+            } else if (
+                res?.returnval === 'duplicate' ||
+                res?.returnVal === 'duplicate' ||
+                res?.returnval === 'Duplicate' ||
+                res?.returnVal === 'Duplicate'
+            ) {
+                toast.error(res?.message || 'Record already exists');
             } else {
-                toast.error(res?.message ?? 'Save failed');
+                toast.error(res?.message || 'Failed to save the data');
             }
         } catch (err: any) {
-            toast.error(err?.message ?? 'Failed to save');
+            toast.error(err?.message || 'Failed to save the data');
         }
     };
     const handlereset = () => {

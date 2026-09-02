@@ -125,7 +125,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                             <table className='student-info-table'>
                                 <tbody>
                                     <tr>
-                                        <td width='40%'>
+                                        <td className='w-[40%]'>
                                             <div className='flex justify-between'>
                                                 <b>NAME</b> <span>: {student.studentname}</span>
                                             </div>
@@ -137,7 +137,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                 <b>CLASS TEACHER</b> <span>: {student.clastechname}</span>
                                             </div>
                                         </td>
-                                        <td width='30%'>
+                                        <td className='w-[30%]'>
                                             <div className='flex justify-between'>
                                                 <b>CLASS</b> <span>: {student.classname || params.classname}</span>
                                             </div>
@@ -145,7 +145,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                 <b>ROLL NO</b> <span>: {student.rollno}</span>
                                             </div>
                                         </td>
-                                        <td width='30%'>
+                                        <td className='w-[30%]'>
                                             <div className='flex justify-between'>
                                                 <b>SECTION</b> <span>: {student.sectionname || params.sectionname}</span>
                                             </div>
@@ -161,7 +161,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                             <table className='report-table'>
                                 <thead>
                                     <tr className='bg-gray-100'>
-                                        <th className='text-left font-bold' width='200'>
+                                        <th className='w-[200px] text-left font-bold'>
                                             SUBJECTS
                                         </th>
                                         {getexamdetails.map((exam: any) => (
@@ -185,8 +185,8 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                     <td key={exam.emE_Id}>
                                                         {mark?.ExamConductFlag === 1 ? (
                                                             mark.PASSORFAIL === 'AB' ||
-                                                            mark.PASSORFAIL === 'OD' ||
-                                                            mark.PASSORFAIL === 'M' ? (
+                                                                mark.PASSORFAIL === 'OD' ||
+                                                                mark.PASSORFAIL === 'M' ? (
                                                                 <span className='font-bold'>{mark.PASSORFAIL}</span>
                                                             ) : exam.emE_ExamName === 'Grade' ? (
                                                                 mark.GRADE
@@ -231,8 +231,8 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                     <td key={exam.emE_Id}>
                                                         {mark?.ExamConductFlag === 1 ? (
                                                             mark.PASSORFAIL === 'AB' ||
-                                                            mark.PASSORFAIL === 'OD' ||
-                                                            mark.PASSORFAIL === 'M' ? (
+                                                                mark.PASSORFAIL === 'OD' ||
+                                                                mark.PASSORFAIL === 'M' ? (
                                                                 <span className='font-bold'>{mark.PASSORFAIL}</span>
                                                             ) : exam.emE_ExamName === 'Grade' ? (
                                                                 mark.GRADE
@@ -247,11 +247,11 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                             })}
                                         </tr>
                                     ))}
-                                </tbody>
-                            </table>
+                                </tbody >
+                            </table >
 
                             {/* Exam Wise Remarks */}
-                            <table className='report-table'>
+                            < table className='report-table' >
                                 <thead>
                                     <tr className='bg-gray-100'>
                                         <th colSpan={2} className='font-bold uppercase'>
@@ -333,9 +333,10 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                             <td className='font-bold'>{studentPresAtt?.TotalPresentDays || '-'}</td>
                                             <td className='font-bold'>{studentPresAtt?.Total_Percentage || '-'}</td>
                                         </tr>
-                                    </tbody>
-                                </table>
-                            )}
+                                    </tbody >
+                                </table >
+                            )
+                            }
 
                             {/* Signatures */}
                             <div className='mt-8 space-y-16'>
@@ -359,7 +360,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                         </div>
                     );
                 })}
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };

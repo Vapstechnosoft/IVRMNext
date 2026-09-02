@@ -22,6 +22,7 @@ import { Save, X } from 'lucide-react';
 import React, { useRef, useState, useMemo, useCallback } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import Swal from 'sweetalert2';
 import type { z } from 'zod';
 import { getActiveDeactiveColumns } from './_components/columns';
 
@@ -61,6 +62,7 @@ export default function MasterActiveDeactiveStudentPage(props: {
     const [selectedStudents, setSelectedStudents] = useState<Set<number>>(new Set());
     const [studentData, setStudentData] = useState<Map<number, StudentData>>(new Map());
     const studentDataRef = useRef<Map<number, StudentData>>(new Map());
+    const [isSaving, setIsSaving] = useState(false);
 
     const { data: academicYear, isLoading: ayLoading } = useAcademicYearDropdown();
     const { data: masterClass, isLoading: preadmissionClassLoading, isError: preadmissionClassError } = useMasterClassDropdown();
@@ -84,41 +86,22 @@ export default function MasterActiveDeactiveStudentPage(props: {
 
     const apiSearchParams: ApiSearchparams | undefined = searchParams
         ? {
-              page: Number(searchParams.page) || 1,
-              page_size: Number(searchParams.page_size) || 10,
-              sort_column: String(searchParams.sort_column || ''),
-              sort_direction: String(searchParams.sort_direction || 'asc'),
-              search_query: String(searchParams.search_query || ''),
-              search_columns: String(searchParams.search_columns || '')
-          }
+            page: Number(searchParams.page) || 1,
+            page_size: Number(searchParams.page_size) || 10,
+            sort_column: String(searchParams.sort_column || ''),
+            sort_direction: String(searchParams.sort_direction || 'asc'),
+            search_query: String(searchParams.search_query || ''),
+            search_columns: String(searchParams.search_columns || '')
+        }
         : undefined;
 
     const {
         data: StudentListData,
         isLoading: StudentListLoading,
         isError: StudentListError
-    } = useMasterStudentList(amst_sol, academicYearId, classId, sectionId, undefined);
+    } = useMasterStudentList(amst_sol, academicYearId, classId, sectionId, apiSearchParams);
 
     const students = StudentListData?.data || [];
-
-    const searchQuery = apiSearchParams?.search_query?.toLowerCase() || '';
-    const filteredStudents = useMemo(() => {
-        if (!searchQuery) return students;
-        return students.filter((student: Student) => {
-            return (
-                student.student_name?.toLowerCase().includes(searchQuery) ||
-                student.registration_no?.toLowerCase().includes(searchQuery) ||
-                student.admission_no?.toLowerCase().includes(searchQuery) ||
-                student.student_id?.toString().includes(searchQuery)
-            );
-        });
-    }, [students, searchQuery]);
-
-    const page = apiSearchParams?.page || 1;
-    const pageSize = apiSearchParams?.page_size || 10;
-    const paginatedStudents = useMemo(() => {
-        return filteredStudents.slice((page - 1) * pageSize, page * pageSize);
-    }, [filteredStudents, page, pageSize]);
 
     const handleAcademicYearChange = (value: string) => {
         const numValue = Number(value);
@@ -217,26 +200,38 @@ export default function MasterActiveDeactiveStudentPage(props: {
             asmaY_Id: academicYearId,
             asmcL_Id: classId,
             asmS_Id: sectionId,
-            amsT_SOL: amst_sol as any,
+            amsT_SOL: amsT_SOL_activate as any,
             students: studentsArray
         };
 
+        setIsSaving(true);
         try {
             const response = await ActiveDeactive(payload);
             if (response.success) {
-                toast.success(amst_sol === 'S' ? 'Record Deactivated Successfully' : 'Record Activated Successfully');
-                handleClear();
+                Swal.fire({
+                    title: 'Success',
+                    text: 'Saved successfully',
+                    icon: 'success'
+                }).then(() => {
+                    handleClear();
+                });
             } else {
-                toast.error('Record Not Activated/Deactivated Successfully');
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Not saved successfully',
+                    icon: 'error'
+                });
             }
         } catch (error: any) {
             toast.error(error.message || 'Failed to update students');
+        } finally {
+            setIsSaving(false);
         }
     };
 
     const tableProps = {
-        data: paginatedStudents,
-        totalItems: filteredStudents.length,
+        data: students,
+        totalItems: (StudentListData as any)?.total || 0,
         success: StudentListData?.success ?? true,
         errorMessage: StudentListData?.message,
         enableRowSelection: true,
@@ -428,7 +423,10 @@ export default function MasterActiveDeactiveStudentPage(props: {
                                     <div className='flex gap-4'>
                                         <Button
                                             className='min-w-[120px] bg-primary text-primary-foreground hover:bg-primary/90'
-                                            onClick={handleSave}>
+                                            onClick={handleSave}
+                                            isLoading={isSaving}
+                                            loadingText='Saving...'
+                                            disabled={isSaving}>
                                             <Save className='mr-2 h-4 w-4' />
                                             Save
                                         </Button>

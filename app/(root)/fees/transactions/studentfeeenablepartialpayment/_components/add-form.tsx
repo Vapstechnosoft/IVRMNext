@@ -14,12 +14,18 @@ import {
 } from '@/hooks/fees/useTrasactions';
 import { studentFeeEnablePartialPaymentSchema } from '@/schemas/fees/trasactions';
 import { studentNameDropdown } from '@/server/fees/trasactions/fee_opening_balance';
-import { saveStudentFeeEnablePartialPayment } from '@/server/fees/trasactions/student_fee_enable_partial_payment';
+import {
+    getStudentFeeEnablePartialPaymentSections,
+    getStudentFeeEnablePartialPaymentStudents,
+    saveStudentFeeEnablePartialPayment
+} from '@/server/fees/trasactions/student_fee_enable_partial_payment';
 import type {
-    IFeeOpeningAcademicyearDropDownList,
-    IFeeOpeningClassDropdownList,
-    IFeeOpeningSectionDropdownList,
-    IStudentFeeEnablePartialPaymentSavePayload
+    IStudentFeeEnablePartialPaymentClass,
+    IStudentFeeEnablePartialPaymentInitialData,
+    IStudentFeeEnablePartialPaymentSavePayload,
+    IStudentFeeEnablePartialPaymentSection,
+    IStudentFeeEnablePartialPaymentStudent,
+    IStudentFeeEnablePartialPaymentYear
 } from '@/types/fees/transactions/transactions';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, RotateCcw, Save } from 'lucide-react';
@@ -33,10 +39,7 @@ type FormFields = z.infer<typeof studentFeeEnablePartialPaymentSchema.addOrUpdat
 interface AddStudentFeeEnablePartialPaymentFormProps {
     onSuccess?: () => void;
     className?: string;
-    initialData?: {
-        yearlist?: IFeeOpeningAcademicyearDropDownList[];
-        fillclass?: IFeeOpeningClassDropdownList[];
-    };
+    initialData?: IStudentFeeEnablePartialPaymentInitialData;
 }
 
 export default function AddStudentFeeEnablePartialPaymentForm({
@@ -44,12 +47,12 @@ export default function AddStudentFeeEnablePartialPaymentForm({
     className = '',
     initialData
 }: AddStudentFeeEnablePartialPaymentFormProps) {
-    const { data: serverResponse, refetchAll } = useStudentFeeEnablePartialPayment();
-    const { data: academicYearData, isLoading: isLoadingAcademicYears } = useopeningacademicyerdropdowndatafee();
-    const { data: classData, isLoading: isLoadingClasses } = useopeningClassdropdowndatafee();
+    const { data: serverResponse, isLoading: isLoadingInitial, refetchAll } = useStudentFeeEnablePartialPayment();
 
     const [formKey, setFormKey] = useState(0);
-    const [students, setStudents] = useState<any[]>([]);
+    const [sections, setSections] = useState<IStudentFeeEnablePartialPaymentSection[]>([]);
+    const [isLoadingSections, setIsLoadingSections] = useState(false);
+    const [students, setStudents] = useState<IStudentFeeEnablePartialPaymentStudent[]>([]);
     const [isLoadingStudents, setIsLoadingStudents] = useState(false);
 
     const {
@@ -77,37 +80,64 @@ export default function AddStudentFeeEnablePartialPaymentForm({
     const selectedClass = watch('asmcL_Id');
     const selectedSection = watch('amsC_Id');
 
-    const { data: sectionData, isLoading: isLoadingSections } = useopeningSectiondropdowndatafee(
-        selectedYear ? Number(selectedYear) : 0,
-        selectedClass && selectedClass !== 'ALL' ? Number(selectedClass) : 0
-    );
+    const yearlist: IStudentFeeEnablePartialPaymentYear[] =
+        initialData?.yearlist ?? (serverResponse?.data as any)?.yearlist ?? (serverResponse as any)?.yearlist ?? [];
 
-    const yearlist: IFeeOpeningAcademicyearDropDownList[] =
-        (Array.isArray(academicYearData?.data) ? academicYearData.data : null) ??
-        (Array.isArray(academicYearData) ? (academicYearData as any) : null) ??
-        initialData?.yearlist ??
-        (serverResponse?.data as any)?.yearlist ??
-        (serverResponse as any)?.yearlist ??
-        [];
+    const classlist: IStudentFeeEnablePartialPaymentClass[] =
+        initialData?.fillclass ?? (serverResponse?.data as any)?.fillclass ?? (serverResponse as any)?.fillclass ?? [];
 
-    const classlist: IFeeOpeningClassDropdownList[] =
-        (Array.isArray(classData?.data) ? classData.data : null) ??
-        (Array.isArray(classData) ? (classData as any) : null) ??
-        initialData?.fillclass ??
-        (serverResponse?.data as any)?.fillclass ??
-        (serverResponse as any)?.fillclass ??
-        [];
+    // Load Sections when Academic Year and Class are selected
+    useEffect(() => {
+        if (!selectedYear || selectedClass === undefined || selectedClass === null || selectedClass === '') {
+            setSections([]);
+            return;
+        }
 
-    const sections: IFeeOpeningSectionDropdownList[] =
-        (Array.isArray(sectionData?.data) ? sectionData.data : null) ??
-        (Array.isArray(sectionData) ? (sectionData as any) : null) ??
-        (Array.isArray((sectionData as any)?.sectionlist) ? (sectionData as any).sectionlist : null) ??
-        (Array.isArray((sectionData as any)?.fillsection) ? (sectionData as any).fillsection : null) ??
-        [];
+        let isMounted = true;
+        setIsLoadingSections(true);
+
+        const fetchSections = async () => {
+            try {
+                const res = await getStudentFeeEnablePartialPaymentSections({
+                    ASMAY_Id: Number(selectedYear),
+                    ASMCL_Id: selectedClass
+                });
+
+                if (!isMounted) return;
+
+                const sectionList =
+                    (res?.data as any)?.fillsection ??
+                    (res?.data as any)?.sectionlist ??
+                    (res as any)?.fillsection ??
+                    (res as any)?.sectionlist ??
+                    (Array.isArray(res?.data) ? res.data : []) ??
+                    (Array.isArray(res) ? res : []);
+
+                if (Array.isArray(sectionList) && sectionList.length > 0) {
+                    setSections(sectionList);
+                } else {
+                    setSections([]);
+                }
+            } catch (error: any) {
+                if (isMounted) {
+                    console.error('Failed to load sections:', error);
+                    setSections([]);
+                }
+            } finally {
+                if (isMounted) setIsLoadingSections(false);
+            }
+        };
+
+        fetchSections();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [selectedYear, selectedClass]);
 
     // Load students when academic year, class, and section change
     useEffect(() => {
-        if (!selectedYear || !selectedClass || !selectedSection) {
+        if (!selectedYear || selectedClass === undefined || !selectedSection) {
             setStudents([]);
             return;
         }
@@ -117,18 +147,41 @@ export default function AddStudentFeeEnablePartialPaymentForm({
 
         const fetchStudents = async () => {
             try {
-                const payload = {
-                    asmay_Id: Number(selectedYear),
-                    fillClasFlg: String(selectedClass),
-                    fillSecCls: selectedSection === '0' ? '0' : String(selectedSection),
-                    filterInitialData: 'NameRegNo',
-                    studentType: 'Active'
-                };
+                // Try facade endpoint first
+                let studentlist: any[] = [];
+                try {
+                    const res = await getStudentFeeEnablePartialPaymentStudents({
+                        ASMAY_Id: Number(selectedYear),
+                        ASMCL_Id: selectedClass,
+                        AMSC_Id: selectedSection
+                    });
 
-                const res = await studentNameDropdown(payload);
+                    studentlist =
+                        (res?.data as any)?.studentlist ??
+                        (res?.data as any)?.studentList ??
+                        (res as any)?.studentlist ??
+                        (res as any)?.studentList ??
+                        (Array.isArray(res?.data) ? res.data : []) ??
+                        (Array.isArray(res) ? res : []);
+                } catch {
+                    studentlist = [];
+                }
+
+                // Fallback to studentNameDropdown if facade returned empty
+                if (!Array.isArray(studentlist) || studentlist.length === 0) {
+                    const fallbackPayload = {
+                        asmay_Id: Number(selectedYear),
+                        fillClasFlg: String(selectedClass),
+                        fillSecCls: selectedSection === '0' ? '0' : String(selectedSection),
+                        filterInitialData: 'NameRegNo',
+                        studentType: 'Active'
+                    };
+                    const resFallback = await studentNameDropdown(fallbackPayload);
+                    studentlist =
+                        (resFallback?.data as any) ?? (resFallback as any)?.studentlist ?? (Array.isArray(resFallback) ? resFallback : []);
+                }
+
                 if (!isMounted) return;
-
-                const studentlist = (res?.data as any) ?? (res as any)?.studentlist ?? (Array.isArray(res) ? res : []);
 
                 if (Array.isArray(studentlist) && studentlist.length > 0) {
                     setStudents(studentlist);
@@ -158,6 +211,7 @@ export default function AddStudentFeeEnablePartialPaymentForm({
         setValue('asmcL_Id', classIdStr);
         setValue('amsC_Id', undefined as any);
         setValue('amsT_Id', undefined as any);
+        setSections([]);
         setStudents([]);
     };
 
@@ -168,68 +222,43 @@ export default function AddStudentFeeEnablePartialPaymentForm({
         setStudents([]);
     };
 
-    const onSubmit: SubmitHandler<FormFields> = async (data) => {
+    const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
             const selectedStudent = students.find((s: any) => (s.amst_Id ?? s.amsT_Id ?? s.AMST_Id) === Number(data.amsT_Id));
             const selectedYearObj = yearlist.find((y: any) => (y.asmaY_Id ?? y.ASMAY_Id) === Number(data.asmaY_Id));
 
             const payload: IStudentFeeEnablePartialPaymentSavePayload = {
-                FSEPP_Id: 0,
-                ASMAY_Id: Number(data.asmaY_Id),
-                AMST_Id: Number(data.amsT_Id),
-                FSEPP_RemarksDate: new Date(data.fsepP_RemarksDate).toISOString(),
-                FSEPP_Remarks: data.fsepP_Remarks.trim(),
-                ASMAY_Year: selectedYearObj?.asmaY_Year ?? '',
-                AMST_FirstName: selectedStudent?.amsT_FirstName ?? selectedStudent?.firstName ?? '',
-                AMST_MiddleName: selectedStudent?.amsT_MiddleName ?? selectedStudent?.middleName ?? '',
-                AMST_LastName: selectedStudent?.amsT_LastName ?? selectedStudent?.lastName ?? '',
-                AMST_AdmNo: selectedStudent?.amsT_AdmNo ?? selectedStudent?.admNo ?? '',
-                AMST_RegistrationNo: selectedStudent?.amsT_RegistrationNo ?? selectedStudent?.registrationNo ?? '',
-                retrunMsg: '',
-                alldata: [],
-                yearlist: [],
-                fillclass: [],
-                fillsection: [],
-                sectionlist: [],
-                studentlist: []
+                amsT_Id: Number(data.amsT_Id),
+                fsepP_RemarksDate: new Date(data.fsepP_RemarksDate).toISOString(),
+                fsepP_Remarks: data.fsepP_Remarks.trim()
             };
 
-            const response = await saveStudentFeeEnablePartialPayment(payload);
+            console.log('Save payload:', payload);
 
-            if (
-                response &&
-                (response.retrunMsg === 'Add' ||
-                    response.retrunMsg === 'Update' ||
-                    response.success ||
-                    (response as any)?.data?.retrunMsg === 'Add')
-            ) {
-                toast.success('Record Saved Successfully');
-                handleReset();
+            const response = await saveStudentFeeEnablePartialPayment(payload);
+            if (response && (response.success || response.retrunMsg === 'Saved' || response.retrunMsg === 'Update' || response.retrunMsg)) {
+                if (response.retrunMsg === 'Duplicate' || response.retrunMsg === 'duplicate') {
+                    toast.error(response.message || 'Record already exists');
+                    return;
+                }
+                const msg =
+                    response.message ||
+                    (response.retrunMsg ? `Record ${response.retrunMsg} successfully` : '') ||
+                    'Record saved successfully';
+                toast.success(msg);
+                reset();
                 refetchAll();
                 onSuccess?.();
-            } else if (response?.retrunMsg === 'false' || (response as any)?.data?.retrunMsg === 'false') {
-                toast.error('Record Not saved / Updated');
             } else {
-                toast.error(response?.message || 'Something Went Wrong Please Contact Administrator');
+                toast.error(response?.message);
             }
         } catch (error: any) {
-            toast.error(error?.message || 'Failed to save record');
+            toast.error(error?.message || 'Something went wrong while saving');
         }
     };
 
     const handleReset = () => {
-        reset({
-            asmaY_Id: undefined,
-            asmcL_Id: undefined,
-            amsC_Id: undefined,
-            amsT_Id: undefined,
-            fsepP_RemarksDate: '',
-            fsepP_Remarks: ''
-        });
-        clearErrors();
-        setStudents([]);
-        setIsLoadingStudents(false);
-        setFormKey((prev) => prev + 1);
+        reset();
     };
 
     return (
@@ -256,10 +285,11 @@ export default function AddStudentFeeEnablePartialPaymentForm({
                                                     setValue('asmcL_Id', undefined as any);
                                                     setValue('amsC_Id', undefined as any);
                                                     setValue('amsT_Id', undefined as any);
+                                                    setSections([]);
                                                     setStudents([]);
                                                 }}>
                                                 <SelectTrigger id='asmaY_Id' className='w-full'>
-                                                    {isLoadingAcademicYears ? (
+                                                    {isLoadingInitial ? (
                                                         <div className='flex items-center gap-2 text-muted-foreground'>
                                                             <Loader2 className='h-4 w-4 animate-spin' />
                                                             Loading academic years...
@@ -298,9 +328,9 @@ export default function AddStudentFeeEnablePartialPaymentForm({
                                             <Select
                                                 value={field.value !== undefined && field.value !== null ? String(field.value) : ''}
                                                 onValueChange={handleClassChange}
-                                                disabled={!selectedYear || isLoadingClasses}>
+                                                disabled={!selectedYear || isLoadingInitial}>
                                                 <SelectTrigger id='asmcL_Id' className='w-full'>
-                                                    {isLoadingClasses ? (
+                                                    {isLoadingInitial ? (
                                                         <div className='flex items-center gap-2 text-muted-foreground'>
                                                             <Loader2 className='h-4 w-4 animate-spin' />
                                                             Loading classes...

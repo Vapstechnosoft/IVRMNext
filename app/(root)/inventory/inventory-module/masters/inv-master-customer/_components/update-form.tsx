@@ -23,12 +23,12 @@ export default function UpdateCustomerForm({ selectedRow, onSuccess, onCancel }:
     const form = useForm<InvMasterCustomerSchema>({
         resolver: zodResolver(invMasterCustomerSchema),
         defaultValues: {
-            invmC_Id: selectedRow.invmC_Id,
-            invmC_CustomerName: selectedRow.invmC_CustomerName,
-            invmC_CustomerContactPerson: selectedRow.invmC_CustomerContactPerson,
-            invmC_CustomerContactNo: selectedRow.invmC_CustomerContactNo,
-            invmC_CustomerAddress: selectedRow.invmC_CustomerAddress,
-            invmC_ActiveFlg: selectedRow.invmC_ActiveFlg
+            invmC_Id: Number(selectedRow.invmC_Id) || 0,
+            invmC_CustomerName: selectedRow.invmC_CustomerName || '',
+            invmC_CustomerContactPerson: selectedRow.invmC_CustomerContactPerson || '',
+            invmC_CustomerContactNo: selectedRow.invmC_CustomerContactNo != null ? String(selectedRow.invmC_CustomerContactNo) : '',
+            invmC_CustomerAddress: selectedRow.invmC_CustomerAddress || '',
+            invmC_ActiveFlg: Boolean(selectedRow.invmC_ActiveFlg)
         }
     });
 
@@ -43,12 +43,12 @@ export default function UpdateCustomerForm({ selectedRow, onSuccess, onCancel }:
     useEffect(() => {
         if (selectedRow) {
             reset({
-                invmC_Id: selectedRow.invmC_Id,
-                invmC_CustomerName: selectedRow.invmC_CustomerName,
-                invmC_CustomerContactPerson: selectedRow.invmC_CustomerContactPerson,
-                invmC_CustomerContactNo: selectedRow.invmC_CustomerContactNo,
-                invmC_CustomerAddress: selectedRow.invmC_CustomerAddress,
-                invmC_ActiveFlg: selectedRow.invmC_ActiveFlg
+                invmC_Id: Number(selectedRow.invmC_Id) || 0,
+                invmC_CustomerName: selectedRow.invmC_CustomerName || '',
+                invmC_CustomerContactPerson: selectedRow.invmC_CustomerContactPerson || '',
+                invmC_CustomerContactNo: selectedRow.invmC_CustomerContactNo != null ? String(selectedRow.invmC_CustomerContactNo) : '',
+                invmC_CustomerAddress: selectedRow.invmC_CustomerAddress || '',
+                invmC_ActiveFlg: Boolean(selectedRow.invmC_ActiveFlg)
             });
         }
     }, [selectedRow, reset]);

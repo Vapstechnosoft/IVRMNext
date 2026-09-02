@@ -432,17 +432,17 @@ export default function StaffUserCreationPage() {
             if (result.success && result.data) {
                 const mappedPages = Array.isArray(result.data)
                     ? result.data.map((item: any) => ({
-                          pageMappingId: item.pageMappingId || item.ivrmimP_Id || item.ivrmmP_Id || item.ivrmP_Id,
-                          pageName: item.pageName || item.pageName,
-                          moduleName: item.moduleName || item.ivrmM_ModuleName || item.moduleName || '',
-                          institutionName: item.institutionName || item.instituteName || item.institutionName || '',
-                          addFlag: Boolean(item.ivrmrP_AddFlag ?? item.addFlag),
-                          deleteFlag: Boolean(item.ivrmrP_DeleteFlag ?? item.deleteFlag),
-                          updateFlag: Boolean(item.ivrmrP_UpdateFlag ?? item.updateFlag),
-                          processFlag: Boolean(item.ivrmrP_ProcessFlag ?? item.processFlag),
-                          reportFlag: Boolean(item.ivrmrP_ReportFlag ?? item.reportFlag),
-                          checked: stagedWebPages.some((s) => s.pageMappingId === (item.ivrmmP_Id || item.pageMappingId))
-                      }))
+                        pageMappingId: item.pageMappingId || item.ivrmimP_Id || item.ivrmmP_Id || item.ivrmP_Id,
+                        pageName: item.pageName || item.pageName,
+                        moduleName: item.moduleName || item.ivrmM_ModuleName || item.moduleName || '',
+                        institutionName: item.institutionName || item.instituteName || item.institutionName || '',
+                        addFlag: Boolean(item.ivrmrP_AddFlag ?? item.addFlag),
+                        deleteFlag: Boolean(item.ivrmrP_DeleteFlag ?? item.deleteFlag),
+                        updateFlag: Boolean(item.ivrmrP_UpdateFlag ?? item.updateFlag),
+                        processFlag: Boolean(item.ivrmrP_ProcessFlag ?? item.processFlag),
+                        reportFlag: Boolean(item.ivrmrP_ReportFlag ?? item.reportFlag),
+                        checked: stagedWebPages.some((s) => s.pageMappingId === (item.ivrmmP_Id || item.pageMappingId))
+                    }))
                     : [];
 
                 setWebPages(mappedPages);
@@ -770,17 +770,17 @@ export default function StaffUserCreationPage() {
             if (result.success) {
                 const mappedPages = Array.isArray(result.data)
                     ? result.data.map((item: any) => ({
-                          pageMappingId: item.ivrmimP_Id || item.ivrmmP_Id || item.ivrmP_Id,
-                          pageName: item.ivrmmP_PageName,
-                          moduleName: item.ivrmm_ModuleName || item.ivrmM_ModuleName || '',
-                          institutionName: item.intname || item.instituteName || '',
-                          addFlag: Boolean(item.ivrmrP_AddFlag),
-                          deleteFlag: Boolean(item.ivrmrP_DeleteFlag),
-                          updateFlag: Boolean(item.ivrmrP_UpdateFlag),
-                          processFlag: Boolean(item.ivrmrP_ProcessFlag),
-                          reportFlag: Boolean(item.ivrmrP_ReportFlag),
-                          checked: false
-                      }))
+                        pageMappingId: item.ivrmimP_Id || item.ivrmmP_Id || item.ivrmP_Id,
+                        pageName: item.ivrmmP_PageName,
+                        moduleName: item.ivrmm_ModuleName || item.ivrmM_ModuleName || '',
+                        institutionName: item.intname || item.instituteName || '',
+                        addFlag: Boolean(item.ivrmrP_AddFlag),
+                        deleteFlag: Boolean(item.ivrmrP_DeleteFlag),
+                        updateFlag: Boolean(item.ivrmrP_UpdateFlag),
+                        processFlag: Boolean(item.ivrmrP_ProcessFlag),
+                        reportFlag: Boolean(item.ivrmrP_ReportFlag),
+                        checked: false
+                    }))
                     : [];
 
                 setWebPages(mappedPages);

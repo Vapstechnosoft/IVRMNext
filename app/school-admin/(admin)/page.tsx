@@ -23,6 +23,7 @@ import * as React from 'react';
 import { useState } from 'react';
 import { Area, AreaChart, CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts';
 import { AdmissionAnalyticsDashboard } from '../_components/admission-analytics-dashboard';
+import { PrincipalAssistant } from '../_components/principal-assistant';
 
 // --- Data & Constants ---
 
@@ -228,6 +229,9 @@ export default function AdminDashboardPage() {
                     <StatCard key={i} item={item} />
                 ))}
             </div>
+
+            {/* Principal AI Assistant */}
+            <PrincipalAssistant />
 
             <AdmissionAnalyticsDashboard />
 

@@ -21,6 +21,8 @@ import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { type Employee, getSalaryCalculationColumns } from './_components/columns';
+import { useQueryState, parseAsString } from 'nuqs';
+import { tableSearchVariables } from '@/lib/data-table.config';
 interface SearchForm {
     groupType: string[];
     department: string[];
@@ -442,7 +444,10 @@ function SalaryCalculationTable({
     toDate,
     handleReset
 }: SalaryCalculationTableProps) {
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm, setSearchTerm] = useQueryState(
+        tableSearchVariables.search,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
 
     // Local filtering logic for search
     const filteredBySearch = useMemo(() => {
@@ -530,7 +535,7 @@ function SalaryCalculationTable({
                     error={null}
                     showViewOptions={false}
                     isSearchRequired={true}
-                    isPaginationRequired={true}
+                    isPaginationRequired={false}
                     columnPinning={{ left: ['select'] }}
                 />
             </div>

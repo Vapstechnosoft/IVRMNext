@@ -4,7 +4,7 @@ import './signin-form.css';
 import PreadmissionRegistration from '@/app/(root)/admission/preadmission/transactions/preadmission-registration/page';
 import { useCheckPreadmissionLive } from '@/hooks/admission/preadmission/useConfigurations';
 import { loginSchema } from '@/schemas/admission/preadmission/masters';
-import { login } from '@/server/user';
+import { forgotUsernameAction, login } from '@/server/user';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
     ArrowRight,
@@ -14,6 +14,7 @@ import {
     EyeOff,
     KeyRound,
     Lock,
+    Loader2,
     Mail,
     Newspaper,
     Send,
@@ -24,7 +25,6 @@ import {
     X
 } from 'lucide-react';
 import { useParams, useSearchParams } from 'next/navigation';
-import { QRCodeSVG } from 'qrcode.react'; // Added import here
 import { useEffect, useState, useTransition } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -36,7 +36,7 @@ export default function SigninForm() {
     const searchParams = useSearchParams();
     const { sub_domain } = useParams();
 
-    const { data: preadmissionLive } = useCheckPreadmissionLive(sub_domain?.toString() || '');
+    const { data: _preadmissionLive } = useCheckPreadmissionLive(sub_domain?.toString() || '');
 
     const callbackUrl = searchParams.get('callbackUrl') || '/';
     const [error, setError] = useState<string | undefined>('');
@@ -45,16 +45,37 @@ export default function SigninForm() {
     const [showPassword, setShowPassword] = useState(false);
 
     // Dialog / Modal states
-    const [isVirtualTourOpen, setIsVirtualTourOpen] = useState(false);
+    const [_isVirtualTourOpen, setIsVirtualTourOpen] = useState(false);
     const [isSubscribeOpen, setIsSubscribeOpen] = useState(false);
     const [subscribeEmail, setSubscribeEmail] = useState('');
     const [subscribeSuccess, setSubscribeSuccess] = useState(false);
+
+    // Forgot Username Modal states
+    const [isForgotUsernameOpen, setIsForgotUsernameOpen] = useState(false);
+    const [forgotMobile, setForgotMobile] = useState('');
+    const [forgotPending, setForgotPending] = useState(false);
+    const [forgotResult, setForgotResult] = useState<string | null>(null);
+    const [forgotError, setForgotError] = useState('');
 
     useEffect(() => {
         setMounted(true);
         // Force light mode for auth page
         document.documentElement.classList.remove('dark');
         document.documentElement.classList.add('light');
+
+        // Check if user was logged in previously (session expired and redirected here)
+        if (typeof window !== 'undefined' && sessionStorage.getItem('isLoggedIn') === 'true') {
+            const checkSessionExpired = async () => {
+                try {
+                    const Swal = (await import('sweetalert2')).default;
+                    await Swal.fire('Your Session has been Expired.....Please Re-login');
+                } catch (err) {
+                    console.error('Failed to load SweetAlert2', err);
+                }
+                sessionStorage.removeItem('isLoggedIn');
+            };
+            checkSessionExpired();
+        }
     }, []);
 
     const {
@@ -97,6 +118,34 @@ export default function SigninForm() {
             setSubscribeSuccess(false);
             setSubscribeEmail('');
         }, 2200);
+    };
+
+    const handleForgotUsernameSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setForgotError('');
+        setForgotResult(null);
+
+        if (!forgotMobile || forgotMobile.trim().length === 0) {
+            setForgotError('invalid register mobile number');
+            return;
+        }
+
+        setForgotPending(true);
+        try {
+            const res = await forgotUsernameAction(forgotMobile);
+            if (res.success && res.username) {
+                setForgotResult(res.username);
+                toast.success('Username retrieved successfully!');
+            } else {
+                setForgotError(res.message || 'invalid register mobile number');
+                toast.error(res.message || 'invalid register mobile number');
+            }
+        } catch (err: any) {
+            setForgotError('invalid register mobile number');
+            toast.error('invalid register mobile number');
+        } finally {
+            setForgotPending(false);
+        }
     };
 
     if (!mounted) return null;
@@ -254,11 +303,22 @@ export default function SigninForm() {
                                     {errors.password && <p className='field-error'>{errors.password?.message}</p>}
                                 </div>
 
-                                {/* Forgot password link */}
-                                <div className='forgot-password-row'>
-                                    {/* <Link href='/forgot-password' className='forgot-password-link'>
+                                {/* Forgot Username & Forgot Password Links */}
+                                <div className='forgot-links-row'>
+                                    <button
+                                        type='button'
+                                        onClick={() => {
+                                            setIsForgotUsernameOpen(true);
+                                            setForgotMobile('');
+                                            setForgotResult(null);
+                                            setForgotError('');
+                                        }}
+                                        className='forgot-username-link'>
+                                        Forgot User Name?
+                                    </button>
+                                    {/* <a href='/forgot-password' className='forgot-password-link'>
                                         Forgot password?
-                                    </Link> */}
+                                    </a> */}
                                 </div>
 
                                 {error && (
@@ -273,11 +333,10 @@ export default function SigninForm() {
                                     className={`btn-premium-primary ${isPending ? 'is-authenticating' : ''}`}
                                     disabled={isPending}>
                                     {isPending ? (
-                                        <div className='loading-spinner'>
-                                            <div className='dot' />
-                                            <div className='dot' />
-                                            <div className='dot' />
-                                        </div>
+                                        <>
+                                            <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                                            <span>Signing In...</span>
+                                        </>
                                     ) : (
                                         <>
                                             <span>Sign In</span>
@@ -339,8 +398,12 @@ export default function SigninForm() {
                             className='qr-card-link'
                             title='Click or scan to visit https://vapstechnoveda.com/subscriber'>
                             <div className='qr-card'>
-                                {/* Replaced the hardcoded component with the dynamic qrcode.react one */}
-                                <QRCodeSVG value='https://vapstechnoveda.com/subscriber' className='qr-code-svg' fgColor='#1e293b' />
+                                <img
+                                    src='https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://vapstechnoveda.com/subscriber'
+                                    alt='Technoveda QR Code'
+                                    className='qr-code-svg'
+                                    style={{ width: '110px', height: '110px', display: 'block', margin: '0 auto' }}
+                                />
                                 <span className='qr-caption'>Scan here to subscribe now</span>
                             </div>
                         </a>
@@ -434,6 +497,69 @@ export default function SigninForm() {
                                 </button>
                             </form>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* --- FORGOT USERNAME MODAL --- */}
+            {isForgotUsernameOpen && (
+                <div className='modal-backdrop animate-fade-in'>
+                    <div className='forgot-username-modal'>
+                        <div className='forgot-username-header'>
+                            <h3 className='forgot-username-title'>FORGOT USER NAME?</h3>
+                            <button
+                                type='button'
+                                onClick={() => setIsForgotUsernameOpen(false)}
+                                className='forgot-username-close-btn'
+                                aria-label='Close'>
+                                X
+                            </button>
+                        </div>
+
+                        <div className='forgot-username-body'>
+                            <form onSubmit={handleForgotUsernameSubmit} className='forgot-username-form'>
+                                <div className='forgot-input-group'>
+                                    <label htmlFor='registered-mobile' className='forgot-mobile-label'>
+                                        Registered Mobile Number:
+                                    </label>
+                                    <input
+                                        id='registered-mobile'
+                                        type='text'
+                                        value={forgotMobile}
+                                        maxLength={10}
+                                        onChange={(e) => {
+                                            const val = e.target.value.replace(/\D/g, '');
+                                            setForgotMobile(val);
+                                            if (forgotError) setForgotError('');
+                                            if (forgotResult) setForgotResult(null);
+                                        }}
+                                        placeholder='Enter Register Mobile Number'
+                                        className='forgot-mobile-input'
+                                    />
+                                </div>
+
+                                {forgotError && (
+                                    <div className='forgot-username-error-msg'>
+                                        <span>{forgotError}</span>
+                                    </div>
+                                )}
+
+                                {forgotResult && (
+                                    <div className='forgot-username-success-msg'>
+                                        <span>Username: </span>
+                                        <strong>{forgotResult}</strong>
+                                    </div>
+                                )}
+
+                                {!forgotResult && (
+                                    <div className='forgot-submit-container'>
+                                        <button type='submit' disabled={forgotPending} className='forgot-username-submit-btn'>
+                                            {forgotPending ? 'SUBMITTING...' : 'SUBMIT'}
+                                        </button>
+                                    </div>
+                                )}
+                            </form>
+                        </div>
                     </div>
                 </div>
             )}

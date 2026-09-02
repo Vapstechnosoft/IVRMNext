@@ -473,20 +473,27 @@ export default function CumulativeReportGridView({
                     <h5 className='text-sm md:text-base font-bold uppercase text-[#005ba4] tracking-wider'>
                         CLASS WISE CUMULATIVE REPORT
                     </h5>
-                    <div className='text-xs md:text-sm font-semibold uppercase text-gray-800 pt-1'>
-                        ACADEMIC YEAR : {headerInfo.yr}
-                    </div>
-                    <div className='text-xs md:text-sm font-semibold uppercase text-gray-800'>
-                        CLASS & SEC : {headerInfo.cla} - {headerInfo.sec}
-                    </div>
-                    <div className='text-xs md:text-sm font-semibold uppercase text-gray-800'>
-                        EXAM : {headerInfo.exmmid}
+                    <div className='mx-auto mt-2 w-fit text-left text-xs md:text-sm font-semibold uppercase text-gray-800'>
+                        <div className='grid grid-cols-[auto_auto_1fr] items-center gap-x-2 gap-y-0.5'>
+                            <span>ACADEMIC YEAR</span>
+                            <span>:</span>
+                            <span>{headerInfo.yr}</span>
+
+                            <span>CLASS & SEC</span>
+                            <span>:</span>
+                            <span>{headerInfo.cla} - {headerInfo.sec}</span>
+
+                            <span>EXAM</span>
+                            <span>:</span>
+                            <span>{headerInfo.exmmid}</span>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                {/* Table with Sticky Student Column */}
-                <div className='overflow-x-auto border border-gray-300 shadow-sm rounded mt-4 relative'>
-                    <table className='w-full border-collapse text-sm'>
+            {/* Table with Sticky Student Column */}
+            <div className='overflow-x-auto border border-gray-300 shadow-sm rounded mt-4 relative'>
+                <table className='w-full border-collapse text-sm'>
                         <thead>
                             <tr className='bg-[#005ba4] text-white text-xs md:text-sm font-bold uppercase'>
                                 <th className='border border-white/20 px-3 py-2.5 whitespace-nowrap text-center'>Sl No</th>
@@ -605,7 +612,6 @@ export default function CumulativeReportGridView({
                             })}
                         </tbody>
                     </table>
-                </div>
             </div>
         </div>
     );
