@@ -212,7 +212,7 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Master Section'
+                        title='Update Master Section'
                         defaultOpen={true}
                         variant='outline'
                         size='md'

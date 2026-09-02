@@ -7,7 +7,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { IClass, ISection, IYear } from '@/types/alumni/student-password-creation';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, X } from 'lucide-react';
+import { Eye, X, Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
@@ -26,11 +26,12 @@ interface FilterFormProps {
     sections: ISection[];
     onSubmit: (values: any) => void;
     onCancel: () => void;
+    isLoading?: boolean;
 }
 
 import { useState } from 'react';
 
-export default function FilterForm({ years, classes, sections, onSubmit, onCancel }: FilterFormProps) {
+export default function FilterForm({ years, classes, sections, onSubmit, onCancel, isLoading }: FilterFormProps) {
     const [resetKey, setResetKey] = useState(0);
 
     const form = useForm<FormValues>({
@@ -166,8 +167,8 @@ export default function FilterForm({ years, classes, sections, onSubmit, onCance
                 </div>
 
                 <div className='flex justify-center space-x-4 pt-4'>
-                    <Button type='submit' className='w-32 bg-primary'>
-                        <Eye className='mr-2 h-4 w-4' /> SHOW
+                    <Button type='submit' className='w-32 bg-primary' disabled={isLoading}>
+                        {isLoading ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Eye className='mr-2 h-4 w-4' />} SHOW
                     </Button>
                     <Button
                         type='button'

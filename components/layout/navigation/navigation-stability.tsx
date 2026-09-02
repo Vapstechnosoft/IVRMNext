@@ -17,6 +17,9 @@ export function NavigationStability() {
             document.body.style.overflow = '';
             document.body.style.pointerEvents = '';
 
+            // Mark the session as active for this tab so we can detect expiration later
+            sessionStorage.setItem('isLoggedIn', 'true');
+
             // Log for debugging if needed (silent in production)
             // console.log('🛡️ Navigation Stability: UI state reset for', pathname);
         }

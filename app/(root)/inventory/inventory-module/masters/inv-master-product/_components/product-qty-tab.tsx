@@ -8,12 +8,10 @@ import { useFormContext } from '@/components/ui/form/form-provider';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useInvMasterProduct } from '@/hooks/inventory/masters/use-inv-master-product';
-import { tableSearchVariables } from '@/lib/data-table.config';
 import { getInvMasterItemList, getInvMasterProductList } from '@/server/inventory/masters/inv-master-product';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Box, PlusCircle, X } from 'lucide-react';
-import { parseAsInteger, useQueryState } from 'nuqs';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { getProductQtyColumns } from './product-columns';
@@ -25,15 +23,15 @@ const formSchema = z.object({
     invmpI_ItemQty: z.coerce.number().min(1, 'Quantity must be greater than 0')
 });
 
-export default function ProductQtyTab() {
+interface ProductQtyTabProps {
+    searchParams?: any;
+}
+
+export default function ProductQtyTab({ searchParams }: ProductQtyTabProps) {
     console.log('ProductQtyTab - MOUNTED/RENDERED');
-    // Pagination State
-    const [currentPage] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
-    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
 
-    const itemSearchParams = { page: currentPage, page_size: pageSize };
-
-    const { productItemData, isProductItemLoading, saveProductQtyMutation, refreshAll } = useInvMasterProduct(undefined, itemSearchParams);
+    const { productItemData, isProductItemLoading, saveProductQtyMutation, refreshAll } =
+        useInvMasterProduct(undefined, searchParams ?? {});
 
     const { isAddFormOpen, isEditFormOpen, closeAddForm, closeEditForm, openEditForm, addFormRef, editFormRef } = useFormContext<any>();
 
@@ -65,8 +63,25 @@ export default function ProductQtyTab() {
         };
     }, [productItemData]);
 
-    const data = (productItemData as any)?.get_product_item || (productItemData as any)?.data || [];
-    const tableProps = useDataTableProps({ ...((productItemData || {}) as any), data });
+    const enrichedData = useMemo(() => {
+        if (!productItemData) return undefined;
+        const itemsList =
+            (productItemData as any)?.get_product_item ||
+            (productItemData as any)?.data ||
+            (Array.isArray(productItemData) ? productItemData : []);
+        const total =
+            (productItemData as any)?.total ||
+            (productItemData as any)?.data?.total ||
+            (Array.isArray(itemsList) ? itemsList.length : 0);
+        return {
+            ...productItemData,
+            data: itemsList,
+            total
+        };
+    }, [productItemData]);
+
+    const data = enrichedData?.data || [];
+    const tableProps = useDataTableProps(enrichedData);
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
