@@ -14,6 +14,21 @@ export async function loadGRNItems() {
 }
 
 export async function loadGRNStores() {
+    try {
+        const res = await api.get<any>('inventory', `/INV_ItemStoreMapping/getloaddata`);
+        const stores =
+            res?.data?.get_store ||
+            res?.get_store ||
+            res?.data?.get_Store ||
+            res?.get_Store ||
+            (Array.isArray(res?.data) ? res.data : []);
+        if (Array.isArray(stores) && stores.length > 0) {
+            return res;
+        }
+    } catch (e) {
+        console.warn('loadGRNStores: /INV_ItemStoreMapping/getloaddata failed, falling back', e);
+    }
+
     return await api.get<any>('inventory', `/INV_T_GRNFacade/loadstores`);
 }
 
