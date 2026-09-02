@@ -23,7 +23,15 @@ export const ReportList = ({ data, params }: ReportListProps) => {
     console.log('StThomos Report Card X-XII Raw Data:', data);
 
     // Normalize institution details
-    const institution = data.institutionList?.[0] || data.masterinstitution || data.institution || data.getinstitution;
+    const institution =
+        (Array.isArray(data.institutionList) && data.institutionList[0]) ||
+        (Array.isArray(data.masterinstitution) && data.masterinstitution[0]) ||
+        (Array.isArray(data.institution) && data.institution[0]) ||
+        (Array.isArray(data.getinstitution) && data.getinstitution[0]) ||
+        data.institutionList ||
+        data.masterinstitution ||
+        data.institution ||
+        data.getinstitution;
 
     // Normalizing and dynamically parsing groups & exams
     const groupDetailsRaw = data.getgroupdetails || data.groupdetails || [];
@@ -645,12 +653,30 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         'ACCEPTS RESPONSIBILITY FOR LEARNING'
     ];
 
+    // Dynamic logo & watermark sources from institution
+    const logoSrc =
+        institution?.mI_Logo ||
+        institution?.MI_Logo ||
+        institution?.mI_Logo_Path ||
+        institution?.mI_LogoPath ||
+        'https://dcampusstrg.blob.core.windows.net/files/17/Trnsportdocuments/7115f492-3955-47e6-97d9-187413d0f3a5.jpg';
+
+    const headerLogo =
+        institution?.mI_Logo ||
+        institution?.MI_Logo ||
+        institution?.mI_Logo_Path ||
+        institution?.mI_LogoPath ||
+        'https://sthomashowrah.blob.core.windows.net/files/Logo Header stt.jpg';
+
+    const watermarkBg =
+        institution?.mI_BackgroundImage ||
+        institution?.MI_BackgroundImage ||
+        institution?.mI_Logo ||
+        institution?.MI_Logo ||
+        'https://sthomashowrah.blob.core.windows.net/files/4/stthomos.jpeg';
+
     // Watermark styling for the report card page
     const watermarkStyle = {
-        backgroundImage: "url('https://sthomashowrah.blob.core.windows.net/files/4/stthomos.jpeg')",
-        backgroundSize: '420px 417px',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
         backgroundColor: 'transparent'
     };
 
@@ -701,26 +727,40 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                     <div className='mb-4 flex flex-row items-center justify-between'>
                                         <div className='w-24'>
                                             <img
-                                                src='https://dcampusstrg.blob.core.windows.net/files/17/Trnsportdocuments/7115f492-3955-47e6-97d9-187413d0f3a5.jpg'
+                                                src={logoSrc}
                                                 className='h-auto w-20 object-contain'
-                                                alt='Transport Logo'
+                                                alt={institution?.mI_Name || 'School Logo'}
                                             />
                                         </div>
                                         <div className='flex-1 text-center'>
                                             <img
-                                                src='https://sthomashowrah.blob.core.windows.net/files/Logo Header stt.jpg'
+                                                src={headerLogo}
                                                 className='mx-auto h-[60px] w-auto object-contain'
-                                                alt='Header Logo'
+                                                alt={institution?.mI_Name || 'Header Logo'}
                                             />
                                             <div className='mt-1 text-[9px] leading-[1.2]'>
-                                                <p className='text-center'>(Diocese of Calcutta, CNI)</p>
+                                                <p className='text-center font-bold uppercase'>{institution?.mI_Name || '(Diocese of Calcutta, CNI)'}</p>
                                                 <p className='text-center'>
-                                                    A Christian Minority Co-Educational English Medium School under Article 30 of the Indian
-                                                    Constitution
+                                                    {institution?.mI_Address1
+                                                        ? [
+                                                              institution.mI_Address1,
+                                                              institution.mI_Address2,
+                                                              institution.mI_Address3,
+                                                              institution.mI_Pincode ? `Pin - ${institution.mI_Pincode}` : ''
+                                                          ]
+                                                              .filter(Boolean)
+                                                              .join(', ')
+                                                        : 'A Christian Minority Co-Educational English Medium School under Article 30 of the Indian Constitution'}
                                                 </p>
-                                                <p className='text-center'>3, Church Road, Howrah-711101 West Bengal, India</p>
                                                 <p className='text-center'>
-                                                    Phone No: +91 33 2641 2138, +91 33 2641 3590 Email ID: stesh1860@gmail.com
+                                                    {institution?.mI_Address1
+                                                        ? [institution.ivrmmcT_Name, institution.mI_AddressArea].filter(Boolean).join(', ') || ''
+                                                        : '3, Church Road, Howrah-711101 West Bengal, India'}
+                                                </p>
+                                                <p className='text-center'>
+                                                    {institution?.mI_PhoneNo || institution?.mI_EmailId
+                                                        ? `Phone No: ${institution.mI_PhoneNo || '+91 33 2641 2138'}, Email ID: ${institution.mI_EmailId || 'stesh1860@gmail.com'}`
+                                                        : 'Phone No: +91 33 2641 2138, +91 33 2641 3590 Email ID: stesh1860@gmail.com'}
                                                 </p>
                                             </div>
                                         </div>
@@ -731,8 +771,23 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                 )}
 
                                 {/* Main Report Layout */}
-                                <div className='watermarked-container p-2' style={watermarkStyle}>
-                                    {/* Report Title */}
+                                <div className='watermarked-container relative p-2' style={watermarkStyle}>
+                                    {/* Semi-transparent Watermark Overlay */}
+                                    {watermarkBg && (
+                                        <div
+                                            className='pointer-events-none absolute inset-0 z-0 flex items-center justify-center overflow-hidden'
+                                            aria-hidden='true'>
+                                            <img
+                                                src={watermarkBg}
+                                                alt=''
+                                                className='watermark-img h-[420px] w-[420px] max-h-[85%] max-w-[85%] object-contain select-none opacity-[0.10]'
+                                                style={{ opacity: 0.10 }}
+                                            />
+                                        </div>
+                                    )}
+
+                                    <div className='relative z-10'>
+                                        {/* Report Title */}
                                     <div className='mb-2 text-center font-bold text-md uppercase'>
                                         {examName} REPORT CARD {params.ASMAY_Year || ''}
                                     </div>
@@ -1170,6 +1225,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                             </tr>
                                         </thead>
                                     </table>
+                                    </div>
                                 </div>
                             </div>
                         );
@@ -1208,6 +1264,11 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                     .watermarked-container {
                         -webkit-print-color-adjust: exact;
                         print-color-adjust: exact;
+                    }
+                    .watermark-img {
+                        opacity: 0.10 !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
                     }
                 }
             `}</style>

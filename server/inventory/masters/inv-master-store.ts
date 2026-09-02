@@ -22,26 +22,42 @@ export async function getInvMasterStore(searchParams?: ApiSearchparams) {
 
 export async function saveInvMasterStore(data: any) {
     const params = new URLSearchParams();
-    const mapping: Record<string, string> = {
-        invmsT_Id: 'INVMST_Id',
-        invmS_StoreName: 'INVMS_StoreName',
-        invmS_StoreLocation: 'INVMS_StoreLocation',
-        invmS_ContactPerson: 'INVMS_ContactPerson',
-        invmS_ContactNo: 'INVMS_ContactNo',
-        hrmE_Id: 'HRME_Id',
-        invmS_ActiveFlg: 'INVMST_ActiveFlg'
+    const contactNo = data.invmS_ContactNo || data.invmsT_ContactNo || data.INVMS_ContactNo || data.INVMST_ContactNo || '';
+    const storeName = data.invmS_StoreName || data.invmsT_StoreName || data.INVMS_StoreName || data.INVMST_StoreName || '';
+    const storeLocation =
+        data.invmS_StoreLocation || data.invmsT_StoreLocation || data.INVMS_StoreLocation || data.INVMST_StoreLocation || '';
+    const contactPerson =
+        data.invmS_ContactPerson || data.invmsT_ContactPerson || data.INVMS_ContactPerson || data.INVMST_ContactPerson || '';
+    const storeId = data.invmsT_Id || data.invmS_Id || data.INVMST_Id || data.INVMS_Id || 0;
+    const hrmeId = data.hrmE_Id || data.HRME_Id || 0;
+    const activeFlg =
+        data.invmS_ActiveFlg !== undefined ? data.invmS_ActiveFlg : data.INVMST_ActiveFlg !== undefined ? data.INVMST_ActiveFlg : true;
+
+    const payload: any = {
+        INVMST_Id: storeId,
+        INVMS_Id: storeId,
+        INVMST_StoreName: storeName,
+        INVMS_StoreName: storeName,
+        INVMST_StoreLocation: storeLocation,
+        INVMS_StoreLocation: storeLocation,
+        INVMST_ContactPerson: contactPerson,
+        INVMS_ContactPerson: contactPerson,
+        INVMST_ContactNo: contactNo,
+        INVMS_ContactNo: contactNo,
+        HRME_Id: hrmeId,
+        INVMST_ActiveFlg: activeFlg,
+        INVMS_ActiveFlg: activeFlg
     };
 
-    for (const key in data) {
-        const apiKey = mapping[key] || key;
-        const val = data[key];
+    for (const key in payload) {
+        const val = payload[key];
         if (val !== undefined && val !== null) {
-            params.append(apiKey, val.toString());
+            params.append(key, val.toString());
         }
     }
 
     const url = `/INV_MasterStoreFacade/savedetails?${params.toString()}`;
-    return await api.post<any>('inventory', url, {});
+    return await api.post<any>('inventory', url, payload);
 }
 
 export async function deactivateInvMasterStore(data: any) {

@@ -23,7 +23,15 @@ export const ReportList = ({ data, params }: ReportListProps) => {
     console.log('Juniors Progress Card Report Raw Data:', data);
 
     // Normalize institution details
-    const institution = data.institutionList?.[0] || data.masterinstitution || data.institution || data.getinstitution;
+    const institution =
+        (Array.isArray(data.institutionList) && data.institutionList[0]) ||
+        (Array.isArray(data.masterinstitution) && data.masterinstitution[0]) ||
+        (Array.isArray(data.institution) && data.institution[0]) ||
+        (Array.isArray(data.getinstitution) && data.getinstitution[0]) ||
+        data.institutionList ||
+        data.masterinstitution ||
+        data.institution ||
+        data.getinstitution;
 
     // Config Flags
     const showLogo = params?.printLogo;
@@ -579,12 +587,31 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         'ACCEPTS RESPONSIBILITY FOR LEARNING'
     ];
 
+    // Dynamic logo & watermark sources from institution
+    const logoSrc =
+        institution?.mI_Logo ||
+        institution?.MI_Logo ||
+        institution?.mI_Logo_Path ||
+        institution?.mI_LogoPath ||
+        'https://dcampusstrg.blob.core.windows.net/files/17/Trnsportdocuments/7115f492-3955-47e6-97d9-187413d0f3a5.jpg';
+
+    const headerLogo =
+        institution?.mI_Logo ||
+        institution?.MI_Logo ||
+        institution?.mI_Logo_Path ||
+        institution?.mI_LogoPath ||
+        'https://sthomashowrah.blob.core.windows.net/files/Logo Header stt.jpg';
+
+    const watermarkBg =
+        institution?.mI_BackgroundImage ||
+        institution?.MI_BackgroundImage ||
+        institution?.mI_Logo ||
+        institution?.MI_Logo ||
+        'https://sthomashowrah.blob.core.windows.net/files/4/stthomos.jpeg';
+
     // Watermark styling for the report card page
     const watermarkStyle = {
-        backgroundImage: "url('https://sthomashowrah.blob.core.windows.net/files/4/stthomos.jpeg')",
-        backgroundSize: '420px 417px',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
+        backgroundColor: 'transparent'
     };
 
     if (studentDetailsMapped.length === 0) {
@@ -648,23 +675,37 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                 <div className='mb-4 flex flex-row items-center justify-center px-4'>
                                     <div className='w-[15%] text-right'>
                                         <img
-                                            src='https://dcampusstrg.blob.core.windows.net/files/17/Trnsportdocuments/7115f492-3955-47e6-97d9-187413d0f3a5.jpg'
+                                            src={logoSrc}
                                             style={{ width: '100px', height: '100px' }}
                                             className='inline-block object-contain'
-                                            alt='Logo'
+                                            alt={institution?.mI_Name || 'School Logo'}
                                         />
                                     </div>
                                     <div className='flex w-[70%] flex-col items-center text-center'>
                                         <img
-                                            src='https://sthomashowrah.blob.core.windows.net/files/Logo Header stt.jpg'
+                                            src={headerLogo}
                                             className='mx-auto h-[70px] w-auto object-contain'
-                                            alt='St Thomos Header'
+                                            alt={institution?.mI_Name || 'Header Logo'}
                                         />
                                         <div className='mt-2 space-y-0.5 text-center font-semibold text-[13px] text-black leading-tight'>
-                                            <p>3, Church Road Howrah -711 101</p>
-                                            <p>(DIOCESE OF CALCUTA, CNI)</p>
+                                            <p className='font-bold uppercase'>{institution?.mI_Name || 'St. Thomas Church School'}</p>
                                             <p>
-                                                (Affiliated to the Council for the Indian School Certificate Examination,New Delhi WB -079)
+                                                {institution?.mI_Address1
+                                                    ? [
+                                                          institution.mI_Address1,
+                                                          institution.mI_Address2,
+                                                          institution.mI_Address3,
+                                                          institution.mI_Pincode ? `Pin - ${institution.mI_Pincode}` : ''
+                                                      ]
+                                                          .filter(Boolean)
+                                                          .join(', ')
+                                                    : '3, Church Road Howrah -711 101'}
+                                            </p>
+                                            <p>{institution?.ivrmmcT_Name ? `(${institution.ivrmmcT_Name})` : '(DIOCESE OF CALCUTA, CNI)'}</p>
+                                            <p>
+                                                {institution?.mI_PhoneNo || institution?.mI_EmailId
+                                                    ? `Phone: ${institution.mI_PhoneNo || ''} | Email: ${institution.mI_EmailId || ''}`
+                                                    : '(Affiliated to the Council for the Indian School Certificate Examination,New Delhi WB -079)'}
                                             </p>
                                         </div>
                                     </div>
@@ -675,6 +716,20 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                             )}
 
                             <div className='watermarked-container relative p-2' style={watermarkStyle}>
+                                {/* Semi-transparent Watermark Overlay */}
+                                {watermarkBg && (
+                                    <div
+                                        className='pointer-events-none absolute inset-0 z-0 flex items-center justify-center overflow-hidden'
+                                        aria-hidden='true'>
+                                        <img
+                                            src={watermarkBg}
+                                            alt=''
+                                            className='watermark-img h-[420px] w-[420px] max-h-[85%] max-w-[85%] object-contain select-none opacity-[0.10]'
+                                            style={{ opacity: 0.10 }}
+                                        />
+                                    </div>
+                                )}
+
                                 <div className='relative z-10'>
                                     {/* Exam Title */}
                                     <table className='mb-2 w-full border-none bg-transparent'>
@@ -1136,6 +1191,11 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                     .watermarked-container {
                         -webkit-print-color-adjust: exact;
                         print-color-adjust: exact;
+                    }
+                    .watermark-img {
+                        opacity: 0.10 !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
                     }
                 }
             `}</style>
