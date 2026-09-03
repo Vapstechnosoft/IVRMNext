@@ -195,11 +195,18 @@ export const useMasterGrade = (searchParams?: ApiSearchparams) => {
         ...useQuery({
             queryKey: [EXAM_QUERY_KEYS.MASTER_GRADE_EX, searchParams ?? {}],
             queryFn: async () => getMasterGrade(searchParams),
-            staleTime: 0
+            staleTime: 0,
+            refetchOnMount: 'always'
         }),
         refetchAll: () => {
-            return queryClient.invalidateQueries({
+            queryClient.invalidateQueries({
                 queryKey: [EXAM_QUERY_KEYS.MASTER_GRADE_EX]
+            });
+            queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.MASTER_GRADE_DROPDOWN_LIST]
+            });
+            queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.MASTER_GRADE_DETAILS]
             });
         }
     };
@@ -212,11 +219,18 @@ export const useMasterGradeDropdownList = (searchParams?: ApiSearchparams) => {
         ...useQuery({
             queryKey: [EXAM_QUERY_KEYS.MASTER_GRADE_DROPDOWN_LIST, searchParams ?? {}],
             queryFn: async () => getMasterGradeDropdownList(),
-            staleTime: 0
+            staleTime: 0,
+            refetchOnMount: 'always'
         }),
         refetchAll: () => {
-            return queryClient.invalidateQueries({
+            queryClient.invalidateQueries({
                 queryKey: [EXAM_QUERY_KEYS.MASTER_GRADE_DROPDOWN_LIST]
+            });
+            queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.MASTER_GRADE_EX]
+            });
+            queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.MASTER_GRADE_DETAILS]
             });
         }
     };
